@@ -1,0 +1,30 @@
+gillespy package
+================
+
+Submodules
+----------
+
+gillespy.SBMLimport module
+--------------------------
+
+.. automodule:: gillespy.SBMLimport
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+gillespy.gillespy module
+------------------------
+
+.. automodule:: gillespy.gillespy
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: gillespy
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,767 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gillespy package &mdash; GillesPy 1.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GillesPy 1.1 documentation" href="index.html" />
+    <link rel="prev" title="Welcome to GillesPy’s documentation!" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to GillesPy’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GillesPy 1.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="gillespy-package">
+<h1>gillespy package<a class="headerlink" href="#gillespy-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-gillespy.SBMLimport">
+<span id="gillespy-sbmlimport-module"></span><h2>gillespy.SBMLimport module<a class="headerlink" href="#module-gillespy.SBMLimport" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="gillespy.SBMLimport.convert">
+<code class="descclassname">gillespy.SBMLimport.</code><code class="descname">convert</code><span class="sig-paren">(</span><em>filename</em>, <em>modelName=None</em>, <em>gillespy_model=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy/SBMLimport.html#convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.SBMLimport.convert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-gillespy">
+<span id="gillespy-module"></span><h2>gillespy module<a class="headerlink" href="#module-gillespy" title="Permalink to this headline">¶</a></h2>
+<p>A simple toolkit for creating and simulating discrete stochastic models in 
+python.</p>
+<p>This serves primarily as a python wrapper for the C-based solvers within
+StochKit2. The gillespy.Model class provides nearly all of the functionality
+present in this project.</p>
+<p>This version is updated (4/2017) to contain documentation in a more reasonable 
+format. This does not necessarily mean it is perfect, but it is certainly an
+improvement over the original.</p>
+<dl class="class">
+<dt id="gillespy.GillesPySolver">
+<em class="property">class </em><code class="descclassname">gillespy.</code><code class="descname">GillesPySolver</code><a class="reference internal" href="_modules/gillespy.html#GillesPySolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.GillesPySolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract class for a solver. This is generally called from within a
+gillespy Model through the Model.run function. Returns simulation 
+trajectories.</p>
+<dl class="docutils">
+<dt>model <span class="classifier-delimiter">:</span> <span class="classifier">gillespy.Model</span></dt>
+<dd>The model on which the solver will operate.</dd>
+<dt>t <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The end time of the solver.</dd>
+<dt>number_of_trajectories <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The number of times to sample the chemical master equation. Each
+trajectory will be returned at the end of the simulation.</dd>
+<dt>increment <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The time step of the solution.</dd>
+<dt>seed <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The random seed for the simulation. Defaults to None.</dd>
+<dt>stochkit_home <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Path to stochkit. This is set automatically upon installation, but 
+may be overwritten if desired.</dd>
+<dt>algorithm <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>The solver by which to simulate the model. &#8216;ssa&#8217; or &#8216;tau_leaping&#8217;
+are the available options. If &#8216;ssa&#8217; is chosen, StochKit will choose
+from the available ssa options.</dd>
+<dt>job_id <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>If given, this will be the name of the solver run. Usually not set.</dd>
+<dt>extra_args <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Any extra arguments for the stochkit solver. See StochKit2 
+documentation for details.</dd>
+<dt>debug <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
+<dd>Set to True to provide additional debug information about the     
+simulation.</dd>
+<dt>show_labels <span class="classifier-delimiter">:</span> <span class="classifier">bool (True)</span></dt>
+<dd>Use names of species as index of result object rather than position numbers.</dd>
+</dl>
+<dl class="method">
+<dt id="gillespy.GillesPySolver.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>stochkit_home=None</em>, <em>algorithm=None</em>, <em>job_id=None</em>, <em>extra_args=''</em>, <em>debug=False</em>, <em>show_labels=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#GillesPySolver.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.GillesPySolver.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call out and run the solver. Collect the results.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="gillespy.InvalidModelError">
+<em class="property">exception </em><code class="descclassname">gillespy.</code><code class="descname">InvalidModelError</code><a class="reference internal" href="_modules/gillespy.html#InvalidModelError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.InvalidModelError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="gillespy.InvalidStochMLError">
+<em class="property">exception </em><code class="descclassname">gillespy.</code><code class="descname">InvalidStochMLError</code><a class="reference internal" href="_modules/gillespy.html#InvalidStochMLError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.InvalidStochMLError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gillespy.Model">
+<em class="property">class </em><code class="descclassname">gillespy.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>name=''</em>, <em>population=True</em>, <em>volume=1.0</em>, <em>tspan=None</em>, <em>annotation='model'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Representation of a well mixed biochemical model. Contains reactions,
+parameters, species.</p>
+<dl class="docutils">
+<dt>name <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>The name of the model, or an annotation describing it.</dd>
+<dt>population <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>The type of model being described. A discrete stochastic model is a 
+population model (True), a deterministic model is a concentration model
+(False). Automatic conversion from population to concentration models 
+may be used, by setting the volume parameter.</dd>
+<dt>volume <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The volume of the system matters when converting to from population to 
+concentration form. This will also set a parameter &#8220;vol&#8221; for use in
+custom (i.e. non-mass-action) propensity functions.</dd>
+<dt>tspan <span class="classifier-delimiter">:</span> <span class="classifier">numpy ndarray</span></dt>
+<dd>The timepoints at which the model should be simulated. If None, a 
+default timespan is added. May be set later, see Model.timespan</dd>
+<dt>annotation <span class="classifier-delimiter">:</span> <span class="classifier">str (optional)</span></dt>
+<dd>Optional further description of model</dd>
+</dl>
+<dl class="method">
+<dt id="gillespy.Model.add_parameter">
+<code class="descname">add_parameter</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.add_parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.add_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a parameter, or list of parameters to the model.</p>
+<dl class="docutils">
+<dt>obj <span class="classifier-delimiter">:</span> <span class="classifier">Parameter, or list of Parameters</span></dt>
+<dd>The parameter or list of parameters to be added to the model object.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.add_reaction">
+<code class="descname">add_reaction</code><span class="sig-paren">(</span><em>reacs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.add_reaction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.add_reaction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a reaction, or list of reactions to the model.</p>
+<dl class="docutils">
+<dt>obj <span class="classifier-delimiter">:</span> <span class="classifier">Reaction, or list of Reactions</span></dt>
+<dd>The reaction or list of reaction objects to be added to the model
+object.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.add_species">
+<code class="descname">add_species</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.add_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.add_species" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a species, or list of species to the model.</p>
+<dl class="docutils">
+<dt>obj <span class="classifier-delimiter">:</span> <span class="classifier">Species, or list of Species</span></dt>
+<dd>The species or list of species to be added to the model object.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.delete_all_parameters">
+<code class="descname">delete_all_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.delete_all_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.delete_all_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes all parameters from model.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.delete_all_reactions">
+<code class="descname">delete_all_reactions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.delete_all_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.delete_all_reactions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.delete_all_species">
+<code class="descname">delete_all_species</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.delete_all_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.delete_all_species" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes all species from the model object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.delete_parameter">
+<code class="descname">delete_parameter</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.delete_parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.delete_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes a parameter object by name.</p>
+<dl class="docutils">
+<dt>obj <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Name of the parameter object to be removed.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.delete_reaction">
+<code class="descname">delete_reaction</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.delete_reaction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.delete_reaction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.delete_species">
+<code class="descname">delete_species</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.delete_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.delete_species" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes a species object by name.</p>
+<dl class="docutils">
+<dt>sname <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Name of the species object to be removed.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.get_all_parameters">
+<code class="descname">get_all_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.get_all_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.get_all_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dict of all parameters in the model, of the form:
+{name : parameter object}</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.get_all_reactions">
+<code class="descname">get_all_reactions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.get_all_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.get_all_reactions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.get_all_species">
+<code class="descname">get_all_species</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.get_all_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.get_all_species" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dict of all species in the model, of the form:
+{name : species object}</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.get_parameter">
+<code class="descname">get_parameter</code><span class="sig-paren">(</span><em>pname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.get_parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.get_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a parameter object by name.</p>
+<dl class="docutils">
+<dt>pname <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Name of the parameter object to be returned.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.get_reaction">
+<code class="descname">get_reaction</code><span class="sig-paren">(</span><em>rname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.get_reaction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.get_reaction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.get_species">
+<code class="descname">get_species</code><span class="sig-paren">(</span><em>sname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.get_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.get_species" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a species object by name.</p>
+<dl class="docutils">
+<dt>sname <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Name of the species object to be returned.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.resolve_parameters">
+<code class="descname">resolve_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.resolve_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.resolve_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Internal function: 
+attempt to resolve all parameter expressions to scalar floats. 
+This methods must be called before exporting the model.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>number_of_trajectories=1</em>, <em>seed=None</em>, <em>solver=None</em>, <em>stochkit_home=None</em>, <em>debug=False</em>, <em>show_labels=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function calling simulation of the model. There are a number of       
+parameters to be set here.</p>
+<dl class="docutils">
+<dt>number_of_trajectories <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The number of times to sample the chemical master equation. Each
+trajectory will be returned at the end of the simulation.
+Optional, defaults to 1.</dd>
+<dt>seed <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The random seed for the simulation. Optional, defaults to None.</dd>
+<dt>solver <span class="classifier-delimiter">:</span> <span class="classifier">gillespy.GillesPySolver</span></dt>
+<dd>The solver by which to simulate the model. This solver object may
+be initialized separately to specify an algorithm. Optional, 
+defulats to StochKitSolver SSA.</dd>
+<dt>stochkit_home <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Path to stochkit. This is set automatically upon installation, but 
+may be overwritten if desired.</dd>
+<dt>debug <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
+<dd>Set to True to provide additional debug information about the     
+simulation.</dd>
+<dt>show_labels <span class="classifier-delimiter">:</span> <span class="classifier">bool (True)</span></dt>
+<dd>Use names of species as index of result object rather than position numbers.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.serialize">
+<code class="descname">serialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.serialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.serialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serializes the Model object to valid StochML.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.set_parameter">
+<code class="descname">set_parameter</code><span class="sig-paren">(</span><em>pname</em>, <em>expression</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.set_parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.set_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the value of an existing paramter &#8220;pname&#8221; to &#8220;expression&#8221;.</p>
+<dl class="docutils">
+<dt>pname <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Name of the parameter whose value will be set.</dd>
+<dt>expression <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><em>String</em> that may be executed in C, describing the value of the 
+parameter. May reference other parameters by name. (e.g. &#8220;k1*4&#8221;)</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.set_units">
+<code class="descname">set_units</code><span class="sig-paren">(</span><em>units</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.set_units"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.set_units" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the units of the model to either &#8220;population&#8221; or &#8220;concentration&#8221;</p>
+<dl class="docutils">
+<dt>units <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Either &#8220;population&#8221; or &#8220;concentration&#8221;</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.timespan">
+<code class="descname">timespan</code><span class="sig-paren">(</span><em>tspan</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.timespan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.timespan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the time span of simulation. StochKit does not support non-uniform 
+timespans.</p>
+<dl class="docutils">
+<dt>tspan <span class="classifier-delimiter">:</span> <span class="classifier">numpy ndarray</span></dt>
+<dd>Evenly-spaced list of times at which to sample the species 
+populations during the simulation.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Model.update_namespace">
+<code class="descname">update_namespace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Model.update_namespace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Model.update_namespace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a dict with flattened parameter and species objects.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="gillespy.ModelError">
+<em class="property">exception </em><code class="descclassname">gillespy.</code><code class="descname">ModelError</code><a class="reference internal" href="_modules/gillespy.html#ModelError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.ModelError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gillespy.Parameter">
+<em class="property">class </em><code class="descclassname">gillespy.</code><code class="descname">Parameter</code><span class="sig-paren">(</span><em>name=''</em>, <em>expression=None</em>, <em>value=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>A parameter can be given as an expression (function) or directly 
+as a value (scalar). If given an expression, it should be 
+understood as evaluable in the namespace of a parent Model.</p>
+<dl class="docutils">
+<dt>name <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>The name by which this parameter is called or referenced in reactions.</dd>
+<dt>expression <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>String for a function calculating parameter values. Should be evaluable
+in namespace of Model.</dd>
+<dt>value <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Value of a parameter if it is not dependent on other Model entities.</dd>
+</dl>
+<dl class="method">
+<dt id="gillespy.Parameter.evaluate">
+<code class="descname">evaluate</code><span class="sig-paren">(</span><em>namespace={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Parameter.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Parameter.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate the expression and return the (scalar) value in the given 
+namespace.</p>
+<dl class="docutils">
+<dt>namespace <span class="classifier-delimiter">:</span> <span class="classifier">dict (optional)</span></dt>
+<dd>The namespace in which to test evaluation of the parameter, if it
+involves other parameters, etc.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Parameter.set_expression">
+<code class="descname">set_expression</code><span class="sig-paren">(</span><em>expression</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Parameter.set_expression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Parameter.set_expression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the expression for a parameter.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="gillespy.ParameterError">
+<em class="property">exception </em><code class="descclassname">gillespy.</code><code class="descname">ParameterError</code><a class="reference internal" href="_modules/gillespy.html#ParameterError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.ParameterError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#gillespy.ModelError" title="gillespy.ModelError"><code class="xref py py-class docutils literal"><span class="pre">gillespy.ModelError</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gillespy.Reaction">
+<em class="property">class </em><code class="descclassname">gillespy.</code><code class="descname">Reaction</code><span class="sig-paren">(</span><em>name=''</em>, <em>reactants={}</em>, <em>products={}</em>, <em>propensity_function=None</em>, <em>massaction=False</em>, <em>rate=None</em>, <em>annotation=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Reaction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Reaction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Models a single reaction. A reaction has its own dicts of species 
+(reactants and products) and parameters. The reaction&#8217;s propensity 
+function needs to be evaluable (and result in a non-negative scalar 
+value) in the namespace defined by the union of those dicts.</p>
+<dl class="docutils">
+<dt>name <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>The name by which the reaction is called.</dd>
+<dt>reactants <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>The reactants that are consumed in the reaction, with stoichiometry. An
+example would be {R1 : 1, R2 : 2} if the reaction consumes two of R1 and    
+one of R2, where R1 and R2 are Species objects.</dd>
+<dt>products <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>The species that are created by the reaction event, with stoichiometry. 
+Same format as reactants.</dd>
+<dt>propensity_function <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>The custom propensity fcn for the reaction. Must be evaluable in the    
+namespace of the reaction using C operations.</dd>
+<dt>massaction <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>The switch to use a mass-action reaction. If set to True, a rate value
+is required.</dd>
+<dt>rate <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The rate of the mass-action reaction. Take care to note the units...</dd>
+<dt>annotation <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>An optional note about the reaction.</dd>
+</dl>
+<p>For a species that is NOT consumed in the reaction but is part of a mass 
+action reaction, add it as both a reactant and a product.</p>
+<p>Mass-action reactions must also have a rate term added. Note that the rate 
+must be scaled by the volume prior to being added for unit consistency.</p>
+<dl class="method">
+<dt id="gillespy.Reaction.Annotate">
+<code class="descname">Annotate</code><span class="sig-paren">(</span><em>annotation</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Reaction.Annotate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Reaction.Annotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a note to the reaction</p>
+<dl class="docutils">
+<dt>annotation <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>An optional note about the reaction.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Reaction.addProduct">
+<code class="descname">addProduct</code><span class="sig-paren">(</span><em>S</em>, <em>stoichiometry</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Reaction.addProduct"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Reaction.addProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a product to the reaction (species that is created)</p>
+<dl class="docutils">
+<dt>S <span class="classifier-delimiter">:</span> <span class="classifier">gillespy.Species</span></dt>
+<dd>Product to add to this reaction.</dd>
+<dt>stoichiometry <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The stoichiometry of the given product.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Reaction.addReactant">
+<code class="descname">addReactant</code><span class="sig-paren">(</span><em>S</em>, <em>stoichiometry</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Reaction.addReactant"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Reaction.addReactant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a reactant to the reaction (species that is consumed)</p>
+<dl class="docutils">
+<dt>S <span class="classifier-delimiter">:</span> <span class="classifier">gillespy.Species</span></dt>
+<dd>Reactant to add to this reaction.</dd>
+<dt>stoichiometry <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The stoichiometry of the given reactant.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Reaction.create_mass_action">
+<code class="descname">create_mass_action</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Reaction.create_mass_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Reaction.create_mass_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the mass action propensity function given
+self.reactants and a single parameter value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.Reaction.setType">
+<code class="descname">setType</code><span class="sig-paren">(</span><em>rxntype</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Reaction.setType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Reaction.setType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets reaction type to either &#8220;mass-action&#8221; or &#8220;customized&#8221;</p>
+<dl class="docutils">
+<dt>rxntype <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Either &#8220;mass-action&#8221; or &#8220;customized&#8221;</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="gillespy.ReactionError">
+<em class="property">exception </em><code class="descclassname">gillespy.</code><code class="descname">ReactionError</code><a class="reference internal" href="_modules/gillespy.html#ReactionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.ReactionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#gillespy.ModelError" title="gillespy.ModelError"><code class="xref py py-class docutils literal"><span class="pre">gillespy.ModelError</span></code></a></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="gillespy.SimulationError">
+<em class="property">exception </em><code class="descclassname">gillespy.</code><code class="descname">SimulationError</code><a class="reference internal" href="_modules/gillespy.html#SimulationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.SimulationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="gillespy.SimuliationError">
+<em class="property">exception </em><code class="descclassname">gillespy.</code><code class="descname">SimuliationError</code><a class="reference internal" href="_modules/gillespy.html#SimuliationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.SimuliationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gillespy.Species">
+<em class="property">class </em><code class="descclassname">gillespy.</code><code class="descname">Species</code><span class="sig-paren">(</span><em>name=''</em>, <em>initial_value=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#Species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.Species" title="Permalink to this definition">¶</a></dt>
+<dd><p>Chemical species. Can be added to Model object to interact with other     
+species or time.</p>
+<dl class="docutils">
+<dt>name <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>The name by which this species will be called in reactions and within 
+the model.</dd>
+<dt>initial_value <span class="classifier-delimiter">:</span> <span class="classifier">int &gt;= 0</span></dt>
+<dd>Initial population of this species. If this is not provided as an int,
+the type will be changed when it is added by numpy.int</dd>
+</dl>
+</dd></dl>
+
+<dl class="exception">
+<dt id="gillespy.SpeciesError">
+<em class="property">exception </em><code class="descclassname">gillespy.</code><code class="descname">SpeciesError</code><a class="reference internal" href="_modules/gillespy.html#SpeciesError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.SpeciesError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#gillespy.ModelError" title="gillespy.ModelError"><code class="xref py py-class docutils literal"><span class="pre">gillespy.ModelError</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gillespy.StochKitODESolver">
+<em class="property">class </em><code class="descclassname">gillespy.</code><code class="descname">StochKitODESolver</code><a class="reference internal" href="_modules/gillespy.html#StochKitODESolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.StochKitODESolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#gillespy.GillesPySolver" title="gillespy.GillesPySolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy.GillesPySolver</span></code></a></p>
+<p>Abstract class for StochKit solver derived from the GillesPySolver class.
+This is generally used to set up the solver.</p>
+<dl class="docutils">
+<dt>model <span class="classifier-delimiter">:</span> <span class="classifier">gillespy.Model</span></dt>
+<dd>The model on which the solver will operate.</dd>
+<dt>t <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The end time of the solver.</dd>
+<dt>number_of_trajectories <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The number of times to sample the chemical master equation. Each
+trajectory will be returned at the end of the simulation.</dd>
+<dt>increment <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The time step of the solution.</dd>
+<dt>seed <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The random seed for the simulation. Defaults to None.</dd>
+<dt>stochkit_home <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Path to stochkit. This is set automatically upon installation, but 
+may be overwritten if desired.</dd>
+<dt>algorithm <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Already set to &#8216;stochkit_ode.py&#8217;</dd>
+<dt>job_id <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>If given, this will be the name of the solver run. Usually not set.</dd>
+<dt>debug <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
+<dd>Set to True to provide additional debug information about the     
+simulation.</dd>
+</dl>
+<dl class="method">
+<dt id="gillespy.StochKitODESolver.get_trajectories">
+<code class="descname">get_trajectories</code><span class="sig-paren">(</span><em>outdir</em>, <em>debug=False</em>, <em>show_labels=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#StochKitODESolver.get_trajectories"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.StochKitODESolver.get_trajectories" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="gillespy.StochKitODESolver.run">
+<em class="property">classmethod </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>stochkit_home=None</em>, <em>algorithm='stochkit_ode.py'</em>, <em>job_id=None</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#StochKitODESolver.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.StochKitODESolver.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gillespy.StochKitSolver">
+<em class="property">class </em><code class="descclassname">gillespy.</code><code class="descname">StochKitSolver</code><a class="reference internal" href="_modules/gillespy.html#StochKitSolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.StochKitSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#gillespy.GillesPySolver" title="gillespy.GillesPySolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy.GillesPySolver</span></code></a></p>
+<p>Abstract class for StochKit solver derived from the GillesPySolver class.
+This is generally used to set up the solver.</p>
+<dl class="docutils">
+<dt>model <span class="classifier-delimiter">:</span> <span class="classifier">gillespy.Model</span></dt>
+<dd>The model on which the solver will operate.</dd>
+<dt>t <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The end time of the solver.</dd>
+<dt>number_of_trajectories <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The number of times to sample the chemical master equation. Each
+trajectory will be returned at the end of the simulation.</dd>
+<dt>increment <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The time step of the solution.</dd>
+<dt>seed <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The random seed for the simulation. Defaults to None.</dd>
+<dt>stochkit_home <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Path to stochkit. This is set automatically upon installation, but 
+may be overwritten if desired.</dd>
+<dt>algorithm <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>The solver by which to simulate the model. &#8216;ssa&#8217; or &#8216;tau_leaping&#8217;
+are the available options. If &#8216;ssa&#8217; is chosen, StochKit will choose
+from the available ssa options.</dd>
+<dt>job_id <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>If given, this will be the name of the solver run. Usually not set.</dd>
+<dt>method <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>The specific SSA to call. NOT YET FUNCTIONAL.</dd>
+<dt>debug <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
+<dd>Set to True to provide additional debug information about the     
+simulation.</dd>
+</dl>
+<dl class="method">
+<dt id="gillespy.StochKitSolver.get_trajectories">
+<code class="descname">get_trajectories</code><span class="sig-paren">(</span><em>outdir</em>, <em>debug=False</em>, <em>show_labels=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#StochKitSolver.get_trajectories"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.StochKitSolver.get_trajectories" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="gillespy.StochKitSolver.run">
+<em class="property">classmethod </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>stochkit_home=None</em>, <em>algorithm='ssa'</em>, <em>job_id=None</em>, <em>method=None</em>, <em>debug=False</em>, <em>show_labels=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#StochKitSolver.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.StochKitSolver.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gillespy.StochMLDocument">
+<em class="property">class </em><code class="descclassname">gillespy.</code><code class="descname">StochMLDocument</code><a class="reference internal" href="_modules/gillespy.html#StochMLDocument"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.StochMLDocument" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serializiation and deserialization of a Model to/from
+the native StochKit2 XML format.</p>
+<dl class="classmethod">
+<dt id="gillespy.StochMLDocument.from_file">
+<em class="property">classmethod </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#StochMLDocument.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.StochMLDocument.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Intializes the document from an exisiting native StochKit XML 
+file read from disk.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="gillespy.StochMLDocument.from_model">
+<em class="property">classmethod </em><code class="descname">from_model</code><span class="sig-paren">(</span><em>model</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#StochMLDocument.from_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.StochMLDocument.from_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an StochKit XML document from an exisiting Mdoel object.
+This method assumes that all the parameters in the model are already 
+resolved to scalar floats (see Model.resolveParamters).</p>
+<p>Note, this method is intended to be used interanally by the models 
+&#8216;serialization&#8217; function, which performs additional operations and 
+tests on the model prior to writing out the XML file. You should NOT         do:</p>
+<p>document = StochMLDocument.fromModel(model)
+print document.toString()</p>
+<p>You SHOULD do</p>
+<p>print model.serialize()</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="gillespy.StochMLDocument.from_string">
+<em class="property">classmethod </em><code class="descname">from_string</code><span class="sig-paren">(</span><em>string</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#StochMLDocument.from_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.StochMLDocument.from_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Intializes the document from an exisiting native StochKit XML 
+file read from disk.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.StochMLDocument.parameter_to_element">
+<code class="descname">parameter_to_element</code><span class="sig-paren">(</span><em>P</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#StochMLDocument.parameter_to_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.StochMLDocument.parameter_to_element" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gillespy.StochMLDocument.reaction_to_element">
+<code class="descname">reaction_to_element</code><span class="sig-paren">(</span><em>R</em>, <em>model_volume</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#StochMLDocument.reaction_to_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.StochMLDocument.reaction_to_element" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gillespy.StochMLDocument.species_to_element">
+<code class="descname">species_to_element</code><span class="sig-paren">(</span><em>S</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#StochMLDocument.species_to_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.StochMLDocument.species_to_element" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gillespy.StochMLDocument.to_model">
+<code class="descname">to_model</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#StochMLDocument.to_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.StochMLDocument.to_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiates a Model object from a StochMLDocument.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy.StochMLDocument.to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#StochMLDocument.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.StochMLDocument.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns  the document as a string.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="gillespy.StochMLImportError">
+<em class="property">exception </em><code class="descclassname">gillespy.</code><code class="descname">StochMLImportError</code><a class="reference internal" href="_modules/gillespy.html#StochMLImportError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.StochMLImportError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gillespy.import_SBML">
+<code class="descclassname">gillespy.</code><code class="descname">import_SBML</code><span class="sig-paren">(</span><em>filename</em>, <em>name=None</em>, <em>gillespy_model=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy.html#import_SBML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy.import_SBML" title="Permalink to this definition">¶</a></dt>
+<dd><p>SBML to GillesPy model converter. NOTE: non-mass-action rates
+in terms of concentrations may not be converted for population 
+simulation. Use caution when importing SBML.</p>
+<dl class="docutils">
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Path to the SBML file for conversion.</dd>
+<dt>name <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Name of the resulting model.</dd>
+<dt>gillespy_model <span class="classifier-delimiter">:</span> <span class="classifier">gillespy.Model</span></dt>
+<dd>If desired, the SBML model may be added to an existing GillesPy model.</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-gillespy">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-gillespy" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">gillespy package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-gillespy.SBMLimport">gillespy.SBMLimport module</a></li>
+<li><a class="reference internal" href="#module-gillespy">gillespy module</a></li>
+<li><a class="reference internal" href="#module-gillespy">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to GillesPy&#8217;s documentation!</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/gillespy.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, John H. Abel, Brian Drawert, Andreas Hellander.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.3</a>
+      
+      |
+      <a href="_sources/gillespy.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,1554 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gillespy.gillespy &mdash; GillesPy 1.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="GillesPy 1.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">GillesPy 1.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for gillespy.gillespy</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">A simple toolkit for creating and simulating discrete stochastic models in </span>
+<span class="sd">python.</span>
+
+<span class="sd">This serves primarily as a python wrapper for the C-based solvers within</span>
+<span class="sd">StochKit2. The gillespy.Model class provides nearly all of the functionality</span>
+<span class="sd">present in this project.</span>
+
+<span class="sd">This version is updated (4/2017) to contain documentation in a more reasonable </span>
+<span class="sd">format. This does not necessarily mean it is perfect, but it is certainly an</span>
+<span class="sd">improvement over the original.</span>
+<span class="sd">    </span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">scipy</span> <span class="kn">as</span> <span class="nn">sp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">lxml.etree</span> <span class="kn">as</span> <span class="nn">etree</span>
+    <span class="n">no_pretty_print</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="kn">as</span> <span class="nn">etree</span>
+    <span class="kn">import</span> <span class="nn">xml.dom.minidom</span>
+    <span class="kn">import</span> <span class="nn">re</span>
+    <span class="n">no_pretty_print</span> <span class="o">=</span> <span class="bp">True</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">scipy.io</span> <span class="kn">as</span> <span class="nn">spio</span>
+    <span class="n">isSCIPY</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">shutil</span>
+    <span class="kn">import</span> <span class="nn">numpy</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+<span class="kn">import</span> <span class="nn">pdb</span>
+
+
+<div class="viewcode-block" id="import_SBML"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.import_SBML">[docs]</a><span class="k">def</span> <span class="nf">import_SBML</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">gillespy_model</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SBML to GillesPy model converter. NOTE: non-mass-action rates</span>
+<span class="sd">    in terms of concentrations may not be converted for population </span>
+<span class="sd">    simulation. Use caution when importing SBML.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        Path to the SBML file for conversion.</span>
+<span class="sd">    name : str</span>
+<span class="sd">        Name of the resulting model.</span>
+<span class="sd">    gillespy_model : gillespy.Model</span>
+<span class="sd">        If desired, the SBML model may be added to an existing GillesPy model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">gillespy.SBMLimport</span> <span class="kn">import</span> <span class="n">convert</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s">&#39;SBML conversion not imported successfully&#39;</span><span class="p">)</span>
+        
+    <span class="k">return</span> <span class="n">convert</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">modelName</span> <span class="o">=</span> <span class="n">name</span><span class="p">,</span> <span class="n">gillespy_model</span> <span class="o">=</span> <span class="n">gillespy_model</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Representation of a well mixed biochemical model. Contains reactions,</span>
+<span class="sd">    parameters, species.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        The name of the model, or an annotation describing it.</span>
+<span class="sd">    population : bool</span>
+<span class="sd">        The type of model being described. A discrete stochastic model is a </span>
+<span class="sd">        population model (True), a deterministic model is a concentration model</span>
+<span class="sd">        (False). Automatic conversion from population to concentration models </span>
+<span class="sd">        may be used, by setting the volume parameter.</span>
+<span class="sd">    volume : float</span>
+<span class="sd">        The volume of the system matters when converting to from population to </span>
+<span class="sd">        concentration form. This will also set a parameter &quot;vol&quot; for use in</span>
+<span class="sd">        custom (i.e. non-mass-action) propensity functions.</span>
+<span class="sd">    tspan : numpy ndarray</span>
+<span class="sd">        The timepoints at which the model should be simulated. If None, a </span>
+<span class="sd">        default timespan is added. May be set later, see Model.timespan</span>
+<span class="sd">    annotation : str (optional)</span>
+<span class="sd">        Optional further description of model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">population</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">volume</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">tspan</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="s">&quot;model&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Create an empty model. &quot;&quot;&quot;</span>
+        
+        <span class="c"># The name that the model is referenced by (should be a String)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="n">annotation</span>
+        
+        <span class="c"># Dictionaries with Species, Reactions and Parameter objects.</span>
+        <span class="c"># Species, Reaction and Paramter names are used as keys.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span>    <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span>  <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+
+        <span class="c"># This defines the unit system at work for all numbers in the model</span>
+        <span class="c"># It should be a logical error to leave this undefined, subclasses </span>
+        <span class="c"># should set it</span>
+        <span class="k">if</span> <span class="n">population</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s">&quot;population&quot;</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s">&quot;concentration&quot;</span>
+            <span class="k">if</span> <span class="n">volume</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Warning</span><span class="p">(</span><span class="s">&quot;Concentration models account for volume implicitly, explicit volume definition is not required. Note: concentration models may only be simulated deterministically.&quot;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">volume</span> <span class="o">=</span> <span class="n">volume</span>
+        
+        <span class="c"># Dict that holds flattended parameters and species for</span>
+        <span class="c"># evaluation of expressions in the scope of the model.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">namespace</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([])</span>
+        
+        <span class="k">if</span> <span class="n">tspan</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timespan</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">401</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">timespan</span><span class="p">(</span><span class="n">tspan</span><span class="p">)</span>
+        
+    
+<div class="viewcode-block" id="Model.serialize"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Serializes the Model object to valid StochML. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resolve_parameters</span><span class="p">()</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">StochMLDocument</span><span class="p">()</span><span class="o">.</span><span class="n">from_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">doc</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="Model.update_namespace"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.update_namespace">[docs]</a>    <span class="k">def</span> <span class="nf">update_namespace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Create a dict with flattened parameter and species objects. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">namespace</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([])</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">namespace</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="c"># Dictionary of expressions that can be evaluated in the scope of this</span>
+        <span class="c"># model.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span> <span class="o">=</span> <span class="p">{}</span>
+</div>
+<div class="viewcode-block" id="Model.get_species"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.get_species">[docs]</a>    <span class="k">def</span> <span class="nf">get_species</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sname</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a species object by name.</span>
+<span class="sd">        </span>
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sname : str</span>
+<span class="sd">            Name of the species object to be returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">[</span><span class="n">sname</span><span class="p">]</span>
+    </div>
+<div class="viewcode-block" id="Model.get_all_species"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.get_all_species">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_species</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a dict of all species in the model, of the form:</span>
+<span class="sd">        {name : species object}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span>
+</div>
+<div class="viewcode-block" id="Model.add_species"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.add_species">[docs]</a>    <span class="k">def</span> <span class="nf">add_species</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Adds a species, or list of species to the model.</span>
+<span class="sd">        </span>
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj : Species, or list of Species</span>
+<span class="sd">            The species or list of species to be added to the model object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+                
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Species</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s">&quot;Can&#39;t add species. A species with that </span><span class="se">\</span>
+<span class="s">                                    name alredy exisits.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span><span class="p">;</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c"># obj is a list of species</span>
+            <span class="k">for</span> <span class="n">S</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">S</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s">&quot;Can&#39;t add species. A species with that </span><span class="se">\</span>
+<span class="s">                                        name alredy exisits.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">[</span><span class="n">S</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">S</span><span class="p">;</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    </div>
+<div class="viewcode-block" id="Model.delete_species"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.delete_species">[docs]</a>    <span class="k">def</span> <span class="nf">delete_species</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Removes a species object by name.</span>
+<span class="sd">        </span>
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sname : str</span>
+<span class="sd">            Name of the species object to be removed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>        
+         </div>
+<div class="viewcode-block" id="Model.delete_all_species"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.delete_all_species">[docs]</a>    <span class="k">def</span> <span class="nf">delete_all_species</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Removes all species from the model object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Model.set_units"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.set_units">[docs]</a>    <span class="k">def</span> <span class="nf">set_units</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the units of the model to either &quot;population&quot; or &quot;concentration&quot;</span>
+<span class="sd">        </span>
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        units : str</span>
+<span class="sd">            Either &quot;population&quot; or &quot;concentration&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">units</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;concentration&#39;</span> <span class="ow">or</span> <span class="n">units</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;population&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s">&quot;units must be either concentration or </span><span class="se">\</span>
+<span class="s">                                population (case insensitive)&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Model.get_parameter"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.get_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">get_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pname</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a parameter object by name.</span>
+<span class="sd">        </span>
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pname : str</span>
+<span class="sd">            Name of the parameter object to be returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">[</span><span class="n">pname</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s">&quot;No parameter named &quot;</span><span class="o">+</span><span class="n">pname</span><span class="p">)</span>
+        
+        </div>
+<div class="viewcode-block" id="Model.get_all_parameters"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.get_all_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a dict of all parameters in the model, of the form:</span>
+<span class="sd">        {name : parameter object}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span>
+    </div>
+<div class="viewcode-block" id="Model.add_parameter"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.add_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">add_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Adds a parameter, or list of parameters to the model.</span>
+<span class="sd">        </span>
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj : Parameter, or list of Parameters</span>
+<span class="sd">            The parameter or list of parameters to be added to the model object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># TODO, make sure that you don&#39;t overwrite an existing parameter??</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span><span class="o">==</span><span class="s">&#39;list&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span><span class="o">==</span><span class="s">&#39;instance&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span>
+        <span class="k">return</span> <span class="n">params</span>
+</div>
+<div class="viewcode-block" id="Model.delete_parameter"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.delete_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">delete_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Removes a parameter object by name.</span>
+<span class="sd">        </span>
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj : str</span>
+<span class="sd">            Name of the parameter object to be removed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Model.set_parameter"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.set_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">set_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pname</span><span class="p">,</span> <span class="n">expression</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Set the value of an existing paramter &quot;pname&quot; to &quot;expression&quot;.</span>
+<span class="sd">        </span>
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pname : str</span>
+<span class="sd">            Name of the parameter whose value will be set.</span>
+<span class="sd">        expression : str</span>
+<span class="sd">            *String* that may be executed in C, describing the value of the </span>
+<span class="sd">            parameter. May reference other parameters by name. (e.g. &quot;k1*4&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">[</span><span class="n">pname</span><span class="p">]</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">expression</span> <span class="o">=</span> <span class="n">expression</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+        </div>
+<div class="viewcode-block" id="Model.resolve_parameters"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.resolve_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">resolve_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Internal function: </span>
+<span class="sd">        attempt to resolve all parameter expressions to scalar floats. </span>
+<span class="sd">        This methods must be called before exporting the model. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_namespace</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">namespace</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s">&quot;Could not resolve Parameter expression &quot;</span>
+                                        <span class="o">+</span> <span class="n">param</span> <span class="o">+</span> <span class="s">&quot;to a scalar value.&quot;</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="Model.delete_all_parameters"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.delete_all_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">delete_all_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Deletes all parameters from model. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Model.add_reaction"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.add_reaction">[docs]</a>    <span class="k">def</span> <span class="nf">add_reaction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">reacs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Adds a reaction, or list of reactions to the model.</span>
+<span class="sd">        </span>
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj : Reaction, or list of Reactions</span>
+<span class="sd">            The reaction or list of reaction objects to be added to the model</span>
+<span class="sd">            object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c"># TODO, make sure that you cannot overwrite an existing reaction</span>
+        <span class="n">param_type</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">reacs</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span>
+        <span class="k">if</span> <span class="n">param_type</span> <span class="o">==</span> <span class="s">&#39;list&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reacs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span>
+        <span class="k">elif</span> <span class="n">param_type</span> <span class="o">==</span> <span class="s">&#39;dict&#39;</span> <span class="ow">or</span> <span class="n">param_type</span> <span class="o">==</span> <span class="s">&#39;OrderedDict&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span> <span class="o">=</span> <span class="n">reacs</span>
+        <span class="k">elif</span> <span class="n">param_type</span> <span class="o">==</span> <span class="s">&#39;instance&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">reacs</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">reacs</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span>
+        <span class="k">return</span> <span class="n">reacs</span>
+</div>
+<div class="viewcode-block" id="Model.timespan"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.timespan">[docs]</a>    <span class="k">def</span> <span class="nf">timespan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tspan</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Set the time span of simulation. StochKit does not support non-uniform </span>
+<span class="sd">        timespans.</span>
+<span class="sd">        </span>
+<span class="sd">        tspan : numpy ndarray</span>
+<span class="sd">            Evenly-spaced list of times at which to sample the species </span>
+<span class="sd">            populations during the simulation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">items</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">tspan</span><span class="p">)</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span><span class="n">items</span><span class="p">)</span>
+        <span class="n">isuniform</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">items</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">isuniform</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tspan</span> <span class="o">=</span> <span class="n">tspan</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidModelError</span><span class="p">(</span><span class="s">&quot;StochKit only supports uniform timespans&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Model.get_reaction"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.get_reaction">[docs]</a>    <span class="k">def</span> <span class="nf">get_reaction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rname</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">rname</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="Model.get_all_reactions"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.get_all_reactions">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span>
+    </div>
+<div class="viewcode-block" id="Model.delete_reaction"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.delete_reaction">[docs]</a>    <span class="k">def</span> <span class="nf">delete_reaction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="Model.delete_all_reactions"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.delete_all_reactions">[docs]</a>    <span class="k">def</span> <span class="nf">delete_all_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Model.run"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Model.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
+                  <span class="n">solver</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">stochkit_home</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function calling simulation of the model. There are a number of       </span>
+<span class="sd">        parameters to be set here.</span>
+<span class="sd">        </span>
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        number_of_trajectories : int</span>
+<span class="sd">            The number of times to sample the chemical master equation. Each</span>
+<span class="sd">            trajectory will be returned at the end of the simulation.</span>
+<span class="sd">            Optional, defaults to 1.</span>
+<span class="sd">        seed : int</span>
+<span class="sd">            The random seed for the simulation. Optional, defaults to None.</span>
+<span class="sd">        solver : gillespy.GillesPySolver</span>
+<span class="sd">            The solver by which to simulate the model. This solver object may</span>
+<span class="sd">            be initialized separately to specify an algorithm. Optional, </span>
+<span class="sd">            defulats to StochKitSolver SSA.</span>
+<span class="sd">        stochkit_home : str</span>
+<span class="sd">            Path to stochkit. This is set automatically upon installation, but </span>
+<span class="sd">            may be overwritten if desired.</span>
+<span class="sd">        debug : bool (False)</span>
+<span class="sd">            Set to True to provide additional debug information about the     </span>
+<span class="sd">            simulation.</span>
+<span class="sd">        show_labels : bool (True)</span>
+<span class="sd">            Use names of species as index of result object rather than position numbers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">solver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ClassType</span><span class="p">))</span> 
+                                <span class="ow">and</span>  <span class="nb">issubclass</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">GillesPySolver</span><span class="p">)):</span>
+                <span class="k">return</span> <span class="n">solver</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> 
+                            <span class="n">increment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span>
+                            <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> 
+                            <span class="n">number_of_trajectories</span><span class="o">=</span><span class="n">number_of_trajectories</span><span class="p">,</span>
+                            <span class="n">stochkit_home</span><span class="o">=</span><span class="n">stochkit_home</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span>
+                            <span class="n">show_labels</span><span class="o">=</span><span class="n">show_labels</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">SimuliationError</span><span class="p">(</span>
+                        <span class="s">&quot;argument &#39;solver&#39; to run() must be&quot;</span><span class="o">+</span>
+                                    <span class="s">&quot; a subclass of GillesPySolver&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">StochKitSolver</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">t</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="n">increment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+                    <span class="n">number_of_trajectories</span><span class="o">=</span><span class="n">number_of_trajectories</span><span class="p">,</span>
+                    <span class="n">stochkit_home</span><span class="o">=</span><span class="n">stochkit_home</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span>
+                    <span class="n">show_labels</span><span class="o">=</span><span class="n">show_labels</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="Species"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Species">[docs]</a><span class="k">class</span> <span class="nc">Species</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    Chemical species. Can be added to Model object to interact with other     </span>
+<span class="sd">    species or time.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        The name by which this species will be called in reactions and within </span>
+<span class="sd">        the model.</span>
+<span class="sd">    initial_value : int &gt;= 0</span>
+<span class="sd">        Initial population of this species. If this is not provided as an int,</span>
+<span class="sd">        the type will be changed when it is added by numpy.int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">initial_value</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="c"># A species has a name (string) and an initial value (positive integer)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">(</span><span class="n">initial_value</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_value</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;A species initial value has to </span><span class="se">\</span>
+<span class="s">                                        be a positive number.&quot;</span>
+
+</div>
+<div class="viewcode-block" id="Parameter"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Parameter">[docs]</a><span class="k">class</span> <span class="nc">Parameter</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    A parameter can be given as an expression (function) or directly </span>
+<span class="sd">    as a value (scalar). If given an expression, it should be </span>
+<span class="sd">    understood as evaluable in the namespace of a parent Model.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        The name by which this parameter is called or referenced in reactions.</span>
+<span class="sd">    expression : str</span>
+<span class="sd">        String for a function calculating parameter values. Should be evaluable</span>
+<span class="sd">        in namespace of Model.</span>
+<span class="sd">    value : float</span>
+<span class="sd">        Value of a parameter if it is not dependent on other Model entities.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>        
+        <span class="c"># We allow expression to be passed in as a non-string type. Invalid strings</span>
+        <span class="c"># will be caught below. It is perfectly fine to give a scalar value as the expression.</span>
+        <span class="c"># This can then be evaluated in an empty namespace to the scalar value.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expression</span> <span class="o">=</span> <span class="n">expression</span>
+        <span class="k">if</span> <span class="n">expression</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expression</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+            
+        <span class="c"># self.value is allowed to be None, but not self.expression. self.value</span>
+        <span class="c"># might not be evaluable in the namespace of this parameter, but defined</span>
+        <span class="c"># in the context of a model or reaction.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">expression</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span>
+    
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+    
+<div class="viewcode-block" id="Parameter.evaluate"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Parameter.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">namespace</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Evaluate the expression and return the (scalar) value in the given </span>
+<span class="sd">        namespace.</span>
+<span class="sd">        </span>
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        namespace : dict (optional)</span>
+<span class="sd">            The namespace in which to test evaluation of the parameter, if it</span>
+<span class="sd">            involves other parameters, etc.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="p">,</span> <span class="n">namespace</span><span class="p">)))</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">None</span>
+            </div>
+<div class="viewcode-block" id="Parameter.set_expression"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Parameter.set_expression">[docs]</a>    <span class="k">def</span> <span class="nf">set_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the expression for a parameter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expression</span> <span class="o">=</span> <span class="n">expression</span>
+        <span class="c"># We allow expression to be passed in as a non-string type. Invalid</span>
+        <span class="c"># strings will be caught below. It is perfectly fine to give a scalar </span>
+        <span class="c"># value as the expression. This can then be evaluated in an empty </span>
+        <span class="c"># namespace to the scalar value.</span>
+        <span class="k">if</span> <span class="n">expression</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expression</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
+                    
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">expression</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span>
+    
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+</div></div>
+<div class="viewcode-block" id="Reaction"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Reaction">[docs]</a><span class="k">class</span> <span class="nc">Reaction</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    Models a single reaction. A reaction has its own dicts of species </span>
+<span class="sd">    (reactants and products) and parameters. The reaction&#39;s propensity </span>
+<span class="sd">    function needs to be evaluable (and result in a non-negative scalar </span>
+<span class="sd">    value) in the namespace defined by the union of those dicts.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        The name by which the reaction is called.</span>
+<span class="sd">    reactants : dict</span>
+<span class="sd">        The reactants that are consumed in the reaction, with stoichiometry. An</span>
+<span class="sd">        example would be {R1 : 1, R2 : 2} if the reaction consumes two of R1 and    </span>
+<span class="sd">        one of R2, where R1 and R2 are Species objects.</span>
+<span class="sd">    products : dict</span>
+<span class="sd">        The species that are created by the reaction event, with stoichiometry. </span>
+<span class="sd">        Same format as reactants.</span>
+<span class="sd">    propensity_function : str</span>
+<span class="sd">        The custom propensity fcn for the reaction. Must be evaluable in the    </span>
+<span class="sd">        namespace of the reaction using C operations.</span>
+<span class="sd">    massaction : bool</span>
+<span class="sd">        The switch to use a mass-action reaction. If set to True, a rate value</span>
+<span class="sd">        is required.</span>
+<span class="sd">    rate : float</span>
+<span class="sd">        The rate of the mass-action reaction. Take care to note the units...</span>
+<span class="sd">    annotation : str</span>
+<span class="sd">        An optional note about the reaction.</span>
+<span class="sd">        </span>
+<span class="sd">    Notes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    For a species that is NOT consumed in the reaction but is part of a mass </span>
+<span class="sd">    action reaction, add it as both a reactant and a product.</span>
+<span class="sd">    </span>
+<span class="sd">    Mass-action reactions must also have a rate term added. Note that the rate </span>
+<span class="sd">    must be scaled by the volume prior to being added for unit consistency.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">reactants</span> <span class="o">=</span> <span class="p">{},</span> <span class="n">products</span> <span class="o">=</span> <span class="p">{},</span> 
+                 <span class="n">propensity_function</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">massaction</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> 
+                 <span class="n">rate</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Initializes the reaction using short-hand notation.             </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+            
+        <span class="c"># Metadata</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="n">rate</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">propensity_function</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s">&quot;You must specify either a mass-action rate or&quot;</span><span class="o">+</span>
+                                <span class="s">&quot; a propensity function&quot;</span><span class="p">)</span>
+
+        <span class="c"># We might use this flag in the future to automatically generate</span>
+        <span class="c"># the propensity function if set to True.</span>
+        <span class="k">if</span> <span class="n">propensity_function</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span> <span class="o">=</span> <span class="bp">True</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="o">=</span> <span class="n">propensity_function</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span><span class="p">:</span>
+            <span class="n">errmsg</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;Reaction &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span><span class="s">&quot; You cannot set the propensity &quot;</span><span class="o">+</span>
+            <span class="s">&quot;type to mass-action and simultaneously set a propensity function.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="n">errmsg</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reactants</span><span class="p">:</span>
+            <span class="n">rtype</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span>
+            <span class="k">if</span> <span class="n">rtype</span><span class="o">==</span><span class="s">&#39;instance&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">reactants</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="n">reactants</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+    
+        <span class="bp">self</span><span class="o">.</span><span class="n">products</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">products</span><span class="p">:</span>
+            <span class="n">rtype</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span>
+            <span class="k">if</span> <span class="n">rtype</span><span class="o">==</span><span class="s">&#39;instance&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">products</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">products</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s">&quot;mass-action&quot;</span>
+            <span class="k">if</span> <span class="n">rate</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s">&quot;Reaction : A mass-action propensity has</span><span class="se">\</span>
+<span class="s">                 to have a rate.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">marate</span> <span class="o">=</span> <span class="n">rate</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">create_mass_action</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s">&quot;customized&quot;</span>
+                
+<div class="viewcode-block" id="Reaction.create_mass_action"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Reaction.create_mass_action">[docs]</a>    <span class="k">def</span> <span class="nf">create_mass_action</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Initializes the mass action propensity function given</span>
+<span class="sd">        self.reactants and a single parameter value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># We support zeroth, first and second order propensities only.</span>
+        <span class="c"># There is no theoretical justification for higher order propensities.</span>
+        <span class="c"># Users can still create such propensities if they really want to,</span>
+        <span class="c"># but should then use a custom propensity.</span>
+        <span class="n">total_stoch</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">:</span>
+            <span class="n">total_stoch</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">total_stoch</span><span class="o">&gt;</span><span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s">&quot;Reaction: A mass-action reaction cannot </span><span class="se">\</span>
+<span class="s">            involve more than two of one species or one of two species.&quot;</span><span class="p">)</span>
+        <span class="c"># Case EmptySet -&gt; Y</span>
+        <span class="n">propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marate</span><span class="o">.</span><span class="n">name</span><span class="p">;</span>
+             
+        <span class="c"># There are only three ways to get &#39;total_stoch==2&#39;:</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">:</span>
+            <span class="c"># Case 1: 2X -&gt; Y</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">propensity_function</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;0.5*&quot;</span> <span class="o">+</span><span class="n">propensity_function</span><span class="o">+</span> 
+                                            <span class="s">&quot;*&quot;</span><span class="o">+</span><span class="n">r</span><span class="o">+</span><span class="s">&quot;*(&quot;</span><span class="o">+</span><span class="n">r</span><span class="o">+</span><span class="s">&quot;-1)/vol&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Case 3: X1, X2 -&gt; Y;</span>
+                <span class="n">propensity_function</span> <span class="o">+=</span> <span class="s">&quot;*&quot;</span><span class="o">+</span><span class="n">r</span>
+
+        <span class="c"># Set the volume dependency based on order.</span>
+        <span class="n">order</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">propensity_function</span> <span class="o">+=</span> <span class="s">&quot;/vol&quot;</span>
+        <span class="k">elif</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">propensity_function</span> <span class="o">+=</span> <span class="s">&quot;*vol&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="o">=</span> <span class="n">propensity_function</span>
+            </div>
+<div class="viewcode-block" id="Reaction.setType"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Reaction.setType">[docs]</a>    <span class="k">def</span> <span class="nf">setType</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxntype</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets reaction type to either &quot;mass-action&quot; or &quot;customized&quot;</span>
+<span class="sd">        </span>
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        rxntype : str</span>
+<span class="sd">            Either &quot;mass-action&quot; or &quot;customized&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">rxntype</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s">&#39;mass-action&#39;</span><span class="p">,</span><span class="s">&#39;customized&#39;</span><span class="p">}:</span>
+            <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s">&quot;Invalid reaction type.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">rxntype</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span> <span class="o">=</span> <span class="bp">False</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s">&#39;customized&#39;</span> <span class="k">else</span> <span class="bp">True</span>
+    </div>
+<div class="viewcode-block" id="Reaction.addReactant"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Reaction.addReactant">[docs]</a>    <span class="k">def</span> <span class="nf">addReactant</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">stoichiometry</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a reactant to the reaction (species that is consumed)</span>
+<span class="sd">        </span>
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        S : gillespy.Species</span>
+<span class="sd">            Reactant to add to this reaction.</span>
+<span class="sd">        stoichiometry : int</span>
+<span class="sd">            The stoichiometry of the given reactant.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">stoichiometry</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s">&quot;Reaction Stoichiometry must be a </span><span class="se">\</span>
+<span class="s">                                    positive integer.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">S</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="n">stoichiometry</span>
+</div>
+<div class="viewcode-block" id="Reaction.addProduct"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Reaction.addProduct">[docs]</a>    <span class="k">def</span> <span class="nf">addProduct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">stoichiometry</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a product to the reaction (species that is created)</span>
+<span class="sd">        </span>
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        S : gillespy.Species</span>
+<span class="sd">            Product to add to this reaction.</span>
+<span class="sd">        stoichiometry : int</span>
+<span class="sd">            The stoichiometry of the given product.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">S</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="n">stoichiometry</span>
+</div>
+<div class="viewcode-block" id="Reaction.Annotate"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.Reaction.Annotate">[docs]</a>    <span class="k">def</span> <span class="nf">Annotate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">annotation</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a note to the reaction</span>
+<span class="sd">        </span>
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        annotation : str</span>
+<span class="sd">            An optional note about the reaction.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="n">annotation</span>
+
+
+
+<span class="c"># Module exceptions</span></div></div>
+<div class="viewcode-block" id="ModelError"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.ModelError">[docs]</a><span class="k">class</span> <span class="nc">ModelError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+<div class="viewcode-block" id="SpeciesError"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.SpeciesError">[docs]</a><span class="k">class</span> <span class="nc">SpeciesError</span><span class="p">(</span><span class="n">ModelError</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+<div class="viewcode-block" id="ReactionError"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.ReactionError">[docs]</a><span class="k">class</span> <span class="nc">ReactionError</span><span class="p">(</span><span class="n">ModelError</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+<div class="viewcode-block" id="ParameterError"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.ParameterError">[docs]</a><span class="k">class</span> <span class="nc">ParameterError</span><span class="p">(</span><span class="n">ModelError</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+<div class="viewcode-block" id="SimuliationError"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.SimuliationError">[docs]</a><span class="k">class</span> <span class="nc">SimuliationError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="StochMLDocument"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.StochMLDocument">[docs]</a><span class="k">class</span> <span class="nc">StochMLDocument</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; Serializiation and deserialization of a Model to/from</span>
+<span class="sd">        the native StochKit2 XML format. &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># The root element</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">document</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&quot;Model&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="bp">None</span>
+    
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="StochMLDocument.from_model"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.StochMLDocument.from_model">[docs]</a>    <span class="k">def</span> <span class="nf">from_model</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="n">model</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Creates an StochKit XML document from an exisiting Mdoel object.</span>
+<span class="sd">        This method assumes that all the parameters in the model are already </span>
+<span class="sd">        resolved to scalar floats (see Model.resolveParamters). </span>
+<span class="sd">            </span>
+<span class="sd">        Note, this method is intended to be used interanally by the models </span>
+<span class="sd">        &#39;serialization&#39; function, which performs additional operations and </span>
+<span class="sd">        tests on the model prior to writing out the XML file. You should NOT \</span>
+<span class="sd">        do: </span>
+<span class="sd">        </span>
+<span class="sd">        document = StochMLDocument.fromModel(model)</span>
+<span class="sd">        print document.toString()</span>
+<span class="sd">        </span>
+<span class="sd">        You SHOULD do</span>
+<span class="sd">        </span>
+<span class="sd">        print model.serialize()            </span>
+<span class="sd">            </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c"># Description</span>
+        <span class="n">md</span> <span class="o">=</span> <span class="n">cls</span><span class="p">()</span>
+        
+        <span class="n">d</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;Description&#39;</span><span class="p">)</span> 
+
+        <span class="c">#</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&quot;concentration&quot;</span><span class="p">:</span>
+            <span class="n">d</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;units&#39;</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+
+        <span class="n">d</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">annotation</span>
+        <span class="n">md</span><span class="o">.</span><span class="n">document</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+        
+        <span class="c"># Number of Reactions</span>
+        <span class="n">nr</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;NumberOfReactions&#39;</span><span class="p">)</span>
+        <span class="n">nr</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">))</span>
+        <span class="n">md</span><span class="o">.</span><span class="n">document</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nr</span><span class="p">)</span>
+        
+        <span class="c"># Number of Species</span>
+        <span class="n">ns</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;NumberOfSpecies&#39;</span><span class="p">)</span>
+        <span class="n">ns</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">))</span>
+        <span class="n">md</span><span class="o">.</span><span class="n">document</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ns</span><span class="p">)</span>
+        
+        <span class="c"># Species</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;SpeciesList&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">sname</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">:</span>
+            <span class="n">spec</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">species_to_element</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">[</span><span class="n">sname</span><span class="p">]))</span>
+        <span class="n">md</span><span class="o">.</span><span class="n">document</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+                
+        <span class="c"># Parameters</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;ParametersList&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pname</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">:</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">parameter_to_element</span><span class="p">(</span>
+                                        <span class="n">model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">[</span><span class="n">pname</span><span class="p">]))</span>
+
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">parameter_to_element</span><span class="p">(</span><span class="n">Parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;vol&#39;</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">volume</span><span class="p">)))</span>
+
+        <span class="n">md</span><span class="o">.</span><span class="n">document</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        
+        <span class="c"># Reactions</span>
+        <span class="n">reacs</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;ReactionsList&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rname</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">:</span>
+            <span class="n">reacs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">reaction_to_element</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">rname</span><span class="p">],</span> <span class="n">model</span><span class="o">.</span><span class="n">volume</span><span class="p">))</span>
+        <span class="n">md</span><span class="o">.</span><span class="n">document</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reacs</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">md</span>
+    
+    </div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="StochMLDocument.from_file"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.StochMLDocument.from_file">[docs]</a>    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Intializes the document from an exisiting native StochKit XML </span>
+<span class="sd">        file read from disk. &quot;&quot;&quot;</span>
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+        <span class="n">md</span> <span class="o">=</span> <span class="n">cls</span><span class="p">()</span>
+        <span class="n">md</span><span class="o">.</span><span class="n">document</span> <span class="o">=</span> <span class="n">root</span>
+        <span class="k">return</span> <span class="n">md</span>
+</div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="StochMLDocument.from_string"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.StochMLDocument.from_string">[docs]</a>    <span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="n">string</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Intializes the document from an exisiting native StochKit XML </span>
+<span class="sd">        file read from disk. &quot;&quot;&quot;</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">fromString</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+        
+        <span class="n">md</span> <span class="o">=</span> <span class="n">cls</span><span class="p">()</span>
+        <span class="n">md</span><span class="o">.</span><span class="n">document</span> <span class="o">=</span> <span class="n">root</span>
+        <span class="k">return</span> <span class="n">md</span>
+</div>
+<div class="viewcode-block" id="StochMLDocument.to_model"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.StochMLDocument.to_model">[docs]</a>    <span class="k">def</span> <span class="nf">to_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Instantiates a Model object from a StochMLDocument. &quot;&quot;&quot;</span>
+        
+        <span class="c"># Empty model</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">document</span>
+        
+        <span class="c"># Try to set name from document</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="s">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Name&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">text</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">raise</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">text</span>
+        
+        <span class="c"># Set annotiation</span>
+        <span class="n">ann</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Description&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ann</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="n">ann</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;units&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">units</span><span class="p">:</span>
+                <span class="n">units</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">units</span> <span class="o">==</span> <span class="s">&quot;concentration&quot;</span><span class="p">:</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s">&quot;concentration&quot;</span>
+            <span class="k">elif</span> <span class="n">units</span> <span class="o">==</span> <span class="s">&quot;population&quot;</span><span class="p">:</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s">&quot;population&quot;</span>
+            <span class="k">else</span><span class="p">:</span> <span class="c"># Default </span>
+                <span class="n">model</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s">&quot;population&quot;</span>
+
+            <span class="k">if</span> <span class="n">ann</span><span class="o">.</span><span class="n">text</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="n">ann</span><span class="o">.</span><span class="n">text</span>
+
+        <span class="c"># Set units</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Units&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">units</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&quot;concentration&quot;</span><span class="p">:</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s">&quot;concentration&quot;</span>
+            <span class="k">elif</span> <span class="n">units</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&quot;population&quot;</span><span class="p">:</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s">&quot;population&quot;</span>
+            <span class="k">else</span><span class="p">:</span> <span class="c"># Default </span>
+                <span class="n">model</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s">&quot;population&quot;</span>
+    
+        <span class="c"># Create parameters</span>
+        <span class="k">for</span> <span class="n">px</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="s">&#39;Parameter&#39;</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+            <span class="n">expr</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Expression&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+            <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;volume&#39;</span><span class="p">:</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">volume</span> <span class="o">=</span> <span class="n">expr</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">expression</span><span class="o">=</span><span class="n">expr</span><span class="p">)</span>
+                <span class="c"># Try to evaluate the expression in the empty namespace </span>
+                <span class="c"># (if the expr is a scalar value)</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        
+        <span class="c"># Create species</span>
+        <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="s">&#39;Species&#39;</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+            <span class="n">val</span>  <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;InitialPopulation&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">initial_value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">add_species</span><span class="p">([</span><span class="n">s</span><span class="p">])</span>
+        
+        <span class="c"># The namespace_propensity for evaluating the propensity function </span>
+        <span class="c"># for reactions must contain all the species and parameters.</span>
+        <span class="n">namespace_propensity</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="n">all_species</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_all_species</span><span class="p">()</span>
+        <span class="n">all_parameters</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_all_parameters</span><span class="p">()</span>
+        
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">all_species</span><span class="p">:</span>
+            <span class="n">namespace_propensity</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="n">all_species</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="o">.</span><span class="n">initial_value</span>
+        
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">all_parameters</span><span class="p">:</span>
+            <span class="n">namespace_propensity</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="n">all_parameters</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        
+        <span class="c"># Create reactions</span>
+        <span class="k">for</span> <span class="n">reac</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="s">&#39;Reaction&#39;</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">reac</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InvalidStochMLError</span><span class="p">(</span><span class="s">&quot;Reaction has no name.&quot;</span><span class="p">)</span>
+            
+            <span class="n">reaction</span>  <span class="o">=</span> <span class="n">Reaction</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span><span class="n">reactants</span><span class="o">=</span><span class="p">{},</span><span class="n">products</span><span class="o">=</span><span class="p">{})</span>
+                
+            <span class="c"># Type may be &#39;mass-action&#39;,&#39;customized&#39;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="nb">type</span> <span class="o">=</span> <span class="n">reac</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Type&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InvalidStochMLError</span><span class="p">(</span><span class="s">&quot;No reaction type specified.&quot;</span><span class="p">)</span>
+                    
+            <span class="n">reactants</span>  <span class="o">=</span> <span class="n">reac</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Reactants&#39;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">ss</span> <span class="ow">in</span> <span class="n">reactants</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="s">&#39;SpeciesReference&#39;</span><span class="p">):</span>
+                    <span class="n">specname</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">)</span>
+                    <span class="c"># The stochiometry should be an integer value, but some</span>
+                    <span class="c"># exising StoxhKit models have them as floats. This is </span>
+                    <span class="c"># why we need the slightly odd conversion below. </span>
+                    <span class="n">stoch</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">ss</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;stoichiometry&#39;</span><span class="p">)))</span>
+                    <span class="c"># Select a reference to species with name specname</span>
+                    <span class="n">sref</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">[</span><span class="n">specname</span><span class="p">]</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="c"># The sref list should only contain one element if </span>
+                        <span class="c"># the XML file is valid.</span>
+                        <span class="n">reaction</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">specname</span><span class="p">]</span> <span class="o">=</span> <span class="n">stoch</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+                        <span class="n">StochMLImportError</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="c"># Yes, this is correct. &#39;reactants&#39; can be None</span>
+                <span class="k">pass</span>
+
+            <span class="n">products</span>  <span class="o">=</span> <span class="n">reac</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Products&#39;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">ss</span> <span class="ow">in</span> <span class="n">products</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="s">&#39;SpeciesReference&#39;</span><span class="p">):</span>
+                    <span class="n">specname</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">)</span>
+                    <span class="n">stoch</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">ss</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;stoichiometry&#39;</span><span class="p">)))</span>
+                    <span class="n">sref</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">[</span><span class="n">specname</span><span class="p">]</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="c"># The sref list should only contain one element if </span>
+                        <span class="c"># the XML file is valid.</span>
+                        <span class="n">reaction</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">specname</span><span class="p">]</span> <span class="o">=</span> <span class="n">stoch</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">StochMLImportError</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="c"># Yes, this is correct. &#39;products&#39; can be None</span>
+                <span class="k">pass</span>
+                            
+            <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s">&#39;mass-action&#39;</span><span class="p">:</span>
+                <span class="n">reaction</span><span class="o">.</span><span class="n">massaction</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">reaction</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s">&#39;mass-action&#39;</span>
+                <span class="c"># If it is mass-action, a parameter reference is needed.</span>
+                <span class="c"># This has to be a reference to a species instance. We </span>
+                <span class="c"># explicitly disallow a scalar value to be passed as the </span>
+                <span class="c"># parameter.  </span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">ratename</span><span class="o">=</span><span class="n">reac</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;Rate&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">reaction</span><span class="o">.</span><span class="n">marate</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">[</span><span class="n">ratename</span><span class="p">]</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span>
+                        <span class="c"># No paramter name is given. This is a valid use case </span>
+                        <span class="c"># in StochKit. We generate a name for the paramter, </span>
+                        <span class="c"># and create a new parameter instance. The parameter&#39;s </span>
+                        <span class="c"># value should now be found in &#39;ratename&#39;.</span>
+                        <span class="n">generated_rate_name</span> <span class="o">=</span> <span class="s">&quot;Reaction_&quot;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> \
+                                                <span class="s">&quot;_rate_constant&quot;</span>
+                        <span class="n">p</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">generated_rate_name</span><span class="p">,</span> 
+                                      <span class="n">expression</span><span class="o">=</span><span class="n">ratename</span><span class="p">)</span>
+                        <span class="c"># Try to evaluate the parameter to set its value</span>
+                        <span class="n">p</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+                        <span class="n">model</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                        <span class="n">reaction</span><span class="o">.</span><span class="n">marate</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">[</span>
+                                                <span class="n">generated_rate_name</span><span class="p">]</span>
+
+                    <span class="n">reaction</span><span class="o">.</span><span class="n">create_mass_action</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">raise</span>
+            <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s">&#39;customized&#39;</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">propfunc</span> <span class="o">=</span> <span class="n">reac</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;PropensityFunction&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">InvalidStochMLError</span><span class="p">(</span><span class="s">&quot;Found a customized &quot;</span> <span class="o">+</span>
+                    <span class="s">&quot;propensity function, but no expression was given.&quot;</span><span class="o">+</span><span class="n">e</span><span class="p">)</span>
+                <span class="n">reaction</span><span class="o">.</span><span class="n">propensity_function</span> <span class="o">=</span> <span class="n">propfunc</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InvalidStochMLError</span><span class="p">(</span>
+                <span class="s">&quot;Unsupported or no reaction type given for reaction&quot;</span> <span class="o">+</span> <span class="n">name</span><span class="p">)</span>
+
+            <span class="n">model</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="n">reaction</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">model</span>
+    </div>
+<div class="viewcode-block" id="StochMLDocument.to_string"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.StochMLDocument.to_string">[docs]</a>    <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns  the document as a string. &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">document</span><span class="p">,</span> <span class="n">pretty_print</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="c"># Hack to print pretty xml without pretty-print </span>
+            <span class="c"># (requires the lxml module).</span>
+            <span class="n">doc</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">document</span><span class="p">)</span>
+            <span class="n">xmldoc</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">dom</span><span class="o">.</span><span class="n">minidom</span><span class="o">.</span><span class="n">parseString</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+            <span class="n">uglyXml</span> <span class="o">=</span> <span class="n">xmldoc</span><span class="o">.</span><span class="n">toprettyxml</span><span class="p">(</span><span class="n">indent</span><span class="o">=</span><span class="s">&#39;  &#39;</span><span class="p">)</span>
+            <span class="n">text_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;&gt;</span><span class="se">\n</span><span class="s">\s+([^&lt;&gt;\s].*?)</span><span class="se">\n</span><span class="s">\s+&lt;/&quot;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
+            <span class="n">prettyXml</span> <span class="o">=</span> <span class="n">text_re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&quot;&gt;\g&lt;1&gt;&lt;/&quot;</span><span class="p">,</span> <span class="n">uglyXml</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">prettyXml</span>
+    </div>
+<div class="viewcode-block" id="StochMLDocument.species_to_element"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.StochMLDocument.species_to_element">[docs]</a>    <span class="k">def</span> <span class="nf">species_to_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">S</span><span class="p">):</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;Species&#39;</span><span class="p">)</span>
+        <span class="n">idElement</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;Id&#39;</span><span class="p">)</span>
+        <span class="n">idElement</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idElement</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="s">&#39;description&#39;</span><span class="p">):</span>
+            <span class="n">descriptionElement</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;Description&#39;</span><span class="p">)</span>
+            <span class="n">descriptionElement</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">description</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">descriptionElement</span><span class="p">)</span>
+        
+        <span class="n">initialPopulationElement</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;InitialPopulation&#39;</span><span class="p">)</span>
+        <span class="n">initialPopulationElement</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">initial_value</span><span class="p">)</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">initialPopulationElement</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">e</span>
+    </div>
+<div class="viewcode-block" id="StochMLDocument.parameter_to_element"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.StochMLDocument.parameter_to_element">[docs]</a>    <span class="k">def</span> <span class="nf">parameter_to_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">P</span><span class="p">):</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;Parameter&#39;</span><span class="p">)</span>
+        <span class="n">idElement</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;Id&#39;</span><span class="p">)</span>
+        <span class="n">idElement</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idElement</span><span class="p">)</span>
+        <span class="n">expressionElement</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;Expression&#39;</span><span class="p">)</span>
+        <span class="n">expressionElement</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">P</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">expressionElement</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">e</span>
+    </div>
+<div class="viewcode-block" id="StochMLDocument.reaction_to_element"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.StochMLDocument.reaction_to_element">[docs]</a>    <span class="k">def</span> <span class="nf">reaction_to_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">R</span><span class="p">,</span> <span class="n">model_volume</span><span class="p">):</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;Reaction&#39;</span><span class="p">)</span>
+        
+        <span class="n">idElement</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;Id&#39;</span><span class="p">)</span>
+        <span class="n">idElement</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idElement</span><span class="p">)</span>
+        
+        <span class="n">descriptionElement</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;Description&#39;</span><span class="p">)</span>
+        <span class="n">descriptionElement</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">descriptionElement</span><span class="p">)</span>
+        
+
+        <span class="c"># StochKit2 wants a rate for mass-action propensites</span>
+        <span class="k">if</span> <span class="n">R</span><span class="o">.</span><span class="n">massaction</span> <span class="ow">and</span> <span class="n">model_volume</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="n">rateElement</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;Rate&#39;</span><span class="p">)</span>
+            <span class="c"># A mass-action reactions should only have one parameter</span>
+            <span class="n">rateElement</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">marate</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">typeElement</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;Type&#39;</span><span class="p">)</span>
+            <span class="n">typeElement</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">&#39;mass-action&#39;</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">typeElement</span><span class="p">)</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rateElement</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">typeElement</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;Type&#39;</span><span class="p">)</span>
+            <span class="n">typeElement</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">&#39;customized&#39;</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">typeElement</span><span class="p">)</span>
+            <span class="n">functionElement</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;PropensityFunction&#39;</span><span class="p">)</span>
+            <span class="n">functionElement</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">propensity_function</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">functionElement</span><span class="p">)</span>
+
+        <span class="n">reactants</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;Reactants&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">reactant</span><span class="p">,</span> <span class="n">stoichiometry</span> <span class="ow">in</span> <span class="n">R</span><span class="o">.</span><span class="n">reactants</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">srElement</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;SpeciesReference&#39;</span><span class="p">)</span>
+            <span class="n">srElement</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">reactant</span><span class="p">)</span>
+            <span class="n">srElement</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;stoichiometry&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">stoichiometry</span><span class="p">))</span>
+            <span class="n">reactants</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">srElement</span><span class="p">)</span>
+
+        <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reactants</span><span class="p">)</span>
+
+        <span class="n">products</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;Products&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">product</span><span class="p">,</span> <span class="n">stoichiometry</span> <span class="ow">in</span> <span class="n">R</span><span class="o">.</span><span class="n">products</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">srElement</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s">&#39;SpeciesReference&#39;</span><span class="p">)</span>
+            <span class="n">srElement</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">product</span><span class="p">)</span>
+            <span class="n">srElement</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;stoichiometry&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">stoichiometry</span><span class="p">))</span>
+            <span class="n">products</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">srElement</span><span class="p">)</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">products</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">e</span>
+
+</div></div>
+<div class="viewcode-block" id="GillesPySolver"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.GillesPySolver">[docs]</a><span class="k">class</span> <span class="nc">GillesPySolver</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    Abstract class for a solver. This is generally called from within a</span>
+<span class="sd">    gillespy Model through the Model.run function. Returns simulation </span>
+<span class="sd">    trajectories.</span>
+<span class="sd">        </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model : gillespy.Model</span>
+<span class="sd">        The model on which the solver will operate.</span>
+<span class="sd">    t : float</span>
+<span class="sd">        The end time of the solver.</span>
+<span class="sd">    number_of_trajectories : int</span>
+<span class="sd">        The number of times to sample the chemical master equation. Each</span>
+<span class="sd">        trajectory will be returned at the end of the simulation.</span>
+<span class="sd">    increment : float</span>
+<span class="sd">        The time step of the solution.</span>
+<span class="sd">    seed : int</span>
+<span class="sd">        The random seed for the simulation. Defaults to None.</span>
+<span class="sd">    stochkit_home : str</span>
+<span class="sd">        Path to stochkit. This is set automatically upon installation, but </span>
+<span class="sd">        may be overwritten if desired.</span>
+<span class="sd">    algorithm : str</span>
+<span class="sd">        The solver by which to simulate the model. &#39;ssa&#39; or &#39;tau_leaping&#39;</span>
+<span class="sd">        are the available options. If &#39;ssa&#39; is chosen, StochKit will choose</span>
+<span class="sd">        from the available ssa options.</span>
+<span class="sd">    job_id : str</span>
+<span class="sd">        If given, this will be the name of the solver run. Usually not set.</span>
+<span class="sd">    extra_args : str</span>
+<span class="sd">        Any extra arguments for the stochkit solver. See StochKit2 </span>
+<span class="sd">        documentation for details.</span>
+<span class="sd">    debug : bool (False)</span>
+<span class="sd">        Set to True to provide additional debug information about the     </span>
+<span class="sd">        simulation.</span>
+<span class="sd">    show_labels : bool (True)</span>
+<span class="sd">        Use names of species as index of result object rather than position numbers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="GillesPySolver.run"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.GillesPySolver.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">stochkit_home</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+            <span class="n">job_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">extra_args</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Call out and run the solver. Collect the results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="n">algorithm</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SimuliationError</span><span class="p">(</span><span class="s">&quot;No algorithm selected&quot;</span><span class="p">)</span>
+        
+        <span class="c"># We write all StochKit input and output files to a temporary folder</span>
+        <span class="n">prefix_basedir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
+        <span class="n">prefix_outdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prefix_basedir</span><span class="p">,</span> <span class="s">&#39;output&#39;</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prefix_basedir</span><span class="p">,</span> <span class="s">&#39;output&#39;</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="n">job_id</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">job_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+        
+        <span class="c"># Write a temporary StochKit2 input file.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">Model</span><span class="p">):</span>
+            <span class="n">outfile</span> <span class="o">=</span>  <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prefix_basedir</span><span class="p">,</span> 
+                                        <span class="s">&quot;temp_input_&quot;</span><span class="o">+</span><span class="n">job_id</span><span class="o">+</span><span class="s">&quot;.xml&quot;</span><span class="p">)</span>
+            <span class="n">mfhandle</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+            <span class="c">#document = StochMLDocument.from_model(model)</span>
+
+        <span class="c"># If the model is a Model instance, we serialize it to XML,</span>
+        <span class="c"># and if it is an XML file, we just make a copy.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">Model</span><span class="p">):</span>
+            <span class="n">document</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
+            <span class="n">mfhandle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
+            <span class="n">mfhandle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">outfile</span> <span class="o">=</span> <span class="n">model</span>
+
+        <span class="c"># Assemble argument list for StochKit</span>
+        <span class="n">ensemblename</span> <span class="o">=</span> <span class="n">job_id</span>
+    
+        <span class="n">directories</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">prefix_outdir</span><span class="p">)</span>
+        
+        
+        <span class="n">outdir</span> <span class="o">=</span> <span class="n">prefix_outdir</span><span class="o">+</span><span class="s">&#39;/&#39;</span><span class="o">+</span><span class="n">ensemblename</span>
+        
+
+        <span class="c"># Algorithm, SSA or Tau-leaping?</span>
+        <span class="n">executable</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">stochkit_home</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">stochkit_home</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">)):</span>
+                <span class="n">executable</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">stochkit_home</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">SimuliationError</span><span class="p">(</span><span class="s">&quot;stochkit executable &#39;{0}&#39; not found </span><span class="se">\</span>
+<span class="s">                stochkit_home={1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">algorithm</span><span class="p">,</span> <span class="n">stochkit_home</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;STOCHKIT_HOME&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;STOCHKIT_HOME&#39;</span><span class="p">),</span> 
+                                           <span class="n">algorithm</span><span class="p">)):</span>
+                <span class="n">executable</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;STOCHKIT_HOME&#39;</span><span class="p">),</span> 
+                                          <span class="n">algorithm</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">executable</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># try to find the executable in the path</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;PATH&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;PATH&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">dir</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">)):</span>
+                        <span class="n">executable</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">dir</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">)</span>
+                        <span class="k">break</span>
+        <span class="k">if</span> <span class="n">executable</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="s">&quot;stochkit executable &#39;{0}&#39; not found. </span><span class="se">\</span>
+<span class="s">                Make sure it is your path, or set STOCHKIT_HOME envronment </span><span class="se">\</span>
+<span class="s">                variable&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">algorithm</span><span class="p">))</span>
+
+
+
+        <span class="c"># Assemble the argument list</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="n">args</span> <span class="o">+=</span> <span class="s">&#39;--model &#39;</span>
+        <span class="n">args</span> <span class="o">+=</span> <span class="n">outfile</span>
+        <span class="n">args</span> <span class="o">+=</span> <span class="s">&#39; --out-dir &#39;</span><span class="o">+</span><span class="n">outdir</span>
+        <span class="n">args</span> <span class="o">+=</span> <span class="s">&#39; -t &#39;</span>
+        <span class="n">args</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">increment</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">increment</span> <span class="o">=</span> <span class="n">t</span><span class="o">/</span><span class="mf">20.0</span>
+        <span class="n">num_output_points</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="o">/</span><span class="n">increment</span><span class="p">)))</span>
+        <span class="n">args</span> <span class="o">+=</span> <span class="s">&#39; -i &#39;</span> <span class="o">+</span> <span class="n">num_output_points</span>
+        <span class="k">if</span> <span class="n">ensemblename</span> <span class="ow">in</span> <span class="n">directories</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;Ensemble &#39;</span><span class="o">+</span><span class="n">ensemblename</span><span class="o">+</span><span class="s">&#39; already existed, using --force.&#39;</span>
+            <span class="n">args</span><span class="o">+=</span><span class="s">&#39; --force&#39;</span>
+        
+
+        <span class="c"># If we are using local mode, shell out and run StochKit </span>
+        <span class="c"># (SSA or Tau-leaping or ODE)</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">executable</span><span class="o">+</span><span class="s">&#39; &#39;</span><span class="o">+</span><span class="n">args</span><span class="o">+</span><span class="s">&#39; &#39;</span><span class="o">+</span><span class="n">extra_args</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;cmd: {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+        <span class="c"># Execute</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c">#print &quot;CMD: {0}&quot;.format(cmd)</span>
+            <span class="n">handle</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">stdout</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="n">handle</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SimuliationError</span><span class="p">(</span><span class="s">&quot;Solver execution failed: </span><span class="se">\</span>
+<span class="s">            {0}</span><span class="se">\n</span><span class="s">{1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">stderr</span> <span class="o">=</span> <span class="n">handle</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">stderr</span> <span class="o">=</span> <span class="s">&#39;Error reading stderr: {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">stdout</span> <span class="o">=</span> <span class="n">handle</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">stdout</span> <span class="o">=</span> <span class="s">&#39;Error reading stdout: {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_code</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c">#print stdout</span>
+            <span class="c">#print stderr</span>
+            <span class="k">raise</span> <span class="n">SimuliationError</span><span class="p">(</span><span class="s">&quot;Solver execution failed: </span><span class="se">\</span>
+<span class="s">            &#39;{0}&#39; output: {1}{2}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span><span class="n">stdout</span><span class="p">,</span><span class="n">stderr</span><span class="p">))</span>
+
+        <span class="c"># Get data using solver specific function</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">show_labels</span><span class="p">:</span>
+                <span class="n">labels</span><span class="p">,</span> <span class="n">trajectories</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trajectories</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">trajectories</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trajectories</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prefix_basedir</span><span class="p">,</span><span class="s">&#39;temp_input_{0}_generated_code&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ensemblename</span><span class="p">),</span><span class="s">&#39;compile-log.txt&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">cerr</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="s">&quot;Error compiling custom propensities: {0}</span><span class="se">\n</span><span class="s">{1}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="n">cerr</span><span class="p">))</span>
+
+            <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prefix_outdir</span><span class="p">,</span><span class="n">ensemblename</span><span class="p">,</span><span class="s">&#39;log.txt&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">cerr</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="s">&quot;Error running simulation: {0}</span><span class="se">\n</span><span class="s">{1}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="n">cerr</span><span class="p">))</span>
+            
+            <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="s">&quot;Error using solver.get_trajectories(&#39;{0}&#39;): {1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trajectories</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c">#print stdout</span>
+            <span class="c">#print stderr</span>
+            <span class="k">raise</span> <span class="n">SimuliationError</span><span class="p">(</span><span class="s">&quot;Solver execution failed: </span><span class="se">\</span>
+<span class="s">            &#39;{0}&#39; output: {1}{2}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span><span class="n">stdout</span><span class="p">,</span><span class="n">stderr</span><span class="p">))</span>
+
+        <span class="c"># Clean up</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;prefix_basedir={0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prefix_basedir</span><span class="p">)</span>
+            <span class="k">print</span> <span class="s">&quot;STDOUT: {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">stdout</span><span class="p">)</span>
+            <span class="k">print</span> <span class="s">&quot;STDERR: {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">stderr</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">prefix_basedir</span><span class="p">)</span>
+        <span class="c"># Return data</span>
+        <span class="k">if</span> <span class="n">show_labels</span><span class="p">:</span>
+            <span class="n">results2</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">trajectories</span><span class="p">:</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">n</span><span class="p">,</span><span class="n">l</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">):</span>
+                    <span class="n">ret</span><span class="p">[</span><span class="n">l</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[:,</span><span class="n">n</span><span class="p">]</span>
+                <span class="n">results2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">results2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">trajectories</span>
+</div></div>
+<div class="viewcode-block" id="StochKitSolver"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.StochKitSolver">[docs]</a><span class="k">class</span> <span class="nc">StochKitSolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    Abstract class for StochKit solver derived from the GillesPySolver class.</span>
+<span class="sd">    This is generally used to set up the solver.</span>
+<span class="sd">        </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model : gillespy.Model</span>
+<span class="sd">        The model on which the solver will operate.</span>
+<span class="sd">    t : float</span>
+<span class="sd">        The end time of the solver.</span>
+<span class="sd">    number_of_trajectories : int</span>
+<span class="sd">        The number of times to sample the chemical master equation. Each</span>
+<span class="sd">        trajectory will be returned at the end of the simulation.</span>
+<span class="sd">    increment : float</span>
+<span class="sd">        The time step of the solution.</span>
+<span class="sd">    seed : int</span>
+<span class="sd">        The random seed for the simulation. Defaults to None.</span>
+<span class="sd">    stochkit_home : str</span>
+<span class="sd">        Path to stochkit. This is set automatically upon installation, but </span>
+<span class="sd">        may be overwritten if desired.</span>
+<span class="sd">    algorithm : str</span>
+<span class="sd">        The solver by which to simulate the model. &#39;ssa&#39; or &#39;tau_leaping&#39;</span>
+<span class="sd">        are the available options. If &#39;ssa&#39; is chosen, StochKit will choose</span>
+<span class="sd">        from the available ssa options.</span>
+<span class="sd">    job_id : str</span>
+<span class="sd">        If given, this will be the name of the solver run. Usually not set.</span>
+<span class="sd">    method : str</span>
+<span class="sd">        The specific SSA to call. NOT YET FUNCTIONAL.</span>
+<span class="sd">    debug : bool (False)</span>
+<span class="sd">        Set to True to provide additional debug information about the     </span>
+<span class="sd">        simulation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="StochKitSolver.run"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.StochKitSolver.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">stochkit_home</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s">&#39;ssa&#39;</span><span class="p">,</span>
+            <span class="n">job_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    
+        <span class="c"># all this is specific to StochKit</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">units</span> <span class="o">==</span> <span class="s">&quot;concentration&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SimuliationError</span><span class="p">(</span><span class="s">&quot;StochKit can only simulate population &quot;</span><span class="o">+</span>
+                <span class="s">&quot;models, please convert to population-based model for &quot;</span><span class="o">+</span>
+                <span class="s">&quot;stochastic simulation. Use solver = StochKitODESolver &quot;</span><span class="o">+</span>
+                <span class="s">&quot;instead to simulate a concentration model deterministically.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">seed</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2147483647</span><span class="p">)</span>
+        <span class="c"># StochKit breaks for long ints</span>
+        <span class="k">if</span> <span class="n">seed</span><span class="o">.</span><span class="n">bit_length</span><span class="p">()</span><span class="o">&gt;=</span><span class="mi">32</span><span class="p">:</span>
+            <span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span> <span class="o">&amp;</span> <span class="p">((</span><span class="mi">1</span><span class="o">&lt;&lt;</span><span class="mi">32</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">seed</span> <span class="o">&gt;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">31</span><span class="p">)</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">seed</span> <span class="o">-=</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">32</span>
+
+        <span class="c"># Only use on processor per StochKit job.</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="s">&#39; -p 1&#39;</span>
+      
+        <span class="c"># We keep all the trajectories by default.</span>
+        <span class="n">args</span> <span class="o">+=</span> <span class="s">&#39; --keep-trajectories&#39;</span>
+        <span class="n">args</span> <span class="o">+=</span> <span class="s">&#39; --label&#39;</span>
+
+        <span class="n">args</span> <span class="o">+=</span> <span class="s">&#39; --seed &#39;</span>
+        <span class="n">args</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+        
+        <span class="n">realizations</span> <span class="o">=</span> <span class="n">number_of_trajectories</span>
+        <span class="n">args</span> <span class="o">+=</span> <span class="s">&#39; --realizations &#39;</span>
+        <span class="n">args</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">realizations</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">method</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>  <span class="c">#This only works for StochKit 2.1</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="s">&#39; --method &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+
+        
+        <span class="bp">self</span> <span class="o">=</span> <span class="n">StochKitSolver</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">GillesPySolver</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span><span class="n">t</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="p">,</span> 
+                                  <span class="n">increment</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">stochkit_home</span><span class="p">,</span>
+                                  <span class="n">algorithm</span><span class="p">,</span> 
+                                  <span class="n">job_id</span><span class="p">,</span> <span class="n">extra_args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span>
+                                  <span class="n">show_labels</span><span class="o">=</span><span class="n">show_labels</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="StochKitSolver.get_trajectories"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.StochKitSolver.get_trajectories">[docs]</a>    <span class="k">def</span> <span class="nf">get_trajectories</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outdir</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="c"># Collect all the output data</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">outdir</span> <span class="o">+</span> <span class="s">&#39;/stats&#39;</span><span class="p">)</span>
+        <span class="n">trajectories</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">outdir</span> <span class="o">+</span> <span class="s">&#39;/trajectories&#39;</span><span class="p">)</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">show_labels</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">outdir</span> <span class="o">+</span> <span class="s">&#39;/trajectories/trajectory0.txt&#39;</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">first_line</span><span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                <span class="n">labels</span> <span class="o">=</span> <span class="n">first_line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&#39;trajectory&#39;</span> <span class="ow">in</span> <span class="n">filename</span><span class="p">:</span>
+                <span class="n">trajectories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">outdir</span> <span class="o">+</span> <span class="s">&#39;/trajectories/&#39;</span> <span class="o">+</span> 
+                                        <span class="n">filename</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">SimuliationError</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t identify file &#39;{0}&#39; found in </span><span class="se">\</span>
+<span class="s">                                        output folder&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">show_labels</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">trajectories</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">trajectories</span>
+
+</div></div>
+<div class="viewcode-block" id="StochKitODESolver"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.StochKitODESolver">[docs]</a><span class="k">class</span> <span class="nc">StochKitODESolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    Abstract class for StochKit solver derived from the GillesPySolver class.</span>
+<span class="sd">    This is generally used to set up the solver.</span>
+<span class="sd">        </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model : gillespy.Model</span>
+<span class="sd">        The model on which the solver will operate.</span>
+<span class="sd">    t : float</span>
+<span class="sd">        The end time of the solver.</span>
+<span class="sd">    number_of_trajectories : int</span>
+<span class="sd">        The number of times to sample the chemical master equation. Each</span>
+<span class="sd">        trajectory will be returned at the end of the simulation.</span>
+<span class="sd">    increment : float</span>
+<span class="sd">        The time step of the solution.</span>
+<span class="sd">    seed : int</span>
+<span class="sd">        The random seed for the simulation. Defaults to None.</span>
+<span class="sd">    stochkit_home : str</span>
+<span class="sd">        Path to stochkit. This is set automatically upon installation, but </span>
+<span class="sd">        may be overwritten if desired.</span>
+<span class="sd">    algorithm : str</span>
+<span class="sd">        Already set to &#39;stochkit_ode.py&#39;</span>
+<span class="sd">    job_id : str</span>
+<span class="sd">        If given, this will be the name of the solver run. Usually not set.</span>
+<span class="sd">    debug : bool (False)</span>
+<span class="sd">        Set to True to provide additional debug information about the     </span>
+<span class="sd">        simulation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="StochKitODESolver.run"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.StochKitODESolver.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">stochkit_home</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
+                <span class="n">algorithm</span><span class="o">=</span><span class="s">&#39;stochkit_ode.py&#39;</span><span class="p">,</span>
+                <span class="n">job_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="bp">self</span> <span class="o">=</span> <span class="n">StochKitODESolver</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">GillesPySolver</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">model</span><span class="p">,</span><span class="n">t</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="p">,</span> 
+                                  <span class="n">increment</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">stochkit_home</span><span class="p">,</span>
+                                  <span class="n">algorithm</span><span class="p">,</span> 
+                                  <span class="n">job_id</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span>
+                                  <span class="n">show_labels</span><span class="o">=</span><span class="n">show_labels</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="StochKitODESolver.get_trajectories"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.StochKitODESolver.get_trajectories">[docs]</a>    <span class="k">def</span> <span class="nf">get_trajectories</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outdir</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;StochKitODESolver.get_trajectories(outdir={0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">outdir</span><span class="p">)</span>
+        <span class="c"># Collect all the output data</span>
+        <span class="n">trajectories</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">outdir</span> <span class="o">+</span> <span class="s">&#39;/output.txt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
+            <span class="n">fd</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+            <span class="n">headers</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+            <span class="n">fd</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">fd</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()])</span>
+            <span class="n">fd</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fd</span><span class="p">:</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()])</span>
+        <span class="n">trajectories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">show_labels</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">headers</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="n">trajectories</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">trajectories</span>
+
+
+<span class="c"># Exceptions</span></div></div>
+<div class="viewcode-block" id="StochMLImportError"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.StochMLImportError">[docs]</a><span class="k">class</span> <span class="nc">StochMLImportError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="InvalidStochMLError"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.InvalidStochMLError">[docs]</a><span class="k">class</span> <span class="nc">InvalidStochMLError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="InvalidModelError"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.InvalidModelError">[docs]</a><span class="k">class</span> <span class="nc">InvalidModelError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="SimulationError"><a class="viewcode-back" href="../../gillespy.html#gillespy.gillespy.SimulationError">[docs]</a><span class="k">class</span> <span class="nc">SimulationError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    </div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, John H. Abel, Brian Drawert, Andreas Hellander.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.3</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
