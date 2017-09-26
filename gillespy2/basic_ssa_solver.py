@@ -1,4 +1,5 @@
 import gillespy2
+import random
 
 
 class BasicSSASolver(gillespy2.GillesPySolver):
@@ -13,29 +14,55 @@ class BasicSSASolver(gillespy2.GillesPySolver):
         self = BasicSSASolver()
         self.simulation_data = []
 
- 	reaction_list = model.get_all_reactions()
+ 	#reaction_list = model.get_all_reactions()
   	curr_state = {} 
 	propensity = {} 
-	rates = {}
-	rates = dict.fromkeys(model.listOfReactions.keys())
-	print(rates)
+	results = {}
+	#rates = {}
+	#rates = dict.fromkeys(model.listOfReactions.keys())
+	
         for traj_num in range(number_of_trajectories):
             # put SSA loop here
 
-	       
+	      
             for s in model.listOfSpecies:   #Initialize Species population
                 curr_state[s] = model.listOfSpecies[s].initial_value
-	       #print(model.listOfSpecies[s].initial_value)
+		results[s] = []
+
 	    curr_state['vol'] = model.volume
+	    curr_time = 0
+	  
             for p in model.listOfParameters:
-		#rates[p] = model.listOfParameters[p].value
-                curr_state[p] = model.listOfParameters[p].value        
-		#curr_state[s] = model.listOfParameters[p].value  
-                		
-            for r in model.listOfReactions:
-		#propensity[r] =
-		#print(model.listOfReactions[r]) 
-		propensity[r] = eval(model.listOfReactions[r].propensity_function, curr_state)
+                curr_state[p] = model.listOfParameters[p].value
+	    for r in model.listOfReactions:
+		print(model.listOfReactions[r].reactants)
+		  
+            while(curr_time < t):
+		prop_sum = 0
+		cumil_sum = 0
+		reaction = None
+		reaction_num = None
+            	for r in model.listOfReactions: 
+			propensity[r] = eval(model.listOfReactions[r].propensity_function, curr_state)
+			prop_sum += propensity[r] 	
+		reaction_num = random.uniform(0,prop_sum)	
+
+		for r in model.listOfReactions:
+			cumil_sum += propensity[r]
+			#print("Propensity: {}".format(propensity[r]))
+			if(cumil_sum >= reaction_num):
+				reaction = r
+				#print("Reaction Num: {}".format(reaction_num))
+				#print("Chosen Reaction: {}\n".format(reaction))
+				break
+		for reacts in model.listOfReactions[reaction].reactants:
+			curr_state[reacts] -= 1
+		for prods in model.listOfReactions[reaction].products:
+			curr_state[prods] += 1		
+			
+		curr_time +=increment 
+	    for s in model.listOfSpecies:
+		print("{} {} ".format(s,curr_state[s])) 
 	    return propensity	
 		#print(propensity[r])
 		#propensity.append(eval(model.listOfReactions[r].propensity_function(), curr_state))
