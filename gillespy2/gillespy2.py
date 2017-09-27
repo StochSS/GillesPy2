@@ -908,7 +908,7 @@ class StochMLDocument():
                         # The sref list should only contain one element if 
                         # the XML file is valid.
                         reaction.reactants[specname] = stoch
-                    except Exception,e:
+                    except Exception as e:
                         StochMLImportError(e)
             except:
                 # Yes, this is correct. 'reactants' can be None
@@ -924,7 +924,7 @@ class StochMLDocument():
                         # The sref list should only contain one element if 
                         # the XML file is valid.
                         reaction.products[specname] = stoch
-                    except Exception,e:
+                    except Exception as e:
                         raise StochMLImportError(e)
             except:
                 # Yes, this is correct. 'products' can be None
@@ -941,7 +941,7 @@ class StochMLDocument():
                     ratename=reac.find('Rate').text
                     try:
                         reaction.marate = model.listOfParameters[ratename]
-                    except KeyError, k:
+                    except KeyError as k:
                         # No paramter name is given. This is a valid use case 
                         # in StochKit. We generate a name for the paramter, 
                         # and create a new parameter instance. The parameter's 
@@ -957,12 +957,12 @@ class StochMLDocument():
                                                 generated_rate_name]
 
                     reaction.create_mass_action()
-                except Exception, e:
+                except Exception as e:
                     raise
             elif type == 'customized':
                 try:
                     propfunc = reac.find('PropensityFunction').text
-                except Exception,e:
+                except Exception as e:
                     raise InvalidStochMLError("Found a customized " +
                     "propensity function, but no expression was given."+e)
                 reaction.propensity_function = propfunc
@@ -1413,7 +1413,7 @@ class StochKitODESolver(GillesPySolver):
 
     def get_trajectories(self, outdir, debug=False, show_labels=False):
         if debug:
-            print "StochKitODESolver.get_trajectories(outdir={0}".format(outdir)
+            print("StochKitODESolver.get_trajectories(outdir={0}".format(outdir))
         # Collect all the output data
         trajectories = []
         with open(outdir + '/output.txt') as fd:
