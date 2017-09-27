@@ -65,13 +65,12 @@ class BasicSSASolver(gillespy2.GillesPySolver):
 			curr_state[react] -=  model.listOfReactions[reaction].reactants[react]
 		for prod in model.listOfReactions[reaction].products:
 			curr_state[prod] += model.listOfReactions[reaction].products[prod] 	
-				
-		
-		
-		if(prop_sum <= 0):	
-			return results
 
-		tau = -1*math.log10(random.random())/prop_sum
+		if(prop_sum <= 0):
+			return results
+		
+
+		tau = -1*math.log(random.random())/prop_sum
 		if(curr_time + tau >= save_time + increment):
 			save_time += increment
 			#write to output
@@ -80,7 +79,7 @@ class BasicSSASolver(gillespy2.GillesPySolver):
 				results[s].append(curr_state[s])
 		curr_time += tau	
 
-	    return 	
+	    return results
 		
 		#propensity.append(eval(model.listOfReactions[r].propensity_function(), curr_state))
            
