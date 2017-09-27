@@ -1186,7 +1186,7 @@ class GillesPySolver():
         num_output_points = str(int(float(t/increment)))
         args += ' -i ' + num_output_points
         if ensemblename in directories:
-            print 'Ensemble '+ensemblename+' already existed, using --force.'
+            print('Ensemble '+ensemblename+' already existed, using --force.')
             args+=' --force'
         
 
@@ -1194,7 +1194,7 @@ class GillesPySolver():
         # (SSA or Tau-leaping or ODE)
         cmd = executable+' '+args+' '+extra_args
         if debug:
-            print "cmd: {0}".format(cmd)
+            print("cmd: {0}".format(cmd))
 
         # Execute
         try:
@@ -1249,9 +1249,9 @@ class GillesPySolver():
 
         # Clean up
         if debug:
-            print "prefix_basedir={0}".format(prefix_basedir)
-            print "STDOUT: {0}".format(stdout)
-            print "STDERR: {0}".format(stderr)
+            print("prefix_basedir={0}".format(prefix_basedir))
+            print("STDOUT: {0}".format(stdout))
+            print("STDERR: {0}".format(stderr))
         else:
             shutil.rmtree(prefix_basedir)
         # Return data
