@@ -1,6 +1,6 @@
 import gillespy2
 import random
-
+import math
 
 class BasicSSASolver(gillespy2.GillesPySolver):
     """ TODO
@@ -13,30 +13,29 @@ class BasicSSASolver(gillespy2.GillesPySolver):
         """
         self = BasicSSASolver()
         self.simulation_data = []
-
- 	#reaction_list = model.get_all_reactions()
+ 
   	curr_state = {} 
 	propensity = {} 
-	results = {}
-	#rates = {}
-	#rates = dict.fromkeys(model.listOfReactions.keys())
+	results = {}	
 	
         for traj_num in range(number_of_trajectories):
             # put SSA loop here
-
+	    
 	      
             for s in model.listOfSpecies:   #Initialize Species population
                 curr_state[s] = model.listOfSpecies[s].initial_value
 		results[s] = []
+		results[s].append(model.listOfSpecies[s].initial_value)
 
 	    curr_state['vol'] = model.volume
+	    results['time'] = [0]
 	    curr_time = 0
-	  
+	    save_time = 0	  
+
             for p in model.listOfParameters:
-                curr_state[p] = model.listOfParameters[p].value
-	    for r in model.listOfReactions:
-		print(model.listOfReactions[r].reactants)
-		  
+                curr_state[p] = model.listOfParameters[p].value		
+		
+	     
             while(curr_time < t):
 		prop_sum = 0
 		cumil_sum = 0
@@ -44,27 +43,45 @@ class BasicSSASolver(gillespy2.GillesPySolver):
 		reaction_num = None
             	for r in model.listOfReactions: 
 			propensity[r] = eval(model.listOfReactions[r].propensity_function, curr_state)
-			prop_sum += propensity[r] 	
-		reaction_num = random.uniform(0,prop_sum)	
-
+			prop_sum += propensity[r]
+			#print('------------------------------------------propensity-------------------------') 
+			#print('time',curr_time,'r',r,propensity[r], model.listOfReactions[r].propensity_function)	
+		reaction_num = random.uniform(0,prop_sum)
+		#print('Reaction Rand: ',reaction_num)	
+		#print('Propensity Sum: ',prop_sum)
+		#for r in model.listOfReactions:
+		#	print(r,propensity[r])
 		for r in model.listOfReactions:
 			cumil_sum += propensity[r]
-			#print("Propensity: {}".format(propensity[r]))
+	
 			if(cumil_sum >= reaction_num):
 				reaction = r
-				#print("Reaction Num: {}".format(reaction_num))
-				#print("Chosen Reaction: {}\n".format(reaction))
+				#print('Cumilative Sum:  ',cumil_sum)	
 				break
-		for reacts in model.listOfReactions[reaction].reactants:
-			curr_state[reacts] -= 1
-		for prods in model.listOfReactions[reaction].products:
-			curr_state[prods] += 1		
-			
-		curr_time +=increment 
-	    for s in model.listOfSpecies:
-		print("{} {} ".format(s,curr_state[s])) 
-	    return propensity	
-		#print(propensity[r])
+
+		#print('Reaction: ',reaction)
+		#print('-'*80)
+		for react in model.listOfReactions[reaction].reactants:
+			curr_state[react] -=  model.listOfReactions[reaction].reactants[react]
+		for prod in model.listOfReactions[reaction].products:
+			curr_state[prod] += model.listOfReactions[reaction].products[prod] 	
+				
+		
+		
+		if(prop_sum <= 0):	
+			return results
+
+		tau = -1*math.log10(random.random())/prop_sum
+		if(curr_time + tau >= save_time + increment):
+			save_time += increment
+			#write to output
+			results['time'].append(save_time)
+			for s in model.listOfSpecies:
+				results[s].append(curr_state[s])
+		curr_time += tau	
+
+	    return 	
+		
 		#propensity.append(eval(model.listOfReactions[r].propensity_function(), curr_state))
            
 		 #self.simulation_data[traj_num] = {}
