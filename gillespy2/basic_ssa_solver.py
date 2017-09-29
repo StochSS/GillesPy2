@@ -7,11 +7,11 @@ class BasicSSASolver(gillespy2.GillesPySolver):
     """
     
     @classmethod
-    def run(cls, model, t=20, number_of_trajectories=1,
+    def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
         """ TODO
         """
-        self = BasicSSASolver()
+       # self = BasicSSASolver()
         self.simulation_data = []
  
   	curr_state = {} 
@@ -23,12 +23,11 @@ class BasicSSASolver(gillespy2.GillesPySolver):
 	    
 	      
             for s in model.listOfSpecies:   #Initialize Species population
-                curr_state[s] = model.listOfSpecies[s].initial_value
-		results[s] = []
-		results[s].append(model.listOfSpecies[s].initial_value)
+                curr_state[s] = model.listOfSpecies[s].initial_value	
+		results[s]=[]
 
 	    curr_state['vol'] = model.volume
-	    results['time'] = [0]
+	    results['time'] = []
 	    curr_time = 0
 	    save_time = 0	  
 
@@ -61,23 +60,30 @@ class BasicSSASolver(gillespy2.GillesPySolver):
 
 		#print('Reaction: ',reaction)
 		#print('-'*80)
+	
+		if(prop_sum <= 0):
+			while(save_time <= t):
+				results['time'].append(save_time)
+				for s in model.listOfSpecies:
+					results[s].append(curr_state[s])
+	                        save_time += increment
+	
+			return results
+		
+
+		tau = -1*math.log(random.random())/prop_sum
+		curr_time += tau
+		while(curr_time > save_time and curr_time <= t):
+			results['time'].append(save_time)
+			for s in model.listOfSpecies:
+				results[s].append(curr_state[s])
+                        save_time += increment	
+
 		for react in model.listOfReactions[reaction].reactants:
 			curr_state[react] -=  model.listOfReactions[reaction].reactants[react]
 		for prod in model.listOfReactions[reaction].products:
 			curr_state[prod] += model.listOfReactions[reaction].products[prod] 	
 
-		if(prop_sum <= 0):
-			return results
-		
-
-		tau = -1*math.log(random.random())/prop_sum
-		if(curr_time + tau >= save_time + increment):
-			save_time += increment
-			#write to output
-			results['time'].append(save_time)
-			for s in model.listOfSpecies:
-				results[s].append(curr_state[s])
-		curr_time += tau	
 
 	    return results
 		
