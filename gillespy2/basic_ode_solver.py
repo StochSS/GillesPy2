@@ -1,7 +1,8 @@
 import gillespy2
+from gillespySolver import GillesPySolver
 from scipy.integrate import odeint
 import numpy as np
-class BasicODESolver(gillespy2.GillesPySolver):
+class BasicODESolver(GillesPySolver):
 
 
 	@staticmethod

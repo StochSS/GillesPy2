@@ -22,7 +22,8 @@ import uuid
 import subprocess
 import types
 import random
-import gillespyError,gillespySolver
+from gillespyError import *
+from gillespySolver import *
 try:
     import lxml.etree as etree
     no_pretty_print = False

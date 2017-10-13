@@ -1,8 +1,9 @@
 import gillespy2
+from gillespySolver import GillesPySolver
 import random
 import math
 
-class BasicSSASolver(gillespy2.GillesPySolver):
+class BasicSSASolver(GillesPySolver):
     """ TODO
     """
     
