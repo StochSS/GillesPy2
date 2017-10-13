@@ -4,7 +4,7 @@ import numpy as np
 class BasicODESolver(gillespy2.GillesPySolver):
 
 
-
+	@staticmethod
 	def function(y0,t,species,parameters,reactions):
 		curr_state = {}
    	  	state_change = {}
@@ -35,7 +35,7 @@ class BasicODESolver(gillespy2.GillesPySolver):
 			for s in model.listOfSpecies:
 				y0.append(model.listOfSpecies[s].initial_value)
 			time = np.arange(0,t,increment)
-		return odeint(func=function, y0=y0, t=time, args=(model.listOfSpecies,model.listOfParameters,model.listOfReactions))
+		return odeint(y0=y0,func=BasicODESolver.function,t=time, args=(model.listOfSpecies,model.listOfParameters,model.listOfReactions))
 
 
 
