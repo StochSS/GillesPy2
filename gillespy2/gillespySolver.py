@@ -1,4 +1,4 @@
-import gillespyError
+from .gillespyError import *
 class GillesPySolver():
     """ 
     Abstract class for a solver. This is generally called from within a

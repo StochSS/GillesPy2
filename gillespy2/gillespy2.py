@@ -22,8 +22,8 @@ import uuid
 import subprocess
 import types
 import random
-from gillespyError import *
-from gillespySolver import *
+from .gillespyError import *
+from .gillespySolver import *
 try:
     import lxml.etree as etree
     no_pretty_print = False
@@ -391,18 +391,33 @@ class Model(object):
             Use names of species as index of result object rather than position numbers.
         """
         if solver is not None:
-            if (isinstance(solver, (type, types.ClassType)) 
-                                and  issubclass(solver, GillesPySolver)):
-                return solver.run(self, t=self.tspan[-1], 
-                            increment=self.tspan[-1]-self.tspan[-2],
-                            seed=seed, 
-                            number_of_trajectories=number_of_trajectories,
-                            stochkit_home=stochkit_home, debug=debug,
-                            show_labels=show_labels)
-            else:
-                raise SimuliationError(
-                        "argument 'solver' to run() must be"+
-                                    " a subclass of GillesPySolver")
+            try:
+                if (isinstance(solver, (type, types.ClassType)) 
+                                    and  issubclass(solver, GillesPySolver)):
+                    return solver.run(self, t=self.tspan[-1], 
+                                increment=self.tspan[-1]-self.tspan[-2],
+                                seed=seed, 
+                                number_of_trajectories=number_of_trajectories,
+                                stochkit_home=stochkit_home, debug=debug,
+                                show_labels=show_labels)
+                else:
+                    raise SimuliationError(
+                            "argument 'solver' to run() must be"+
+                                        " a subclass of GillesPySolver")
+            except AttributeError:
+                # for python3 
+                if (isinstance(solver, type) 
+                                    and  issubclass(solver, GillesPySolver)):
+                    return solver.run(self, t=self.tspan[-1], 
+                                increment=self.tspan[-1]-self.tspan[-2],
+                                seed=seed, 
+                                number_of_trajectories=number_of_trajectories,
+                                stochkit_home=stochkit_home, debug=debug,
+                                show_labels=show_labels)
+                else:
+                    raise SimuliationError(
+                            "argument 'solver' to run() must be"+
+                                        " a subclass of GillesPySolver")
         else:
             return StochKitSolver.run(self,t=self.tspan[-1],
                     increment=self.tspan[-1]-self.tspan[-2], seed=seed,
@@ -433,6 +448,8 @@ class Species():
         assert self.initial_value >= 0, "A species initial value has to \
                                         be a positive number."
 
+    def __str__(self):
+        return self.name
 
 class Parameter():
     """ 
@@ -625,7 +642,7 @@ class Reaction():
                                             "*"+r+"*("+r+"-1)/vol")
             else:
             # Case 3: X1, X2 -> Y;
-                propensity_function += "*"+r
+                propensity_function += "*"+str(r)
 
         # Set the volume dependency based on order.
         order = len(self.reactants)
