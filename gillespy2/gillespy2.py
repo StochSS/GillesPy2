@@ -391,7 +391,7 @@ class Model(object):
             Use names of species as index of result object rather than position numbers.
         """
         if solver is not None:
-            if (isinstance(solver, (type, types.ClassType)) 
+            if (isinstance(solver, type)
                                 and  issubclass(solver, GillesPySolver)):
                 return solver.run(self, t=self.tspan[-1], 
                             increment=self.tspan[-1]-self.tspan[-2],
@@ -433,7 +433,9 @@ class Species():
         assert self.initial_value >= 0, "A species initial value has to \
                                         be a positive number."
 
-
+    def __str__(self):
+        return self.name
+    
 class Parameter():
     """ 
     A parameter can be given as an expression (function) or directly 
@@ -622,10 +624,10 @@ class Reaction():
             # Case 1: 2X -> Y
             if self.reactants[r] == 2:
                 propensity_function = ("0.5*" +propensity_function+ 
-                                            "*"+r+"*("+r+"-1)/vol")
+                                            "*"+str(r)+"*("+str(r)+"-1)/vol")
             else:
             # Case 3: X1, X2 -> Y;
-                propensity_function += "*"+r
+                propensity_function += "*"+str(r)
 
         # Set the volume dependency based on order.
         order = len(self.reactants)
