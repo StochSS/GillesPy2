@@ -14,14 +14,7 @@ improvement over the original.
 from __future__ import division
 
 from collections import OrderedDict
-import scipy as sp
 import numpy as np
-import matplotlib.pyplot as plt
-import tempfile
-import uuid
-import subprocess
-import types
-import random
 from gillespyError import *
 from gillespySolver import *
 try:
@@ -32,22 +25,6 @@ except:
     import xml.dom.minidom
     import re
     no_pretty_print = True
-
-try:
-    import scipy.io as spio
-    isSCIPY = True
-except:
-    pass
-
-import os
-import sys
-try:
-    import shutil
-    import numpy
-except:
-    pass
-
-import pdb
 
 
 def import_SBML(filename, name=None, gillespy_model=None):
@@ -966,7 +943,8 @@ class StochMLDocument():
     def to_string(self):
         """ Returns  the document as a string. """
         try:
-            return etree.tostring(self.document, pretty_print=True)
+            doc = etree.tostring(self.document, pretty_print=True)
+            return doc.decode("utf-8")
         except:
             # Hack to print pretty xml without pretty-print 
             # (requires the lxml module).
@@ -1038,7 +1016,7 @@ class StochMLDocument():
 
         for reactant, stoichiometry in R.reactants.items():
             srElement = etree.Element('SpeciesReference')
-            srElement.set('id', reactant)
+            srElement.set('id', str(reactant))
             srElement.set('stoichiometry', str(stoichiometry))
             reactants.append(srElement)
 
@@ -1047,7 +1025,7 @@ class StochMLDocument():
         products = etree.Element('Products')
         for product, stoichiometry in R.products.items():
             srElement = etree.Element('SpeciesReference')
-            srElement.set('id', product)
+            srElement.set('id', str(product))
             srElement.set('stoichiometry', str(stoichiometry))
             products.append(srElement)
         e.append(products)

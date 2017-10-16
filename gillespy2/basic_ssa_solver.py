@@ -48,12 +48,12 @@ class BasicSSASolver(GillesPySolver):
                         results['time'].append(save_time)
                         for s in model.listOfSpecies:
                             results[s].append(curr_state[s])
-                            save_time += increment
-                        return results
+                        save_time += increment
+                    return results
 
                 tau = -1*math.log(random.random())/prop_sum
                 curr_time += tau
-                while(curr_time > save_time and curr_time <= t):
+                while(curr_time >= save_time and curr_time <= t):
                     results['time'].append(save_time)
                     for s in model.listOfSpecies:
                         results[s].append(curr_state[s])
@@ -63,8 +63,7 @@ class BasicSSASolver(GillesPySolver):
                     curr_state[str(react)] -=  model.listOfReactions[reaction].reactants[react]
                 for prod in model.listOfReactions[reaction].products:
                     curr_state[str(prod)] += model.listOfReactions[reaction].products[prod]
-
-            return results
+        return results
     def get_trajectories(self, outdir, debug=False, show_labels=False):
         if show_labels:
             return self.simulation_data
