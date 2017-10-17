@@ -6,11 +6,12 @@ class BasicODESolver(GillesPySolver):
 
 
 	@staticmethod
-	def function(y0,t,species,parameters,reactions):
+	def rhs(y0,t,species,parameters,reactions):
 		curr_state = {}
    	  	state_change = {}
   		curr_state['vol'] = 1
 		propensity = {}
+		results = []
 
     		for i,s in enumerate(species):  
         		curr_state[s] = y0[i]
@@ -20,12 +21,17 @@ class BasicODESolver(GillesPySolver):
         
     		for r in reactions:
         		propensity[r] = eval(reactions[r].propensity_function,curr_state)  #assumption that prop is massAction
-        		for react in reactions[r].reactants:
+        		print(reactions[r].propensity_function)
+			for react in reactions[r].reactants:
             			state_change[react] -= reactions[r].reactants[react]*propensity[r]
         		for prod in reactions[r].products:
             			state_change[prod] += reactions[r].products[prod]*propensity[r]
+		
+		for s in species:
+			results.append(state_change[s])
 
-            	return([state_change['A'], state_change['B'], state_change['C'], state_change['D']])
+        
+		return (results)
 
 
 	@classmethod
@@ -36,7 +42,11 @@ class BasicODESolver(GillesPySolver):
 			for s in model.listOfSpecies:
 				y0.append(model.listOfSpecies[s].initial_value)
 			time = np.arange(0,t,increment)
-		return odeint(y0=y0,func=BasicODESolver.function,t=time, args=(model.listOfSpecies,model.listOfParameters,model.listOfReactions))
+		results = odeint(y0=y0,func=BasicODESolver.rhs,t=time, args=(model.listOfSpecies,model.listOfParameters,model.listOfReactions))
+		#return results
+		#return[results, time]
+		return np.append(results, time.reshape(len(time), 1), axis=1)
+		
 
 
 
