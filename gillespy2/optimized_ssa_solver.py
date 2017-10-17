@@ -4,10 +4,24 @@ import random
 import math
 import numpy as np
 
+import numba
+
 class SSASolver(GillesPySolver):
     """ TODO
     """
-    
+
+    def format_trajectories(simulation_data):
+        out_data = []
+        sorted_keys = sorted(simulation_data[0])
+        sorted_keys.remove('time')
+        for trajectory in simulation_data:
+            columns = [np.vstack((trajectory['time'].T))]
+            for column in sorted_keys:
+                columns.append(np.vstack((trajectory[column].T)))
+            out_array = np.hstack(columns)
+            out_data.append(out_array)
+        return out_data
+   
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
@@ -15,34 +29,30 @@ class SSASolver(GillesPySolver):
  
         curr_state = {}
         propensity = {}
-        results = []
         
         for traj_num in range(number_of_trajectories):
             trajectory = {}
-            results.append(trajectory)
+            self.simulation_data.append(trajectory)
+            trajectory['time'] = np.linspace(0,t,(t//increment+1))
             for s in model.listOfSpecies:   #Initialize Species population
                 curr_state[s] = model.listOfSpecies[s].initial_value
-                trajectory[s]=np.zeros(shape=(int(t/increment)+1))
+                trajectory[s] = np.zeros(shape=(trajectory['time'].size))
             curr_state['vol'] = model.volume
-            trajectory['time'] = np.linspace(0,t,(t//increment+1))
             curr_time = 0	  
             entry_count = 0
             for p in model.listOfParameters:
                 curr_state[p] = model.listOfParameters[p].value		
-		
-	     
+
+            reaction = None
             while(entry_count < trajectory['time'].size):
                 prop_sum = 0
-                cumil_sum = 0
-                reaction = None
-                reaction_num = None
                 for r in model.listOfReactions:
                     propensity[r] = eval(model.listOfReactions[r].propensity_function, curr_state)
                     prop_sum += propensity[r]
-                reaction_num = random.uniform(0,prop_sum)
+                cumil_sum = random.uniform(0,prop_sum)
                 for r in model.listOfReactions:
-                    cumil_sum += propensity[r]
-                    if(cumil_sum >= reaction_num):
+                    cumil_sum -= propensity[r]
+                    if(cumil_sum <= 0):
                         reaction = r
                         break
                 if(prop_sum <= 0):
@@ -63,14 +73,14 @@ class SSASolver(GillesPySolver):
                     curr_state[str(react)] -=  model.listOfReactions[reaction].reactants[react]
                 for prod in model.listOfReactions[reaction].products:
                     curr_state[str(prod)] += model.listOfReactions[reaction].products[prod]
-        return results
-    def get_trajectories(self, outdir, debug=False, show_labels=False):
+
         if show_labels:
-            return self.simulation_data
-       # else:
-            
-            #TODO: need to account for 'show_labels'
+            return self.simulation_data;
+        else:
+            return self.format_trajectories(self.simulation_data)
+    
 
 
-
-
+        
+    def get_trajectories(self, outdir, debug=False, show_labels=False):
+        pass
