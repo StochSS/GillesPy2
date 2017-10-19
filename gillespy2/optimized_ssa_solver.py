@@ -21,14 +21,19 @@ class SSASolver(GillesPySolver):
             out_array = np.hstack(columns)
             out_data.append(out_array)
         return out_data
-   
+
+
+    
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
         self.simulation_data = []
- 
         curr_state = {}
         propensity = {}
+        propensityFuns = {}
+        for r in model.listOfReactions:
+            propensityFuns[r] = eval('lambda :'+model.listOfReactions[r].propensity_function, curr_state)
+
         
         for traj_num in range(number_of_trajectories):
             trajectory = {}
@@ -47,7 +52,7 @@ class SSASolver(GillesPySolver):
             while(entry_count < trajectory['time'].size):
                 prop_sum = 0
                 for r in model.listOfReactions:
-                    propensity[r] = eval(model.listOfReactions[r].propensity_function, curr_state)
+                    propensity[r] = (propensityFuns[r])()#eval(model.listOfReactions[r].propensity_function, curr_state)
                     prop_sum += propensity[r]
                 cumil_sum = random.uniform(0,prop_sum)
                 for r in model.listOfReactions:
