@@ -30,17 +30,29 @@ class SSASolver(GillesPySolver):
         species = model.listOfSpecies.keys():
         #create numpy array for timeline
         timeline = np.linspace(0, t, (t//increment+1))
+        
         #create numpy matrix to mark other state data of species
         species_arr = np.zeros((timeline.size, len(species)))
         #copy initial values to base
         for i in range(len(species)):
             species_arr[0][i] = model.listOfSpecies[species[i]].initial_value 
+        
         #column stack timeline and species 
-        trajectoryBase = np.column_stack(timeline, species_arr)
+        trajectory_base = np.column_stack(timeline, species_arr)
+        
         #create mapping of reaction dictionary to array indices
         reactions = model.listOfReactions.keys()
-        propensity_functions = [None] * len(reactions)
+        propensity_functions = [r.propensity_function for r in model.listOfReactions.values()]
         #pre-evaluate propensity equations from strings:
+        for i in range(len(propensity_functions)):
+            #replace all references to parameters with their constant values
+            for parameter in model.listOfParameters:
+                propensity_function[i] = propensity_function[i].replace(parameter, model.listOfParameters[parameter])
+            #replace all references to species with array indices
+            for j in range(len(species)):
+                propensity_function[i] = propensity_function[i].replace(species[j], 'x[{0}]'.format(j))
+            print(propensity_functions[i])
+            propensity_functions[i] = eval('lambda x:'+propensity_functions[i])
         
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
