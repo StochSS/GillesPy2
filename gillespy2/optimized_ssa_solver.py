@@ -22,7 +22,22 @@ class SSASolver(GillesPySolver):
             out_data.append(out_array)
         return out_data
 
-
+    @classmethod
+    def runArray(self, model, t=20, number_of_trajectories=1,
+            increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
+        self.simulation_data = []
+        #create mapping of species dictionary to array indices
+        speciesIndices = {}
+        numKeys = 0
+        for i in range(len(model.listOfSpecies.keys())):
+            speciesIndices[i] = numKeys
+            numKeys += 1
+        #create numpy array for timeline
+        timeline = np.linspace(0,t,(t//increment+1))
+        #create numpy matrix to mark other state data of species
+        species = np.zeros((timeline.size,numKeys))
+        #column stack timeline and species 
+        trajectoryBase = np.column_stack(timeline,species)
     
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
