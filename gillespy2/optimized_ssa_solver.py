@@ -27,18 +27,21 @@ class SSASolver(GillesPySolver):
             increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
         self.simulation_data = []
         #create mapping of species dictionary to array indices
-        speciesIndices = {}
-        numKeys = 0
-        for i in range(len(model.listOfSpecies.keys())):
-            speciesIndices[i] = numKeys
-            numKeys += 1
+        species = model.listOfSpecies.keys():
         #create numpy array for timeline
-        timeline = np.linspace(0,t,(t//increment+1))
+        timeline = np.linspace(0, t, (t//increment+1))
         #create numpy matrix to mark other state data of species
-        species = np.zeros((timeline.size,numKeys))
+        species_arr = np.zeros((timeline.size, len(species)))
+        #copy initial values to base
+        for i in range(len(species)):
+            species_arr[0][i] = model.listOfSpecies[species[i]].initial_value 
         #column stack timeline and species 
-        trajectoryBase = np.column_stack(timeline,species)
-    
+        trajectoryBase = np.column_stack(timeline, species_arr)
+        #create mapping of reaction dictionary to array indices
+        reactions = model.listOfReactions.keys()
+        propensity_functions = [None] * len(reactions)
+        #pre-evaluate propensity equations from strings:
+        
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
