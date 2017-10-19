@@ -27,7 +27,7 @@ class SSASolver(GillesPySolver):
             increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
         self.simulation_data = []
         #create mapping of species dictionary to array indices
-        species = model.listOfSpecies.keys():
+        species = list(model.listOfSpecies.keys())
         #create numpy array for timeline
         timeline = np.linspace(0, t, (t//increment+1))
         
@@ -38,25 +38,28 @@ class SSASolver(GillesPySolver):
             species_arr[0][i] = model.listOfSpecies[species[i]].initial_value 
         
         #column stack timeline and species 
-        trajectory_base = np.column_stack(timeline, species_arr)
+        trajectory_base = np.column_stack((timeline, species_arr))
         
         #create mapping of reaction dictionary to array indices
-        reactions = model.listOfReactions.keys()
+        reactions = list(model.listOfReactions.keys())
         propensity_functions = [r.propensity_function for r in model.listOfReactions.values()]
         #pre-evaluate propensity equations from strings:
         for i in range(len(propensity_functions)):
             #replace all references to parameters with their constant values
             for parameter in model.listOfParameters:
-                propensity_function[i] = propensity_function[i].replace(parameter, model.listOfParameters[parameter])
+                propensity_functions[i] = propensity_functions[i].replace(parameter, str(model.listOfParameters[parameter].value))
+            #replace volume with constant
+            propensity_functions[i] = propensity_functions[i].replace('vol', str(model.volume))
             #replace all references to species with array indices
             for j in range(len(species)):
-                propensity_function[i] = propensity_function[i].replace(species[j], 'x[{0}]'.format(j))
+                propensity_functions[i] = propensity_functions[i].replace(species[j], 'x[{0}]'.format(j))
             print(propensity_functions[i])
             propensity_functions[i] = eval('lambda x:'+propensity_functions[i])
         
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
+        self.runArray(model,t,number_of_trajectories, increment, seed, debug, show_labels, stochkit_home)
         self.simulation_data = []
         curr_state = {}
         propensity = {}
