@@ -27,6 +27,7 @@ class SSASolver(GillesPySolver):
             increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
         #create mapping of species dictionary to array indices
         species = list(model.listOfSpecies.keys())
+        number_species = len(species)
         #create numpy array for timeline
         timeline = np.linspace(0, t, (t//increment+1))
         
@@ -43,73 +44,84 @@ class SSASolver(GillesPySolver):
         for paramName, param in model.listOfParameters.items():
             parameters[paramName] = param.value
         
-        #create an array mapping reactions to species modified
-        species_changes = []
         #create mapping of reaction dictionary to array indices
         reactions = list(model.listOfReactions.keys())
+        number_reactions = len(reactions)
         propensity_functions = [r.propensity_function for r in model.listOfReactions.values()]
+
+        #create an array mapping reactions to species modified
+        boolean_species_changed = np.zeros((number_reactions,number_species))
+        species_changes = np.zeros((number_reactions, number_species))
         #pre-evaluate propensity equations from strings:
-        for i in range(len(propensity_functions)):
-            species_changes.append(np.zeros(len(species)))
+        for i in range(number_reactions):
             #replace all references to species with array indices
-            for j in range(len(species)):
+            for j in range(number_species):
+                if model.listOfSpecies[species[j]] in model.listOfReactions[reactions[i]].products:
+                    species_changes[i][j] += model.listOfReactions[reactions[i]].products[model.listOfSpecies[species[j]]]
+                    boolean_species_changed[i][j] = 1
+                if model.listOfSpecies[species[j]] in model.listOfReactions[reactions[i]].reactants:
+                    species_changes[i][j] -= model.listOfReactions[reactions[i]].reactants[model.listOfSpecies[species[j]]]
+                    boolean_species_changed[i][j] = 1
                 if species[j] in propensity_functions[i]:
                     propensity_functions[i] = propensity_functions[i].replace(species[j], 'x[{0}]'.format(j))
-                    #the change is positive for products, negative for reactants
-                    species_changes[i][j] = model.listOfReactions[reactions[i]].products.get(species[j], -model.listOfReactions[reactions[i]].reactants.get(species[j], 0))
+                    boolean_species_changed[i][j] = 1
             propensity_functions[i] = eval('lambda x:'+propensity_functions[i], parameters)
-        #map reactions to species they change
-        reaction_changes = np.zeros((len(reactions),len(reactions)))
+        #map reactions to species populations they change
+        reaction_changes = np.zeros((number_reactions, number_reactions))
         #check all reaction changes for shared species
-        for i in range(1, len(reactions)):
+        for i in range(0, number_reactions):
             reaction_changes[i][i] = 1
-            for j in range(i+1,len(reactions)):
-                if np.dot(np.absolute(species_changes[i]), np.absolute(species_changes[j])) != 0:
+            for j in range(i+1, number_reactions):
+                if np.dot(boolean_species_changed[i], boolean_species_changed[j]) != 0:
                     reaction_changes[i][j] = 1
                     reaction_changes[j][i] = 1
-        
-        #keep track of next reaction based on priority queue selection
-        next_reaction = []
-        #keep track of reactions popped off queue
-        next_reaction_consumed = []
-        #keep track of propensities evaluated each time step
-        propensity_sums = np.zeros(len(reactions))
-        #calculate initial propensity sums
-        for i in range(len(propensity_sums)):
-            propensity_sums[i] = propensity_functions[i](species_arr[0])
-            heapq.heappush(next_reaction, (-propensity_sums[i], i))
+        print("What populations affect which propensities:\n",boolean_species_changed)
+        print("Reactions which affect each other:\n",reaction_changes)
         #begin simulating each trajectory
         self.simulation_data = []
         for trajectory_num in range(number_of_trajectories):
             #copy initial state data
-            if trajectory_num == number_of_trajectories - 1:
+            if trajectory_num >= number_of_trajectories - 1:
                 trajectory = trajectory_base
             else:
                 trajectory = np.copy(trajectory_base)
+
             entry_count = 1 #the initial state is 0
             current_time = 0
             current_state = np.copy(trajectory[0])
+
+            #keep track of next reaction based on priority queue selection
+            next_reaction = []
+            #keep track of reactions popped off queue
+            next_reaction_consumed = []
+            #keep track of propensities evaluated each time step
+            propensity_sums = np.zeros(number_reactions)
+            #calculate initial propensity sums
+            for i in range(number_reactions):
+                propensity_sums[i] = propensity_functions[i](species_arr[0])
+                heapq.heappush(next_reaction, (-propensity_sums[i], i))
             while entry_count < timeline.size:
                 reaction = -1
                 #determine next reaction
                 propensity_sum = np.sum(propensity_sums)
                 #if no more reactions, quit
                 if propensity_sum <= 0:
+                    print("Ended early: Propensity Sum:{0}".format(propensity_sum))
                     while entry_count < timeline.size:
-                        np.copyto(current_state, trajectory[entry_count])
+                        np.copyto(trajectory[entry_count], current_state)
                         entry_count += 1
                     break
-                current_time += math.log(random.random()) / propensity_sum
-                propensity_sum = random.uniform(0,propensity_sum)
+                cumulative_sum = random.uniform(0, propensity_sum)
+                current_time += -math.log(random.random()) / cumulative_sum
                 #determine time passed in this reaction
-                while timeline[entry_count] <= current_time and entry_count < timeline.size:
-                        np.copyto(current_state, trajectory[entry_count])
-                        entry_count += 1                    
-                while propensity_sum >= 0:
+                while entry_count < timeline.size and timeline[entry_count] <= current_time:
+                    np.copyto(trajectory[entry_count], current_state)
+                    entry_count += 1
+                while cumulative_sum >= 0:
                     reaction_popped = heapq.heappop(next_reaction)
-                    propensity_sum += reaction_popped[0]
+                    cumulative_sum += reaction_popped[0]
                     next_reaction_consumed.append(reaction_popped[1])
-                    if propensity_sum < 0:
+                    if cumulative_sum < 0 and propensity_sums[reaction_popped[1]] > 0:
                         reaction = reaction_popped[1]
                         current_state += species_changes[reaction]
                         #recompute propensities as needed
@@ -121,7 +133,7 @@ class SSASolver(GillesPySolver):
                             reaction = next_reaction_consumed.pop()
                             heapq.heappush(next_reaction, (-propensity_sums[reaction], reaction))
                         break
-            self.simulation_data.append(np.column_stack(timeline,trajectory))
+            self.simulation_data.append(np.column_stack((timeline,trajectory)))
         return self.simulation_data
             
     @classmethod
