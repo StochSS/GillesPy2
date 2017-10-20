@@ -56,12 +56,13 @@ class SSASolver(GillesPySolver):
                 if species[j] in propensity_functions[i]:
                     propensity_functions[i] = propensity_functions[i].replace(species[j], 'x[{0}]'.format(j))
                     #the change is positive for products, negative for reactants
-                    species_changes[i][j] = model.listOfReactions[reactions[i]].products.get(species[j], -model.listOfReactions[reactions[i]].reactants.get(species[j]))
+                    species_changes[i][j] = model.listOfReactions[reactions[i]].products.get(species[j], -model.listOfReactions[reactions[i]].reactants.get(species[j], 0))
             propensity_functions[i] = eval('lambda x:'+propensity_functions[i], parameters)
         #map reactions to species they change
         reaction_changes = np.zeros((len(reactions),len(reactions)))
         #check all reaction changes for shared species
-        for i in range(len(reactions)):
+        for i in range(1, len(reactions)):
+            reaction_changes[i][i] = 1
             for j in range(i+1,len(reactions)):
                 if np.dot(np.absolute(species_changes[i]), np.absolute(species_changes[j])) != 0:
                     reaction_changes[i][j] = 1
@@ -76,7 +77,7 @@ class SSASolver(GillesPySolver):
         #calculate initial propensity sums
         for i in range(len(propensity_sums)):
             propensity_sums[i] = propensity_functions[i](species_arr[0])
-            heapq.push(next_reaction, (-propensity_sums[i], i))
+            heapq.heappush(next_reaction, (-propensity_sums[i], i))
         #begin simulating each trajectory
         self.simulation_data = []
         for trajectory_num in range(number_of_trajectories):
@@ -87,30 +88,46 @@ class SSASolver(GillesPySolver):
                 trajectory = np.copy(trajectory_base)
             entry_count = 1 #the initial state is 0
             current_time = 0
-            while entry_count < trajectory.shape[0]:
+            current_state = np.copy(trajectory[0])
+            while entry_count < timeline.size:
                 reaction = -1
                 #determine next reaction
-                propensity_sum = random.uniform(0, np.sum(propensity_sums))
+                propensity_sum = np.sum(propensity_sums)
                 #if no more reactions, quit
                 if propensity_sum <= 0:
-                    while entry_count < trajectory.shape[0]:
-                        np.copyto(trajectory[entry_count-1], trajectory[entry_count])
+                    while entry_count < timeline.size:
+                        np.copyto(current_state, trajectory[entry_count])
                         entry_count += 1
                     break
-                #determine time passed in this reaction
                 current_time += math.log(random.random()) / propensity_sum
-                while propensity_sum > 0:
-                    reaction_popped = heapq.pop(next_reaction)
+                propensity_sum = random.uniform(0,propensity_sum)
+                #determine time passed in this reaction
+                while timeline[entry_count] <= current_time and entry_count < timeline.size:
+                        np.copyto(current_state, trajectory[entry_count])
+                        entry_count += 1                    
+                while propensity_sum >= 0:
+                    reaction_popped = heapq.heappop(next_reaction)
                     propensity_sum += reaction_popped[0]
+                    next_reaction_consumed.append(reaction_popped[1])
                     if propensity_sum < 0:
                         reaction = reaction_popped[1]
-                    next_reaction_consumed.append(reaction_popped[1])
-                
+                        current_state += species_changes[reaction]
+                        #recompute propensities as needed
+                        for i in range(reaction_changes[reaction].size):
+                            if reaction_changes[reaction][i] != 0:
+                                propensity_sums[i] = propensity_functions[i](current_state)
+                        #add reactions popped back to queue
+                        while len(next_reaction_consumed) > 0:
+                            reaction = next_reaction_consumed.pop()
+                            heapq.heappush(next_reaction, (-propensity_sums[reaction], reaction))
+                        break
+            self.simulation_data.append(np.column_stack(timeline,trajectory))
+        return self.simulation_data
             
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
-        self.runArray(model,t,number_of_trajectories, increment, seed, debug, show_labels, stochkit_home)
+        return self.runArray(model,t,number_of_trajectories, increment, seed, debug, show_labels, stochkit_home)
         self.simulation_data = []
         curr_state = {}
         propensity = {}
