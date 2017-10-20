@@ -23,7 +23,7 @@ class SSASolver(GillesPySolver):
         return out_data
 
     @classmethod
-    def runArray(self, model, t=20, number_of_trajectories=1,
+    def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
         #create mapping of species dictionary to array indices
         species = list(model.listOfSpecies.keys())
@@ -75,8 +75,6 @@ class SSASolver(GillesPySolver):
                 if np.dot(boolean_species_changed[i], boolean_species_changed[j]) != 0:
                     reaction_changes[i][j] = 1
                     reaction_changes[j][i] = 1
-        print("What populations affect which propensities:\n",boolean_species_changed)
-        print("Reactions which affect each other:\n",reaction_changes)
         #begin simulating each trajectory
         self.simulation_data = []
         for trajectory_num in range(number_of_trajectories):
@@ -101,103 +99,40 @@ class SSASolver(GillesPySolver):
                 propensity_sums[i] = propensity_functions[i](species_arr[0])
                 heapq.heappush(next_reaction, (-propensity_sums[i], i))
             while entry_count < timeline.size:
-                reaction = -1
                 #determine next reaction
                 propensity_sum = np.sum(propensity_sums)
                 #if no more reactions, quit
                 if propensity_sum <= 0:
-                    print("Ended early: Propensity Sum:{0}".format(propensity_sum))
                     while entry_count < timeline.size:
                         np.copyto(trajectory[entry_count], current_state)
                         entry_count += 1
                     break
                 cumulative_sum = random.uniform(0, propensity_sum)
-                current_time += -math.log(random.random()) / cumulative_sum
+                current_time -= math.log(random.random()) / propensity_sum
                 #determine time passed in this reaction
                 while entry_count < timeline.size and timeline[entry_count] <= current_time:
                     np.copyto(trajectory[entry_count], current_state)
                     entry_count += 1
-                while cumulative_sum >= 0:
+                reaction = -1
+                for potential_reaction in range(number_reactions):
                     reaction_popped = heapq.heappop(next_reaction)
                     cumulative_sum += reaction_popped[0]
                     next_reaction_consumed.append(reaction_popped[1])
-                    if cumulative_sum < 0 and propensity_sums[reaction_popped[1]] > 0:
+                    if cumulative_sum <= 0 and propensity_sums[reaction_popped[1]] > 0:
                         reaction = reaction_popped[1]
                         current_state += species_changes[reaction]
                         #recompute propensities as needed
-                        for i in range(reaction_changes[reaction].size):
+                        for i in range(number_reactions):
                             if reaction_changes[reaction][i] != 0:
                                 propensity_sums[i] = propensity_functions[i](current_state)
-                        #add reactions popped back to queue
-                        while len(next_reaction_consumed) > 0:
-                            reaction = next_reaction_consumed.pop()
-                            heapq.heappush(next_reaction, (-propensity_sums[reaction], reaction))
                         break
+                #add reactions popped back to queue
+                while len(next_reaction_consumed) > 0:
+                    reaction = next_reaction_consumed.pop()
+                    heapq.heappush(next_reaction, (-propensity_sums[reaction], reaction))
+                
             self.simulation_data.append(np.column_stack((timeline,trajectory)))
         return self.simulation_data
-            
-    @classmethod
-    def run(self, model, t=20, number_of_trajectories=1,
-            increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
-        return self.runArray(model,t,number_of_trajectories, increment, seed, debug, show_labels, stochkit_home)
-        self.simulation_data = []
-        curr_state = {}
-        propensity = {}
-        propensityFuns = {}
-        for r in model.listOfReactions:
-            propensityFuns[r] = eval('lambda :'+model.listOfReactions[r].propensity_function, curr_state)
-
-        
-        for traj_num in range(number_of_trajectories):
-            trajectory = {}
-            self.simulation_data.append(trajectory)
-            trajectory['time'] = np.linspace(0,t,(t//increment+1))
-            for s in model.listOfSpecies:   #Initialize Species population
-                curr_state[s] = model.listOfSpecies[s].initial_value
-                trajectory[s] = np.zeros(shape=(trajectory['time'].size))
-            curr_state['vol'] = model.volume
-            curr_time = 0	  
-            entry_count = 0
-            for p in model.listOfParameters:
-                curr_state[p] = model.listOfParameters[p].value		
-
-            reaction = None
-            while(entry_count < trajectory['time'].size):
-                prop_sum = 0
-                for r in model.listOfReactions:
-                    propensity[r] = (propensityFuns[r])()#eval(model.listOfReactions[r].propensity_function, curr_state)
-                    prop_sum += propensity[r]
-                cumil_sum = random.uniform(0,prop_sum)
-                for r in model.listOfReactions:
-                    cumil_sum -= propensity[r]
-                    if(cumil_sum <= 0):
-                        reaction = r
-                        break
-                if(prop_sum <= 0):
-                    while(entry_count < trajectory['time'].size):
-                        for s in model.listOfSpecies:
-                            trajectory[s][entry_count]=(curr_state[s])
-                        entry_count += 1
-                    break
-
-                tau = -1*math.log(random.random())/prop_sum
-                curr_time += tau
-                while(entry_count < trajectory['time'].size and curr_time >= trajectory['time'][entry_count]):
-                    for s in model.listOfSpecies:
-                        trajectory[s][entry_count]=(curr_state[s])
-                    entry_count += 1
-
-                for react in model.listOfReactions[reaction].reactants:
-                    curr_state[str(react)] -=  model.listOfReactions[reaction].reactants[react]
-                for prod in model.listOfReactions[reaction].products:
-                    curr_state[str(prod)] += model.listOfReactions[reaction].products[prod]
-
-        if show_labels:
-            return self.simulation_data;
-        else:
-            return self.format_trajectories(self.simulation_data)
-    
-
 
         
     def get_trajectories(self, outdir, debug=False, show_labels=False):
