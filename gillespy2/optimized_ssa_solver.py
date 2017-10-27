@@ -4,12 +4,19 @@ import random
 import math
 import numpy as np
 import heapq
-import numba
-
+try:
+    import pyximport; pyximport.install(setup_args={'include_dirs': np.get_include()})
+    from cython_ssa_solver import CythonSSASolver
+    can_use_cython = True
+except Exception as e:
+    print("Unable to use Cython optimized SSA:\nError:{0}".format(e))
+    can_use_cython = False
+    
 class SSASolver(GillesPySolver):
     """ TODO
     """
-
+    use_cython = True
+    
     def format_trajectories(simulation_data):
         out_data = []
         sorted_keys = sorted(simulation_data[0])
@@ -25,6 +32,9 @@ class SSASolver(GillesPySolver):
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
+        if self.use_cython and can_use_cython:
+            solver = CythonSSASolver()
+            return solver.run(model, t, number_of_trajectories, increment, seed, debug, show_labels)
         #create mapping of species dictionary to array indices
         species = list(model.listOfSpecies.keys())
         number_species = len(species)
