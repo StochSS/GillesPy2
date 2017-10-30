@@ -1,3 +1,6 @@
+# encoding: utf-8
+# cython: linetrace=True, optimize.use_switch=True, cdivision=True
+# filename: calc_pi.pyx
 import gillespy2
 from gillespySolver import GillesPySolver
 import numpy as np
@@ -8,6 +11,7 @@ from libc.stdlib cimport malloc, free
 cimport libc.math as math
 import re
 
+
 cdef struct Equation:
     int length
     int *terms
@@ -16,8 +20,6 @@ cdef struct Equation:
     
 
 cdef struct CythonReaction:
-    int index
-    double propensity
     int *affected_reactions
     Equation propensity_function
 
@@ -32,6 +34,38 @@ cdef enum Operators:
 DEF MAX_STACK_SIZE=100
 cdef double operand_stack[MAX_STACK_SIZE]
 cdef int operator_stack[MAX_STACK_SIZE]
+
+
+cdef void simulate_trajectory(np.ndarray[np.float64_t, ndim=2] trajectory, CythonReaction *reactions, int number_reactions, np.ndarray[np.float64_t, ndim=2] species_changes):
+    cdef int i,j
+    cdef double current_time = 0
+    cdef int number_entries = 0
+    cdef np.ndarray[np.float64_t, ndim=1] current_state = np.zeros((trajectory.shape[1]-1))
+    cdef double *propensities = <double*> malloc(number_reactions * sizeof(double))
+    np.copyto(current_state, trajectory[0,1:])
+    for i in range(number_reactions):
+        propensities[i] = evaluate_prefix(reactions[i].propensity_function, (current_state))
+    cdef double propensity_sum, cumulative_sum
+    while number_entries < trajectory.shape[0]:
+        propensity_sum = 0
+        for i in range(number_reactions):
+            propensity_sum += propensities[i]
+        if propensity_sum <= 0:
+            trajectory[number_entries:,1:] = current_state
+            break
+        cumulative_sum = random.random() * propensity_sum
+        current_time -= math.log(random.random()) / propensity_sum
+        while number_entries < trajectory.shape[0] and trajectory[number_entries, 0] <= current_time:
+            trajectory[number_entries, 1:] = current_state
+            number_entries += 1
+        for i in range(number_reactions):
+            cumulative_sum -= propensities[i]
+            if cumulative_sum <= 0:
+                current_state += species_changes[i]
+                for j in range(number_reactions):
+                    propensities[j] = evaluate_prefix(reactions[j].propensity_function, (current_state))
+                break
+    free(propensities)
 
 #Evaluates an equation in Polish notation from left to right
 @cython.boundscheck(False)
@@ -127,10 +161,9 @@ class CythonSSASolver(GillesPySolver):
         cdef CythonReaction *reactions = <CythonReaction*> malloc(number_reactions * sizeof(CythonReaction))
         i = 0
         reaction_names = list(model.listOfReactions.keys())
-        for name in model.listOfReactions:
-            reactions[i].index = i
+        for i in range(number_reactions):
             reactions[i].affected_reactions = <int*> malloc(number_reactions*sizeof(int))
-            i += 1
+
     #convert propensity functions now
         #create dictionary of all constant parameters for propensity evaluation
         parameters = {'vol' : model.volume}
@@ -192,31 +225,9 @@ class CythonSSASolver(GillesPySolver):
         #begin simulating each trajectory
         cdef double current_time, propensity_sum, cumulative_sum
         cdef np.ndarray[np.float64_t, ndim=1] current_state = np.zeros((number_species))
+        cdef int number_threads = 4
         for i in range(number_of_trajectories):
-            current_time = 0
-            number_entries = 0
-            np.copyto(current_state, trajectories[i,0,1:])
-            for j in range(number_reactions):
-                reactions[j].propensity = evaluate_prefix(reactions[j].propensity_function, (current_state))
-            while number_entries < timeline.size:
-                propensity_sum = 0
-                for j in range(number_reactions):
-                    propensity_sum += reactions[j].propensity
-                if propensity_sum <= 0:
-                    trajectories[i,number_entries:,1:] = current_state
-                    break
-                cumulative_sum = random.random() * propensity_sum
-                current_time -= math.log(random.random()) / propensity_sum
-                while number_entries < timeline.size and timeline[number_entries] <= current_time:
-                    trajectories[i,number_entries, 1:] = current_state
-                    number_entries += 1
-                for j in range(number_reactions):
-                    cumulative_sum -= reactions[j].propensity
-                    if cumulative_sum <= 0:
-                        current_state += species_changes[j]
-                        for j in range(number_reactions):
-                            reactions[j].propensity = evaluate_prefix(reactions[j].propensity_function, (current_state))
-                        break
+            simulate_trajectory(trajectories[i], reactions, number_reactions, species_changes)
             #assemble complete simulation data in format specified
             if show_labels:
                 data = {'time' : timeline}
