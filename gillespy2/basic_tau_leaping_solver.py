@@ -1,10 +1,10 @@
 import gillespy2
-from gillespySolver import GillesPySolver
+from .gillespySolver import GillesPySolver
 import random
 import math
-import numpy
+import numpy as np
 
-class BasicTauLeapingSolver(GillesPySolver):
+class BasicTauSolver(GillesPySolver):
     """ TODO
     """
     
@@ -13,52 +13,59 @@ class BasicTauLeapingSolver(GillesPySolver):
             increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
         self.simulation_data = []
  
-        # initialize everything
         curr_state = {}
-        propensity = {}
+        propensities = {}
         results = {}
-        poisson_values = {}
-        expected_changes = {}
+        poissonValues = {}
 
         for traj_num in range(number_of_trajectories):
-            for s in model.listOfSpecies:   #Initialize Species population
-                curr_state[s] = model.listOfSpecies[s].initial_value    
-                results[s]=[]
+            for species in model.listOfSpecies:   #Initialize Species population
+                curr_state[species] = model.listOfSpecies[species].initial_value    
+                results[species]=[]
 
             curr_state['vol'] = model.volume
             results['time'] = []
-            curr_time = 0
+            currentTime = 0
+            outputTime = 0      
+            nextTime = 0
 
-            for p in model.listOfParameters:
-                curr_state[p] = model.listOfParameters[p].value        
-        
-            # run the loop 
-            while(curr_time < t):
-                # calculate propensities
-                for r in model.listOfReactions: 
-                    propensity[r] = eval(model.listOfReactions[r].propensity_function, curr_state)
-                    prop_sum += propensity[r]    
+            for parameter in model.listOfParameters:
+                curr_state[parameter] = model.listOfParameters[parameter].value        
+       
+            # run the algorithm
+            while(currentTime < t):
+                while (currentTime >= outputTime) and (outputTime < t):
+                    results['time'].append(outputTime)
+                    for species in model.listOfSpecies:
+                        results[species].append(curr_state[species])
+                    outputTime += increment
 
-                # pick tau.
-                # fixed tau for nau
-                tau = 0.2
-                curr_time += tau
+                # evaluate propensities
+                for reaction in model.listOfReactions: 
+                    propensities[reaction] = eval(model.listOfReactions[reaction].propensity_function, curr_state)
+   
+                # select tau
+                tau = 0.05
+                # don't leap past next output time
+                if currentTime + tau > outputTime:
+                    tau = outputTime - currentTime
+                    nextTime = outputTime
+                else:
+                    nextTime = currentTime + tau
 
-                # generate Poisson distributions
-                for r in model.listOfReactions:
-                    poisson_values[r] = np.random.poisson(propensity[r],tau)
+                # calculate poisson distribution
+                for reaction in model.listOfReactions:
+                    poissonValues[reaction] = np.random.poisson(propensities[reaction]*tau) 
 
-                # update curr_state based on the expected changes of each reaction
-                for r in model.listOfReactions:
-                    for react in model.listOfReactions[r].reactants:
-                        curr_state[react] -= poisson_values[r]*model.listOfReactions[r].reactants[react]
-                    for prod in model.listOfReactions[r].products:
-                        curr_state[prod] += poisson_values[r].model.listOfReactions[r].products[prod]
+                # append changes to curr_state
+                for reaction in model.listOfReactions:
+                    for reactant in model.listOfReactions[reaction].reactants:
+                        curr_state[str(reactant)] -= model.listOfReactions[reaction].reactants[reactant]*poissonValues[reaction]
+                    for product in model.listOfReactions[reaction].products:
+                        curr_state[str(product)] += model.listOfReactions[reaction].products[product]*poissonValues[reaction]
 
-                # append curr_state to results
-                results['time'].append(curr_time)
-                for s in model.listOfSpecies:
-                    results[s].append(curr_state[s])
+                # update the time
+                currentTime = nextTime
 
             return results
 
