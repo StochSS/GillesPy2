@@ -48,12 +48,13 @@ namespace Gillespy{
     Model* model;
     double* timeline;
     double end_time;
+    int random_seed;
     int number_timesteps;
     int number_trajectories;
     int* trajectories_1D;
     int*** trajectories;
     IPropensityFunction *propensity_function;
-    Simulation(Model* model, int number_timesteps, int number_trajectories, double end_time, IPropensityFunction* propensity_function);
+    Simulation(Model* model, int number_timesteps, int number_trajectories, double end_time, IPropensityFunction* propensity_function, int random_seed);
     ~Simulation();
   };  
 }

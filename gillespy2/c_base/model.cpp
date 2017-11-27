@@ -35,7 +35,7 @@ namespace Gillespy{
     }
   }
 
-  Simulation :: Simulation(Model* model, int number_timesteps, int number_trajectories, double end_time, IPropensityFunction* propensity_function) : model(model), number_timesteps(number_timesteps), number_trajectories(number_trajectories), end_time(end_time), propensity_function(propensity_function){
+  Simulation :: Simulation(Model* model, int number_timesteps, int number_trajectories, double end_time, IPropensityFunction* propensity_function, int random_seed) : model(model), number_timesteps(number_timesteps), number_trajectories(number_trajectories), end_time(end_time), propensity_function(propensity_function), random_seed(random_seed){
     timeline = new double[number_timesteps];
     double timestep_size = end_time/(number_timesteps-1);
     for(int i = 0; i < number_timesteps; i++){

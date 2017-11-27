@@ -1,24 +1,36 @@
 #include "ssa.h"
-#include <random>
-//Included for memcpy
-#include <string.h>
+#include <random>//Included for mt19937 random number generator
+#include <cmath>//Included for natural logarithm
+#include <string.h>//Included for memcpy only
+
 
 namespace Gillespy{
   void ssa_direct(Simulation* simulation){
     if(simulation){
-      double* propensity_values = new double[(simulation -> model) -> number_reactions];
+      std :: mt19937_64 rng(simulation -> random_seed);
       //Number of bytes for copying states
       int state_size = sizeof(int)*((simulation -> model) -> number_species);
       //Current state
       int* current_state = new int[(simulation -> model) -> number_species];
+      //Calculated propensity values for current state
+      double* propensity_values = new double[(simulation -> model) -> number_reactions];
+      
+      //copy initial state for each trajectory
+      for(int species_number = 0; species_number < ((simulation -> model) -> number_species); species_number++){
+	simulation -> trajectories[0][0][species_number] = (simulation -> model) -> species[species_number].initial_population;
+      }
       //Simulate for each trajectory
       for(int trajectory_number = 0; trajectory_number < simulation -> number_trajectories; trajectory_number++){
 	//Get simpler reference to memory space for this trajectory
-	int** trajectory = simulation -> trajectories[trajectory_number]; 
+	int** trajectory = simulation -> trajectories[trajectory_number];
+	//Copy initial state as needed
+	if(trajectory_number > 0){
+	  memcpy(trajectory[0], simulation -> trajectories[0][0], state_size);
+	}
+	memcpy(current_state, trajectory[0], state_size);
 	//Set up initial state and next_state to be written
 	for(int species_number = 0; species_number < ((simulation -> model) -> number_species); species_number++){
 	  trajectory[0][species_number] = (simulation -> model) -> species[species_number].initial_population;
-	  current_state[species_number] = trajectory[0][species_number];
 	}
 	double current_time = 0;
 	int entry_count = 1;
@@ -41,15 +53,18 @@ namespace Gillespy{
 	    }
 	    //Quit simulating this trajectory
 	    break;
-	  }
+	  }//End if no more reactions
+	  
 	  //Reaction will fire, determine which one
-	  double cumulative_sum = 0;//random.uniform from 0 to propensity_sum
-	  current_time += 0;//-log(random.uniform)/propensity_sum
+	  double cumulative_sum = rng() * propensity_sum/rng.max();//random.uniform from 0 to propensity_sum
+	  current_time += -log(rng() * 1.0 / rng.max()) / propensity_sum;//-log(random.uniform)/propensity_sum
+	  
 	  //Copy current state to passed timesteps
 	  while(entry_count < simulation -> number_timesteps && (simulation -> timeline[entry_count]) <= current_time){
 	    memcpy(trajectory[entry_count], current_state, state_size);
 	    entry_count++;
 	  }
+	  
 	  for(int potential_reaction = 0; potential_reaction < ((simulation -> model) -> number_reactions); potential_reaction++){
 	    cumulative_sum -= propensity_values[potential_reaction];
 	    //This reaction fired
@@ -64,11 +79,12 @@ namespace Gillespy{
 		propensity_values[affected_reaction] =  (simulation -> propensity_function) -> evaluate(affected_reaction, current_state);
 	      }
 	      break;
-	    }
-	  }
+	    }//Finished updating state/propensities with this reaction
+	  }//Finished checking for which reaction fired at this time
 	}//Simulation has reached end time
-	delete propensity_values;
       }//Finished simulating all trajectories
+      delete propensity_values;
+      delete current_state;
     }//end if simulation pointer not null
   }//end ssa_direct
 }//end namespace
