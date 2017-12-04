@@ -2,18 +2,24 @@
 
 namespace Gillespy{
   
-  Model* build_model(int number_species, std :: vector<std :: string> name_species, int number_reactions, std :: vector<std :: string> name_reactions){
+  Model* build_model(std :: vector<std :: string> name_species, std :: vector<std :: string> name_reactions){
     Model* model = new Model;
-    model -> species = new Species[number_species];
-    for(int i = 0; i < number_species; i++){
+    model -> number_species = name_species.size();
+    model -> number_reactions = name_reactions.size();
+    model -> species = new Species[model -> number_species];
+    for(uint i = 0; i < name_species.size(); i++){
       model -> species[i].id = i;
       model -> species[i].name = name_species[i];
     }
-    model -> reactions = new Reaction[number_reactions];
-    for(int i = 0; i < number_reactions; i++){
+    model -> reactions = new Reaction[model -> number_reactions];
+    for(uint i = 0; i < name_reactions.size(); i++){
       model -> reactions[i].name = name_reactions[i];
-      model -> reactions[i].species_change = new int[number_species];
-      model -> reactions[i].affected_reactions = std :: vector<int>();
+      model -> reactions[i].species_change = new int[model -> number_species];
+      for(uint j = 0; j < model -> number_species; j++){
+	model -> reactions[i].species_change[j] = 0;	
+      }
+      model -> reactions[i].affected_reactions = std :: vector<uint>();
+      
     }
     return model;
   }
@@ -21,32 +27,32 @@ namespace Gillespy{
   void free_model(Model* model){
     if(model){
       if(model -> species){
-	delete model -> species;
+	delete [] model -> species;
       }
       if(model -> reactions){
-	for(int i = 0; i < model -> number_reactions; i++){
+	for(uint i = 0; i < model -> number_reactions; i++){
 	  if(model -> reactions[i].species_change){
-	    delete model -> reactions[i].species_change;
+	      delete [] model -> reactions[i].species_change;
 	  }
 	}
-	delete model -> reactions;
+	delete [] model -> reactions;
       }
       delete model;
     }
   }
 
-  Simulation :: Simulation(Model* model, int number_timesteps, int number_trajectories, double end_time, IPropensityFunction* propensity_function, int random_seed) : model(model), number_timesteps(number_timesteps), number_trajectories(number_trajectories), end_time(end_time), propensity_function(propensity_function), random_seed(random_seed){
+  Simulation :: Simulation(Model* model, uint number_trajectories, uint number_timesteps, double end_time, IPropensityFunction* propensity_function, int random_seed) : model(model), end_time(end_time), random_seed(random_seed), number_timesteps(number_timesteps), number_trajectories(number_trajectories), propensity_function(propensity_function){
     timeline = new double[number_timesteps];
     double timestep_size = end_time/(number_timesteps-1);
-    for(int i = 0; i < number_timesteps; i++){
+    for(uint i = 0; i < number_timesteps; i++){
       timeline[i] = timestep_size * i;
     }
-    int trajectory_size = number_timesteps * (model -> number_species);
-    trajectories_1D = new int[number_trajectories * trajectory_size];
-    trajectories = new int**[number_trajectories];
-    for(int i = 0; i < number_trajectories; i++){
-      trajectories[i] = new int*[number_timesteps];
-      for(int j = 0; j < number_timesteps; j++){
+    uint trajectory_size = number_timesteps * (model -> number_species);
+    trajectories_1D = new uint[number_trajectories * trajectory_size];
+    trajectories = new uint**[number_trajectories];
+    for(uint i = 0; i < number_trajectories; i++){
+      trajectories[i] = new uint*[number_timesteps];
+      for(uint j = 0; j < number_timesteps; j++){
 	trajectories[i][j] = &(trajectories_1D[i * trajectory_size + j *  (model -> number_species)]);
       }
     }    
@@ -57,7 +63,7 @@ namespace Gillespy{
     free_model(this -> model);
     delete timeline;
     delete trajectories_1D;
-    for(int i = 0; i < number_trajectories; i++){
+    for(uint i = 0; i < number_trajectories; i++){
       delete trajectories[i];
     }
     delete trajectories;
