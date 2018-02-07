@@ -1,5 +1,5 @@
 import gillespy2
-from gillespySolver import GillesPySolver
+from .gillespySolver import GillesPySolver
 import random
 import math
 
@@ -26,9 +26,9 @@ class BasicSSASolver(GillesPySolver):
             save_time = 0	  
 
             for p in model.listOfParameters:
-                curr_state[p] = model.listOfParameters[p].value		
-		
-	     
+                curr_state[p] = model.listOfParameters[p].value        
+        
+         
             while(curr_time < t):
                 prop_sum = 0
                 cumil_sum = 0
@@ -50,7 +50,6 @@ class BasicSSASolver(GillesPySolver):
                             results[s].append(curr_state[s])
                         save_time += increment
                     return results
-
                 tau = -1*math.log(random.random())/prop_sum
                 curr_time += tau
                 while(curr_time >= save_time and curr_time <= t):
@@ -64,6 +63,8 @@ class BasicSSASolver(GillesPySolver):
                 for prod in model.listOfReactions[reaction].products:
                     curr_state[str(prod)] += model.listOfReactions[reaction].products[prod]
         return results
+
+
     def get_trajectories(self, outdir, debug=False, show_labels=False):
         if show_labels:
             return self.simulation_data

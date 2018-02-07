@@ -380,6 +380,7 @@ class Model(object):
                 raise SimuliationError(
                         "argument 'solver' to run() must be"+
                                     " a subclass of GillesPySolver")
+
         else:
             return StochKitSolver.run(self,t=self.tspan[-1],
                     increment=self.tspan[-1]-self.tspan[-2], seed=seed,
@@ -412,7 +413,7 @@ class Species():
 
     def __str__(self):
         return self.name
-    
+
 class Parameter():
     """ 
     A parameter can be given as an expression (function) or directly 
