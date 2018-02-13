@@ -1,4 +1,3 @@
-from gillespyError import *
 import numpy
 import random
 import tempfile
@@ -372,3 +371,6 @@ class StochKitODESolver(GillesPySolver):
             return (headers.split(), trajectories)
         else:
             return trajectories
+
+class SimulationError(Exception):
+    pass

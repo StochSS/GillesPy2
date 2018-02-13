@@ -15,8 +15,8 @@ from __future__ import division
 
 from collections import OrderedDict
 import numpy as np
-from gillespyError import *
-from gillespySolver import *
+from .gillespySolver import *
+
 try:
     import lxml.etree as etree
     no_pretty_print = False
@@ -1034,3 +1034,24 @@ class StochMLDocument():
         return e    
     
     
+# Module exceptions
+class ModelError(Exception):
+    pass
+class SpeciesError(ModelError):
+    pass
+class ReactionError(ModelError):
+    pass
+class ParameterError(ModelError):
+    pass
+class SimuliationError(Exception):
+    pass
+
+# Exceptions
+class StochMLImportError(Exception):
+    pass
+
+class InvalidStochMLError(Exception):
+    pass
+class InvalidModelError(Exception):
+    pass
+
