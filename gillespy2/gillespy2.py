@@ -100,7 +100,8 @@ class Model(object):
             self.units = "concentration"
             if volume != 1.0:
                 raise Warning(
-                    "Concentration models account for volume implicitly, explicit volume definition is not required. Note: concentration models may only be simulated deterministically.")
+                    "Concentration models account for volume implicitly, explicit volume definition is not required. "
+                    "Note: concentration models may only be simulated deterministically.")
 
         self.volume = volume
 
@@ -158,14 +159,12 @@ class Model(object):
 
         if isinstance(obj, Species):
             if obj.name in self.listOfSpecies:
-                raise ModelError("Can't add species. A species with that \
-                                    name alredy exisits.")
+                raise ModelError("Can't add species. A species with that name already exists.")
             self.listOfSpecies[obj.name] = obj
         else:  # obj is a list of species
             for S in obj:
                 if S.name in self.listOfSpecies:
-                    raise ModelError("Can't add species. A species with that \
-                                        name alredy exisits.")
+                    raise ModelError("Can't add species. A species with that name already exists.")
                 self.listOfSpecies[S.name] = S
         return obj
 
@@ -175,7 +174,7 @@ class Model(object):
         
         Attributes
         ----------
-        sname : str
+        obj : str
             Name of the species object to be removed.
         """
         self.listOfSpecies.pop(obj)
@@ -200,19 +199,19 @@ class Model(object):
         else:
             raise ModelError("units must be either concentration or population (case insensitive)")
 
-    def get_parameter(self, pname):
+    def get_parameter(self, p_name):
         """
         Returns a parameter object by name.
         
         Attributes
         ----------
-        pname : str
+        p_name : str
             Name of the parameter object to be returned.
         """
         try:
-            return self.listOfParameters[pname]
+            return self.listOfParameters[p_name]
         except:
-            raise ModelError("No parameter named " + pname)
+            raise ModelError("No parameter named " + p_name)
 
     def get_all_parameters(self):
         """
@@ -438,7 +437,7 @@ class Parameter:
         # will be caught below. It is perfectly fine to give a scalar value as the expression.
         # This can then be evaluated in an empty namespace to the scalar value.
         self.expression = expression
-        if expression != None:
+        if expression is not None:
             self.expression = str(expression)
 
         self.value = value
@@ -446,10 +445,10 @@ class Parameter:
         # self.value is allowed to be None, but not self.expression. self.value
         # might not be evaluable in the namespace of this parameter, but defined
         # in the context of a model or reaction.
-        if self.expression == None:
+        if self.expression is None:
             raise TypeError
 
-        if self.value == None:
+        if self.value is None:
             self.evaluate()
 
     def evaluate(self, namespace={}):
@@ -477,10 +476,10 @@ class Parameter:
         # strings will be caught below. It is perfectly fine to give a scalar 
         # value as the expression. This can then be evaluated in an empty 
         # namespace to the scalar value.
-        if expression != None:
+        if expression is not None:
             self.expression = str(expression)
 
-        if self.expression == None:
+        if self.expression is None:
             raise TypeError
 
         self.evaluate()
@@ -548,9 +547,8 @@ class Reaction:
 
         self.propensity_function = propensity_function
         if self.propensity_function is not None and self.massaction:
-            errmsg = ("Reaction " + self.name + " You cannot set the propensity " +
-                      "type to mass-action and simultaneously set a propensity function."
-                      )
+            errmsg = ("Reaction {} You cannot set the propensity type to mass-action and simultaneously set a "
+                      "propensity function.").format(self.name)
             raise ReactionError(errmsg)
 
         self.reactants = {}
@@ -572,8 +570,7 @@ class Reaction:
         if self.massaction:
             self.type = "mass-action"
             if rate is None:
-                raise ReactionError("Reaction : A mass-action propensity has\
-                 to have a rate.")
+                raise ReactionError("Reaction : A mass-action propensity has to have a rate.")
             self.marate = rate
             self.create_mass_action()
         else:
@@ -592,10 +589,10 @@ class Reaction:
         for r in self.reactants:
             total_stoch += self.reactants[r]
         if total_stoch > 2:
-            raise ReactionError("Reaction: A mass-action reaction cannot \
-            involve more than two of one species or one of two species.")
+            raise ReactionError("Reaction: A mass-action reaction cannot involve more than two of one species or one "
+                                "of two species.")
         # Case EmptySet -> Y
-        propensity_function = self.marate.name;
+        propensity_function = self.marate.name
 
         # There are only three ways to get 'total_stoch==2':
         for r in self.reactants:
@@ -929,8 +926,8 @@ class StochMLDocument():
                 try:
                     propfunc = reac.find('PropensityFunction').text
                 except Exception as e:
-                    raise InvalidStochMLError("Found a customized " +
-                                              "propensity function, but no expression was given." + e)
+                    raise InvalidStochMLError(
+                        "Found a customized propensity function, but no expression was given. {}".format(e))
                 reaction.propensity_function = propfunc
             else:
                 raise InvalidStochMLError(
