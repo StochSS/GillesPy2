@@ -16,6 +16,19 @@ from __future__ import division
 from collections import OrderedDict
 import numpy as np
 from .gillespySolver import *
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+pretty_graph = False
+
+
+# try:
+#     import seaborn as sbn
+#     pretty_graph = True
+# except:
+#     import matplotlib.pyplot as plt
+#     pretty_graph = False
 
 try:
     import lxml.etree as eTree
@@ -376,15 +389,55 @@ class Model(object):
                                   show_labels=show_labels)
             else:
                 raise SimuliationError(
-                    "argument 'solver' to run() must be" +
-                    " a subclass of GillesPySolver")
-
+                    "argument 'solver' to run() must be a subclass of GillesPySolver")
         else:
             return StochKitSolver.run(self, t=self.tspan[-1],
                                       increment=self.tspan[-1] - self.tspan[-2], seed=seed,
                                       number_of_trajectories=number_of_trajectories,
                                       stochkit_home=stochkit_home, debug=debug,
                                       show_labels=show_labels)
+
+
+
+    #Need to finalize feature set.
+    #title, start time, stop time, automatic legend, legend placement, axis labels, size of graph.
+    #Axis Legend Stuff ends up being complicated, ensure I understand expected scope of function.
+    def plot(self, results, **kwargs):
+        if pretty_graph:
+            pass
+        if not pretty_graph:
+            if "height" in kwargs and "width" in kwargs:
+                plt.figure(figsize=(kwargs["height"], kwargs["width"]))
+            #I could just have a throw after this, but I don't know if that's what the expected user behavior would be.
+            if "height" in kwargs and "width" not in kwargs:
+                plt.figure(figsize=(kwargs["height"], kwargs["height"]))
+            if "height" not in kwargs and "width" in kwargs:
+                plt.figure(figsize=(kwargs["width"], kwargs["width"]))
+            if "title" in kwargs:
+                plt.title(kwargs["title"])
+            else:
+                plt.title(str(self.name))
+            if "start" in kwargs and "stop" in kwargs:
+                for key in results.keys():
+                    plt.plot(results[key][kwargs["start"]:kwargs["stop"]])
+            if "start" in kwargs and "stop" not in kwargs:
+                for key in results.keys():
+                    plt.plot(results[key][kwargs["start"]:])
+            if "start" not in kwargs and "stop" in kwargs:
+                for key in results.keys():
+                    plt.plot(results[key][:kwargs["stop"]])
+            if "start" not in kwargs and "stop" not in kwargs:
+                for key in results.keys():
+                    plt.plot(results[key])
+            if "legend" in kwargs and kwargs["legend"] is True and "legend_position" not in kwargs:
+                plt.legend(list(map(str, self.listOfSpecies.keys())))
+            if "legend" in kwargs and kwargs["legend"] is True and "legend_position" in kwargs:
+                plt.legend(list(map(str, self.listOfSpecies.keys())), loc=kwargs["legend_position"])
+            if "xlabel" in kwargs:
+                plt.xlabel(kwargs["xlabel"])
+            if "ylabel" in kwargs:
+                plt.ylabel(kwargs["ylabel"])
+            plt.show()
 
 
 class Species:
@@ -535,8 +588,7 @@ class Reaction:
         self.annotation = ""
 
         if rate is None and propensity_function is None:
-            raise ReactionError("You must specify either a mass-action rate or" +
-                                " a propensity function")
+            raise ReactionError("You must specify either a mass-action rate or a propensity function")
 
         # We might use this flag in the future to automatically generate
         # the propensity function if set to True.
