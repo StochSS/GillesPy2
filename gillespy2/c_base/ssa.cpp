@@ -41,11 +41,6 @@ namespace Gillespy{
 	}
 	double propensity_sum;
 	while(current_time < (simulation -> end_time)){
-	  /* std :: cout << "Current time: " << current_time << "\t Entries: " << entry_count << ": ";
-	  for(uint i = 0; i < simulation -> model -> number_species; i++){
-	    std :: cout << current_state[i] << ", ";
-	  }
-	  std :: cout << std :: endl;*/
 	  //Sum propensities
 	  propensity_sum = 0;
 	  for(uint reaction_number = 0; reaction_number < ((simulation -> model) -> number_reactions); reaction_number++){
@@ -62,8 +57,8 @@ namespace Gillespy{
 	  }//End if no more reactions
 	  
 	  //Reaction will fire, determine which one
-	  double cumulative_sum = rng() * propensity_sum/rng.max();//random.uniform from 0 to propensity_sum
-	  current_time += -log(rng() * 1.0 / rng.max()) / propensity_sum;//-log(random.uniform)/propensity_sum
+	  double cumulative_sum = rng() * propensity_sum/rng.max();
+	  current_time += -log(rng() * 1.0 / rng.max()) / propensity_sum;
 	  //Copy current state to passed timesteps
 	  while(entry_count < simulation -> number_timesteps && (simulation -> timeline[entry_count]) <= current_time){
 	    memcpy(trajectory[entry_count], current_state, state_size);
@@ -75,13 +70,13 @@ namespace Gillespy{
 	    //This reaction fired
 	    if (cumulative_sum <= 0 && propensity_values[potential_reaction] > 0){
 	      //Update current state
-	      Reaction reaction = ((simulation -> model) -> reactions[potential_reaction]);
+	      Reaction& reaction = ((simulation -> model) -> reactions[potential_reaction]);
 	      for(uint species_number = 0; species_number < ((simulation -> model) -> number_species); species_number++){
 		current_state[species_number] += reaction.species_change[species_number];
 	      }
 	      //Recalculate needed propensities
 	      for(uint& affected_reaction : reaction.affected_reactions){
-		propensity_values[affected_reaction] =  (simulation -> propensity_function) -> evaluate(affected_reaction, current_state);
+	 	propensity_values[affected_reaction] =  (simulation -> propensity_function) -> evaluate(affected_reaction, current_state);
 	      }
 	      break;
 	    }//Finished updating state/propensities with this reaction

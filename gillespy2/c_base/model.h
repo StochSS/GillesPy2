@@ -1,5 +1,6 @@
 #ifndef GILLESPY_MODEL
 #define GILLESPY_MODEL
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -15,25 +16,19 @@ namespace Gillespy{
   struct Reaction{
     uint id; //useful for propensity function id associated
     std :: string name;
-    int* species_change; //list of changes to species with this reaction firing
+    std :: unique_ptr<int[]> species_change; //list of changes to species with this reaction firing
     std :: vector<uint> affected_reactions; //list of which reactions have propensities that would change with this reaction firing 
   };
   
   //Represents a model of reactions and species
   struct Model{
     uint number_species;
-    Species* species;
+    std :: unique_ptr<Species[]> species;
     uint number_reactions;
-    Reaction* reactions;
+    std :: unique_ptr<Reaction[]> reactions;
+    Model(std :: vector<std :: string> name_species, std :: vector<std :: string> name_reactions);
   };
   
-  //Build model with set number of species and reactions
-  Model* build_model(std :: vector<std :: string> name_species, std :: vector<std :: string> name_reactions);
-  
-  //Free up space/clean up model
-  void free_model(Model* model);
-
-
   //Interface class to represent container for propensity functions
   class IPropensityFunction{
   public:
