@@ -28,16 +28,13 @@ namespace Gillespy{
 	if(trajectory_number > 0){
 	  memcpy(trajectory[0], simulation -> trajectories[0][0], state_size);
 	}
+	//Set up current state from initial state
 	memcpy(current_state, trajectory[0], state_size);
-	//Set up initial state and next_state to be written
-	for(uint species_number = 0; species_number < ((simulation -> model) -> number_species); species_number++){
-	  trajectory[0][species_number] = (simulation -> model) -> species[species_number].initial_population;
-	}
 	double current_time = 0;
 	uint entry_count = 1;
 	//calculate initial propensities
 	for(uint reaction_number = 0; reaction_number < ((simulation -> model) -> number_reactions); reaction_number++){
-	  propensity_values[reaction_number] = (simulation -> propensity_function) -> evaluate(reaction_number, trajectory[0]);
+	  propensity_values[reaction_number] = (simulation -> propensity_function) -> evaluate(reaction_number, current_state);
 	}
 	double propensity_sum;
 	while(current_time < (simulation -> end_time)){
