@@ -2,7 +2,6 @@
 #include <random>//Included for mt19937 random number generator
 #include <cmath>//Included for natural logarithm
 #include <string.h>//Included for memcpy only
-#include <iostream>
 
 namespace Gillespy{
   void ssa_direct(Simulation* simulation){
@@ -21,7 +20,6 @@ namespace Gillespy{
       }
       //Simulate for each trajectory
       for(uint trajectory_number = 0; trajectory_number < simulation -> number_trajectories; trajectory_number++){
-	//std :: cout << "Simulating trajectory " << trajectory_number << std :: endl;
 	//Get simpler reference to memory space for this trajectory
 	uint** trajectory = simulation -> trajectories[trajectory_number];
 	//Copy initial state as needed
