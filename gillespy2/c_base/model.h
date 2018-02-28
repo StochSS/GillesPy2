@@ -38,8 +38,7 @@ namespace Gillespy{
 
   
   //Represents simulation return data
-  class Simulation{
-  public:
+  struct Simulation{
     Model* model;
     double* timeline;
     double end_time;
