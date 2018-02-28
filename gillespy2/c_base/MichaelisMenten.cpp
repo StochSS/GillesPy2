@@ -52,21 +52,13 @@ int main(){
   model.reactions[2].species_change[2] = -1;
   model.reactions[2].species_change[3] = 1;
 
-  for(uint i = 0; i < model.number_reactions; i++){
-    for(uint j = 0; j < model.number_reactions; j++){
-      model.reactions[i].affected_reactions.push_back(j);
-    }
-  }
+
+  model.update_affected_reactions();
   
   IPropensityFunction *propFun = new PropensityFunction();
   Simulation simulation(&model, 7, 101, 100, propFun, 9001);
   ssa_direct(&simulation);
-  for(int i = 0; i < simulation.number_timesteps; i++){
-    std :: cout << simulation.timeline[i] << ":\t";
-    for(int j = 0; j < model.number_species; j++){
-      std :: cout << simulation.trajectories[0][i][j] << (j >= model.number_species - 1? "\n" : ", ");
-    }
-  }
+  std :: cout << simulation << std :: endl;
   delete propFun;
   return 0;
 }

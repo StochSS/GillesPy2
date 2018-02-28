@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <iostream>
 
 namespace Gillespy{
 
@@ -27,6 +28,7 @@ namespace Gillespy{
     uint number_reactions;
     std :: unique_ptr<Reaction[]> reactions;
     Model(std :: vector<std :: string> species_names, std :: vector<uint> species_populations, std :: vector<std :: string> reaction_names);
+    void update_affected_reactions();
   };
   
   //Interface class to represent container for propensity functions
@@ -50,6 +52,7 @@ namespace Gillespy{
     IPropensityFunction *propensity_function;
     Simulation(Model* model, uint number_trajectories, uint number_timesteps, double end_time, IPropensityFunction* propensity_function, int random_seed);
     ~Simulation();
-  };  
+    friend std :: ostream& operator<<(std :: ostream& os, const Simulation& simulation);
+  };
 }
 #endif
