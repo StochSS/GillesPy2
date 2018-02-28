@@ -2,18 +2,19 @@
 
 namespace Gillespy{
   
-  Model :: Model(std :: vector<std :: string> name_species, std :: vector<std :: string> name_reactions):
-    number_species(name_species.size()),
-    number_reactions(name_reactions.size())
+  Model :: Model(std :: vector<std :: string> species_names, std :: vector<uint> species_populations, std :: vector<std :: string> reaction_names):
+    number_species(species_names.size()),
+    number_reactions(reaction_names.size())
   {
     species = std :: make_unique<Species[]>(number_species);
     for(uint i = 0; i < number_species; i++){
       species[i].id = i;
-      species[i].name = name_species[i];
+      species[i].initial_population = species_populations[i];
+      species[i].name = species_names[i];
     }
     reactions = std :: make_unique<Reaction[]>(number_reactions);
     for(uint i = 0; i < number_reactions; i++){
-      reactions[i].name = name_reactions[i];
+      reactions[i].name = reaction_names[i];
       reactions[i].species_change = std :: make_unique<int[]>(number_species);
       for(uint j = 0; j < number_species; j++){
 	reactions[i].species_change[j] = 0;	

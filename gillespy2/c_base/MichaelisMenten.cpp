@@ -29,20 +29,16 @@ public:
 };
 
 int main(){
-  std :: string species_names[] = {"A","B","C","D"};
-  int initial_populations[] = {301, 120, 0, 0};
-  std :: string reaction_names[] = {"r1","r2","r3"};
-  std :: vector<std :: string> name_species, name_reactions;
-  for(std :: string name : species_names){
-    name_species.push_back(name);
-  }
-  for(std :: string name : reaction_names){
-    name_reactions.push_back(name);
-  }
-  Model model(name_species, name_reactions);
-  for(int i = 0; i < model.number_species; i++){
-    model.species[i].initial_population = initial_populations[i];
-  }
+  //Species Init
+  std :: string s_names[] = {"A","B","C","D"};
+  std :: vector<std :: string> species_names(s_names, s_names + sizeof(s_names)/sizeof(std :: string));
+  uint populations[] = {301, 120, 0, 0};
+  std :: vector<uint> species_populations(populations, populations + sizeof(populations)/sizeof(populations[0]));
+  //Reactions Init
+  std :: string r_names[] = {"r1","r2","r3"};
+  std :: vector<std :: string> reaction_names(r_names, r_names + sizeof(r_names)/sizeof(std :: string));
+  
+  Model model(species_names, species_populations, reaction_names);
   
   model.reactions[0].species_change[0] = -1;
   model.reactions[0].species_change[1] = -1;
@@ -63,16 +59,14 @@ int main(){
   }
   
   IPropensityFunction *propFun = new PropensityFunction();
-  Simulation* simulation = new Simulation(&model, 7, 101, 100, propFun, 9001);
-  ssa_direct(simulation);
-  for(int i = 0; i < simulation -> number_timesteps; i++){
-    std :: cout << simulation -> timeline[i] << ":\t";
+  Simulation simulation(&model, 7, 101, 100, propFun, 9001);
+  ssa_direct(&simulation);
+  for(int i = 0; i < simulation.number_timesteps; i++){
+    std :: cout << simulation.timeline[i] << ":\t";
     for(int j = 0; j < model.number_species; j++){
-      std :: cout << simulation -> trajectories[0][i][j] << ", ";
+      std :: cout << simulation.trajectories[0][i][j] << (j >= model.number_species - 1? "\n" : ", ");
     }
-    std :: cout << std :: endl;
   }
-  delete simulation;
   delete propFun;
   return 0;
 }

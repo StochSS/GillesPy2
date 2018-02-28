@@ -26,7 +26,7 @@ namespace Gillespy{
     std :: unique_ptr<Species[]> species;
     uint number_reactions;
     std :: unique_ptr<Reaction[]> reactions;
-    Model(std :: vector<std :: string> name_species, std :: vector<std :: string> name_reactions);
+    Model(std :: vector<std :: string> species_names, std :: vector<uint> species_populations, std :: vector<std :: string> reaction_names);
   };
   
   //Interface class to represent container for propensity functions
