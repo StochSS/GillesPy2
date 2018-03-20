@@ -1,4 +1,11 @@
-from .gillespyError import *
+import numpy
+import random
+import tempfile
+import os
+import uuid
+import subprocess
+import shutil
+
 class GillesPySolver():
     """ 
     Abstract class for a solver. This is generally called from within a
@@ -54,7 +61,8 @@ class GillesPySolver():
         
         if job_id is None:
             job_id = str(uuid.uuid4())
-        
+            
+        from gillespy2 import Model
         # Write a temporary StochKit2 input file.
         if isinstance(model, Model):
             outfile =  os.path.join(prefix_basedir, 
@@ -363,3 +371,6 @@ class StochKitODESolver(GillesPySolver):
             return (headers.split(), trajectories)
         else:
             return trajectories
+
+class SimulationError(Exception):
+    pass
