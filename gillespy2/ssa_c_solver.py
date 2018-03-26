@@ -3,6 +3,7 @@ from .gillespySolver import GillesPySolver
 
 def write_constants(outfile, model, t, number_of_trajectories, increment, seed):
     number_timesteps = int(t/increment)
+    #Write mandatory constants
     outfile.write("""
 const uint number_trajectories = {0};
 const uint number_timesteps = {1};
@@ -13,14 +14,31 @@ int random_seed;
     #Write seed
     if isinstance(seed, int):
         outfile.write("random_seed = {};\nseed_time = false;\n".format(seed))        
-    #    Write model species names.
     outfile.write("std :: string s_names[] = {");
-    for species in model.listOfSpecies:
-        outfile.write('"{}"'.format(species))
-    #    Write initial populations.
-         
+    species = model.listOfSpecies.keys()
+    if len(species) > 0:
+        #Write model species names.
+        for i in range(len(species)-1):
+            outfile.write('"{}", '.format(species[i]))
+        outfile.write('"{}"'.format(species[-1]))
+        outfile.write("};\nuint populations[] = {")
+        #Write initial populations.
+        for i in range(len(species)-1):
+            outfile.write('{}, '.format(model.listOfSpecies[species[i]].initial_value))
+        outfile.write('{}'.format(model.listOfSpecies[species[-1]].initial_value))
+        outfile.write("};\n")
+    reactions = model.listOfReactions.keys()
+    if len(reactions) > 0:
+        #Write reaction names
+        outfile.write("std :: string r_names[] = {")
+        for i in range(len(reactions)-1):
+            outfile.write('"{}", '.format(reactions[i]))
+        outfile.write('"{}"'.format(reactions[-1]))
+        outfile.write("};\n")
+    for param in model.listOfParameters:
+        outfile.write("const double {0} = {1};\n".format(param, model.listOfParameters[param].value))
 
-
+        
 class SSACSolver(GillesPySolver):
     """TODO"""
     @classmethod
