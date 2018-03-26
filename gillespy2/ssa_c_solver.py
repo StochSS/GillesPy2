@@ -48,6 +48,15 @@ def write_propensity(outfile, model, reactions, species):
             return {1};
 
         """.format(i, propensity_function))
+
+
+def write_reactions(outfile, model, reactions, species):
+    for i in range(len(reactions)):
+        reaction = model.listOfReactions[reactions[i]]
+        for j in range(len(species)):
+            change = (reaction.products.get(species[j], 0)) - (reaction.reactants.get(species[j], 0))
+            if change != 0:
+                outfile.write("model.reactions[{0}].species_change[{1}] = {2};\n".format(i, j, change))
         
 class SSACSolver(GillesPySolver):
     """TODO"""
@@ -59,8 +68,8 @@ class SSACSolver(GillesPySolver):
             #Write simulation C++ file.
             template_keword = "__DEFINE_"
             #Use same lists of model's species and reactions to maintain order
-            reactions = model.listOfReactions.keys()
-            species = model.listOfSpecies.keys()
+            reactions = list(model.listOfReactions.keys())
+            species = list(model.listOfSpecies.keys())
             with open('UserSimulation.cpp', 'w') as outfile:
                 for line in template:
                     if line.startswith(template_keyword):
@@ -69,6 +78,8 @@ class SSACSolver(GillesPySolver):
                             write_constants(outfile, model, t, number_of_trajectories, increment, seed)
                         if line.startswith("PROPENSITY"):
                             write_propensity(outfile, model)
+                        if line.startswith("REACTIONS"):
+                            write_reactions(outfile, model, reactions, species)
                     else:
                         outfile.write(line)
                 #Write propensity function.
