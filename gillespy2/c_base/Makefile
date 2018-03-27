@@ -15,5 +15,8 @@ MichaelisMenten: $(OBJ)
 UserSimulation: $(OBJ)
 	$(CC) UserSimulation.cpp $(SIMFLAGS) -o $@ $^
 
+cleanSimulation:
+	rm -f UserSimulation
+
 clean:
 	rm -f *.o *~ MichaelisMenten

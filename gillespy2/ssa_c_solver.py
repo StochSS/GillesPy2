@@ -1,5 +1,6 @@
 import gillespy2
 from .gillespySolver import GillesPySolver
+import subprocess
 
 def write_constants(outfile, model, t, number_of_trajectories, increment, seed, reactions, species):
     number_timesteps = int(t/increment)
@@ -40,8 +41,10 @@ int random_seed;
 def write_propensity(outfile, model, reactions, species):
     for i in range(len(reactions)):
         propensity_function = model.listOfReactions[reactions[i]].propensity_function
+        #Replace species references with array references
         for j in range(len(species)):
             propensity_function = propensity_function.replace(species[j], "state[{}]".format(j))
+        #Write switch statement case for reaction
         outfile.write("""
 
         case {0}:
@@ -63,6 +66,7 @@ class SSACSolver(GillesPySolver):
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
+        GILLESPY_C_DIRECTORY = 'c_base/'
         #Open up template file for reading.
         with open('SimulationTemplate.cpp', 'r') as template:
             #Write simulation C++ file.
@@ -82,9 +86,14 @@ class SSACSolver(GillesPySolver):
                             write_reactions(outfile, model, reactions, species)
                     else:
                         outfile.write(line)
-                #Write propensity function.
-                pass
         #Use makefile.
-        #Execute simulation.
-        #Parse/return results.
-        pass
+        cleaned = subprocess.run(["make", "-C", GILLESPY_C_DIRECTORY, 'cleanSimulation'], stdout=subprocess.PIPE)
+        built = subprocess.run(["make", "-C", GILLESPY_C_DIRECTORY, 'UserSimulation'], stdout=subprocess.PIPE)
+        if built.returncode == 0:
+            #Execute simulation.
+            simulation = subprocess.run(["make", "-C", GILLESPY_C_DIRECTORY, 'cleanSimulation'], stdout=subprocess.PIPE)
+            #Parse/return results.
+            if simulation.returncode == 0:
+                results = simulation.stdout
+                
+        return None
