@@ -1,6 +1,7 @@
 import gillespy2
 from .gillespySolver import GillesPySolver
-import subprocess
+import os #for getting directories for C++ filesy
+import subprocess #For calling make and executing c solver
 
 def write_constants(outfile, model, t, number_of_trajectories, increment, seed, reactions, species):
     number_timesteps = int(t/increment)
@@ -11,7 +12,7 @@ const uint number_timesteps = {1};
 const double end_time = {2};
 const double vol = {3};
 int random_seed;
-""".format(number_of_trajectories, number_timesteps, end_time, model.volume))
+""".format(number_of_trajectories, number_timesteps, t, model.volume))
     #Write seed
     if isinstance(seed, int):
         outfile.write("random_seed = {};\nseed_time = false;\n".format(seed))        
@@ -57,7 +58,7 @@ def write_reactions(outfile, model, reactions, species):
     for i in range(len(reactions)):
         reaction = model.listOfReactions[reactions[i]]
         for j in range(len(species)):
-            change = (reaction.products.get(species[j], 0)) - (reaction.reactants.get(species[j], 0))
+            change = (reaction.products.get(model.listOfSpecies[species[j]], 0)) - (reaction.reactants.get(model.listOfSpecies[species[j]], 0))
             if change != 0:
                 outfile.write("model.reactions[{0}].species_change[{1}] = {2};\n".format(i, j, change))
         
@@ -66,30 +67,32 @@ class SSACSolver(GillesPySolver):
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
-        GILLESPY_C_DIRECTORY = 'c_base/'
+        GILLESPY_C_DIRECTORY = os.path.join(os.getcwd(), 'gillespy2/c_base/')
         self.simulation_data = None
         #Open up template file for reading.
-        with open('SimulationTemplate.cpp', 'r') as template:
+        with open(os.path.join(GILLESPY_C_DIRECTORY,'SimulationTemplate.cpp'), 'r') as template:
             #Write simulation C++ file.
-            template_keword = "__DEFINE_"
+            template_keyword = "__DEFINE_"
             #Use same lists of model's species and reactions to maintain order
             reactions = list(model.listOfReactions.keys())
             species = list(model.listOfSpecies.keys())
-            with open('UserSimulation.cpp', 'w') as outfile:
+            with open(os.path.join(GILLESPY_C_DIRECTORY, 'UserSimulation.cpp'), 'w') as outfile:
                 for line in template:
                     if line.startswith(template_keyword):
                         line = line[len(template_keyword):]
                         if line.startswith("CONSTANTS"):
-                            write_constants(outfile, model, t, number_of_trajectories, increment, seed)
+                            write_constants(outfile, model, t, number_of_trajectories, increment, seed, reactions, species)
                         if line.startswith("PROPENSITY"):
-                            write_propensity(outfile, model)
+                            write_propensity(outfile, model, reactions, species)
                         if line.startswith("REACTIONS"):
                             write_reactions(outfile, model, reactions, species)
                     else:
                         outfile.write(line)
         #Use makefile.
         cleaned = subprocess.run(["make", "-C", GILLESPY_C_DIRECTORY, 'cleanSimulation'], stdout=subprocess.PIPE, shell=True)
+        print('Clean:', cleaned)
         built = subprocess.run(["make", "-C", GILLESPY_C_DIRECTORY, 'UserSimulation'], stdout=subprocess.PIPE, shell=True)
+        print('Build:', built)
         if built.returncode == 0:
             #Execute simulation.
             simulation = subprocess.run(["make", "-C", GILLESPY_C_DIRECTORY, 'cleanSimulation'], stdout=subprocess.PIPE, shell=True)
