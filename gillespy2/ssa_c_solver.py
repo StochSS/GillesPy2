@@ -67,6 +67,7 @@ class SSACSolver(GillesPySolver):
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
         GILLESPY_C_DIRECTORY = 'c_base/'
+        self.simulation_data = None
         #Open up template file for reading.
         with open('SimulationTemplate.cpp', 'r') as template:
             #Write simulation C++ file.
@@ -87,13 +88,34 @@ class SSACSolver(GillesPySolver):
                     else:
                         outfile.write(line)
         #Use makefile.
-        cleaned = subprocess.run(["make", "-C", GILLESPY_C_DIRECTORY, 'cleanSimulation'], stdout=subprocess.PIPE)
-        built = subprocess.run(["make", "-C", GILLESPY_C_DIRECTORY, 'UserSimulation'], stdout=subprocess.PIPE)
+        cleaned = subprocess.run(["make", "-C", GILLESPY_C_DIRECTORY, 'cleanSimulation'], stdout=subprocess.PIPE, shell=True)
+        built = subprocess.run(["make", "-C", GILLESPY_C_DIRECTORY, 'UserSimulation'], stdout=subprocess.PIPE, shell=True)
         if built.returncode == 0:
             #Execute simulation.
-            simulation = subprocess.run(["make", "-C", GILLESPY_C_DIRECTORY, 'cleanSimulation'], stdout=subprocess.PIPE)
+            simulation = subprocess.run(["make", "-C", GILLESPY_C_DIRECTORY, 'cleanSimulation'], stdout=subprocess.PIPE, shell=True)
             #Parse/return results.
             if simulation.returncode == 0:
-                results = simulation.stdout
-                
-        return None
+                results = simulation.stdout.decode('utf-8').split('\n')
+                trajectory_base = np.empty((number_of_trajectories,timeline.size, number_species+1))
+                timesteps = int(t/increment)
+                for timestep in range(timesteps):
+                    values = results[timestep].split(" ")
+                    time = float(values[0])
+                    index = 1
+                    for trajectory in range(number_of_trajectories):
+                        trajectory_base[trajectory, timestep, 0] = time
+                        for species in range(len(species)):
+                            trajectory_base[trajectory, timestep, 1 + species] = float(values[index+species])
+                        index += len(species)
+                if show_labels:
+                    self.simulation_data = []
+                    for trajectory in range(number_of_trajectories):
+                        data = {}
+                        data['time'] = trajectory_base[trajectory,:,0]
+                        for i in range(len(species)):
+                            data[species[i]] = trajectory_base[trajectory, :, i]
+                        self.simulation_data.append(data)
+                else:
+                    self.simulation_data = trajectory_base
+        return self.simulation_data
+

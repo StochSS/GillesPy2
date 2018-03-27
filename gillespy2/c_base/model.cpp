@@ -72,13 +72,14 @@ namespace Gillespy{
 
   
   std :: ostream& operator<<(std :: ostream& os, const Simulation& simulation){
-    for(uint trajectory = 0; trajectory < simulation.number_trajectories; trajectory++){
-      for(uint i = 0; i < simulation.number_timesteps; i++){
-	os << simulation.timeline[i] << " ";
+    for(uint i = 0; i < simulation.number_timesteps; i++){
+      os << simulation.timeline[i] << " ";
+      for(uint trajectory = 0; trajectory < simulation.number_trajectories; trajectory++){
 	for(uint j = 0; j < simulation.model -> number_species; j++){
-	  os << simulation.trajectories[trajectory][i][j] << (j >= simulation.model -> number_species - 1? "\n" : " ");
+	  os << simulation.trajectories[trajectory][i][j] <<  " ";
 	}
       }
+      os << "\n";
     }
     return os;
   }
