@@ -19,7 +19,8 @@ class BasicRootSolver(GillesPySolver):
             state_change.append(eval(reactions[r].propensity_function, curr_state))
         return state_change
 
-    def get_reaction(self, populations, y0, current_time, model, step):
+    @staticmethod
+    def get_reaction(populations, y0, model, step):
         multiple = False  # flag variable for multiple reactions
         int_time = 0
         current_time = 0
@@ -70,7 +71,6 @@ class BasicRootSolver(GillesPySolver):
         propensities = {}
         curr_state = {}
         curr_time = 0
-        rhs = ode(BasicRootSolver.f)
         curr_state['vol'] = 1
         save_time = 0
 
@@ -78,7 +78,6 @@ class BasicRootSolver(GillesPySolver):
         results = {'time': []}
 
         test_count = 0
-        step = increment
 
         for s in model.listOfSpecies:
             # initialize populations
@@ -103,9 +102,9 @@ class BasicRootSolver(GillesPySolver):
                         results[s].append(curr_state[s])
                     save_time += increment
                 return results
-            step = increment
+            # step = increment
 
-            reaction = self.get_reaction(populations, y0, curr_time, model, .1)
+            reaction = self.get_reaction(populations, y0, model, .1)
 
             for i, r in enumerate(model.listOfReactions):
                 if r == reaction:
