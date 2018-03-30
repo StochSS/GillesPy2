@@ -2,7 +2,6 @@
 #include <random>//Included for mt19937 random number generator
 #include <cmath>//Included for natural logarithm
 #include <string.h>//Included for memcpy only
-#include <iostream>
 
 namespace Gillespy{
   void ssa_direct(Simulation* simulation){
@@ -21,31 +20,22 @@ namespace Gillespy{
       }
       //Simulate for each trajectory
       for(uint trajectory_number = 0; trajectory_number < simulation -> number_trajectories; trajectory_number++){
-	//std :: cout << "Simulating trajectory " << trajectory_number << std :: endl;
 	//Get simpler reference to memory space for this trajectory
 	uint** trajectory = simulation -> trajectories[trajectory_number];
 	//Copy initial state as needed
 	if(trajectory_number > 0){
 	  memcpy(trajectory[0], simulation -> trajectories[0][0], state_size);
 	}
+	//Set up current state from initial state
 	memcpy(current_state, trajectory[0], state_size);
-	//Set up initial state and next_state to be written
-	for(uint species_number = 0; species_number < ((simulation -> model) -> number_species); species_number++){
-	  trajectory[0][species_number] = (simulation -> model) -> species[species_number].initial_population;
-	}
 	double current_time = 0;
 	uint entry_count = 1;
 	//calculate initial propensities
 	for(uint reaction_number = 0; reaction_number < ((simulation -> model) -> number_reactions); reaction_number++){
-	  propensity_values[reaction_number] = (simulation -> propensity_function) -> evaluate(reaction_number, trajectory[0]);
+	  propensity_values[reaction_number] = (simulation -> propensity_function) -> evaluate(reaction_number, current_state);
 	}
 	double propensity_sum;
 	while(current_time < (simulation -> end_time)){
-	  /* std :: cout << "Current time: " << current_time << "\t Entries: " << entry_count << ": ";
-	  for(uint i = 0; i < simulation -> model -> number_species; i++){
-	    std :: cout << current_state[i] << ", ";
-	  }
-	  std :: cout << std :: endl;*/
 	  //Sum propensities
 	  propensity_sum = 0;
 	  for(uint reaction_number = 0; reaction_number < ((simulation -> model) -> number_reactions); reaction_number++){
@@ -62,8 +52,8 @@ namespace Gillespy{
 	  }//End if no more reactions
 	  
 	  //Reaction will fire, determine which one
-	  double cumulative_sum = rng() * propensity_sum/rng.max();//random.uniform from 0 to propensity_sum
-	  current_time += -log(rng() * 1.0 / rng.max()) / propensity_sum;//-log(random.uniform)/propensity_sum
+	  double cumulative_sum = rng() * propensity_sum/rng.max();
+	  current_time += -log(rng() * 1.0 / rng.max()) / propensity_sum;
 	  //Copy current state to passed timesteps
 	  while(entry_count < simulation -> number_timesteps && (simulation -> timeline[entry_count]) <= current_time){
 	    memcpy(trajectory[entry_count], current_state, state_size);
@@ -75,13 +65,13 @@ namespace Gillespy{
 	    //This reaction fired
 	    if (cumulative_sum <= 0 && propensity_values[potential_reaction] > 0){
 	      //Update current state
-	      Reaction reaction = ((simulation -> model) -> reactions[potential_reaction]);
+	      Reaction& reaction = ((simulation -> model) -> reactions[potential_reaction]);
 	      for(uint species_number = 0; species_number < ((simulation -> model) -> number_species); species_number++){
 		current_state[species_number] += reaction.species_change[species_number];
 	      }
 	      //Recalculate needed propensities
 	      for(uint& affected_reaction : reaction.affected_reactions){
-		propensity_values[affected_reaction] =  (simulation -> propensity_function) -> evaluate(affected_reaction, current_state);
+	 	propensity_values[affected_reaction] =  (simulation -> propensity_function) -> evaluate(affected_reaction, current_state);
 	      }
 	      break;
 	    }//Finished updating state/propensities with this reaction
