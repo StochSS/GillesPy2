@@ -2,6 +2,7 @@ import gillespy2
 from .gillespySolver import GillesPySolver
 import os #for getting directories for C++ filesy
 import subprocess #For calling make and executing c solver
+import inspect #for finding the Gillespy2 module path
 import numpy as np
 
 def write_constants(outfile, model, t, number_of_trajectories, increment, seed, reactions, species):
@@ -68,7 +69,8 @@ class SSACSolver(GillesPySolver):
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
-        GILLESPY_C_DIRECTORY = os.path.join(os.getcwd(), 'gillespy2/c_base/')
+        GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
+        GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'c_base/')
         self.simulation_data = None
         #Open up template file for reading.
         with open(os.path.join(GILLESPY_C_DIRECTORY,'SimulationTemplate.cpp'), 'r') as template:
