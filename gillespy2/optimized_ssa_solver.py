@@ -1,9 +1,10 @@
 import gillespy2
-from gillespySolver import GillesPySolver
+from .gillespySolver import GillesPySolver
 import random
 import math
 import numpy as np
 import heapq
+
 try:
     import pyximport; pyximport.install(setup_args={'include_dirs': np.get_include()})
     from cython_ssa_solver import CythonSSASolver
