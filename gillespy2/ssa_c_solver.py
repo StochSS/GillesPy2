@@ -93,9 +93,7 @@ class SSACSolver(GillesPySolver):
                         outfile.write(line)
         #Use makefile.
         cleaned = subprocess.run(["make", "-C", GILLESPY_C_DIRECTORY, 'cleanSimulation'], stdout=subprocess.PIPE)
-        print('Clean:', cleaned)
         built = subprocess.run(["make", "-C", GILLESPY_C_DIRECTORY, 'UserSimulation'], stdout=subprocess.PIPE)
-        print('Build:', built)
         if built.returncode == 0:
             #Execute simulation.
             simulation = subprocess.run([os.path.join(GILLESPY_C_DIRECTORY, 'UserSimulation')], stdout=subprocess.PIPE)
