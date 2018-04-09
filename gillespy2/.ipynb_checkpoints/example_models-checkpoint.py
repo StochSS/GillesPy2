@@ -106,7 +106,7 @@ class LacOperon(Model):
             [k1, k2, k3, k4, k5, k6, k7, k8, k9, k10, k11, k12, k13, k14, k15, k16, k17, k18, k19, k20, k21, k22])
 
         # Reactions
-        j1 = Reaction(name="j1", reactants={s1: 1, s2: 1}, products={s3: 2.0}, rate=k1)
+        j1 = Reaction(name="j1", reactants={s1: 1, s2: 2}, products={s3: 1}, rate=k1)
         j2 = Reaction(name="j2", reactants={s3: 1}, products={s1: 1, s2: 1}, rate=k2)
         j3 = Reaction(name="j3", reactants={s3: 1}, products={s4: 1}, rate=k3)
         j4 = Reaction(name="j4", reactants={s4: 1}, products={s9: 1, s1: 1, s5: 1}, rate=k4)
@@ -156,11 +156,11 @@ class Schlogl(Model):
 
         self.add_parameter([k1, k2])
 
-        j1 = Reaction(name="j1", reactants={s1: 1, s4: 1}, products={s4: 2.0}, rate=k1)
+        j1 = Reaction(name="j1", reactants={s1: 1, s4: 1}, products={s4: 2}, rate=k1)
         j2 = Reaction(name="j2", reactants={s2: 1, s4: 1}, products={s3: 1}, rate=k2)
 
         self.add_reaction([j1, j2])
-        self.timespan(numpy.linspace(0, 100000, 100))
+        self.timespan(numpy.linspace(0, 10000, 100))
 
 
 class MichaelisMenten(Model):
@@ -188,119 +188,4 @@ class MichaelisMenten(Model):
 
         r3 = Reaction(name="r3", reactants={C: 1}, products={B: 1, D: 1}, rate=rate3)
         self.add_reaction([r1, r2, r3])
-        self.timespan(numpy.linspace(0, 100000, 100))
-
-
-class ToggleSwitch(Model):
-    """
-    Gardner et al. Nature (1999)Construction of a genetic toggle switch in Escherichia coli
-    (Transcription from 
-    """
-
-    def __init__(self, cooperativity=2.0):
-        # Initialize the model.
-        Model.__init__(self, name="Toggle_Switch")
-        # Species
-        U = Species(name='U', initial_value=10)
-        V = Species(name='V', initial_value=10)
-        self.add_species([U, V])
-        # Parameters
-        alpha1 = Parameter(name='alpha1', expression=10.0)
-        alpha2 = Parameter(name='alpha2', expression=10.0)
-        beta = Parameter(name='beta', expression=2.0)
-        gamma = Parameter(name='gamma', expression=2.0)
-        mu = Parameter(name='mu', expression=1.0)
-        self.add_parameter([alpha1, alpha2, beta, gamma, mu])
-        # Species
-        self.add_species([U, V])
-        # Reactions
-        cu = Reaction(name="r1", reactants={}, products={U: 1}, rate=alpha1.value * (1 + V.initial_value ** beta))
-        cv = Reaction(name="r2", reactants={}, products={V: 1}, rate=alpha2.value(1 + U.initial_value ** gamma))
-        du = Reaction(name="r3", reactants={U: 1}, products={}, rate=mu)
-        dv = Reaction(name="r4", reactants={V: 1}, products={}, rate=mu)
-        self.add_reaction([cu, cv, du, dv])
-        self.timespan(np.linspace(0, 250, 251))
-
-
-class Example(Model):
-    """
-    This is a simple example for mass-action degradation of species S.
-    """
-
-    def __init__(self, parameter_values=None):
-        # Initialize the model.
-        Model.__init__(self, name="Example")
-        # Species
-        S = Species(name='S', initial_value=100)
-        self.add_species(S)
-        # Parameters
-        k1 = Parameter(name='k1', expression=0.3)
-        self.add_parameter(k1)
-        # Reactions
-        rxn1 = Reaction(name='S degradation', reactants={S: 1}, products={}, rate=k1)
-        self.add_reaction(rxn1)
-        self.timespan(np.linspace(0, 20, 101))
-
-
-class Tyson2StateOscillator(Model):
-    """
-    Here, as a test case, we run a simple two-state oscillator (Novak & Tyson
-    2008) as an example of a stochastic reaction system.
-    """
-
-    def __init__(self, parameter_values=None):
-        """
-        """
-        Model.__init__(self, name="tyson-2-state", volume=300)
-        self.timespan(np.linspace(0, 100, 101))
-        # =============================================
-        # Define model species, initial values, parameters, and volume
-        # =============================================
-
-        # Parameter values  for this biochemical system are given in
-        # concentration units. However, stochastic systems must use population
-        # values. For example, a concentration unit of 0.5mol/(L*s)
-        # is multiplied by a volume unit, to get a population/s rate
-        # constant. Thus, for our non-mass action reactions, we include the
-        # parameter "vol" in order to convert population units to concentration
-        # units. Volume here = 300.
-
-        P = Parameter(name='P', expression=2.0)
-        kt = Parameter(name='kt', expression=20.0)
-        kd = Parameter(name='kd', expression=1.0)
-        a0 = Parameter(name='a0', expression=0.005)
-        a1 = Parameter(name='a1', expression=0.05)
-        a2 = Parameter(name='a2', expression=0.1)
-        kdx = Parameter(name='kdx', expression=1.0)
-        self.add_parameter([P, kt, kd, a0, a1, a2, kdx])
-
-        # Species
-        # Initial values of each species (concentration converted to pop.)
-        X = Species(name='X', initial_value=int(0.65609071 * 300))
-        Y = Species(name='Y', initial_value=int(0.85088331 * 300))
-        self.add_species([X, Y])
-
-        # =============================================
-        # Define the reactions within the model
-        # =============================================
-
-        # creation of X:
-        rxn1 = Reaction(name='X production', reactants={}, products={X: 1},
-                        propensity_function=300*1/(1 + (Y.initial_value * Y.initial_value / (300 * 300))))
-
-        # degradadation of X:
-        rxn2 = Reaction(name='X degradation', reactants={X: 1}, products={}, rate=kdx)
-
-        # creation of Y:
-        rxn3 = Reaction(name='Y production', reactants={X: 1}, products={X: 1, Y: 1}, rate=kt)
-
-        # degradation of Y:
-        rxn4 = Reaction(name='Y degradation', reactants={Y: 1}, products={}, rate=kd)
-
-        # nonlinear Y term:
-        rxn5 = Reaction(name='Y nonlin', reactants={Y: 1}, products={}, propensity_function=
-        Y.initial_value(
-            a0.expression + a1.expression(Y.initial_value / 300) + a2.expression * Y.initial_value * Y.initial_value / (
-                    300 * 300)))
-
-        self.add_reaction([rxn1, rxn2, rxn3, rxn4, rxn5])
+        self.timespan(numpy.linspace(0, 100, 101))

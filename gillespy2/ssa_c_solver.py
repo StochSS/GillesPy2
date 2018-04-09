@@ -65,6 +65,7 @@ def write_reactions(outfile, model, reactions, species):
                 outfile.write("model.reactions[{0}].species_change[{1}] = {2};\n".format(i, j, change))
         
 class SSACSolver(GillesPySolver):
+    name = "SSACSolver"
     """TODO"""
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,

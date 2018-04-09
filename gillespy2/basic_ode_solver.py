@@ -5,7 +5,7 @@ import numpy as np
 
 
 class BasicODESolver(GillesPySolver):
-
+    name = "BasicODESolver"
     @staticmethod
     def rhs(y0, t, species, parameters, reactions):
         curr_state = {}

@@ -13,9 +13,10 @@ except Exception as e:
     print("Unable to use Cython optimized SSA:\nError:{0}".format(e))
     can_use_cython = False
     
-class SSASolver(GillesPySolver):
+class OptimizedSSASolver(GillesPySolver):
     """ TODO
     """
+    name ="OptimizedSSASolver"
     use_cython = True
     
     def format_trajectories(simulation_data):

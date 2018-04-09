@@ -137,9 +137,7 @@ def convert_infix_prefix(equation):
                 
     
 class CythonSSASolver(GillesPySolver):
-    """ TODO
-    """
-
+    name = "CythonSSASolver"
     #@cython.boundscheck(False)
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
