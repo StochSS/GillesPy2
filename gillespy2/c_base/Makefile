@@ -1,6 +1,6 @@
 CC=g++
-CFLAGS=-c -Wall -O3
-SIMFLAGS = -Wall -O3
+CFLAGS=-c -std=c++14 -Wall -O3
+SIMFLAGS = -std=c++14 -Wall -O3
 DEPS = model.h ssa.h
 OBJ = model.o ssa.o
 
