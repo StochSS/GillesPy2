@@ -11,16 +11,15 @@ bool seed_time = true;
 //Default constants
 
 const uint number_trajectories = 1;
-const uint number_timesteps = 100;
-const double end_time = 100.0;
+const uint number_timesteps = 98;
+const double end_time = 100000.0;
 const double vol = 1.0;
 int random_seed;
-std :: string s_names[] = {"A", "B", "C", "D"};
-uint populations[] = {301, 120, 0, 0};
-std :: string r_names[] = {"r1", "r2", "r3"};
-const double rate1 = 0.0017;
-const double rate2 = 0.0001;
-const double rate3 = 0.1;
+std :: string s_names[] = {"A", "B", "C", "X"};
+uint populations[] = {300, 300, 300, 300};
+std :: string r_names[] = {"j1", "j2"};
+const double k1 = 1.0;
+const double k2 = 1.0;
 
 class PropensityFunction : public IPropensityFunction{
 public:
@@ -29,17 +28,12 @@ public:
 
 
         case 0:
-            return rate1*state[0]*state[1]/vol;
+            return k1*state[0]*state[3]/vol;
 
         
 
         case 1:
-            return rate2*state[2];
-
-        
-
-        case 2:
-            return rate3*state[2];
+            return k2*state[1]*state[3]/vol;
 
         
     default: //Error
@@ -57,14 +51,10 @@ int main(){
 
   //Begin reaction species changes
 model.reactions[0].species_change[0] = -1;
-model.reactions[0].species_change[1] = -1;
-model.reactions[0].species_change[2] = 1;
-model.reactions[1].species_change[0] = 1;
-model.reactions[1].species_change[1] = 1;
-model.reactions[1].species_change[2] = -1;
-model.reactions[2].species_change[1] = 1;
-model.reactions[2].species_change[2] = -1;
-model.reactions[2].species_change[3] = 1;
+model.reactions[0].species_change[3] = 1.0;
+model.reactions[1].species_change[1] = -1;
+model.reactions[1].species_change[2] = 1;
+model.reactions[1].species_change[3] = -1;
   //End reaction species changes
   model.update_affected_reactions();
 
