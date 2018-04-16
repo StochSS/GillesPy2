@@ -4,9 +4,9 @@ import os #for getting directories for C++ filesy
 import subprocess #For calling make and executing c solver
 import inspect #for finding the Gillespy2 module path
 import numpy as np
+import math
 
-def write_constants(outfile, model, t, number_of_trajectories, increment, seed, reactions, species):
-    number_timesteps = int(t/increment)
+def write_constants(outfile, model, t, number_of_trajectories, number_timesteps, seed, reactions, species):
     #Write mandatory constants
     outfile.write("""
 const uint number_trajectories = {0};
@@ -63,7 +63,21 @@ def write_reactions(outfile, model, reactions, species):
             change = (reaction.products.get(model.listOfSpecies[species[j]], 0)) - (reaction.reactants.get(model.listOfSpecies[species[j]], 0))
             if change != 0:
                 outfile.write("model.reactions[{0}].species_change[{1}] = {2};\n".format(i, j, change))
-        
+
+
+def parse_output(results, number_of_trajectories, number_timesteps, number_species):
+    trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
+    for timestep in range(number_timesteps):
+        values = results[timestep].split(" ")
+        time = float(values[0])
+        index = 1
+        for trajectory in range(number_of_trajectories):
+            trajectory_base[trajectory, timestep, 0] = time
+            for species in range(number_species):
+                trajectory_base[trajectory, timestep, 1 + species] = float(values[index+species])
+            index += number_species
+    return trajectory_base
+
 class SSACSolver(GillesPySolver):
     """TODO"""
     @classmethod
@@ -72,6 +86,7 @@ class SSACSolver(GillesPySolver):
         GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
         GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'c_base/')
         self.simulation_data = None
+        number_timesteps = int(math.ceil(t/increment))
         #Open up template file for reading.
         with open(os.path.join(GILLESPY_C_DIRECTORY,'SimulationTemplate.cpp'), 'r') as template:
             #Write simulation C++ file.
@@ -84,7 +99,7 @@ class SSACSolver(GillesPySolver):
                     if line.startswith(template_keyword):
                         line = line[len(template_keyword):]
                         if line.startswith("CONSTANTS"):
-                            write_constants(outfile, model, t, number_of_trajectories, increment, seed, reactions, species)
+                            write_constants(outfile, model, t, number_of_trajectories, number_timesteps, seed, reactions, species)
                         if line.startswith("PROPENSITY"):
                             write_propensity(outfile, model, reactions, species)
                         if line.startswith("REACTIONS"):
@@ -100,17 +115,8 @@ class SSACSolver(GillesPySolver):
             #Parse/return results.
             if simulation.returncode == 0:
                 results = simulation.stdout.decode('utf-8').split('\n')
-                timesteps = int(t/increment)
-                trajectory_base = np.empty((number_of_trajectories, timesteps, len(species)+1))
-                for timestep in range(timesteps):
-                    values = results[timestep].split(" ")
-                    time = float(values[0])
-                    index = 1
-                    for trajectory in range(number_of_trajectories):
-                        trajectory_base[trajectory, timestep, 0] = time
-                        for specie in range(len(species)):
-                            trajectory_base[trajectory, timestep, 1 + specie] = float(values[index+specie])
-                        index += len(species)
+                trajectory_base = parse_output(results, number_of_trajectories, number_timesteps, len(species))
+                #Format results
                 if show_labels:
                     self.simulation_data = []
                     for trajectory in range(number_of_trajectories):
