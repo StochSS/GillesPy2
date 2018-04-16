@@ -90,7 +90,7 @@ def parse_binary_output(results_buffer, number_of_trajectories, number_timesteps
         for trajectory in range(number_of_trajectories):
             trajectory_base[trajectory, timestep, 0] = time
             for species in range(number_species):
-                trajectory_base[trajectory, timestep, 1 + species] = float(data[index + species])
+                trajectory_base[trajectory, timestep, 1 + species] = data[index + species]
             index += number_species
     return trajectory_base
 
