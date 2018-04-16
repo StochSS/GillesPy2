@@ -78,6 +78,22 @@ def parse_output(results, number_of_trajectories, number_timesteps, number_speci
             index += number_species
     return trajectory_base
 
+
+def parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species):
+    trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
+    step_size = number_species * number_of_trajectories + 1 #1 for timestep
+    buffer_size = step_size * number_timesteps
+    data = np.frombuffer(results_buffer, dtype=np.float64, count=buffer_size)
+    for timestep in range(number_timesteps):
+        time = data[step_size * timestep]
+        index = step_size * timestep + 1
+        for trajectory in range(number_of_trajectories):
+            trajectory_base[trajectory, timestep, 0] = time
+            for species in range(number_species):
+                trajectory_base[trajectory, timestep, 1 + species] = float(data[index + species])
+            index += number_species
+    return trajectory_base
+
 class SSACSolver(GillesPySolver):
     """TODO"""
     @classmethod
