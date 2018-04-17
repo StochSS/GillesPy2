@@ -1,11 +1,16 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <sstream>
 #include <time.h>
 #include "model.h"
 #include "ssa.h"
 using namespace Gillespy;
 
+//Default values, replaced with command line args
+uint number_trajectories = 0;
+uint number_timesteps = 0;
+double end_time = 0;
 bool seed_time = true;
 
 //Default constants
@@ -23,7 +28,7 @@ __DEFINE_PROPENSITY__
   }
 };
 
-int main(){
+int main(int argc, char* argv[]){
   std :: vector<std :: string> species_names(s_names, s_names + sizeof(s_names)/sizeof(std :: string));
   std :: vector<uint> species_populations(populations, populations + sizeof(populations)/sizeof(populations[0]));
   std :: vector<std :: string> reaction_names(r_names, r_names + sizeof(r_names)/sizeof(std :: string));
@@ -34,6 +39,32 @@ int main(){
 __DEFINE_REACTIONS_
   //End reaction species changes
   model.update_affected_reactions();
+ 
+  //Parse command line arguments
+ std :: string arg;
+ std :: stringstream arg_stream;
+ for(int i = 1; i < argc; i++){
+   arg = argv[i];
+   if(argc > i+1 && arg.size() > 1 && arg[0] == '-'){
+     arg_stream << argv[i+1];
+     switch(arg[1]){
+     case 's':
+       arg_stream >> random_seed;
+       seed_time = false;
+       break;
+     case 'e':
+       arg_stream >> end_time;
+       break;
+     case 't':
+       if(arg[2] == 'r'){
+	 arg_stream >> number_trajectories;
+       }else if(arg[2] == 'i'){
+	 arg_stream >> number_timesteps;
+       }
+       break;
+     }
+   }
+ }
 
  if(seed_time){
    random_seed = time(NULL);
