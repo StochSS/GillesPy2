@@ -42,7 +42,8 @@ __DEFINE_REACTIONS_
   IPropensityFunction *propFun = new PropensityFunction();
   Simulation simulation(&model, number_trajectories, number_timesteps, end_time, propFun, random_seed);
   ssa_direct(&simulation);
-  std :: cout << simulation << std :: endl;
+  //std :: cout << simulation << std :: endl;
+  simulation.output_results_buffer(std :: cout);
   delete propFun;
   return 0;
 }

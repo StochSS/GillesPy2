@@ -69,10 +69,9 @@ def parse_output(results, number_of_trajectories, number_timesteps, number_speci
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
     for timestep in range(number_timesteps):
         values = results[timestep].split(" ")
-        time = float(values[0])
+        trajectory_base[:, timestep, 0] = float(values[0])
         index = 1
         for trajectory in range(number_of_trajectories):
-            trajectory_base[trajectory, timestep, 0] = time
             for species in range(number_species):
                 trajectory_base[trajectory, timestep, 1 + species] = float(values[index+species])
             index += number_species
@@ -82,13 +81,13 @@ def parse_output(results, number_of_trajectories, number_timesteps, number_speci
 def parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species):
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
     step_size = number_species * number_of_trajectories + 1 #1 for timestep
-    buffer_size = step_size * number_timesteps
-    data = np.frombuffer(results_buffer, dtype=np.float64, count=buffer_size)
+    data = np.frombuffer(results_buffer, dtype=np.float64)
+    assert(len(data) == (number_of_trajectories*number_timesteps*number_species + number_timesteps))
     for timestep in range(number_timesteps):
-        time = data[step_size * timestep]
-        index = step_size * timestep + 1
+        index = step_size * timestep
+        trajectory_base[:, timestep, 0] = data[index]
+        index += 1
         for trajectory in range(number_of_trajectories):
-            trajectory_base[trajectory, timestep, 0] = time
             for species in range(number_species):
                 trajectory_base[trajectory, timestep, 1 + species] = data[index + species]
             index += number_species
@@ -102,7 +101,7 @@ class SSACSolver(GillesPySolver):
         GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
         GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'c_base/')
         self.simulation_data = None
-        number_timesteps = int(math.ceil(t/increment))
+        number_timesteps = int(t//increment + 1)
         #Open up template file for reading.
         with open(os.path.join(GILLESPY_C_DIRECTORY,'SimulationTemplate.cpp'), 'r') as template:
             #Write simulation C++ file.
@@ -130,8 +129,7 @@ class SSACSolver(GillesPySolver):
             simulation = subprocess.run([os.path.join(GILLESPY_C_DIRECTORY, 'UserSimulation')], stdout=subprocess.PIPE)
             #Parse/return results.
             if simulation.returncode == 0:
-                results = simulation.stdout.decode('utf-8').split('\n')
-                trajectory_base = parse_output(results, number_of_trajectories, number_timesteps, len(species))
+                trajectory_base = parse_binary_output(simulation.stdout, number_of_trajectories, number_timesteps, len(species))
                 #Format results
                 if show_labels:
                     self.simulation_data = []
