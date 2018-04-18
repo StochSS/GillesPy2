@@ -10,6 +10,7 @@ using namespace Gillespy;
 //Default values, replaced with command line args
 uint number_trajectories = 0;
 uint number_timesteps = 0;
+int random_seed = 0;
 double end_time = 0;
 bool seed_time = true;
 
@@ -42,11 +43,10 @@ __DEFINE_REACTIONS_
  
   //Parse command line arguments
  std :: string arg;
- std :: stringstream arg_stream;
- for(int i = 1; i < argc; i++){
+ for(int i = 1; i < argc - 1; i++){
    arg = argv[i];
    if(argc > i+1 && arg.size() > 1 && arg[0] == '-'){
-     arg_stream << argv[i+1];
+     std :: stringstream arg_stream(argv[i+1]);
      switch(arg[1]){
      case 's':
        arg_stream >> random_seed;
@@ -69,7 +69,6 @@ __DEFINE_REACTIONS_
  if(seed_time){
    random_seed = time(NULL);
  }
- 
   IPropensityFunction *propFun = new PropensityFunction();
   Simulation simulation(&model, number_trajectories, number_timesteps, end_time, propFun, random_seed);
   ssa_direct(&simulation);
