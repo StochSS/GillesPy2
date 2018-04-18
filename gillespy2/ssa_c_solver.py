@@ -11,11 +11,6 @@ import math
 GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
 GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'c_base/')
 
-#TODO:
-#    Create constructor for PyCSolver which sets up directories
-#    Allow C Solver to take command line args for number_trajectories, number_timesteps, end_time
-#    Allow PyCSolver to run without recompiling C
-#    Write up results motivation/summary (2 paragraphs) with plots for poster
 
 def copy_files(destination):
     src_files = os.listdir(GILLESPY_C_DIRECTORY)
