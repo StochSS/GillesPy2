@@ -53,6 +53,7 @@ namespace Gillespy{
     Simulation(Model* model, uint number_trajectories, uint number_timesteps, double end_time, IPropensityFunction* propensity_function, int random_seed);
     ~Simulation();
     friend std :: ostream& operator<<(std :: ostream& os, const Simulation& simulation);
+    void output_results_buffer(std :: ostream& os);
   };
 }
 #endif

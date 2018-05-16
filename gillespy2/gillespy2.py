@@ -379,8 +379,8 @@ class Model(object):
             Use names of species as index of result object rather than position numbers.
         """
         if solver is not None:
-            if (isinstance(solver, type)
-                    and issubclass(solver, GillesPySolver)):
+            if ((isinstance(solver, type)
+                    and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
                 return solver.run(self, t=self.tspan[-1],
                                   increment=self.tspan[-1] - self.tspan[-2],
                                   seed=seed,
