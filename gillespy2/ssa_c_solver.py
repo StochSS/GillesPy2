@@ -16,7 +16,7 @@ int random_seed;
     #Write seed
     if isinstance(seed, int):
         outfile.write("random_seed = {};\nseed_time = false;\n".format(seed))        
-    outfile.write("std :: string s_names[] = {");
+    outfile.write("std :: string s_names[] = {")
     if len(species) > 0:
         #Write model species names.
         for i in range(len(species)-1):
