@@ -243,11 +243,11 @@ class Model(object):
             The parameter or list of parameters to be added to the model object.
         """
         # TODO, make sure that you don't overwrite an existing parameter??
-        if type(params).__name__ == 'list':
+        if isinstance(params,list): 
             for p in params:
-                self.listOfParameters[p.name] = p
+                self.add_parameter(p)
         else:
-            if type(params).__name__ == 'instance':
+            if isinstance(params,Parameter):
                 self.listOfParameters[params.name] = params
             else:
                 raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(params))
@@ -308,13 +308,13 @@ class Model(object):
         """
 
         # TODO, make sure that you cannot overwrite an existing reaction
-        param_type = type(reactions).__name__
-        if param_type == 'list':
+        #param_type = type(reactions).__name__
+        if isinstance(reactions,list):
             for r in reactions:
-                self.listOfReactions[r.name] = r
-        elif param_type == 'dict' or param_type == 'OrderedDict':
-            self.listOfReactions = reactions
-        elif param_type == 'instance':
+                self.add_reaction(r)
+        elif isinstance(reactions,dict) or isinstance(reactions,OrderedDict):
+                self.add_reaction(reactions.values())
+        elif isinstance(reactions,Reaction):
             self.listOfReactions[reactions.name] = reactions
         else:
             raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(param_type))
