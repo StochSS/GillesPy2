@@ -12,11 +12,16 @@ try:
 except Exception as e:
     print("Unable to use Cython optimized SSA:\nError:{0}".format(e))
     can_use_cython = False
-    
-class SSASolver(GillesPySolver):
+
+class OptimizedSSASolver(GillesPySolver):
     """ TODO
     """
-    use_cython = True
+
+    def __init__(self, use_cython=True):
+        self.use_cython = use_cython
+        name = "SSASolver"
+
+
     
     def format_trajectories(simulation_data):
         out_data = []
@@ -30,7 +35,6 @@ class SSASolver(GillesPySolver):
             out_data.append(out_array)
         return out_data
 
-    @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
         if self.use_cython and can_use_cython:
