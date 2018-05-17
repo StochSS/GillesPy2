@@ -7,6 +7,7 @@ import numpy as np
 import sys
 
 class TauLeapingSolver(GillesPySolver):
+    name = "TauLeaping"
     """ TODO
     """
     # initializes the various variables needed for tau leaping algorithm

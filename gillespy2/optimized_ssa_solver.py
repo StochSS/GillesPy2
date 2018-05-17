@@ -19,9 +19,7 @@ class OptimizedSSASolver(GillesPySolver):
 
     def __init__(self, use_cython=True):
         self.use_cython = use_cython
-        name = "SSASolver"
-
-
+        name = "OptimizedSSASolver"
     
     def format_trajectories(simulation_data):
         out_data = []
