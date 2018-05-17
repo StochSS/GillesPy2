@@ -7,7 +7,7 @@ import heapq
 
 try:
     import pyximport; pyximport.install(setup_args={'include_dirs': np.get_include()})
-    from cython_ssa_solver import CythonSSASolver
+    from .cython_ssa_solver import CythonSSASolver
     can_use_cython = True
 except Exception as e:
     print("Unable to use Cython optimized SSA:\nError:{0}".format(e))
@@ -19,7 +19,9 @@ class OptimizedSSASolver(GillesPySolver):
 
     def __init__(self, use_cython=True):
         self.use_cython = use_cython
-        name = "OptimizedSSASolver"
+        self.name = "OptimizedSSASolver"
+        if can_use_cython and self.use_cython:
+            self.name = "CythonSSASolver"
     
     def format_trajectories(simulation_data):
         out_data = []
