@@ -5,7 +5,7 @@
 #include "linked_list.h"
 
 
-void sorted_insert(node2** head, node2* new_node);
+void sorted_insert(node2** head, node2** tail, node2* new_node);
 
 // constructor
 linked_list* create_linked_list(){
@@ -22,7 +22,7 @@ linked_list* create_linked_list(){
 // destructor
 void destroy_linked_list( linked_list* ll ){
 	// empty the linked list
-	while( ll->count > 0){
+	while( ll->head != 0){
 		linked_list_delete( ll, ll->head );
 	}
 	while( ll->count2 > 0){
@@ -34,7 +34,7 @@ void destroy_linked_list( linked_list* ll ){
 
 void linked_list_clean( linked_list* ll){
 	//clear raw data list
-	while(ll->count > 0){
+	while(ll->head != NULL){
 		linked_list_delete( ll, ll->head );
 	}
 	ll->head = NULL;
@@ -120,7 +120,7 @@ void linked_list_delete( linked_list* ll, node* to_delete){
 	}
 
 	//free and reduce size
-	ll->count--;
+	//ll->count--;
 	//free(to_delete->data);
 	free(to_delete);
 
@@ -155,7 +155,7 @@ void linked_list_delete2( linked_list* ll, node2* to_delete){
 }
 
 //sort sourced and modified from https://www.geeksforgeeks.org/insertion-sort-for-singly-linked-list/
-void insertion_sort(node2 **head)
+void insertion_sort(node2 **head, node2 **tail)
 {
 	// Initialize sorted linked list
 	node2 *sorted = NULL;
@@ -169,7 +169,7 @@ void insertion_sort(node2 **head)
 		node2 *next = current->next;
 
 		// insert current in sorted linked list
-		sorted_insert(&sorted, current);
+		sorted_insert(&sorted, tail, current);
 
 		// Update current
 		current = next;
@@ -180,7 +180,7 @@ void insertion_sort(node2 **head)
 }
 
 //Helper function for insertion_sort
-void sorted_insert(node2** head, node2* new_node)
+void sorted_insert(node2** head, node2** tail, node2* new_node)
 {
 	node2* current;
 	/* Special case for the head end */
@@ -200,6 +200,9 @@ void sorted_insert(node2** head, node2* new_node)
 		}
 		new_node->next = current->next;
 		current->next = new_node;
+		if(new_node->next == NULL)
+			*tail = new_node;
+			
 	}
 }
 

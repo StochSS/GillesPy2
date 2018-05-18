@@ -22,7 +22,7 @@ struct arg {
 	char** argv;
 	pthread_mutex_t *mutex;
 };
-int* species;
+int* species, *num_lls;
 
 void* c_solver_runner(void *targ_in);
 linked_list* access_array(linked_list* ll_ptr, int x, int y, int num_species);
@@ -44,6 +44,8 @@ int main (int argc, char** argv){
 	int cycle = 1;
 	
 	size_t array_size = num_species * num_timesteps;
+	num_lls = (int*) &array_size;
+	printf("NUM LLS: %i\n", *num_lls);
 
 	linked_list *evens = calloc(array_size, sizeof(linked_list));
 	linked_list *odds = calloc(array_size, sizeof(linked_list));
@@ -94,15 +96,16 @@ int main (int argc, char** argv){
 	linked_list* tptr = odds;
 	tptr += 11;
 	//for (int i = 0; i < 50; i++){
-	printf("ODDS first ll size: %i\n", tptr->count);
+	/**
+	printf("ODDS first ll size: %i\n", tptr->count2);
 	node *nptr = tptr->head;
-	node2 *n2ptr = tptr->head2;
 	printf("Elements in linked list:\n");
 	while(nptr != NULL){
 		printf("%i, ", nptr->data);
 		nptr=nptr->next;
 	}
-	printf("\n");
+	printf("\n");**/
+	node2 *n2ptr = tptr->head2;
 	printf("Elements in linked list Histogram:\n");
 	while(n2ptr != NULL){
 		printf("[value: %i, count: %i] ,", n2ptr->val, n2ptr->count);
@@ -144,15 +147,17 @@ int main (int argc, char** argv){
 	linked_list* tptr = odds;
 	tptr += 11;
 	//for (int i = 0; i < 50; i++){
-	printf("ODDS first ll size: %i\n", tptr->count);
+	/**
+	printf("ODDS first ll size: %i\n", tptr->count2);
 	node *nptr = tptr->head;
-	node2 *n2ptr = tptr->head2;
 	printf("Elements in linked list:\n");
 	while(nptr != NULL){
 		printf("%i, ", nptr->data);
 		nptr=nptr->next;
 	}
 	printf("\n");
+	**/
+	node2 *n2ptr = tptr->head2;
 	printf("Elements in linked list Histogram:\n");
 	while(n2ptr != NULL){
 		printf("[value: %i, count: %i] ,", n2ptr->val, n2ptr->count);
@@ -187,7 +192,7 @@ void *c_solver_runner(void *targ_in){
 	pid_t pid;
 
 	struct arg* targ =  (struct arg*) targ_in;
-	printf("p_num: %i, num_runs: %i\n", targ->p_num, targ->num_runs);
+	//printf("p_num: %i, num_runs: %i\n", targ->p_num, targ->num_runs);
 	for (i = 0; i < targ->num_runs; i++){
 		/*
 		   Create child processes from threads to exec, redirect stdout from executable to pipe and close it on child end
@@ -274,8 +279,10 @@ linked_list* access_array(linked_list *ll_ptr, int x, int y, int num_species){
 void* sort_histogram(void *targ_in){
 	struct arg *targ = (struct arg*) targ_in;
 	linked_list* ll_ptr = targ->arr;
+	node* t = ll_ptr->head;
 	while (ll_ptr->head != NULL){
-		insertion_sort(&ll_ptr->head2);
+		insertion_sort(&ll_ptr->head2, &ll_ptr->tail2);
+		linked_list_clean(ll_ptr);
 		ll_ptr++;
 	}
 		
@@ -295,7 +302,12 @@ double calculate_ks_distance(linked_list *evens, linked_list *odds, int cycle){
 	int evens_count = 0;
 	int odds_count = 0;
 	int number_of_linked_lists = 0;
-	while(evens_ptr-> head != NULL){
+	for(int i = 0; i < *num_lls; i++){
+		//printf("evens_ptr->count2: %i\n", evens_ptr->count2);
+		//printf("evens head2 val: %i count: %i\n", evens_ptr->head2->val, evens_ptr->head2->count);
+		//printf("evens_ptr->count\n");
+		//printf("HEAD2 VAL: %i, COUNT: %i\n", evens_ptr->head2->val, evens_ptr->head2->count);
+		//printf("HEAD: %p, HEAD2: %p\n", evens_ptr->head, evens_ptr->head2);
 		/** PRINT STUFF
 		node2 *et, *ot;
 		et = evens_ptr->head2;
@@ -320,21 +332,24 @@ double calculate_ks_distance(linked_list *evens, linked_list *odds, int cycle){
 			e_norm = (double)e->count / e_num_traj;
 			o_norm = (double)o->count / o_num_traj;
 			diff = fabs(e_norm - o_norm);
-			//printf("DIFF: %f\n", diff);
 			comparisons++;
-			if (diff > max_distance) max_distance = diff;
+			if (diff > max_distance){
+				max_distance = diff;
+			}
 		}else if(e->val < o->val){
 			e_norm = (double)e->count / e_num_traj;
 			diff = e_norm; 
-			//printf("DIFF: %f\n", diff);
 			comparisons++;
-			if (diff > max_distance) max_distance = diff;
+			if (diff > max_distance){
+				max_distance = diff;
+			}
 		}else{
 			o_norm = (double)o->count / o_num_traj;
 			diff = o_norm;
-			//printf("DIFF: %f\n", diff);
 			comparisons++;
-			if (diff > max_distance) max_distance = diff;
+			if (diff > max_distance){
+				max_distance = diff;
+			}
 		}
 		iteration++;
 		pe = e;

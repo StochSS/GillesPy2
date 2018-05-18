@@ -46,6 +46,6 @@ void linked_list_delete2( linked_list* ll, node2* to_delete);
 void linked_list_clean( linked_list* ll);
 
 // Insertion sort ll
-void insertion_sort(node2 **head);
+void insertion_sort(node2 **head, node2 **tail);
 
 #endif /* linked_list_h*/
