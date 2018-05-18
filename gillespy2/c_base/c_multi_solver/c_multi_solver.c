@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <pthread.h>
+#include <math.h>
 #include "linked_list.h"
 
 #define STR_TO_INT_BUF 8
@@ -24,12 +25,14 @@ struct arg {
 int* species;
 
 void* c_solver_runner(void *targ_in);
-//void display_results(linked_list *evens, linked_list *odds);
 linked_list* access_array(linked_list* ll_ptr, int x, int y, int num_species);
+void* sort_histogram( void* ll);
+double calculate_ks_distance(linked_list *evens, linked_list *odds, int cycle);
 
 int main (int argc, char** argv){
 
 	int processes, num_runs, num_species, i, num_timesteps;
+	double max_dist;
 	processes = atoi(argv[2]);
 	num_species = atoi(argv[3])+1;
 	species = &num_species;
@@ -37,6 +40,8 @@ int main (int argc, char** argv){
 	pthread_t *thread_handle = malloc(sizeof(pthread_t)*processes);
 	struct arg *targ = malloc(sizeof(struct arg)*processes);
 	num_runs = BASE_TRAJECTORIES / processes;
+	int run_count = BASE_TRAJECTORIES;
+	int cycle = 1;
 	
 	size_t array_size = num_species * num_timesteps;
 
@@ -48,6 +53,9 @@ int main (int argc, char** argv){
 		printf("Insufficient arguments\n");
 		exit(1);
 	}
+
+	if (processes == 1)
+		processes = 2;
 
 	/*
 	   Create threads and assign args
@@ -68,14 +76,101 @@ int main (int argc, char** argv){
 			targ[i].num_runs++;
 		}
 		pthread_create(&thread_handle[i], NULL, c_solver_runner, &targ[i]);
+		//sleep(1);
 	}
 
 	for(int i = 0; i < processes; i++){
 		pthread_join(thread_handle[i], NULL);
 	}
 
-	//display_results(evens, odds);	
+	pthread_t evens_handler, odds_handler;
+	pthread_create(&evens_handler, NULL, sort_histogram, &targ[1]);
+	pthread_create(&odds_handler, NULL, sort_histogram, &targ[0]);
 
+	pthread_join(evens_handler, NULL);
+	pthread_join(odds_handler, NULL);
+
+	printf("\n***TEST SUITE***\n");
+	linked_list* tptr = odds;
+	tptr += 11;
+	//for (int i = 0; i < 50; i++){
+	printf("ODDS first ll size: %i\n", tptr->count);
+	node *nptr = tptr->head;
+	node2 *n2ptr = tptr->head2;
+	printf("Elements in linked list:\n");
+	while(nptr != NULL){
+		printf("%i, ", nptr->data);
+		nptr=nptr->next;
+	}
+	printf("\n");
+	printf("Elements in linked list Histogram:\n");
+	while(n2ptr != NULL){
+		printf("[value: %i, count: %i] ,", n2ptr->val, n2ptr->count);
+		n2ptr=n2ptr->next;
+	}
+	printf("\n");
+	//tptr++;
+	//}
+	
+	/*
+	*FIRST CHECK KS DIST
+	*/
+	max_dist = calculate_ks_distance(evens, odds, cycle);
+	printf("Run Count: %i, Max distance = %f\n", run_count, max_dist);
+
+	
+	/*
+	*Repeat until fit reached
+	*/
+	while (max_dist > 0.05){
+		max_dist = 0;
+		cycle++;
+		for (i = 0; i < processes; i++){
+			pthread_create(&thread_handle[i], NULL, c_solver_runner, &targ[i]);
+			//sleep(1);
+		}
+	for(int i = 0; i < processes; i++){
+		pthread_join(thread_handle[i], NULL);
+	}
+	
+	pthread_t evens_handler, odds_handler;
+	pthread_create(&evens_handler, NULL, sort_histogram, &targ[1]);
+	pthread_create(&odds_handler, NULL, sort_histogram, &targ[0]);
+
+	pthread_join(evens_handler, NULL);
+	pthread_join(odds_handler, NULL);
+
+	printf("\n***TEST SUITE***\n");
+	linked_list* tptr = odds;
+	tptr += 11;
+	//for (int i = 0; i < 50; i++){
+	printf("ODDS first ll size: %i\n", tptr->count);
+	node *nptr = tptr->head;
+	node2 *n2ptr = tptr->head2;
+	printf("Elements in linked list:\n");
+	while(nptr != NULL){
+		printf("%i, ", nptr->data);
+		nptr=nptr->next;
+	}
+	printf("\n");
+	printf("Elements in linked list Histogram:\n");
+	while(n2ptr != NULL){
+		printf("[value: %i, count: %i] ,", n2ptr->val, n2ptr->count);
+		n2ptr=n2ptr->next;
+	}
+	printf("\n");
+	//tptr++;
+	//}
+	run_count+=BASE_TRAJECTORIES;
+
+	max_dist = calculate_ks_distance(evens, odds, cycle);
+	printf("Run Count: %i, Max distance = %f\n", run_count, max_dist);
+	}
+
+
+	max_dist = calculate_ks_distance(evens, odds, cycle);
+	printf("Run Count: %i, Max distance = %f\n", run_count, max_dist);
+	
 	free(evens);
 	free(odds);
 	free(thread_handle);
@@ -92,7 +187,7 @@ void *c_solver_runner(void *targ_in){
 	pid_t pid;
 
 	struct arg* targ =  (struct arg*) targ_in;
-
+	printf("p_num: %i, num_runs: %i\n", targ->p_num, targ->num_runs);
 	for (i = 0; i < targ->num_runs; i++){
 		/*
 		   Create child processes from threads to exec, redirect stdout from executable to pipe and close it on child end
@@ -148,7 +243,7 @@ void *c_solver_runner(void *targ_in){
 						}else if(buffer[i] == ' ') {
 							pthread_mutex_lock(targ->mutex);
 							linked_list_add(writer, atoi(builder));
-							printf("PTHREAD: %i LL ADDR: %p LL LOC: (%i, %i) LL Count: %i HEAD is: %i TAIL is: %i\n", targ->p_num, writer, current_col, current_row, writer->count, writer->head->data, writer->tail->data);
+							//printf("PTHREAD: %i LL ADDR: %p LL LOC: (%i, %i) LL Count: %i HEAD is: %i TAIL is: %i\n", targ->p_num, writer, current_col, current_row, writer->count, writer->head->data, writer->tail->data);
 //fflush(NULL);
 							pthread_mutex_unlock(targ->mutex);
 							writer++;
@@ -171,30 +266,115 @@ void *c_solver_runner(void *targ_in){
 	pthread_exit(0);
 }
 
-/*
- *Sample Printing of Arrays
- */
-void display_results(linked_list *evens, linked_list *odds){
-
-	printf("Evens array:\n");
-	for (int i = 0; i < 101; i++){
-		printf("row %i[", i);
-		for (int j = 0; j < 40; j++){
-			//TODO
-		}
-		printf("]\n");
-	}
-	printf("\n");
-	printf("Odds array:\n");
-	for (int i = 0; i < 101; i++){
-		printf("row %i[", i);
-		for (int j = 0; j < 40; j++){
-			//TODO
-		}
-		printf("]\n");
-	}
-}
 
 linked_list* access_array(linked_list *ll_ptr, int x, int y, int num_species){
 	return ll_ptr+x+(y*num_species);
+}
+
+void* sort_histogram(void *targ_in){
+	struct arg *targ = (struct arg*) targ_in;
+	linked_list* ll_ptr = targ->arr;
+	while (ll_ptr->head != NULL){
+		insertion_sort(&ll_ptr->head2);
+		ll_ptr++;
+	}
+		
+}
+
+double calculate_ks_distance(linked_list *evens, linked_list *odds, int cycle){
+
+	linked_list* evens_ptr = evens;
+	linked_list* odds_ptr = odds;
+	int e_num_traj = evens->count * cycle;
+	int o_num_traj = odds->count * cycle;
+	double e_norm, o_norm;
+	double max_distance = 0;
+	double diff;
+	int comparisons = 0;
+	node2 *e, *o, *pe, *po;
+	int evens_count = 0;
+	int odds_count = 0;
+	int number_of_linked_lists = 0;
+	while(evens_ptr-> head != NULL){
+		/** PRINT STUFF
+		node2 *et, *ot;
+		et = evens_ptr->head2;
+		ot = odds_ptr->head2;
+		printf("EVENS for this LL: ");
+		while(et != NULL){
+			printf("%i, ", et->val);
+			et = et->next;
+		}
+		printf("\nODDS for this LL: ");
+		while(ot != NULL){
+			printf("%i, ", ot->val);
+			ot = ot->next;
+		}
+		printf("\n");
+		**/
+		e = evens_ptr->head2;
+		o = odds_ptr->head2;
+		int iteration = 0;
+		//RUN for head special case)
+		if (e->val == o->val){
+			e_norm = (double)e->count / e_num_traj;
+			o_norm = (double)o->count / o_num_traj;
+			diff = fabs(e_norm - o_norm);
+			//printf("DIFF: %f\n", diff);
+			comparisons++;
+			if (diff > max_distance) max_distance = diff;
+		}else if(e->val < o->val){
+			e_norm = (double)e->count / e_num_traj;
+			diff = e_norm; 
+			//printf("DIFF: %f\n", diff);
+			comparisons++;
+			if (diff > max_distance) max_distance = diff;
+		}else{
+			o_norm = (double)o->count / o_num_traj;
+			diff = o_norm;
+			//printf("DIFF: %f\n", diff);
+			comparisons++;
+			if (diff > max_distance) max_distance = diff;
+		}
+		iteration++;
+		pe = e;
+		e = e->next;
+		po = o;
+		o = o->next;
+		while(e != NULL && o != NULL){
+			if (e->val == o->val){
+				e_norm = (double)(e->count+pe->count) / e_num_traj;
+				o_norm = (double)(o->count+po->count) / o_num_traj;
+				diff = fabs(e_norm - o_norm);
+				//printf("DIFF: %f\n", diff);
+				comparisons++;
+				if (diff > max_distance) max_distance = diff;
+				e = e->next;
+				o = o->next;
+			}else if(e->val < o->val){
+				e_norm = (double)e->count / e_num_traj;
+				diff = e_norm; 
+				//printf("DIFF: %f\n", diff);
+				comparisons++;
+				if (diff > max_distance) max_distance = diff;
+				e = e->next;
+			}else{
+				o_norm = (double)o->count / o_num_traj;
+				diff = o_norm;
+				//printf("DIFF: %f\n", diff);
+				comparisons++;
+				if (diff > max_distance) max_distance = diff;
+				o = o->next;
+			}
+			iteration++;
+		}
+
+		//printf("ITERATIONS IN THIS LL: %i\n", iteration);
+		evens_ptr++;
+		odds_ptr++;
+		number_of_linked_lists++;
+		//printf("Number of Linked Lists: %i, Number of Comparisons: %i\n", number_of_linked_lists, comparisons);
+	}
+	//printf("Comparisons at end of array: %i\n", comparisons);
+	return max_distance;
 }
