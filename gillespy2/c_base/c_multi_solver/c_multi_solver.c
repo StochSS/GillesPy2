@@ -205,7 +205,10 @@ void *c_solver_runner(void *targ_in){
 			while ((dup2(filedes[1], STDOUT_FILENO) == -1) && (errno == EINTR)){}
 			close(filedes[1]);
 			close(filedes[0]);
-			execv(targ->argv[1], targ->argv);
+			char seed[8];
+			sprintf(seed, "%i", getpid());
+			char* args[] = {targ->argv[1], "-seed", seed};
+			execv(targ->argv[1], args);
 			perror("execv");
 
 			_exit(1);
