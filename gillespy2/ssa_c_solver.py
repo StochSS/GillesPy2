@@ -97,6 +97,7 @@ def parse_binary_output(results_buffer, number_of_trajectories, number_timesteps
     return trajectory_base
 
 class SSACSolver(GillesPySolver):
+    name = "SSACSolver"
     """TODO"""
     def __init__(self, model, output_directory=None, delete_directory=True):
         super(SSACSolver, self).__init__()
