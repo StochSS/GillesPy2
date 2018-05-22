@@ -99,34 +99,35 @@ def parse_binary_output(results_buffer, number_of_trajectories, number_timesteps
 class SSACSolver(GillesPySolver):
     name = "SSACSolver"
     """TODO"""
-    def __init__(self, model, output_directory=None, delete_directory=True):
+    def __init__(self, model=None, output_directory=None, delete_directory=True):
         super(SSACSolver, self).__init__()
         self.compiled = False
+        self.delete_directory = False
         self.model = model
-        #Create constant, ordered lists for reactions/species
-        self.reactions = list(self.model.listOfReactions.keys())
-        self.species = list(self.model.listOfSpecies.keys())
-        self.delete_directory = delete_directory
+        if self.model is not None:
+            #Create constant, ordered lists for reactions/species
+            self.reactions = list(self.model.listOfReactions.keys())
+            self.species = list(self.model.listOfSpecies.keys())
         
-        if isinstance(output_directory, str):
-            output_directory = os.path.abspath(output_directory)
+            if isinstance(output_directory, str):
+                output_directory = os.path.abspath(output_directory)
             
-        if isinstance(output_directory, str) and not os.path.isfile(output_directory):
-            self.output_directory = output_directory
-            if not os.path.isdir(output_directory):
-                #set up directory if needed
-                os.makedirs(self.output_directory)
-        else:
-            #Set up temporary directory
-            self.temporary_directory = tempfile.TemporaryDirectory()
-            self.delete_directory = True
-            self.output_directory = self.temporary_directory.name
-        #copy files to directory
-        copy_files(self.output_directory)
-        #write template file
-        self.write_template()
-        #compile file
-        self.compile()
+                if isinstance(output_directory, str) and not os.path.isfile(output_directory):
+                    self.output_directory = output_directory
+                    self.delete_directory = delete_directory
+                    if not os.path.isdir(output_directory):
+                        #set up directory if needed
+                        os.makedirs(self.output_directory)
+            else:
+                #Set up temporary directory
+                self.temporary_directory = tempfile.TemporaryDirectory()
+                self.output_directory = self.temporary_directory.name
+            #copy files to directory
+            copy_files(self.output_directory)
+            #write template file
+            self.write_template()
+            #compile file
+            self.compile()
         
     def __del__(self):
         if self.delete_directory and os.path.isdir(self.output_directory):
@@ -159,12 +160,14 @@ class SSACSolver(GillesPySolver):
             self.compiled = True
         else:
             print("Error encountered while compiling file:\nReturn code: {0}.\nError:\n{1}\n".format(built.returncode, built.stderr))
-            
-    def run(self, model, t=20, number_of_trajectories=1,
+
+    def run(self=None, model=None, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, show_labels=False, stochkit_home=None):
-        self.simulation_data = None
-        number_timesteps = int(t//increment + 1)
+        if self is None:
+            self = SSACSolver(model)
         if self.compiled:
+            self.simulation_data = None
+            number_timesteps = int(t//increment + 1)                    
             #Execute simulation.
             args = [os.path.join(self.output_directory, 'UserSimulation'), '-trajectories', str(number_of_trajectories), '-timesteps', str(number_timesteps), '-end', str(t)]
             if isinstance(seed, int):

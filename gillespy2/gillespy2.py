@@ -368,7 +368,7 @@ class Model(object):
         solver : gillespy.GillesPySolver
             The solver by which to simulate the model. This solver object may
             be initialized separately to specify an algorithm. Optional, 
-            defulats to StochKitSolver SSA.
+            defaults to StochKitSolver SSA.
         stochkit_home : str
             Path to stochkit. This is set automatically upon installation, but 
             may be overwritten if desired.
@@ -381,7 +381,7 @@ class Model(object):
         if solver is not None:
             if ((isinstance(solver, type)
                     and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
-                return solver.run(self, t=self.tspan[-1],
+                return solver.run(model=self, t=self.tspan[-1],
                                   increment=self.tspan[-1] - self.tspan[-2],
                                   seed=seed,
                                   number_of_trajectories=number_of_trajectories,
