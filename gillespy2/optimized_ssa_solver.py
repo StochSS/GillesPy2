@@ -3,7 +3,6 @@ from .gillespySolver import GillesPySolver
 import random
 import math
 import numpy as np
-import heapq
 
 try:
     import pyximport; pyximport.install(setup_args={'include_dirs': np.get_include()})
@@ -14,6 +13,7 @@ except Exception as e:
     can_use_cython = False
 
 class OptimizedSSASolver(GillesPySolver):
+
     """ TODO
     """
 
@@ -36,7 +36,7 @@ class OptimizedSSASolver(GillesPySolver):
         return out_data
 
     def run(self, model, t=20, number_of_trajectories=1,
-            increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
+            increment=0.05, seed=None, debug=False, show_labels=False, stochkit_home=None):
         if self.use_cython and can_use_cython:
             solver = CythonSSASolver()
             return solver.run(model, t, number_of_trajectories, increment, seed, debug, show_labels)
