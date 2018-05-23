@@ -291,4 +291,3 @@ void binary_insert(linked_list *ll, node2 *new_node)
 	printf("Exit loop\n");
 	return;
 }
-

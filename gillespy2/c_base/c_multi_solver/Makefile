@@ -15,4 +15,4 @@ sim:
 	./c_multi_solver ../UserSimulation 4 4 100
 	
 clean:
-	rm -f c_multi_solver
+	rm -f c_multi_solver c_multi_solver.exe c_multi_solver.o linked_list.o

@@ -23,6 +23,7 @@ typedef struct linked_list_t{
 	node2*tail2;
 	int count;
 	int count2;
+	double timestep;
 }linked_list;
 
 // Functions to manipulate the linked list
