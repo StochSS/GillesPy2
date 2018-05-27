@@ -72,7 +72,31 @@ def write_reactions(outfile, model, reactions, species):
                 outfile.write("model.reactions[{0}].species_change[{1}] = {2};\n".format(i, j, change))
 
 
-def parse_output(results, number_of_trajectories, number_timesteps, number_species):
+def parse_output(results, number_timesteps, number_species):
+    values = bytes(results).decode('utf-8')
+    values = values.splitlines()
+    number_of_trajectories = int(values[-1].rsplit()[-1])
+    trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
+    trajectory_n = 0
+    count = 0
+    lines_to_read = number_of_trajectories * number_timesteps
+    for line in range(lines_to_read):
+        if count >= number_timesteps:
+            trajectory_n += 1
+            count = 0
+        value = values[line].strip().split(" ")
+        trajectory_base[trajectory_n, count, 0] = float(value[0])
+        for species in range(number_species):
+            trajectory_base[trajectory_n, count, species+1] = value[species+1]
+            #print(value[species+1])
+        count += 1
+    #print(trajectory_base)
+    print(values[-1])
+    print(values[-2])
+    return trajectory_base
+
+
+'''
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species + 1))
     for timestep in range(number_timesteps):
         values = results[timestep].split(" ")
@@ -83,7 +107,7 @@ def parse_output(results, number_of_trajectories, number_timesteps, number_speci
                 trajectory_base[trajectory, timestep, 1 + species] = float(values[index + species])
             index += number_species
     return trajectory_base
-
+'''
 
 def parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species):
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species + 1))
@@ -105,7 +129,7 @@ class SSACMultiSolver(GillesPySolver):
     name = "SSACMultiSolver"
     """TODO"""
 
-    def __init__(self, model=None, output_directory='C:/Users/seanm/Desktop/Gillespy Temp/auto-generate', delete_directory=False):
+    def __init__(self, model=None, output_directory=None, delete_directory=True):
         super(SSACMultiSolver, self).__init__()
         self.compiled = False
         self.delete_directory = False
@@ -159,11 +183,19 @@ class SSACMultiSolver(GillesPySolver):
                         outfile.write(line)
 
     def compile(self):
+        MULTI_PATH = os.path.join(self.output_directory, 'c_multi_solver')
+        bash_path = os.path.join(os.environ['SystemRoot'], 'SysNative', 'bash.exe')
+        bash_path2 = os.path.join(os.environ['SystemRoot'], 'System32', 'bash.exe')
         # Use makefile.
-
+        comp_arg = '{0} -c make'.format(bash_path2)
         cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulation'], stdout=subprocess.PIPE)
-        built = subprocess.run(["make", "-C", self.output_directory], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        built_multi = subprocess.run(["make", "-C", os.path.join(self.output_directory, 'c_multi_solver')], stdout=subprocess.PIPE)
+        built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if os.name == 'nt':
+            MULTI_PATH = MULTI_PATH.replace('\\', '/')
+            built_multi = subprocess.run(comp_arg, cwd=MULTI_PATH, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+        else:
+            built_multi = subprocess.run(["make", "-C", MULTI_PATH], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #print(built_multi.stdout)
         # Use makefile.
         if built.returncode == 0 and built_multi.returncode == 0:
             self.compiled = True
@@ -173,36 +205,43 @@ class SSACMultiSolver(GillesPySolver):
             print("Error encountered while compiling file:\nbuilt_multi Return code: {0}.\nError:\n{1}\n".format(built_multi.returncode,
                                                                                                            built_multi.stderr))
 
-    def run(self=None, model=None, t=20, number_of_trajectories=1, number_of_processors=2,
+    def run(self=None, model=None, t=20, number_of_trajectories=1, number_of_processors=4,
             increment=0.05, seed=None, debug=False, show_labels=False, stochkit_home=None):
+        bash_path = os.path.join(os.environ['SystemRoot'], 'SysNative', 'bash.exe')
+        bash_path2 = os.path.join(os.environ['SystemRoot'], 'System32', 'bash.exe')
         if self is None:
             self = SSACMultiSolver(model)
-            #self = SSACMultiSolver(model, output_directory="C:/Users/seanm/OneDrive/Documents/Research/Test", delete_directory=False)
         if self.compiled:
             self.simulation_data = None
-            number_timesteps = int(t // increment + 1)
+            number_timesteps = int(t // increment)
+            if t % increment > 0:
+                number_timesteps += 1
             # Execute simulation.
-            #args = [os.path.join(self.output_directory, 'UserSimulation'), '-trajectories', str(number_of_trajectories), '-timesteps', str(number_timesteps), '-end', str(t)]
-            args = [os.path.join(self.output_directory, 'c_multi_solver/c_multi_solver'), '../UserSimulation', str(number_of_processors), str(len(self.species)), str(number_timesteps)]
-            if isinstance(seed, int):
-                args.append('-seed')
-                args.append(str(seed))
+            MULTI_PATH = os.path.join(self.output_directory, 'c_multi_solver/')
+            MULTI_PATH = MULTI_PATH.replace('\\', '/')
+            if os.name == 'nt':
+                args = '{0} -c "./c_multi_solver ../UserSimulation.exe {1} {2} {3}"'.format(bash_path2, str(number_of_processors), str(len(self.species)), str(number_timesteps))
+                if isinstance(seed, int):
+                    args = '{0} -c "./c_multi_solver ../UserSimulation.exe {1} {2} {3} {4}"'.format(bash_path, str(number_of_processors), str(len(self.species)), str(number_timesteps), str(seed))
 
-            simulation = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            #simulation = subprocess.run(["make", "-C", os.path.join(self.output_directory, 'c_multi_solver'), 'test'], stdout=subprocess.PIPE)
+            else:
+                args = "./c_multi_solver ../UserSimulation {1} {2} {3}".format(str(number_of_processors), str(len(self.species)), str(number_timesteps))
+                if isinstance(seed, int):
+                    args.append('-seed')
+                    args.append(str(seed))
+            simulation = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=MULTI_PATH, shell=False)
             # Parse/return results.
             if simulation.returncode == 0:
-                print(simulation)
-                trajectory_base = parse_binary_output(simulation.stdout, number_of_trajectories, number_timesteps,
-                                                      len(self.species))
+                #print(simulation.stdout)
+                trajectory_base = parse_output(simulation.stdout, number_timesteps, len(self.species))
                 # Format results
                 if show_labels:
                     self.simulation_data = []
-                    for trajectory in range(number_of_trajectories):
+                    for trajectory in range(len(trajectory_base)):
                         data = {}
                         data['time'] = trajectory_base[trajectory, :, 0]
                         for i in range(len(self.species)):
-                            data[self.species[i]] = trajectory_base[trajectory, :, i]
+                            data[self.species[i]] = trajectory_base[trajectory, :, i+1]
                         self.simulation_data.append(data)
                 else:
                     self.simulation_data = trajectory_base

@@ -113,8 +113,8 @@ int main (int argc, char** argv){
 	}
 
 	//TEST PRINTING
-	print_status(odds, ODDS);
-	print_status(evens, EVENS);
+	//print_status(odds, ODDS);
+	//print_status(evens, EVENS);
 
 	/*
 	*FIRST CHECK KS DIST
@@ -126,8 +126,8 @@ int main (int argc, char** argv){
 	elapsed =(double) (mid-beg) / (double) CLOCKS_PER_SEC;
 	
 	//print stats
-	printf("Run Count: %i, Max distance = %f\n", run_count, max_dist);
-	printf("Time Elapsed This Cycle: %f seconds.\n", elapsed);
+	//printf("Run Count: %i, Max distance = %f\n", run_count, max_dist);
+	//printf("Time Elapsed This Cycle: %f seconds.\n", elapsed);
 
 	
 	/*
@@ -143,8 +143,8 @@ int main (int argc, char** argv){
 	}
 
 	//TEST PRINTING
-	print_status(odds, ODDS);
-	print_status(evens, EVENS);
+	//print_status(odds, ODDS);
+	//print_status(evens, EVENS);
 
 	//track total runs and update dist
 	run_count+=BASE_TRAJECTORIES;
@@ -156,20 +156,21 @@ int main (int argc, char** argv){
 	mid = end;
 
 	//print stats
-	printf("Run Count: %i, Max distance = %f\n", run_count, max_dist);
-	printf("Time Elapsed This Cycle: %f seconds.\n", elapsed);
+	//printf("Run Count: %i, Max distance = %f\n", run_count, max_dist);
+	//printf("Time Elapsed This Cycle: %f seconds.\n", elapsed);
 	}
 
 
 	
 	//print final data
-	plot_bounds(evens, odds, array_size);
-	printf("Run Count: %i, Max distance = %f\n", run_count, max_dist);
+	//plot_bounds(evens, odds, array_size);
+	//printf("Run Count: %i, Max distance = %f\n", run_count, max_dist);
 
 	//print total time
 	end = clock();
 	elapsed =(double) (end-beg) / (double) CLOCKS_PER_SEC;
 	printf("TOTAL Time Elapsed: %f seconds.\n", elapsed);
+	printf("TOTAL Runs: %i\n", run_count);
 
 	//be responsible
 	free(evens);
@@ -392,6 +393,9 @@ void parse_binary(int pipe, struct arg*targ){
 	int v;
 	int current_row = 0;
 	int current_col = 0;
+	char result[10];
+	char results[*num_lls*10];
+	strcpy(results, "");
 	linked_list *writer;
 	writer = targ->arr;
 	while (1){
@@ -412,24 +416,28 @@ void parse_binary(int pipe, struct arg*targ){
 					if (current_col == *species){
 						current_col = 0;
 						current_row++;
+						strcat(results, "\n");
 					}
 					writer = access_array(targ->arr, current_col, current_row, *species);
 					v = (int) n;
-					if (current_col == 0 & writer->head2 == NULL){
+					if (current_col == 0){
 					pthread_mutex_lock(targ->mutex);
 					linked_list_add(writer, v);
 					writer->timestep = n;
 					pthread_mutex_unlock(targ->mutex);
+					sprintf(result, "%f ", n);
+					strcat(results, result);
 					}else{
 					pthread_mutex_lock(targ->mutex);
 					linked_list_add(writer, v);
 					pthread_mutex_unlock(targ->mutex);
-						
-
+					sprintf(result, "%i ", v);
+					strcat(results, result);
 					}
 					current_col++;
 			}
 	}
+	printf("%s\n", results);
 }
 
 void print_status(linked_list *ll, int which){

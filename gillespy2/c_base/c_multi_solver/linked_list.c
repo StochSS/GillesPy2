@@ -46,11 +46,10 @@ void linked_list_clean( linked_list* ll){
 
 // add a new node to the end of the list
 void linked_list_add( linked_list* ll, int data_in){
-	/**
+	/*
 	node* n = (node *) malloc( sizeof(node) );
 	n->data = data_in;
 	n->next = NULL;
-	// Travesere the list to find the end note
 	node * t = ll->head;
 	if(t == NULL){
 		ll->head = n;
@@ -62,8 +61,7 @@ void linked_list_add( linked_list* ll, int data_in){
 		ll->tail->next = n;
 		ll->tail = n;
 	}
-	**/
-	// increase the size
+	*/
 	add_to_histogram(ll, data_in);
 	ll->count++;
 }
@@ -291,3 +289,4 @@ void binary_insert(linked_list *ll, node2 *new_node)
 	printf("Exit loop\n");
 	return;
 }
+

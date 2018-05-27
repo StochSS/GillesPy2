@@ -10,7 +10,7 @@ c_multi_solver: c_multi_solver.c linked_list.c linked_list.h
 	$(CC) $(LFLAGS) -o c_multi_solver c_multi_solver.o linked_list.o
 
 test: 
-	./c_multi_solver ../MichaelisMenten 4 28 101
+	./c_multi_solver ../UserSimulation.exe 4 4 100
 sim:
 	./c_multi_solver ../UserSimulation 4 4 100
 	

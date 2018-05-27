@@ -45,5 +45,6 @@ void add_to_histogram( linked_list* ll, int to_add_value);
 void linked_list_delete( linked_list* ll, node* to_delete);
 void linked_list_delete2( linked_list* ll, node2* to_delete);
 void linked_list_clean( linked_list* ll);
+void linked_list_print(linked_list* ll, int num_species, int num_timesteps);
 
 #endif /* linked_list_h*/
