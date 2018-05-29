@@ -40,12 +40,12 @@ void print_status(linked_list *ll, int which);
 
 //global variables from command line args
 int *species, *timesteps, *num_lls;
-
+double *end_time;
 
 int main (int argc, char** argv){
 
 	int processes, num_runs, num_species, i, num_timesteps, run_count;
-	double max_dist, elapsed;
+	double max_dist, elapsed, end_t;
 	char* executable;
 	size_t array_size;
 	time_t beg, mid, end;
@@ -57,11 +57,13 @@ int main (int argc, char** argv){
 	processes = atoi(argv[2]);
 	num_species = atoi(argv[3])+1;
 	num_timesteps = atoi(argv[4]);
+	end_t = atof(argv[5]);
 	array_size = num_species * num_timesteps;
 
 	//make args global
 	species = &num_species;
 	timesteps = &num_timesteps;
+	end_time = &end_t;
 	num_lls = (int*) &array_size;
 
 	//allocate thread memory
@@ -202,7 +204,8 @@ void *c_solver_runner(void *targ_in){
 			char trajectories[10], steps[10], end[10], seed[10];
 			sprintf(seed, "%i", getpid());
 			sprintf(steps, "%i", *timesteps);
-			char* args[] = {targ->exec, "-trajectories", "1", "-timesteps", "100", "-end", "100", "-seed", seed, NULL};
+			sprintf(end, "%f", *end_time);
+			char* args[] = {targ->exec, "-trajectories", "1", "-timesteps", steps, "-end", end, "-seed", seed, NULL};
 			//printf("Seed: %s\n", seed);/
 			while ((dup2(filedes[1], STDOUT_FILENO) == -1) && (errno == EINTR)){}
 			close(filedes[1]);

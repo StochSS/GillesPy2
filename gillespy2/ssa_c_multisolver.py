@@ -220,12 +220,12 @@ class SSACMultiSolver(GillesPySolver):
             MULTI_PATH = os.path.join(self.output_directory, 'c_multi_solver/')
             MULTI_PATH = MULTI_PATH.replace('\\', '/')
             if os.name == 'nt':
-                args = '{0} -c "./c_multi_solver ../UserSimulation.exe {1} {2} {3}"'.format(bash_path2, str(number_of_processors), str(len(self.species)), str(number_timesteps))
+                args = '{0} -c "./c_multi_solver ../UserSimulation.exe {1} {2} {3} {4}"'.format(bash_path2, str(number_of_processors), str(len(self.species)), str(number_timesteps), str(t))
                 if isinstance(seed, int):
-                    args = '{0} -c "./c_multi_solver ../UserSimulation.exe {1} {2} {3} {4}"'.format(bash_path, str(number_of_processors), str(len(self.species)), str(number_timesteps), str(seed))
+                    args.append(str(seed))
 
             else:
-                args = "./c_multi_solver ../UserSimulation {1} {2} {3}".format(str(number_of_processors), str(len(self.species)), str(number_timesteps))
+                args = "./c_multi_solver ../UserSimulation {1} {2} {3} {4}".format(str(number_of_processors), str(len(self.species)), str(number_timesteps), str(t))
                 if isinstance(seed, int):
                     args.append('-seed')
                     args.append(str(seed))
