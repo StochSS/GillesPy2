@@ -13,6 +13,15 @@ class TestSSACSolver(unittest.TestCase):
             temp = tempfile.NamedTemporaryFile()
             model = Example()
             solver = SSACSolver(model, temp.name)
+            
+    def test_run_example_precompiled(self):
+        model = Example()
+        solver = SSACSolver(model)
+        results = model.run(solver=solver)
+
+    def test_run_example(self):
+        model = Example()
+        results = model.run(solver=SSACSolver)
 
 
 if __name__ == '__main__':
