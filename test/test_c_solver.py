@@ -8,11 +8,11 @@ class TestSSACSolver(unittest.TestCase):
         model = Example()
         solver = SSACSolver(model)
     
-    def test_directory_exists(self):
+    def test_file_with_directory_name_exists(self):
         with self.assertRaises(DirectoryError):
-            directory = tempfile.TemporaryDirectory()
+            temp = tempfile.NamedTemporaryFile()
             model = Example()
-            solver = SSACSolver(model, directory.name)
+            solver = SSACSolver(model, temp.name)
 
 
 if __name__ == '__main__':
