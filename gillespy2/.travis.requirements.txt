@@ -1,4 +1,3 @@
-before_install:
 	numpy
 	matplotlib
 	lxml
