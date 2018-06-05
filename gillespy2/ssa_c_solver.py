@@ -182,7 +182,6 @@ class SSACSolver(GillesPySolver):
             if isinstance(seed, int):
                 args.append('-seed')
                 args.append(str(seed))
-                
             simulation = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             #Parse/return results.
             if simulation.returncode == 0:

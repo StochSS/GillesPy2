@@ -14,13 +14,13 @@ except Exception as e:
     can_use_cython = False
 
 class OptimizedSSASolver(GillesPySolver):
-
-    """ TODO
+    """ SSA Direct Method Solver implemented primarily with Numpy. Attempts to use Cython if available.
     """
-
+    name = "OptimizedSSASolver"
+    use_cython = False
+    
     def __init__(self, use_cython=True):
         self.use_cython = use_cython
-        self.name = "OptimizedSSASolver"
         if can_use_cython and self.use_cython:
             self.name = "CythonSSASolver"
     
@@ -35,10 +35,11 @@ class OptimizedSSASolver(GillesPySolver):
             out_array = np.hstack(columns)
             out_data.append(out_array)
         return out_data
-
-    def run(self, model, t=20, number_of_trajectories=1,
+    
+    @classmethod
+    def run(cls, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, show_labels=False, stochkit_home=None):
-        if self.use_cython and can_use_cython:
+        if cls.use_cython and can_use_cython:
             solver = CythonSSASolver()
             return solver.run(model, t, number_of_trajectories, increment, seed, debug, show_labels)
         #create mapping of species dictionary to array indices
@@ -75,7 +76,7 @@ class OptimizedSSASolver(GillesPySolver):
                 propensity_functions[i] = propensity_functions[i].replace(species[j], 'x[{0}]'.format(j))
             propensity_functions[i] = eval('lambda x:'+propensity_functions[i], parameters)
         #begin simulating each trajectory
-        self.simulation_data = []
+        simulation_data = []
         for trajectory_num in range(number_of_trajectories):
             #copy initial state data
             trajectory = trajectory_base[trajectory_num]
@@ -113,11 +114,10 @@ class OptimizedSSASolver(GillesPySolver):
                 data['time'] = timeline
                 for i in range(number_species):
                     data[species[i]] = trajectory[:,i]
-                self.simulation_data.append(data)
+                simulation_data.append(data)
             else:
-                self.simulation_data.append(trajectory)
-        return self.simulation_data
-
+                simulation_data.append(trajectory)
+        return simulation_data
         
     def get_trajectories(self, outdir, debug=False, show_labels=False):
         pass
