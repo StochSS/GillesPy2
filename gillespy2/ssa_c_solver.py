@@ -127,7 +127,7 @@ class SSACSolver(GillesPySolver):
                 self.temporary_directory = tempfile.TemporaryDirectory()
                 self.output_directory = self.temporary_directory.name
                 
-            if not os.path.isdir(output_directory):
+            if not os.path.isdir(self.output_directory):
                 #errors encountered while making directory. It should exist
                 raise DirectoryError("Errors encountered while setting up directory for Solver C++ files.")
                 

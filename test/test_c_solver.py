@@ -1,7 +1,6 @@
 import unittest
 import tempfile
-from gillespy2 import SSACSolver
-from gillespyError import SolverError, DirectoryError, BuildError, ExecutionError
+from gillespy2 import SSACSolver, SolverError, DirectoryError, BuildError, ExecutionError
 from gillespy2.example_models import Example
 
 class TestSSACSolver(unittest.TestCase):
@@ -13,7 +12,7 @@ class TestSSACSolver(unittest.TestCase):
         with self.assertRaises(DirectoryError):
             directory = tempfile.TemporaryDirectory()
             model = Example()
-            solver = SSACSolver(model, directory)
+            solver = SSACSolver(model, directory.name)
 
 
 if __name__ == '__main__':
