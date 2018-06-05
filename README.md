@@ -1,4 +1,5 @@
 # Gillespy2
+[![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2)
 
 Python interface for Gillespie style biochemical simulations
 
