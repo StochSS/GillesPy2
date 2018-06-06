@@ -8,7 +8,6 @@
 #include <time.h>
 #include "linked_list.h"
 
-#define ALPHA 0.1
 #define STR_TO_INT_BUF 8
 #define READ_BUFFER_SIZE 512
 #define BASE_TRAJECTORIES 100
@@ -40,12 +39,12 @@ void print_status(linked_list *ll, int which);
 
 //global variables from command line args
 int *species, *timesteps, *num_lls;
-double *end_time;
+double *end_time, *alpha;
 
 int main (int argc, char** argv){
 
 	int processes, num_runs, num_species, i, num_timesteps, run_count;
-	double max_dist, elapsed, end_t;
+	double max_dist, elapsed, end_t, alpha_value;
 	char* executable;
 	size_t array_size;
 	time_t beg, mid, end;
@@ -58,12 +57,14 @@ int main (int argc, char** argv){
 	num_species = atoi(argv[3])+1;
 	num_timesteps = atoi(argv[4]);
 	end_t = atof(argv[5]);
+	alpha_value = atof(argv[6]);
 	array_size = num_species * num_timesteps;
 
 	//make args global
 	species = &num_species;
 	timesteps = &num_timesteps;
 	end_time = &end_t;
+	alpha = &alpha_value;
 	num_lls = (int*) &array_size;
 
 	//allocate thread memory
@@ -135,7 +136,7 @@ int main (int argc, char** argv){
 	/*
 	*Repeat until fit reached
 	*/
-	while (max_dist > ALPHA){
+	while (max_dist > *alpha){
 		max_dist = 0;
 		for (i = 0; i < processes; i++){
 			pthread_create(&thread_handle[i], NULL, c_solver_runner, &targ[i]);

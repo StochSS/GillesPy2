@@ -129,11 +129,13 @@ class SSACMultiSolver(GillesPySolver):
     name = "SSACMultiSolver"
     """TODO"""
 
-    def __init__(self, model=None, output_directory=None, delete_directory=True):
+    def __init__(self, model=None, output_directory=None, delete_directory=True, number_of_processes=4, alpha=0.1):
         super(SSACMultiSolver, self).__init__()
         self.compiled = False
         self.delete_directory = False
         self.model = model
+        self.number_of_processes=number_of_processes
+        self.alpha=alpha
         if self.model is not None:
             # Create constant, ordered lists for reactions/species
             self.reactions = list(self.model.listOfReactions.keys())
@@ -205,10 +207,11 @@ class SSACMultiSolver(GillesPySolver):
             print("Error encountered while compiling file:\nbuilt_multi Return code: {0}.\nError:\n{1}\n".format(built_multi.returncode,
                                                                                                            built_multi.stderr))
 
-    def run(self=None, model=None, t=20, number_of_trajectories=1, number_of_processors=4,
+    def run(self=None, model=None, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, show_labels=False, stochkit_home=None):
         bash_path = os.path.join(os.environ['SystemRoot'], 'SysNative', 'bash.exe')
         bash_path2 = os.path.join(os.environ['SystemRoot'], 'System32', 'bash.exe')
+
         if self is None:
             self = SSACMultiSolver(model)
         if self.compiled:
@@ -220,12 +223,12 @@ class SSACMultiSolver(GillesPySolver):
             MULTI_PATH = os.path.join(self.output_directory, 'c_multi_solver/')
             MULTI_PATH = MULTI_PATH.replace('\\', '/')
             if os.name == 'nt':
-                args = '{0} -c "./c_multi_solver ../UserSimulation.exe {1} {2} {3} {4}"'.format(bash_path2, str(number_of_processors), str(len(self.species)), str(number_timesteps), str(t))
+                args = '{0} -c "./c_multi_solver ../UserSimulation.exe {1} {2} {3} {4} {5}"'.format(bash_path2, str(self.number_of_processes), str(len(self.species)), str(number_timesteps), str(t), str(self.alpha))
                 if isinstance(seed, int):
                     args.append(str(seed))
 
             else:
-                args = "./c_multi_solver ../UserSimulation {1} {2} {3} {4}".format(str(number_of_processors), str(len(self.species)), str(number_timesteps), str(t))
+                args = "./c_multi_solver ../UserSimulation {1} {2} {3} {4} {5}".format(str(number_of_processors), str(len(self.species)), str(number_timesteps), str(t)), str(alpha)
                 if isinstance(seed, int):
                     args.append('-seed')
                     args.append(str(seed))
