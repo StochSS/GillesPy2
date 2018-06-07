@@ -52,7 +52,9 @@ setup(name = "gillespy2",
       
       install_requires = ["numpy",
                           "matplotlib",
-                          "scipy"],
+                          "scipy",
+                          "seaborn",
+                          "tqdm"],
       
       author = "Brian Drawert, Kevin Sanft, Ghilman Brock, Eliot Dixon, Dalton Nickerson",
       author_email = ["bdrawert@unca.edu"],
