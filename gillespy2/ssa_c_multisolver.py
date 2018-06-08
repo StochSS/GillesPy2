@@ -75,25 +75,27 @@ def write_reactions(outfile, model, reactions, species):
 def parse_output(results, number_timesteps, number_species):
     values = bytes(results).decode('utf-8')
     values = values.splitlines()
+    #print (values)
     number_of_trajectories = int(values[-1].rsplit()[-1])
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
     trajectory_n = 0
     count = 0
-    lines_to_read = number_of_trajectories * number_timesteps
-    for line in range(lines_to_read):
-        if count >= number_timesteps:
+    lines_to_read = (number_of_trajectories * number_timesteps) + 1
+    print(values[-1])
+    for line in range(1, lines_to_read):
+        #print(values[line])
+        if count > number_timesteps-1:
             trajectory_n += 1
             count = 0
         value = values[line].strip().split(" ")
         trajectory_base[trajectory_n, count, 0] = float(value[0])
         for species in range(number_species):
             trajectory_base[trajectory_n, count, species+1] = value[species+1]
-            #print(value[species+1])
         count += 1
     #print(trajectory_base)
-    print(values[-1])
-    print(values[-2])
+    #print(values[-2])
     return trajectory_base
+    return 0
 
 
 '''
@@ -234,8 +236,8 @@ class SSACMultiSolver(GillesPySolver):
                     args.append(str(seed))
             simulation = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=MULTI_PATH, shell=False)
             # Parse/return results.
+
             if simulation.returncode == 0:
-                #print(simulation.stdout)
                 trajectory_base = parse_output(simulation.stdout, number_timesteps, len(self.species))
                 # Format results
                 if show_labels:
@@ -251,4 +253,5 @@ class SSACMultiSolver(GillesPySolver):
             else:
                 print("Error encountered while running simulation C++ file:\nReturn code: {0}.\nError:\n{1}\n".format(
                     simulation.returncode, simulation.stderr))
+
         return self.simulation_data
