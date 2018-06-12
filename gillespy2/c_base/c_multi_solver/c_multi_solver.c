@@ -15,8 +15,6 @@
 #define EVENS 1
 #define ODDS 0
 
-pthread_mutex_t evens_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t odds_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 //Thread args
 struct arg {
@@ -46,10 +44,10 @@ double *end_time, *alpha;
 int main (int argc, char** argv){
 
 	int processes, num_runs, num_species, i, num_timesteps, run_count;
-	double max_dist, end_t, alpha_value;
+	double max_dist, end_t, elapsed, alpha_value;
 	char* executable;
 	size_t array_size;
-	//time_t beg, mid, end;
+	time_t beg, mid, end;
 	struct arg *targ;
 	linked_list *evens, *odds;
 
@@ -77,7 +75,7 @@ int main (int argc, char** argv){
 	//set initial states
 	num_runs = BASE_TRAJECTORIES / processes;
 	run_count = BASE_TRAJECTORIES;
-	//beg = clock();	
+	beg = clock();	
 
 	//allocate data memory
 	evens = calloc(array_size, sizeof(linked_list));
@@ -110,12 +108,10 @@ int main (int argc, char** argv){
 		targ[i].p_num = i+1;
 		if ( targ[i].p_num % 2 == 0){
 			targ[i].arr = evens;
-			targ[i].mutex = &evens_mutex;
 			targ[i].mutex_array = evens_mutex_array;
 		}
 		else{
 			targ[i].arr = odds;
-			targ[i].mutex = &odds_mutex;
 			targ[i].mutex_array = odds_mutex_array;
 		}
 		targ[i].exec = executable;
@@ -141,8 +137,8 @@ int main (int argc, char** argv){
 	//printf("Exited sort\n");
 
 	//TEST PRINTING
-	//print_status(odds, ODDS);
-	//print_status(evens, EVENS);
+	print_status(odds, ODDS);
+	print_status(evens, EVENS);
 	//fflush(NULL);
 
 	/*
@@ -152,12 +148,12 @@ int main (int argc, char** argv){
 	//printf("Calculated distance\n");
 	//fflush(NULL);
 	//calculate elapsed time for dev purposes
-	//mid = clock();
-	//elapsed =(double) (mid-beg) / (double) CLOCKS_PER_SEC;
+	mid = clock();
+	elapsed =(double) (mid-beg) / (double) CLOCKS_PER_SEC;
 	
 	//print stats
-	//printf("Run Count: %i, Max distance = %f\n", run_count, max_dist);
-	//printf("Time Elapsed This Cycle: %f seconds.\n", elapsed);
+	printf("Run Count: %i, Max distance = %f\n", run_count, max_dist);
+	printf("Time Elapsed This Cycle: %f seconds.\n", elapsed);
 
 
 	/*
@@ -179,8 +175,8 @@ int main (int argc, char** argv){
 		}
 
 		//TEST PRINTING
-		//print_status(odds, ODDS);
-		//print_status(evens, EVENS);
+		print_status(odds, ODDS);
+		print_status(evens, EVENS);
 
 		//track total runs and update dist
 		run_count+=BASE_TRAJECTORIES;
@@ -188,13 +184,13 @@ int main (int argc, char** argv){
 
 		//calculate elapsed time for dev purposes
 		
-		   //end = clock();
-		   //elapsed =(double) (end - mid) / (double) CLOCKS_PER_SEC;
-		   //mid = end;
+		   end = clock();
+		   elapsed =(double) (end - mid) / (double) CLOCKS_PER_SEC;
+		   mid = end;
 		 
 		//print stats
-		//printf("Run Count: %i, Max distance = %f\n", run_count, max_dist);
-		//printf("Time Elapsed This Cycle: %f seconds.\n", elapsed);
+		printf("Run Count: %i, Max distance = %f\n", run_count, max_dist);
+		printf("Time Elapsed This Cycle: %f seconds.\n", elapsed);
 	}
 
 
@@ -205,9 +201,9 @@ int main (int argc, char** argv){
 
 	//print total time
 	
-	   //end = clock();
-	   //elapsed =(double) (end-beg) / (double) CLOCKS_PER_SEC;
-	   //printf("TOTAL Time Elapsed: %f seconds.\n", elapsed);
+	   end = clock();
+	   elapsed =(double) (end-beg) / (double) CLOCKS_PER_SEC;
+	   printf("TOTAL Time Elapsed: %f seconds.\n", elapsed);
 	 
 	printf("\nTOTAL Runs: %i\n", run_count);
 
@@ -225,10 +221,10 @@ int main (int argc, char** argv){
 void *update_histogram(void *targ_in){
 	
 	struct arg* targ = (struct arg*) targ_in;
-	//time_t beg, end;
-	//double elapsed;
+	time_t beg, end;
+	double elapsed;
 
-	//beg = clock();
+	beg = clock();
 	/*I
 	int sorter_number;
 	int num_even_processes = *num_processes / 2;
@@ -269,8 +265,8 @@ void *update_histogram(void *targ_in){
 		sorter++;
 	}
 */
-	//end = clock();
-	//elapsed =(double) (end-beg) / (double) CLOCKS_PER_SEC;
+	end = clock();
+	elapsed =(double) (end-beg) / (double) CLOCKS_PER_SEC;
 	//printf("P_NUM %i: HISTOGRAM UPDATE TIME: %f\n",targ->p_num, elapsed);
 
 }
@@ -280,6 +276,10 @@ void *c_solver_runner(void *targ_in){
 	int filedes[2];
 	pid_t pid;
 	struct arg* targ =  (struct arg*) targ_in;
+	time_t beg, end;
+	double elapsed;
+
+	beg = clock();
 		/*
 		   Create child processes from threads to exec, redirect stdout from executable to pipe and close it on child end
 		 */
@@ -311,6 +311,9 @@ void *c_solver_runner(void *targ_in){
 			parse_binary(filedes[0], targ);
 		}
 	close(filedes[0]);
+	end = clock();
+	elapsed =(double) (end-beg) / (double) CLOCKS_PER_SEC;
+	//printf("P_NUM %i: FORK EXEC PARSE TIME: %f\n",targ->p_num, elapsed);
 	pthread_exit(0);
 }
 
@@ -325,76 +328,118 @@ double calculate_ks_distance(linked_list *evens, linked_list *odds){
 	//initialize everythin for beginning of array (0th linked list)
 	linked_list* evens_ptr = evens;
 	linked_list* odds_ptr = odds;
+	int i;
 	int e_num_traj = (evens+1)->count;
 	int o_num_traj = (odds+1)->count;
 	//printf("e_num_traj = %i\n", e_num_traj);
 	double e_norm, o_norm;
-	double max_distance = 0;
+	double max_diff[*timesteps];
+	double ks_distance = 0;
 	double diff;
 	node2 *e, *o, *pe, *po;
 	int evens_count = 0;
 	int odds_count = 0;
+	for (i = 0; i < *num_lls; i++)
+		max_diff[i / *species] = 0;
 
 	//iterate through linked lists
-	for(int i = 0; i < *num_lls; i++){
+	for(i = 0; i < *num_lls; i++){
 		//iterate through histogram in linked list
 		e = evens_ptr->head2;
 		o = odds_ptr->head2;
+		e->cumulative = e->count;
+		o->cumulative = o->count;
+		pe = NULL;
+		po = NULL;
+		int current_timestep = i / *species;
 
 		//RUN for head special case
 		if (e->val == o->val){
 			e_norm = (double)e->count / e_num_traj;
 			o_norm = (double)o->count / o_num_traj;
 			diff = fabs(e_norm - o_norm);
-			if (diff > max_distance){
-				max_distance = diff;
-			}
+			pe = e;
+			e = e->next;
+			po = o;
+			o = o->next;
 		}else if(e->val < o->val){
 			e_norm = (double)e->count / e_num_traj;
 			diff = e_norm; 
-			if (diff > max_distance){
-				max_distance = diff;
-			}
+			pe = e;
+			e = e->next;
 		}else{
 			o_norm = (double)o->count / o_num_traj;
 			diff = o_norm;
-			if (diff > max_distance){
-				max_distance = diff;
-			}
+			po = o;
+			o = o->next;
+		}
+		if (diff > max_diff[current_timestep]){
+			max_diff[current_timestep] = diff;
+
 		}
 
-		//increment histogram ptrs and track previous
-		pe = e;
-		e = e->next;
-		po = o;
-		o = o->next;
 		while(e != NULL && o != NULL){
+			if( e != NULL && pe != NULL) e->cumulative = e->count + pe->cumulative;
+			if(o != NULL && po != NULL) o->cumulative = o->count + po->cumulative;
+			//printf("LL %i:cumulatives e: %i o: %i counts e: %i o: %i]\n", i, e->cumulative, o->cumulative, e->count, o->count);		}
 			if (e->val == o->val){
-				e_norm = (double)(e->count+pe->count) / e_num_traj;
-				o_norm = (double)(o->count+po->count) / o_num_traj;
+				e_norm = (double) e->cumulative / e_num_traj;
+				o_norm = (double) o->cumulative / o_num_traj;
 				diff = fabs(e_norm - o_norm);
-				if (diff > max_distance) max_distance = diff;
+				//printf("LL %i: val: %i, diff %f\n", i, e->val, diff);
+				pe = e;
 				e = e->next;
+				po = o;
 				o = o->next;
 			}else if(e->val < o->val){
-				e_norm = (double)e->count / e_num_traj;
-				diff = e_norm; 
-				if (diff > max_distance) max_distance = diff;
+				e_norm = (double)e->cumulative / e_num_traj;
+				if (po == NULL){ //e is smaller than smallest odd
+					o_norm = 0;
+				}else if (po->val < e->val){ //previous odd is smaller than e
+					o_norm = (double)po->cumulative / o_num_traj;
+				}else{ //search list to find next smallest number in odds
+					node2 *t = odds_ptr->head2;
+					while(t->next->val < e->val) t = t->next;
+					o_norm = (double)t->cumulative / o_num_traj;
+				}
+				diff = fabs(e_norm - o_norm); 
+				if (diff > 1){
+					//printf("enorm: %f onorm: %f\n", e_norm, o_norm);
+					exit(0);
+				}
+				pe = e;
 				e = e->next;
 			}else{
-				o_norm = (double)o->count / o_num_traj;
-				diff = o_norm;
-				if (diff > max_distance) max_distance = diff;
+				o_norm = (double)o->cumulative / o_num_traj;
+				if (pe == NULL){
+					e_norm = 0;
+				}else if (pe->val < o->val){
+					e_norm = (double)pe->cumulative / e_num_traj;
+				}else{
+					node2 *t = evens_ptr->head2;
+					while(t->next->val < o->val) t = t->next;
+					e_norm = (double)t->cumulative / e_num_traj;
+				}
+				diff = fabs(o_norm - e_norm);
+				if (diff > 1){
+					//printf("enorm: %f onorm: %f\n", e_norm, o_norm);
+					exit(0);
+				}
+				po = o;
 				o = o->next;
 			}
-		}
-
-		//move to next linked list
-		evens_ptr++;
-		odds_ptr++;
+			if (diff > max_diff[current_timestep]) max_diff[current_timestep] = diff;
 	}
 
-	return max_distance;
+	//move to next linked list
+	evens_ptr++;
+	odds_ptr++;
+}
+for(i = 0; i < *timesteps; i++){
+	if (max_diff[i] > ks_distance)
+		ks_distance = max_diff[i];
+}
+return ks_distance;
 }
 
 void plot_bounds(linked_list* evens, linked_list* odds, size_t array_size){
@@ -539,13 +584,13 @@ void parse_binary(int pipe, struct arg*targ){
 				//printf("%s ", result);
 			}
 			//if(targ->p_num == 2)
-				//printf("Current col: %i Read col: %i Total col: %i\n", current_col, read_col, total_col);
+			//printf("Current col: %i Read col: %i Total col: %i\n", current_col, read_col, total_col);
 			if(current_col == *species-1 && current_col != total_col){
 				if(current_trajectory < targ->num_runs){
-				current_trajectory++;
-				sprintf(result, "\n%f ", timestamp);
-				strcat(results[current_trajectory], result); 
-				current_col = 1;
+					current_trajectory++;
+					sprintf(result, "\n%f ", timestamp);
+					strcat(results[current_trajectory], result); 
+					current_col = 1;
 				}
 				//printf("TRAJ: %i, Timestamp: %f\n",current_trajectory, timestamp);
 				//fflush(NULL);
@@ -557,7 +602,7 @@ void parse_binary(int pipe, struct arg*targ){
 	}
 	//printf("%s\n", &results);
 	for (int i = 0; i < targ->num_runs; i++){
-		printf("%s", results[i]);
+		//printf("%s", results[i]);
 	}
 }
 

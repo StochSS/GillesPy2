@@ -36,8 +36,12 @@ void destroy_linked_list( linked_list* ll ){
 
 void linked_list_clean( linked_list* ll){
 	//clear raw data list
-	while(ll->head != NULL){
-		linked_list_delete( ll, ll->head );
+	node* n = ll->head;
+
+	while(n != NULL){
+		node* temp = n->next;
+		linked_list_delete( ll, n );
+		n = temp;
 	}
 	ll->head = NULL;
 	ll->tail = NULL;
@@ -46,7 +50,7 @@ void linked_list_clean( linked_list* ll){
 
 // add a new node to the end of the list
 void linked_list_add( linked_list* ll, int data_in){
-	/*
+	
 	node* n = (node *) malloc( sizeof(node) );
 	n->data = data_in;
 	n->next = NULL;
@@ -61,56 +65,61 @@ void linked_list_add( linked_list* ll, int data_in){
 		ll->tail->next = n;
 		ll->tail = n;
 	}
-	*/
-	add_to_histogram(ll, data_in);
+	
+	//add_to_histogram(ll, data_in);
 	ll->count++;
 }
-
-void add_to_histogram( linked_list* ll, int to_add_value ){
-
-	node2* n;
-	node2* t = ll->head2;
-	n = malloc(sizeof(node2));
-	n->val = to_add_value;
-	n->count = 1;
-	n->next = NULL;
-
-	//Try to add to LL at O(1) if possible.
-	if( t == NULL){
-		ll->head2 = n;
-		ll->tail2 = n;
-		ll->count2++;
-		return;
-	}else if(t->val < n->val && t->next == NULL){
-		t->next = n;
-		ll->tail2 = n;
-		ll->count2++;
-		return;
-	}else if(t->val == n->val){
-		t->count++;
-		return;
-	}else if(ll->tail2->val == n->val){
-		ll->tail2->count++;
-		return;
-	}else if(n->val < ll->head2->val){
-		n->next = ll->head2;
-		ll->head2 = n;
-		t = n;
-		ll->count2++;
-		return;
-	}else if (n->val > ll->tail2->val){
-		ll->tail2->next = n;
-		ll->tail2 = n;
-		ll->count2++;
-		return;
+void build_histogram( linked_list* ll){
+	node* n = ll->head;
+	while(n != NULL){
+		add_to_histogram(ll, n->data);
+		n = n->next;
 	}
-
-		//if (ll->count2 < 10){
-			sorted_insert(ll, n);
-		//}else{
-		//	binary_insert(ll, n);
-		//}
+	linked_list_clean(ll);
 }
+	void add_to_histogram( linked_list* ll, int to_add_value ){
+
+		node2* n;
+		node2* t = ll->head2;
+		n = malloc(sizeof(node2));
+		n->val = to_add_value;
+		n->count = 1;
+		n->next = NULL;
+
+		//Try to add to LL at O(1) if possible.
+		if( t == NULL){
+			ll->head2 = n;
+			ll->tail2 = n;
+			ll->count2++;
+			return;
+		}else if(t->val < n->val && t->next == NULL){
+			t->next = n;
+			ll->tail2 = n;
+			ll->count2++;
+			return;
+		}else if(t->val == n->val){
+			t->count++;
+			free(n);
+			return;
+		}else if(ll->tail2->val == n->val){
+			ll->tail2->count++;
+			free(n);
+			return;
+		}else if(n->val < ll->head2->val){
+			n->next = ll->head2;
+			ll->head2 = n;
+			t = n;
+			ll->count2++;
+			return;
+		}else if (n->val > ll->tail2->val){
+			ll->tail2->next = n;
+			ll->tail2 = n;
+			ll->count2++;
+			return;
+		}
+
+		sorted_insert(ll, n);
+	}
 
 
 	// delete a node from the linked list
@@ -180,11 +189,10 @@ void add_to_histogram( linked_list* ll, int to_add_value ){
 			current = current->next;
 		}
 		if(current->next != NULL){
-			//printf("current->val: %i, current->next->val: %i, new_node->val: %i\n", current->val, current->next->val, new_node->val);
 			if (current->next->val == new_node->val){
-				//printf("incrementing a value\n");
-				current->count++;
+				current->next->count++;
 				ll->count2++;
+				free(new_node);
 				return;
 			}
 		}
@@ -196,97 +204,97 @@ void add_to_histogram( linked_list* ll, int to_add_value ){
 
 	}
 
-node2* middle(node2* start, node2* last)
-{
-	if (start == NULL)
-		return NULL;
-
-	node2* slow = start;
-	node2* fast = start -> next;
-
-	while (fast != last)
+	node2* middle(node2* start, node2* last)
 	{
-		fast = fast -> next;
-		if (fast != last)
+		if (start == NULL)
+			return NULL;
+
+		node2* slow = start;
+		node2* fast = start -> next;
+
+		while (fast != last)
 		{
-			slow = slow -> next;
 			fast = fast -> next;
+			if (fast != last)
+			{
+				slow = slow -> next;
+				fast = fast -> next;
+			}
 		}
+
+		return slow;
 	}
 
-	return slow;
-}
-
-// Function for implementing the Binary
-// Search on linked list
-void binary_insert(linked_list *ll, node2 *new_node)
-{
-	node2* start = ll->head2;
-	node2* last = ll->tail2;
-	node2* mid;
-
-	do
+	// Function for implementing the Binary
+	// Search on linked list
+	void binary_insert(linked_list *ll, node2 *new_node)
 	{
-		if(start->val == new_node->val){
-			start->count++;
-			//printf("START: %i, INSERT: %i\n", start->val, new_node->val);
-			//printf("INCREMENT START\n");
-			return;
-		}else if(last->val == new_node->val){
-			last->count++;
-			printf("LAST: %i, INSERT: %i\n", last->val, new_node->val);
-			printf("INCREMENT LAST\n");
-			return;
-		}
-		// Find middle
-		mid = middle(start, last);
-		//printf("START: %i MID: %i LAST: %i INSERT: %i MID->next: %i\n", start->val, mid->val, last->val, new_node->val, mid->next->val);
+		node2* start = ll->head2;
+		node2* last = ll->tail2;
+		node2* mid;
 
-		// If middle is empty
-		if (mid == NULL){
-			printf("ERROR: NULL MID\n");
-			return;
-		}
-
-		// If mid contains to-add
-		if (mid -> val == new_node->val){
-			mid->count++;
-			//printf("INCREMENTED %i\n", new_node->val);
-			return;
-		}
-
-		if(start == mid){
-			if (start->next->val == new_node->val){
-				start->next->count++;
-				//printf("Incrementing start->next\n");
-			}else{
-			//printf("start= mid adding between %i and %i\n", start->val, start->next->val);
-			new_node->next = start->next;
-			start->next = new_node;
-			ll->count2++;
-			}
-			return;
-		}
-
-		// If value is more than mid
-		else if (mid->val < new_node->val){
-			if(new_node->val < mid->next->val){
-				//printf("Placing between %i and %i\n", mid->val, mid->next->val);
-				new_node->next = mid->next;
-				mid->next = new_node;
-				ll->count2++;
+		do
+		{
+			if(start->val == new_node->val){
+				start->count++;
+				//printf("START: %i, INSERT: %i\n", start->val, new_node->val);
+				//printf("INCREMENT START\n");
+				return;
+			}else if(last->val == new_node->val){
+				last->count++;
+				printf("LAST: %i, INSERT: %i\n", last->val, new_node->val);
+				printf("INCREMENT LAST\n");
 				return;
 			}
-			start = mid->next;
-		}
+			// Find middle
+			mid = middle(start, last);
+			//printf("START: %i MID: %i LAST: %i INSERT: %i MID->next: %i\n", start->val, mid->val, last->val, new_node->val, mid->next->val);
 
-		// If value is less than mid.
-		else
-			last = mid;
+			// If middle is empty
+			if (mid == NULL){
+				printf("ERROR: NULL MID\n");
+				return;
+			}
+
+			// If mid contains to-add
+			if (mid -> val == new_node->val){
+				mid->count++;
+				//printf("INCREMENTED %i\n", new_node->val);
+				return;
+			}
+
+			if(start == mid){
+				if (start->next->val == new_node->val){
+					start->next->count++;
+					//printf("Incrementing start->next\n");
+				}else{
+					//printf("start= mid adding between %i and %i\n", start->val, start->next->val);
+					new_node->next = start->next;
+					start->next = new_node;
+					ll->count2++;
+				}
+				return;
+			}
+
+			// If value is more than mid
+			else if (mid->val < new_node->val){
+				if(new_node->val < mid->next->val){
+					//printf("Placing between %i and %i\n", mid->val, mid->next->val);
+					new_node->next = mid->next;
+					mid->next = new_node;
+					ll->count2++;
+					return;
+				}
+				start = mid->next;
+			}
+
+			// If value is less than mid.
+			else
+				last = mid;
 
 
-	} while (last == NULL || last -> next != start);
-	printf("Exit loop\n");
-	return;
-}
+		} while (last == NULL || last -> next != start);
+		printf("Exit loop\n");
+		return;
+	}
 

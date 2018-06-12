@@ -41,6 +41,7 @@ void linked_list_add( linked_list* ll, int data_in);
 void linked_list_update_histogram( linked_list* ll);
 
 void add_to_histogram( linked_list* ll, int to_add_value);
+void build_histogram( linked_list* ll);
 // delete a node from the linked list
 void linked_list_delete( linked_list* ll, node* to_delete);
 void linked_list_delete2( linked_list* ll, node2* to_delete);
