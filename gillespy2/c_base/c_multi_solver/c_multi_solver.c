@@ -137,8 +137,8 @@ int main (int argc, char** argv){
 	//printf("Exited sort\n");
 
 	//TEST PRINTING
-	print_status(odds, ODDS);
-	print_status(evens, EVENS);
+	//print_status(odds, ODDS);
+	//print_status(evens, EVENS);
 	//fflush(NULL);
 
 	/*
@@ -152,8 +152,8 @@ int main (int argc, char** argv){
 	elapsed =(double) (mid-beg) / (double) CLOCKS_PER_SEC;
 	
 	//print stats
-	printf("Run Count: %i, Max distance = %f\n", run_count, max_dist);
-	printf("Time Elapsed This Cycle: %f seconds.\n", elapsed);
+	//printf("Run Count: %i, Max distance = %f\n", run_count, max_dist);
+	//printf("Time Elapsed This Cycle: %f seconds.\n", elapsed);
 
 
 	/*
@@ -175,8 +175,8 @@ int main (int argc, char** argv){
 		}
 
 		//TEST PRINTING
-		print_status(odds, ODDS);
-		print_status(evens, EVENS);
+		//print_status(odds, ODDS);
+		//print_status(evens, EVENS);
 
 		//track total runs and update dist
 		run_count+=BASE_TRAJECTORIES;
@@ -189,8 +189,8 @@ int main (int argc, char** argv){
 		   mid = end;
 		 
 		//print stats
-		printf("Run Count: %i, Max distance = %f\n", run_count, max_dist);
-		printf("Time Elapsed This Cycle: %f seconds.\n", elapsed);
+		//printf("Run Count: %i, Max distance = %f\n", run_count, max_dist);
+		//printf("Time Elapsed This Cycle: %f seconds.\n", elapsed);
 	}
 
 
@@ -203,7 +203,7 @@ int main (int argc, char** argv){
 	
 	   end = clock();
 	   elapsed =(double) (end-beg) / (double) CLOCKS_PER_SEC;
-	   printf("TOTAL Time Elapsed: %f seconds.\n", elapsed);
+	   //printf("TOTAL Time Elapsed: %f seconds.\n", elapsed);
 	 
 	printf("\nTOTAL Runs: %i\n", run_count);
 
@@ -602,7 +602,7 @@ void parse_binary(int pipe, struct arg*targ){
 	}
 	//printf("%s\n", &results);
 	for (int i = 0; i < targ->num_runs; i++){
-		//printf("%s", results[i]);
+		printf("%s", results[i]);
 	}
 }
 

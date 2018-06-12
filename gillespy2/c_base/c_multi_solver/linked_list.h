@@ -11,6 +11,7 @@ typedef struct node_t {
 typedef struct node2_t {
 	int val;
 	int count;
+	int cumulative;
 	struct node2_t * next;
 }node2;
 

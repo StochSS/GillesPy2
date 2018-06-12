@@ -5,8 +5,9 @@
 #include <vector>
 #include <iostream>
 
-namespace Gillespy{
+#define uint unsigned int
 
+namespace Gillespy{
   //Represents info for a chemical reactant/product
   struct Species{
     uint id; //useful for index id in arrays
