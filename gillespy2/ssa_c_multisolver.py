@@ -79,37 +79,23 @@ def parse_output(results, number_timesteps, number_species):
     number_of_trajectories = int(values[-1].rsplit()[-1])
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
     trajectory_n = 0
-    count = 0
+    timestep = 0
     lines_to_read = (number_of_trajectories * number_timesteps) + 1
     print(values[-1])
     for line in range(1, lines_to_read):
         #print(values[line])
-        if count > number_timesteps-1:
+        if timestep == number_timesteps:
             trajectory_n += 1
-            count = 0
+            timestep = 0
         value = values[line].strip().split(" ")
-        trajectory_base[trajectory_n, count, 0] = float(value[0])
+        trajectory_base[trajectory_n, timestep, 0] = float(value[0])
         for species in range(number_species):
-            trajectory_base[trajectory_n, count, species+1] = value[species+1]
-        count += 1
+            trajectory_base[trajectory_n, timestep, species+1] = value[species+1]
+        timestep += 1
     #print(trajectory_base)
     #print(values[-2])
     return trajectory_base
-    return 0
 
-
-'''
-    trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species + 1))
-    for timestep in range(number_timesteps):
-        values = results[timestep].split(" ")
-        trajectory_base[:, timestep, 0] = float(values[0])
-        index = 1
-        for trajectory in range(number_of_trajectories):
-            for species in range(number_species):
-                trajectory_base[trajectory, timestep, 1 + species] = float(values[index + species])
-            index += number_species
-    return trajectory_base
-'''
 
 def parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species):
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species + 1))
@@ -131,7 +117,7 @@ class SSACMultiSolver(GillesPySolver):
     name = "SSACMultiSolver"
     """TODO"""
 
-    def __init__(self, model=None, output_directory=None, delete_directory=True, number_of_processes=4, alpha=0.1):
+    def __init__(self, model=None, output_directory=None, delete_directory=True, number_of_processes=4, alpha=0.01):
         super(SSACMultiSolver, self).__init__()
         self.compiled = False
         self.delete_directory = False
