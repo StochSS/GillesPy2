@@ -1,18 +1,39 @@
-import gillespy2
-from .gillespySolver import GillesPySolver
+"""
+An optional solver for simulating models which runs until desired convergence is met.
+
+This solver serves primarily as a C wrapper to the ssa_c_solver.
+It utilizes multi-threading to run multiple C_Solver instances, stores them
+in two different structures (evens and odds). The user designates a desired
+"alpha" which correlates to a maximum distance determined by a
+is calculated by a Kolmogorov-Smirnov
+
+This version is updated (4/2017) to contain documentation in a more reasonable
+format. This does not necessarily mean it is perfect, but it is certainly an
+improvement over the original.
+
+"""
+
 import os #for getting directories for C++ files
 import shutil #for deleting/copying files
 import subprocess #For calling make and executing c solver
 import inspect #for finding the Gillespy2 module path
 import tempfile #for temporary directories
 import numpy as np
-import math
+import gillespy2
+from .gillespySolver import GillesPySolver
 
 GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
 GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'c_base/')
 GILLESPY_C_MULTI_DIRECTORY = os.path.join(GILLESPY_C_DIRECTORY, 'c_multi_solver')
 
 def copy_files(destination):
+    """
+    Copy compile files to target destination
+    Attributes
+    ----------
+    destination : str
+        Target location for executable files.
+    """
 
     src_files = os.listdir(GILLESPY_C_DIRECTORY)
     for src_file in src_files:
@@ -24,10 +45,24 @@ def copy_files(destination):
                 shutil.copytree(src_file, os.path.join(destination, 'c_multi_solver'))
 
 def write_constants(outfile, model, reactions, species):
+    """
+    Write constants to simulation template.
+
+    Attributes
+    ----------
+    outfile : str
+        File created from template for compile.
+    model : Model
+        model to be simulated.
+    reactions : dict
+        model reactions for simulation
+    species : dict
+        model species for simulation
+    """
     # Write mandatory constants
     outfile.write("const double vol = {};\n".format(model.volume))
-    outfile.write("std :: string s_names[] = {");
-    if len(species) > 0:
+    outfile.write("std :: string s_names[] = {")
+    if species:
         # Write model species names.
         for i in range(len(species) - 1):
             outfile.write('"{}", '.format(species[i]))
@@ -38,7 +73,7 @@ def write_constants(outfile, model, reactions, species):
             outfile.write('{}, '.format(model.listOfSpecies[species[i]].initial_value))
         outfile.write('{}'.format(model.listOfSpecies[species[-1]].initial_value))
         outfile.write("};\n")
-    if len(reactions) > 0:
+    if reactions:
         # Write reaction names
         outfile.write("std :: string r_names[] = {")
         for i in range(len(reactions) - 1):
@@ -46,14 +81,28 @@ def write_constants(outfile, model, reactions, species):
         outfile.write('"{}"'.format(reactions[-1]))
         outfile.write("};\n")
     for param in model.listOfParameters:
-        outfile.write("const double {0} = {1};\n".format(param, model.listOfParameters[param].value))
+        outfile.write("const double {0} = {1};\n".format
+                      (param, model.listOfParameters[param].value))
 
 
 def write_propensity(outfile, model, reactions, species):
-    for i in range(len(reactions)):
+    """
+    Write model propensities to simulation template
+    Attributes
+    ----------
+    outfile : str
+        File created from template for compile.
+    model : Model
+        model to be simulated.
+    reactions : dict
+        model reactions for simulation
+    species : dict
+        model species for simulation
+    """
+    for i in enumerate(reactions):
         propensity_function = model.listOfReactions[reactions[i]].propensity_function
         # Replace species references with array references
-        for j in range(len(species)):
+        for j in enumerate(species):
             propensity_function = propensity_function.replace(species[j], "state[{}]".format(j))
         # Write switch statement case for reaction
         outfile.write("""
@@ -63,27 +112,54 @@ def write_propensity(outfile, model, reactions, species):
 
 
 def write_reactions(outfile, model, reactions, species):
-    for i in range(len(reactions)):
+    """
+    Write model reactions to simulation template.
+
+    Attributes
+    ----------
+    outfile : str
+       File created from template for compile.
+    model : Model
+        model to be simulated.
+    reactions : dict
+        model reactions for simulation
+    species : dict
+        model species for simulation
+    """
+    for i in enumerate(reactions):
         reaction = model.listOfReactions[reactions[i]]
-        for j in range(len(species)):
+        for j in enumerate(species):
             change = (reaction.products.get(model.listOfSpecies[species[j]], 0)) - (
                 reaction.reactants.get(model.listOfSpecies[species[j]], 0))
             if change != 0:
-                outfile.write("model.reactions[{0}].species_change[{1}] = {2};\n".format(i, j, change))
+                outfile.write("model.reactions[{0}].species_change[{1}] = {2};\n".format
+                              (i, j, change))
 
 
 def parse_output(results, number_timesteps, number_species):
+    """
+    Parses the results form the simulation executable into a
+    3-dimensional numpy array with dimensions [trajectory][timestep][species]
+
+    Attributes
+    ----------
+    results : str
+        The simulation results returned by the executable as a string.
+    number_timesteps : int
+        Number of timesteps per trajectory
+    number_species : int
+        number of species present in the model
+    """
     values = bytes(results).decode('utf-8')
     values = values.splitlines()
-    #print (values)
     number_of_trajectories = int(values[-1].rsplit()[-1])
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
     trajectory_n = 0
     timestep = 0
     lines_to_read = (number_of_trajectories * number_timesteps) + 1
-    print(values[-1])
+    number_of_runs = values[-1]
+    print (number_of_runs)
     for line in range(1, lines_to_read):
-        #print(values[line])
         if timestep == number_timesteps:
             trajectory_n += 1
             timestep = 0
@@ -92,39 +168,30 @@ def parse_output(results, number_timesteps, number_species):
         for species in range(number_species):
             trajectory_base[trajectory_n, timestep, species+1] = value[species+1]
         timestep += 1
-    #print(trajectory_base)
-    #print(values[-2])
     return trajectory_base
-
-
-def parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species):
-    trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species + 1))
-    step_size = number_species * number_of_trajectories + 1  # 1 for timestep
-    data = np.frombuffer(results_buffer, dtype=np.float64)
-    assert (len(data) == (number_of_trajectories * number_timesteps * number_species + number_timesteps))
-    for timestep in range(number_timesteps):
-        index = step_size * timestep
-        trajectory_base[:, timestep, 0] = data[index]
-        index += 1
-        for trajectory in range(number_of_trajectories):
-            for species in range(number_species):
-                trajectory_base[trajectory, timestep, 1 + species] = data[index + species]
-            index += number_species
-    return trajectory_base
-
 
 class SSACMultiSolver(GillesPySolver):
     name = "SSACMultiSolver"
     """TODO"""
 
-    def __init__(self, model=None, output_directory=None, delete_directory=True, number_of_processes=4, alpha=0.01):
+    def __init__(self, model=None, output_directory=None, delete_directory=True,
+                 number_of_processes=4, alpha=0.01, win_py_native=False):
         super(SSACMultiSolver, self).__init__()
         self.compiled = False
         self.delete_directory = False
         self.model = model
-        self.number_of_processes=number_of_processes
-        self.alpha=alpha
-        if self.model is not None:
+        self.number_of_processes = number_of_processes
+        self.alpha = alpha
+        self.win_py_native = win_py_native
+        self.simulation_data = None
+
+        if alpha > 1 or self.alpha <= 0:
+            raise gillespy2.InvalidAlphaError("Alpha must be between 0 and 1, 1 inclusive")
+
+        if number_of_processes > 100:
+            raise gillespy2.InvalidProcessesError("Number of Processes must be between 1 and 100")
+
+        if self.model:
             # Create constant, ordered lists for reactions/species
             self.reactions = list(self.model.listOfReactions.keys())
             self.species = list(self.model.listOfSpecies.keys())
@@ -154,6 +221,9 @@ class SSACMultiSolver(GillesPySolver):
             shutil.rmtree(self.output_directory)
 
     def write_template(self, template_file='SimulationTemplate.cpp'):
+        """
+        Write simulation template file to be compiled.
+        """
         # Open up template file for reading.
         with open(os.path.join(self.output_directory, template_file), 'r') as template:
             # Write simulation C++ file.
@@ -173,58 +243,63 @@ class SSACMultiSolver(GillesPySolver):
                         outfile.write(line)
 
     def compile(self):
-        MULTI_PATH = os.path.join(self.output_directory, 'c_multi_solver')
-        bash_path = os.path.join(os.environ['SystemRoot'], 'SysNative', 'bash.exe')
-        bash_path2 = os.path.join(os.environ['SystemRoot'], 'System32', 'bash.exe')
+        """
+        Compile the simulation files into Linux executables
+        """
+        multi_path = os.path.join(self.output_directory, 'c_multi_solver')
+        bash_path = os.path.join(os.environ['SystemRoot'], 'System32', 'bash.exe')
+        bash_path2 = os.path.join(os.environ['SystemRoot'], 'SysNative', 'bash.exe')
+        if self.win_py_native:
+            bash_path = bash_path2
         # Use makefile.
-        comp_arg = '{0} -c make'.format(bash_path2)
-        cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulation'], stdout=subprocess.PIPE)
-        built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        comp_arg = '{0} -c make'.format(bash_path)
+        subprocess.run(
+            ["make", "-C", self.output_directory, 'cleanSimulation'], stdout=subprocess.PIPE)
+        built = subprocess.run(
+            ["make", "-C", self.output_directory, 'UserSimulation'],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if os.name == 'nt':
-            MULTI_PATH = MULTI_PATH.replace('\\', '/')
-            built_multi = subprocess.run(comp_arg, cwd=MULTI_PATH, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+            multi_path = multi_path.replace('\\', '/')
+            built_multi = subprocess.run(
+                comp_arg, cwd=multi_path, stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE, shell=False)
         else:
-            built_multi = subprocess.run(["make", "-C", MULTI_PATH], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            built_multi = subprocess.run(
+                ["make", "-C", multi_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         #print(built_multi.stdout)
         # Use makefile.
         if built.returncode == 0 and built_multi.returncode == 0:
             self.compiled = True
         else:
-            print("Error encountered while compiling file:\nbuilt Return code: {0}.\nError:\n{1}\n".format(built.returncode,
-                                                                                                     built.stderr))
-            print("Error encountered while compiling file:\nbuilt_multi Return code: {0}.\nError:\n{1}\n".format(built_multi.returncode,
-                                                                                                           built_multi.stderr))
+            print("Error encountered while compiling file:\n"
+                  "built Return code: {0}.\nError:\n{1}\n"
+                  .format(built.returncode, built.stderr))
+            print("Error encountered while compiling file:\n"
+                  "built_multi Return code: {0}.\nError:\n{1}\n"
+                  .format(built_multi.returncode, built_multi.stderr))
 
     def run(self=None, model=None, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, show_labels=False, stochkit_home=None):
-        bash_path = os.path.join(os.environ['SystemRoot'], 'SysNative', 'bash.exe')
-        bash_path2 = os.path.join(os.environ['SystemRoot'], 'System32', 'bash.exe')
 
         if self is None:
             self = SSACMultiSolver(model)
+
         if self.compiled:
-            self.simulation_data = None
+            #self.simulation_data = None
             number_timesteps = int(t // increment)
             if t % increment > 0:
                 number_timesteps += 1
             # Execute simulation.
-            MULTI_PATH = os.path.join(self.output_directory, 'c_multi_solver/')
-            MULTI_PATH = MULTI_PATH.replace('\\', '/')
-            if os.name == 'nt':
-                args = '{0} -c "./c_multi_solver ../UserSimulation.exe {1} {2} {3} {4} {5}"'.format(bash_path2, str(self.number_of_processes), str(len(self.species)), str(number_timesteps), str(t), str(self.alpha))
-                if isinstance(seed, int):
-                    args.append(str(seed))
-
-            else:
-                args = "./c_multi_solver ../UserSimulation {1} {2} {3} {4} {5}".format(str(number_of_processors), str(len(self.species)), str(number_timesteps), str(t)), str(alpha)
-                if isinstance(seed, int):
-                    args.append('-seed')
-                    args.append(str(seed))
-            simulation = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=MULTI_PATH, shell=False)
+            multi_path = os.path.join(self.output_directory, 'c_multi_solver/')
+            multi_path = multi_path.replace('\\', '/')
+            args = self.getargs(seed, number_timesteps, t)
+            simulation = subprocess.run(
+                args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=multi_path, shell=False)
             # Parse/return results.
 
             if simulation.returncode == 0:
-                trajectory_base = parse_output(simulation.stdout, number_timesteps, len(self.species))
+                trajectory_base = parse_output(
+                    simulation.stdout, number_timesteps, len(self.species))
                 # Format results
                 if show_labels:
                     self.simulation_data = []
@@ -237,7 +312,37 @@ class SSACMultiSolver(GillesPySolver):
                 else:
                     self.simulation_data = trajectory_base
             else:
-                print("Error encountered while running simulation C++ file:\nReturn code: {0}.\nError:\n{1}\n".format(
-                    simulation.returncode, simulation.stderr))
+                print("Error encountered while running simulation C++ file:\n"
+                      "Return code: {0}.\nError:\n{1}\n"
+                      .format(simulation.returncode, simulation.stderr))
 
         return self.simulation_data
+
+    def getargs(self, seed, number_timesteps, t):
+        """
+        Assign correct subprocess calls for current system and environment
+        """
+        bash_path = os.path.join(os.environ['SystemRoot'], 'System32', 'bash.exe')
+        bash_path2 = os.path.join(os.environ['SystemRoot'], 'SysNative', 'bash.exe')
+
+        if self.win_py_native:
+            bash_path = bash_path2
+
+
+        multi_path = os.path.join(self.output_directory, 'c_multi_solver/')
+        multi_path = multi_path.replace('\\', '/')
+        if os.name == 'nt':
+            args = '{0} -c "./c_multi_solver ../UserSimulation.exe {1} {2} {3} {4} {5}"'.format(
+                bash_path, str(self.number_of_processes), str(len(self.species)),
+                str(number_timesteps), str(t), str(self.alpha))
+            if isinstance(seed, int):
+                args.append(str(seed))
+
+        else:
+            args = "./c_multi_solver ../UserSimulation {1} {2} {3} {4} {5}".format(
+                str(self.number_of_processes), str(len(self.species)),
+                str(number_timesteps), str(t)), str(self.alpha)
+            if isinstance(seed, int):
+                args.append('-seed')
+                args.append(str(seed))
+        return args

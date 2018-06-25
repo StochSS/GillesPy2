@@ -1,4 +1,4 @@
-""" 
+"""
 A simple toolkit for creating and simulating discrete stochastic models in 
 python.
 
@@ -1113,4 +1113,10 @@ class InvalidStochMLError(Exception):
 
 
 class InvalidModelError(Exception):
+    pass
+
+class InvalidAlphaError (Exception):
+    pass
+
+class InvalidProcessesError (Exception):
     pass
