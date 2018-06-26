@@ -2,14 +2,11 @@
 An optional solver for simulating models which runs until desired convergence is met.
 
 This solver serves primarily as a C wrapper to the ssa_c_solver.
-It utilizes multi-threading to run multiple C_Solver instances, stores them
-in two different structures (evens and odds). The user designates a desired
-"alpha" which correlates to a maximum distance determined by a
-is calculated by a Kolmogorov-Smirnov
-
-This version is updated (4/2017) to contain documentation in a more reasonable
-format. This does not necessarily mean it is perfect, but it is certainly an
-improvement over the original.
+It utilizes posix-threading to run multiple C_Solver processes, and stores
+them in two different structures (evens and odds). The user designates
+a desired "alpha" which correlates to a maximum distance determined by a
+is calculated by a Kolmogorov-Smirnov distance comparison between
+the evens and odds.
 
 """
 
@@ -99,10 +96,10 @@ def write_propensity(outfile, model, reactions, species):
     species : dict
         model species for simulation
     """
-    for i in enumerate(reactions):
+    for i in range(len(reactions)):
         propensity_function = model.listOfReactions[reactions[i]].propensity_function
         # Replace species references with array references
-        for j in enumerate(species):
+        for j in range(len(species)):
             propensity_function = propensity_function.replace(species[j], "state[{}]".format(j))
         # Write switch statement case for reaction
         outfile.write("""
@@ -126,9 +123,9 @@ def write_reactions(outfile, model, reactions, species):
     species : dict
         model species for simulation
     """
-    for i in enumerate(reactions):
+    for i in range(len(reactions)):
         reaction = model.listOfReactions[reactions[i]]
-        for j in enumerate(species):
+        for j in range(len(species)):
             change = (reaction.products.get(model.listOfSpecies[species[j]], 0)) - (
                 reaction.reactants.get(model.listOfSpecies[species[j]], 0))
             if change != 0:
@@ -158,7 +155,7 @@ def parse_output(results, number_timesteps, number_species):
     timestep = 0
     lines_to_read = (number_of_trajectories * number_timesteps) + 1
     number_of_runs = values[-1]
-    print (number_of_runs)
+    print(number_of_runs)
     for line in range(1, lines_to_read):
         if timestep == number_timesteps:
             trajectory_n += 1
@@ -171,6 +168,26 @@ def parse_output(results, number_timesteps, number_species):
     return trajectory_base
 
 class SSACMultiSolver(GillesPySolver):
+    """
+        Optional Solver. Solves with basic SSA until desired convergence is met.
+
+        Attributes
+        ----------
+        name : str
+            The name by which this solver will be called.
+        model : gillespy2.Model
+            The model associated with this instance of the solver.
+        output_directory : str
+            desired output_directory for compiled C files
+        delete_directory : bool
+            if True, output_directory is removed after run
+        number_of_processes : int
+            number of processes to execute the simulations
+        alpha : float
+            desired maximum ks distance for convergence
+        win_py_native : bool
+            set to True if you are running this program on Windows with native Python
+        """
     name = "SSACMultiSolver"
     """TODO"""
 
@@ -280,12 +297,33 @@ class SSACMultiSolver(GillesPySolver):
 
     def run(self=None, model=None, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, show_labels=False, stochkit_home=None):
+        """
+            Runs the solver.
+
+            Attributes
+            ----------
+            name : str
+                The name by which this species will be called in reactions and within
+                the model.
+            model : Model
+                model to perform the solver on
+            t : int
+                total run time
+            increment : float
+                time step size for along time span t
+            seed : int
+                The random seed for the simulation. Optional, defaults to None.
+            debug : bool (False)
+                Set to True to provide additional debug information about the
+                simulation.
+            show_labels : bool (True)
+                Use names of species as index of result object rather than position numbers.
+            """
 
         if self is None:
             self = SSACMultiSolver(model)
 
         if self.compiled:
-            #self.simulation_data = None
             number_timesteps = int(t // increment)
             if t % increment > 0:
                 number_timesteps += 1
