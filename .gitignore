@@ -1,4 +1,4 @@
 *.pyc
 .ipynb_checkpoints*
 *.o
-workspace.xml
+idea/
