@@ -2,10 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="da75c221-f231-4e3e-8d7e-00239ac9d44b" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gillespy2/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/gillespy2/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gillespy2/gillespy2.py" beforeDir="false" afterPath="$PROJECT_DIR$/gillespy2/gillespy2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gillespy2/ssa_c_multisolver.py" beforeDir="false" afterPath="$PROJECT_DIR$/gillespy2/ssa_c_multisolver.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/TestingBattery.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/examples/TestingBattery.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/example_c_multisolver.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/examples/example_c_multisolver.ipynb" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -37,25 +36,36 @@
       <file leaf-file-name="gillespy2.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gillespy2/gillespy2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="398">
-              <caret line="653" column="80" lean-forward="true" selection-start-line="653" selection-start-column="80" selection-end-line="653" selection-end-column="80" />
+            <state relative-caret-position="419">
+              <caret line="596" column="13" lean-forward="true" selection-start-line="596" selection-start-column="13" selection-end-line="596" selection-end-column="13" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ssa_c_multisolver.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="ssa_c_multisolver.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/gillespy2/ssa_c_multisolver.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="237">
-              <caret line="160" column="26" selection-start-line="160" selection-start-column="26" selection-end-line="160" selection-end-column="26" />
+            <state relative-caret-position="17">
+              <caret line="60" column="36" lean-forward="true" selection-start-line="60" selection-start-column="36" selection-end-line="60" selection-end-column="36" />
               <folding>
-                <element signature="e#0#48#0" expanded="true" />
+                <element signature="e#467#515#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="basic_root_solver.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="basic_hybrid_solver.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/gillespy2/basic_hybrid_solver.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state>
+              <folding>
+                <element signature="e#0#42#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="basic_root_solver.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gillespy2/basic_root_solver.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="679">
@@ -73,6 +83,13 @@
     <findStrings>
       <find>run</find>
       <find>mass-action</find>
+      <find>expression</find>
+      <find>get</find>
+      <find>get</find>
+      <find>propensity</find>
+      <find>species</find>
+      <find>debug</find>
+      <find>enumer</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -88,9 +105,9 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="-7" />
-    <option name="width" value="1110" />
+  <component name="ProjectFrameBounds">
+    <option name="x" value="793" />
+    <option name="width" value="814" />
     <option name="height" value="867" />
   </component>
   <component name="ProjectView">
@@ -177,17 +194,18 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1616" height="876" extended-state="6" />
+    <frame x="793" y="0" width="814" height="867" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.21625" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.43358395" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
+      <window_info active="true" anchor="bottom" id="Find" order="1" visible="true" weight="0.32978722" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Python Console" order="7" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.30486202" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Terminal" order="7" />
+      <window_info anchor="bottom" id="Terminal" order="7" weight="0.3337766" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -196,7 +214,6 @@
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-      <window_info anchor="bottom" id="Find" order="1" />
     </layout>
   </component>
   <component name="VcsContentAnnotationSettings">
@@ -227,7 +244,7 @@
         <state relative-caret-position="3689">
           <caret line="217" column="19" selection-start-line="217" selection-start-column="19" selection-end-line="217" selection-end-column="19" />
           <folding>
-            <element signature="e#0#48#0" expanded="true" />
+            <element signature="e#467#515#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -300,7 +317,7 @@
         <state relative-caret-position="3536">
           <caret line="208" column="34" selection-start-line="208" selection-start-column="34" selection-end-line="208" selection-end-column="34" />
           <folding>
-            <element signature="e#0#48#0" expanded="true" />
+            <element signature="e#467#515#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -392,29 +409,38 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gillespy2/gillespy2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="398">
-          <caret line="653" column="80" lean-forward="true" selection-start-line="653" selection-start-column="80" selection-end-line="653" selection-end-column="80" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/gillespy2/ssa_c_multisolver.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="237">
-          <caret line="160" column="26" selection-start-line="160" selection-start-column="26" selection-end-line="160" selection-end-column="26" />
-          <folding>
-            <element signature="e#0#48#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/gillespy2/basic_root_solver.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="679">
           <caret line="125" lean-forward="true" selection-start-line="125" selection-end-line="125" />
           <folding>
             <element signature="e#0#42#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gillespy2/basic_hybrid_solver.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#0#42#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gillespy2/gillespy2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="419">
+          <caret line="596" column="13" lean-forward="true" selection-start-line="596" selection-start-column="13" selection-end-line="596" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gillespy2/ssa_c_multisolver.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="17">
+          <caret line="60" column="36" lean-forward="true" selection-start-line="60" selection-start-column="36" selection-end-line="60" selection-end-column="36" />
+          <folding>
+            <element signature="e#467#515#0" expanded="true" />
           </folding>
         </state>
       </provider>
