@@ -83,48 +83,44 @@ class BasicHybridSolver(GillesPySolver):
     @staticmethod
     def get_reaction(curr_state, y0, model, curr_time, save_time, eval_globals):
         multiple = False  # flag variable for multiple reactions
-        current_time = curr_time    #integration start time
-        int_time = current_time    #integration end time
         current = None      #current matrix state of species
-        print("Save time at beginning of get reaction: ", save_time)
         rhs = ode(BasicHybridSolver.f) #set function as ODE object
-        rhs.set_initial_value(y0, current_time).set_f_params(curr_state, model.listOfSpecies, model.listOfParameters, model.listOfReactions, model.listOfRateRules, eval_globals)
+        rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfSpecies, model.listOfParameters, model.listOfReactions, model.listOfRateRules, eval_globals)
         #TODO: do we need to pass species and parameters to "f()"??
         last_state = y0
-        last_time = current_time
-        step = max(0.1, save_time - current_time)
+        last_time = curr_time
+        step = max(0.1, save_time / 10)
 
         while rhs.successful():
             # Save previous state and time
-            if current is not None and not multiple:
+            if current is not None and not multiple:    # NO reaction Fired.
                 last_state = current
                 last_time = int_time
 
-            int_time += step
-            print("Int Time: ", int_time)
+            int_time = last_time+step
+
             if int_time > save_time:
                 int_time = save_time
 
-            current = rhs.integrate(int_time) # current holds integration from current_time to int_time
+            print("Curr Time: ", curr_time, " Save time: ", save_time, " Int Time: ", int_time)
+            current = rhs.integrate(int_time)   # current holds integration from current_time to int_time
 
             occurred = []
             for i, r in enumerate(model.listOfReactions):
                 if current[i] > 0:
                     occurred.append(r)
             n_occur = len(occurred)
-
             if n_occur == 1:
                 break
             elif n_occur > 1:
                 multiple = True
                 step = step * .5
-                int_time = last_time
+                curr_time = last_time
                 rhs = ode(BasicHybridSolver.f)
                 rhs.set_initial_value(last_state, last_time).set_f_params(curr_state, model.listOfSpecies,
                                                                           model.listOfParameters, model.listOfReactions, model.listOfRateRules, eval_globals)
             elif int_time == save_time:
                 occurred.append(None)
-
                 break
             else:
                 multiple = False
@@ -145,7 +141,7 @@ class BasicHybridSolver(GillesPySolver):
             self = BasicHybridSolver()
         
         print("t = ",t)
-        print("increment = ",increment)
+        print("increment = ", increment)
         
         import math
         eval_globals = math.__dict__
@@ -174,50 +170,40 @@ class BasicHybridSolver(GillesPySolver):
         propensity_sum = 0
         for i, r in enumerate(model.listOfReactions):
             y0[i] = (math.log(random.uniform(0, 1)))
-            #propensities[r] = eval(model.listOfReactions[r].propensity_function, curr_state)
-            #print("Propensity of ", r, " is ", propensities[r])
-            #propensity_sum += propensities[r]
+
             for i, rr in enumerate(model.listOfRateRules):
                 spec = model.listOfRateRules[rr].species.name
                 y0[i+len(model.listOfReactions)] = curr_state[spec]
 
-
-        while curr_time < t:
-#            if propensity_sum <= 0:
-#                while save_time <= t:
-#                    results['time'].append(save_time)
-#                    for s in model.listOfSpecies:
-#                        results[s].append(curr_state[s])
-#                    save_time += increment
-#                return results
-            print("Save time: ", save_time, " Curr Time: ", curr_time)
-            while save_time < curr_time:
-                results['time'].append(save_time)
-                for i, s in enumerate(model.listOfSpecies):
-                    results[s].append(curr_state[s])
-                save_time += increment
-
-            #TODO: change ".1" to Salis et al. eq (16)
-            reaction, y0, populations, curr_time = self.get_reaction(curr_state, y0, model, curr_time, save_time, eval_globals)
-
-            if reaction is not None:
+        while save_time < t:
+            while curr_time < save_time:
                 for i, r in enumerate(model.listOfReactions):
-                    if r == reaction:
-                        y0[i] = (math.log(random.uniform(0, 1)))
-                        break
-            
-            print("Save time: ", save_time, " Curr Time: ", curr_time)
-            while save_time < curr_time:
-                results['time'].append(save_time)
-                for i, s in enumerate(model.listOfSpecies):
-                    results[s].append(curr_state[s])
-                save_time += increment
+                    propensities[r] = eval(model.listOfReactions[r].propensity_function, curr_state)
+                    print("Propensity of ", r, " is ", propensities[r])
+                    propensity_sum += propensities[r]
+                if propensity_sum <= 0:
+                    while save_time <= t:
+                        results['time'].append(save_time)
+                        for s in model.listOfSpecies:
+                            results[s].append(curr_state[s])
+                        save_time += increment
+                    return results
 
-            # Update curr_state with the result of the SSA reaction that fired
-            if reaction is not None:
-                for reactant in model.listOfReactions[reaction].reactants:
-                    curr_state[str(reactant)] -= model.listOfReactions[reaction].reactants[reactant]
-                for product in model.listOfReactions[reaction].products:
-                    curr_state[str(product)] += model.listOfReactions[reaction].products[product]
+                #TODO: change ".1" to Salis et al. eq (16)
+                reaction, y0, curr_state, curr_time = self.get_reaction(curr_state, y0, model, curr_time, save_time, eval_globals)
 
+                # Update curr_state with the result of the SSA reaction that fired
+                if reaction is not None:
+                    for i, r in enumerate(model.listOfReactions):
+                        if r == reaction:
+                            y0[i] = (math.log(random.uniform(0, 1)))
+                            break
+                    for reactant in model.listOfReactions[reaction].reactants:
+                        curr_state[str(reactant)] -= model.listOfReactions[reaction].reactants[reactant]
+                    for product in model.listOfReactions[reaction].products:
+                        curr_state[str(product)] += model.listOfReactions[reaction].products[product]
+            results['time'].append(save_time)
+            for i, s in enumerate(model.listOfSpecies):
+                results[s].append(curr_state[s])
+            save_time += increment
         return results
