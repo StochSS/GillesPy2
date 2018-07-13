@@ -171,12 +171,12 @@ class BasicHybridSolver(GillesPySolver):
         for i, r in enumerate(model.listOfReactions):
             y0[i] = (math.log(random.uniform(0, 1)))
 
-            for i, rr in enumerate(model.listOfRateRules):
-                spec = model.listOfRateRules[rr].species.name
-                y0[i+len(model.listOfReactions)] = curr_state[spec]
-
         while save_time < t:
             while curr_time < save_time:
+                for i, rr in enumerate(model.listOfRateRules):
+                    spec = model.listOfRateRules[rr].species.name
+                    y0[i + len(model.listOfReactions)] = curr_state[spec]
+
                 for i, r in enumerate(model.listOfReactions):
                     propensities[r] = eval(model.listOfReactions[r].propensity_function, curr_state)
                     print("Propensity of ", r, " is ", propensities[r])
