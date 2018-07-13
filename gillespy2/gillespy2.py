@@ -103,6 +103,7 @@ class Model(object):
         self.listOfParameters = OrderedDict()
         self.listOfSpecies = OrderedDict()
         self.listOfReactions = OrderedDict()
+        self.listOfRateRules = OrderedDict()
 
         # This defines the unit system at work for all numbers in the model
         # It should be a logical error to leave this undefined, subclasses 
@@ -320,6 +321,31 @@ class Model(object):
             raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(param_type))
         return reactions
 
+    def add_rate_rule(self, rate_rules):
+        """
+                Adds a rate rule, or list of rate rules to the model.
+
+                Attributes
+                ----------
+                obj : RateRule, or list of RateRules
+                    The reaction or list of raterule objects to be added to the model
+                    object.
+                """
+
+        # TODO, make sure that you cannot overwrite an existing reaction
+        # param_type = type(reactions).__name__
+        print("Adding rate rule ", rate_rules, " to ", self.name)
+        if isinstance(rate_rules, list):
+            for rr in rate_rules:
+                self.add_rate_rule(rr)
+        elif isinstance(rate_rules, dict) or isinstance(rate_rules, OrderedDict):
+            self.add_rate_rule(rate_rules.expression())
+        elif isinstance(rate_rules, RateRule):
+            self.listOfRateRules[rate_rules.species.name] = rate_rules
+        else:
+            raise ParameterError("Could not resolve Rate Rule0 expression {} to a scalar value.".format(param_type))
+        return rate_rules
+
     def timespan(self, time_span):
         """ 
         Set the time span of simulation. StochKit does not support non-uniform 
@@ -455,12 +481,14 @@ class Species:
         the type will be changed when it is added by numpy.int
     """
 
-    def __init__(self, name="", initial_value=0):
+    def __init__(self, name="", initial_value=0, deterministic=False):
         # A species has a name (string) and an initial value (positive integer)
         self.name = name
         self.initial_value = np.int(initial_value)
+        self.deterministic = deterministic
         assert self.initial_value >= 0, "A species initial value has to \
                                         be a positive number."
+
 
     def __str__(self):
         return self.name
@@ -576,6 +604,12 @@ class Reaction:
     must be scaled by the volume prior to being added for unit consistency.
     """
 
+class RateRule:
+    def __init__(self, species=None, expression=None):
+        self.expression = expression
+        self.species = species
+
+class Reaction:
     def __init__(self, name="", reactants={}, products={},
                  propensity_function=None, massaction=False,
                  rate=None, annotation=None):
