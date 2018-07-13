@@ -82,14 +82,14 @@ class BasicHybridSolver(GillesPySolver):
         return occurred[0], current, populations, int_time
 
     @classmethod
-    def run(cls, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=False,
+    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=False,
             stochkit_home=None, **kwargs):
-        self = BasicHybridSolver()
+        if not isinstance(self, BasicHybridSolver):
+            self = BasicHybridSolver()
         num_deterministic = 0
         #TODO
         #num_deterministic must change when toggling deterministic
         y0 = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
-        populations = []
         propensities = {}
         curr_state = {}
         curr_time = 0
@@ -103,7 +103,6 @@ class BasicHybridSolver(GillesPySolver):
 
         for s in model.listOfSpecies:
             # initialize populations
-            populations.append(model.listOfSpecies[s].initial_value)
             curr_state[s] = model.listOfSpecies[s].initial_value
             results[s] = []
 
@@ -148,8 +147,5 @@ class BasicHybridSolver(GillesPySolver):
                     curr_state[str(reactant)] -= model.listOfReactions[reaction[0]].reactants[reactant]
                 for product in model.listOfReactions[reaction[0]].products:
                     curr_state[str(product)] += model.listOfReactions[reaction[0]].products[product]
-
-            for i, s in enumerate(model.listOfSpecies):
-                populations[i] = curr_state[s]
 
         return results
