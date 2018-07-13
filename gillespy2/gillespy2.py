@@ -605,9 +605,10 @@ class Reaction:
     """
 
 class RateRule:
-    def __init__(self, species=None, expression=None):
+    def __init__(self, name=None, species=None, expression=None):
         self.expression = expression
         self.species = species
+        self.name = name
 
 class Reaction:
     def __init__(self, name="", reactants={}, products={},
