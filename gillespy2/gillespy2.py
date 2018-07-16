@@ -566,6 +566,14 @@ class Parameter:
         self.evaluate()
 
 
+class RateRule:
+    def __init__(self, species, expression, name=None):
+        self.expression = expression
+        self.species = species
+        self.name = name
+
+
+
 class Reaction:
     """ 
     Models a single reaction. A reaction has its own dicts of species 
@@ -604,13 +612,6 @@ class Reaction:
     must be scaled by the volume prior to being added for unit consistency.
     """
 
-class RateRule:
-    def __init__(self, species, expression, name=None):
-        self.expression = expression
-        self.species = species
-        self.name = name
-
-class Reaction:
     def __init__(self, name="", reactants={}, products={},
                  propensity_function=None, massaction=False,
                  rate=None, annotation=None):
