@@ -9,6 +9,9 @@ eval_globals ={}
 
 class BasicHybridSolver(GillesPySolver):
     name = "Basic Hybrid Solver"
+
+    def __init__(self, debug=False):
+        self.debug = debug
     
     
     @staticmethod
@@ -81,7 +84,7 @@ class BasicHybridSolver(GillesPySolver):
 
 
     @staticmethod
-    def get_reaction(curr_state, y0, model, curr_time, save_time, eval_globals):
+    def get_reaction(curr_state, y0, model, curr_time, save_time, eval_globals, debug):
         multiple = False  # flag variable for multiple reactions
         current = None      #current matrix state of species
         rhs = ode(BasicHybridSolver.f) #set function as ODE object
@@ -102,7 +105,8 @@ class BasicHybridSolver(GillesPySolver):
             if int_time > save_time:
                 int_time = save_time
 
-            print("Curr Time: ", curr_time, " Save time: ", save_time, " Int Time: ", int_time)
+            if debug:
+                print("Curr Time: ", curr_time, " Save time: ", save_time, " Int Time: ", int_time)
             current = rhs.integrate(int_time)   # current holds integration from current_time to int_time
 
             occurred = []
@@ -130,18 +134,20 @@ class BasicHybridSolver(GillesPySolver):
         for i, s in enumerate(model.listOfRateRules):
             curr_state[s] = current[i+len(model.listOfReactions)]
 
-        print("Reaction Fired: ", occurred)
-        print(current)
+        if debug:
+            print("Reaction Fired: ", occurred)
+            print(current)
         return occurred[0], current, curr_state, int_time
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=False,
-            stochkit_home=None, **kwargs):
+             **kwargs):
         if not isinstance(self, BasicHybridSolver):
             self = BasicHybridSolver()
-        
-        print("t = ",t)
-        print("increment = ", increment)
+       
+        if debug:
+            print("t = ",t)
+            print("increment = ", increment)
         
         import math
         eval_globals = math.__dict__
@@ -179,7 +185,8 @@ class BasicHybridSolver(GillesPySolver):
 
                 for i, r in enumerate(model.listOfReactions):
                     propensities[r] = eval(model.listOfReactions[r].propensity_function, curr_state)
-                    print("Propensity of ", r, " is ", propensities[r])
+                    if debug:
+                        print("Propensity of ", r, " is ", propensities[r])
                     propensity_sum += propensities[r]
                 if propensity_sum <= 0:
                     while save_time <= t:
@@ -190,7 +197,7 @@ class BasicHybridSolver(GillesPySolver):
                     return results
 
                 #TODO: change ".1" to Salis et al. eq (16)
-                reaction, y0, curr_state, curr_time = self.get_reaction(curr_state, y0, model, curr_time, save_time, eval_globals)
+                reaction, y0, curr_state, curr_time = self.get_reaction(curr_state, y0, model, curr_time, save_time, eval_globals, debug=debug)
 
                 # Update curr_state with the result of the SSA reaction that fired
                 if reaction is not None:
