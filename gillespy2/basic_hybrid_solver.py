@@ -29,7 +29,7 @@ class BasicHybridSolver(GillesPySolver):
 
         return state_change
 
-    def get_reaction_integrate(self, step, curr_state, y0, model, curr_time, eval_globals, propensities):
+    def get_reaction_integrate(self, step, euler_step, curr_state, y0, model, curr_time, eval_globals, propensities, projected_reaction):
         ''' Helper function to perform the ODE integration of one step '''
         rhs = ode(BasicHybridSolver.f) #set function as ODE object
         rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfReactions, model.listOfRateRules, eval_globals, propensities, curr_time)
@@ -39,12 +39,20 @@ class BasicHybridSolver(GillesPySolver):
         if rhs.successful():
             return current, curr_time + step
         else:
-            #TODO: if step is < 1e-15, take a Forward-Euler step for all species ('propensites' and RateRules)
-            raise Exception("get_reaction_integrate() failed.")
+            #if step is < 1e-15, take a Forward-Euler step for all species ('propensites' and RateRules)
+            print("Projected Reaction: ", projected_reaction.name)
+            for i, r in enumerate(model.listOfReactions):
+                if model.listOfReactions[r] == projected_reaction:
+                    current[i] = 0
+                else:
+                    current[i] = propensities[r] * euler_step + y0[i]
+            #TODO The RateRule should still contain the correct value in current, verify this
+            for i, rr in enumerate(model.listOfRateRules):
+                print("RHS FAILED: value of continuous species is: ", current[i+len(model.listOfReactions)])
+            return current, curr_time + euler_step
 
 
-
-    def get_reaction(self, curr_state, y0, model, step, curr_time, save_time, eval_globals, propensities, debug):
+    def get_reaction(self, curr_state, y0, model, euler_step, curr_time, save_time, eval_globals, propensities, projected_reaction, debug):
         ''' Get the time to the next reaction by integrating the SSA reaction functions
             along with the RateRules.  Update population of species governed by rate rules
         '''
@@ -52,7 +60,7 @@ class BasicHybridSolver(GillesPySolver):
         current = None      #current matrix state of species
         last_state = y0
         last_time = curr_time
-        occurred = []
+        step = euler_step
         recursion_counter = 0
         time_advance_flag = False
 
@@ -63,11 +71,11 @@ class BasicHybridSolver(GillesPySolver):
             if debug:
                 print("Curr Time: ", curr_time, " Save time: ", save_time,  "step: ", step)
                 
-            current, curr_time = self.get_reaction_integrate(step,curr_state, y0, model, curr_time, eval_globals, propensities)
+            current, curr_time = self.get_reaction_integrate(step, euler_step, curr_state, y0, model, curr_time, eval_globals, propensities, projected_reaction)
 
             occurred = []
             for i, r in enumerate(model.listOfReactions):
-                if current[i] > 0:
+                if current[i] >= 0:
                     occurred.append(r)
             n_occur = len(occurred)
             if n_occur == 1:
@@ -161,19 +169,22 @@ class BasicHybridSolver(GillesPySolver):
                     propensity_sum += propensities[r]
                 #Salis et al. eq (16)
                 #TODO: this needs to be optimized.  Going too big is expensive, too small is also expensive
+                projected_reaction = None
                 tau_step = None
+                tau_j = {}
                 for i, r in enumerate(model.listOfReactions):
-                    if(propensities[r] > 0):
-                        tau_j = -y0[i] / propensities[r] 
+                    if propensities[r] > 0:
+                        tau_j[r] = -y0[i] / propensities[r]
                         if debug:
-                            print("Propensity of ", r, " is ", propensities[r], "tau_j is ",tau_j)
-                        if(tau_step is None or tau_j < tau_step):
-                            tau_step = tau_j
+                            print("Propensity of ", r, " is ", propensities[r], "tau_j is ",tau_j[r])
+                        if tau_step is None or tau_j[r] < tau_step:
+                            tau_step = tau_j[r]
+                            projected_reaction = model.listOfReactions[r]
                 if tau_step is None:
                     tau_step = save_time - curr_time
 
 
-                reaction, y0, curr_state, curr_time = self.get_reaction(curr_state, y0, model, tau_step, curr_time, save_time, eval_globals, propensities, debug=debug)
+                reaction, y0, curr_state, curr_time = self.get_reaction(curr_state, y0, model, tau_step, curr_time, save_time, eval_globals, propensities, projected_reaction, debug=debug)
 
                 # Update curr_state with the result of the SSA reaction that fired
                 if reaction is not None:
