@@ -19,7 +19,7 @@ class BasicHybridSolver(GillesPySolver):
         ''' Evaluate the propensities for the reactions and the RHS of the RateRules.
 
         '''
-        curr_state['t'] = curr_time
+        curr_state['t'] = t
         state_change = []
         for i, r in enumerate(reactions):
             propensities[r] = eval(reactions[r].propensity_function, eval_globals, curr_state)
@@ -32,9 +32,10 @@ class BasicHybridSolver(GillesPySolver):
     def get_reaction_integrate(self, step, curr_state, y0, model, curr_time, eval_globals, propensities):
         ''' Helper function to perform the ODE integration of one step '''
         rhs = ode(BasicHybridSolver.f) #set function as ODE object
-        rhs.set_initial_value(y0, 0).set_f_params(curr_state, model.listOfReactions, model.listOfRateRules, eval_globals, propensities, curr_time)
+        rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfReactions, model.listOfRateRules, eval_globals, propensities, curr_time)
+        #rhs.set_integrator('dop853')
 
-        current = rhs.integrate(step)   # current holds integration from current_time to int_time
+        current = rhs.integrate(step+curr_time)   # current holds integration from current_time to int_time
         if rhs.successful():
             return current, curr_time + step
         else:
@@ -53,6 +54,7 @@ class BasicHybridSolver(GillesPySolver):
         last_time = curr_time
         occurred = []
         recursion_counter = 0
+        time_advance_flag = False
 
         while True: 
             if curr_time+step > save_time:
@@ -88,6 +90,10 @@ class BasicHybridSolver(GillesPySolver):
                 last_state = current
                 last_time = curr_time
                 #TODO: if you hit this block of code more than once, double the step size
+                if time_advance_flag:
+                    step = step * 2
+                else:
+                    time_advance_flag = True
 
 
         # UPDATE THE STATE of the continuous species
