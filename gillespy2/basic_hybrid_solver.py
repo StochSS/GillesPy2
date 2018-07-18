@@ -86,9 +86,9 @@ class BasicHybridSolver(GillesPySolver):
             elif n_occur > 1:
                 if debug:
                     print("Multiple reactions fired in this step (n=", n_occur, ") changing step size from ", step,
-                          " to ", step*0.5, "recursion_counter: ", recursion_counter)
+                          " to ", step*0.75, "recursion_counter: ", recursion_counter)
                 # reset state, and try again
-                step = step * .5
+                step = step * .75
                 curr_time = last_time
                 y0 = last_state
                 recursion_counter += 1
@@ -105,8 +105,8 @@ class BasicHybridSolver(GillesPySolver):
                 if time_advance_flag:
                     if debug:
                         print("No reactions fired in this step (n=", n_occur, ") changing step size from ", step,
-                              " to ", step * 2)
-                    step = step * 2
+                              " to ", step * 1.25)
+                    step = step * 1.25
                 else:
                     time_advance_flag = True
 
