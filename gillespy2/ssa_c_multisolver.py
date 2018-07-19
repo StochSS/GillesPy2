@@ -302,9 +302,6 @@ class SSACMultiSolver(GillesPySolver):
 
             Attributes
             ----------
-            name : str
-                The name by which this species will be called in reactions and within
-                the model.
             model : Model
                 model to perform the solver on
             t : int
