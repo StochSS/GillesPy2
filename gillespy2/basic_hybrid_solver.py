@@ -1,11 +1,36 @@
+"""
+An optional solver for simulating models which allows for reactions
+to be effected by continuous species.
+
+This solver utilizes RateRules in order to specify the rate
+of a continuous species.  The populations of these continuous
+species can in turn be incorporated into the propensity function
+of one or many reactions.  This solver uses a root solving method
+which sets each reaction to a uniform random number, then solves an
+ODE based on the current state of the system to determine the next
+fired reaction.
+
+"""
+
 from .gillespySolver import GillesPySolver
 import random
 from scipy.integrate import ode
 import math
+
 eval_globals = math.__dict__
 
 
 class BasicHybridSolver(GillesPySolver):
+    """
+            Optional solver for continuous/discrete hybrid systems.
+
+            Attributes
+            ----------
+            name : str
+                The name by which this solver will be called.
+            debug : bool
+                If True, print additional debugging information to console.
+            """
     name = "Basic Hybrid Solver"
 
     def __init__(self, debug=False):
@@ -14,9 +39,24 @@ class BasicHybridSolver(GillesPySolver):
     
     @staticmethod
     def f(t, y, curr_state, reactions, rate_rules, propensities):
-        '''
-        Evaluate the propensities for the reactions and the RHS of the RateRules.
-        '''
+        """
+            Evaluate the propensities for the reactions and the RHS of the RateRules.
+
+            Attributes
+            ----------
+            t : float
+                The time at which the function is analyzed.
+            y : list
+                The initial state of the system reactions and continuous species when f is called
+            curr_state : dict
+                Dictionary of current states for all species and parameters
+            reactions : dict
+                Dictionary of reactions to be evaluated
+            rate_rules : dict
+                Dictionary of rate_rules to be evaluated
+            propensities : dict
+                Dictionary of each reactions propensities to be evaluated
+        """
         curr_state['t'] = t
         state_change = []
         for i, r in enumerate(reactions):
@@ -29,7 +69,28 @@ class BasicHybridSolver(GillesPySolver):
 
     @staticmethod
     def get_reaction_integrate(step, euler_step, curr_state, y0, model, curr_time, propensities, projected_reaction):
-        ''' Helper function to perform the ODE integration of one step '''
+        """
+        Helper function to perform the ODE integration of one step
+
+        Attributes
+            ----------
+            step : float
+                Tau distance to step during integration.
+            euler_step : float
+                Euler-forward predicted tau, used upon failed integration
+            curr_state : dict
+                Dictionary of current states for all species and parameters
+            y0 : list
+                The initial state of the system reactions and continuous species
+            model : gillespy2.Model
+                model on which the solver is run
+            curr_time : float
+                current time of simulation, start time of integration
+            propensities : dict
+                Dictionary of each reactions propensities to be evaluated
+            projected_reaction : gillespy2.Reaction
+                Reaction predicted by Euler-foward method, used upon failed integration
+        """
         rhs = ode(BasicHybridSolver.f)  # set function as ODE object
         rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfReactions,
                                                           model.listOfRateRules, propensities)
@@ -51,11 +112,33 @@ class BasicHybridSolver(GillesPySolver):
                 print("RHS FAILED: value of continuous species is: ", current[i+len(model.listOfReactions)])
             return current, curr_time + euler_step
 
-    def get_reaction(self, curr_state, y0, model, euler_step, curr_time, save_time,
-                     eval_globals, propensities, projected_reaction, debug):
-        ''' Get the time to the next reaction by integrating the SSA reaction functions
+    def get_reaction(self, euler_step, curr_state, y0, model, curr_time, save_time,
+                     propensities, projected_reaction, debug):
+        """
+                Get the time to the next reaction by integrating the SSA reaction functions
             along with the RateRules.  Update population of species governed by rate rules
-        '''
+
+                Attributes
+                    ----------
+                    euler_step : float
+                        Euler-forward predicted tau, used upon failed integration
+                    curr_state : dict
+                        Dictionary of current states for all species and parameters
+                    y0 : list
+                        The initial state of the system reactions and continuous species
+                    model : gillespy2.Model
+                        model on which the solver is run
+                    curr_time : float
+                        current time of simulation, start time of integration
+                    save_time : float
+                        next time point for returning data from simulation
+                    propensities : dict
+                        Dictionary of each reactions propensities to be evaluated
+                    projected_reaction : gillespy2.Reaction
+                        Reaction predicted by Euler-foward method, used upon failed integration
+                    debug : bool
+                        If True, print additional debugging information to console.
+                """
 
         last_state = y0
         last_time = curr_time
@@ -122,6 +205,27 @@ class BasicHybridSolver(GillesPySolver):
 
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=False,
             **kwargs):
+        """
+                    Runs the solver.
+
+                    Attributes
+                    ----------
+                    model : Model
+                        model to perform the solver on
+                    t : int
+                        total run time
+                    number_of_trajectories : int
+                        total number of trajectories to run
+                    increment : float
+                        time step size for along time span t
+                    seed : int
+                        The random seed for the simulation. Optional, defaults to None.
+                    debug : bool (False)
+                        Set to True to provide additional debug information about the
+                        simulation.
+                    show_labels : bool (True)
+                        Use names of species as index of result object rather than position numbers.
+                    """
         if not isinstance(self, BasicHybridSolver):
             self = BasicHybridSolver()
         if debug:
@@ -185,9 +289,8 @@ class BasicHybridSolver(GillesPySolver):
                         print("Projected reaction is: ", projected_reaction.name, " at time: ", curr_time+tau_step,
                           " step size", tau_step)
 
-                reaction, y0, curr_state, curr_time = self.get_reaction(curr_state, y0, model, tau_step, curr_time,
-                                                                        save_time, eval_globals, propensities,
-                                                                        projected_reaction, debug=debug)
+                reaction, y0, curr_state, curr_time = self.get_reaction(
+                    tau_step, curr_state, y0, model, curr_time, save_time, propensities, projected_reaction, debug)
 
                 # Update curr_state with the result of the SSA reaction that fired
                 if reaction is not None:
