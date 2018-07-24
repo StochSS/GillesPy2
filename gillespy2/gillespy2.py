@@ -1,4 +1,4 @@
-""" 
+"""
 A simple toolkit for creating and simulating discrete stochastic models in 
 python.
 
@@ -103,6 +103,7 @@ class Model(object):
         self.listOfParameters = OrderedDict()
         self.listOfSpecies = OrderedDict()
         self.listOfReactions = OrderedDict()
+        self.listOfRateRules = OrderedDict()
 
         # This defines the unit system at work for all numbers in the model
         # It should be a logical error to leave this undefined, subclasses 
@@ -243,11 +244,11 @@ class Model(object):
             The parameter or list of parameters to be added to the model object.
         """
         # TODO, make sure that you don't overwrite an existing parameter??
-        if type(params).__name__ == 'list':
+        if isinstance(params,list): 
             for p in params:
-                self.listOfParameters[p.name] = p
+                self.add_parameter(p)
         else:
-            if type(params).__name__ == 'instance':
+            if isinstance(params,Parameter):
                 self.listOfParameters[params.name] = params
             else:
                 raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(params))
@@ -308,17 +309,42 @@ class Model(object):
         """
 
         # TODO, make sure that you cannot overwrite an existing reaction
-        param_type = type(reactions).__name__
-        if param_type == 'list':
+        #param_type = type(reactions).__name__
+        if isinstance(reactions,list):
             for r in reactions:
-                self.listOfReactions[r.name] = r
-        elif param_type == 'dict' or param_type == 'OrderedDict':
-            self.listOfReactions = reactions
-        elif param_type == 'instance':
+                self.add_reaction(r)
+        elif isinstance(reactions,dict) or isinstance(reactions,OrderedDict):
+                self.add_reaction(reactions.values())
+        elif isinstance(reactions,Reaction):
             self.listOfReactions[reactions.name] = reactions
         else:
             raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(param_type))
         return reactions
+
+    def add_rate_rule(self, rate_rules):
+        """
+                Adds a rate rule, or list of rate rules to the model.
+
+                Attributes
+                ----------
+                obj : RateRule, or list of RateRules
+                    The reaction or list of raterule objects to be added to the model
+                    object.
+                """
+
+        # TODO, make sure that you cannot overwrite an existing reaction
+        # param_type = type(reactions).__name__
+        print("Adding rate rule ", rate_rules, " to ", self.name)
+        if isinstance(rate_rules, list):
+            for rr in rate_rules:
+                self.add_rate_rule(rr)
+        elif isinstance(rate_rules, dict) or isinstance(rate_rules, OrderedDict):
+            self.add_rate_rule(rate_rules.expression())
+        elif isinstance(rate_rules, RateRule):
+            self.listOfRateRules[rate_rules.species.name] = rate_rules
+        else:
+            raise ParameterError("Could not resolve Rate Rule0 expression {} to a scalar value.".format(param_type))
+        return rate_rules
 
     def timespan(self, time_span):
         """ 
@@ -368,7 +394,7 @@ class Model(object):
         solver : gillespy.GillesPySolver
             The solver by which to simulate the model. This solver object may
             be initialized separately to specify an algorithm. Optional, 
-            defulats to StochKitSolver SSA.
+            defaults to StochKitSolver SSA.
         stochkit_home : str
             Path to stochkit. This is set automatically upon installation, but 
             may be overwritten if desired.
@@ -379,9 +405,9 @@ class Model(object):
             Use names of species as index of result object rather than position numbers.
         """
         if solver is not None:
-            if (isinstance(solver, type)
-                    and issubclass(solver, GillesPySolver)):
-                return solver.run(self, t=self.tspan[-1],
+            if ((isinstance(solver, type)
+                    and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
+                return solver.run(model=self, t=self.tspan[-1],
                                   increment=self.tspan[-1] - self.tspan[-2],
                                   seed=seed,
                                   number_of_trajectories=number_of_trajectories,
@@ -455,12 +481,14 @@ class Species:
         the type will be changed when it is added by numpy.int
     """
 
-    def __init__(self, name="", initial_value=0):
+    def __init__(self, name="", initial_value=0, deterministic=False):
         # A species has a name (string) and an initial value (positive integer)
         self.name = name
         self.initial_value = np.int(initial_value)
+        self.deterministic = deterministic
         assert self.initial_value >= 0, "A species initial value has to \
                                         be a positive number."
+
 
     def __str__(self):
         return self.name
@@ -536,6 +564,14 @@ class Parameter:
             raise TypeError
 
         self.evaluate()
+
+
+class RateRule:
+    def __init__(self, species, expression, name=None):
+        self.expression = expression
+        self.species = species
+        self.name = name
+
 
 
 class Reaction:
@@ -1113,4 +1149,10 @@ class InvalidStochMLError(Exception):
 
 
 class InvalidModelError(Exception):
+    pass
+
+class InvalidAlphaError (Exception):
+    pass
+
+class InvalidProcessesError (Exception):
     pass

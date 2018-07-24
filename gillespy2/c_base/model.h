@@ -5,8 +5,9 @@
 #include <vector>
 #include <iostream>
 
-namespace Gillespy{
+#define uint unsigned int
 
+namespace Gillespy{
   //Represents info for a chemical reactant/product
   struct Species{
     uint id; //useful for index id in arrays
@@ -53,6 +54,7 @@ namespace Gillespy{
     Simulation(Model* model, uint number_trajectories, uint number_timesteps, double end_time, IPropensityFunction* propensity_function, int random_seed);
     ~Simulation();
     friend std :: ostream& operator<<(std :: ostream& os, const Simulation& simulation);
+    void output_results_buffer(std :: ostream& os);
   };
 }
 #endif

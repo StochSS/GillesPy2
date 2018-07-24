@@ -3,21 +3,26 @@ from .gillespySolver import GillesPySolver
 import random
 import math
 import numpy as np
-import heapq
 
 try:
     import pyximport; pyximport.install(setup_args={'include_dirs': np.get_include()})
-    from cython_ssa_solver import CythonSSASolver
+    from .cython_ssa_solver import CythonSSASolver
     can_use_cython = True
+    print("Successful Import")
 except Exception as e:
     print("Unable to use Cython optimized SSA:\nError:{0}".format(e))
     can_use_cython = False
-    
+
 class OptimizedSSASolver(GillesPySolver):
+
     """ TODO
     """
-    name ="OptimizedSSASolver"
-    use_cython = True
+
+    def __init__(self, use_cython=True):
+        self.use_cython = use_cython
+        self.name = "OptimizedSSASolver"
+        if can_use_cython and self.use_cython:
+            self.name = "CythonSSASolver"
     
     def format_trajectories(simulation_data):
         out_data = []
@@ -31,9 +36,8 @@ class OptimizedSSASolver(GillesPySolver):
             out_data.append(out_array)
         return out_data
 
-    @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
-            increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
+            increment=0.05, seed=None, debug=False, show_labels=False, stochkit_home=None):
         if self.use_cython and can_use_cython:
             solver = CythonSSASolver()
             return solver.run(model, t, number_of_trajectories, increment, seed, debug, show_labels)

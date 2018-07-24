@@ -1,4 +1,8 @@
 *.pyc
 .ipynb_checkpoints*
 *.o
+.idea
+<<<<<<< HEAD
 
+=======
+>>>>>>> 66e088a76cfc41ca94ff490aa9c1ead654f151a4
