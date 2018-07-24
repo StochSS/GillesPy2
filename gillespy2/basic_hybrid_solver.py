@@ -14,10 +14,13 @@ fired reaction.
 
 from .gillespySolver import GillesPySolver
 import random
+import numpy
 from scipy.integrate import ode
 import math
+import odespy
 
 eval_globals = math.__dict__
+
 
 
 class BasicHybridSolver(GillesPySolver):
@@ -35,10 +38,9 @@ class BasicHybridSolver(GillesPySolver):
 
     def __init__(self, debug=False):
         self.debug = debug
-    
-    
+
     @staticmethod
-    def f(t, y, curr_state, reactions, rate_rules, propensities):
+    def f(y, t, curr_state, reactions, rate_rules, propensities):
         """
             Evaluate the propensities for the reactions and the RHS of the RateRules.
 
@@ -64,8 +66,17 @@ class BasicHybridSolver(GillesPySolver):
             state_change.append(propensities[r])
         for i, rr in enumerate(rate_rules):
             state_change.append(eval(rate_rules[rr].expression,  eval_globals, curr_state))
-
         return state_change
+
+    @staticmethod
+    def reaction_fired(model):
+        return lambda y,t,step_no: numpy.any( numpy.array(y[0:len(model.listOfReactions)][step_no]) > 0)
+        # fired = False
+        # for i, r in enumerate(model.listOfReactions):
+        #     if lambda y, t, step_no: y[i][step_no] > 0:
+        #         fired = True
+        #fired = lambda y, t, step_no: numpy.any(numpy.array(y[0:y[-1]][step_no]) > 0)
+        #return fired(y, t, step_no)
 
     @staticmethod
     def get_reaction_integrate(step, euler_step, curr_state, y0, model, curr_time, propensities, projected_reaction):
@@ -91,26 +102,34 @@ class BasicHybridSolver(GillesPySolver):
             projected_reaction : gillespy2.Reaction
                 Reaction predicted by Euler-foward method, used upon failed integration
         """
-        rhs = ode(BasicHybridSolver.f)  # set function as ODE object
-        rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfReactions,
-                                                          model.listOfRateRules, propensities)
+        #rhs = ode(BasicHybridSolver.f)  # set function as ODE object
+        #rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfReactions,
+        #                                                  model.listOfRateRules, propensities)
         # rhs.set_integrator('dop853')
 
-        current = rhs.integrate(step+curr_time)   # current holds integration from current_time to int_time
-        if rhs.successful():
-            return current, curr_time + step
-        else:
-            # if step is < 1e-15, take a Forward-Euler step for all species ('propensites' and RateRules)
-            print("Projected Reaction: ", projected_reaction.name)
-            for i, r in enumerate(model.listOfReactions):
-                if model.listOfReactions[r] == projected_reaction:
-                    current[i] = 0
-                else:
-                    current[i] = propensities[r] * euler_step + y0[i]
-            # TODO The RateRule linked species should still contain the correct value in current, verify this
-            for i, rr in enumerate(model.listOfRateRules):
-                print("RHS FAILED: value of continuous species is: ", current[i+len(model.listOfReactions)])
-            return current, curr_time + euler_step
+        #current = rhs.integrate(step+curr_time)   # current holds integration from current_time to int_time
+        rhs = odespy.Vode(BasicHybridSolver.f, f_args=[curr_state, model.listOfReactions, model.listOfRateRules, propensities])
+        rhs.set_initial_condition(y0)
+        #time_points = numpy.arange(curr_time, euler_step, 1e-10) # make step size settable
+        print("start time: ", curr_time, "step taken: ", euler_step, "number of steps: 11")
+        time_points = numpy.linspace(curr_time, euler_step, 11)
+        current, curr_time = rhs.solve(time_points)
+        print("Current: ", current[-1, :], "\ncurr_time: ", curr_time[-1])
+        return current[-1, :], curr_time[-1]
+        # if rhs.successful():
+        #     return current, curr_time + step
+        # else:
+        #     # if step is < 1e-15, take a Forward-Euler step for all species ('propensites' and RateRules)
+        #     print("Projected Reaction: ", projected_reaction.name)
+        #     for i, r in enumerate(model.listOfReactions):
+        #         if model.listOfReactions[r] == projected_reaction:
+        #             current[i] = 0
+        #         else:
+        #             current[i] = propensities[r] * euler_step + y0[i]
+        #     # TODO The RateRule linked species should still contain the correct value in current, verify this
+        #     for i, rr in enumerate(model.listOfRateRules):
+        #         print("RHS FAILED: value of continuous species is: ", current[i+len(model.listOfReactions)])
+        #     return current, curr_time + euler_step
 
     def get_reaction(self, euler_step, curr_state, y0, model, curr_time, save_time,
                      propensities, projected_reaction, debug):
@@ -158,6 +177,7 @@ class BasicHybridSolver(GillesPySolver):
                 
             current, curr_time = self.get_reaction_integrate(step, euler_step, curr_state, y0, model,
                                                              curr_time, propensities, projected_reaction)
+            print("AFTER: curr_time: ", curr_time, " current: ", current)
 
             occurred = []
             for i, r in enumerate(model.listOfReactions):
@@ -287,11 +307,10 @@ class BasicHybridSolver(GillesPySolver):
                         print("NO projected reaction")
                     else:
                         print("Projected reaction is: ", projected_reaction.name, " at time: ", curr_time+tau_step,
-                          " step size", tau_step)
+                              " step size", tau_step)
 
                 reaction, y0, curr_state, curr_time = self.get_reaction(
-                    tau_step, curr_state, y0, model, curr_time, save_time, propensities, projected_reaction, debug)
-
+                   tau_step, curr_state, y0, model, curr_time, save_time, propensities, projected_reaction, debug)
                 # Update curr_state with the result of the SSA reaction that fired
                 if reaction is not None:
                     for i, r in enumerate(model.listOfReactions):
