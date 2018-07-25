@@ -69,6 +69,7 @@ class BasicTauHybridSolver(GillesPySolver):
                                                          curr_time, propensities)
 
         rxn_count = {}
+        fired = False
         for i, r in enumerate(model.listOfReactions):
             #urn = (math.log(random.uniform(0, 1)))
             rxn_count[r] = 0
@@ -77,6 +78,8 @@ class BasicTauHybridSolver(GillesPySolver):
             #print(r, " rj is ", rj)
             while rj > 0:
                 #print(r, " fired")
+                if not fired:
+                    fired = True
                 rxn_count[r] += 1
                 urn = (math.log(random.uniform(0, 1)))
                 rj += urn
@@ -107,13 +110,11 @@ class BasicTauHybridSolver(GillesPySolver):
         #     # ODE was successful, but no reactions fired, advance time
         #     last_state = current
         #     last_time = curr_time
-        #     if time_advance_flag:
-        #         if debug:
-        #             print("No reactions fired in this step (n=", n_occur, ") changing step size from ", step,
-        #                   " to ", step * 1.25)
-        #         step = step * 1.25
-        #     else:
-        #         time_advance_flag = True
+        if not fired:
+            if debug:
+                print("No reactions fired in this step changing step size from ", step,
+                      " to ", step * 1.25)
+            step = step * 1.25
 
         # UPDATE THE STATE of the continuous species
         for i, s in enumerate(model.listOfRateRules):
@@ -176,7 +177,7 @@ class BasicTauHybridSolver(GillesPySolver):
                         if debug:
                             print("Propensity of ", r, " is ", propensities[r], "tau_j is ", tau_j[r])
                         if tau_step is None or tau_j[r] < tau_step:
-                            tau_step = tau_j[r] * 1.25
+                            tau_step = max(tau_j[r], 1e-13)
                             projected_reaction = model.listOfReactions[r]
                     else:
                         if debug:
