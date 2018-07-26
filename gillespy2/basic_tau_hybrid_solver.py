@@ -1,6 +1,7 @@
 from .gillespySolver import GillesPySolver
 import random
 from scipy.integrate import ode
+import numpy
 import math
 eval_globals = math.__dict__
 
@@ -41,11 +42,17 @@ class BasicTauHybridSolver(GillesPySolver):
             return current, curr_time + step
         else:
             # if step is < 1e-15, take a Forward-Euler step for all species ('propensites' and RateRules)
-            print("NOT RHS NOT SUCCESSFUL")
+            #print("NOT RHS NOT SUCCESSFUL")
             # TODO The RateRule linked species should still contain the correct value in current, verify this
-            for i, rr in enumerate(model.listOfRateRules):
-                print("RHS FAILED: value of continuous species is: ", current[i+len(model.listOfReactions)])
-            exit(0)
+            #for i, rr in enumerate(model.listOfRateRules):
+            #    print("RHS FAILED: value of continuous species is: ", current[i+len(model.listOfReactions)])
+            #exit(0)
+
+            # step size is too small, take a single forward-euler step
+            current = y0 + numpy.array(BasicTauHybridSolver.f(curr_time, y0, 
+                                                    curr_state, model.listOfReactions,
+                                                    model.listOfRateRules, propensities)) * step
+            return current, curr_time + step
 
     def get_reactions(self, step, curr_state, y0, model, curr_time, save_time,
                       propensities, debug):
@@ -73,16 +80,16 @@ class BasicTauHybridSolver(GillesPySolver):
         for i, r in enumerate(model.listOfReactions):
             #urn = (math.log(random.uniform(0, 1)))
             rxn_count[r] = 0
-            rj = current[i]
+            #rj = current[i]
             #print("current[i]: ", current[i], " y0[i]: ", y0[i], " rj: ", rj)
             #print(r, " rj is ", rj)
-            while rj > 0:
+            while current[i] > 0:
                 #print(r, " fired")
                 if not fired:
                     fired = True
                 rxn_count[r] += 1
                 urn = (math.log(random.uniform(0, 1)))
-                rj += urn
+                current[i] += urn
 
         # occurred = []
         # for i, r in enumerate(model.listOfReactions):
@@ -110,11 +117,11 @@ class BasicTauHybridSolver(GillesPySolver):
         #     # ODE was successful, but no reactions fired, advance time
         #     last_state = current
         #     last_time = curr_time
-        if not fired:
-            if debug:
-                print("No reactions fired in this step changing step size from ", step,
-                      " to ", step * 1.25)
-            step = step * 1.25
+        #if not fired:
+        #    if debug:
+        #        print("No reactions fired in this step changing step size from ", step,
+        #              " to ", step * 1.25)
+        #    step = step * 1.25
 
         # UPDATE THE STATE of the continuous species
         for i, s in enumerate(model.listOfRateRules):
@@ -128,6 +135,8 @@ class BasicTauHybridSolver(GillesPySolver):
 
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=False,
             **kwargs):
+        """ TODO: write up doc """
+
         if not isinstance(self, BasicTauHybridSolver):
             self = BasicTauHybridSolver()
         if debug:
@@ -153,7 +162,6 @@ class BasicTauHybridSolver(GillesPySolver):
         for p in model.listOfParameters:
             curr_state[p] = model.listOfParameters[p].value
 
-        propensity_sum = 0
         for i, r in enumerate(model.listOfReactions):   # set reactions to uniform random number and add to y0
             y0[i] = (math.log(random.uniform(0, 1)))
             if debug:
@@ -164,14 +172,23 @@ class BasicTauHybridSolver(GillesPySolver):
                 projected_reaction = None
                 tau_step = None
                 tau_j = {}
+                # For continious species, save the population back into the y0 vector (if modified)
                 for i, rr in enumerate(model.listOfRateRules):  # Add continuous species to y0
                     spec = model.listOfRateRules[rr].species.name
                     y0[i + len(model.listOfReactions)] = curr_state[spec]
+
+                if debug:
+                    print("curr_state = {", end='')
+                    for i, s in enumerate(model.listOfSpecies):
+                        print("'{0}' : {1}, ".format(s,curr_state[s]), end='')
+                    print("}")
+
+                # Salis et al. eq (16)
+                # TODO: this needs to be optimized.  Going too big is expensive, too small is also expensive
+                propensity_sum = 0
                 for i, r in enumerate(model.listOfReactions):
                     propensities[r] = eval(model.listOfReactions[r].propensity_function, curr_state)
                     propensity_sum += propensities[r]
-                    # Salis et al. eq (16)
-                    # TODO: this needs to be optimized.  Going too big is expensive, too small is also expensive
                     if propensities[r] > 0:
                         tau_j[r] = -y0[i] / propensities[r]
                         if debug:
@@ -181,7 +198,7 @@ class BasicTauHybridSolver(GillesPySolver):
                             projected_reaction = model.listOfReactions[r]
                     else:
                         if debug:
-                            print("Propensity of ", r, " is 0")
+                            print("Propensity of ", r, " is ", propensities[r])
                 if tau_step is None:
                     tau_step = save_time - curr_time
                 if debug:
@@ -191,29 +208,53 @@ class BasicTauHybridSolver(GillesPySolver):
                         print("Projected reaction is: ", projected_reaction.name, " at time: ", curr_time+tau_step,
                           " step size", tau_step)
 
-                reactions, y0, curr_state, curr_time = self.get_reactions(
-                    tau_step, curr_state, y0, model, curr_time, save_time, propensities, debug)
-                # Update curr_state with the result of the SSA reaction that fired
-                for i, r in enumerate(model.listOfReactions):
-                    #print("at index: ", i, " checking ", r, ": ", reactions[r])
-                    if reactions[r] > 0:
-                        #print(r, " is greater than 0")
-                        for reactant in model.listOfReactions[r].reactants:
-                            #print("Updating reactant: ", reactant)
-                            for j in range(reactions[r]):
-                                #print("decrementing ", reactant)
-                                curr_state[str(reactant)] -= model.listOfReactions[r].reactants[reactant]
-                                #print("curr state of ", reactant, " is ", curr_state[str(reactant)])
-                        for product in model.listOfReactions[r].products:
-                            #print("Updating product: ", product)
-                            for j in range(reactions[r]):
-                                #print("incrementing", product)
-                                curr_state[str(product)] += model.listOfReactions[r].products[product]
-                                #print("curr state of ", product, " is ", curr_state[str(product)])
-                        y0[i] += (math.log(random.uniform(0, 1)))
+                prev_y0 = y0
+                prev_curr_state = curr_state
+                prev_curr_time = curr_time
+
+                loop_cnt = 0
+                while True:
+                    loop_cnt +=1
+                    if loop_cnt > 100:
+                        raise Exception("Loop over get_reactions() exceded loop count")
+
+                    reactions, y0, curr_state, curr_time = self.get_reactions(
+                        tau_step, curr_state, y0, model, curr_time, save_time, propensities, debug)
+
+                    # Update curr_state with the result of the SSA reaction that fired
+                    species_modified = {}
+                    for i, r in enumerate(model.listOfReactions):
+                        #print("at index: ", i, " checking ", r, ": ", reactions[r])
+                        if reactions[r] > 0:
+                            #print(r, " is greater than 0")
+                            for reactant in model.listOfReactions[r].reactants:
+                                #print("Updating reactant: ", reactant)
+                                species_modified[str(reactant)] = True
+                                curr_state[str(reactant)] -= model.listOfReactions[r].reactants[reactant] * reactions[r]
+                            for product in model.listOfReactions[r].products:
+                                #print("Updating product: ", product)
+                                species_modified[str(product)] = True
+                                curr_state[str(product)] += model.listOfReactions[r].products[product] * reactions[r]
+                    neg_state = False
+                    for s in species_modified.keys():
+                        if curr_state[s] < 0:
+                            neg_state = True
+                            if debug:
+                                print("Negative state detected: curr_state[{0}]= {1}".format(s,curr_state[s]))
+                    if neg_state:
                         if debug:
-                            print("Setting Random number ", y0[i], " for ", model.listOfReactions[r].name)
-                        break
+                            print("\trxn={0}".format(reactions))
+                        y0 = prev_y0
+                        curr_state = prev_curr_state
+                        curr_time = prev_curr_time
+                        tau_step = tau_step / 2
+                        if debug:
+                            print("\tRejecting step, taking step of half size, tau_step={0}".format(tau_step))
+                    else:
+                        break # breakout of the while True
+
+
+
 
                 # for reactant in model.listOfReactions[reaction].reactants:
                 #     curr_state[str(reactant)] -= model.listOfReactions[reaction].reactants[reactant]
