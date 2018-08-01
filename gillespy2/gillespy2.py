@@ -334,7 +334,6 @@ class Model(object):
 
         # TODO, make sure that you cannot overwrite an existing reaction
         # param_type = type(reactions).__name__
-        print("Adding rate rule ", rate_rules, " to ", self.name)
         if isinstance(rate_rules, list):
             for rr in rate_rules:
                 self.add_rate_rule(rr)
@@ -680,6 +679,7 @@ class Reaction:
             raise ReactionError("Reaction: A mass-action reaction cannot involve more than two of one species or one "
                                 "of two species.")
         # Case EmptySet -> Y
+
         propensity_function = self.marate.name
 
         # There are only three ways to get 'total_stoch==2':
