@@ -3,7 +3,13 @@ import random
 from scipy.integrate import ode
 import numpy
 import math
+import sys
+import warnings
+
+
 eval_globals = math.__dict__
+if not sys.warnoptions:
+    warnings.simplefilter("ignore")
 
 
 class BasicTauHybridSolver(GillesPySolver):
@@ -14,26 +20,27 @@ class BasicTauHybridSolver(GillesPySolver):
     
     
     @staticmethod
-    def f(t, y, curr_state, reactions, rate_rules, propensities):
+    def f(t, y, curr_state, reactions, rate_rules, propensities, rates):
         '''
         Evaluate the propensities for the reactions and the RHS of the RateRules.
         '''
         curr_state['t'] = t
         state_change = []
         for i, r in enumerate(reactions):
-            propensities[r] = eval(reactions[r].propensity_function, eval_globals, curr_state)
+            #propensities[r] = eval(reactions[r].propensity_function, eval_globals, curr_state)
             state_change.append(propensities[r])
         for i, rr in enumerate(rate_rules):
-            state_change.append(eval(rate_rules[rr].expression,  eval_globals, curr_state))
+            state_change.append(rates[rr])
+            #state_change.append(eval(rate_rules[rr].expression,  eval_globals, curr_state))
 
         return state_change
 
     @staticmethod
-    def get_reaction_integrate(step, curr_state, y0, model, curr_time, propensities):
+    def get_reaction_integrate(step, curr_state, y0, model, curr_time, propensities, rates):
         ''' Helper function to perform the ODE integration of one step '''
         rhs = ode(BasicTauHybridSolver.f)  # set function as ODE object
         rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfReactions,
-                                                          model.listOfRateRules, propensities)
+                                                          model.listOfRateRules, propensities, rates)
         # rhs.set_integrator('dop853')
 
         current = rhs.integrate(step+curr_time)   # current holds integration from current_time to int_time
@@ -51,11 +58,11 @@ class BasicTauHybridSolver(GillesPySolver):
             # step size is too small, take a single forward-euler step
             current = y0 + numpy.array(BasicTauHybridSolver.f(curr_time, y0, 
                                                     curr_state, model.listOfReactions,
-                                                    model.listOfRateRules, propensities)) * step
+                                                    model.listOfRateRules, propensities, rates)) * step
             return current, curr_time + step
 
     def get_reactions(self, step, curr_state, y0, model, curr_time, save_time,
-                      propensities, debug):
+                      propensities, rates, debug):
         ''' Get the time to the next reaction by integrating the SSA reaction functions
             along with the RateRules.  Update population of species governed by rate rules
         '''
@@ -73,7 +80,7 @@ class BasicTauHybridSolver(GillesPySolver):
             print("Curr Time: ", curr_time, " Save time: ", save_time,  "step: ", step)
 
         current, curr_time = self.get_reaction_integrate(step,  curr_state, y0, model,
-                                                         curr_time, propensities)
+                                                         curr_time, propensities, rates)
 
         rxn_count = {}
         fired = False
@@ -147,6 +154,7 @@ class BasicTauHybridSolver(GillesPySolver):
 
         y0 = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
         propensities = {}
+        rates = {}
         curr_state = {}
         curr_time = 0
         curr_state['vol'] = model.volume
@@ -194,19 +202,30 @@ class BasicTauHybridSolver(GillesPySolver):
                         if debug:
                             print("Propensity of ", r, " is ", propensities[r], "tau_j is ", tau_j[r])
                         if tau_step is None or tau_j[r] < tau_step:
-                            tau_step = max(tau_j[r], 1e-13)
+                            tau_step = max(tau_j[r], 1e-10)
                             projected_reaction = model.listOfReactions[r]
                     else:
                         if debug:
                             print("Propensity of ", r, " is ", propensities[r])
+
                 if tau_step is None:
                     tau_step = save_time - curr_time
+                # else:
+                #     tau_step = tau_step * 1.1
                 if debug:
                     if projected_reaction is None:
                         print("NO projected reaction")
                     else:
                         print("Projected reaction is: ", projected_reaction.name, " at time: ", curr_time+tau_step,
-                          " step size", tau_step)
+                              " step size: ", tau_step)
+
+                eval_locals = dict(curr_state)
+                eval_locals.update({'t':curr_time})
+                for i, rr in enumerate(model.listOfRateRules):
+                    rates[rr] = eval(model.listOfRateRules[rr].expression, eval_globals, eval_locals)
+                    # print("Expression: ", model.listOfRateRules[rr].expression)
+                    # print(' curr_time: ', curr_time)
+                    # print('rate: ', rates[rr])
 
                 prev_y0 = y0
                 prev_curr_state = curr_state
@@ -216,10 +235,10 @@ class BasicTauHybridSolver(GillesPySolver):
                 while True:
                     loop_cnt +=1
                     if loop_cnt > 100:
-                        raise Exception("Loop over get_reactions() exceded loop count")
+                        raise Exception("Loop over get_reactions() exceeded loop count")
 
                     reactions, y0, curr_state, curr_time = self.get_reactions(
-                        tau_step, curr_state, y0, model, curr_time, save_time, propensities, debug)
+                        tau_step, curr_state, y0, model, curr_time, save_time, propensities, rates, debug)
 
                     # Update curr_state with the result of the SSA reaction that fired
                     species_modified = {}
@@ -237,7 +256,7 @@ class BasicTauHybridSolver(GillesPySolver):
                                 curr_state[str(product)] += model.listOfReactions[r].products[product] * reactions[r]
                     neg_state = False
                     for s in species_modified.keys():
-                        if curr_state[s] < 0:
+                        if curr_state[s] < 0 and model.listOfSpecies[s].deterministic is False:
                             neg_state = True
                             if debug:
                                 print("Negative state detected: curr_state[{0}]= {1}".format(s,curr_state[s]))
