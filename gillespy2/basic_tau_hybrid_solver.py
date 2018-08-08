@@ -20,26 +20,38 @@ class BasicTauHybridSolver(GillesPySolver):
     
     
     @staticmethod
-    def f(t, y, curr_state, reactions, rate_rules, propensities):
+    def f(t, y, curr_state, reactions, rate_rules, propensities, compiled_reactions, compiled_rate_rules):
         '''
         Evaluate the propensities for the reactions and the RHS of the RateRules.
         '''
         curr_state['t'] = t
         state_change = []
+
         for i, r in enumerate(reactions):
-            propensities[r] = eval(reactions[r].propensity_function, eval_globals, curr_state)
+            #exp_as_func = eval('lambda curr_state:' + reactions[r].propensity_function, curr_state)
+            #propensities[r] = eval(reactions[r].propensity_function, eval_globals, curr_state)
+            #eval(print(dir()))
+            propensities[r] = eval(compiled_reactions[r], eval_globals, curr_state)
             state_change.append(propensities[r])
+            #state_change.append(exp_as_func(curr_state.items()))
         for i, rr in enumerate(rate_rules):
-            state_change.append(eval(rate_rules[rr].expression,  eval_globals, curr_state))
+            state_change.append(eval(compiled_rate_rules[rr], eval_globals, curr_state))
+            #state_change.append(eval(rate_rules[rr].expression,  eval_globals, curr_state))
 
         return state_change
 
     @staticmethod
-    def get_reaction_integrate(step, curr_state, y0, model, curr_time, propensities):
+    def get_reaction_integrate(step, curr_state, y0, model, curr_time, propensities, compiled_reactions, compiled_rate_rules):
         ''' Helper function to perform the ODE integration of one step '''
         rhs = ode(BasicTauHybridSolver.f)  # set function as ODE object
+        # compiled_reactions = {}
+        # for i, r in enumerate(model.listOfReactions):
+        #     compiled_reactions[r] = compile(model.listOfReactions[r].propensity_function, '<string>', 'eval')
+        # compiled_rate_rules = {}
+        # for i, rr in enumerate(model.listOfRateRules):
+        #     compiled_rate_rules[rr] = compile(model.listOfRateRules[rr].expression, '<string>', 'eval')
         rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfReactions,
-                                                          model.listOfRateRules, propensities)
+                                                          model.listOfRateRules, propensities, compiled_reactions, compiled_rate_rules)
         # rhs.set_integrator('dop853')
 
         current = rhs.integrate(step+curr_time)   # current holds integration from current_time to int_time\
@@ -55,7 +67,7 @@ class BasicTauHybridSolver(GillesPySolver):
             return current, curr_time + step
 
     def get_reactions(self, step, curr_state, y0, model, curr_time, save_time,
-                      propensities, debug):
+                      propensities, compiled_reactions, compiled_rate_rules, debug):
         ''' Get the time to the next reaction by integrating the SSA reaction functions
             along with the RateRules.  Update population of species governed by rate rules
         '''
@@ -70,7 +82,7 @@ class BasicTauHybridSolver(GillesPySolver):
             print("Curr Time: ", curr_time, " Save time: ", save_time,  "step: ", step)
 
         current, curr_time = self.get_reaction_integrate(step,  curr_state, y0, model,
-                                                         curr_time, propensities)
+                                                         curr_time, propensities, compiled_reactions, compiled_rate_rules)
 
         rxn_count = {}
         fired = False
@@ -127,6 +139,14 @@ class BasicTauHybridSolver(GillesPySolver):
             if debug:
                 print("Setting Random number ", y0[i], " for ", model.listOfReactions[r].name)
 
+        compiled_reactions = {}
+        for i, r in enumerate(model.listOfReactions):
+            compiled_reactions[r] = compile(model.listOfReactions[r].propensity_function, '<string>',
+                                            'eval')
+        compiled_rate_rules = {}
+        for i, rr in enumerate(model.listOfRateRules):
+            compiled_rate_rules[rr] = compile(model.listOfRateRules[rr].expression, '<string>', 'eval')
+            
         while save_time < t:
             while curr_time < save_time:
                 projected_reaction = None
@@ -183,8 +203,10 @@ class BasicTauHybridSolver(GillesPySolver):
                     if loop_cnt > 100:
                         raise Exception("Loop over get_reactions() exceeded loop count")
 
+
+
                     reactions, y0, curr_state, curr_time = self.get_reactions(
-                        tau_step, curr_state, y0, model, curr_time, save_time, propensities, debug)
+                        tau_step, curr_state, y0, model, curr_time, save_time, propensities, compiled_reactions, compiled_rate_rules, debug)
 
                     # Update curr_state with the result of the SSA reaction that fired
                     species_modified = {}
