@@ -191,6 +191,7 @@ class BasicTauHybridSolver(GillesPySolver):
                 reactants = []
                 mean = {}
                 stand_dev = {}
+                critical_reactions = []
                 new_tau_step = None
 
                 for r in model.listOfReactions:
@@ -200,26 +201,44 @@ class BasicTauHybridSolver(GillesPySolver):
                 for s in model.listOfSpecies:
                     mean[s] = 0
                     stand_dev[s] = 0
-
+                n_fires = 4 # if a reaction would deplete a resource in n_fires, it is considered critical
                 for r in model.listOfReactions:
+                    critical = False
                     for reactant in model.listOfReactions[r].reactants:
-                        if curr_state[str(reactant)] > 2:
-                            g_i[str(reactant)] = 3 + (1 / (curr_state[str(reactant)] - 1)) + (
-                                    2 / (curr_state[str(reactant)] - 2))  # Cao, Gillespie, Petzold
-                            epsilon_i[str(reactant)] = self.epsilon / g_i[str(reactant)]
-                        else:
-                            epsilon_i[str(reactant)] = 0
+                        if curr_state[str(reactant)] / model.listOfReactions[r].reactants[reactant] <= n_fires:
+                            critical = True
+                            break
+                        g_i[str(reactant)] = 3 + (1 / (curr_state[str(reactant)] - 1)) + (
+                                2 / (curr_state[str(reactant)] - 2))  # Cao, Gillespie, Petzold
+                        epsilon_i[str(reactant)] = self.epsilon / g_i[str(reactant)]
                         mean[str(reactant)] += model.listOfReactions[r].reactants[reactant] * propensities[r]
                         stand_dev[str(reactant)] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[r]
-                # print("epsilon_i: ", epsilon_i)
-                # print("mean: ", mean)
-                # print("stand dev: ", stand_dev)
-                for r in reactants:
-                    if mean[str(r)] > 0 and curr_state[str(r)] > 4:    #This needs to be reworked to use Nc for determining "firing steps away from depletion"
-                        tau_i[r] = min((max(epsilon_i[str(r)] * curr_state[str(r)], 1) / mean[str(r)]),
-                                       (max(epsilon_i[str(r)] * curr_state[str(r)], 1) ** 2 / stand_dev[str(r)]))
-                        if new_tau_step is None or tau_i[r] < new_tau_step:
-                            new_tau_step = max(tau_i[r], 1e-10)
+                        # print("epsilon_i: ", epsilon_i)
+                        # print("mean: ", mean)
+                        # print("stand dev: ", stand_dev)
+                    if critical:
+                        new_tau_step = tau_step
+                        break
+
+                # TODO
+                # FIND FIRST FIRING CRITICAL REACTION AND USE THAT, MUST ACCOUNT FOR POSSIBILITY OF NO PROPENSITY
+                #     if critical:
+                #         critical_reactions.append(model.listOfReactions[r])
+                #
+                # # If there is a critical reaction find soonest firing one based on forward euler
+                # if len(critical_reactions) > 0:
+                #     print(critical_reactions)
+                #     print(tau_j)
+                #     for cr in critical_reactions:
+                #         if new_tau_step is None or tau_j[str(cr)] < new_tau_step:
+                #             new_tau_step = tau_j[cr]
+                else:   # No critical reactions
+                    for r in reactants:
+                        if mean[str(r)] > 0:
+                            tau_i[r] = min((max(epsilon_i[str(r)] * curr_state[str(r)], 1) / mean[str(r)]),
+                                           (max(epsilon_i[str(r)] * curr_state[str(r)], 1) ** 2 / stand_dev[str(r)]))
+                            if new_tau_step is None or tau_i[r] < new_tau_step:
+                                new_tau_step = tau_i[r]
                 # print("new tau i step value is: ", new_tau_step)
                 # print("euler tau value is: ", tau_step)
 
