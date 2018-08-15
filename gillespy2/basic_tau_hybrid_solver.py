@@ -185,38 +185,45 @@ class BasicTauHybridSolver(GillesPySolver):
                     else:
                         print("Projected reaction is: ", projected_reaction.name, " at time: ", curr_time + tau_step,
                               " step size: ", tau_step)
-                g_i = {}
-                epsilon_i = {}
-                tau_i = {}
-                reactants = []
-                mean = {}
-                stand_dev = {}
+
+                #BEGIN NEW TAU SELECTION METHOD
+                g_i = {}    # used for relative error calculation
+                epsilon_i = {}  # relative error allowance of species
+                tau_i = {}  # estimated tau based on depletion of species
+                reactants = []  # a list of all species in the model which act as reactants
+                mean = {}   # mu_i for each species
+                stand_dev = {}  # sigma_i squared for each species
                 critical_reactions = []
                 new_tau_step = None
+                n_fires = 4  # if a reaction would deplete a resource in n_fires, it is considered critical
 
+                #Create list of all reactants
                 for r in model.listOfReactions:
                     reactant_keys = model.listOfReactions[r].reactants.keys()
                     for key in reactant_keys:
                         reactants.append(key)
-                for s in model.listOfSpecies:
-                    mean[s] = 0
-                    stand_dev[s] = 0
-                n_fires = 4 # if a reaction would deplete a resource in n_fires, it is considered critical
+                # initialize mean and stand_dev for reactants
+                for r in reactants:
+                    mean[r] = 0
+                    stand_dev[r] = 0
+
                 for r in model.listOfReactions:
+                    # For each reaction, determine if critical
                     critical = False
                     for reactant in model.listOfReactions[r].reactants:
+                        # if species pop / state change <= threshold set critical and break
                         if curr_state[str(reactant)] / model.listOfReactions[r].reactants[reactant] <= n_fires:
                             critical = True
                             break
-                        g_i[str(reactant)] = 3 + (1 / (curr_state[str(reactant)] - 1)) + (
-                                2 / (curr_state[str(reactant)] - 2))  # Cao, Gillespie, Petzold
-                        epsilon_i[str(reactant)] = self.epsilon / g_i[str(reactant)]
-                        mean[str(reactant)] += model.listOfReactions[r].reactants[reactant] * propensities[r]
-                        stand_dev[str(reactant)] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[r]
+                        g_i[reactant] = 3 + (1 / (curr_state[str(reactant)] - 1)) + (
+                                2 / (curr_state[str(reactant)] - 2))  # Cao, Gillespie, Petzold 27.iii
+                        epsilon_i[reactant] = self.epsilon / g_i[reactant]  # Cao, Gillespie, Petzold 27
+                        mean[reactant] += model.listOfReactions[r].reactants[reactant] * propensities[r]    # Cao, Gillespie, Petzold 29a
+                        stand_dev[reactant] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[r]  # Cao, Gillespie, Petzold 29b
                         # print("epsilon_i: ", epsilon_i)
                         # print("mean: ", mean)
                         # print("stand dev: ", stand_dev)
-                    if critical:
+                    if critical:    # if a critical reaction is found, use forward euler to next reaction
                         new_tau_step = tau_step
                         break
 
@@ -234,18 +241,21 @@ class BasicTauHybridSolver(GillesPySolver):
                 #             new_tau_step = tau_j[cr]
                 else:   # No critical reactions
                     for r in reactants:
-                        if mean[str(r)] > 0:
-                            tau_i[r] = min((max(epsilon_i[str(r)] * curr_state[str(r)], 1) / mean[str(r)]),
-                                           (max(epsilon_i[str(r)] * curr_state[str(r)], 1) ** 2 / stand_dev[str(r)]))
-                            if new_tau_step is None or tau_i[r] < new_tau_step:
+                        if mean[r] > 0:
+                            # Cao, Gillespie, Petzold 33
+                            tau_i[r] = min((max(epsilon_i[r] * curr_state[str(r)], 1) / mean[r]),   # Cao, Gillespie, Petzold 32A
+                                           (max(epsilon_i[r] * curr_state[str(r)], 1) ** 2 / stand_dev[r])) # Cao, Gillespie, Petzold 32B
+                            if new_tau_step is None or tau_i[r] < new_tau_step: #set smallest tau from non-critical reactions
                                 new_tau_step = tau_i[r]
                 # print("new tau i step value is: ", new_tau_step)
                 # print("euler tau value is: ", tau_step)
 
-                if new_tau_step is not None and new_tau_step < (save_time - curr_time):
+                if new_tau_step is not None and new_tau_step < (save_time - curr_time): # if curr+new_tau < save_time, use new_tau
                     tau_step = new_tau_step
                 # print("tau selected: ", tau_step)
                 # print('-------------------------------')
+
+                # END NEW TAU SELECTION METHOD
                 prev_y0 = y0
                 prev_curr_state = curr_state
                 prev_curr_time = curr_time
