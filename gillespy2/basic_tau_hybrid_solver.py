@@ -195,7 +195,7 @@ class BasicTauHybridSolver(GillesPySolver):
                 stand_dev = {}  # sigma_i squared for each species
                 critical_reactions = []
                 new_tau_step = None
-                n_fires = 4  # if a reaction would deplete a resource in n_fires, it is considered critical
+                n_fires = 3  # if a reaction would deplete a resource in n_fires, it is considered critical
 
                 #Create list of all reactants
                 for r in model.listOfReactions:
@@ -239,14 +239,14 @@ class BasicTauHybridSolver(GillesPySolver):
                 #     for cr in critical_reactions:
                 #         if new_tau_step is None or tau_j[str(cr)] < new_tau_step:
                 #             new_tau_step = tau_j[cr]
-                else:   # No critical reactions
-                    for r in reactants:
-                        if mean[r] > 0:
-                            # Cao, Gillespie, Petzold 33
-                            tau_i[r] = min((max(epsilon_i[r] * curr_state[str(r)], 1) / mean[r]),   # Cao, Gillespie, Petzold 32A
-                                           (max(epsilon_i[r] * curr_state[str(r)], 1) ** 2 / stand_dev[r])) # Cao, Gillespie, Petzold 32B
-                            if new_tau_step is None or tau_i[r] < new_tau_step: #set smallest tau from non-critical reactions
-                                new_tau_step = tau_i[r]
+                    else:   # No critical reactions
+                        for r in reactants:
+                            if mean[r] > 0:
+                                # Cao, Gillespie, Petzold 33
+                                tau_i[r] = min((max(epsilon_i[r] * curr_state[str(r)], 1) / mean[r]),   # Cao, Gillespie, Petzold 32A
+                                               (max(epsilon_i[r] * curr_state[str(r)], 1) ** 2 / stand_dev[r])) # Cao, Gillespie, Petzold 32B
+                                if new_tau_step is None or tau_i[r] < new_tau_step: #set smallest tau from non-critical reactions
+                                    new_tau_step = tau_i[r]
                 # print("new tau i step value is: ", new_tau_step)
                 # print("euler tau value is: ", tau_step)
 
