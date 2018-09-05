@@ -1,0 +1,12 @@
+language: python
+python:
+  - "3.5"
+install:
+  - pip install numpy matplotlib seaborn
+branches:
+  only:
+    - tau_hybrid_solver
+    - /.*/
+script:
+  python -m unittest discover -s test -v
+
