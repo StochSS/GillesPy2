@@ -195,7 +195,7 @@ class BasicTauHybridSolver(GillesPySolver):
                 stand_dev = {}  # sigma_i squared for each species
                 critical_reactions = []
                 new_tau_step = None
-                n_fires = 3  # if a reaction would deplete a resource in n_fires, it is considered critical
+                n_fires = 2  # if a reaction would deplete a resource in n_fires, it is considered critical
 
                 #Create list of all reactants
                 for r in model.listOfReactions:
@@ -247,6 +247,7 @@ class BasicTauHybridSolver(GillesPySolver):
                                                (max(epsilon_i[r] * curr_state[str(r)], 1) ** 2 / stand_dev[r])) # Cao, Gillespie, Petzold 32B
                                 if new_tau_step is None or tau_i[r] < new_tau_step: #set smallest tau from non-critical reactions
                                     new_tau_step = tau_i[r]
+                # print('-------------------------------')
                 # print("new tau i step value is: ", new_tau_step)
                 # print("euler tau value is: ", tau_step)
 
@@ -256,8 +257,8 @@ class BasicTauHybridSolver(GillesPySolver):
                 # print('-------------------------------')
 
                 # END NEW TAU SELECTION METHOD
-                prev_y0 = y0
-                prev_curr_state = curr_state
+                prev_y0 = y0.copy()
+                prev_curr_state = curr_state.copy()
                 prev_curr_time = curr_time
 
                 loop_cnt = 0
@@ -289,10 +290,12 @@ class BasicTauHybridSolver(GillesPySolver):
                     if neg_state:
                         if debug:
                             print("\trxn={0}".format(reactions))
-                        y0 = prev_y0
-                        curr_state = prev_curr_state
+                        y0 = prev_y0.copy()
+                        curr_state = prev_curr_state.copy()
                         curr_time = prev_curr_time
                         tau_step = tau_step / 2
+                        if debug:
+                            print("Resetting curr_state[{0}]= {1}".format(s, curr_state[s]))
                         if debug:
                             print("\tRejecting step, taking step of half size, tau_step={0}".format(tau_step))
                     else:
