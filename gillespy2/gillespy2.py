@@ -480,11 +480,11 @@ class Species:
         the type will be changed when it is added by numpy.int
     """
 
-    def __init__(self, name="", initial_value=0, deterministic=False):
+    def __init__(self, name="", initial_value=0, continuous=False):
         # A species has a name (string) and an initial value (positive integer)
         self.name = name
         self.initial_value = np.int(initial_value)
-        self.deterministic = deterministic
+        self.continuous = continuous
         assert self.initial_value >= 0, "A species initial value has to \
                                         be a positive number."
 
