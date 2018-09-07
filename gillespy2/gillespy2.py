@@ -124,7 +124,7 @@ class Model(object):
         self.namespace = OrderedDict([])
 
         if tspan is None:
-            self.timespan(np.linspace(0, 20, 401))\
+            self.timespan(np.linspace(0, 20, 401))
         else:
             self.timespan(tspan)
 

@@ -56,11 +56,11 @@ class BasicSSASolver(GillesPySolver):
                     return results
 
                 tau = -1*math.log(random.random())/prop_sum
-                curr_time += tau
+                current_time += tau
                 if profile:
                     steps_taken.append(tau)
 
-                while(curr_time > save_time and curr_time <= t):
+                while(current_time > save_time and current_time <= t):
                     results['time'].append(save_time)
                     for s in model.listOfSpecies:
                         results[s].append(curr_state[s])

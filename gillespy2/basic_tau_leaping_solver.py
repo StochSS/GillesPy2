@@ -53,8 +53,7 @@ class BasicTauLeapingSolver(GillesPySolver):
             print("increment = ", increment)
 
         random.seed(seed)
-
-        y0 = [0] * (len(model.listOfReactions) + len(model.listOfRateRules)
+        y0 = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
         propensities = {}
         curr_state = {}
         curr_time = 0
@@ -63,6 +62,7 @@ class BasicTauLeapingSolver(GillesPySolver):
 
         results = {'time': []}
         steps_taken = []
+        steps_rejected = 0
 
         for s in model.listOfSpecies:
             # initialize populations
@@ -225,6 +225,7 @@ class BasicTauLeapingSolver(GillesPySolver):
                         curr_state = prev_curr_state.copy()
                         curr_time = prev_curr_time
                         tau_step = tau_step / 2
+                        steps_rejected += 1
                         if debug:
                             print("Resetting curr_state[{0}]= {1}".format(s, curr_state[s]))
                         if debug:
@@ -239,4 +240,5 @@ class BasicTauLeapingSolver(GillesPySolver):
         if profile:
             print(steps_taken)
             print("Total Steps Taken: ", len(steps_taken))
+            print("Total Steps Rejected: ", steps_rejected)
         return results
