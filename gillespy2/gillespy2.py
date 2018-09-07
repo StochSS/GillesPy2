@@ -124,7 +124,7 @@ class Model(object):
         self.namespace = OrderedDict([])
 
         if tspan is None:
-            self.timespan(np.linspace(0, 20, 401))
+            self.timespan(np.linspace(0, 20, 401))\
         else:
             self.timespan(tspan)
 
@@ -236,6 +236,7 @@ class Model(object):
 
     def add_parameter(self, params):
         """
+
         Adds a parameter, or list of parameters to the model.
 
         Attributes
@@ -245,6 +246,7 @@ class Model(object):
         """
         # TODO, make sure that you don't overwrite an existing parameter??
         if isinstance(params,list):
+
             for p in params:
                 self.add_parameter(p)
         else:
