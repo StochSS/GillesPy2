@@ -80,7 +80,7 @@ get_ipython().run_line_magic('time', 'results3 = model.run(solver=BasicTauHybrid
 # In[7]:
 
 
-v_range = range(1, 15)
+v_range = range(1, 1000)
 def run_test(solver, v_range):
     run_data = []
     for n in v_range:
