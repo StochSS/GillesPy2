@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0,'..')
+
 from tqdm import trange
 from itertools import product
 from timeit import default_timer as timer
