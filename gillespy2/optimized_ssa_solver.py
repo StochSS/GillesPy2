@@ -1,16 +1,16 @@
-import gillespy2
-from .gillespySolver import GillesPySolver
+from gillespy2.gillespySolver import GillesPySolver
 import random
 import math
 import numpy as np
-
+import logging
+logger = logging.getLogger()
 try:
     import pyximport; pyximport.install(setup_args={'include_dirs': np.get_include()})
     from .cython_ssa_solver import CythonSSASolver
     can_use_cython = True
-    print("Successful Import")
+    logging.debug("Successful Import")
 except Exception as e:
-    print("Unable to use Cython optimized SSA:\nError:{0}".format(e))
+    logging.warn("Unable to use Cython optimized SSA:\nError:{0}".format(e))
     can_use_cython = False
 
 
