@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0,'..')
+
 import unittest
 import tempfile
 from gillespy2 import SSACSolver, SolverError, DirectoryError, BuildError, ExecutionError
