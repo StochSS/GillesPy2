@@ -17,7 +17,7 @@ except Exception as e:
 class NumPySSASolver(GillesPySolver):
     """ SSA Direct Method Solver implemented primarily with NumPy.
     """
-    name = "OptimizedSSASolver"
+    name = "NumPySSASolver"
 
     @classmethod
     def run(cls, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=False,
