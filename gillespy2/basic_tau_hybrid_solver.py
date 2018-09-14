@@ -207,45 +207,44 @@ class BasicTauHybridSolver(GillesPySolver):
                     mean[r] = 0
                     stand_dev[r] = 0
 
+                critical = False
                 for r in model.listOfReactions:
                     # For each reaction, determine if critical
-                    critical = False
                     for reactant in model.listOfReactions[r].reactants:
                         # if species pop / state change <= threshold set critical and break
                         if curr_state[str(reactant)] / model.listOfReactions[r].reactants[reactant] <= n_fires:
                             critical = True
-                            break
-                        g_i[reactant] = 3 + (1 / (curr_state[str(reactant)] - 1)) + (
-                                2 / (curr_state[str(reactant)] - 2))  # Cao, Gillespie, Petzold 27.iii
-                        epsilon_i[reactant] = self.epsilon / g_i[reactant]  # Cao, Gillespie, Petzold 27
-                        mean[reactant] += model.listOfReactions[r].reactants[reactant] * propensities[r]    # Cao, Gillespie, Petzold 29a
-                        stand_dev[reactant] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[r]  # Cao, Gillespie, Petzold 29b
-                        # print("epsilon_i: ", epsilon_i)
-                        # print("mean: ", mean)
-                        # print("stand dev: ", stand_dev)
-                    if critical:    # if a critical reaction is found, use forward euler to next reaction
-                        new_tau_step = tau_step
-                        break
-
-                # TODO
-                # FIND FIRST FIRING CRITICAL REACTION AND USE THAT, MUST ACCOUNT FOR POSSIBILITY OF NO PROPENSITY
-                #     if critical:
-                #         critical_reactions.append(model.listOfReactions[r])
-                #
-                # # If there is a critical reaction find soonest firing one based on forward euler
-                # if len(critical_reactions) > 0:
-                #     print(critical_reactions)
-                #     print(tau_j)
-                #     for cr in critical_reactions:
-                #         if new_tau_step is None or tau_j[str(cr)] < new_tau_step:
-                #             new_tau_step = tau_j[cr]
-                    else:   # No critical reactions
+                            critical_reactions.append(r)
+                # if critical:
+                #     # Cycle through critical reactions to fire fastest one, if none fire, fire soonest reaction
+                #     for reaction in critical_reactions:
+                #         if propensities[r] > 0:
+                #             if new_tau_step is None:
+                #                 new_tau_step = tau_j[r]
+                #             else:
+                #                 if tau_j[reaction] < new_tau_step:
+                #                     new_tau_step = tau_j[reaction]
+                #     if new_tau_step is None:
+                #         new_tau_step = tau_step
+                if not critical:
+                    for r in model.listOfReactions:
+                        for reactant in model.listOfReactions[r].reactants:
+                            g_i[reactant] = 3 + (1 / (curr_state[str(reactant)] - 1)) + (
+                                    2 / (curr_state[str(reactant)] - 2))  # Cao, Gillespie, Petzold 27.iii
+                            epsilon_i[reactant] = self.epsilon / g_i[reactant]  # Cao, Gillespie, Petzold 27
+                            mean[reactant] += model.listOfReactions[r].reactants[reactant] * propensities[
+                                r]  # Cao, Gillespie, Petzold 29a
+                            stand_dev[reactant] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[
+                                r]  # Cao, Gillespie, Petzold 29b
                         for r in reactants:
                             if mean[r] > 0:
                                 # Cao, Gillespie, Petzold 33
-                                tau_i[r] = min((max(epsilon_i[r] * curr_state[str(r)], 1) / mean[r]),   # Cao, Gillespie, Petzold 32A
-                                               (max(epsilon_i[r] * curr_state[str(r)], 1) ** 2 / stand_dev[r])) # Cao, Gillespie, Petzold 32B
-                                if new_tau_step is None or tau_i[r] < new_tau_step: #set smallest tau from non-critical reactions
+                                tau_i[r] = min((max(epsilon_i[r] * curr_state[str(r)], 1) / mean[r]),
+                                               # Cao, Gillespie, Petzold 32A
+                                               (max(epsilon_i[r] * curr_state[str(r)], 1) ** 2 / stand_dev[
+                                                   r]))  # Cao, Gillespie, Petzold 32B
+                                if new_tau_step is None or tau_i[
+                                    r] < new_tau_step:  # set smallest tau from non-critical reactions
                                     new_tau_step = tau_i[r]
                 # print('-------------------------------')
                 # print("new tau i step value is: ", new_tau_step)

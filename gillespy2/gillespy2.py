@@ -17,7 +17,6 @@ from collections import OrderedDict
 import numpy as np
 from .gillespySolver import *
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 
 pretty_graph = False
