@@ -38,7 +38,7 @@ def timed_trials(models, solvers, trajectories, number_trials=30, override_numbe
         for trajectory_i, trajectory in enumerate(trajectories):
             times = timing_data[model.name][solver.name][trajectory_i]
             times[0] = trajectory
-            for i in trange(trials, desc = f'Model: {model.name}, Solver: {solver.name}, Trajectories: {trajectory}'):
+            for i in trange(trials, desc = 'Model: {}, Solver: {}, Trajectories: {}'.format(model.name, solver.name, trajectory)):
                 start = timer()
                 model.run(solver=solver, number_of_trajectories=trajectory)
                 stop = timer()
