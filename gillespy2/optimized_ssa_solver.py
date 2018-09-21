@@ -10,7 +10,7 @@ try:
     can_use_cython = True
     logging.debug("Successful Import")
 except Exception as e:
-    logging.warn("Unable to use Cython optimized SSA:\nError:{0}".format(e))
+    logging.warning(" Unable to use Cython optimized SSA: {0}\nThe performance of this package can be significantly increased if you install Cython.".format(e))
     can_use_cython = False
 
 
