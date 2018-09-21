@@ -83,4 +83,23 @@ namespace Gillespy{
     }
     return os;
   }
+
+  void Simulation :: output_results_buffer(std :: ostream& os){
+    double temp;
+    unsigned char* temp_byte = reinterpret_cast<unsigned char*>(&temp);
+    for(uint i = 0; i < number_timesteps; i++){
+      temp = timeline[i];
+      for(uint byte_i = 0; byte_i < sizeof(double); byte_i++){
+	os << temp_byte[byte_i];
+      }
+      for(uint trajectory = 0; trajectory < number_trajectories; trajectory++){
+	for(uint j = 0; j < model -> number_species; j++){
+	  temp = trajectories[trajectory][i][j];
+	  for(uint byte_i = 0; byte_i < sizeof(double); byte_i++){
+	    os << temp_byte[byte_i];
+	  }
+	}
+      }
+    }
+  }
 }
