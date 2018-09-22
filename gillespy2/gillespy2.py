@@ -16,23 +16,14 @@ from __future__ import division
 from collections import OrderedDict
 import numpy as np
 from .gillespySolver import *
-import matplotlib.pyplot as plt
-
 
 pretty_graph = False
-
-
-# try:
-#     import seaborn as sbn
-#     pretty_graph = True
-# except:
-#     import matplotlib.pyplot as plt
-#     pretty_graph = False
 
 try:
     import lxml.etree as eTree
 
     no_pretty_print = False
+
 except:
     import xml.etree.ElementTree as eTree
     import xml.dom.minidom
@@ -428,6 +419,14 @@ class Model(object):
     #title, start time, stop time, automatic legend, legend placement, axis labels, size of graph.
     #Axis Legend Stuff ends up being complicated, ensure I understand expected scope of function.
     def plot(self, results, **kwargs):
+
+        try:
+            import seaborn as sbn
+            pretty_graph = True
+        except:
+            import matplotlib.pyplot as plt
+            pretty_graph = False
+
         if pretty_graph:
             pass
         if not pretty_graph:

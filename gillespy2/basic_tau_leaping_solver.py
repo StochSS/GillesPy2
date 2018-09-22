@@ -1,6 +1,5 @@
 from .gillespySolver import GillesPySolver
 import random
-from scipy.integrate import ode
 import numpy
 import math
 import sys
