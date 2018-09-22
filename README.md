@@ -43,7 +43,7 @@ Please read [CONTRIBUTING.md] for details on our code of conduct, and the proces
 * **Ghilman Brock**  
 * **Eliot Dixon**  
 * **Dalton Nickerson**  
-* **Sean Matthews** 
+* **Sean Matthew** 
 * **W.R. Jackson** 
 
 ## License
