@@ -20,7 +20,7 @@ sys.path.append(os.path.abspath(os.path.join(os.getcwd(), os.pardir)))
 print(sys.path)
 
 
-# In[3]:
+# In[10]:
 
 
 import math
@@ -30,7 +30,7 @@ from gillespy2.basic_ssa_solver import BasicSSASolver
 from gillespy2.basic_tau_leaping_solver import BasicTauLeapingSolver
 
 
-# In[4]:
+# In[11]:
 
 
 class SimpleHybridModel(gillespy2.Model):
@@ -40,7 +40,7 @@ class SimpleHybridModel(gillespy2.Model):
 
             
             #Species
-            A = gillespy2.Species(name='A', initial_value=0)
+            A = gillespy2.Species(name='A', initial_value=init_v)
             V = gillespy2.Species(name='V', initial_value=init_v)
 
             self.add_species([A, V])
@@ -63,13 +63,13 @@ class SimpleHybridModel(gillespy2.Model):
             self.timespan(numpy.linspace(0,100, 101))
 
 
-# In[5]:
+# In[12]:
 
 
-model = SimpleHybridModel()
+model = SimpleHybridModel(init_v=170)
 
 
-# In[6]:
+# In[13]:
 
 
 get_ipython().run_line_magic('time', 'results1 = model.run(solver=BasicSSASolver(), show_labels=True)')
@@ -77,10 +77,37 @@ get_ipython().run_line_magic('time', 'results2 = model.run(solver=BasicTauLeapin
 get_ipython().run_line_magic('time', 'results3 = model.run(solver=BasicTauHybridSolver(), show_labels=True)')
 
 
-# In[7]:
+# In[14]:
 
 
-v_range = range(1, 1000)
+plt.figure(figsize=(18,10))
+plt.plot(results1['time'], results1['A'], label='A')
+plt.plot(results1['time'], results1['V'], label='V')
+plt.legend(loc='best')
+
+
+# In[15]:
+
+
+plt.figure(figsize=(18,10))
+plt.plot(results2['time'], results2['A'], label='A')
+plt.plot(results2['time'], results2['V'], label='V')
+plt.legend(loc='best')
+
+
+# In[16]:
+
+
+plt.figure(figsize=(18,10))
+plt.plot(results3['time'], results3['A'], label='A')
+plt.plot(results3['time'], results3['V'], label='V')
+plt.legend(loc='best')
+
+
+# In[14]:
+
+
+v_range = range(1, 500)
 def run_test(solver, v_range):
     run_data = []
     for n in v_range:
@@ -92,7 +119,7 @@ def run_test(solver, v_range):
     return run_data
 
 
-# In[8]:
+# In[15]:
 
 
 timing_data = {'basic':[], 'tau':[], 'hybrid_tau':[]}
@@ -102,16 +129,18 @@ get_ipython().run_line_magic('time', "timing_data['hybrid_tau'] = run_test(Basic
 print(timing_data)
 
 
-# In[9]:
+# In[16]:
 
 
 plt.figure(figsize=(20,10))
 plt.title("Time Comparison of Solvers")
-plt.xlabel("initial Value of V")
-plt.ylabel("Simulation Run Time")
+plt.xlabel("initial Value of V (species count)")
+plt.ylabel("Simulation Run Time (s)")
 plt.plot(v_range, timing_data['basic'], label='basic')
 plt.plot(v_range, timing_data['tau'], label='tau')
 plt.plot(v_range, timing_data['hybrid_tau'], label='hybrid_tau')
 plt.legend(loc='best')
 plt.savefig("TimeComparisonOfSolvers.pdf")
 
+
+# TODO: Put units on axes.  Run speed test until Hybrid crosses SSA.  Perform accuracy test. Lint. Document. Accuracy validation against stoch kit.  Plot of epsilon vs ks-distance (error margin). Find good accuracy testing model.  see what others are doing for accuracy testing.  Ask Brian for polarization model. move seaborn to plotting function.
