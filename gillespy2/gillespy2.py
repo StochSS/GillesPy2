@@ -244,8 +244,7 @@ class Model(object):
             The parameter or list of parameters to be added to the model object.
         """
         # TODO, make sure that you don't overwrite an existing parameter??
-        if isinstance(params,list):
-
+        if isinstance(params,list): 
             for p in params:
                 self.add_parameter(p)
         else:
@@ -393,7 +392,7 @@ class Model(object):
             The random seed for the simulation. Optional, defaults to None.
         solver : gillespy.GillesPySolver
             The solver by which to simulate the model. This solver object may
-            be initialized separately to specify an algorithm. Optional,
+            be initialized separately to specify an algorithm. Optional, 
             defaults to StochKitSolver SSA.
         stochkit_home : str
             Path to stochkit. This is set automatically upon installation, but
