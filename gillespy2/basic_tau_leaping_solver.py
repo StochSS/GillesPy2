@@ -139,13 +139,14 @@ class BasicTauLeapingSolver(GillesPySolver):
                         if new_tau_step is None or tau_i[
                             r] < new_tau_step:  # set smallest tau from non-critical reactions
                             new_tau_step = tau_i[r]
-                            return new_tau_step
+
 
         if new_tau_step is not None and new_tau_step < (
                 save_time - curr_time):  # if curr+new_tau < save_time, use new_tau
             tau_step = new_tau_step
         if profile:
             steps_taken.append(tau_step)
+        return new_tau_step
         # END NEW TAU SELECTION METHOD
 
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, profile=False, debug=False, show_labels=False,
