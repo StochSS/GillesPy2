@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import random
 import tempfile
 import os
@@ -74,9 +74,6 @@ class StochKitBaseSolver(GillesPySolver):
         elif isinstance(model, str):
             outfile = model
 
-        # Assemble argument list for StochKit
-        ensemble_name = job_id
-
         executable = self.locate_executable(stochkit_home=stochkit_home, algorithm=algorithm)
 
         if executable is None:
@@ -84,23 +81,25 @@ class StochKitBaseSolver(GillesPySolver):
                 Make sure it is your path, or set STOCHKIT_HOME environment \
                 variable'".format(algorithm))
 
+        # Assemble argument list for StochKit
+        out_dir = os.path.join(prefix_out_dir, job_id)
+
         if increment is None:
             increment = t / 20.0
-        num_output_points = str(int(float(t / increment)))
-
-        out_dir = os.path.join(prefix_out_dir, ensemble_name)
+        num_output_points = t // increment
 
         # Assemble the argument list
         args = '--model {0} --out-dir {1} -t {2} -i {3}'.format(outfile, out_dir, t, num_output_points)
 
         directories = os.listdir(prefix_out_dir)
-        if ensemble_name in directories:
-            print('Ensemble ' + ensemble_name + ' already existed, using --force.')
+        if job_id in directories:
+            if debug:
+                print('Ensemble {0} already existed, using --force.'.format(job_id))
             args += ' --force'
 
         # If we are using local mode, shell out and run StochKit
         # (SSA or Tau-leaping or ODE)
-        cmd = '{0} {1} {2}'.format(executable, args, extra_args)
+        cmd = ' '.join([executable, args, extra_args])
         if debug:
             print("cmd: {0}".format(cmd))
 
@@ -123,38 +122,34 @@ class StochKitBaseSolver(GillesPySolver):
         if return_code != 0:
             raise SimulationError("Solver execution failed: '{0}' output: {1}{2}".format(cmd, stdout, stderr))
 
-        # Get data using solver specific function
-        trajectories = []
         try:
+            # Get data using solver specific function
             trajectories = self.get_trajectories(out_dir, debug=debug, show_labels=show_labels)
+            if len(trajectories) == 0:
+                raise SimulationError("Solver execution failed: '{0}' output: {1}{2}".format(cmd, stdout, stderr))
             if show_labels:
                 labels, trajectories = trajectories
+                trajectories = self.label_trajectories(trajectories, labels)
+            return trajectories
         except Exception as e:
-            compile_log_file = os.path.join(prefix_base_dir, 'temp_input_{0}_generated_code'.format(ensemble_name),
+            compile_log_file = os.path.join(prefix_base_dir, 'temp_input_{0}_generated_code'.format(job_id),
                                             'compile-log.txt')
-            log_file = os.path.join(prefix_out_dir, ensemble_name, 'log.txt')
+            log_file = os.path.join(prefix_out_dir, job_id, 'log.txt')
             for file_name in [compile_log_file, log_file]:
                 if os.path.isfile(file_name):
                     with open(file_name) as f:
-                        cerr = f.read()
-                    raise SimulationError("Error running simulation: {0}\n{1}\n".format(file_name, cerr))
+                        error = f.read()
+                    raise SimulationError("Error running simulation: {0}\n{1}\n".format(file_name, error))
 
             raise SimulationError("Error using solver.get_trajectories('{0}'): {1}".format(out_dir, e))
-
-        if len(trajectories) == 0:
-            raise SimulationError("Solver execution failed: '{0}' output: {1}{2}".format(cmd, stdout, stderr))
-
-        # Clean up
-        if debug:
-            print("prefix_base_dir={0}".format(prefix_base_dir))
-            print("STDOUT: {0}".format(stdout))
-            print("STDERR: {0}".format(stderr))
-        else:
-            shutil.rmtree(prefix_base_dir)
-        # Return data
-        if show_labels:
-            trajectories = self.label_trajectories(trajectories, labels)
-        return trajectories
+        finally:
+            # Clean up
+            if debug:
+                print("prefix_base_dir={0}".format(prefix_base_dir))
+                print("STDOUT: {0}".format(stdout))
+                print("STDERR: {0}".format(stderr))
+            else:
+                shutil.rmtree(prefix_base_dir)
 
     @staticmethod
     def locate_executable(stochkit_home=None, algorithm=None):
@@ -259,27 +254,26 @@ class StochKitSolver(StochKitBaseSolver):
             args += ' --method ' + str(method)
 
         return super().run(model, t, number_of_trajectories, increment, seed, stochkit_home,
-                           algorithm, job_id, debug=debug, show_labels=show_labels)
+                           algorithm, job_id, debug=debug, show_labels=show_labels, extra_args=args)
 
     @classmethod
-    def get_trajectories(cls, outdir, debug=False, show_labels=False):
+    def get_trajectories(cls, out_dir, debug=False, show_labels=False):
+        if debug:
+            print("StochKitSolver.get_trajectories(out_dir={0}".format(out_dir))
         # Collect all the output data
         trajectories = []
-        files = os.listdir(outdir + '/trajectories')
-        labels = []
-        if show_labels:
-            with open(outdir + '/trajectories/trajectory0.txt', 'r') as f:
-                first_line = f.readline()
-                labels = first_line.split()
-        for filename in files:
+        trajectory_directory = os.path.join(out_dir, 'trajectories')
+        for filename in os.listdir(trajectory_directory):
             if 'trajectory' in filename:
-                trajectories.append(numpy.loadtxt(outdir + '/trajectories/' +
-                                                  filename, skiprows=1))
+                filename = os.path.join(trajectory_directory, filename)
+                trajectories.append(np.loadtxt(filename, skiprows=1))
             else:
                 raise SimulationError("Couldn't identify file '{0}' found in \
                                         output folder".format(filename))
         if show_labels:
-            return labels, trajectories
+            with open(os.path.join(trajectory_directory, 'trajectory0.txt', 'r')) as fd:
+                headers = fd.readline()
+            return headers.split(), trajectories
         return trajectories
 
 
@@ -323,12 +317,12 @@ class StochKitODESolver(StochKitBaseSolver):
                            algorithm, job_id, debug=debug, show_labels=show_labels)
 
     @classmethod
-    def get_trajectories(cls, outdir, debug=False, show_labels=False):
+    def get_trajectories(cls, out_dir, debug=False, show_labels=False):
         if debug:
-            print("StochKitODESolver.get_trajectories(outdir={0}".format(outdir))
+            print("StochKitODESolver.get_trajectories(out_dir={0}".format(out_dir))
         # Collect all the output data
         trajectories = []
-        with open(outdir + '/output.txt') as fd:
+        with open(os.path.join(out_dir, 'output.txt'), 'r') as fd:
             fd.readline()
             headers = fd.readline()
             fd.readline()
@@ -336,7 +330,7 @@ class StochKitODESolver(StochKitBaseSolver):
             fd.readline()
             for line in fd:
                 data.append([float(x) for x in line.split()])
-        trajectories.append(numpy.array(data))
+        trajectories.append(np.array(data))
         if show_labels:
             return headers.split(), trajectories
         return trajectories
