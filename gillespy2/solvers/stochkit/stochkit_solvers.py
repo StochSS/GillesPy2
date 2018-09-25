@@ -171,7 +171,7 @@ class StochKitBaseSolver(GillesPySolver):
         if executable is None:
             # try to find the executable in the path
             if os.environ.get('PATH') is not None:
-                for directory in os.environ.get('PATH').split(':'):
+                for directory in os.environ.get('PATH').split(os.pathsep):
                     if os.path.isfile(os.path.join(directory, algorithm)):
                         executable = os.path.join(directory, algorithm)
                         break
