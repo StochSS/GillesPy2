@@ -6,7 +6,7 @@ import uuid
 import subprocess
 import shutil
 from gillespy2.solvers.gillespySolver import GillesPySolver
-from gillespy2.gillespyError import SimulationError, StochMLImportError, InvalidStochMLError, InvalidModelError
+from gillespy2.gillespyError import SimulationError, InvalidModelError
 from gillespy2 import Model
 
 
@@ -14,7 +14,7 @@ class StochKitBaseSolver(GillesPySolver):
     name = "StochKitBaseSolver"
     """
     Abstract class for a StochKit solver. This is generally called from within a
-    gillespy Model through the Model.run function. Returns simulation
+    GillesPy Model through the Model.run function. Returns simulation
     trajectories.
 
     Attributes
@@ -73,6 +73,8 @@ class StochKitBaseSolver(GillesPySolver):
                 model_file_handle.write(model.serialize())
         elif isinstance(model, str):
             outfile = model
+        else:
+            raise InvalidModelError('Model must be either a GillesPy Model instance or an xml file name.')
 
         executable = self.locate_executable(stochkit_home=stochkit_home, algorithm=algorithm)
 
