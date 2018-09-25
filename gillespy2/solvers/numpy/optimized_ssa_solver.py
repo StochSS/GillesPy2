@@ -126,6 +126,3 @@ class OptimizedSSASolver(NumPySSASolver):
             solver = CythonSSASolver()
             return solver.run(model, t, number_of_trajectories, increment, seed, debug, show_labels)
         return super().run(model, t, number_of_trajectories, increment, seed, debug, show_labels, stochkit_home)
-
-    def get_trajectories(self, outdir, debug=False, show_labels=False):
-        pass
