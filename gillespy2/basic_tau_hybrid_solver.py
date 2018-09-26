@@ -172,10 +172,10 @@ class BasicTauHybridSolver(GillesPySolver):
             for reaction in critical_reactions:
                 if propensities[r] > 0:
                     if new_tau_step is None:
-                        new_tau_step = tau_j[r]
+                        new_tau_step = max(tau_j[r], 1e-10)
                     else:
                         if tau_j[reaction] < new_tau_step:
-                            new_tau_step = tau_j[reaction]
+                            new_tau_step = max(tau_j[reaction])
             if new_tau_step is None:
                 new_tau_step = tau_step
         else:
