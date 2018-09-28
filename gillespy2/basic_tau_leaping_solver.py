@@ -111,9 +111,9 @@ class BasicTauLeapingSolver(GillesPySolver):
         if critical:
             # Cycle through critical reactions to fire fastest one, if none fire, fire soonest reaction
             for reaction in critical_reactions:
-                if propensities[r] > 0:
+                if propensities[reaction] > 0:
                     if new_tau_step is None:
-                        new_tau_step = tau_j[r]
+                        new_tau_step = tau_j[reaction]
                     else:
                         if tau_j[reaction] < new_tau_step:
                             new_tau_step = tau_j[reaction]
@@ -149,6 +149,7 @@ class BasicTauLeapingSolver(GillesPySolver):
         return new_tau_step
         # END NEW TAU SELECTION METHOD
 
+    @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, profile=False, debug=False, show_labels=False,
             **kwargs):
         if not sys.warnoptions:

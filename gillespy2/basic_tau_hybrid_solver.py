@@ -12,9 +12,9 @@ eval_globals = math.__dict__
 class BasicTauHybridSolver(GillesPySolver):
     name = "Basic Tau Hybrid Solver"
 
-    def __init__(self, debug=False):
+    def __init__(self, debug=False, epsilon=0.03):
         self.debug = debug
-        self.epsilon = 0.03
+        self.epsilon = epsilon
 
     @staticmethod
     def f(t, y, curr_state, reactions, rate_rules, propensities, compiled_reactions, compiled_rate_rules):
@@ -170,9 +170,9 @@ class BasicTauHybridSolver(GillesPySolver):
         if critical:
             # Cycle through critical reactions to fire fastest one, if none fire, fire soonest reaction
             for reaction in critical_reactions:
-                if propensities[r] > 0:
+                if propensities[reaction] > 0:
                     if new_tau_step is None:
-                        new_tau_step = max(tau_j[r], 1e-10)
+                        new_tau_step = max(tau_j[reaction], 1e-10)
                     else:
                         if tau_j[reaction] < new_tau_step:
                             new_tau_step = max(tau_j[reaction])
@@ -206,6 +206,7 @@ class BasicTauHybridSolver(GillesPySolver):
         return new_tau_step
         # END NEW TAU SELECTION METHOD
 
+    @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, show_labels=False,
             **kwargs):
         """ TODO: write up doc """
