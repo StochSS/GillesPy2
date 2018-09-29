@@ -175,7 +175,7 @@ class BasicTauHybridSolver(GillesPySolver):
                         new_tau_step = max(tau_j[reaction], 1e-10)
                     else:
                         if tau_j[reaction] < new_tau_step:
-                            new_tau_step = max(tau_j[reaction])
+                            new_tau_step = max(tau_j[reaction], 1e-10)
             if new_tau_step is None:
                 new_tau_step = tau_step
         else:
