@@ -27,7 +27,7 @@ class SimpleHybridModel(gillespy2.Model):
 
             # Reactions
             r1 = gillespy2.Reaction(name='r1', reactants={A:1}, products={}, propensity_function="k1*B")
-            r2 = gillespy2.Reaction(name='r2', reactants={A:1}, products={}, rate=k2)
+            r2 = gillespy2.Reaction(name='r2', reactants={}, products={B:1}, rate=k2)
             self.add_reaction([r1,r2])
 
             self.timespan(numpy.linspace(0,1,11))
@@ -67,17 +67,30 @@ class TestSimpleModel(unittest.TestCase):
         reactions = self.model.get_all_reactions()
 
         species_A = self.model.get_species('A')
-        reactants_r1 = reactions['r1'].reactants
-        species_key = list(reactants_r1)[0]
+        species_B = self.model.get_species('B')
 
+        reactants_r1 = reactions['r1'].reactants
+        products_r2 = reactions['r2'].products
+
+        species_r1 = list(reactants_r1)[0]
+        species_r2 = list(products_r2)[0]
+
+        # Check r1 name & propensity function is set
         self.assertEqual(reactions['r1'].name, 'r1', msg='Has incorrect expression')
         self.assertEqual(reactions['r1'].propensity_function, 'k1*B', msg='Has incorrect expression')
 
+        # Check r1 reactants are set
+        self.assertEqual(reactants_r1[species_A], 1, msg='Has incorrect number of reactants')
+        self.assertIsInstance(species_r1, gillespy2.Species, msg='Has incorrect type')
+
+        # Check r2 products are set
+        self.assertEqual(products_r2[species_B], 1, msg='Has incorrect number of products')
+        self.assertIsInstance(species_r2, gillespy2.Species, msg='Has incorrect type')
+
+        # Check r2 name & rate is set
         self.assertEqual(reactions['r2'].name, 'r2', msg='Has incorrect expression')
         self.assertEqual(reactions['r2'].marate.expression, '10', msg='Has incorrect expression')
 
-        self.assertIsInstance(species_key, gillespy2.Species, msg='Has incorrect type')
-        self.assertEqual(reactants_r1[species_A], 1, msg='Has incorrect number of reactants')
     
     def test_model_has_timespan_correct(self):
         timespan = self.model.tspan
