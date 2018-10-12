@@ -1,4 +1,11 @@
-from .gillespyError import *
+import numpy
+import random
+import tempfile
+import os
+import uuid
+import subprocess
+import shutil
+
 class GillesPySolver():
     """ 
     Abstract class for a solver. This is generally called from within a
@@ -37,6 +44,8 @@ class GillesPySolver():
         Use names of species as index of result object rather than position numbers.
     """
 
+    name = "GillesPySolver"
+
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, stochkit_home=None, algorithm=None,
             job_id=None, extra_args='', debug=False, show_labels=False):
@@ -45,7 +54,7 @@ class GillesPySolver():
         """
         
         if algorithm is None:
-            raise SimuliationError("No algorithm selected")
+            raise SimulationError("No algorithm selected")
         
         # We write all StochKit input and output files to a temporary folder
         prefix_basedir = tempfile.mkdtemp()
@@ -54,11 +63,11 @@ class GillesPySolver():
         
         if job_id is None:
             job_id = str(uuid.uuid4())
-        
+            
+        from gillespy2 import Model
         # Write a temporary StochKit2 input file.
         if isinstance(model, Model):
-            outfile =  os.path.join(prefix_basedir, 
-                                        "temp_input_"+job_id+".xml")
+            outfile = os.path.join(prefix_basedir, "temp_input_"+job_id+".xml")
             mfhandle = open(outfile, 'w')
             #document = StochMLDocument.from_model(model)
 
@@ -72,12 +81,10 @@ class GillesPySolver():
             outfile = model
 
         # Assemble argument list for StochKit
-        ensemblename = job_id
+        ensemble_name = job_id
     
         directories = os.listdir(prefix_outdir)
-        
-        
-        outdir = prefix_outdir+'/'+ensemblename
+        outdir = prefix_outdir+'/'+ensemble_name
         
 
         # Algorithm, SSA or Tau-leaping?
@@ -86,7 +93,7 @@ class GillesPySolver():
             if os.path.isfile(os.path.join(stochkit_home, algorithm)):
                 executable = os.path.join(stochkit_home, algorithm)
             else:
-                raise SimuliationError("stochkit executable '{0}' not found \
+                raise SimulationError("stochkit executable '{0}' not found \
                 stochkit_home={1}".format(algorithm, stochkit_home))
         elif os.environ.get('STOCHKIT_HOME') is not None:
             if os.path.isfile(os.path.join(os.environ.get('STOCHKIT_HOME'), 
@@ -118,8 +125,8 @@ class GillesPySolver():
             increment = t/20.0
         num_output_points = str(int(float(t/increment)))
         args += ' -i ' + num_output_points
-        if ensemblename in directories:
-            print('Ensemble '+ensemblename+' already existed, using --force.')
+        if ensemble_name in directories:
+            print('Ensemble '+ensemble_name+' already existed, using --force.')
             args+=' --force'
         
 
@@ -135,7 +142,7 @@ class GillesPySolver():
             handle = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             return_code = handle.wait()
         except OSError as e:
-            raise SimuliationError("Solver execution failed: \
+            raise SimulationError("Solver execution failed: \
             {0}\n{1}".format(cmd, e))
         
         try:
@@ -150,7 +157,7 @@ class GillesPySolver():
         if return_code != 0:
             #print stdout
             #print stderr
-            raise SimuliationError("Solver execution failed: \
+            raise SimulationError("Solver execution failed: \
             '{0}' output: {1}{2}".format(cmd,stdout,stderr))
 
         # Get data using solver specific function
@@ -160,13 +167,13 @@ class GillesPySolver():
             else:
                 trajectories = self.get_trajectories(outdir, debug=debug, show_labels=False)
         except Exception as e:
-            fname = os.path.join(prefix_basedir,'temp_input_{0}_generated_code'.format(ensemblename),'compile-log.txt')
+            fname = os.path.join(prefix_basedir,'temp_input_{0}_generated_code'.format(ensemble_name),'compile-log.txt')
             if os.path.isfile(fname):
                 with open(fname) as f:
                     cerr = f.read()
                 raise SimulationError("Error compiling custom propensities: {0}\n{1}\n".format(fname,cerr))
 
-            fname = os.path.join(prefix_outdir,ensemblename,'log.txt')
+            fname = os.path.join(prefix_outdir,ensemble_name,'log.txt')
             if os.path.isfile(fname):
                 with open(fname) as f:
                     cerr = f.read()
@@ -177,7 +184,7 @@ class GillesPySolver():
         if len(trajectories) == 0:
             #print stdout
             #print stderr
-            raise SimuliationError("Solver execution failed: \
+            raise SimulationError("Solver execution failed: \
             '{0}' output: {1}{2}".format(cmd,stdout,stderr))
 
         # Clean up
@@ -232,7 +239,9 @@ class StochKitSolver(GillesPySolver):
         Set to True to provide additional debug information about the     
         simulation.
     """
-    
+
+    name = 'StochKitSolver'
+
     @classmethod
     def run(cls, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, stochkit_home=None, algorithm='ssa',
@@ -240,7 +249,7 @@ class StochKitSolver(GillesPySolver):
     
         # all this is specific to StochKit
         if model.units == "concentration":
-            raise SimuliationError("StochKit can only simulate population "+
+            raise SimulationError("StochKit can only simulate population "+
                 "models, please convert to population-based model for "+
                 "stochastic simulation. Use solver = StochKitODESolver "+
                 "instead to simulate a concentration model deterministically.")
@@ -294,7 +303,7 @@ class StochKitSolver(GillesPySolver):
                 trajectories.append(numpy.loadtxt(outdir + '/trajectories/' + 
                                         filename, skiprows=1))
             else:
-                raise SimuliationError("Couldn't identify file '{0}' found in \
+                raise SimulationError("Couldn't identify file '{0}' found in \
                                         output folder".format(filename))
         if show_labels:
             return (labels, trajectories)
@@ -331,7 +340,9 @@ class StochKitODESolver(GillesPySolver):
         Set to True to provide additional debug information about the     
         simulation.
     """
-    
+
+    name = "StochKitODESolver"
+
     @classmethod
     def run(cls, model, t=20, number_of_trajectories=1,
                 increment=0.05, seed=None, stochkit_home=None, 
@@ -363,3 +374,7 @@ class StochKitODESolver(GillesPySolver):
             return (headers.split(), trajectories)
         else:
             return trajectories
+
+
+class SimulationError(Exception):
+    pass
