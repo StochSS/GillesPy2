@@ -35,13 +35,97 @@ class SimpleHybridModel(gillespy2.Model):
 class TestSimpleModel(unittest.TestCase):
     def setUp(self):
         self.model = SimpleHybridModel()
+
     def test_model_creation(self):
         name = self.model.name
         self.assertEqual(name, "Simple_Hybrid_Model", msg="Unexpected value: {}".format(name))
 
+    def test_addingSameSpecies_ThrowsError(self):
+        A = gillespy2.Species(name='A', initial_value=0)
+        with self.assertRaises(gillespy2.gillespy2.ModelError) as ex:
+            self.model.add_species(A)
+        self.assertEqual(str(ex.exception), "Can't add species. A species with that name already exists.")
+
+    def test_addingMultipleSameSpecies_ThrowsError(self):
+        A = gillespy2.Species(name='A', initial_value=0)
+        B = gillespy2.Species(name='B', initial_value=0)
+        with self.assertRaises(gillespy2.gillespy2.ModelError) as ex:
+            self.model.add_species([A,B])
+        self.assertEqual(str(ex.exception), "Can't add species. A species with that name already exists.")
+
+    def test_delete_species(self):
+        self.model.delete_species('A')
+        speciesList = self.model.get_all_species()
+        self.assertNotIn('A', speciesList)
+
+    def test_delete_all_species(self):
+        self.model.delete_all_species()
+        speciesList = self.model.get_all_species()
+        self.assertNotIn('A', speciesList)
+        self.assertNotIn('B', speciesList)
+
+    def test_set_units_concentration(self):
+        self.model.set_units('concentration')
+        units = self.model.units
+        self.assertEqual(units, 'concentration')
+
+    def test_set_units_population(self):
+        self.model.set_units('population')
+        units = self.model.units
+        self.assertEqual(units, 'population')
+
+    def test_setFakeUnits_ThrowsError(self):
+        with self.assertRaises(gillespy2.gillespy2.ModelError) as ex:
+            self.model.set_units('nonsense')
+        self.assertEqual(str(ex.exception), "units must be either concentration or population (case insensitive)")
+    
+    def test_serialization(self):
+        doc = self.model.serialize()
+        self.assertIsInstance(doc, str)
+        self.assertIn('<Reaction>', doc)
+
     def test_model_has_species(self):
         species = self.model.get_species('A')
         self.assertIsInstance(species, gillespy2.Species, msg='{0} has incorrect type'.format(species))
+
+    def test_add_single_species(self):
+        C = gillespy2.Species(name='C', initial_value=0)
+        self.model.add_species(C)
+        species = self.model.get_species('C')
+        self.assertIsInstance(species, gillespy2.Species, msg='{0} has incorrect type'.format(species))
+
+    def test_model_has_species_list(self):
+        speciesList = self.model.get_all_species()
+        species = speciesList['A']
+        self.assertIsInstance(species, gillespy2.Species, msg='{0} has incorrect type'.format(species))
+
+    def test_get_parameter(self):
+        parameter = self.model.get_parameter('k1')
+        self.assertEqual('1', parameter.expression)
+        self.assertIsInstance(parameter, gillespy2.Parameter, msg='{0} has incorrect type'.format(parameter))
+
+    def test_getFakeParameter_ThrowsError(self):
+        p_name = 'fake'
+        with self.assertRaises(gillespy2.gillespy2.ModelError) as ex:
+            parameter = self.model.get_parameter(p_name)
+        self.assertEqual(str(ex.exception), "No parameter named " + p_name)
+
+    def test_set_parameter(self):
+        self.model.set_parameter('k1', '100')
+        parameter = self.model.get_parameter('k1')
+        self.assertEqual('100', parameter.expression)
+        self.assertIsInstance(parameter, gillespy2.Parameter, msg='{0} has incorrect type'.format(parameter))
+
+    def test_delete_parameter(self):
+        self.model.delete_parameter('k1')
+        parameterList = self.model.get_all_parameters()
+        self.assertNotIn('k1', parameterList)
+
+    def test_delete_all_parameters(self):
+        self.model.delete_all_parameters()
+        parameterList = self.model.get_all_parameters()
+        self.assertNotIn('k1', parameterList)
+        self.assertNotIn('k2', parameterList)
 
     def test_model_has_parameters(self):
         parameters = self.model.get_all_parameters()
@@ -58,10 +142,25 @@ class TestSimpleModel(unittest.TestCase):
         self.assertEqual(rate_rules['B'].species.name, 'B', msg='Has incorrect species')
         self.assertEqual(rate_rules['B'].expression, 'cos(t)', msg='{0} has incorrect type'.format(rate_rules))
 
+    def test_get_reaction(self):
+        reaction = self.model.get_reaction('r1')
+        self.assertIsInstance(reaction, gillespy2.Reaction, msg='{0} has incorrect type'.format(reaction))
+
     def test_model_has_reactions(self):
         reactions = self.model.get_all_reactions()
         self.assertIsInstance(reactions['r1'], gillespy2.Reaction, msg='{0} has incorrect type'.format(reactions))
         self.assertIsInstance(reactions['r2'], gillespy2.Reaction, msg='{0} has incorrect type'.format(reactions))
+
+    def test_delete_reaction(self):
+        self.model.delete_reaction('r1')
+        reactionList = self.model.get_all_reactions()
+        self.assertNotIn('r1', reactionList)
+
+    def test_delete_all_reactions(self):
+        self.model.delete_all_reactions()
+        reactionList = self.model.get_all_reactions()
+        self.assertNotIn('r1', reactionList)
+        self.assertNotIn('r2', reactionList)
 
     def test_model_has_reactions_correct(self):
         reactions = self.model.get_all_reactions()
