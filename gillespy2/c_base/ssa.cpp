@@ -44,7 +44,7 @@ namespace Gillespy{
 	  //No more reactions
 	  if(propensity_sum <= 0){
 	    //Copy all of last changed state for rest of entries
-	    for(uint i = entry_count + 1; i < simulation -> number_timesteps; i++){
+	    for(uint i = entry_count; i < simulation -> number_timesteps; i++){
 	      memcpy(trajectory[i], current_state, state_size);
 	    }
 	    //Quit simulating this trajectory
