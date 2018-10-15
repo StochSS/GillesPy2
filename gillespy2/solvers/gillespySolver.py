@@ -1,7 +1,7 @@
-from gillespy2.gillespyError import  SimulationError
+from gillespy2.gillespyError import SimulationError
 
 
-class GillesPySolver():
+class GillesPySolver:
     name = "GillesPySolver"
 
     """ 

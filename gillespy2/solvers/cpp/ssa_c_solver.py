@@ -1,17 +1,15 @@
 import gillespy2
-from .gillespySolver import GillesPySolver
-from .gillespyError import *
+from gillespy2.solvers.gillespySolver import GillesPySolver
+from gillespy2.gillespyError import *
 import os #for getting directories for C++ files
 import shutil #for deleting/copying files
 import subprocess #For calling make and executing c solver
 import inspect #for finding the Gillespy2 module path
 import tempfile #for temporary directories
 import numpy as np
-import math
 
-GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
-GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'c_base/')
-
+GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2.solvers))
+GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'cpp/c_base')
 
 def copy_files(destination):
     src_files = os.listdir(GILLESPY_C_DIRECTORY)
@@ -97,6 +95,7 @@ def parse_binary_output(results_buffer, number_of_trajectories, number_timesteps
             index += number_species
     return trajectory_base
 
+
 class SSACSolver(GillesPySolver):
     name = "SSACSolver"
     """TODO"""
@@ -164,7 +163,6 @@ class SSACSolver(GillesPySolver):
         #Use makefile.
         cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulation'], stdout=subprocess.PIPE)
         built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        #Use makefile.        
         if built.returncode == 0:
             self.compiled = True
         else:

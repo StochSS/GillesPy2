@@ -15,7 +15,7 @@ from __future__ import division
 
 from collections import OrderedDict
 import numpy as np
-from .gillespySolver import *
+from gillespy2.solvers.gillespySolver import *
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -123,7 +123,7 @@ class Model(object):
         self.namespace = OrderedDict([])
 
         if tspan is None:
-            self.timespan(numpy.linspace(0, 20, 401))
+            self.timespan(np.linspace(0, 20, 401))
         else:
             self.timespan(tspan)
 
@@ -330,7 +330,7 @@ class Model(object):
             populations during the simulation.
         """
 
-        items = numpy.diff(time_span)
+        items = np.diff(time_span)
         items = map(lambda x: round(x, 10), items)
         isuniform = (len(set(items)) == 1)
 
