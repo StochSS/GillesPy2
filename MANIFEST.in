@@ -1,5 +1,0 @@
-include gillespy2/c_base/*
-include gillespy2/c_base/*.cpp
-include gillespy2/c_base/*.h
-include gillespy2/c_base/MakeFile
-include gillespy2/*.pyx

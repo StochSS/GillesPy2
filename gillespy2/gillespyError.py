@@ -1,4 +1,4 @@
-# Model exceptions
+# Module exceptions
 class ModelError(Exception):
     pass
 class SpeciesError(ModelError):
@@ -7,18 +7,6 @@ class ReactionError(ModelError):
     pass
 class ParameterError(ModelError):
     pass
-
-#Solver specific errors
-class SolverError(Exception):
-    pass
-class DirectoryError(SolverError):
-    pass
-class BuildError(SolverError):
-    pass
-class ExecutionError(SolverError):
-    pass
-
-
 class SimuliationError(Exception):
     pass
 

@@ -47,7 +47,6 @@ class easy_install_new(easy_install):
 setup(name = "gillespy2",
       version = "1.1",
       packages = ['gillespy2'],
-      include_package_data=True,
       description = 'Python interface for Gillespie style biochemical simulations',
       
       install_requires = ["numpy",
@@ -67,4 +66,5 @@ setup(name = "gillespy2",
                   'install':install_new,
                   'develop':develop_new,
                   'easy_install':easy_install_new}
+      
       )

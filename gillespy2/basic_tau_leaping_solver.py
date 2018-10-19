@@ -5,7 +5,8 @@ import math
 import numpy as np
 
 class BasicTauSolver(GillesPySolver):
-    name = "BasicTauSolver"
+    """ TODO
+    """
     
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
