@@ -307,10 +307,14 @@ class Model(object):
         elif isinstance(reactions,dict) or isinstance(reactions,OrderedDict):
                 self.add_reaction(reactions.values())
         elif isinstance(reactions,Reaction):
+            reactions.verify()
+            if reactions.name in self.listOfReactions:
+                raise ModelError("Duplicate name of reaction: {0}".format(reactions.name))
             self.listOfReactions[reactions.name] = reactions
         else:
             raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(param_type))
         return reactions
+
 
     def add_rate_rule(self, rate_rules):
         """
@@ -661,6 +665,15 @@ class Reaction:
             self.create_mass_action()
         else:
             self.type = "customized"
+
+
+    def verify(self):
+        """ Check if the reaction is properly formatted.
+        Does nothing on sucesss, raises and error on failure."""
+        if self.marate is None and self.propensity_function is None:
+             raise ReactionError("You must specify either a mass-action rate or a propensity function")
+        if len(self.reactants) == 0 and len(self.products) == 0:
+            raise ReactionError("You must have a non-zero number of reactants or products.")
 
     def create_mass_action(self):
         """
