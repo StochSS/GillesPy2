@@ -621,8 +621,8 @@ class Reaction:
         self.name = name
         self.annotation = ""
 
-        if rate is None and propensity_function is None:
-            raise ReactionError("You must specify either a mass-action rate or a propensity function")
+        # if rate is None and propensity_function is None:
+        #     raise ReactionError("You must specify either a mass-action rate or a propensity function")
 
         # We might use this flag in the future to automatically generate
         # the propensity function if set to True.
@@ -656,9 +656,11 @@ class Reaction:
         if self.massaction:
             self.type = "mass-action"
             if rate is None:
-                raise ReactionError("Reaction : A mass-action propensity has to have a rate.")
-            self.marate = rate
-            self.create_mass_action()
+                # raise ReactionError("Reaction : A mass-action propensity has to have a rate.")
+                self.marate = None
+            else:
+                self.marate = rate
+                self.create_mass_action()
         else:
             self.type = "customized"
 
