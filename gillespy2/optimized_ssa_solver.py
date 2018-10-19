@@ -21,7 +21,7 @@ class NumPySSASolver(GillesPySolver):
 
     @classmethod
     def run(cls, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=False,
-            stochkit_home=None):
+            stochkit_home=None, profile=False):
         # create mapping of species dictionary to array indices
         species = list(model.listOfSpecies.keys())
         number_species = len(species)
@@ -120,7 +120,7 @@ class OptimizedSSASolver(NumPySSASolver):
         return out_data
 
     @classmethod
-    def run(cls, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=False,
+    def run(cls, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, show_labels=False,
             stochkit_home=None, use_cython=True):
         if use_cython and can_use_cython:
             solver = CythonSSASolver()

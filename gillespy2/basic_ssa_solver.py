@@ -11,12 +11,14 @@ class BasicSSASolver(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
-            increment=0.05, seed=None, debug=False, show_labels=False, stochkit_home=None):
+            increment=0.05, seed=None, profile=False, debug=False, show_labels=False,stochkit_home=None):
+
         self.simulation_data = []
 
         curr_state = {}
         propensity = {}
         results = {}
+        steps_taken = []
 
         for trajectories in range(number_of_trajectories):
             # Initialize Species population
@@ -52,9 +54,13 @@ class BasicSSASolver(GillesPySolver):
                             results[s].append(curr_state[s])
                         save_time += increment
                     return results
-                tau = -1 * math.log(random.random()) / prop_sum
+
+                tau = -1*math.log(random.random())/prop_sum
                 current_time += tau
-                while save_time <= current_time <= t:
+                if profile:
+                    steps_taken.append(tau)
+
+                while(current_time > save_time and current_time <= t):
                     results['time'].append(save_time)
                     for s in model.listOfSpecies:
                         results[s].append(curr_state[s])
@@ -64,7 +70,11 @@ class BasicSSASolver(GillesPySolver):
                     curr_state[str(react)] -= model.listOfReactions[reaction].reactants[react]
                 for prod in model.listOfReactions[reaction].products:
                     curr_state[str(prod)] += model.listOfReactions[reaction].products[prod]
-        return results
+            if profile:
+                print(steps_taken)
+                print("Total Steps Taken", len(steps_taken))
+
+            return results
 
     def get_trajectories(self, outdir, debug=False, show_labels=False):
         if show_labels:

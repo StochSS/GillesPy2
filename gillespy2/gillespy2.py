@@ -1,39 +1,29 @@
-""" 
-A simple toolkit for creating and simulating discrete stochastic models in 
+"""
+A simple toolkit for creating and simulating discrete stochastic models in
 python.
 
 This serves primarily as a python wrapper for the C-based solvers within
 StochKit2. The gillespy.Model class provides nearly all of the functionality
 present in this project.
 
-This version is updated (4/2017) to contain documentation in a more reasonable 
+This version is updated (4/2017) to contain documentation in a more reasonable
 format. This does not necessarily mean it is perfect, but it is certainly an
 improvement over the original.
-    
+
 """
 from __future__ import division
 
 from collections import OrderedDict
 import numpy as np
 from .gillespySolver import *
-import matplotlib.pyplot as plt
-import seaborn as sns
-
 
 pretty_graph = False
-
-
-# try:
-#     import seaborn as sbn
-#     pretty_graph = True
-# except:
-#     import matplotlib.pyplot as plt
-#     pretty_graph = False
 
 try:
     import lxml.etree as eTree
 
     no_pretty_print = False
+
 except:
     import xml.etree.ElementTree as eTree
     import xml.dom.minidom
@@ -45,9 +35,9 @@ except:
 def import_SBML(filename, name=None, gillespy_model=None):
     """
     SBML to GillesPy model converter. NOTE: non-mass-action rates
-    in terms of concentrations may not be converted for population 
+    in terms of concentrations may not be converted for population
     simulation. Use caution when importing SBML.
-    
+
     Attributes
     ----------
     filename : str
@@ -70,22 +60,22 @@ class Model(object):
     """
     Representation of a well mixed biochemical model. Contains reactions,
     parameters, species.
-    
+
     Attributes
     ----------
     name : str
         The name of the model, or an annotation describing it.
     population : bool
-        The type of model being described. A discrete stochastic model is a 
+        The type of model being described. A discrete stochastic model is a
         population model (True), a deterministic model is a concentration model
-        (False). Automatic conversion from population to concentration models 
+        (False). Automatic conversion from population to concentration models
         may be used, by setting the volume parameter.
     volume : float
-        The volume of the system matters when converting to from population to 
+        The volume of the system matters when converting to from population to
         concentration form. This will also set a parameter "vol" for use in
         custom (i.e. non-mass-action) propensity functions.
     tspan : numpy ndarray
-        The timepoints at which the model should be simulated. If None, a 
+        The timepoints at which the model should be simulated. If None, a
         default timespan is added. May be set later, see Model.timespan
     annotation : str (optional)
         Optional further description of model
@@ -103,9 +93,10 @@ class Model(object):
         self.listOfParameters = OrderedDict()
         self.listOfSpecies = OrderedDict()
         self.listOfReactions = OrderedDict()
+        self.listOfRateRules = OrderedDict()
 
         # This defines the unit system at work for all numbers in the model
-        # It should be a logical error to leave this undefined, subclasses 
+        # It should be a logical error to leave this undefined, subclasses
         # should set it
         if population:
             self.units = "population"
@@ -123,7 +114,7 @@ class Model(object):
         self.namespace = OrderedDict([])
 
         if tspan is None:
-            self.timespan(numpy.linspace(0, 20, 401))
+            self.timespan(np.linspace(0, 20, 401))
         else:
             self.timespan(tspan)
 
@@ -145,7 +136,7 @@ class Model(object):
     def get_species(self, s_name):
         """
         Returns a species object by name.
-        
+
         Attributes
         ----------
         s_name : str
@@ -161,9 +152,9 @@ class Model(object):
         return self.listOfSpecies
 
     def add_species(self, obj):
-        """ 
+        """
         Adds a species, or list of species to the model.
-        
+
         Attributes
         ----------
         obj : Species, or list of Species
@@ -184,7 +175,7 @@ class Model(object):
     def delete_species(self, obj):
         """
         Removes a species object by name.
-        
+
         Attributes
         ----------
         obj : str
@@ -201,7 +192,7 @@ class Model(object):
     def set_units(self, units):
         """
         Sets the units of the model to either "population" or "concentration"
-        
+
         Attributes
         ----------
         units : str
@@ -215,7 +206,7 @@ class Model(object):
     def get_parameter(self, p_name):
         """
         Returns a parameter object by name.
-        
+
         Attributes
         ----------
         p_name : str
@@ -234,9 +225,10 @@ class Model(object):
         return self.listOfParameters
 
     def add_parameter(self, params):
-        """ 
+        """
+
         Adds a parameter, or list of parameters to the model.
-        
+
         Attributes
         ----------
         obj : Parameter, or list of Parameters
@@ -256,7 +248,7 @@ class Model(object):
     def delete_parameter(self, obj):
         """
         Removes a parameter object by name.
-        
+
         Attributes
         ----------
         obj : str
@@ -265,15 +257,15 @@ class Model(object):
         self.listOfParameters.pop(obj)
 
     def set_parameter(self, p_name, expression):
-        """ 
+        """
         Set the value of an existing paramter "pname" to "expression".
-        
+
         Attributes
         ----------
         p_name : str
             Name of the parameter whose value will be set.
         expression : str
-            *String* that may be executed in C, describing the value of the 
+            *String* that may be executed in C, describing the value of the
             parameter. May reference other parameters by name. (e.g. "k1*4")
         """
 
@@ -282,8 +274,8 @@ class Model(object):
         p.evaluate()
 
     def resolve_parameters(self):
-        """ Internal function: 
-        attempt to resolve all parameter expressions to scalar floats. 
+        """ Internal function:
+        attempt to resolve all parameter expressions to scalar floats.
         This methods must be called before exporting the model. """
         self.update_namespace()
         for param in self.listOfParameters:
@@ -297,9 +289,9 @@ class Model(object):
         self.listOfParameters.clear()
 
     def add_reaction(self, reactions):
-        """ 
+        """
         Adds a reaction, or list of reactions to the model.
-        
+
         Attributes
         ----------
         obj : Reaction, or list of Reactions
@@ -320,17 +312,41 @@ class Model(object):
             raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(param_type))
         return reactions
 
+    def add_rate_rule(self, rate_rules):
+        """
+                Adds a rate rule, or list of rate rules to the model.
+
+                Attributes
+                ----------
+                obj : RateRule, or list of RateRules
+                    The reaction or list of raterule objects to be added to the model
+                    object.
+                """
+
+        # TODO, make sure that you cannot overwrite an existing reaction
+        # param_type = type(reactions).__name__
+        if isinstance(rate_rules, list):
+            for rr in rate_rules:
+                self.add_rate_rule(rr)
+        elif isinstance(rate_rules, dict) or isinstance(rate_rules, OrderedDict):
+            self.add_rate_rule(rate_rules.expression())
+        elif isinstance(rate_rules, RateRule):
+            self.listOfRateRules[rate_rules.species.name] = rate_rules
+        else:
+            raise ParameterError("Could not resolve Rate Rule0 expression {} to a scalar value.".format(param_type))
+        return rate_rules
+
     def timespan(self, time_span):
-        """ 
-        Set the time span of simulation. StochKit does not support non-uniform 
+        """
+        Set the time span of simulation. StochKit does not support non-uniform
         timespans.
-        
+
         tspan : numpy ndarray
-            Evenly-spaced list of times at which to sample the species 
+            Evenly-spaced list of times at which to sample the species
             populations during the simulation.
         """
 
-        items = numpy.diff(time_span)
+        items = np.diff(time_span)
         items = map(lambda x: round(x, 10), items)
         isuniform = (len(set(items)) == 1)
 
@@ -352,11 +368,11 @@ class Model(object):
         self.listOfReactions.clear()
 
     def run(self, number_of_trajectories=1, seed=None,
-            solver=None, stochkit_home=None, debug=False, show_labels=True):
+            solver=None, stochkit_home=None, profile=False, debug=False, show_labels=True):
         """
-        Function calling simulation of the model. There are a number of       
+        Function calling simulation of the model. There are a number of
         parameters to be set here.
-        
+
         Attributes
         ----------
         number_of_trajectories : int
@@ -370,10 +386,10 @@ class Model(object):
             be initialized separately to specify an algorithm. Optional, 
             defaults to StochKitSolver SSA.
         stochkit_home : str
-            Path to stochkit. This is set automatically upon installation, but 
+            Path to stochkit. This is set automatically upon installation, but
             may be overwritten if desired.
         debug : bool (False)
-            Set to True to provide additional debug information about the     
+            Set to True to provide additional debug information about the
             simulation.
         show_labels : bool (True)
             Use names of species as index of result object rather than position numbers.
@@ -385,7 +401,7 @@ class Model(object):
                                   increment=self.tspan[-1] - self.tspan[-2],
                                   seed=seed,
                                   number_of_trajectories=number_of_trajectories,
-                                  stochkit_home=stochkit_home, debug=debug,
+                                  stochkit_home=stochkit_home, profile=profile, debug=debug,
                                   show_labels=show_labels)
             else:
                 raise SimuliationError(
@@ -394,7 +410,7 @@ class Model(object):
             return StochKitSolver.run(self, t=self.tspan[-1],
                                       increment=self.tspan[-1] - self.tspan[-2], seed=seed,
                                       number_of_trajectories=number_of_trajectories,
-                                      stochkit_home=stochkit_home, debug=debug,
+                                      stochkit_home=stochkit_home, profile=profile, debug=debug,
                                       show_labels=show_labels)
 
 
@@ -403,6 +419,14 @@ class Model(object):
     #title, start time, stop time, automatic legend, legend placement, axis labels, size of graph.
     #Axis Legend Stuff ends up being complicated, ensure I understand expected scope of function.
     def plot(self, results, **kwargs):
+
+        try:
+            import seaborn as sbn
+            pretty_graph = True
+        except:
+            import matplotlib.pyplot as plt
+            pretty_graph = False
+
         if pretty_graph:
             pass
         if not pretty_graph:
@@ -441,37 +465,39 @@ class Model(object):
 
 
 class Species:
-    """ 
-    Chemical species. Can be added to Model object to interact with other     
+    """
+    Chemical species. Can be added to Model object to interact with other
     species or time.
-    
+
     Attributes
     ----------
     name : str
-        The name by which this species will be called in reactions and within 
+        The name by which this species will be called in reactions and within
         the model.
     initial_value : int >= 0
         Initial population of this species. If this is not provided as an int,
         the type will be changed when it is added by numpy.int
     """
 
-    def __init__(self, name="", initial_value=0):
+    def __init__(self, name="", initial_value=0, continuous=False):
         # A species has a name (string) and an initial value (positive integer)
         self.name = name
         self.initial_value = np.int(initial_value)
+        self.continuous = continuous
         assert self.initial_value >= 0, "A species initial value has to \
                                         be a positive number."
+
 
     def __str__(self):
         return self.name
 
 
 class Parameter:
-    """ 
-    A parameter can be given as an expression (function) or directly 
-    as a value (scalar). If given an expression, it should be 
+    """
+    A parameter can be given as an expression (function) or directly
+    as a value (scalar). If given an expression, it should be
     understood as evaluable in the namespace of a parent Model.
-    
+
     Attributes
     ----------
     name : str
@@ -505,10 +531,10 @@ class Parameter:
             self.evaluate()
 
     def evaluate(self, namespace={}):
-        """ 
-        Evaluate the expression and return the (scalar) value in the given 
+        """
+        Evaluate the expression and return the (scalar) value in the given
         namespace.
-        
+
         Attributes
         ----------
         namespace : dict (optional)
@@ -526,8 +552,8 @@ class Parameter:
         """
         self.expression = expression
         # We allow expression to be passed in as a non-string type. Invalid
-        # strings will be caught below. It is perfectly fine to give a scalar 
-        # value as the expression. This can then be evaluated in an empty 
+        # strings will be caught below. It is perfectly fine to give a scalar
+        # value as the expression. This can then be evaluated in an empty
         # namespace to the scalar value.
         if expression is not None:
             self.expression = str(expression)
@@ -538,26 +564,34 @@ class Parameter:
         self.evaluate()
 
 
+class RateRule:
+    def __init__(self, species, expression, name=None):
+        self.expression = expression
+        self.species = species
+        self.name = name
+
+
+
 class Reaction:
-    """ 
-    Models a single reaction. A reaction has its own dicts of species 
-    (reactants and products) and parameters. The reaction's propensity 
-    function needs to be evaluable (and result in a non-negative scalar 
+    """
+    Models a single reaction. A reaction has its own dicts of species
+    (reactants and products) and parameters. The reaction's propensity
+    function needs to be evaluable (and result in a non-negative scalar
     value) in the namespace defined by the union of those dicts.
-    
+
     Attributes
     ----------
     name : str
         The name by which the reaction is called.
     reactants : dict
         The reactants that are consumed in the reaction, with stoichiometry. An
-        example would be {R1 : 1, R2 : 2} if the reaction consumes two of R1 and    
+        example would be {R1 : 1, R2 : 2} if the reaction consumes two of R1 and
         one of R2, where R1 and R2 are Species objects.
     products : dict
-        The species that are created by the reaction event, with stoichiometry. 
+        The species that are created by the reaction event, with stoichiometry.
         Same format as reactants.
     propensity_function : str
-        The custom propensity fcn for the reaction. Must be evaluable in the    
+        The custom propensity fcn for the reaction. Must be evaluable in the
         namespace of the reaction using C operations.
     massaction : bool
         The switch to use a mass-action reaction. If set to True, a rate value
@@ -566,21 +600,21 @@ class Reaction:
         The rate of the mass-action reaction. Take care to note the units...
     annotation : str
         An optional note about the reaction.
-        
+
     Notes
     ----------
-    For a species that is NOT consumed in the reaction but is part of a mass 
+    For a species that is NOT consumed in the reaction but is part of a mass
     action reaction, add it as both a reactant and a product.
-    
-    Mass-action reactions must also have a rate term added. Note that the rate 
+
+    Mass-action reactions must also have a rate term added. Note that the rate
     must be scaled by the volume prior to being added for unit consistency.
     """
 
     def __init__(self, name="", reactants={}, products={},
                  propensity_function=None, massaction=False,
                  rate=None, annotation=None):
-        """ 
-        Initializes the reaction using short-hand notation.             
+        """
+        Initializes the reaction using short-hand notation.
         """
 
         # Metadata
@@ -629,7 +663,7 @@ class Reaction:
             self.type = "customized"
 
     def create_mass_action(self):
-        """ 
+        """
         Initializes the mass action propensity function given
         self.reactants and a single parameter value.
         """
@@ -644,6 +678,7 @@ class Reaction:
             raise ReactionError("Reaction: A mass-action reaction cannot involve more than two of one species or one "
                                 "of two species.")
         # Case EmptySet -> Y
+
         propensity_function = self.marate.name
 
         # There are only three ways to get 'total_stoch==2':
@@ -668,7 +703,7 @@ class Reaction:
     def setType(self, rxntype):
         """
         Sets reaction type to either "mass-action" or "customized"
-        
+
         Attributes
         ----------
         rxntype : str
@@ -683,7 +718,7 @@ class Reaction:
     def addReactant(self, S, stoichiometry):
         """
         Adds a reactant to the reaction (species that is consumed)
-        
+
         Attributes
         ----------
         S : gillespy.Species
@@ -699,7 +734,7 @@ class Reaction:
     def addProduct(self, S, stoichiometry):
         """
         Adds a product to the reaction (species that is created)
-        
+
         Attributes
         ----------
         S : gillespy.Species
@@ -712,7 +747,7 @@ class Reaction:
     def Annotate(self, annotation):
         """
         Adds a note to the reaction
-        
+
         Attributes
         ----------
         annotation : str
@@ -732,23 +767,23 @@ class StochMLDocument():
 
     @classmethod
     def from_model(cls, model):
-        """ 
+        """
         Creates an StochKit XML document from an exisiting Mdoel object.
-        This method assumes that all the parameters in the model are already 
-        resolved to scalar floats (see Model.resolveParamters). 
-            
-        Note, this method is intended to be used interanally by the models 
-        'serialization' function, which performs additional operations and 
+        This method assumes that all the parameters in the model are already
+        resolved to scalar floats (see Model.resolveParamters).
+
+        Note, this method is intended to be used interanally by the models
+        'serialization' function, which performs additional operations and
         tests on the model prior to writing out the XML file. You should NOT \
-        do: 
-        
+        do:
+
         document = StochMLDocument.fromModel(model)
         print document.toString()
-        
+
         You SHOULD do
-        
-        print model.serialize()            
-            
+
+        print model.serialize()
+
         """
 
         # Description
@@ -799,7 +834,7 @@ class StochMLDocument():
 
     @classmethod
     def from_file(cls, filepath):
-        """ Intializes the document from an exisiting native StochKit XML 
+        """ Intializes the document from an exisiting native StochKit XML
         file read from disk. """
         tree = eTree.parse(filepath)
         root = tree.getroot()
@@ -809,7 +844,7 @@ class StochMLDocument():
 
     @classmethod
     def from_string(cls, string):
-        """ Intializes the document from an exisiting native StochKit XML 
+        """ Intializes the document from an exisiting native StochKit XML
         file read from disk. """
         root = eTree.fromString(string)
 
@@ -870,7 +905,7 @@ class StochMLDocument():
                 model.volume = expr
             else:
                 p = Parameter(name, expression=expr)
-                # Try to evaluate the expression in the empty namespace 
+                # Try to evaluate the expression in the empty namespace
                 # (if the expr is a scalar value)
                 p.evaluate()
                 model.add_parameter(p)
@@ -882,7 +917,7 @@ class StochMLDocument():
             s = Species(name, initial_value=float(val))
             model.add_species([s])
 
-        # The namespace_propensity for evaluating the propensity function 
+        # The namespace_propensity for evaluating the propensity function
         # for reactions must contain all the species and parameters.
         namespace_propensity = OrderedDict()
         all_species = model.get_all_species()
@@ -914,13 +949,13 @@ class StochMLDocument():
                 for ss in reactants.iter('SpeciesReference'):
                     specname = ss.get('id')
                     # The stochiometry should be an integer value, but some
-                    # exising StoxhKit models have them as floats. This is 
-                    # why we need the slightly odd conversion below. 
+                    # exising StoxhKit models have them as floats. This is
+                    # why we need the slightly odd conversion below.
                     stoch = int(float(ss.get('stoichiometry')))
                     # Select a reference to species with name specname
                     sref = model.listOfSpecies[specname]
                     try:
-                        # The sref list should only contain one element if 
+                        # The sref list should only contain one element if
                         # the XML file is valid.
                         reaction.reactants[specname] = stoch
                     except Exception as e:
@@ -936,7 +971,7 @@ class StochMLDocument():
                     stoch = int(float(ss.get('stoichiometry')))
                     sref = model.listOfSpecies[specname]
                     try:
-                        # The sref list should only contain one element if 
+                        # The sref list should only contain one element if
                         # the XML file is valid.
                         reaction.products[specname] = stoch
                     except Exception as e:
@@ -949,17 +984,17 @@ class StochMLDocument():
                 reaction.massaction = True
                 reaction.type = 'mass-action'
                 # If it is mass-action, a parameter reference is needed.
-                # This has to be a reference to a species instance. We 
-                # explicitly disallow a scalar value to be passed as the 
-                # parameter.  
+                # This has to be a reference to a species instance. We
+                # explicitly disallow a scalar value to be passed as the
+                # parameter.
                 try:
                     ratename = reac.find('Rate').text
                     try:
                         reaction.marate = model.listOfParameters[ratename]
                     except KeyError as k:
-                        # No paramter name is given. This is a valid use case 
-                        # in StochKit. We generate a name for the paramter, 
-                        # and create a new parameter instance. The parameter's 
+                        # No paramter name is given. This is a valid use case
+                        # in StochKit. We generate a name for the paramter,
+                        # and create a new parameter instance. The parameter's
                         # value should now be found in 'ratename'.
                         generated_rate_name = "Reaction_" + name + \
                                               "_rate_constant"
@@ -995,7 +1030,7 @@ class StochMLDocument():
             doc = eTree.tostring(self.document, pretty_print=True)
             return doc.decode("utf-8")
         except:
-            # Hack to print pretty xml without pretty-print 
+            # Hack to print pretty xml without pretty-print
             # (requires the lxml module).
             doc = eTree.tostring(self.document)
             xmldoc = xml.dom.minidom.parseString(doc)
@@ -1113,4 +1148,10 @@ class InvalidStochMLError(Exception):
 
 
 class InvalidModelError(Exception):
+    pass
+
+class InvalidAlphaError (Exception):
+    pass
+
+class InvalidProcessesError (Exception):
     pass

@@ -35,13 +35,13 @@ class BasicODESolver(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
-            increment=0.05, seed=None, debug=False, show_labels=False, stochkit_home=None):
+            increment=0.05, seed=None, debug=False, profile=False, show_labels=False, stochkit_home=None):
         for traj_num_ in range(number_of_trajectories):
             y0 = []
             for s in model.listOfSpecies:
                 y0.append(model.listOfSpecies[s].initial_value)
             time = np.arange(0, t, increment)
-        results = odeint(y0=y0, func=BasicODESolver.rhs, t=time,
+        results = odeint(BasicODESolver.rhs, y0, t,
                          args=(model.listOfSpecies, model.listOfParameters, model.listOfReactions))
         # return results
         # return[results, time]

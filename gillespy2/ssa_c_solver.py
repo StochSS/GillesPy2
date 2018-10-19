@@ -171,7 +171,7 @@ class SSACSolver(GillesPySolver):
             raise BuildError("Error encountered while compiling file:\nReturn code: {0}.\nError:\n{1}\n".format(built.returncode, built.stderr))
 
     def run(self=None, model=None, t=20, number_of_trajectories=1,
-            increment=0.05, seed=None, debug=False, show_labels=False, stochkit_home=None):
+            increment=0.05, seed=None, debug=False, profile=False, show_labels=False, stochkit_home=None):
         if self is None:
             self = SSACSolver(model)
         if self.compiled:

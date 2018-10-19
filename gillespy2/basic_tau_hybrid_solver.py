@@ -1,19 +1,67 @@
 from .gillespySolver import GillesPySolver
 import random
+from scipy.integrate import ode
 import numpy
 import math
 import sys
 import warnings
 
+eval_globals = math.__dict__
 
-class BasicTauLeapingSolver(GillesPySolver):
-    name = "Basic Tau Leaping Solver"
 
-    def __init__(self, debug=False):
+class BasicTauHybridSolver(GillesPySolver):
+    name = "Basic Tau Hybrid Solver"
+
+    def __init__(self, debug=False, epsilon=0.03):
         self.debug = debug
-        self.epsilon = 0.03
+        self.epsilon = epsilon
 
-    def get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions, debug):
+    @staticmethod
+    def f(t, y, curr_state, reactions, rate_rules, propensities, compiled_reactions, compiled_rate_rules):
+        '''
+        Evaluate the propensities for the reactions and the RHS of the RateRules.
+        '''
+        curr_state['t'] = t
+        state_change = []
+
+        for i, r in enumerate(reactions):
+            # print("Uncompiled Rx: ", eval(reactions[r].propensity_function, eval_globals, curr_state))
+            # print("Compiled Rx: ", eval(compiled_reactions[r], eval_globals, curr_state))
+            # propensities[r] = eval(reactions[r].propensity_function, eval_globals, curr_state)
+            propensities[r] = eval(compiled_reactions[r], eval_globals, curr_state)
+            state_change.append(propensities[r])
+        for i, rr in enumerate(rate_rules):
+            # print("Uncompiled rate: ", eval(rate_rules[rr].expression,  eval_globals, curr_state))
+            # print("Compiled rate: ", eval(compiled_rate_rules[rr], eval_globals, curr_state))
+            state_change.append(eval(compiled_rate_rules[rr], eval_globals, curr_state))
+            # state_change.append(eval(rate_rules[rr].expression,  eval_globals, curr_state))
+
+        return state_change
+
+    @staticmethod
+    def get_reaction_integrate(step, curr_state, y0, model, curr_time, propensities, compiled_reactions,
+                               compiled_rate_rules):
+        ''' Helper function to perform the ODE integration of one step '''
+        rhs = ode(BasicTauHybridSolver.f)  # set function as ODE object
+        rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfReactions,
+                                                          model.listOfRateRules, propensities, compiled_reactions,
+                                                          compiled_rate_rules)
+        current = rhs.integrate(step + curr_time)  # current holds integration from current_time to int_time\
+        if rhs.successful():
+            return current, curr_time + step
+        else:
+            # if step is < 1e-15, take a Forward-Euler step for all species ('propensites' and RateRules)
+            # TODO The RateRule linked species should still contain the correct value in current, verify this
+            # step size is too small, take a single forward-euler step
+            current = y0 + numpy.array(BasicTauHybridSolver.f(curr_time, y0,
+                                                              curr_state, model.listOfReactions,
+                                                              model.listOfRateRules, propensities, compiled_reactions,
+                                                          compiled_rate_rules)) * step
+
+            return current, curr_time + step
+
+    def get_reactions(self, step, curr_state, y0, model, curr_time, save_time,
+                      propensities, compiled_reactions, compiled_rate_rules, debug):
         ''' Get the time to the next reaction by integrating the SSA reaction functions
             along with the RateRules.  Update population of species governed by rate rules
         '''
@@ -27,19 +75,30 @@ class BasicTauLeapingSolver(GillesPySolver):
         if debug:
             print("Curr Time: ", curr_time, " Save time: ", save_time, "step: ", step)
 
-        rxn_count = {}
+        current, curr_time = self.get_reaction_integrate(step, curr_state, y0, model,
+                                                         curr_time, propensities, compiled_reactions,
+                                                         compiled_rate_rules)
 
-        for r in reactions:
-            rxn_count[r] = numpy.random.poisson(propensities[r] * step)
+        rxn_count = {}
+        fired = False
+        for i, r in enumerate(model.listOfReactions):
+            rxn_count[r] = 0
+            while current[i] > 0:
+                if not fired:
+                    fired = True
+                rxn_count[r] += 1
+                urn = (math.log(random.uniform(0, 1)))
+                current[i] += urn
+
+        # UPDATE THE STATE of the continuous species
+        for i, s in enumerate(model.listOfRateRules):
+            curr_state[s] = current[i + len(model.listOfReactions)]
 
         if debug:
             print("Reactions Fired: ", rxn_count)
+            print("y(t) = ", current)
 
-        curr_time = curr_time+step
-
-        # TODO: WRITE POISSON HERE
-
-        return rxn_count, curr_state, curr_time
+        return rxn_count, current, curr_state, curr_time
 
     def get_tau(self, model, y0, curr_state, propensities, steps_taken, save_time, curr_time, debug, profile):
         projected_reaction = None
@@ -113,10 +172,10 @@ class BasicTauLeapingSolver(GillesPySolver):
             for reaction in critical_reactions:
                 if propensities[reaction] > 0:
                     if new_tau_step is None:
-                        new_tau_step = tau_j[reaction]
+                        new_tau_step = max(tau_j[reaction], 1e-10)
                     else:
                         if tau_j[reaction] < new_tau_step:
-                            new_tau_step = tau_j[reaction]
+                            new_tau_step = max(tau_j[reaction], 1e-10)
             if new_tau_step is None:
                 new_tau_step = tau_step
         else:
@@ -136,13 +195,11 @@ class BasicTauLeapingSolver(GillesPySolver):
                                        # Cao, Gillespie, Petzold 32A
                                        (max(epsilon_i[r] * curr_state[str(r)], 1) ** 2 / stand_dev[
                                            r]))  # Cao, Gillespie, Petzold 32B
-                        if new_tau_step is None or tau_i[
-                            r] < new_tau_step:  # set smallest tau from non-critical reactions
+                        if new_tau_step is None or tau_i[r] < new_tau_step:  # set smallest tau from non-critical reactions
                             new_tau_step = tau_i[r]
 
 
-        if new_tau_step is not None and new_tau_step < (
-                save_time - curr_time):  # if curr+new_tau < save_time, use new_tau
+        if new_tau_step is not None and new_tau_step < (save_time - curr_time):  # if curr+new_tau < save_time, use new_tau
             tau_step = new_tau_step
         if profile:
             steps_taken.append(tau_step)
@@ -150,17 +207,19 @@ class BasicTauLeapingSolver(GillesPySolver):
         # END NEW TAU SELECTION METHOD
 
     @classmethod
-    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, profile=False, debug=False, show_labels=False,
+    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, show_labels=False,
             **kwargs):
+        """ TODO: write up doc """
         if not sys.warnoptions:
             warnings.simplefilter("ignore")
-        if not isinstance(self, BasicTauLeapingSolver):
-            self = BasicTauLeapingSolver()
+        if not isinstance(self, BasicTauHybridSolver):
+            self = BasicTauHybridSolver()
         if debug:
             print("t = ", t)
             print("increment = ", increment)
 
         random.seed(seed)
+
         y0 = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
         propensities = {}
         curr_state = {}
@@ -185,12 +244,17 @@ class BasicTauLeapingSolver(GillesPySolver):
             if debug:
                 print("Setting Random number ", y0[i], " for ", model.listOfReactions[r].name)
 
+        compiled_reactions = {}
+        for i, r in enumerate(model.listOfReactions):
+            compiled_reactions[r] = compile(model.listOfReactions[r].propensity_function, '<string>',
+                                            'eval')
+        compiled_rate_rules = {}
+        for i, rr in enumerate(model.listOfRateRules):
+            compiled_rate_rules[rr] = compile(model.listOfRateRules[rr].expression, '<string>', 'eval')
+
         while save_time < t:
             while curr_time < save_time:
-
-                tau_step = self.get_tau(model, y0, curr_state, propensities, steps_taken,
-                                        save_time, curr_time, debug, profile)
-
+                tau_step = self.get_tau(model, y0, curr_state, propensities, steps_taken, save_time, curr_time, debug, profile)
                 prev_y0 = y0.copy()
                 prev_curr_state = curr_state.copy()
                 prev_curr_time = curr_time
@@ -201,8 +265,9 @@ class BasicTauLeapingSolver(GillesPySolver):
                     if loop_cnt > 100:
                         raise Exception("Loop over get_reactions() exceeded loop count")
 
-                    reactions, curr_state, curr_time = self.get_reactions(
-                        tau_step, curr_state, curr_time, save_time, propensities, model.listOfReactions, debug)
+                    reactions, y0, curr_state, curr_time = self.get_reactions(
+                        tau_step, curr_state, y0, model, curr_time, save_time, propensities, compiled_reactions,
+                        compiled_rate_rules, debug)
 
                     # Update curr_state with the result of the SSA reaction that fired
                     species_modified = {}
@@ -227,7 +292,6 @@ class BasicTauLeapingSolver(GillesPySolver):
                         curr_state = prev_curr_state.copy()
                         curr_time = prev_curr_time
                         tau_step = tau_step / 2
-                        steps_rejected += 1
                         if debug:
                             print("Resetting curr_state[{0}]= {1}".format(s, curr_state[s]))
                         if debug:
@@ -239,8 +303,4 @@ class BasicTauLeapingSolver(GillesPySolver):
             for i, s in enumerate(model.listOfSpecies):
                 results[s].append(curr_state[s])
             save_time += increment
-        if profile:
-            print(steps_taken)
-            print("Total Steps Taken: ", len(steps_taken))
-            print("Total Steps Rejected: ", steps_rejected)
         return results
