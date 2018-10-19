@@ -193,7 +193,7 @@ class SSACSolver(GillesPySolver):
                         data = {}
                         data['time'] = trajectory_base[trajectory,:,0]
                         for i in range(len(self.species)):
-                            data[self.species[i]] = trajectory_base[trajectory, :, i]
+                            data[self.species[i]] = trajectory_base[trajectory, :, i+1]
                         self.simulation_data.append(data)
                 else:
                     self.simulation_data = trajectory_base
