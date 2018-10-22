@@ -632,6 +632,7 @@ class Reaction:
         # the propensity function if set to True.
         if propensity_function is not None:
             self.massaction = False
+            self.marate = None
         else:
             self.massaction = True
 
