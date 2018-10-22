@@ -95,7 +95,7 @@ class NumPySSASolver(GillesPySolver):
                 data = {}
                 data['time'] = timeline
                 for i in range(number_species):
-                    data[species[i]] = trajectory[:, i]
+                    data[species[i]] = trajectory[:, i+1]
                 simulation_data.append(data)
             else:
                 simulation_data.append(trajectory)
