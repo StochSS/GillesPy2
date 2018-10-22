@@ -160,87 +160,93 @@ class BasicTauLeapingSolver(GillesPySolver):
             print("t = ", t)
             print("increment = ", increment)
 
-        random.seed(seed)
-        y0 = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
-        propensities = {}
-        curr_state = {}
-        curr_time = 0
-        curr_state['vol'] = model.volume
-        save_time = 0
+        trajectories = []
+        for trajectory in range(number_of_trajectories):
+            random.seed(seed)
+            y0 = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
+            propensities = {}
+            curr_state = {}
+            curr_time = 0
+            curr_state['vol'] = model.volume
+            save_time = 0
 
-        results = {'time': []}
-        steps_taken = []
-        steps_rejected = 0
+            results = {'time': []}
+            steps_taken = []
+            steps_rejected = 0
 
-        for s in model.listOfSpecies:
-            # initialize populations
-            curr_state[s] = model.listOfSpecies[s].initial_value
-            results[s] = []
+            for s in model.listOfSpecies:
+                # initialize populations
+                curr_state[s] = model.listOfSpecies[s].initial_value
+                results[s] = []
 
-        for p in model.listOfParameters:
-            curr_state[p] = model.listOfParameters[p].value
+            for p in model.listOfParameters:
+                curr_state[p] = model.listOfParameters[p].value
 
-        for i, r in enumerate(model.listOfReactions):  # set reactions to uniform random number and add to y0
-            y0[i] = (math.log(random.uniform(0, 1)))
-            if debug:
-                print("Setting Random number ", y0[i], " for ", model.listOfReactions[r].name)
+            for i, r in enumerate(model.listOfReactions):  # set reactions to uniform random number and add to y0
+                y0[i] = (math.log(random.uniform(0, 1)))
+                if debug:
+                    print("Setting Random number ", y0[i], " for ", model.listOfReactions[r].name)
 
-        while save_time < t:
-            while curr_time < save_time:
+            while save_time < t:
+                while curr_time < save_time:
 
-                tau_step = self.get_tau(model, y0, curr_state, propensities, steps_taken,
-                                        save_time, curr_time, debug, profile)
+                    tau_step = self.get_tau(model, y0, curr_state, propensities, steps_taken,
+                                            save_time, curr_time, debug, profile)
 
-                prev_y0 = y0.copy()
-                prev_curr_state = curr_state.copy()
-                prev_curr_time = curr_time
+                    prev_y0 = y0.copy()
+                    prev_curr_state = curr_state.copy()
+                    prev_curr_time = curr_time
 
-                loop_cnt = 0
-                while True:
-                    loop_cnt += 1
-                    if loop_cnt > 100:
-                        raise Exception("Loop over get_reactions() exceeded loop count")
+                    loop_cnt = 0
+                    while True:
+                        loop_cnt += 1
+                        if loop_cnt > 100:
+                            raise Exception("Loop over get_reactions() exceeded loop count")
 
-                    reactions, curr_state, curr_time = self.get_reactions(
-                        tau_step, curr_state, curr_time, save_time, propensities, model.listOfReactions, debug)
+                        reactions, curr_state, curr_time = self.get_reactions(
+                            tau_step, curr_state, curr_time, save_time, propensities, model.listOfReactions, debug)
 
-                    # Update curr_state with the result of the SSA reaction that fired
-                    species_modified = {}
-                    for i, r in enumerate(model.listOfReactions):
-                        if reactions[r] > 0:
-                            for reactant in model.listOfReactions[r].reactants:
-                                species_modified[str(reactant)] = True
-                                curr_state[str(reactant)] -= model.listOfReactions[r].reactants[reactant] * reactions[r]
-                            for product in model.listOfReactions[r].products:
-                                species_modified[str(product)] = True
-                                curr_state[str(product)] += model.listOfReactions[r].products[product] * reactions[r]
-                    neg_state = False
-                    for s in species_modified.keys():
-                        if curr_state[s] < 0:
-                            neg_state = True
+                        # Update curr_state with the result of the SSA reaction that fired
+                        species_modified = {}
+                        for i, r in enumerate(model.listOfReactions):
+                            if reactions[r] > 0:
+                                for reactant in model.listOfReactions[r].reactants:
+                                    species_modified[str(reactant)] = True
+                                    curr_state[str(reactant)] -= model.listOfReactions[r].reactants[reactant] * reactions[r]
+                                for product in model.listOfReactions[r].products:
+                                    species_modified[str(product)] = True
+                                    curr_state[str(product)] += model.listOfReactions[r].products[product] * reactions[r]
+                        neg_state = False
+                        for s in species_modified.keys():
+                            if curr_state[s] < 0:
+                                neg_state = True
+                                if debug:
+                                    print("Negative state detected: curr_state[{0}]= {1}".format(s, curr_state[s]))
+                        if neg_state:
                             if debug:
-                                print("Negative state detected: curr_state[{0}]= {1}".format(s, curr_state[s]))
-                    if neg_state:
-                        if debug:
-                            print("\trxn={0}".format(reactions))
-                        y0 = prev_y0.copy()
-                        curr_state = prev_curr_state.copy()
-                        curr_time = prev_curr_time
-                        tau_step = tau_step / 2
-                        steps_rejected += 1
-                        if debug:
-                            print("Resetting curr_state[{0}]= {1}".format(s, curr_state[s]))
-                        if debug:
-                            print("\tRejecting step, taking step of half size, tau_step={0}".format(tau_step))
-                    else:
-                        break  # breakout of the while True
+                                print("\trxn={0}".format(reactions))
+                            y0 = prev_y0.copy()
+                            curr_state = prev_curr_state.copy()
+                            curr_time = prev_curr_time
+                            tau_step = tau_step / 2
+                            steps_rejected += 1
+                            if debug:
+                                print("Resetting curr_state[{0}]= {1}".format(s, curr_state[s]))
+                            if debug:
+                                print("\tRejecting step, taking step of half size, tau_step={0}".format(tau_step))
+                        else:
+                            break  # breakout of the while True
 
-            results['time'].append(save_time)
-            for i, s in enumerate(model.listOfSpecies):
-                results[s].append(curr_state[s])
-            save_time += increment
-        if profile:
-            print(steps_taken)
-            print("Total Steps Taken: ", len(steps_taken))
-            print("Total Steps Rejected: ", steps_rejected)
-        return results
+                results['time'].append(save_time)
+                for i, s in enumerate(model.listOfSpecies):
+                    results[s].append(curr_state[s])
+                save_time += increment
+            if profile:
+                print(steps_taken)
+                print("Total Steps Taken: ", len(steps_taken))
+                print("Total Steps Rejected: ", steps_rejected)
+            trajectories.append(results)
+        if number_of_trajectories > 1:
+            return trajectories
+        else:
+            return results
