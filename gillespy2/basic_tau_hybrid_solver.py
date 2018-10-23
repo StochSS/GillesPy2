@@ -100,6 +100,7 @@ class BasicTauHybridSolver(GillesPySolver):
 
         return rxn_count, current, curr_state, curr_time
 
+    @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=False,
             **kwargs):
         """ TODO: write up doc """
