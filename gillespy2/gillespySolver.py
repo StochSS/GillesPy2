@@ -44,9 +44,11 @@ class GillesPySolver():
         Use names of species as index of result object rather than position numbers.
     """
 
+    name = "GillesPySolver"
+
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, stochkit_home=None, algorithm=None,
-            job_id=None, extra_args='', debug=False, show_labels=False):
+            job_id=None, extra_args='', debug=False, profile=False, show_labels=False):
         """ 
         Call out and run the solver. Collect the results.
         """
@@ -237,11 +239,13 @@ class StochKitSolver(GillesPySolver):
         Set to True to provide additional debug information about the     
         simulation.
     """
-    
+
+    name = 'StochKitSolver'
+
     @classmethod
     def run(cls, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, stochkit_home=None, algorithm='ssa',
-            job_id=None, method=None,debug=False, show_labels=False):
+            job_id=None, method=None,debug=False, profile=False, show_labels=False):
     
         # all this is specific to StochKit
         if model.units == "concentration":
@@ -308,7 +312,6 @@ class StochKitSolver(GillesPySolver):
 
 
 class StochKitODESolver(GillesPySolver):
-    name = "StochKitODESolver"
     """ 
     Abstract class for StochKit solver derived from the GillesPySolver class.
     This is generally used to set up the solver.
@@ -337,7 +340,9 @@ class StochKitODESolver(GillesPySolver):
         Set to True to provide additional debug information about the     
         simulation.
     """
-    
+
+    name = "StochKitODESolver"
+
     @classmethod
     def run(cls, model, t=20, number_of_trajectories=1,
                 increment=0.05, seed=None, stochkit_home=None, 
