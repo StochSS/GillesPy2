@@ -46,7 +46,9 @@ class easy_install_new(easy_install):
 
 setup(name = "gillespy2",
       version = "1.1",
-      packages = ['gillespy2'],
+      packages = ['gillespy2', 'gillespy2.core', 'gillespy2.sbml', 'gillespy2.solvers',
+                  'gillespy2.solvers.python', 'gillespy2.solvers.numpy', 'gillespy2.solvers.cython',
+                  'gillespy2.solvers.stochkit', 'gillespy2.solvers.auto'],
       include_package_data=True,
       description = 'Python interface for Gillespie style biochemical simulations',
       
