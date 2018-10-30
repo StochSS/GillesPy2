@@ -13,10 +13,10 @@ improvement over the original.
 """
 from __future__ import division
 from collections import OrderedDict
-from .gillespySolver import GillesPySolver
+from gillespy2.core.gillespySolver import GillesPySolver
+from gillespy2.core.gillespyError import *
 import numpy as np
 import matplotlib.pyplot as plt
-from .gillespyError import *
 
 pretty_graph = False
 
@@ -381,7 +381,7 @@ class Model(object):
                 raise SimulationError(
                     "argument 'solver' to run() must be a subclass of GillesPySolver")
         else:
-            from .solvers.stochkit.stochkit_solvers import StochKitSolver
+            from gillespy2.solvers.stochkit import StochKitSolver
             return StochKitSolver.run(self, t=self.tspan[-1],
                                       increment=self.tspan[-1] - self.tspan[-2], seed=seed,
                                       number_of_trajectories=number_of_trajectories,

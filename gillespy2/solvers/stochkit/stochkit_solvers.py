@@ -255,7 +255,7 @@ class StochKitSolver(StochKitBaseSolver):
             args += ' --method ' + str(method)
 
         return super().run(model, t, number_of_trajectories, increment, seed, stochkit_home,
-                           algorithm, job_id, debug=debug, show_labels=show_labels, extra_args=args)
+                           algorithm=algorithm, job_id=job_id, debug=debug, show_labels=show_labels, extra_args=args)
 
     @classmethod
     def get_trajectories(cls, out_dir, debug=False, show_labels=False):
