@@ -47,7 +47,8 @@ class StochKitBaseSolver(GillesPySolver):
     show_labels : bool (True)
         Use names of species as index of result object rather than position numbers.
     """
-    def run(self, model, t=20, number_of_trajectories=1,
+    @classmethod
+    def run(cls, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, stochkit_home=None, algorithm=None,
             job_id=None, extra_args='', debug=False, show_labels=False):
         """
@@ -75,7 +76,7 @@ class StochKitBaseSolver(GillesPySolver):
         else:
             raise InvalidModelError('Model must be either a GillesPy Model instance or an xml file name.')
 
-        executable = self.locate_executable(stochkit_home=stochkit_home, algorithm=algorithm)
+        executable = cls.locate_executable(stochkit_home=stochkit_home, algorithm=algorithm)
 
         if executable is None:
             raise SimulationError("stochkit executable '{0}' not found. \
@@ -90,7 +91,7 @@ class StochKitBaseSolver(GillesPySolver):
         num_output_points = t // increment
 
         # Assemble the argument list
-        args = '--model {0} --out-dir {1} -t {2} -i {3}'.format(outfile, out_dir, t, num_output_points)
+        args = '--model {0} --out-dir {1} -t {2} -i {3}'.format(outfile, out_dir, t, int(num_output_points))
 
         directories = os.listdir(prefix_out_dir)
         if job_id in directories:
@@ -125,12 +126,12 @@ class StochKitBaseSolver(GillesPySolver):
 
         try:
             # Get data using solver specific function
-            trajectories = self.get_trajectories(out_dir, debug=debug, show_labels=show_labels)
+            trajectories = cls.get_trajectories(out_dir, debug=debug, show_labels=show_labels)
             if len(trajectories) == 0:
                 raise SimulationError("Solver execution failed: '{0}' output: {1}{2}".format(cmd, stdout, stderr))
             if show_labels:
                 labels, trajectories = trajectories
-                trajectories = self.label_trajectories(trajectories, labels)
+                trajectories = cls.label_trajectories(trajectories, labels)
             return trajectories
         except Exception as e:
             compile_log_file = os.path.join(prefix_base_dir, 'temp_input_{0}_generated_code'.format(job_id),
@@ -232,7 +233,6 @@ class StochKitSolver(StochKitBaseSolver):
         Set to True to provide additional debug information about the
         simulation.
     """
-
     @classmethod
     def run(cls, model, t=20, number_of_trajectories=1, increment=0.05,
             seed=None, stochkit_home=None, algorithm='ssa', job_id=None,
@@ -248,13 +248,12 @@ class StochKitSolver(StochKitBaseSolver):
         seed = super().process_seed(seed)
 
         # We keep all the trajectories by default.
-        args = ' -p {0} --keep-trajectories  --label --seed {1} \
-               --realizations {2}'.format(processes, seed, number_of_trajectories)
+        args = ' -p {0} --keep-trajectories --label --seed {1} --realizations {2}'.format(processes, seed, number_of_trajectories)
 
         if method is not None:  # This only works for StochKit 2.1
             args += ' --method ' + str(method)
 
-        return super().run(model, t, number_of_trajectories, increment, seed, stochkit_home,
+        return super().run(model=model, t=t, number_of_trajectories=number_of_trajectories, increment=increment, seed=seed, stochkit_home=stochkit_home,
                            algorithm=algorithm, job_id=job_id, debug=debug, show_labels=show_labels, extra_args=args)
 
     @classmethod
