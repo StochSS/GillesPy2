@@ -9,7 +9,7 @@ _handler = logging.StreamHandler()
 _handler.setFormatter(_formatter)
 
 log = logging.getLogger()
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.WARN)
 log.addHandler(_handler)
 
 __all__ = [s for s in dir() if not s.startswith('_')]

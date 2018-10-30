@@ -1,5 +1,5 @@
 # encoding: utf-8
-from ..gillespySolver import GillesPySolver
+from gillespy2.core import GillesPySolver
 import numpy as np
 import random
 cimport numpy as np
