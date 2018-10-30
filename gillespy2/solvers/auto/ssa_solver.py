@@ -1,28 +1,24 @@
-from gillespy2.solvers.gillespySolver import GillesPySolver
-from gillespy2.example_models import Example
-import logging
-
-logger = logging.getLogger()
+from gillespy2.core import GillesPySolver, log
 
 try:
     import numpy as np
 
     can_use_numpy = True
-    from .numpy.ssa_solver import NumPySSASolver
-    logging.debug("Successful Import of NumPySSASolver.")
+    from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver
+    log.debug("Successful Import of NumPySSASolver.")
 except ModuleNotFoundError as e:
     can_use_numpy = False
-    logging.warn(" Unable to use NumPy. The performance of this package can be \
+    log.warn(" Unable to use NumPy. The performance of this package can be \
                   significantly increased if you install NumPy:\nError:{0}".format(e))
 
 try:
     import pyximport
     pyximport.install(setup_args={'include_dirs': np.get_include()})
-    from .cython.cython_ssa_solver import CythonSSASolver
+    from gillespy2.solvers.cython.cython_ssa_solver import CythonSSASolver
     can_use_cython = True
-    logging.debug("Successful Import of CythonSSASolver.")
+    log.debug("Successful Import of CythonSSASolver.")
 except Exception as e:
-    logging.warn(" Unable to use Cython optimized SSA: {0}\nThe performance of this\
+    log.warn(" Unable to use Cython optimized SSA: {0}\nThe performance of this\
                  package can be significantly increased if you install Cython.".format(e))
     can_use_cython = False
 

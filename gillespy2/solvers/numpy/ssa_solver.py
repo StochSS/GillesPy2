@@ -1,4 +1,4 @@
-from gillespy2.solvers.gillespySolver import GillesPySolver
+from gillespy2.core import GillesPySolver
 import random
 import math
 import numpy as np

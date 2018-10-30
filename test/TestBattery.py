@@ -1,4 +1,3 @@
-import sys
 from tqdm import tqdm
 import click
 import statistics
@@ -20,7 +19,7 @@ def timing_battery(gillespy2_home, number_of_samples, stochkit_home, acceptable_
     from .basic_root_solver import BasicRootSolver
     from .optimized_ssa_solver import OptimizedSSASolver
 
-    from .example_models import *
+    from Repository.gillespy2.example_models import *
 
     model_list = [Example(), Trichloroethylene(), MichaelisMenten(), Schlogl()]
 

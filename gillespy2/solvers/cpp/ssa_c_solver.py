@@ -1,6 +1,5 @@
+from gillespy2.core import GillesPySolver
 import gillespy2
-from gillespy2.solvers.gillespySolver import GillesPySolver
-from gillespy2.gillespyError import *
 import os #for getting directories for C++ files
 import shutil #for deleting/copying files
 import subprocess #For calling make and executing c solver
@@ -8,8 +7,9 @@ import inspect #for finding the Gillespy2 module path
 import tempfile #for temporary directories
 import numpy as np
 
-GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2.solvers))
-GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'cpp/c_base')
+GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
+GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base')
+
 
 def copy_files(destination):
     src_files = os.listdir(GILLESPY_C_DIRECTORY)
@@ -20,7 +20,6 @@ def copy_files(destination):
 
 
 def write_constants(outfile, model, reactions, species):
-    #Write mandatory constants
     outfile.write("const double vol = {};\n".format(model.volume))
     outfile.write("std :: string s_names[] = {");
     if len(species) > 0:

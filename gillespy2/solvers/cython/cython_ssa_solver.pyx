@@ -1,8 +1,5 @@
 # encoding: utf-8
-# cython: linetrace=True, optimize.use_switch=True, cdivision=True
-# filename: calc_pi.pyx
-import gillespy2
-from gillespySolver import GillesPySolver
+from ..gillespySolver import GillesPySolver
 import numpy as np
 import random
 cimport numpy as np

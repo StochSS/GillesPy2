@@ -1,9 +1,8 @@
-from gillespy2.gillespyError import SimulationError
+from .gillespyError import SimulationError
 
 
 class GillesPySolver:
     name = "GillesPySolver"
-
     """ 
     Abstract class for a solver. This is generally called from within a
     gillespy Model through the Model.run function. Returns simulation 

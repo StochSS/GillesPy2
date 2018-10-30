@@ -3,10 +3,10 @@ from setuptools.command.develop import develop
 from setuptools.command.install import install
 from setuptools.command.bdist_egg import bdist_egg
 from setuptools.command.easy_install import easy_install
-import subprocess
 import os
 
 SETUP_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 def stoch_path(command_subclass):
     """
@@ -23,25 +23,25 @@ def stoch_path(command_subclass):
     return command_subclass
 
 
-
 # update all install classes with our new class
 @stoch_path
 class develop_new(develop):
     pass
 
+
 @stoch_path
 class install_new(install):
     pass
+
 
 @stoch_path
 class bdist_egg_new(bdist_egg):
     pass
 
+
 @stoch_path
 class easy_install_new(easy_install):
     pass
-
-
 
 
 setup(name = "gillespy2",

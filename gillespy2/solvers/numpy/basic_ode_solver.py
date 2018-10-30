@@ -1,5 +1,4 @@
-import gillespy2
-from .gillespySolver import GillesPySolver
+from gillespy2.core import GillesPySolver
 from scipy.integrate import odeint
 import numpy as np
 

@@ -12,23 +12,14 @@ improvement over the original.
     
 """
 from __future__ import division
-
 from collections import OrderedDict
+from .gillespySolver import GillesPySolver
 import numpy as np
-from gillespy2.solvers.gillespySolver import *
 import matplotlib.pyplot as plt
-import seaborn as sns
-
+from .gillespyError import *
 
 pretty_graph = False
 
-
-# try:
-#     import seaborn as sbn
-#     pretty_graph = True
-# except:
-#     import matplotlib.pyplot as plt
-#     pretty_graph = False
 
 try:
     import lxml.etree as eTree
@@ -38,7 +29,6 @@ except:
     import xml.etree.ElementTree as eTree
     import xml.dom.minidom
     import re
-
     no_pretty_print = True
 
 
@@ -308,7 +298,6 @@ class Model(object):
         """
 
         # TODO, make sure that you cannot overwrite an existing reaction
-        #param_type = type(reactions).__name__
         if isinstance(reactions,list):
             for r in reactions:
                 self.add_reaction(r)
@@ -317,6 +306,7 @@ class Model(object):
         elif isinstance(reactions,Reaction):
             self.listOfReactions[reactions.name] = reactions
         else:
+            param_type = type(reactions).__name__
             raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(param_type))
         return reactions
 
@@ -388,9 +378,10 @@ class Model(object):
                                   stochkit_home=stochkit_home, debug=debug,
                                   show_labels=show_labels)
             else:
-                raise SimuliationError(
+                raise SimulationError(
                     "argument 'solver' to run() must be a subclass of GillesPySolver")
         else:
+            from .solvers.stochkit.stochkit_solvers import StochKitSolver
             return StochKitSolver.run(self, t=self.tspan[-1],
                                       increment=self.tspan[-1] - self.tspan[-2], seed=seed,
                                       number_of_trajectories=number_of_trajectories,
@@ -1079,38 +1070,3 @@ class StochMLDocument():
         e.append(products)
 
         return e
-
-    # Module exceptions
-
-
-class ModelError(Exception):
-    pass
-
-
-class SpeciesError(ModelError):
-    pass
-
-
-class ReactionError(ModelError):
-    pass
-
-
-class ParameterError(ModelError):
-    pass
-
-
-class SimuliationError(Exception):
-    pass
-
-
-# Exceptions
-class StochMLImportError(Exception):
-    pass
-
-
-class InvalidStochMLError(Exception):
-    pass
-
-
-class InvalidModelError(Exception):
-    pass

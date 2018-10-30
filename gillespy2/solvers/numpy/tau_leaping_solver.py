@@ -1,10 +1,9 @@
-import gillespy2
-from .gillespySolver import GillesPySolver
-from .basic_ssa_solver import BasicSSASolver
+from gillespy2.core import GillesPySolver
 import random
 import math
 import numpy as np
 import sys
+
 
 class TauLeapingSolver(GillesPySolver):
     name = "TauLeaping"

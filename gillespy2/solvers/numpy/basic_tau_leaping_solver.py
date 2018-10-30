@@ -1,12 +1,9 @@
-import gillespy2
-from .gillespySolver import GillesPySolver
-import random
-import math
+from gillespy2.core import GillesPySolver
 import numpy as np
+
 
 class BasicTauSolver(GillesPySolver):
     name = "BasicTauSolver"
-    
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):

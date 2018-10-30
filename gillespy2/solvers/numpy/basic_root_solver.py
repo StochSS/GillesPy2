@@ -1,4 +1,4 @@
-from .gillespySolver import GillesPySolver
+from gillespy2.core import GillesPySolver
 import random
 import math
 from scipy.integrate import ode

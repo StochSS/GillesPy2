@@ -5,9 +5,8 @@ import os
 import uuid
 import subprocess
 import shutil
-from gillespy2.solvers.gillespySolver import GillesPySolver
-from gillespy2.gillespyError import SimulationError, InvalidModelError
-from gillespy2 import Model
+from gillespy2.core import GillesPySolver, Model
+from gillespy2.core.gillespyError import SimulationError, InvalidModelError
 
 
 class StochKitBaseSolver(GillesPySolver):

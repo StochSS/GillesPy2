@@ -46,3 +46,4 @@ class InvalidStochMLError(SimulationError):
 
 class InvalidModelError(SimulationError):
     pass
+
