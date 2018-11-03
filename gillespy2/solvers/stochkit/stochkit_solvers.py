@@ -48,9 +48,9 @@ class StochKitBaseSolver(GillesPySolver):
         Use names of species as index of result object rather than position numbers.
     """
     @classmethod
-    def run(cls, model, t=20, number_of_trajectories=1,
-            increment=0.05, seed=None, stochkit_home=None, algorithm=None,
-            job_id=None, extra_args='', debug=False, profile=False, show_labels=False):
+    def run(cls, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
+            stochkit_home=None, algorithm=None, job_id=None, extra_args='',
+            debug=False, profile=False, show_labels=False, **kwargs):
         """
         Call out and run the solver. Collect the results.
         """
@@ -234,9 +234,9 @@ class StochKitSolver(StochKitBaseSolver):
         simulation.
     """
     @classmethod
-    def run(cls, model, t=20, number_of_trajectories=1, increment=0.05,
-            seed=None, stochkit_home=None, algorithm='ssa', job_id=None,
-            method=None, debug=False, show_labels=False, profile=False, processes=1):
+    def run(cls, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
+            stochkit_home=None, algorithm='ssa', job_id=None, method=None,
+            debug=False, show_labels=False, profile=False, processes=1, **kwargs):
 
         # all this is specific to StochKit
         if model.units == "concentration":
@@ -312,7 +312,7 @@ class StochKitODESolver(StochKitBaseSolver):
     def run(cls, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, stochkit_home=None,
             algorithm='stochkit_ode.py',
-            job_id=None, debug=False, show_labels=False):
+            job_id=None, debug=False, profile=False, show_labels=False, **kwargs):
         return super().run(model, t, number_of_trajectories, increment, seed, stochkit_home,
                            algorithm, job_id, debug=debug, show_labels=show_labels)
 
