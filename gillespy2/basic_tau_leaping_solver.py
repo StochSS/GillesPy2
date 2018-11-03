@@ -7,16 +7,25 @@ import warnings
 
 
 class BasicTauLeapingSolver(GillesPySolver):
+    """
+    A Basic Tau Leaping Solver for GillesPy2 models.  This solver uses an algorithm calculates
+    multiple reactions in a single step over a given tau step size.  The change in propensities
+    over this step are bounded by bounding the relative change in state, yielding greatly improved
+    run-time performance with very little trade-off in accuracy.
+    """
     name = "Basic Tau Leaping Solver"
 
     def __init__(self, debug=False):
         self.debug = debug
         self.epsilon = 0.03
 
-    def get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions, debug):
-        ''' Get the time to the next reaction by integrating the SSA reaction functions
-            along with the RateRules.  Update population of species governed by rate rules
-        '''
+    def __get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions, debug):
+        """
+        Helper Function to get reactions fired from t to t+tau.  Returns three values:
+        rxn_count - dict with key=Raection channel value=number of times fired
+        curr_state - dict containing all state variables for system at current time
+        curr_time - float representing current time
+        """
 
         if curr_time + step > save_time:
             if debug:
@@ -37,11 +46,10 @@ class BasicTauLeapingSolver(GillesPySolver):
 
         curr_time = curr_time+step
 
-        # TODO: WRITE POISSON HERE
-
         return rxn_count, curr_state, curr_time
 
-    def get_tau(self, model, y0, curr_state, propensities, steps_taken, save_time, curr_time, debug, profile):
+    def __get_tau(self, model, y0, curr_state, propensities, steps_taken, save_time, curr_time, debug, profile):
+        """ Helper function to analyze best tau to take as next step """
         projected_reaction = None
         tau_step = None
         tau_j = {}
@@ -150,8 +158,38 @@ class BasicTauLeapingSolver(GillesPySolver):
         # END NEW TAU SELECTION METHOD
 
     @classmethod
-    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, profile=False, debug=False, show_labels=False,
-            **kwargs):
+    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, profile=False,
+            debug=False, show_labels=False, stochkit_home=None, **kwargs):
+        """
+                Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
+                objects and will inherit those parameters which are passed with the model as the arguments this run function.
+
+                Attributes
+                ----------
+
+                model : GillesPy2.Model
+                    GillesPy2 model object to simulate
+                t : int
+                    Simulation run time
+                number_of_trajectories : int
+                    The number of times to sample the chemical master equation. Each
+                    trajectory will be returned at the end of the simulation.
+                    Optional, defaults to 1.
+                increment : float
+                    Save point increment for recording data
+                seed : int
+                    The random seed for the simulation. Optional, defaults to None.
+                debug : bool (False)
+                    Set to True to provide additional debug information about the
+                    simulation.
+                profile : bool (Fasle)
+                    Set to True to provide information about step size (tau) taken at each step.
+                show_labels : bool (True)
+                    Use names of species as index of result object rather than position numbers.
+                stochkit_home : str
+                    Path to stochkit. This is set automatically upon installation, but
+                    may be overwritten if desired.
+                """
         if not sys.warnoptions:
             warnings.simplefilter("ignore")
         if not isinstance(self, BasicTauLeapingSolver):
@@ -160,87 +198,90 @@ class BasicTauLeapingSolver(GillesPySolver):
             print("t = ", t)
             print("increment = ", increment)
 
-        random.seed(seed)
-        y0 = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
-        propensities = {}
-        curr_state = {}
-        curr_time = 0
-        curr_state['vol'] = model.volume
-        save_time = 0
+        trajectories = []
+        for trajectory in range(number_of_trajectories):
+            random.seed(seed)
+            y0 = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
+            propensities = {}
+            curr_state = {}
+            curr_time = 0
+            curr_state['vol'] = model.volume
+            save_time = 0
 
-        results = {'time': []}
-        steps_taken = []
-        steps_rejected = 0
+            results = {'time': []}
+            steps_taken = []
+            steps_rejected = 0
 
-        for s in model.listOfSpecies:
-            # initialize populations
-            curr_state[s] = model.listOfSpecies[s].initial_value
-            results[s] = []
+            for s in model.listOfSpecies:
+                # initialize populations
+                curr_state[s] = model.listOfSpecies[s].initial_value
+                results[s] = []
 
-        for p in model.listOfParameters:
-            curr_state[p] = model.listOfParameters[p].value
+            for p in model.listOfParameters:
+                curr_state[p] = model.listOfParameters[p].value
 
-        for i, r in enumerate(model.listOfReactions):  # set reactions to uniform random number and add to y0
-            y0[i] = (math.log(random.uniform(0, 1)))
-            if debug:
-                print("Setting Random number ", y0[i], " for ", model.listOfReactions[r].name)
+            for i, r in enumerate(model.listOfReactions):  # set reactions to uniform random number and add to y0
+                y0[i] = (math.log(random.uniform(0, 1)))
+                if debug:
+                    print("Setting Random number ", y0[i], " for ", model.listOfReactions[r].name)
 
-        while save_time < t:
-            while curr_time < save_time:
+            while save_time < t:
+                while curr_time < save_time:
 
-                tau_step = self.get_tau(model, y0, curr_state, propensities, steps_taken,
-                                        save_time, curr_time, debug, profile)
+                    tau_step = self.__get_tau(model, y0, curr_state, propensities, steps_taken,
+                                              save_time, curr_time, debug, profile)
 
-                prev_y0 = y0.copy()
-                prev_curr_state = curr_state.copy()
-                prev_curr_time = curr_time
+                    prev_y0 = y0.copy()
+                    prev_curr_state = curr_state.copy()
+                    prev_curr_time = curr_time
 
-                loop_cnt = 0
-                while True:
-                    loop_cnt += 1
-                    if loop_cnt > 100:
-                        raise Exception("Loop over get_reactions() exceeded loop count")
+                    loop_cnt = 0
+                    while True:
+                        loop_cnt += 1
+                        if loop_cnt > 100:
+                            raise Exception("Loop over __get_reactions() exceeded loop count")
 
-                    reactions, curr_state, curr_time = self.get_reactions(
-                        tau_step, curr_state, curr_time, save_time, propensities, model.listOfReactions, debug)
+                        reactions, curr_state, curr_time = self.__get_reactions(
+                            tau_step, curr_state, curr_time, save_time, propensities, model.listOfReactions, debug)
 
-                    # Update curr_state with the result of the SSA reaction that fired
-                    species_modified = {}
-                    for i, r in enumerate(model.listOfReactions):
-                        if reactions[r] > 0:
-                            for reactant in model.listOfReactions[r].reactants:
-                                species_modified[str(reactant)] = True
-                                curr_state[str(reactant)] -= model.listOfReactions[r].reactants[reactant] * reactions[r]
-                            for product in model.listOfReactions[r].products:
-                                species_modified[str(product)] = True
-                                curr_state[str(product)] += model.listOfReactions[r].products[product] * reactions[r]
-                    neg_state = False
-                    for s in species_modified.keys():
-                        if curr_state[s] < 0:
-                            neg_state = True
+                        # Update curr_state with the result of the SSA reaction that fired
+                        species_modified = {}
+                        for i, r in enumerate(model.listOfReactions):
+                            if reactions[r] > 0:
+                                for reactant in model.listOfReactions[r].reactants:
+                                    species_modified[str(reactant)] = True
+                                    curr_state[str(reactant)] -= model.listOfReactions[r].reactants[reactant] * reactions[r]
+                                for product in model.listOfReactions[r].products:
+                                    species_modified[str(product)] = True
+                                    curr_state[str(product)] += model.listOfReactions[r].products[product] * reactions[r]
+                        neg_state = False
+                        for s in species_modified.keys():
+                            if curr_state[s] < 0:
+                                neg_state = True
+                                if debug:
+                                    print("Negative state detected: curr_state[{0}]= {1}".format(s, curr_state[s]))
+                        if neg_state:
                             if debug:
-                                print("Negative state detected: curr_state[{0}]= {1}".format(s, curr_state[s]))
-                    if neg_state:
-                        if debug:
-                            print("\trxn={0}".format(reactions))
-                        y0 = prev_y0.copy()
-                        curr_state = prev_curr_state.copy()
-                        curr_time = prev_curr_time
-                        tau_step = tau_step / 2
-                        steps_rejected += 1
-                        if debug:
-                            print("Resetting curr_state[{0}]= {1}".format(s, curr_state[s]))
-                        if debug:
-                            print("\tRejecting step, taking step of half size, tau_step={0}".format(tau_step))
-                    else:
-                        break  # breakout of the while True
+                                print("\trxn={0}".format(reactions))
+                            y0 = prev_y0.copy()
+                            curr_state = prev_curr_state.copy()
+                            curr_time = prev_curr_time
+                            tau_step = tau_step / 2
+                            steps_rejected += 1
+                            if debug:
+                                print("Resetting curr_state[{0}]= {1}".format(s, curr_state[s]))
+                            if debug:
+                                print("\tRejecting step, taking step of half size, tau_step={0}".format(tau_step))
+                        else:
+                            break  # breakout of the while True
 
-            results['time'].append(save_time)
-            for i, s in enumerate(model.listOfSpecies):
-                results[s].append(curr_state[s])
-            save_time += increment
-        if profile:
-            print(steps_taken)
-            print("Total Steps Taken: ", len(steps_taken))
-            print("Total Steps Rejected: ", steps_rejected)
-        return results
+                results['time'].append(save_time)
+                for i, s in enumerate(model.listOfSpecies):
+                    results[s].append(curr_state[s])
+                save_time += increment
+            if profile:
+                print(steps_taken)
+                print("Total Steps Taken: ", len(steps_taken))
+                print("Total Steps Rejected: ", steps_rejected)
+            trajectories.append(results)
+        return trajectories

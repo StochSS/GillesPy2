@@ -5,13 +5,42 @@ import math
 
 
 class BasicSSASolver(GillesPySolver):
-    """ TODO
-    """
+
     name = "BasicSSASolver"
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, profile=False, debug=False, show_labels=False,stochkit_home=None):
+        """
+                Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
+                objects and will inherit those parameters which are passed with the model as the arguments this run function.
+
+                Attributes
+                ----------
+
+                model : GillesPy2.Model
+                    GillesPy2 model object to simulate
+                t : int
+                    Simulation run time
+                number_of_trajectories : int
+                    The number of times to sample the chemical master equation. Each
+                    trajectory will be returned at the end of the simulation.
+                    Optional, defaults to 1.
+                increment : float
+                    Save point increment for recording data
+                seed : int
+                    The random seed for the simulation. Optional, defaults to None.
+                debug : bool (False)
+                    Set to True to provide additional debug information about the
+                    simulation.
+                profile : bool (Fasle)
+                    Set to True to provide information about step size (tau) taken at each step.
+                show_labels : bool (True)
+                    Use names of species as index of result object rather than position numbers.
+                stochkit_home : str
+                    Path to stochkit. This is set automatically upon installation, but
+                    may be overwritten if desired.
+                """
 
         self.simulation_data = []
 
@@ -20,7 +49,7 @@ class BasicSSASolver(GillesPySolver):
         results = {}
         steps_taken = []
 
-        for trajectories in range(number_of_trajectories):
+        for trajectory in range(number_of_trajectories):
             # Initialize Species population
             for s in model.listOfSpecies:
                 curr_state[s] = model.listOfSpecies[s].initial_value
@@ -74,7 +103,8 @@ class BasicSSASolver(GillesPySolver):
                 print(steps_taken)
                 print("Total Steps Taken", len(steps_taken))
 
-            return results
+            self.simulation_data.append(results)
+        return self.simulation_data
 
     def get_trajectories(self, outdir, debug=False, show_labels=False):
         if show_labels:
