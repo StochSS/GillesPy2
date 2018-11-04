@@ -189,7 +189,7 @@ class MichaelisMenten(Model):
 
         r3 = Reaction(name="r3", reactants={C: 1}, products={B: 1, D: 1}, rate=rate3)
         self.add_reaction([r1, r2, r3])
-        self.timespan(numpy.linspace(0, 100000, 100))
+        self.timespan(np.linspace(0, 100000, 100))
 
 
 class ToggleSwitch(Model):

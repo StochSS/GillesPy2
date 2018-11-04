@@ -10,7 +10,7 @@ class BasicSSASolver(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
-            increment=0.05, seed=None, profile=False, debug=False, show_labels=False,stochkit_home=None):
+            increment=0.05, seed=None, profile=False, debug=False, show_labels=False, **kwargs):
 
         self.simulation_data = []
 

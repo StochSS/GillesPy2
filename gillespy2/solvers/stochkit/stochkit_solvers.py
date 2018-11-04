@@ -94,7 +94,7 @@ class StochKitBaseSolver(GillesPySolver):
         args = '--model {0} --out-dir {1} -t {2} -i {3}'.format(outfile, out_dir, t, int(num_output_points))
 
         directories = os.listdir(prefix_out_dir)
-        if job_id in directories:
+        if os.path.isdir(out_dir):
             if debug:
                 print('Ensemble {0} already existed, using --force.'.format(job_id))
             args += ' --force'
@@ -271,7 +271,7 @@ class StochKitSolver(StochKitBaseSolver):
                 raise SimulationError("Couldn't identify file '{0}' found in \
                                         output folder".format(filename))
         if show_labels:
-            with open(os.path.join(trajectory_directory, 'trajectory0.txt', 'r')) as fd:
+            with open(os.path.join(trajectory_directory, 'trajectory0.txt'), 'r') as fd:
                 headers = fd.readline()
             return headers.split(), trajectories
         return trajectories
