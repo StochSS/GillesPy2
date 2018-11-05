@@ -4,6 +4,20 @@ import statistics
 from itertools import product
 from scipy import stats
 from timeit import default_timer as timer
+import gillespy2
+from gillespy2.solvers.python import *
+# BasicSSASolver
+from gillespy2.solvers.numpy import *
+# BasicODESolver, BasicRootSolver, BasicTauLeapingSolver, NumPySSASolver, TauLeapingSolver
+from gillespy2.solvers.cython import *
+# CythonSSASolver
+from gillespy2.solvers.cpp import *
+# SSACSolver
+from gillespy2.solvers.auto import *
+# SSASolver
+from gillespy2.solvers.stochkit import *
+# StochKitODESolver, StochKitSolver
+from gillespy2.example_models import *
 
 
 @click.command()
@@ -13,17 +27,14 @@ from timeit import default_timer as timer
 @click.option('--acceptable deviation', prompt='Numeric Value of Statistical Variation', help='')
 @click.option('--output_file', prompt='Name of Output File', help='The name of the output file')
 def timing_battery(gillespy2_home, number_of_samples, stochkit_home, acceptable_deviation, output_file):
-
-
-    from .basic_ssa_solver import BasicSSASolver
-    from .basic_root_solver import BasicRootSolver
-    from .optimized_ssa_solver import OptimizedSSASolver
-
-    from Repository.gillespy2.example_models import *
+    solver_list = []
+    key, value = None, None
+    for key, value in globals().items():
+        if isinstance(value, type) and issubclass(value, gillespy2.GillesPySolver) and value not in solver_list:
+            solver_list.append(value)
 
     model_list = [Example(), Trichloroethylene(), MichaelisMenten(), Schlogl()]
 
-    solver_list = [BasicSSASolver, BasicRootSolver, OptimizedSSASolver, SSACSolver()]
     timing_list = []
 
     for model, solver in tqdm(product(model_list, solver_list)):
@@ -39,7 +50,7 @@ def timing_battery(gillespy2_home, number_of_samples, stochkit_home, acceptable_
                 median_list.append(stop-start)
                 interior_stats = []
                 for species in standard_results[0].keys():
-                    if solver == OptimizedSSASolver:
+                    if solver == NumPySSASolver:
                         deviation = stats.ks_2samp(standard_results[0][species], test_results[0][species])[0]
                         if deviation > acceptable_deviation:
                             print("Unacceptable deviation found on Model {} Solver {} with a deviation of {} on "
@@ -62,6 +73,7 @@ def timing_battery(gillespy2_home, number_of_samples, stochkit_home, acceptable_
         timing_list.append([model, solver, median])
     with open(output_file, 'w') as out_file:
         out_file.write(*timing_list)
+
 
 if __name__ == '__main__':
     timing_battery()
