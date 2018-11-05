@@ -413,7 +413,7 @@ class Model(object):
                     "argument 'solver' to run() must be a subclass of GillesPySolver")
         else:
             from gillespy2.solvers.auto import SSASolver
-            return SSASolver.run(self, t=self.tspan[-1],
+            return SSASolver.run(model=self, t=self.tspan[-1],
                                       increment=self.tspan[-1] - self.tspan[-2], seed=seed,
                                       number_of_trajectories=number_of_trajectories,
                                       stochkit_home=stochkit_home, profile=profile, debug=debug,
