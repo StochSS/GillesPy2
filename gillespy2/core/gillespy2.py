@@ -130,9 +130,18 @@ class Model(object):
         self.namespace = OrderedDict([])
         for param in self.listOfParameters:
             self.namespace[param] = self.listOfParameters[param].value
-        # Dictionary of expressions that can be evaluated in the scope of this
-        # model.
-        self.expressions = {}
+
+    def sanitized_species_names(self):
+        """
+        Generate a dictionary mapping user chosen species names to simplified formats which will be used
+        later on by GillesPySolvers evaluating reaction propensity functions.
+        :return: the dictionary mapping user species names to their internal GillesPy notation.
+        """
+        species_name_mapping = {}
+        species_names = sorted(list(self.listOfSpecies.keys()), key=lambda species: -len(species))
+        for i, name in enumerate(species_names):
+            species_name_mapping[name] = 'S[{}]'.format(i)
+        return species_name_mapping
 
     def get_species(self, s_name):
         """
