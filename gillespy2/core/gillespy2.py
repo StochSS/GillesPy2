@@ -240,7 +240,9 @@ class Model(object):
             for p in params:
                 self.add_parameter(p)
         else:
-            if isinstance(params,Parameter):
+            if isinstance(params, Parameter):
+                if params.name in self.listOfParameters:
+                    raise ParameterError("Can't add parameter. A parameter with that name already exists.")
                 self.listOfParameters[params.name] = params
             else:
                 raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(params))
