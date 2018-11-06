@@ -174,12 +174,14 @@ class Model(object):
         if isinstance(obj, Species):
             if obj.name in self.listOfSpecies:
                 raise ModelError("Can't add species. A species with that name already exists.")
+            if obj.name in self.listOfParameters:
+                raise ModelError("Can't add species. A parameter with that name already exists. That would cause issues.")
             self.listOfSpecies[obj.name] = obj
-        else:  # obj is a list of species
+        elif isinstance(obj, list):  # obj is a list of species
             for S in obj:
-                if S.name in self.listOfSpecies:
-                    raise ModelError("Can't add species. A species with that name already exists.")
-                self.listOfSpecies[S.name] = S
+                self.add_species(S)
+        else:
+            raise ModelError("Unexpected parameter for add_species. Parameter must be Species or list of Species.")
         return obj
 
     def delete_species(self, obj):
@@ -213,6 +215,18 @@ class Model(object):
         else:
             raise ModelError("units must be either concentration or population (case insensitive)")
 
+    def sanitized_parameter_names(self):
+        """
+        Generate a dictionary mapping user chosen parameter names to simplified formats which will be used
+        later on by GillesPySolvers evaluating reaction propensity functions.
+        :return: the dictionary mapping user parameter names to their internal GillesPy notation.
+        """
+        parameter_name_mapping = {}
+        parameter_names = sorted(list(self.listOfParameters.keys()), key=lambda parameter: -len(parameter))
+        for i, name in enumerate(parameter_names):
+            parameter_name_mapping[name] = 'P[{}]'.format(i)
+        return parameter_name_mapping
+
     def get_parameter(self, p_name):
         """
         Returns a parameter object by name.
@@ -244,7 +258,6 @@ class Model(object):
         obj : Parameter, or list of Parameters
             The parameter or list of parameters to be added to the model object.
         """
-        # TODO, make sure that you don't overwrite an existing parameter??
         if isinstance(params,list): 
             for p in params:
                 self.add_parameter(p)
@@ -252,6 +265,8 @@ class Model(object):
             if isinstance(params, Parameter):
                 if params.name in self.listOfParameters:
                     raise ParameterError("Can't add parameter. A parameter with that name already exists.")
+                if params.name in self.listOfSpecies:
+                    raise ParameterError("Can't add parameter. A species with that name already exists. That would cause issues.")
                 self.listOfParameters[params.name] = params
             else:
                 raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(params))
@@ -323,8 +338,7 @@ class Model(object):
                 raise ModelError("Duplicate name of reaction: {0}".format(reactions.name))
             self.listOfReactions[reactions.name] = reactions
         else:
-            param_type = type(reactions).__name__
-            raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(param_type))
+            raise ModelError("Unexpected parameter for add_reaction. Parameter must be Reaction or list of Reactions.")
         return reactions
 
 
