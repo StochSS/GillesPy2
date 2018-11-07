@@ -58,8 +58,8 @@ def import_SBML(filename, name=None, gillespy_model=None):
 
 
 class Model(object):
-    # reserved names for model species/parameter names.
-    reserved_names = ['S', 'P', 'V']
+    # reserved names for model species/parameter names, volume, and operators.
+    reserved_names = ['S', 'P', 'V', '[', ']', '+', '-', '*', '/', '.', '^']
 
     """
     Representation of a well mixed biochemical model. Contains reactions,
@@ -148,11 +148,13 @@ class Model(object):
 
     def problem_with_name(self, name):
         if name in Model.reserved_names:
-            return ModelError('Name "{}" is one of the names reserved for internal GillesPy use ().'.format(name, Model.reserved_names))
+            return ModelError('Name "{}" is unavailable. It is reserved for internal GillesPy use. Reserved Names: ({}).'.format(name, Model.reserved_names))
         if name in self.listOfSpecies:
             return ModelError('Name "{}" is unavailable. A species with that name exists.'.format(name))
         if name in self.listOfParameters:
             return ModelError('Name "{}" is unavailable. A parameter with that name exists.'.format(name))
+        if name.isdigit():
+            return ModelError('Name "{}" is unavailable. Names must not be numeric strings.'.format(name))
 
     def get_species(self, s_name):
         """
