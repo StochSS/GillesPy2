@@ -58,6 +58,9 @@ def import_SBML(filename, name=None, gillespy_model=None):
 
 
 class Model(object):
+    # reserved names for model species/parameter names.
+    reserved_names = ['S', 'P', 'V']
+
     """
     Representation of a well mixed biochemical model. Contains reactions,
     parameters, species.
@@ -143,6 +146,14 @@ class Model(object):
             species_name_mapping[name] = 'S[{}]'.format(i)
         return species_name_mapping
 
+    def problem_with_name(self, name):
+        if name in Model.reserved_names:
+            return ModelError('Name "{}" is one of the names reserved for internal GillesPy use ().'.format(name, Model.reserved_names))
+        if name in self.listOfSpecies:
+            return ModelError('Name "{}" is unavailable. A species with that name exists.'.format(name))
+        if name in self.listOfParameters:
+            return ModelError('Name "{}" is unavailable. A parameter with that name exists.'.format(name))
+
     def get_species(self, s_name):
         """
         Returns a species object by name.
@@ -172,12 +183,11 @@ class Model(object):
         """
 
         if isinstance(obj, Species):
-            if obj.name in self.listOfSpecies:
-                raise ModelError("Can't add species. A species with that name already exists.")
-            if obj.name in self.listOfParameters:
-                raise ModelError("Can't add species. A parameter with that name already exists. That would cause issues.")
+            problem = self.problem_with_name(obj.name)
+            if problem is not None:
+                raise problem
             self.listOfSpecies[obj.name] = obj
-        elif isinstance(obj, list):  # obj is a list of species
+        elif isinstance(obj, list):
             for S in obj:
                 self.add_species(S)
         else:
@@ -263,10 +273,9 @@ class Model(object):
                 self.add_parameter(p)
         else:
             if isinstance(params, Parameter):
-                if params.name in self.listOfParameters:
-                    raise ParameterError("Can't add parameter. A parameter with that name already exists.")
-                if params.name in self.listOfSpecies:
-                    raise ParameterError("Can't add parameter. A species with that name already exists. That would cause issues.")
+                problem = self.problem_with_name(params.name)
+                if problem is not None:
+                    raise problem
                 self.listOfParameters[params.name] = params
             else:
                 raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(params))
@@ -340,7 +349,6 @@ class Model(object):
         else:
             raise ModelError("Unexpected parameter for add_reaction. Parameter must be Reaction or list of Reactions.")
         return reactions
-
 
     def add_rate_rule(self, rate_rules):
         """
@@ -652,9 +660,6 @@ class Reaction:
         self.name = name
         self.annotation = ""
 
-        # if rate is None and propensity_function is None:
-        #     raise ReactionError("You must specify either a mass-action rate or a propensity function")
-
         # We might use this flag in the future to automatically generate
         # the propensity function if set to True.
         if propensity_function is not None:
@@ -688,14 +693,12 @@ class Reaction:
         if self.massaction:
             self.type = "mass-action"
             if rate is None:
-                # raise ReactionError("Reaction : A mass-action propensity has to have a rate.")
                 self.marate = None
             else:
                 self.marate = rate
                 self.create_mass_action()
         else:
             self.type = "customized"
-
 
     def verify(self):
         """ Check if the reaction is properly formatted.
@@ -797,6 +800,15 @@ class Reaction:
             An optional note about the reaction.
         """
         self.annotation = annotation
+
+    def sanitized_propensity_function(self, species_mappings, parameter_mappings):
+        replacements = list(species_mappings.keys()) + list(parameter_mappings.keys())
+        replacements.sort(key=lambda name: -len(name))
+        sanitized_propensity = self.propensity_function
+        for name in replacements:
+            replacement = parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
+            sanitized_propensity = sanitized_propensity.replace(name, replacement)
+        return sanitized_propensity
 
 
 class StochMLDocument():
