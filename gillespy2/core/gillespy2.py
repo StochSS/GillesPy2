@@ -16,7 +16,6 @@ from collections import OrderedDict
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
 import numpy as np
-import matplotlib.pyplot as plt
 
 pretty_graph = False
 
@@ -59,7 +58,8 @@ def import_SBML(filename, name=None, gillespy_model=None):
 
 class Model(object):
     # reserved names for model species/parameter names, volume, and operators.
-    reserved_names = ['S', 'P', 'V', '[', ']', '+', '-', '*', '/', '.', '^']
+    reserved_names = ['S', 'P', 'vol', 'V']
+    special_characters = ['[', ']', '+', '-', '*', '/', '.', '^']
 
     """
     Representation of a well mixed biochemical model. Contains reactions,
@@ -155,6 +155,9 @@ class Model(object):
             return ModelError('Name "{}" is unavailable. A parameter with that name exists.'.format(name))
         if name.isdigit():
             return ModelError('Name "{}" is unavailable. Names must not be numeric strings.'.format(name))
+        for special_character in Model.special_characters:
+            if special_character in name:
+                return ModelError('Name "{}" is unavailable. Names must not contain special characters: {}.'.format(name, Model.special_characters))
 
     def get_species(self, s_name):
         """
@@ -237,6 +240,8 @@ class Model(object):
         parameter_names = sorted(list(self.listOfParameters.keys()), key=lambda parameter: -len(parameter))
         for i, name in enumerate(parameter_names):
             parameter_name_mapping[name] = 'P[{}]'.format(i)
+        if 'vol' not in parameter_name_mapping:
+            parameter_name_mapping['vol'] = 'V'
         return parameter_name_mapping
 
     def get_parameter(self, p_name):
