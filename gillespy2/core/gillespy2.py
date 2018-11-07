@@ -236,12 +236,11 @@ class Model(object):
         later on by GillesPySolvers evaluating reaction propensity functions.
         :return: the dictionary mapping user parameter names to their internal GillesPy notation.
         """
-        parameter_name_mapping = {}
+        parameter_name_mapping = {'vol' : 'V'}
         parameter_names = sorted(list(self.listOfParameters.keys()), key=lambda parameter: -len(parameter))
         for i, name in enumerate(parameter_names):
-            parameter_name_mapping[name] = 'P[{}]'.format(i)
-        if 'vol' not in parameter_name_mapping:
-            parameter_name_mapping['vol'] = 'V'
+            if name not in parameter_name_mapping:
+                parameter_name_mapping[name] = 'P[{}]'.format(i)
         return parameter_name_mapping
 
     def get_parameter(self, p_name):
