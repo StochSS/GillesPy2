@@ -240,7 +240,7 @@ class Model(object):
         parameter_names = sorted(list(self.listOfParameters.keys()), key=lambda parameter: -len(parameter))
         for i, name in enumerate(parameter_names):
             if name not in parameter_name_mapping:
-                parameter_name_mapping[name] = 'P[{}]'.format(i)
+                parameter_name_mapping[name] = 'P{}'.format(i)
         return parameter_name_mapping
 
     def get_parameter(self, p_name):
