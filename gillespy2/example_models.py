@@ -232,7 +232,7 @@ class Example(Model):
         # Initialize the model.
         Model.__init__(self, name="Example")
         # Species
-        S = Species(name='S', initial_value=100)
+        S = Species(name='Sp', initial_value=100)
         self.add_species([S])
         # Parameters
         k1 = Parameter(name='k1', expression=3.0)
@@ -257,7 +257,7 @@ class Tyson2StateOscillator(Model):
         Y = Species(name='Y', initial_value=int(0.85088331 * 300))
         self.add_species([X, Y])
 
-        P = Parameter(name='P', expression=2.0)
+        P = Parameter(name='p', expression=2.0)
         kt = Parameter(name='kt', expression=20.0)
         kd = Parameter(name='kd', expression=1.0)
         a0 = Parameter(name='a0', expression=0.005)
