@@ -808,13 +808,13 @@ class Reaction:
         self.annotation = annotation
 
     def sanitized_propensity_function(self, species_mappings, parameter_mappings):
-        replacements = list(species_mappings.keys()) + list(parameter_mappings.keys())
-        replacements.sort(key=lambda name: -len(name))
+        names = list(species_mappings.keys()) + list(parameter_mappings.keys())
+        names.sort(key=lambda name: -len(name))
+        replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name] for name in names]
         sanitized_propensity = self.propensity_function
-        for name in replacements:
-            replacement = parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
-            sanitized_propensity = sanitized_propensity.replace(name, replacement)
-        return sanitized_propensity
+        for id, name in enumerate(names):
+            sanitized_propensity = sanitized_propensity.replace(name, "{"+str(id)+"}")
+        return sanitized_propensity.format(*replacements)
 
 
 class StochMLDocument():
