@@ -1,4 +1,4 @@
-from .gillespySolver import GillesPySolver
+from gillespy2.core import GillesPySolver
 import random
 import numpy
 import math
@@ -17,6 +17,7 @@ class BasicTauLeapingSolver(GillesPySolver):
         ''' Get the time to the next reaction by integrating the SSA reaction functions
             along with the RateRules.  Update population of species governed by rate rules
         '''
+
 
         if curr_time + step > save_time:
             if debug:

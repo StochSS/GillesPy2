@@ -1,27 +1,27 @@
-from gillespy2.gillespySolver import GillesPySolver
+from gillespy2.core import GillesPySolver
 import random
 import math
 import numpy as np
-import logging
-logger = logging.getLogger()
-try:
-    import pyximport; pyximport.install(setup_args={'include_dirs': np.get_include()})
-    from .cython_ssa_solver import CythonSSASolver
-    can_use_cython = True
-    logging.debug("Successful Import")
-except Exception as e:
-    logging.warning(" Unable to use Cython optimized SSA: {0}\nThe performance of this package can be significantly increased if you install Cython.".format(e))
-    can_use_cython = False
 
 
 class NumPySSASolver(GillesPySolver):
-    """ SSA Direct Method Solver implemented primarily with NumPy.
-    """
     name = "NumPySSASolver"
 
-    @classmethod
-    def run(cls, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=False,
-            stochkit_home=None, profile=False):
+    @staticmethod
+    def run(model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=False, **kwargs):
+        """
+        Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
+        :param model: The model on which the solver will operate.
+        :param t: The end time of the solver.
+        :param number_of_trajectories: The number of times to sample the chemical master equation. Each
+        trajectory will be returned at the end of the simulation.
+        :param increment: The time step of the solution.
+        :param seed: The random seed for the simulation. Defaults to None.
+        :param debug: Set to True to provide additional debug information about the
+        simulation.
+        :param show_labels: Use names of species as index of result object rather than position numbers.
+        :return: a list of each trajectory simulated.
+        """
         # create mapping of species dictionary to array indices
         species = list(model.listOfSpecies.keys())
         number_species = len(species)
@@ -75,7 +75,6 @@ class NumPySSASolver(GillesPySolver):
                 # if no more reactions, quit
                 if propensity_sum <= 0:
                     trajectory[entry_count:, 1:] = current_state
-                    entry_count = timeline.size
                     break
                 cumulative_sum = random.uniform(0, propensity_sum)
                 current_time += -math.log(random.random()) / propensity_sum
@@ -92,40 +91,12 @@ class NumPySSASolver(GillesPySolver):
                             propensity_sums[i] = propensity_functions[i](current_state)
                         break
             if show_labels:
-                data = {}
-                data['time'] = timeline
+                data = {
+                    'time': timeline
+                }
                 for i in range(number_species):
                     data[species[i]] = trajectory[:, i+1]
                 simulation_data.append(data)
             else:
                 simulation_data.append(trajectory)
         return simulation_data
-
-
-class OptimizedSSASolver(NumPySSASolver):
-    """ SSA Direct Method Solver implemented primarily with Numpy. Attempts to use Cython if available.
-    """
-    name = "CythonSSASolver"
-
-    def format_trajectories(simulation_data):
-        out_data = []
-        sorted_keys = sorted(simulation_data[0])
-        sorted_keys.remove('time')
-        for trajectory in simulation_data:
-            columns = [np.vstack((trajectory['time'].T))]
-            for column in sorted_keys:
-                columns.append(np.vstack((trajectory[column].T)))
-            out_array = np.hstack(columns)
-            out_data.append(out_array)
-        return out_data
-
-    @classmethod
-    def run(cls, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, show_labels=False,
-            stochkit_home=None, use_cython=True):
-        if use_cython and can_use_cython:
-            solver = CythonSSASolver()
-            return solver.run(model, t, number_of_trajectories, increment, seed, debug, show_labels)
-        return super().run(model, t, number_of_trajectories, increment, seed, debug, show_labels, stochkit_home)
-
-    def get_trajectories(self, outdir, debug=False, show_labels=False):
-        pass

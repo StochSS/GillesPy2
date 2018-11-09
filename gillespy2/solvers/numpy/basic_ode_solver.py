@@ -1,5 +1,4 @@
-import gillespy2
-from .gillespySolver import GillesPySolver
+from gillespy2.core import GillesPySolver
 from scipy.integrate import odeint
 import numpy as np
 
@@ -35,7 +34,7 @@ class BasicODESolver(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
-            increment=0.05, seed=None, debug=False, profile=False, show_labels=False, stochkit_home=None):
+            increment=0.05, seed=None, debug=False, profile=False, show_labels=False, **kwargs):
         for traj_num_ in range(number_of_trajectories):
             y0 = []
             for s in model.listOfSpecies:

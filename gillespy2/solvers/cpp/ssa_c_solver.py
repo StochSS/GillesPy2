@@ -1,16 +1,14 @@
 import gillespy2
-from .gillespySolver import GillesPySolver
-from .gillespyError import *
+from gillespy2.core import gillespyError, GillesPySolver
 import os #for getting directories for C++ files
 import shutil #for deleting/copying files
 import subprocess #For calling make and executing c solver
 import inspect #for finding the Gillespy2 module path
 import tempfile #for temporary directories
 import numpy as np
-import math
 
 GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
-GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'c_base/')
+GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base')
 
 
 def copy_files(destination):
@@ -22,7 +20,6 @@ def copy_files(destination):
 
 
 def write_constants(outfile, model, reactions, species):
-    #Write mandatory constants
     outfile.write("const double vol = {};\n".format(model.volume))
     outfile.write("std :: string s_names[] = {");
     if len(species) > 0:
@@ -97,6 +94,7 @@ def parse_binary_output(results_buffer, number_of_trajectories, number_timesteps
             index += number_species
     return trajectory_base
 
+
 class SSACSolver(GillesPySolver):
     name = "SSACSolver"
     """TODO"""
@@ -121,7 +119,7 @@ class SSACSolver(GillesPySolver):
                             #set up directory if needed
                             os.makedirs(self.output_directory)
                     else:
-                        raise DirectoryError("File exists with the same path as directory.")
+                        raise gillespyError.DirectoryError("File exists with the same path as directory.")
             else:
                 #Set up temporary directory
                 self.temporary_directory = tempfile.TemporaryDirectory()
@@ -129,7 +127,7 @@ class SSACSolver(GillesPySolver):
                 
             if not os.path.isdir(self.output_directory):
                 #errors encountered while making directory. It should exist
-                raise DirectoryError("Errors encountered while setting up directory for Solver C++ files.")
+                raise gillespyError.DirectoryError("Errors encountered while setting up directory for Solver C++ files.")
                 
             #copy files to directory
             copy_files(self.output_directory)
@@ -164,14 +162,13 @@ class SSACSolver(GillesPySolver):
         #Use makefile.
         cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulation'], stdout=subprocess.PIPE)
         built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        #Use makefile.        
         if built.returncode == 0:
             self.compiled = True
         else:
-            raise BuildError("Error encountered while compiling file:\nReturn code: {0}.\nError:\n{1}\n".format(built.returncode, built.stderr))
+            raise gillespyError.BuildError("Error encountered while compiling file:\nReturn code: {0}.\nError:\n{1}\n".format(built.returncode, built.stderr))
 
     def run(self=None, model=None, t=20, number_of_trajectories=1,
-            increment=0.05, seed=None, debug=False, profile=False, show_labels=False, stochkit_home=None):
+            increment=0.05, seed=None, debug=False, profile=False, show_labels=False, **kwargs):
         if self is None:
             self = SSACSolver(model)
         if self.compiled:
@@ -198,6 +195,6 @@ class SSACSolver(GillesPySolver):
                 else:
                     self.simulation_data = trajectory_base
             else:
-                raise ExecutionError("Error encountered while running simulation C++ file:\nReturn code: {0}.\nError:\n{1}\n".format(simulation.returncode, simulation.stderr))
+                raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:\nReturn code: {0}.\nError:\n{1}\n".format(simulation.returncode, simulation.stderr))
         return self.simulation_data
 

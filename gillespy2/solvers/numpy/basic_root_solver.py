@@ -1,4 +1,4 @@
-from .gillespySolver import GillesPySolver
+from gillespy2.core import GillesPySolver
 import random
 import math
 from scipy.integrate import ode
@@ -64,7 +64,7 @@ class BasicRootSolver(GillesPySolver):
 
     @classmethod
     def run(cls, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=False,
-            stochkit_home=None, **kwargs):
+            profile=False, **kwargs):
         self = BasicRootSolver()
         y0 = [0] * len(model.listOfReactions)
         populations = []
