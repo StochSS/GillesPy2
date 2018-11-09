@@ -58,7 +58,7 @@ def import_SBML(filename, name=None, gillespy_model=None):
 
 class Model(object):
     # reserved names for model species/parameter names, volume, and operators.
-    reserved_names = ['S', 'P', 'vol', 'V']
+    reserved_names = ['vol']
     special_characters = ['[', ']', '+', '-', '*', '/', '.', '^']
 
     """
@@ -141,8 +141,7 @@ class Model(object):
         :return: the dictionary mapping user species names to their internal GillesPy notation.
         """
         species_name_mapping = {}
-        species_names = sorted(list(self.listOfSpecies.keys()), key=lambda species: -len(species))
-        for i, name in enumerate(species_names):
+        for i, name in enumerate(self.listOfSpecies.keys()):
             species_name_mapping[name] = 'S[{}]'.format(i)
         return species_name_mapping
 
@@ -236,9 +235,8 @@ class Model(object):
         later on by GillesPySolvers evaluating reaction propensity functions.
         :return: the dictionary mapping user parameter names to their internal GillesPy notation.
         """
-        parameter_name_mapping = {'vol' : 'V'}
-        parameter_names = sorted(list(self.listOfParameters.keys()), key=lambda parameter: -len(parameter))
-        for i, name in enumerate(parameter_names):
+        parameter_name_mapping = {'vol': 'V'}
+        for i, name in enumerate(self.listOfParameters.keys()):
             if name not in parameter_name_mapping:
                 parameter_name_mapping[name] = 'P{}'.format(i)
         return parameter_name_mapping
