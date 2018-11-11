@@ -1,10 +1,8 @@
-import sys
-sys.path.insert(0,'..')
-
 import unittest
 import tempfile
-from gillespy2 import SSACSolver, SolverError, DirectoryError, BuildError, ExecutionError
+from gillespy2.core.gillespyError import SolverError, DirectoryError, BuildError, ExecutionError
 from gillespy2.example_models import Example
+from gillespy2.solvers.cpp.ssa_c_solver import SSACSolver
 
 
 class TestSSACSolver(unittest.TestCase):

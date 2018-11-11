@@ -1,10 +1,9 @@
-import gillespy2
-from .gillespySolver import GillesPySolver
-from .basic_ssa_solver import BasicSSASolver
+from gillespy2.core import GillesPySolver
 import random
 import math
 import numpy as np
 import sys
+
 
 class TauLeapingSolver(GillesPySolver):
     name = "TauLeaping"
@@ -198,8 +197,8 @@ class TauLeapingSolver(GillesPySolver):
             self.leapFailed = False
 
     @classmethod
-    def run(self, model, t=20, number_of_trajectories=1,
-            increment=0.05, seed=None, debug=False, show_labels=False,stochkit_home=None):
+    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
+            debug=False, profile=False, show_labels=False, **kwargs):
         self.model = model
         self.simulation_data = []
         self.tau = 0

@@ -23,11 +23,7 @@ print(sys.path)
 # In[10]:
 
 
-import math
 import gillespy2
-from gillespy2.basic_tau_hybrid_solver import BasicTauHybridSolver
-from gillespy2.basic_ssa_solver import BasicSSASolver
-from gillespy2.basic_tau_leaping_solver import BasicTauLeapingSolver
 
 
 # In[11]:

@@ -1,4 +1,4 @@
-from .gillespySolver import GillesPySolver
+from gillespy2.core import GillesPySolver
 import random
 import numpy
 import math
@@ -26,6 +26,7 @@ class BasicTauLeapingSolver(GillesPySolver):
         curr_state - dict containing all state variables for system at current time
         curr_time - float representing current time
         """
+
 
         if curr_time + step > save_time:
             if debug:

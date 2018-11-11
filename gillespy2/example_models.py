@@ -1,4 +1,5 @@
-from gillespy2.gillespy2 import *
+from gillespy2.core import Model, Species, Reaction, Parameter
+import numpy as np
 
 
 class Trichloroethylene(Model):
@@ -38,7 +39,7 @@ class Trichloroethylene(Model):
 
         J5 = Reaction(name="J5", reactants={E: 1}, products={F: 1}, rate=K5)
         self.add_reaction([J1, J2, J3, J4, J5])
-        self.timespan(numpy.linspace(0, 10000, 100))
+        self.timespan(np.linspace(0, 10000, 100))
 
 
 class LacOperon(Model):
@@ -130,7 +131,7 @@ class LacOperon(Model):
         j22 = Reaction(name="j22", reactants={s16: 1}, products={s21: 1, s16: 1}, rate=k22)
         self.add_reaction(
             [j1, j2, j3, j4, j5, j6, j7, j8, j9, j10, j11, j12, j13, j14, j15, j16, j17, j18, j19, j20, j21, j22])
-        self.timespan(numpy.linspace(0, 100, 10))
+        self.timespan(np.linspace(0, 100, 10))
 
 
 class Schlogl(Model):
@@ -160,7 +161,7 @@ class Schlogl(Model):
         j2 = Reaction(name="j2", reactants={s2: 1, s4: 1}, products={s3: 1}, rate=k2)
 
         self.add_reaction([j1, j2])
-        self.timespan(numpy.linspace(0, 100000, 100))
+        self.timespan(np.linspace(0, 100000, 100))
 
 
 class MichaelisMenten(Model):
@@ -188,7 +189,7 @@ class MichaelisMenten(Model):
 
         r3 = Reaction(name="r3", reactants={C: 1}, products={B: 1, D: 1}, rate=rate3)
         self.add_reaction([r1, r2, r3])
-        self.timespan(numpy.linspace(0, 100, 1001))
+        self.timespan(np.linspace(0, 100, 101))
 
 
 class ToggleSwitch(Model):
@@ -285,3 +286,7 @@ class Tyson2StateOscillator(Model):
 
         self.add_reaction([rxn1, rxn2, rxn3, rxn4, rxn5])
         self.timespan(np.linspace(0, 100, 101))
+
+
+__all__ = ['Trichloroethylene', 'LacOperon', 'Schlogl', 'MichaelisMenten',
+           'ToggleSwitch', 'Example', 'Tyson2StateOscillator']

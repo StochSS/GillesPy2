@@ -8,7 +8,19 @@ import matplotlib.pyplot as plt
 import os.path
 import numpy as np
 import pickle
-from gillespy2.ssa_c_solver import SSACSolver
+import gillespy2
+from gillespy2.solvers.python import *
+#BasicSSASolver
+from gillespy2.solvers.numpy import *
+#BasicODESolver, BasicRootSolver, BasicTauLeapingSolver, NumPySSASolver, TauLeapingSolver
+from gillespy2.solvers.cython import *
+#CythonSSASolver
+from gillespy2.solvers.cpp import *
+#SSACSolver
+from gillespy2.solvers.auto import *
+#SSASolver
+from gillespy2.solvers.stochkit import *
+#StochKitODESolver, StochKitSolver
 
 
 def timed_trials(models, solvers, trajectories, number_trials=30, override_number_trials={}, precompile_solvers=True,
