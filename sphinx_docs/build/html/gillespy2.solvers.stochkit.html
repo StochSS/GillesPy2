@@ -1,31 +1,33 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>gillespy2.solvers.stochkit package &#8212; GillesPy2 0.1 documentation</title>
+    
+    <title>gillespy2.solvers.stochkit package &mdash; GillesPy2 0.1 documentation</title>
+    
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
         VERSION:     '0.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
+        HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="GillesPy2 0.1 documentation" href="index.html" />
+    <link rel="up" title="gillespy2.solvers package" href="gillespy2.solvers.html" />
     <link rel="prev" title="gillespy2.solvers.python package" href="gillespy2.solvers.python.html" /> 
   </head>
-  <body>
+  <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -38,9 +40,9 @@
         <li class="right" >
           <a href="gillespy2.solvers.python.html" title="gillespy2.solvers.python package"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GillesPy2 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="gillespy2.html" >gillespy2 package</a> &#187;</li>
-          <li class="nav-item nav-item-2"><a href="gillespy2.solvers.html" accesskey="U">gillespy2.solvers package</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GillesPy2 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="gillespy2.html" >gillespy2 package</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="gillespy2.solvers.html" accesskey="U">gillespy2.solvers package</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -92,8 +94,8 @@ trajectory will be returned at the end of the simulation.</dd>
 <dd>Path to stochkit. This is set automatically upon installation, but
 may be overwritten if desired.</dd>
 <dt>algorithm <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>The solver by which to simulate the model. ‘ssa’ or ‘tau_leaping’
-are the available options. If ‘ssa’ is chosen, StochKit will choose
+<dd>The solver by which to simulate the model. &#8216;ssa&#8217; or &#8216;tau_leaping&#8217;
+are the available options. If &#8216;ssa&#8217; is chosen, StochKit will choose
 from the available ssa options.</dd>
 <dt>job_id <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
 <dd>If given, this will be the name of the solver run. Usually not set.</dd>
@@ -151,7 +153,7 @@ trajectory will be returned at the end of the simulation.</dd>
 <dd>Path to stochkit. This is set automatically upon installation, but
 may be overwritten if desired.</dd>
 <dt>algorithm <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Already set to ‘stochkit_ode.py’</dd>
+<dd>Already set to &#8216;stochkit_ode.py&#8217;</dd>
 <dt>job_id <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
 <dd>If given, this will be the name of the solver run. Usually not set.</dd>
 <dt>debug <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
@@ -197,8 +199,8 @@ trajectory will be returned at the end of the simulation.</dd>
 <dd>Path to stochkit. This is set automatically upon installation, but
 may be overwritten if desired.</dd>
 <dt>algorithm <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>The solver by which to simulate the model. ‘ssa’ or ‘tau_leaping’
-are the available options. If ‘ssa’ is chosen, StochKit will choose
+<dd>The solver by which to simulate the model. &#8216;ssa&#8217; or &#8216;tau_leaping&#8217;
+are the available options. If &#8216;ssa&#8217; is chosen, StochKit will choose
 from the available ssa options.</dd>
 <dt>job_id <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
 <dd>If given, this will be the name of the solver run. Usually not set.</dd>
@@ -232,36 +234,7 @@ simulation.</dd>
 <dl class="attribute">
 <dt id="gillespy2.solvers.stochkit.StochKitSolver.name">
 <code class="descname">name</code><em class="property"> = 'StochKitSolver'</em><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitSolver.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstract class for StochKit solver derived from the GillesPySolver class.
-This is generally used to set up the solver.</p>
-<dl class="docutils">
-<dt>model <span class="classifier-delimiter">:</span> <span class="classifier">gillespy.Model</span></dt>
-<dd>The model on which the solver will operate.</dd>
-<dt>t <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>The end time of the solver.</dd>
-<dt>number_of_trajectories <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>The number of times to sample the chemical master equation. Each
-trajectory will be returned at the end of the simulation.</dd>
-<dt>increment <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>The time step of the solution.</dd>
-<dt>seed <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>The random seed for the simulation. Defaults to None.</dd>
-<dt>stochkit_home <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Path to stochkit. This is set automatically upon installation, but
-may be overwritten if desired.</dd>
-<dt>algorithm <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>The solver by which to simulate the model. ‘ssa’ or ‘tau_leaping’
-are the available options. If ‘ssa’ is chosen, StochKit will choose
-from the available ssa options.</dd>
-<dt>job_id <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>If given, this will be the name of the solver run. Usually not set.</dd>
-<dt>method <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>The specific SSA to call. NOT YET FUNCTIONAL.</dd>
-<dt>debug <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
-<dd>Set to True to provide additional debug information about the
-simulation.</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="classmethod">
 <dt id="gillespy2.solvers.stochkit.StochKitSolver.run">
@@ -282,32 +255,7 @@ simulation.</dd>
 <dl class="attribute">
 <dt id="gillespy2.solvers.stochkit.StochKitODESolver.name">
 <code class="descname">name</code><em class="property"> = 'StochKitODESolver'</em><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitODESolver.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstract class for StochKit solver derived from the GillesPySolver class.
-This is generally used to set up the solver.</p>
-<dl class="docutils">
-<dt>model <span class="classifier-delimiter">:</span> <span class="classifier">gillespy.Model</span></dt>
-<dd>The model on which the solver will operate.</dd>
-<dt>t <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>The end time of the solver.</dd>
-<dt>number_of_trajectories <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>The number of times to sample the chemical master equation. Each
-trajectory will be returned at the end of the simulation.</dd>
-<dt>increment <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>The time step of the solution.</dd>
-<dt>seed <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>The random seed for the simulation. Defaults to None.</dd>
-<dt>stochkit_home <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Path to stochkit. This is set automatically upon installation, but
-may be overwritten if desired.</dd>
-<dt>algorithm <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Already set to ‘stochkit_ode.py’</dd>
-<dt>job_id <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>If given, this will be the name of the solver run. Usually not set.</dd>
-<dt>debug <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
-<dd>Set to True to provide additional debug information about the
-simulation.</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="classmethod">
 <dt id="gillespy2.solvers.stochkit.StochKitODESolver.run">
@@ -331,11 +279,14 @@ simulation.</dd>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -354,14 +305,14 @@ simulation.</dd>
         <li class="right" >
           <a href="gillespy2.solvers.python.html" title="gillespy2.solvers.python package"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GillesPy2 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="gillespy2.html" >gillespy2 package</a> &#187;</li>
-          <li class="nav-item nav-item-2"><a href="gillespy2.solvers.html" >gillespy2.solvers package</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GillesPy2 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="gillespy2.html" >gillespy2 package</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="gillespy2.solvers.html" >gillespy2.solvers package</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2018, Sean Matthew, Dalton Nickerson, George Hall, Kevin Sanft, Brian Drawert.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+        &copy; Copyright 2018, Sean Matthew, Dalton Nickerson, George Hall, Kevin Sanft, Brian Drawert.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
   </body>
 </html>

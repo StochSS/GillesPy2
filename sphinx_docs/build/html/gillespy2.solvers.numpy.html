@@ -1,32 +1,34 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>gillespy2.solvers.numpy package &#8212; GillesPy2 0.1 documentation</title>
+    
+    <title>gillespy2.solvers.numpy package &mdash; GillesPy2 0.1 documentation</title>
+    
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
         VERSION:     '0.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
+        HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="GillesPy2 0.1 documentation" href="index.html" />
+    <link rel="up" title="gillespy2.solvers package" href="gillespy2.solvers.html" />
     <link rel="next" title="gillespy2.solvers.python package" href="gillespy2.solvers.python.html" />
     <link rel="prev" title="gillespy2.solvers.cython package" href="gillespy2.solvers.cython.html" /> 
   </head>
-  <body>
+  <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -42,9 +44,9 @@
         <li class="right" >
           <a href="gillespy2.solvers.cython.html" title="gillespy2.solvers.cython package"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GillesPy2 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="gillespy2.html" >gillespy2 package</a> &#187;</li>
-          <li class="nav-item nav-item-2"><a href="gillespy2.solvers.html" accesskey="U">gillespy2.solvers package</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GillesPy2 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="gillespy2.html" >gillespy2 package</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="gillespy2.solvers.html" accesskey="U">gillespy2.solvers package</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -77,35 +79,6 @@
 <dl class="classmethod">
 <dt id="gillespy2.solvers.numpy.basic_ode_solver.BasicODESolver.run">
 <em class="property">classmethod </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>debug=False</em>, <em>profile=False</em>, <em>show_labels=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.basic_ode_solver.BasicODESolver.run" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-gillespy2.solvers.numpy.basic_root_solver">
-<span id="gillespy2-solvers-numpy-basic-root-solver-module"></span><h2>gillespy2.solvers.numpy.basic_root_solver module<a class="headerlink" href="#module-gillespy2.solvers.numpy.basic_root_solver" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="gillespy2.solvers.numpy.basic_root_solver.BasicRootSolver">
-<em class="property">class </em><code class="descclassname">gillespy2.solvers.numpy.basic_root_solver.</code><code class="descname">BasicRootSolver</code><a class="headerlink" href="#gillespy2.solvers.numpy.basic_root_solver.BasicRootSolver" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
-<dl class="staticmethod">
-<dt id="gillespy2.solvers.numpy.basic_root_solver.BasicRootSolver.f">
-<em class="property">static </em><code class="descname">f</code><span class="sig-paren">(</span><em>pops</em>, <em>species</em>, <em>parameters</em>, <em>reactions</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.basic_root_solver.BasicRootSolver.f" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="staticmethod">
-<dt id="gillespy2.solvers.numpy.basic_root_solver.BasicRootSolver.get_reaction">
-<em class="property">static </em><code class="descname">get_reaction</code><span class="sig-paren">(</span><em>populations</em>, <em>y0</em>, <em>model</em>, <em>step</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.basic_root_solver.BasicRootSolver.get_reaction" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.numpy.basic_root_solver.BasicRootSolver.name">
-<code class="descname">name</code><em class="property"> = 'Basic Root Solver'</em><a class="headerlink" href="#gillespy2.solvers.numpy.basic_root_solver.BasicRootSolver.name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="classmethod">
-<dt id="gillespy2.solvers.numpy.basic_root_solver.BasicRootSolver.run">
-<em class="property">classmethod </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>debug=False</em>, <em>show_labels=False</em>, <em>profile=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.basic_root_solver.BasicRootSolver.run" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -241,59 +214,9 @@ simulation.
 </dd></dl>
 
 </div>
-<div class="section" id="module-gillespy2.solvers.numpy.tau_leaping_solver">
-<span id="gillespy2-solvers-numpy-tau-leaping-solver-module"></span><h2>gillespy2.solvers.numpy.tau_leaping_solver module<a class="headerlink" href="#module-gillespy2.solvers.numpy.tau_leaping_solver" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver">
-<em class="property">class </em><code class="descclassname">gillespy2.solvers.numpy.tau_leaping_solver.</code><code class="descname">TauLeapingSolver</code><a class="headerlink" href="#gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
-<dl class="classmethod">
-<dt id="gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.fireReactions">
-<em class="property">classmethod </em><code class="descname">fireReactions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.fireReactions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.get_trajectories">
-<code class="descname">get_trajectories</code><span class="sig-paren">(</span><em>outdir</em>, <em>debug=False</em>, <em>show_labels=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.get_trajectories" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="classmethod">
-<dt id="gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.initialize">
-<em class="property">classmethod </em><code class="descname">initialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.initialize" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.name">
-<code class="descname">name</code><em class="property"> = 'TauLeaping'</em><a class="headerlink" href="#gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.run">
-<em class="property">classmethod </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>debug=False</em>, <em>profile=False</em>, <em>show_labels=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.run" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="classmethod">
-<dt id="gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.selectReactions">
-<em class="property">classmethod </em><code class="descname">selectReactions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.selectReactions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="classmethod">
-<dt id="gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.selectTau">
-<em class="property">classmethod </em><code class="descname">selectTau</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.selectTau" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="classmethod">
-<dt id="gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.updateCriticalLists">
-<em class="property">classmethod </em><code class="descname">updateCriticalLists</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.updateCriticalLists" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-gillespy2.solvers.numpy">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-gillespy2.solvers.numpy" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<div class="section" id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-gillespy2.solvers.numpy"></span><dl class="class">
 <dt id="gillespy2.solvers.numpy.NumPySSASolver">
 <em class="property">class </em><code class="descclassname">gillespy2.solvers.numpy.</code><code class="descname">NumPySSASolver</code><a class="headerlink" href="#gillespy2.solvers.numpy.NumPySSASolver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
@@ -337,79 +260,6 @@ simulation.
 <dl class="classmethod">
 <dt id="gillespy2.solvers.numpy.BasicODESolver.run">
 <em class="property">classmethod </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>debug=False</em>, <em>profile=False</em>, <em>show_labels=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.BasicODESolver.run" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="gillespy2.solvers.numpy.BasicRootSolver">
-<em class="property">class </em><code class="descclassname">gillespy2.solvers.numpy.</code><code class="descname">BasicRootSolver</code><a class="headerlink" href="#gillespy2.solvers.numpy.BasicRootSolver" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
-<dl class="staticmethod">
-<dt id="gillespy2.solvers.numpy.BasicRootSolver.f">
-<em class="property">static </em><code class="descname">f</code><span class="sig-paren">(</span><em>pops</em>, <em>species</em>, <em>parameters</em>, <em>reactions</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.BasicRootSolver.f" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="staticmethod">
-<dt id="gillespy2.solvers.numpy.BasicRootSolver.get_reaction">
-<em class="property">static </em><code class="descname">get_reaction</code><span class="sig-paren">(</span><em>populations</em>, <em>y0</em>, <em>model</em>, <em>step</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.BasicRootSolver.get_reaction" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.numpy.BasicRootSolver.name">
-<code class="descname">name</code><em class="property"> = 'Basic Root Solver'</em><a class="headerlink" href="#gillespy2.solvers.numpy.BasicRootSolver.name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="classmethod">
-<dt id="gillespy2.solvers.numpy.BasicRootSolver.run">
-<em class="property">classmethod </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>debug=False</em>, <em>show_labels=False</em>, <em>profile=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.BasicRootSolver.run" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="gillespy2.solvers.numpy.TauLeapingSolver">
-<em class="property">class </em><code class="descclassname">gillespy2.solvers.numpy.</code><code class="descname">TauLeapingSolver</code><a class="headerlink" href="#gillespy2.solvers.numpy.TauLeapingSolver" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
-<dl class="classmethod">
-<dt id="gillespy2.solvers.numpy.TauLeapingSolver.fireReactions">
-<em class="property">classmethod </em><code class="descname">fireReactions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.TauLeapingSolver.fireReactions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="gillespy2.solvers.numpy.TauLeapingSolver.get_trajectories">
-<code class="descname">get_trajectories</code><span class="sig-paren">(</span><em>outdir</em>, <em>debug=False</em>, <em>show_labels=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.TauLeapingSolver.get_trajectories" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="classmethod">
-<dt id="gillespy2.solvers.numpy.TauLeapingSolver.initialize">
-<em class="property">classmethod </em><code class="descname">initialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.TauLeapingSolver.initialize" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.numpy.TauLeapingSolver.name">
-<code class="descname">name</code><em class="property"> = 'TauLeaping'</em><a class="headerlink" href="#gillespy2.solvers.numpy.TauLeapingSolver.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="gillespy2.solvers.numpy.TauLeapingSolver.run">
-<em class="property">classmethod </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>debug=False</em>, <em>profile=False</em>, <em>show_labels=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.TauLeapingSolver.run" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="classmethod">
-<dt id="gillespy2.solvers.numpy.TauLeapingSolver.selectReactions">
-<em class="property">classmethod </em><code class="descname">selectReactions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.TauLeapingSolver.selectReactions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="classmethod">
-<dt id="gillespy2.solvers.numpy.TauLeapingSolver.selectTau">
-<em class="property">classmethod </em><code class="descname">selectTau</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.TauLeapingSolver.selectTau" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="classmethod">
-<dt id="gillespy2.solvers.numpy.TauLeapingSolver.updateCriticalLists">
-<em class="property">classmethod </em><code class="descname">updateCriticalLists</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.numpy.TauLeapingSolver.updateCriticalLists" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -526,11 +376,14 @@ may be overwritten if desired.</dd>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -552,14 +405,14 @@ may be overwritten if desired.</dd>
         <li class="right" >
           <a href="gillespy2.solvers.cython.html" title="gillespy2.solvers.cython package"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GillesPy2 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="gillespy2.html" >gillespy2 package</a> &#187;</li>
-          <li class="nav-item nav-item-2"><a href="gillespy2.solvers.html" >gillespy2.solvers package</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GillesPy2 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="gillespy2.html" >gillespy2 package</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="gillespy2.solvers.html" >gillespy2.solvers package</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2018, Sean Matthew, Dalton Nickerson, George Hall, Kevin Sanft, Brian Drawert.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+        &copy; Copyright 2018, Sean Matthew, Dalton Nickerson, George Hall, Kevin Sanft, Brian Drawert.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
   </body>
 </html>

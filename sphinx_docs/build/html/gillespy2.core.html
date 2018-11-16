@@ -1,32 +1,34 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>gillespy2.core package &#8212; GillesPy2 0.1 documentation</title>
+    
+    <title>gillespy2.core package &mdash; GillesPy2 0.1 documentation</title>
+    
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
         VERSION:     '0.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
+        HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="GillesPy2 0.1 documentation" href="index.html" />
+    <link rel="up" title="gillespy2 package" href="gillespy2.html" />
     <link rel="next" title="gillespy2.sbml package" href="gillespy2.sbml.html" />
     <link rel="prev" title="gillespy2 package" href="gillespy2.html" /> 
   </head>
-  <body>
+  <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -42,8 +44,8 @@
         <li class="right" >
           <a href="gillespy2.html" title="gillespy2 package"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GillesPy2 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="gillespy2.html" accesskey="U">gillespy2 package</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GillesPy2 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="gillespy2.html" accesskey="U">gillespy2 package</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -83,7 +85,7 @@ population model (True), a deterministic model is a concentration model
 may be used, by setting the volume parameter.</dd>
 <dt>volume <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
 <dd>The volume of the system matters when converting to from population to
-concentration form. This will also set a parameter “vol” for use in
+concentration form. This will also set a parameter &#8220;vol&#8221; for use in
 custom (i.e. non-mass-action) propensity functions.</dd>
 <dt>tspan <span class="classifier-delimiter">:</span> <span class="classifier">numpy ndarray</span></dt>
 <dd>The timepoints at which the model should be simulated. If None, a
@@ -268,23 +270,23 @@ simulation.</dd>
 <dl class="method">
 <dt id="gillespy2.core.gillespy2.Model.set_parameter">
 <code class="descname">set_parameter</code><span class="sig-paren">(</span><em>p_name</em>, <em>expression</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.core.gillespy2.Model.set_parameter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the value of an existing paramter “pname” to “expression”.</p>
+<dd><p>Set the value of an existing paramter &#8220;pname&#8221; to &#8220;expression&#8221;.</p>
 <dl class="docutils">
 <dt>p_name <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
 <dd>Name of the parameter whose value will be set.</dd>
 <dt>expression <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
 <dd><em>String</em> that may be executed in C, describing the value of the
-parameter. May reference other parameters by name. (e.g. “k1*4”)</dd>
+parameter. May reference other parameters by name. (e.g. &#8220;k1*4&#8221;)</dd>
 </dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="gillespy2.core.gillespy2.Model.set_units">
 <code class="descname">set_units</code><span class="sig-paren">(</span><em>units</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.core.gillespy2.Model.set_units" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the units of the model to either “population” or “concentration”</p>
+<dd><p>Sets the units of the model to either &#8220;population&#8221; or &#8220;concentration&#8221;</p>
 <dl class="docutils">
 <dt>units <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Either “population” or “concentration”</dd>
+<dd>Either &#8220;population&#8221; or &#8220;concentration&#8221;</dd>
 </dl>
 </dd></dl>
 
@@ -325,7 +327,7 @@ in namespace of Model.</dd>
 <dd>Value of a parameter if it is not dependent on other Model entities.</dd>
 </dl>
 <dl class="method">
-<dt>
+<dt id="gillespy2.core.gillespy2.Parameter.evaluate">
 <dd><p>Evaluate the expression and return the (scalar) value in the given
 namespace.</p>
 <dl class="docutils">
@@ -354,7 +356,7 @@ involves other parameters, etc.</dd>
 <em class="property">class </em><code class="descclassname">gillespy2.core.gillespy2.</code><code class="descname">Reaction</code><span class="sig-paren">(</span><em>name=''</em>, <em>reactants={}</em>, <em>products={}</em>, <em>propensity_function=None</em>, <em>massaction=False</em>, <em>rate=None</em>, <em>annotation=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.core.gillespy2.Reaction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Models a single reaction. A reaction has its own dicts of species
-(reactants and products) and parameters. The reaction’s propensity
+(reactants and products) and parameters. The reaction&#8217;s propensity
 function needs to be evaluable (and result in a non-negative scalar
 value) in the namespace defined by the union of those dicts.</p>
 <dl class="docutils">
@@ -374,7 +376,7 @@ namespace of the reaction using C operations.</dd>
 <dd>The switch to use a mass-action reaction. If set to True, a rate value
 is required.</dd>
 <dt>rate <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>The rate of the mass-action reaction. Take care to note the units…</dd>
+<dd>The rate of the mass-action reaction. Take care to note the units...</dd>
 <dt>annotation <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
 <dd>An optional note about the reaction.</dd>
 </dl>
@@ -426,10 +428,10 @@ self.reactants and a single parameter value.</p>
 <dl class="method">
 <dt id="gillespy2.core.gillespy2.Reaction.setType">
 <code class="descname">setType</code><span class="sig-paren">(</span><em>rxntype</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.core.gillespy2.Reaction.setType" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets reaction type to either “mass-action” or “customized”</p>
+<dd><p>Sets reaction type to either &#8220;mass-action&#8221; or &#8220;customized&#8221;</p>
 <dl class="docutils">
 <dt>rxntype <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Either “mass-action” or “customized”</dd>
+<dd>Either &#8220;mass-action&#8221; or &#8220;customized&#8221;</dd>
 </dl>
 </dd></dl>
 
@@ -478,7 +480,7 @@ file read from disk.</p>
 This method assumes that all the parameters in the model are already
 resolved to scalar floats (see Model.resolveParamters).</p>
 <p>Note, this method is intended to be used interanally by the models
-‘serialization’ function, which performs additional operations and
+&#8216;serialization&#8217; function, which performs additional operations and
 tests on the model prior to writing out the XML file. You should NOT         do:</p>
 <p>document = StochMLDocument.fromModel(model)
 print document.toString()</p>
@@ -664,28 +666,7 @@ simulation.</dd>
 <dl class="attribute">
 <dt id="gillespy2.core.GillesPySolver.name">
 <code class="descname">name</code><em class="property"> = 'GillesPySolver'</em><a class="headerlink" href="#gillespy2.core.GillesPySolver.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstract class for a solver. This is generally called from within a
-gillespy Model through the Model.run function. Returns simulation
-trajectories.</p>
-<dl class="docutils">
-<dt>model <span class="classifier-delimiter">:</span> <span class="classifier">gillespy.Model</span></dt>
-<dd>The model on which the solver will operate.</dd>
-<dt>t <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>The end time of the solver.</dd>
-<dt>number_of_trajectories <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>The number of times to sample the chemical master equation. Each
-trajectory will be returned at the end of the simulation.</dd>
-<dt>increment <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>The time step of the solution.</dd>
-<dt>seed <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd>The random seed for the simulation. Defaults to None.</dd>
-<dt>debug <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
-<dd>Set to True to provide additional debug information about the
-simulation.</dd>
-<dt>show_labels <span class="classifier-delimiter">:</span> <span class="classifier">bool (True)</span></dt>
-<dd>Use names of species as index of result object rather than position numbers.</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="gillespy2.core.GillesPySolver.run">
@@ -711,7 +692,7 @@ population model (True), a deterministic model is a concentration model
 may be used, by setting the volume parameter.</dd>
 <dt>volume <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
 <dd>The volume of the system matters when converting to from population to
-concentration form. This will also set a parameter “vol” for use in
+concentration form. This will also set a parameter &#8220;vol&#8221; for use in
 custom (i.e. non-mass-action) propensity functions.</dd>
 <dt>tspan <span class="classifier-delimiter">:</span> <span class="classifier">numpy ndarray</span></dt>
 <dd>The timepoints at which the model should be simulated. If None, a
@@ -896,23 +877,23 @@ simulation.</dd>
 <dl class="method">
 <dt id="gillespy2.core.Model.set_parameter">
 <code class="descname">set_parameter</code><span class="sig-paren">(</span><em>p_name</em>, <em>expression</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.core.Model.set_parameter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the value of an existing paramter “pname” to “expression”.</p>
+<dd><p>Set the value of an existing paramter &#8220;pname&#8221; to &#8220;expression&#8221;.</p>
 <dl class="docutils">
 <dt>p_name <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
 <dd>Name of the parameter whose value will be set.</dd>
 <dt>expression <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
 <dd><em>String</em> that may be executed in C, describing the value of the
-parameter. May reference other parameters by name. (e.g. “k1*4”)</dd>
+parameter. May reference other parameters by name. (e.g. &#8220;k1*4&#8221;)</dd>
 </dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="gillespy2.core.Model.set_units">
 <code class="descname">set_units</code><span class="sig-paren">(</span><em>units</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.core.Model.set_units" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the units of the model to either “population” or “concentration”</p>
+<dd><p>Sets the units of the model to either &#8220;population&#8221; or &#8220;concentration&#8221;</p>
 <dl class="docutils">
 <dt>units <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Either “population” or “concentration”</dd>
+<dd>Either &#8220;population&#8221; or &#8220;concentration&#8221;</dd>
 </dl>
 </dd></dl>
 
@@ -953,30 +934,7 @@ in namespace of Model.</dd>
 <dd>Value of a parameter if it is not dependent on other Model entities.</dd>
 </dl>
 <dl class="method">
-<dt>
-<code class="descname">Parameter.evaluate(namespace={'__builtins__': {'__name__': 'builtins', '__doc__': &quot;Built-in functions, exceptions, and other objects.\n\nNoteworthy: None is the `nil' object; Ellipsis represents `...' in slices.&quot;, '__package__': '', '__loader__': &lt;class '_frozen_importlib.BuiltinImporter'&gt;, '__spec__': ModuleSpec(name='builtins', loader=&lt;class '_frozen_importlib.BuiltinImporter'&gt;), '__build_class__': &lt;built-in function __build_class__&gt;, '__import__': &lt;built-in function __import__&gt;, 'abs': &lt;built-in function abs&gt;, 'all': &lt;built-in function all&gt;, 'any': &lt;built-in function any&gt;, 'ascii': &lt;built-in function ascii&gt;, 'bin': &lt;built-in function bin&gt;, 'callable': &lt;built-in function callable&gt;, 'chr': &lt;built-in function chr&gt;, 'compile': &lt;built-in function compile&gt;, 'delattr': &lt;built-in function delattr&gt;, 'dir': &lt;built-in function dir&gt;, 'divmod': &lt;built-in function divmod&gt;, 'eval': &lt;built-in function eval&gt;, 'exec': &lt;built-in function exec&gt;, 'format': &lt;built-in function format&gt;, 'getattr': &lt;built-in function getattr&gt;, 'globals': &lt;built-in function globals&gt;, 'hasattr': &lt;built-in function hasattr&gt;, 'hash': &lt;built-in function hash&gt;, 'hex': &lt;built-in function hex&gt;, 'id': &lt;built-in function id&gt;, 'input': &lt;built-in function input&gt;, 'isinstance': &lt;built-in function isinstance&gt;, 'issubclass': &lt;built-in function issubclass&gt;, 'iter': &lt;built-in function iter&gt;, 'len': &lt;built-in function len&gt;, 'locals': &lt;built-in function locals&gt;, 'max': &lt;built-in function max&gt;, 'min': &lt;built-in function min&gt;, 'next': &lt;built-in function next&gt;, 'oct': &lt;built-in function oct&gt;, 'ord': &lt;built-in function ord&gt;, 'pow': &lt;built-in function pow&gt;, 'print': &lt;built-in function print&gt;, 'repr': &lt;built-in function repr&gt;, 'round': &lt;built-in function round&gt;, 'setattr': &lt;built-in function setattr&gt;, 'sorted': &lt;built-in function sorted&gt;, 'sum': &lt;built-in function sum&gt;, 'vars': &lt;built-in function vars&gt;, 'None': None, 'Ellipsis': Ellipsis, 'NotImplemented': NotImplemented, 'False': False, 'True': True, 'bool': &lt;class 'bool'&gt;, 'memoryview': &lt;class 'memoryview'&gt;, 'bytearray': &lt;class 'bytearray'&gt;, 'bytes': &lt;class 'bytes'&gt;, 'classmethod': &lt;class 'classmethod'&gt;, 'complex': &lt;class 'complex'&gt;, 'dict': &lt;class 'dict'&gt;, 'enumerate': &lt;class 'enumerate'&gt;, 'filter': &lt;class 'filter'&gt;, 'float': &lt;class 'float'&gt;, 'frozenset': &lt;class 'frozenset'&gt;, 'property': &lt;class 'property'&gt;, 'int': &lt;class 'int'&gt;, 'list': &lt;class 'list'&gt;, 'map': &lt;class 'map'&gt;, 'object': &lt;class 'object'&gt;, 'range': &lt;class 'range'&gt;, 'reversed': &lt;class 'reversed'&gt;, 'set': &lt;class 'set'&gt;, 'slice': &lt;class 'slice'&gt;, 'staticmethod': &lt;class 'staticmethod'&gt;, 'str': &lt;class 'str'&gt;, 'super': &lt;class 'super'&gt;, 'tuple': &lt;class 'tuple'&gt;, 'type': &lt;class 'type'&gt;, 'zip': &lt;class 'zip'&gt;, '__debug__': True, 'BaseException': &lt;class 'BaseException'&gt;, 'Exception': &lt;class 'Exception'&gt;, 'TypeError': &lt;class 'TypeError'&gt;, 'StopAsyncIteration': &lt;class 'StopAsyncIteration'&gt;, 'StopIteration': &lt;class 'StopIteration'&gt;, 'GeneratorExit': &lt;class 'GeneratorExit'&gt;, 'SystemExit': &lt;class 'SystemExit'&gt;, 'KeyboardInterrupt': &lt;class 'KeyboardInterrupt'&gt;, 'ImportError': &lt;class 'ImportError'&gt;, 'ModuleNotFoundError': &lt;class 'ModuleNotFoundError'&gt;, 'OSError': &lt;class 'OSError'&gt;, 'EnvironmentError': &lt;class 'OSError'&gt;, 'IOError': &lt;class 'OSError'&gt;, 'EOFError': &lt;class 'EOFError'&gt;, 'RuntimeError': &lt;class 'RuntimeError'&gt;, 'RecursionError': &lt;class 'RecursionError'&gt;, 'NotImplementedError': &lt;class 'NotImplementedError'&gt;, 'NameError': &lt;class 'NameError'&gt;, 'UnboundLocalError': &lt;class 'UnboundLocalError'&gt;, 'AttributeError': &lt;class 'AttributeError'&gt;, 'SyntaxError': &lt;class 'SyntaxError'&gt;, 'IndentationError': &lt;class 'IndentationError'&gt;, 'TabError': &lt;class 'TabError'&gt;, 'LookupError': &lt;class 'LookupError'&gt;, 'IndexError': &lt;class 'IndexError'&gt;, 'KeyError': &lt;class 'KeyError'&gt;, 'ValueError': &lt;class 'ValueError'&gt;, 'UnicodeError': &lt;class 'UnicodeError'&gt;, 'UnicodeEncodeError': &lt;class 'UnicodeEncodeError'&gt;, 'UnicodeDecodeError': &lt;class 'UnicodeDecodeError'&gt;, 'UnicodeTranslateError': &lt;class 'UnicodeTranslateError'&gt;, 'AssertionError': &lt;class 'AssertionError'&gt;, 'ArithmeticError': &lt;class 'ArithmeticError'&gt;, 'FloatingPointError': &lt;class 'FloatingPointError'&gt;, 'OverflowError': &lt;class 'OverflowError'&gt;, 'ZeroDivisionError': &lt;class 'ZeroDivisionError'&gt;, 'SystemError': &lt;class 'SystemError'&gt;, 'ReferenceError': &lt;class 'ReferenceError'&gt;, 'BufferError': &lt;class 'BufferError'&gt;, 'MemoryError': &lt;class 'MemoryError'&gt;, 'Warning': &lt;class 'Warning'&gt;, 'UserWarning': &lt;class 'UserWarning'&gt;, 'DeprecationWarning': &lt;class 'DeprecationWarning'&gt;, 'PendingDeprecationWarning': &lt;class 'PendingDeprecationWarning'&gt;, 'SyntaxWarning': &lt;class 'SyntaxWarning'&gt;, 'RuntimeWarning': &lt;class 'RuntimeWarning'&gt;, 'FutureWarning': &lt;class 'FutureWarning'&gt;, 'ImportWarning': &lt;class 'ImportWarning'&gt;, 'UnicodeWarning': &lt;class 'UnicodeWarning'&gt;, 'BytesWarning': &lt;class 'BytesWarning'&gt;, 'ResourceWarning': &lt;class 'ResourceWarning'&gt;, 'ConnectionError': &lt;class 'ConnectionError'&gt;, 'BlockingIOError': &lt;class 'BlockingIOError'&gt;, 'BrokenPipeError': &lt;class 'BrokenPipeError'&gt;, 'ChildProcessError': &lt;class 'ChildProcessError'&gt;, 'ConnectionAbortedError': &lt;class 'ConnectionAbortedError'&gt;, 'ConnectionRefusedError': &lt;class 'ConnectionRefusedError'&gt;, 'ConnectionResetError': &lt;class 'ConnectionResetError'&gt;, 'FileExistsError': &lt;class 'FileExistsError'&gt;, 'FileNotFoundError': &lt;class 'FileNotFoundError'&gt;, 'IsADirectoryError': &lt;class 'IsADirectoryError'&gt;, 'NotADirectoryError': &lt;class 'NotADirectoryError'&gt;, 'InterruptedError': &lt;class 'InterruptedError'&gt;, 'PermissionError': &lt;class 'PermissionError'&gt;, 'ProcessLookupError': &lt;class 'ProcessLookupError'&gt;, 'TimeoutError': &lt;class 'TimeoutError'&gt;, 'open': &lt;built-in function open&gt;, 'quit': Use quit() or Ctrl-D (i.e. EOF) to exit, 'exit': Use exit() or Ctrl-D (i.e. EOF) to exit, 'copyright': Copyright (c) 2001-2018 Python Software Foundation.</code></dt>
-<dt>
-<code class="descname">All Rights Reserved.</code></dt>
-<dt>
-<code class="descname"></code></dt>
-<dt>
-<code class="descname">Copyright (c) 2000 BeOpen.com.</code></dt>
-<dt>
-<code class="descname">All Rights Reserved.</code></dt>
-<dt>
-<code class="descname"></code></dt>
-<dt>
-<code class="descname">Copyright (c) 1995-2001 Corporation for National Research Initiatives.</code></dt>
-<dt>
-<code class="descname">All Rights Reserved.</code></dt>
-<dt>
-<code class="descname"></code></dt>
-<dt>
-<code class="descname">Copyright (c) 1991-1995 Stichting Mathematisch Centrum, Amsterdam.</code></dt>
-<dt>
-<code class="descname">All Rights Reserved., 'credits':     Thanks to CWI, CNRI, BeOpen.com, Zope Corporation and a cast of thousands</code></dt>
-<dt>
-<code class="descname">for supporting Python development.  See www.python.org for more information., 'license': Type license() to see the full license text, 'help': Type help() for interactive help, or help(object) for help about object.}})</code></dt>
+<dt id="gillespy2.core.Parameter.evaluate">
 <dd><p>Evaluate the expression and return the (scalar) value in the given
 namespace.</p>
 <dl class="docutils">
@@ -995,11 +953,17 @@ involves other parameters, etc.</dd>
 </dd></dl>
 
 <dl class="class">
+<dt id="gillespy2.core.RateRule">
+<em class="property">class </em><code class="descclassname">gillespy2.core.</code><code class="descname">RateRule</code><span class="sig-paren">(</span><em>species</em>, <em>expression</em>, <em>name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.core.RateRule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
 <dt id="gillespy2.core.Reaction">
 <em class="property">class </em><code class="descclassname">gillespy2.core.</code><code class="descname">Reaction</code><span class="sig-paren">(</span><em>name=''</em>, <em>reactants={}</em>, <em>products={}</em>, <em>propensity_function=None</em>, <em>massaction=False</em>, <em>rate=None</em>, <em>annotation=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.core.Reaction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Models a single reaction. A reaction has its own dicts of species
-(reactants and products) and parameters. The reaction’s propensity
+(reactants and products) and parameters. The reaction&#8217;s propensity
 function needs to be evaluable (and result in a non-negative scalar
 value) in the namespace defined by the union of those dicts.</p>
 <dl class="docutils">
@@ -1019,7 +983,7 @@ namespace of the reaction using C operations.</dd>
 <dd>The switch to use a mass-action reaction. If set to True, a rate value
 is required.</dd>
 <dt>rate <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>The rate of the mass-action reaction. Take care to note the units…</dd>
+<dd>The rate of the mass-action reaction. Take care to note the units...</dd>
 <dt>annotation <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
 <dd>An optional note about the reaction.</dd>
 </dl>
@@ -1071,10 +1035,10 @@ self.reactants and a single parameter value.</p>
 <dl class="method">
 <dt id="gillespy2.core.Reaction.setType">
 <code class="descname">setType</code><span class="sig-paren">(</span><em>rxntype</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.core.Reaction.setType" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets reaction type to either “mass-action” or “customized”</p>
+<dd><p>Sets reaction type to either &#8220;mass-action&#8221; or &#8220;customized&#8221;</p>
 <dl class="docutils">
 <dt>rxntype <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Either “mass-action” or “customized”</dd>
+<dd>Either &#8220;mass-action&#8221; or &#8220;customized&#8221;</dd>
 </dl>
 </dd></dl>
 
@@ -1123,7 +1087,7 @@ file read from disk.</p>
 This method assumes that all the parameters in the model are already
 resolved to scalar floats (see Model.resolveParamters).</p>
 <p>Note, this method is intended to be used interanally by the models
-‘serialization’ function, which performs additional operations and
+&#8216;serialization&#8217; function, which performs additional operations and
 tests on the model prior to writing out the XML file. You should NOT         do:</p>
 <p>document = StochMLDocument.fromModel(model)
 print document.toString()</p>
@@ -1201,11 +1165,14 @@ simulation. Use caution when importing SBML.</p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -1227,13 +1194,13 @@ simulation. Use caution when importing SBML.</p>
         <li class="right" >
           <a href="gillespy2.html" title="gillespy2 package"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">GillesPy2 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="gillespy2.html" >gillespy2 package</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">GillesPy2 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="gillespy2.html" >gillespy2 package</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2018, Sean Matthew, Dalton Nickerson, George Hall, Kevin Sanft, Brian Drawert.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+        &copy; Copyright 2018, Sean Matthew, Dalton Nickerson, George Hall, Kevin Sanft, Brian Drawert.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
   </body>
 </html>
