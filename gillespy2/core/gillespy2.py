@@ -16,7 +16,6 @@ from collections import OrderedDict
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
 import numpy as np
-import matplotlib.pyplot as plt
 
 pretty_graph = False
 
@@ -58,6 +57,10 @@ def import_SBML(filename, name=None, gillespy_model=None):
 
 
 class Model(object):
+    # reserved names for model species/parameter names, volume, and operators.
+    reserved_names = ['vol']
+    special_characters = ['[', ']', '+', '-', '*', '/', '.', '^']
+
     """
     Representation of a well mixed biochemical model. Contains reactions,
     parameters, species.
@@ -130,9 +133,30 @@ class Model(object):
         self.namespace = OrderedDict([])
         for param in self.listOfParameters:
             self.namespace[param] = self.listOfParameters[param].value
-        # Dictionary of expressions that can be evaluated in the scope of this
-        # model.
-        self.expressions = {}
+
+    def sanitized_species_names(self):
+        """
+        Generate a dictionary mapping user chosen species names to simplified formats which will be used
+        later on by GillesPySolvers evaluating reaction propensity functions.
+        :return: the dictionary mapping user species names to their internal GillesPy notation.
+        """
+        species_name_mapping = {}
+        for i, name in enumerate(self.listOfSpecies.keys()):
+            species_name_mapping[name] = 'S[{}]'.format(i)
+        return species_name_mapping
+
+    def problem_with_name(self, name):
+        if name in Model.reserved_names:
+            return ModelError('Name "{}" is unavailable. It is reserved for internal GillesPy use. Reserved Names: ({}).'.format(name, Model.reserved_names))
+        if name in self.listOfSpecies:
+            return ModelError('Name "{}" is unavailable. A species with that name exists.'.format(name))
+        if name in self.listOfParameters:
+            return ModelError('Name "{}" is unavailable. A parameter with that name exists.'.format(name))
+        if name.isdigit():
+            return ModelError('Name "{}" is unavailable. Names must not be numeric strings.'.format(name))
+        for special_character in Model.special_characters:
+            if special_character in name:
+                return ModelError('Name "{}" is unavailable. Names must not contain special characters: {}.'.format(name, Model.special_characters))
 
     def get_species(self, s_name):
         """
@@ -163,14 +187,15 @@ class Model(object):
         """
 
         if isinstance(obj, Species):
-            if obj.name in self.listOfSpecies:
-                raise ModelError("Can't add species. A species with that name already exists.")
+            problem = self.problem_with_name(obj.name)
+            if problem is not None:
+                raise problem
             self.listOfSpecies[obj.name] = obj
-        else:  # obj is a list of species
+        elif isinstance(obj, list):
             for S in obj:
-                if S.name in self.listOfSpecies:
-                    raise ModelError("Can't add species. A species with that name already exists.")
-                self.listOfSpecies[S.name] = S
+                self.add_species(S)
+        else:
+            raise ModelError("Unexpected parameter for add_species. Parameter must be Species or list of Species.")
         return obj
 
     def delete_species(self, obj):
@@ -204,6 +229,18 @@ class Model(object):
         else:
             raise ModelError("units must be either concentration or population (case insensitive)")
 
+    def sanitized_parameter_names(self):
+        """
+        Generate a dictionary mapping user chosen parameter names to simplified formats which will be used
+        later on by GillesPySolvers evaluating reaction propensity functions.
+        :return: the dictionary mapping user parameter names to their internal GillesPy notation.
+        """
+        parameter_name_mapping = {'vol': 'V'}
+        for i, name in enumerate(self.listOfParameters.keys()):
+            if name not in parameter_name_mapping:
+                parameter_name_mapping[name] = 'P{}'.format(i)
+        return parameter_name_mapping
+
     def get_parameter(self, p_name):
         """
         Returns a parameter object by name.
@@ -235,12 +272,14 @@ class Model(object):
         obj : Parameter, or list of Parameters
             The parameter or list of parameters to be added to the model object.
         """
-        # TODO, make sure that you don't overwrite an existing parameter??
         if isinstance(params,list): 
             for p in params:
                 self.add_parameter(p)
         else:
-            if isinstance(params,Parameter):
+            if isinstance(params, Parameter):
+                problem = self.problem_with_name(params.name)
+                if problem is not None:
+                    raise problem
                 self.listOfParameters[params.name] = params
             else:
                 raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(params))
@@ -312,10 +351,8 @@ class Model(object):
                 raise ModelError("Duplicate name of reaction: {0}".format(reactions.name))
             self.listOfReactions[reactions.name] = reactions
         else:
-            param_type = type(reactions).__name__
-            raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(param_type))
+            raise ModelError("Unexpected parameter for add_reaction. Parameter must be Reaction or list of Reactions.")
         return reactions
-
 
     def add_rate_rule(self, rate_rules):
         """
@@ -627,9 +664,6 @@ class Reaction:
         self.name = name
         self.annotation = ""
 
-        # if rate is None and propensity_function is None:
-        #     raise ReactionError("You must specify either a mass-action rate or a propensity function")
-
         # We might use this flag in the future to automatically generate
         # the propensity function if set to True.
         if propensity_function is not None:
@@ -663,14 +697,12 @@ class Reaction:
         if self.massaction:
             self.type = "mass-action"
             if rate is None:
-                # raise ReactionError("Reaction : A mass-action propensity has to have a rate.")
                 self.marate = None
             else:
                 self.marate = rate
                 self.create_mass_action()
         else:
             self.type = "customized"
-
 
     def verify(self):
         """ Check if the reaction is properly formatted.
@@ -772,6 +804,15 @@ class Reaction:
             An optional note about the reaction.
         """
         self.annotation = annotation
+
+    def sanitized_propensity_function(self, species_mappings, parameter_mappings):
+        names = list(species_mappings.keys()) + list(parameter_mappings.keys())
+        names.sort(key=lambda name: -len(name))
+        replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name] for name in names]
+        sanitized_propensity = self.propensity_function
+        for id, name in enumerate(names):
+            sanitized_propensity = sanitized_propensity.replace(name, "{"+str(id)+"}")
+        return sanitized_propensity.format(*replacements)
 
 
 class StochMLDocument():
