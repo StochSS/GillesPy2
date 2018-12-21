@@ -1,0 +1,318 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gillespy2.solvers.stochkit package &mdash; GillesPy2 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GillesPy2 0.1 documentation" href="index.html" />
+    <link rel="up" title="gillespy2.solvers package" href="gillespy2.solvers.html" />
+    <link rel="prev" title="gillespy2.solvers.python package" href="gillespy2.solvers.python.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="gillespy2.solvers.python.html" title="gillespy2.solvers.python package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GillesPy2 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="gillespy2.html" >gillespy2 package</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="gillespy2.solvers.html" accesskey="U">gillespy2.solvers package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="gillespy2-solvers-stochkit-package">
+<h1>gillespy2.solvers.stochkit package<a class="headerlink" href="#gillespy2-solvers-stochkit-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-gillespy2.solvers.stochkit.stochkit_solvers">
+<span id="gillespy2-solvers-stochkit-stochkit-solvers-module"></span><h2>gillespy2.solvers.stochkit.stochkit_solvers module<a class="headerlink" href="#module-gillespy2.solvers.stochkit.stochkit_solvers" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver">
+<em class="property">class </em><code class="descclassname">gillespy2.solvers.stochkit.stochkit_solvers.</code><code class="descname">StochKitBaseSolver</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
+<dl class="staticmethod">
+<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.label_trajectories">
+<em class="property">static </em><code class="descname">label_trajectories</code><span class="sig-paren">(</span><em>trajectories</em>, <em>labels</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.label_trajectories" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.locate_executable">
+<em class="property">static </em><code class="descname">locate_executable</code><span class="sig-paren">(</span><em>stochkit_home=None</em>, <em>algorithm=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.locate_executable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.name">
+<code class="descname">name</code><em class="property"> = 'StochKitBaseSolver'</em><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract class for a StochKit solver. This is generally called from within a
+GillesPy Model through the Model.run function. Returns simulation
+trajectories.</p>
+<dl class="docutils">
+<dt>model <span class="classifier-delimiter">:</span> <span class="classifier">gillespy.Model</span></dt>
+<dd>The model on which the solver will operate.</dd>
+<dt>t <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The end time of the solver.</dd>
+<dt>number_of_trajectories <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The number of times to sample the chemical master equation. Each
+trajectory will be returned at the end of the simulation.</dd>
+<dt>increment <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The time step of the solution.</dd>
+<dt>seed <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The random seed for the simulation. Defaults to None.</dd>
+<dt>stochkit_home <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Path to stochkit. This is set automatically upon installation, but
+may be overwritten if desired.</dd>
+<dt>algorithm <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>The solver by which to simulate the model. &#8216;ssa&#8217; or &#8216;tau_leaping&#8217;
+are the available options. If &#8216;ssa&#8217; is chosen, StochKit will choose
+from the available ssa options.</dd>
+<dt>job_id <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>If given, this will be the name of the solver run. Usually not set.</dd>
+<dt>extra_args <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Any extra arguments for the stochkit solver. See StochKit2
+documentation for details.</dd>
+<dt>debug <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
+<dd>Set to True to provide additional debug information about the
+simulation.</dd>
+<dt>show_labels <span class="classifier-delimiter">:</span> <span class="classifier">bool (True)</span></dt>
+<dd>Use names of species as index of result object rather than position numbers.</dd>
+</dl>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.process_seed">
+<em class="property">static </em><code class="descname">process_seed</code><span class="sig-paren">(</span><em>seed</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.process_seed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.run">
+<em class="property">classmethod </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>stochkit_home=None</em>, <em>algorithm=None</em>, <em>job_id=None</em>, <em>extra_args=''</em>, <em>debug=False</em>, <em>profile=False</em>, <em>show_labels=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call out and run the solver. Collect the results.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver">
+<em class="property">class </em><code class="descclassname">gillespy2.solvers.stochkit.stochkit_solvers.</code><code class="descname">StochKitODESolver</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver" title="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver</span></code></a></p>
+<dl class="classmethod">
+<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.get_trajectories">
+<em class="property">classmethod </em><code class="descname">get_trajectories</code><span class="sig-paren">(</span><em>out_dir</em>, <em>debug=False</em>, <em>show_labels=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.get_trajectories" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.name">
+<code class="descname">name</code><em class="property"> = 'StochKitODESolver'</em><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract class for StochKit solver derived from the GillesPySolver class.
+This is generally used to set up the solver.</p>
+<dl class="docutils">
+<dt>model <span class="classifier-delimiter">:</span> <span class="classifier">gillespy.Model</span></dt>
+<dd>The model on which the solver will operate.</dd>
+<dt>t <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The end time of the solver.</dd>
+<dt>number_of_trajectories <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The number of times to sample the chemical master equation. Each
+trajectory will be returned at the end of the simulation.</dd>
+<dt>increment <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The time step of the solution.</dd>
+<dt>seed <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The random seed for the simulation. Defaults to None.</dd>
+<dt>stochkit_home <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Path to stochkit. This is set automatically upon installation, but
+may be overwritten if desired.</dd>
+<dt>algorithm <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Already set to &#8216;stochkit_ode.py&#8217;</dd>
+<dt>job_id <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>If given, this will be the name of the solver run. Usually not set.</dd>
+<dt>debug <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
+<dd>Set to True to provide additional debug information about the
+simulation.</dd>
+</dl>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.run">
+<em class="property">classmethod </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>stochkit_home=None</em>, <em>algorithm='stochkit_ode.py'</em>, <em>job_id=None</em>, <em>debug=False</em>, <em>profile=False</em>, <em>show_labels=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver">
+<em class="property">class </em><code class="descclassname">gillespy2.solvers.stochkit.stochkit_solvers.</code><code class="descname">StochKitSolver</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver" title="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver</span></code></a></p>
+<dl class="classmethod">
+<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.get_trajectories">
+<em class="property">classmethod </em><code class="descname">get_trajectories</code><span class="sig-paren">(</span><em>out_dir</em>, <em>debug=False</em>, <em>show_labels=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.get_trajectories" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.name">
+<code class="descname">name</code><em class="property"> = 'StochKitSolver'</em><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract class for StochKit solver derived from the GillesPySolver class.
+This is generally used to set up the solver.</p>
+<dl class="docutils">
+<dt>model <span class="classifier-delimiter">:</span> <span class="classifier">gillespy.Model</span></dt>
+<dd>The model on which the solver will operate.</dd>
+<dt>t <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The end time of the solver.</dd>
+<dt>number_of_trajectories <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The number of times to sample the chemical master equation. Each
+trajectory will be returned at the end of the simulation.</dd>
+<dt>increment <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The time step of the solution.</dd>
+<dt>seed <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The random seed for the simulation. Defaults to None.</dd>
+<dt>stochkit_home <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Path to stochkit. This is set automatically upon installation, but
+may be overwritten if desired.</dd>
+<dt>algorithm <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>The solver by which to simulate the model. &#8216;ssa&#8217; or &#8216;tau_leaping&#8217;
+are the available options. If &#8216;ssa&#8217; is chosen, StochKit will choose
+from the available ssa options.</dd>
+<dt>job_id <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>If given, this will be the name of the solver run. Usually not set.</dd>
+<dt>method <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>The specific SSA to call. NOT YET FUNCTIONAL.</dd>
+<dt>debug <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
+<dd>Set to True to provide additional debug information about the
+simulation.</dd>
+</dl>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.run">
+<em class="property">classmethod </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>stochkit_home=None</em>, <em>algorithm='ssa'</em>, <em>job_id=None</em>, <em>method=None</em>, <em>debug=False</em>, <em>show_labels=False</em>, <em>profile=False</em>, <em>processes=1</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-gillespy2.solvers.stochkit">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-gillespy2.solvers.stochkit" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="gillespy2.solvers.stochkit.StochKitSolver">
+<em class="property">class </em><code class="descclassname">gillespy2.solvers.stochkit.</code><code class="descname">StochKitSolver</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver" title="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver</span></code></a></p>
+<dl class="classmethod">
+<dt id="gillespy2.solvers.stochkit.StochKitSolver.get_trajectories">
+<em class="property">classmethod </em><code class="descname">get_trajectories</code><span class="sig-paren">(</span><em>out_dir</em>, <em>debug=False</em>, <em>show_labels=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitSolver.get_trajectories" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.solvers.stochkit.StochKitSolver.name">
+<code class="descname">name</code><em class="property"> = 'StochKitSolver'</em><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitSolver.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="gillespy2.solvers.stochkit.StochKitSolver.run">
+<em class="property">classmethod </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>stochkit_home=None</em>, <em>algorithm='ssa'</em>, <em>job_id=None</em>, <em>method=None</em>, <em>debug=False</em>, <em>show_labels=False</em>, <em>profile=False</em>, <em>processes=1</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitSolver.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gillespy2.solvers.stochkit.StochKitODESolver">
+<em class="property">class </em><code class="descclassname">gillespy2.solvers.stochkit.</code><code class="descname">StochKitODESolver</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitODESolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver" title="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver</span></code></a></p>
+<dl class="classmethod">
+<dt id="gillespy2.solvers.stochkit.StochKitODESolver.get_trajectories">
+<em class="property">classmethod </em><code class="descname">get_trajectories</code><span class="sig-paren">(</span><em>out_dir</em>, <em>debug=False</em>, <em>show_labels=False</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitODESolver.get_trajectories" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.solvers.stochkit.StochKitODESolver.name">
+<code class="descname">name</code><em class="property"> = 'StochKitODESolver'</em><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitODESolver.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="gillespy2.solvers.stochkit.StochKitODESolver.run">
+<em class="property">classmethod </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>stochkit_home=None</em>, <em>algorithm='stochkit_ode.py'</em>, <em>job_id=None</em>, <em>debug=False</em>, <em>profile=False</em>, <em>show_labels=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitODESolver.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="gillespy2.solvers.python.html"
+                        title="previous chapter">gillespy2.solvers.python package</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="gillespy2.solvers.python.html" title="gillespy2.solvers.python package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GillesPy2 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="gillespy2.html" >gillespy2 package</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="gillespy2.solvers.html" >gillespy2.solvers package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2018, Sean Matthew, Dalton Nickerson, George Hall, Kevin Sanft, Brian Drawert.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
+    </div>
+  </body>
+</html>

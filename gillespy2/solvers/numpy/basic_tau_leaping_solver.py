@@ -7,16 +7,25 @@ import warnings
 
 
 class BasicTauLeapingSolver(GillesPySolver):
+    """
+    A Basic Tau Leaping Solver for GillesPy2 models.  This solver uses an algorithm calculates
+    multiple reactions in a single step over a given tau step size.  The change in propensities
+    over this step are bounded by bounding the relative change in state, yielding greatly improved
+    run-time performance with very little trade-off in accuracy.
+    """
     name = "Basic Tau Leaping Solver"
 
     def __init__(self, debug=False):
         self.debug = debug
         self.epsilon = 0.03
 
-    def get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions, debug):
-        ''' Get the time to the next reaction by integrating the SSA reaction functions
-            along with the RateRules.  Update population of species governed by rate rules
-        '''
+    def __get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions, debug):
+        """
+        Helper Function to get reactions fired from t to t+tau.  Returns three values:
+        rxn_count - dict with key=Raection channel value=number of times fired
+        curr_state - dict containing all state variables for system at current time
+        curr_time - float representing current time
+        """
 
 
         if curr_time + step > save_time:
@@ -38,11 +47,10 @@ class BasicTauLeapingSolver(GillesPySolver):
 
         curr_time = curr_time+step
 
-        # TODO: WRITE POISSON HERE
-
         return rxn_count, curr_state, curr_time
 
-    def get_tau(self, model, y0, curr_state, propensities, steps_taken, save_time, curr_time, debug, profile):
+    def __get_tau(self, model, y0, curr_state, propensities, steps_taken, save_time, curr_time, debug, profile):
+        """ Helper function to analyze best tau to take as next step """
         projected_reaction = None
         tau_step = None
         tau_j = {}
@@ -151,8 +159,38 @@ class BasicTauLeapingSolver(GillesPySolver):
         # END NEW TAU SELECTION METHOD
 
     @classmethod
-    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, profile=False, debug=False, show_labels=False,
-            **kwargs):
+    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, profile=False,
+            debug=False, show_labels=False, stochkit_home=None, **kwargs):
+        """
+                Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
+                objects and will inherit those parameters which are passed with the model as the arguments this run function.
+
+                Attributes
+                ----------
+
+                model : GillesPy2.Model
+                    GillesPy2 model object to simulate
+                t : int
+                    Simulation run time
+                number_of_trajectories : int
+                    The number of times to sample the chemical master equation. Each
+                    trajectory will be returned at the end of the simulation.
+                    Optional, defaults to 1.
+                increment : float
+                    Save point increment for recording data
+                seed : int
+                    The random seed for the simulation. Optional, defaults to None.
+                debug : bool (False)
+                    Set to True to provide additional debug information about the
+                    simulation.
+                profile : bool (Fasle)
+                    Set to True to provide information about step size (tau) taken at each step.
+                show_labels : bool (True)
+                    Use names of species as index of result object rather than position numbers.
+                stochkit_home : str
+                    Path to stochkit. This is set automatically upon installation, but
+                    may be overwritten if desired.
+                """
         if not sys.warnoptions:
             warnings.simplefilter("ignore")
         if not isinstance(self, BasicTauLeapingSolver):
@@ -191,8 +229,8 @@ class BasicTauLeapingSolver(GillesPySolver):
             while save_time < t:
                 while curr_time < save_time:
 
-                    tau_step = self.get_tau(model, y0, curr_state, propensities, steps_taken,
-                                            save_time, curr_time, debug, profile)
+                    tau_step = self.__get_tau(model, y0, curr_state, propensities, steps_taken,
+                                              save_time, curr_time, debug, profile)
 
                     prev_y0 = y0.copy()
                     prev_curr_state = curr_state.copy()
@@ -202,9 +240,9 @@ class BasicTauLeapingSolver(GillesPySolver):
                     while True:
                         loop_cnt += 1
                         if loop_cnt > 100:
-                            raise Exception("Loop over get_reactions() exceeded loop count")
+                            raise Exception("Loop over __get_reactions() exceeded loop count")
 
-                        reactions, curr_state, curr_time = self.get_reactions(
+                        reactions, curr_state, curr_time = self.__get_reactions(
                             tau_step, curr_state, curr_time, save_time, propensities, model.listOfReactions, debug)
 
                         # Update curr_state with the result of the SSA reaction that fired
@@ -247,7 +285,4 @@ class BasicTauLeapingSolver(GillesPySolver):
                 print("Total Steps Taken: ", len(steps_taken))
                 print("Total Steps Rejected: ", steps_rejected)
             trajectories.append(results)
-        if number_of_trajectories > 1:
-            return trajectories
-        else:
-            return results
+        return trajectories
