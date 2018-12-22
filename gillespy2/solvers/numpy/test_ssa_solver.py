@@ -1,6 +1,7 @@
 import unittest
 import tempfile
 from gillespy2.core.gillespyError import SolverError, DirectoryError, BuildError, ExecutionError
+from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.example_models import Example
 from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver
 

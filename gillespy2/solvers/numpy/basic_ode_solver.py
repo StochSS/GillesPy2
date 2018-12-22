@@ -4,9 +4,21 @@ import numpy as np
 
 
 class BasicODESolver(GillesPySolver):
+    """
+    This Solver produces the deterministic continuous solution via ODE.
+    """
     name = "BasicODESolver"
     @staticmethod
     def rhs(y0, t, species, parameters, reactions):
+        """
+        The right hand side of the differential equation, uses scipy.integrate odeint
+        :param y0: state as a list
+        :param t: time as a numpy array
+        :param species: model list of species
+        :param parameters: model list of parameters
+        :param reactions: model list of reactions
+        :return: integration step
+        """
         curr_state = {}
         state_change = {}
         curr_state['vol'] = 1
@@ -35,6 +47,19 @@ class BasicODESolver(GillesPySolver):
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, profile=False, show_labels=False, **kwargs):
+        """
+
+        :param model: gillespy2.model class object
+        :param t: end time of simulation
+        :param number_of_trajectories: Should be 1.  This is deterministic and will always have same results
+        :param increment: time step increment for plotting
+        :param seed: random seed, has no effect
+        :param debug: not implemented
+        :param profile: not implemented
+        :param show_labels: not implemented
+        :param kwargs:
+        :return:
+        """
         results = []
         for traj_num_ in range(number_of_trajectories):
             y0 = []
