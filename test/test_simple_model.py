@@ -1,33 +1,33 @@
 import unittest
 import sys, os
 sys.path.append(os.path.abspath(os.getcwd()))
-import numpy, math, gillespy2
-from gillespy2.basic_tau_hybrid_solver import BasicTauHybridSolver
+import numpy, math
+from gillespy2.core import Model, Species, Reaction, Parameter, RateRule
+from gillespy2.core.gillespyError import *
 import matplotlib.pyplot as plt
 
-
-class SimpleHybridModel(gillespy2.Model):
+class SimpleHybridModel(Model):
      def __init__(self, parameter_values=None):
             #initialize Model
-            gillespy2.Model.__init__(self, name="Simple_Hybrid_Model")
+            Model.__init__(self, name="Simple_Hybrid_Model")
 
             # Species
-            A = gillespy2.Species(name='A', initial_value=0)
-            B = gillespy2.Species(name='B', initial_value=0)
+            A = Species(name='A', initial_value=0)
+            B = Species(name='B', initial_value=0)
             self.add_species([A,B])
 
             # Parameters
-            k1 = gillespy2.Parameter(name='k1', expression=1)
-            k2 = gillespy2.Parameter(name='k2', expression=10)
+            k1 = Parameter(name='k1', expression=1)
+            k2 = Parameter(name='k2', expression=10)
             self.add_parameter([k1,k2])
 
             # Rate Rule
-            rate_rule = gillespy2.RateRule(B, "cos(t)")
+            rate_rule = RateRule(B, "cos(t)")
             self.add_rate_rule(rate_rule)
 
             # Reactions
-            r1 = gillespy2.Reaction(name='r1', reactants={A:1}, products={}, propensity_function="k1*B")
-            r2 = gillespy2.Reaction(name='r2', reactants={}, products={B:1}, rate=k2)
+            r1 = Reaction(name='r1', reactants={A:1}, products={}, propensity_function="k1*B")
+            r2 = Reaction(name='r2', reactants={}, products={B:1}, rate=k2)
             self.add_reaction([r1,r2])
 
             self.timespan(numpy.linspace(0,1,11))
@@ -41,17 +41,30 @@ class TestSimpleModel(unittest.TestCase):
         self.assertEqual(name, "Simple_Hybrid_Model", msg="Unexpected value: {}".format(name))
 
     def test_addingSameSpecies_ThrowsError(self):
-        A = gillespy2.Species(name='A', initial_value=0)
-        with self.assertRaises(gillespy2.gillespy2.ModelError) as ex:
+        A = Species(name='A', initial_value=0)
+        with self.assertRaises(ModelError) as ex:
             self.model.add_species(A)
         self.assertEqual(str(ex.exception), "Can't add species. A species with that name already exists.")
 
     def test_addingMultipleSameSpecies_ThrowsError(self):
-        A = gillespy2.Species(name='A', initial_value=0)
-        B = gillespy2.Species(name='B', initial_value=0)
-        with self.assertRaises(gillespy2.gillespy2.ModelError) as ex:
+        A = Species(name='A', initial_value=0)
+        B = Species(name='B', initial_value=0)
+        with self.assertRaises(ModelError) as ex:
             self.model.add_species([A,B])
         self.assertEqual(str(ex.exception), "Can't add species. A species with that name already exists.")
+
+    def test_addingSameParameter_ThrowsError(self):
+        k1 = Parameter(name='k1', expression=0)
+        with self.assertRaises(ParameterError) as ex:
+            self.model.add_parameter(k1)
+        self.assertEqual(str(ex.exception), 'Name "{}" is unavailable. A parameter with that name exists.'.format(k1.name))
+
+    def test_addingMultipleSameParameter_ThrowsError(self):
+        k1 = Parameter(name='k1', expression=0)
+        k2 = Parameter(name='k2', expression=0)
+        with self.assertRaises(ModelError) as ex:
+            self.model.add_parameter([k1,k2])
+        self.assertEqual(str(ex.exception), 'Name "{}" is unavailable. A parameter with that name exists.'.format(k1.name))
 
     def test_delete_species(self):
         self.model.delete_species('A')
@@ -75,7 +88,7 @@ class TestSimpleModel(unittest.TestCase):
         self.assertEqual(units, 'population')
 
     def test_setFakeUnits_ThrowsError(self):
-        with self.assertRaises(gillespy2.gillespy2.ModelError) as ex:
+        with self.assertRaises(ModelError) as ex:
             self.model.set_units('nonsense')
         self.assertEqual(str(ex.exception), "units must be either concentration or population (case insensitive)")
     
@@ -86,27 +99,27 @@ class TestSimpleModel(unittest.TestCase):
 
     def test_model_has_species(self):
         species = self.model.get_species('A')
-        self.assertIsInstance(species, gillespy2.Species, msg='{0} has incorrect type'.format(species))
+        self.assertIsInstance(species, Species, msg='{0} has incorrect type'.format(species))
 
     def test_add_single_species(self):
-        C = gillespy2.Species(name='C', initial_value=0)
+        C = Species(name='C', initial_value=0)
         self.model.add_species(C)
         species = self.model.get_species('C')
-        self.assertIsInstance(species, gillespy2.Species, msg='{0} has incorrect type'.format(species))
+        self.assertIsInstance(species, Species, msg='{0} has incorrect type'.format(species))
 
     def test_model_has_species_list(self):
         speciesList = self.model.get_all_species()
         species = speciesList['A']
-        self.assertIsInstance(species, gillespy2.Species, msg='{0} has incorrect type'.format(species))
+        self.assertIsInstance(species, Species, msg='{0} has incorrect type'.format(species))
 
     def test_get_parameter(self):
         parameter = self.model.get_parameter('k1')
         self.assertEqual('1', parameter.expression)
-        self.assertIsInstance(parameter, gillespy2.Parameter, msg='{0} has incorrect type'.format(parameter))
+        self.assertIsInstance(parameter, Parameter, msg='{0} has incorrect type'.format(parameter))
 
     def test_getFakeParameter_ThrowsError(self):
         p_name = 'fake'
-        with self.assertRaises(gillespy2.gillespy2.ModelError) as ex:
+        with self.assertRaises(ModelError) as ex:
             parameter = self.model.get_parameter(p_name)
         self.assertEqual(str(ex.exception), "No parameter named " + p_name)
 
@@ -114,7 +127,7 @@ class TestSimpleModel(unittest.TestCase):
         self.model.set_parameter('k1', '100')
         parameter = self.model.get_parameter('k1')
         self.assertEqual('100', parameter.expression)
-        self.assertIsInstance(parameter, gillespy2.Parameter, msg='{0} has incorrect type'.format(parameter))
+        self.assertIsInstance(parameter, Parameter, msg='{0} has incorrect type'.format(parameter))
 
     def test_delete_parameter(self):
         self.model.delete_parameter('k1')
@@ -129,8 +142,8 @@ class TestSimpleModel(unittest.TestCase):
 
     def test_model_has_parameters(self):
         parameters = self.model.get_all_parameters()
-        self.assertIsInstance(parameters['k1'], gillespy2.Parameter, msg='{0} has incorrect type'.format(parameters))
-        self.assertIsInstance(parameters['k2'], gillespy2.Parameter, msg='{0} has incorrect type'.format(parameters))
+        self.assertIsInstance(parameters['k1'], Parameter, msg='{0} has incorrect type'.format(parameters))
+        self.assertIsInstance(parameters['k2'], Parameter, msg='{0} has incorrect type'.format(parameters))
 
     def test_model_parameters_correct(self):
         parameters = self.model.get_all_parameters()
@@ -144,12 +157,12 @@ class TestSimpleModel(unittest.TestCase):
 
     def test_get_reaction(self):
         reaction = self.model.get_reaction('r1')
-        self.assertIsInstance(reaction, gillespy2.Reaction, msg='{0} has incorrect type'.format(reaction))
+        self.assertIsInstance(reaction, Reaction, msg='{0} has incorrect type'.format(reaction))
 
     def test_model_has_reactions(self):
         reactions = self.model.get_all_reactions()
-        self.assertIsInstance(reactions['r1'], gillespy2.Reaction, msg='{0} has incorrect type'.format(reactions))
-        self.assertIsInstance(reactions['r2'], gillespy2.Reaction, msg='{0} has incorrect type'.format(reactions))
+        self.assertIsInstance(reactions['r1'], Reaction, msg='{0} has incorrect type'.format(reactions))
+        self.assertIsInstance(reactions['r2'], Reaction, msg='{0} has incorrect type'.format(reactions))
 
     def test_delete_reaction(self):
         self.model.delete_reaction('r1')
@@ -180,11 +193,11 @@ class TestSimpleModel(unittest.TestCase):
 
         # Check r1 reactants are set
         self.assertEqual(reactants_r1[species_A], 1, msg='Has incorrect number of reactants')
-        self.assertIsInstance(species_r1, gillespy2.Species, msg='Has incorrect type')
+        self.assertIsInstance(species_r1, Species, msg='Has incorrect type')
 
         # Check r2 products are set
         self.assertEqual(products_r2[species_B], 1, msg='Has incorrect number of products')
-        self.assertIsInstance(species_r2, gillespy2.Species, msg='Has incorrect type')
+        self.assertIsInstance(species_r2, Species, msg='Has incorrect type')
 
         # Check r2 name & rate is set
         self.assertEqual(reactions['r2'].name, 'r2', msg='Has incorrect expression')
