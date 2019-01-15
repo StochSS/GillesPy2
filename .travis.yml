@@ -4,5 +4,5 @@ python:
 install:
   - pip install numpy matplotlib seaborn
 script:
-  python -m unittest discover -s test -v
+  python test/run_tests.py
 
