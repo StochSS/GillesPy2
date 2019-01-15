@@ -1,4 +1,4 @@
-from gillespy2.core import GillesPySolver
+from gillespy2.core import GillesPySolver, Model, Reaction
 import random
 import math
 import numpy as np
@@ -23,7 +23,9 @@ class NumPySSASolver(GillesPySolver):
         :return: a list of each trajectory simulated.
         """
         # create mapping of species dictionary to array indices
-        species = list(model.listOfSpecies.keys())
+        species_mappings = model.sanitized_species_names()
+        species = list(species_mappings.keys())
+        parameter_mappings = model.sanitized_parameter_names()
         number_species = len(species)
 
         # create numpy array for timeline
@@ -35,28 +37,26 @@ class NumPySSASolver(GillesPySolver):
         # copy time values to all trajectory row starts
         trajectory_base[:, :, 0] = timeline
         # copy initial populations to base
-        for i in range(number_species):
-            trajectory_base[:, 0, i + 1] = model.listOfSpecies[species[i]].initial_value
+
+        for i, s in enumerate(species):
+            trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
             # create dictionary of all constant parameters for propensity evaluation
-        parameters = {'vol': model.volume}
+        parameters = {'V': model.volume}
         for paramName, param in model.listOfParameters.items():
-            parameters[paramName] = param.value
+            parameters[parameter_mappings[paramName]] = param.value
 
         # create mapping of reaction dictionary to array indices
         reactions = list(model.listOfReactions.keys())
         number_reactions = len(reactions)
-        propensity_functions = [r.propensity_function for r in model.listOfReactions.values()]
+        propensity_functions = []
         # create an array mapping reactions to species modified
         species_changes = np.zeros((number_reactions, number_species))
         # pre-evaluate propensity equations from strings:
-        for i in range(number_reactions):
+        for i, reaction in enumerate(reactions):
             # replace all references to species with array indices
-            for j in range(number_species):
-                species_changes[i][j] = model.listOfReactions[reactions[i]].products.get(
-                    model.listOfSpecies[species[j]], 0) - model.listOfReactions[reactions[i]].reactants.get(
-                    model.listOfSpecies[species[j]], 0)
-                propensity_functions[i] = propensity_functions[i].replace(species[j], 'x[{0}]'.format(j))
-            propensity_functions[i] = eval('lambda x:' + propensity_functions[i], parameters)
+            for j, spec in enumerate(species):
+                species_changes[i][j] = model.listOfReactions[reaction].products.get(model.listOfSpecies[spec], 0) - model.listOfReactions[reaction].reactants.get(model.listOfSpecies[spec], 0)
+            propensity_functions.append(eval('lambda S:' + model.listOfReactions[reaction].sanitized_propensity_function(species_mappings, parameter_mappings), parameters))
         # begin simulating each trajectory
         simulation_data = []
         for trajectory_num in range(number_of_trajectories):

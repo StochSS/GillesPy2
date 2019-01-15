@@ -1,12 +1,14 @@
 import unittest
 import sys, os
 sys.path.append(os.path.abspath(os.getcwd()))
-import numpy, math, gillespy2
+import numpy, math
+from gillespy2.core import Model, Species, Reaction, Parameter, RateRule
+from gillespy2.core.gillespyError import *
 import matplotlib.pyplot as plt
 
-class EmptyModel(gillespy2.Model):
+class EmptyModel(Model):
     def __init__(self, parameter_values=None):
-            gillespy2.Model.__init__(self)
+            Model.__init__(self)
 
 class TestEmptyModel(unittest.TestCase):
     def setUp(self):

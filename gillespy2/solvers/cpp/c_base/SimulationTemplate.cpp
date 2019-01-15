@@ -20,7 +20,7 @@ __DEFINE_CONSTANTS__
 
 class PropensityFunction : public IPropensityFunction{
 public:
-  double evaluate(uint reaction_number, uint* state){
+  double evaluate(uint reaction_number, uint* S){
     switch(reaction_number){
 __DEFINE_PROPENSITY__
 

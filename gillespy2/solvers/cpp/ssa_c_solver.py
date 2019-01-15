@@ -1,5 +1,5 @@
 import gillespy2
-from gillespy2.core import gillespyError, GillesPySolver
+from gillespy2.core import Model, Reaction, gillespyError, GillesPySolver
 import os #for getting directories for C++ files
 import shutil #for deleting/copying files
 import subprocess #For calling make and executing c solver
@@ -19,8 +19,8 @@ def copy_files(destination):
             shutil.copy(src_file, destination)
 
 
-def write_constants(outfile, model, reactions, species):
-    outfile.write("const double vol = {};\n".format(model.volume))
+def write_constants(outfile, model, reactions, species, parameter_mappings):
+    outfile.write("const double V = {};\n".format(model.volume))
     outfile.write("std :: string s_names[] = {");
     if len(species) > 0:
         #Write model species names.
@@ -41,20 +41,16 @@ def write_constants(outfile, model, reactions, species):
         outfile.write('"{}"'.format(reactions[-1]))
         outfile.write("};\n")
     for param in model.listOfParameters:
-        outfile.write("const double {0} = {1};\n".format(param, model.listOfParameters[param].value))
+        outfile.write("const double {0} = {1};\n".format(parameter_mappings[param], model.listOfParameters[param].value))
 
 
-def write_propensity(outfile, model, reactions, species):
+def write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
     for i in range(len(reactions)):
-        propensity_function = model.listOfReactions[reactions[i]].propensity_function
-        #Replace species references with array references
-        for j in range(len(species)):
-            propensity_function = propensity_function.replace(species[j], "state[{}]".format(j))
-        #Write switch statement case for reaction
+        # Write switch statement case for reaction
         outfile.write("""
         case {0}:
             return {1};
-        """.format(i, propensity_function))
+        """.format(i, model.listOfReactions[reactions[i]].sanitized_propensity_function(species_mappings, parameter_mappings)))
 
 
 def write_reactions(outfile, model, reactions, species):
@@ -104,10 +100,12 @@ class SSACSolver(GillesPySolver):
         self.delete_directory = False
         self.model = model
         if self.model is not None:
-            #Create constant, ordered lists for reactions/species
+            # Create constant, ordered lists for reactions/species
+            self.species_mappings = self.model.sanitized_species_names()
+            self.species = list(self.species_mappings.keys())
+            self.parameter_mappings = self.model.sanitized_parameter_names()
+            self.parameters = list(self.parameter_mappings.keys())
             self.reactions = list(self.model.listOfReactions.keys())
-            self.species = list(self.model.listOfSpecies.keys())
-        
             if isinstance(output_directory, str):
                 output_directory = os.path.abspath(output_directory)
             
@@ -116,24 +114,17 @@ class SSACSolver(GillesPySolver):
                         self.output_directory = output_directory
                         self.delete_directory = delete_directory
                         if not os.path.isdir(output_directory):
-                            #set up directory if needed
                             os.makedirs(self.output_directory)
                     else:
                         raise gillespyError.DirectoryError("File exists with the same path as directory.")
             else:
-                #Set up temporary directory
                 self.temporary_directory = tempfile.TemporaryDirectory()
                 self.output_directory = self.temporary_directory.name
                 
             if not os.path.isdir(self.output_directory):
-                #errors encountered while making directory. It should exist
                 raise gillespyError.DirectoryError("Errors encountered while setting up directory for Solver C++ files.")
-                
-            #copy files to directory
             copy_files(self.output_directory)
-            #write template file
             self.write_template()
-            #compile file
             self.compile()
         
     def __del__(self):
@@ -141,25 +132,26 @@ class SSACSolver(GillesPySolver):
             shutil.rmtree(self.output_directory)
         
     def write_template(self, template_file='SimulationTemplate.cpp'):
-        #Open up template file for reading.
+        # Open up template file for reading.
         with open(os.path.join(self.output_directory, template_file), 'r') as template:
-            #Write simulation C++ file.
+            # Write simulation C++ file.
             template_keyword = "__DEFINE_"
-            #Use same lists of model's species and reactions to maintain order
+            # Use same lists of model's species and reactions to maintain order
             with open(os.path.join(self.output_directory, 'UserSimulation.cpp'), 'w') as outfile:
                 for line in template:
                     if line.startswith(template_keyword):
                         line = line[len(template_keyword):]
                         if line.startswith("CONSTANTS"):
-                            write_constants(outfile, self.model, self.reactions, self.species)
+                            write_constants(outfile, self.model, self.reactions, self.species, self.parameter_mappings)
                         if line.startswith("PROPENSITY"):
-                            write_propensity(outfile, self.model, self.reactions, self.species)
+                            write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings, self.reactions)
                         if line.startswith("REACTIONS"):
                             write_reactions(outfile, self.model, self.reactions, self.species)
                     else:
                         outfile.write(line)
+
     def compile(self):
-        #Use makefile.
+        # Use makefile.
         cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulation'], stdout=subprocess.PIPE)
         built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if built.returncode == 0:
@@ -174,21 +166,20 @@ class SSACSolver(GillesPySolver):
         if self.compiled:
             self.simulation_data = None
             number_timesteps = int(t//increment + 1)                    
-            #Execute simulation.
+            # Execute simulation.
             args = [os.path.join(self.output_directory, 'UserSimulation'), '-trajectories', str(number_of_trajectories), '-timesteps', str(number_timesteps), '-end', str(t)]
             if isinstance(seed, int):
                 args.append('-seed')
                 args.append(str(seed))
             simulation = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            #Parse/return results.
+            # Parse/return results.
             if simulation.returncode == 0:
                 trajectory_base = parse_binary_output(simulation.stdout, number_of_trajectories, number_timesteps, len(self.species))
-                #Format results
+                # Format results
                 if show_labels:
                     self.simulation_data = []
                     for trajectory in range(number_of_trajectories):
-                        data = {}
-                        data['time'] = trajectory_base[trajectory,:,0]
+                        data = {'time': trajectory_base[trajectory, :, 0]}
                         for i in range(len(self.species)):
                             data[self.species[i]] = trajectory_base[trajectory, :, i+1]
                         self.simulation_data.append(data)
