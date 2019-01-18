@@ -35,9 +35,9 @@ class BasicODESolver(GillesPySolver):
         for r in reactions:
             propensity[r] = eval(reactions[r].propensity_function, curr_state)  # assumption that prop is massAction
             for react in reactions[r].reactants:
-                state_change[react.name] -= propensity[r]
+                state_change[str(react)] -= propensity[r]
             for prod in reactions[r].products:
-                state_change[prod.name] += propensity[r]
+                state_change[str(prod)] += propensity[r]
 
         for s in species:
             results.append(state_change[s])
