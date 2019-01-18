@@ -27,7 +27,7 @@ def write_constants(outfile, model, reactions, species, parameter_mappings):
         for i in range(len(species)-1):
             outfile.write('"{}", '.format(species[i]))
         outfile.write('"{}"'.format(species[-1]))
-        outfile.write("};\nuint populations[] = {")
+        outfile.write("};\nuint32_t populations[] = {")
         #Write initial populations.
         for i in range(len(species)-1):
             outfile.write('{}, '.format(model.listOfSpecies[species[i]].initial_value))
