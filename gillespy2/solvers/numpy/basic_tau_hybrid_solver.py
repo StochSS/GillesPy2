@@ -163,12 +163,16 @@ class BasicTauHybridSolver(GillesPySolver):
             curr_state['vol'] = model.volume
             save_time = 0
 
-            results = {'time': []}
+            if show_labels:
+                results = {'time': []}
 
             for s in model.listOfSpecies:
                 # initialize populations
                 curr_state[s] = model.listOfSpecies[s].initial_value
-                results[s] = []
+                if show_labels:
+                    results[s] = []
+                else:
+                    results = numpy.empty((number_of_trajectories, int(t / increment), len(model.listOfSpecies)+1))
 
             for p in model.listOfParameters:
                 curr_state[p] = model.listOfParameters[p].value
@@ -185,6 +189,8 @@ class BasicTauHybridSolver(GillesPySolver):
             compiled_rate_rules = {}
             for i, rr in enumerate(model.listOfRateRules):
                 compiled_rate_rules[rr] = compile(model.listOfRateRules[rr].expression, '<string>', 'eval')
+
+            timestep = 0
 
             while save_time < t:
                 while curr_time < save_time:
@@ -333,13 +339,21 @@ class BasicTauHybridSolver(GillesPySolver):
                             break  # breakout of the while True
                 if profile:
                     steps_taken.append(tau_step)
-                results['time'].append(save_time)
-                for i, s in enumerate(model.listOfSpecies):
-                    results[s].append(curr_state[s])
+                if show_labels:
+                    results['time'].append(save_time)
+                    for i, s in enumerate(model.listOfSpecies):
+                        results[s].append(curr_state[s])
+                    trajectories.append(results)
+                else:
+                    results[trajectory][timestep][0] = save_time
+                    for i, s in enumerate(model.listOfSpecies):
+                        results[trajectory][timestep][i+1] = curr_state[s]
+                    trajectories = results
                 save_time += increment
+                timestep += 1
             if profile:
                 print(steps_taken)
                 print("Total Steps Taken: ", len(steps_taken))
                 print("Total Steps Rejected: ", steps_rejected)
-            trajectories.append(results)
+
         return trajectories
