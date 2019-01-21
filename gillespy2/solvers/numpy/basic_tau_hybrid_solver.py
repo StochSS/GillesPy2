@@ -166,7 +166,7 @@ class BasicTauHybridSolver(GillesPySolver):
             if show_labels:
                 results = {'time': []}
             else:
-                results = numpy.empty((number_of_trajectories, int(t / increment), len(model.listOfSpecies) + 1))
+                results = numpy.empty((number_of_trajectories, int(t / increment) + 1, len(model.listOfSpecies) + 1))
 
             for s in model.listOfSpecies:
                 # initialize populations
