@@ -208,15 +208,18 @@ class BasicTauLeapingSolver(GillesPySolver):
             curr_time = 0
             curr_state['vol'] = model.volume
             save_time = 0
-
-            results = {'time': []}
+            if show_labels:
+                results = {'time': []}
+            else:
+                results = numpy.empty((number_of_trajectories, int(t / increment)+1, len(model.listOfSpecies) + 1))
             steps_taken = []
             steps_rejected = 0
 
             for s in model.listOfSpecies:
                 # initialize populations
                 curr_state[s] = model.listOfSpecies[s].initial_value
-                results[s] = []
+                if show_labels:
+                    results[s] = []
 
             for p in model.listOfParameters:
                 curr_state[p] = model.listOfParameters[p].value
@@ -226,6 +229,7 @@ class BasicTauLeapingSolver(GillesPySolver):
                 if debug:
                     print("Setting Random number ", y0[i], " for ", model.listOfReactions[r].name)
 
+            timestep = 0
             while save_time < t:
                 while curr_time < save_time:
 
@@ -276,13 +280,21 @@ class BasicTauLeapingSolver(GillesPySolver):
                         else:
                             break  # breakout of the while True
 
-                results['time'].append(save_time)
-                for i, s in enumerate(model.listOfSpecies):
-                    results[s].append(curr_state[s])
+                if show_labels:
+                    results['time'].append(save_time)
+                    for i, s in enumerate(model.listOfSpecies):
+                        results[s].append(curr_state[s])
+                    trajectories.append(results)
+                else:
+                    results[trajectory][timestep][0] = save_time
+                    for i, s in enumerate(model.listOfSpecies):
+                        results[trajectory][timestep][i + 1] = curr_state[s]
+                    trajectories = results
                 save_time += increment
+                timestep += 1
             if profile:
                 print(steps_taken)
                 print("Total Steps Taken: ", len(steps_taken))
                 print("Total Steps Rejected: ", steps_rejected)
-            trajectories.append(results)
+
         return trajectories
