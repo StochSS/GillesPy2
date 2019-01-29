@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <time.h>
+#include <math.h>
 #include "model.h"
 #include "ssa.h"
 using namespace Gillespy;
