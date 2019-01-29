@@ -3,14 +3,13 @@
 #include <iostream>
 #include <sstream>
 #include <time.h>
-#include <cstdint>
 #include "model.h"
 #include "ssa.h"
 using namespace Gillespy;
 
 //Default values, replaced with command line args
-uint32_t number_trajectories = 0;
-uint32_t number_timesteps = 0;
+unsigned int number_trajectories = 0;
+unsigned int number_timesteps = 0;
 int random_seed = 0;
 double end_time = 0;
 bool seed_time = true;
@@ -20,7 +19,7 @@ __DEFINE_CONSTANTS__
 
 class PropensityFunction : public IPropensityFunction{
 public:
-  double evaluate(uint32_t reaction_number, uint32_t* S){
+  double evaluate(unsigned int reaction_number, unsigned int* S){
     switch(reaction_number){
 __DEFINE_PROPENSITY__
 
@@ -32,7 +31,7 @@ __DEFINE_PROPENSITY__
 
 int main(int argc, char* argv[]){
   std :: vector<std :: string> species_names(s_names, s_names + sizeof(s_names)/sizeof(std :: string));
-  std :: vector<uint32_t> species_populations(populations, populations + sizeof(populations)/sizeof(populations[0]));
+  std :: vector<unsigned int> species_populations(populations, populations + sizeof(populations)/sizeof(populations[0]));
   std :: vector<std :: string> reaction_names(r_names, r_names + sizeof(r_names)/sizeof(std :: string));
   
   Model model(species_names, species_populations, reaction_names);
