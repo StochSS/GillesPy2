@@ -160,7 +160,7 @@ class SSACSolver(GillesPySolver):
             raise gillespyError.BuildError("Error encountered while compiling file:\nReturn code: {0}.\nError:\n{1}\n".format(built.returncode, built.stderr))
 
     def run(self=None, model=None, t=20, number_of_trajectories=1,
-            increment=0.05, seed=None, debug=False, profile=False, show_labels=False, **kwargs):
+            increment=0.05, seed=None, debug=False, profile=False, show_labels=True, **kwargs):
         if self is None:
             self = SSACSolver(model)
         if self.compiled:
