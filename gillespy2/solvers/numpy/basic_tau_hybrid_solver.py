@@ -364,5 +364,4 @@ class BasicTauHybridSolver(GillesPySolver):
                 print("Total Steps Taken: ", len(steps_taken))
                 print("Total Steps Rejected: ", steps_rejected)
 
-
         return trajectories
