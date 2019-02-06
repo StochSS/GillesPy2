@@ -8,7 +8,7 @@ class NumPySSASolver(GillesPySolver):
     name = "NumPySSASolver"
 
     @staticmethod
-    def run(model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=False, **kwargs):
+    def run(model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True, **kwargs):
         """
         Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
         :param model: The model on which the solver will operate.

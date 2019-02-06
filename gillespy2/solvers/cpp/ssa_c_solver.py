@@ -27,7 +27,7 @@ def write_constants(outfile, model, reactions, species, parameter_mappings):
         for i in range(len(species)-1):
             outfile.write('"{}", '.format(species[i]))
         outfile.write('"{}"'.format(species[-1]))
-        outfile.write("};\nuint populations[] = {")
+        outfile.write("};\nunsigned int populations[] = {")
         #Write initial populations.
         for i in range(len(species)-1):
             outfile.write('{}, '.format(model.listOfSpecies[species[i]].initial_value))
@@ -160,7 +160,7 @@ class SSACSolver(GillesPySolver):
             raise gillespyError.BuildError("Error encountered while compiling file:\nReturn code: {0}.\nError:\n{1}\n".format(built.returncode, built.stderr))
 
     def run(self=None, model=None, t=20, number_of_trajectories=1,
-            increment=0.05, seed=None, debug=False, profile=False, show_labels=False, **kwargs):
+            increment=0.05, seed=None, debug=False, profile=False, show_labels=True, **kwargs):
         if self is None:
             self = SSACSolver(model)
         if self.compiled:
