@@ -53,8 +53,8 @@ class TestModel(unittest.TestCase):
         self.assertTrue(len(results[0]['time']) == number_points)
         self.assertTrue(len(results[0][species1.name]) == number_points)
         self.assertTrue(len(results[0][species2.name]) == number_points)
-        self.assertGreater(np.sum(results[0][species1.name]), 0)
-        self.assertGreater(np.sum(results[0][species2.name]), 0)
+        self.assertGreater(np.sum(results[0][species1.name]), 0.0)
+        self.assertGreater(np.sum(results[0][species2.name]), 0.0)
         self.assertEqual(np.sum(results[0][species1.name]) + np.sum(results[0][species2.name]), number_points)
 
 
