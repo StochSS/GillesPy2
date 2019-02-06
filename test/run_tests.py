@@ -29,5 +29,5 @@ if __name__ == '__main__':
         print("Executing: {}".format(module))
         result = runner.run(suite)
         print('='*70)
-    
-    sys.exit(not result.wasSuccessful())
+        if(not result.wasSuccessful()):
+            sys.exit(not result.wasSuccessful())
