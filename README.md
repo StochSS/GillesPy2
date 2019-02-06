@@ -5,7 +5,7 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;We present GillesPy2, a software library intended to solve the needs of many scientists; from the result seeking wet-lab biologist to the performance seeking bioinformatician. GillesPy2 is a next-generation of the original GillesPy library, an open source cross-platform Python library used for creating statistically correct trajectories for biochemical ordinary differential equations. GillesPy2 has been designed with a focus on providing both ease of use and clarity to the end user, using a unique modular solver system that allows the end user to specify the algorithm to solve their system of inquiry. This granularity is coupled with high-level functionality allowing the researcher to communicate and export their findings seamlessly.
 </bq>
 
-[![Build Status](https://travis-ci.org/georgemhall/GillesPy2.svg?branch=master)](https://travis-ci.org/georgemhall/GillesPy2)
+[![Build Status](https://travis-ci.org/georgemhall/GillesPy2.svg?branch=develop)](https://travis-ci.org/georgemhall/GillesPy2)
 
 
 ## Installation
