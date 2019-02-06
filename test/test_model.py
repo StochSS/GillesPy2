@@ -3,7 +3,6 @@ import sys, os
 sys.path.append(os.path.abspath(os.getcwd()))
 from gillespy2.core import Model, Species, Reaction, Parameter, RateRule
 from gillespy2.core.gillespyError import *
-from gillespy2.solvers.numpy import NumPySSASolver
 import numpy as np
 
 
@@ -49,7 +48,7 @@ class TestModel(unittest.TestCase):
         model.add_reaction([reaction1, reaction2])
         number_points = 11
         model.timespan(np.linspace(0, 10, number_points))
-        results = model.run(solver=NumPySSASolver, number_of_trajectories=1)
+        results = model.run(number_of_trajectories=1)
         self.assertTrue(len(results[0]['time']) == number_points)
         self.assertTrue(len(results[0][species1.name]) == number_points)
         self.assertTrue(len(results[0][species2.name]) == number_points)
