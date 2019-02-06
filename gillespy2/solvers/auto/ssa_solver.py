@@ -1,6 +1,4 @@
 from gillespy2.core import log
-from gillespy2.solvers.python import BasicSSASolver
-
 
 def get_best_ssa_solver(omit_cpp=False, omit_cython=False, omit_numpy=False):
     if not omit_cpp:
@@ -25,7 +23,7 @@ def get_best_ssa_solver(omit_cpp=False, omit_cython=False, omit_numpy=False):
             return NumPySSASolver
 
     log('Defaulting to Python Basic SSASolver.')
-    return BasicSSASolver
+    return NumPySSASolver
 
 
 SSASolver = get_best_ssa_solver()
