@@ -1,14 +1,9 @@
+os: linux
+dist: xenial
 language: python
-python:
-  - "3.5"
+python: "3.5"
 install:
-  - pip install numpy matplotlib seaborn
-compiler: g++
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - g++-5
+          - pip3 install numpy matplotlib seaborn
 script:
-  python test/run_tests.py
+          python test/run_tests.py
+
