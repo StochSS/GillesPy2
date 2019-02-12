@@ -8,7 +8,7 @@ import test_model
 import test_ode_solver
 import test_simple_model
 import test_ssa_solver
-
+import test_ssa_c_solver
 
 if __name__ == '__main__':
     modules = [
@@ -19,7 +19,8 @@ if __name__ == '__main__':
         test_model,
         test_ode_solver,
         test_simple_model,
-        test_ssa_solver
+        test_ssa_solver,
+	test_ssa_c_solver
     ]
 
     for module in modules:
