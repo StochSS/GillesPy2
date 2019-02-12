@@ -14,6 +14,7 @@ Please install gillespy2 through the following methods.
 ### Linux
 
 ```
+python3 -m pip install --upgrade pip
 python3 -m pip install gillespy2
 ```
 ### Mac
