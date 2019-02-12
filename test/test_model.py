@@ -38,7 +38,7 @@ class TestModel(unittest.TestCase):
 
     def test_species_parameter_name_substrings(self):
         model = Model()
-        rate = Parameter(name='rate', expression=0.5)
+        rate = Parameter(name='rate', expression=1000)
         model.add_parameter(rate)
         species1 = Species('A', initial_value=1)
         species2 = Species('AA', initial_value=0)
