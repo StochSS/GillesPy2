@@ -14,7 +14,7 @@ Please install gillespy2 through the following methods.
 ### Linux
 
 ```
-pip install gillespy2
+pip3 install gillespy2
 ```
 ### Mac
 (Pip should work, need to test on Mac machine)
