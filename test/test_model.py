@@ -44,19 +44,13 @@ class TestModel(unittest.TestCase):
         species2 = Species('AA', initial_value=0)
         model.add_species([species1, species2])
         reaction1 = Reaction(name="reaction1", reactants={species1: 1}, products={species2: 1}, rate=rate)
-        reaction2 = Reaction(name="reaction2", reactants={species2: 1}, products={species1: 1}, rate=rate)
-        model.add_reaction([reaction1, reaction2])
+        model.add_reaction(reaction1)
         number_points = 11
         model.timespan(np.linspace(0, 10, number_points))
         results = model.run(number_of_trajectories=1)
         self.assertTrue(len(results[0]['time']) == number_points)
         self.assertTrue(len(results[0][species1.name]) == number_points)
         self.assertTrue(len(results[0][species2.name]) == number_points)
-        self.assertGreater(np.sum(results[0][species1.name]), 0)
-        self.assertGreater(np.sum(results[0][species2.name]), 0)
-        self.assertEqual(np.sum(results[0][species1.name]) + np.sum(results[0][species2.name]), number_points)
-
-
-
-
-
+        self.assertEqual(results[0][species1.name][-1], 0)
+        self.assertGreater(results[0][species2.name][-1], 0)
+	self.assertEqual(np.sum(result[species1.name]) + np.sum(results[species2.name]), number_points)
