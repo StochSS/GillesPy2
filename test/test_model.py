@@ -52,5 +52,8 @@ class TestModel(unittest.TestCase):
         self.assertTrue(len(results[0][species1.name]) == number_points)
         self.assertTrue(len(results[0][species2.name]) == number_points)
         self.assertEqual(results[0][species1.name][-1], 0)
-        self.assertGreater(results[0][species2.name][-1], 0)
+        self.assertEqual(results[0][species2.name][-1], 1)
         self.assertEqual(np.sum(results[0][species1.name]) + np.sum(results[0][species2.name]), number_points)
+
+if __name__ == '__main__':
+    unittest.main()
