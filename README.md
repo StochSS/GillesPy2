@@ -9,7 +9,7 @@
 
 | Master Branch |  Develop Branch |
 |----------------|---|
-| [![Build Status](https://travis-ci.com/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.com/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.com/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.com/GillesPy2/GillesPy2) |
+| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) |
 
 
 ## Installation
