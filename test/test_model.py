@@ -1,6 +1,5 @@
 import unittest
-import sys, os
-from gillespy2.core import Model, Species, Reaction, Parameter, RateRule
+from gillespy2.core import Model, Species, Reaction, Parameter
 from gillespy2.core.gillespyError import *
 import numpy as np
 
@@ -53,6 +52,7 @@ class TestModel(unittest.TestCase):
         self.assertEqual(results[0][species1.name][-1], 0)
         self.assertEqual(results[0][species2.name][-1], 1)
         self.assertEqual(np.sum(results[0][species1.name]) + np.sum(results[0][species2.name]), number_points)
+
 
 if __name__ == '__main__':
     unittest.main()
