@@ -1,6 +1,5 @@
 import unittest
 import sys, os
-sys.path.append(os.path.abspath(os.getcwd()))
 from gillespy2.core import Model, Species, Reaction, Parameter, RateRule
 from gillespy2.core.gillespyError import *
 import numpy as np
