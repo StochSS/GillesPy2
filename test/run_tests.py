@@ -1,4 +1,6 @@
 import unittest, sys, os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 import test_basic_tau_hybrid_solver
 import test_basic_tau_leaping_solver
 # import test_cython_ssa_solver

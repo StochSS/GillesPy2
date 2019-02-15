@@ -5,5 +5,5 @@ python: "3.5"
 install:
           - pip3 install .
 script:
-          python test/run_tests.py
+          python test/run_tests_in_travis_CI.py
 
