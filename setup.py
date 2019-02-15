@@ -45,7 +45,7 @@ class easy_install_new(easy_install):
 
 
 setup(name = "gillespy2",
-      version = "1.1",
+      version = "1.0",
       packages = find_packages('.'),
       include_package_data=True,
       description = 'Python interface for Gillespie style biochemical simulations',
