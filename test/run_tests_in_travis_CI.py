@@ -4,7 +4,7 @@ src_dir = os.path.dirname(__file__)
 os.chdir(src_dir)
 dest_dir = tempfile.mkdtemp()
 
-for files in os.listdir(src_dir):
+for files in os.listdir('.'):
     if files != __file__:
         shutil.copy(files,dest_dir)
 
