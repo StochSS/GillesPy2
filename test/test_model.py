@@ -36,7 +36,7 @@ class TestModel(unittest.TestCase):
 
     def test_species_parameter_name_substrings(self):
         model = Model()
-        rate = Parameter(name='rate', expression=1000)
+        rate = Parameter(name='rate', expression=1)
         model.add_parameter(rate)
         species1 = Species('A', initial_value=100)
         species2 = Species('AA', initial_value=0)
@@ -44,8 +44,9 @@ class TestModel(unittest.TestCase):
         reaction1 = Reaction(name="reaction1", reactants={species1: 1}, products={species2: 1}, rate=rate)
         model.add_reaction(reaction1)
         number_points = 11
-        model.timespan(np.linspace(0, 100, number_points))
-        results = model.run(number_of_trajectories=1)[0]
+        model.timespan(np.linspace(0, 1, number_points))
+        results = model.run(number_of_trajectories=1, seed=1)[0]
+        print(results)
         self.assertTrue(len(results['time']) == number_points)
         self.assertTrue(len(results[species1.name]) == number_points)
         self.assertTrue(len(results[species2.name]) == number_points)
