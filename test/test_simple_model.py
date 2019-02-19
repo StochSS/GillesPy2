@@ -1,36 +1,34 @@
 import unittest
-import sys, os
-sys.path.append(os.path.abspath(os.getcwd()))
-import numpy, math
+import numpy
 from gillespy2.core import Model, Species, Reaction, Parameter, RateRule
 from gillespy2.core.gillespyError import *
-import matplotlib.pyplot as plt
+
 
 class SimpleHybridModel(Model):
-     def __init__(self, parameter_values=None):
-            #initialize Model
-            Model.__init__(self, name="Simple_Hybrid_Model")
+    def __init__(self, parameter_values=None):
+        Model.__init__(self, name="Simple_Hybrid_Model")
 
-            # Species
-            A = Species(name='A', initial_value=0)
-            B = Species(name='B', initial_value=0)
-            self.add_species([A,B])
+        # Species
+        A = Species(name='A', initial_value=0)
+        B = Species(name='B', initial_value=0)
+        self.add_species([A, B])
 
-            # Parameters
-            k1 = Parameter(name='k1', expression=1)
-            k2 = Parameter(name='k2', expression=10)
-            self.add_parameter([k1,k2])
+        # Parameters
+        k1 = Parameter(name='k1', expression=1)
+        k2 = Parameter(name='k2', expression=10)
+        self.add_parameter([k1, k2])
 
-            # Rate Rule
-            rate_rule = RateRule(B, "cos(t)")
-            self.add_rate_rule(rate_rule)
+        # Rate Rule
+        rate_rule = RateRule(B, "cos(t)")
+        self.add_rate_rule(rate_rule)
 
-            # Reactions
-            r1 = Reaction(name='r1', reactants={A:1}, products={}, propensity_function="k1*B")
-            r2 = Reaction(name='r2', reactants={}, products={B:1}, rate=k2)
-            self.add_reaction([r1,r2])
+        # Reactions
+        r1 = Reaction(name='r1', reactants={A: 1}, products={}, propensity_function="k1*B")
+        r2 = Reaction(name='r2', reactants={}, products={B: 1}, rate=k2)
+        self.add_reaction([r1, r2])
 
-            self.timespan(numpy.linspace(0,1,11))
+        self.timespan(numpy.linspace(0, 1, 11))
+
 
 class TestSimpleModel(unittest.TestCase):
     def setUp(self):
@@ -50,7 +48,7 @@ class TestSimpleModel(unittest.TestCase):
         A = Species(name='A', initial_value=0)
         B = Species(name='B', initial_value=0)
         with self.assertRaises(ModelError) as ex:
-            self.model.add_species([A,B])
+            self.model.add_species([A, B])
         self.assertEqual(str(ex.exception), 'Name "{}" is unavailable. A species with that name exists.'.format(A.name))
 
     def test_addingSameParameter_ThrowsError(self):
@@ -63,7 +61,7 @@ class TestSimpleModel(unittest.TestCase):
         k1 = Parameter(name='k1', expression=0)
         k2 = Parameter(name='k2', expression=0)
         with self.assertRaises(ModelError) as ex:
-            self.model.add_parameter([k1,k2])
+            self.model.add_parameter([k1, k2])
         self.assertEqual(str(ex.exception), 'Name "{}" is unavailable. A parameter with that name exists.'.format(k1.name))
 
     def test_delete_species(self):
@@ -91,7 +89,7 @@ class TestSimpleModel(unittest.TestCase):
         with self.assertRaises(ModelError) as ex:
             self.model.set_units('nonsense')
         self.assertEqual(str(ex.exception), "units must be either concentration or population (case insensitive)")
-    
+
     def test_serialization(self):
         doc = self.model.serialize()
         self.assertIsInstance(doc, str)
@@ -203,10 +201,10 @@ class TestSimpleModel(unittest.TestCase):
         self.assertEqual(reactions['r2'].name, 'r2', msg='Has incorrect expression')
         self.assertEqual(reactions['r2'].marate.expression, '10', msg='Has incorrect expression')
 
-    
     def test_model_has_timespan_correct(self):
         timespan = self.model.tspan
-        self.assertCountEqual(timespan, numpy.linspace(0,1,11), msg='Has incorrect timespan')
+        self.assertCountEqual(timespan, numpy.linspace(0, 1, 11), msg='Has incorrect timespan')
+
 
 if __name__ == '__main__':
     unittest.main()
