@@ -22,10 +22,10 @@ python3 -m pip install --upgrade pip
 python3 -m pip install gillespy2
 ```
 ### Mac
-(Pip should work, need to test on Mac machine)
+(Pip should work, same as Linux)
 
-###Windows
-(Pip should work, need to test on Windows machine.)
+### Windows
+(Pip should work, same as Linux)
 
 ## Deployment
 
