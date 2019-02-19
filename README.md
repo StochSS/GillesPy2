@@ -58,3 +58,4 @@ GillesPy2 is licenced under GPLv3, see [LICENCE] for details.
 
 
 ## Acknowledgments
+This work has been funded by National Institutes of Health (NIH) NIBIB Award No. R01-EB014877
