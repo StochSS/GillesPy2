@@ -1,4 +1,5 @@
 import unittest, sys, os
+import argparse
 import test_basic_tau_hybrid_solver
 import test_basic_tau_leaping_solver
 # import test_cython_ssa_solver
@@ -9,7 +10,15 @@ import test_simple_model
 import test_ssa_solver
 import test_ssa_c_solver
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-m', '--mode', default='develop', choices=['develop', 'release'], help='Run tests in develop mode or release mode.')
+
+
 if __name__ == '__main__':
+    args = parser.parse_args()
+    if args.mode == 'develop':
+        print('Running tests in develop mode. Appending repository directory to system path.')
+        sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
     modules = [
         test_basic_tau_hybrid_solver,
         test_basic_tau_leaping_solver,
@@ -24,7 +33,7 @@ if __name__ == '__main__':
 
     for module in modules:
         suite = unittest.TestLoader().loadTestsFromModule(module)
-        runner = unittest.TextTestRunner()
+        runner = unittest.TextTestRunner(failfast=args.mode == 'develop')
 
         print("Executing: {}".format(module))
         result = runner.run(suite)

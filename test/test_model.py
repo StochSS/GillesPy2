@@ -36,22 +36,24 @@ class TestModel(unittest.TestCase):
 
     def test_species_parameter_name_substrings(self):
         model = Model()
-        rate = Parameter(name='rate', expression=1000)
+        rate = Parameter(name='rate', expression=1)
         model.add_parameter(rate)
-        species1 = Species('A', initial_value=1)
+        species1 = Species('A', initial_value=100)
         species2 = Species('AA', initial_value=0)
         model.add_species([species1, species2])
         reaction1 = Reaction(name="reaction1", reactants={species1: 1}, products={species2: 1}, rate=rate)
         model.add_reaction(reaction1)
         number_points = 11
-        model.timespan(np.linspace(0, 10, number_points))
-        results = model.run(number_of_trajectories=1)
-        self.assertTrue(len(results[0]['time']) == number_points)
-        self.assertTrue(len(results[0][species1.name]) == number_points)
-        self.assertTrue(len(results[0][species2.name]) == number_points)
-        self.assertEqual(results[0][species1.name][-1], 0)
-        self.assertEqual(results[0][species2.name][-1], 1)
-        self.assertEqual(np.sum(results[0][species1.name]) + np.sum(results[0][species2.name]), number_points)
+        model.timespan(np.linspace(0, 1, number_points))
+        from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver
+        results = model.run(number_of_trajectories=1, solver=NumPySSASolver, seed=1)[0]
+        print(results)
+        self.assertTrue(len(results['time']) == number_points)
+        self.assertTrue(len(results[species1.name]) == number_points)
+        self.assertTrue(len(results[species2.name]) == number_points)
+        self.assertGreater(results[species1.name][0], results[species1.name][-1])
+        self.assertLess(results[species2.name][0], results[species2.name][-1])
+        self.assertEqual(np.sum(results[species1.name]) + np.sum(results[species2.name]), number_points * species1.initial_value)
 
 
 if __name__ == '__main__':

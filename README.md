@@ -40,9 +40,6 @@ python3 -m pip install gillespy2
 
 Please read [CONTRIBUTING.md] for details on our code of conduct, and the process for submitting pull requests to us. (These will be determined later.)
 
-## Versioning
-
-(Needs to be decided upon.)
 
 ## Authors
 
@@ -57,6 +54,7 @@ Please read [CONTRIBUTING.md] for details on our code of conduct, and the proces
 
 ## License
 
-(Talk to PI about licensing.)
+GillesPy2 is licenced under GPLv3, see [LICENCE] for details.
+
 
 ## Acknowledgments
