@@ -38,8 +38,7 @@ python3 -m pip install gillespy2
 
 ## Contributing
 
-Please read [CONTRIBUTING.md] for details on our code of conduct, and the process for submitting pull requests to us. (These will be determined later.)
-
+If you have any problems, or want to request a feature, please submit an issue to this repository.  If you want to contributed to GillesPy2, please send a pull request.  If you have any questions, contact Brian Drawert.
 
 ## Authors
 
@@ -58,4 +57,5 @@ GillesPy2 is licenced under GPLv3, see [LICENCE] for details.
 
 
 ## Acknowledgments
-This work has been funded by National Institutes of Health (NIH) NIBIB Award No. R01-EB014877
+This work has been funded by National Institutes of Health (NIH) NIBIB Award No. 2R01EB014877-04A1
+
