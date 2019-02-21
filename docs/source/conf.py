@@ -14,7 +14,8 @@
 #
 import os
 import sys
-sys.path.insert(0, '/mnt/c/Users/seanm/OneDrive/Documents/Research/documentation/GillesPy2')
+#   sys.path.insert(0, '/mnt/c/Users/seanm/OneDrive/Documents/Research/documentation/GillesPy2')
+sys.path.append('../')
 
 
 # -- Project information -----------------------------------------------------
