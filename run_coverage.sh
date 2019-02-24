@@ -1,3 +1,3 @@
 #!/bin/bash
-coverage run test/run_tests.py -m release
+coverage run test/run_tests.py -m develop
 coverage html

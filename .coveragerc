@@ -1,2 +1,3 @@
 [run]
-source = ./
+omit = */.local/lib/python3.6/site-packages/numpy/*
+	*/.local/lib/python3.6/site-packages/scipy/*
