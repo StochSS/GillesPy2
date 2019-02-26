@@ -204,8 +204,8 @@ class BasicTauLeapingSolver(GillesPySolver):
                 """
         if not sys.warnoptions:
             warnings.simplefilter("ignore")
-        #   if not isinstance(self, BasicTauLeapingSolver):
-        #       self = BasicTauLeapingSolver()
+        if not isinstance(self, BasicTauLeapingSolver):
+            self = BasicTauLeapingSolver()
         if debug:
             print("t = ", t)
             print("increment = ", increment)
