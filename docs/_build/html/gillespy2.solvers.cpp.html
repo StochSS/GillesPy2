@@ -1,0 +1,251 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>gillespy2.solvers.cpp package &#8212; GillesPy2  documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="gillespy2.solvers.cython package" href="gillespy2.solvers.cython.html" />
+    <link rel="prev" title="gillespy2.solvers.auto package" href="gillespy2.solvers.auto.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="gillespy2.solvers.cython.html" title="gillespy2.solvers.cython package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="gillespy2.solvers.auto.html" title="gillespy2.solvers.auto package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GillesPy2  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="gillespy2.html" >gillespy2 package</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="gillespy2.solvers.html" accesskey="U">gillespy2.solvers package</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="gillespy2-solvers-cpp-package">
+<h1>gillespy2.solvers.cpp package<a class="headerlink" href="#gillespy2-solvers-cpp-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-gillespy2.solvers.cpp.ssa_c_solver">
+<span id="gillespy2-solvers-cpp-ssa-c-solver-module"></span><h2>gillespy2.solvers.cpp.ssa_c_solver module<a class="headerlink" href="#module-gillespy2.solvers.cpp.ssa_c_solver" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="gillespy2.solvers.cpp.ssa_c_solver.SSACSolver">
+<em class="property">class </em><code class="descclassname">gillespy2.solvers.cpp.ssa_c_solver.</code><code class="descname">SSACSolver</code><span class="sig-paren">(</span><em>model=None</em>, <em>output_directory=None</em>, <em>delete_directory=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/cpp/ssa_c_solver.html#SSACSolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.cpp.ssa_c_solver.SSACSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
+<dl class="method">
+<dt id="gillespy2.solvers.cpp.ssa_c_solver.SSACSolver.compile">
+<code class="descname">compile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/cpp/ssa_c_solver.html#SSACSolver.compile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.cpp.ssa_c_solver.SSACSolver.compile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.solvers.cpp.ssa_c_solver.SSACSolver.name">
+<code class="descname">name</code><em class="property"> = 'SSACSolver'</em><a class="headerlink" href="#gillespy2.solvers.cpp.ssa_c_solver.SSACSolver.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.solvers.cpp.ssa_c_solver.SSACSolver.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>model=None</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>debug=False</em>, <em>profile=False</em>, <em>show_labels=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/cpp/ssa_c_solver.html#SSACSolver.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.cpp.ssa_c_solver.SSACSolver.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.solvers.cpp.ssa_c_solver.SSACSolver.write_template">
+<code class="descname">write_template</code><span class="sig-paren">(</span><em>template_file='SimulationTemplate.cpp'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/cpp/ssa_c_solver.html#SSACSolver.write_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.cpp.ssa_c_solver.SSACSolver.write_template" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="gillespy2.solvers.cpp.ssa_c_solver.copy_files">
+<code class="descclassname">gillespy2.solvers.cpp.ssa_c_solver.</code><code class="descname">copy_files</code><span class="sig-paren">(</span><em>destination</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/cpp/ssa_c_solver.html#copy_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.cpp.ssa_c_solver.copy_files" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="gillespy2.solvers.cpp.ssa_c_solver.parse_binary_output">
+<code class="descclassname">gillespy2.solvers.cpp.ssa_c_solver.</code><code class="descname">parse_binary_output</code><span class="sig-paren">(</span><em>results_buffer</em>, <em>number_of_trajectories</em>, <em>number_timesteps</em>, <em>number_species</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/cpp/ssa_c_solver.html#parse_binary_output"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.cpp.ssa_c_solver.parse_binary_output" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="gillespy2.solvers.cpp.ssa_c_solver.parse_output">
+<code class="descclassname">gillespy2.solvers.cpp.ssa_c_solver.</code><code class="descname">parse_output</code><span class="sig-paren">(</span><em>results</em>, <em>number_of_trajectories</em>, <em>number_timesteps</em>, <em>number_species</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/cpp/ssa_c_solver.html#parse_output"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.cpp.ssa_c_solver.parse_output" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="gillespy2.solvers.cpp.ssa_c_solver.write_constants">
+<code class="descclassname">gillespy2.solvers.cpp.ssa_c_solver.</code><code class="descname">write_constants</code><span class="sig-paren">(</span><em>outfile</em>, <em>model</em>, <em>reactions</em>, <em>species</em>, <em>parameter_mappings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/cpp/ssa_c_solver.html#write_constants"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.cpp.ssa_c_solver.write_constants" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="gillespy2.solvers.cpp.ssa_c_solver.write_propensity">
+<code class="descclassname">gillespy2.solvers.cpp.ssa_c_solver.</code><code class="descname">write_propensity</code><span class="sig-paren">(</span><em>outfile</em>, <em>model</em>, <em>species_mappings</em>, <em>parameter_mappings</em>, <em>reactions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/cpp/ssa_c_solver.html#write_propensity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.cpp.ssa_c_solver.write_propensity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="gillespy2.solvers.cpp.ssa_c_solver.write_reactions">
+<code class="descclassname">gillespy2.solvers.cpp.ssa_c_solver.</code><code class="descname">write_reactions</code><span class="sig-paren">(</span><em>outfile</em>, <em>model</em>, <em>reactions</em>, <em>species</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/cpp/ssa_c_solver.html#write_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.cpp.ssa_c_solver.write_reactions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-gillespy2.solvers.cpp.test_ssa_c_solver">
+<span id="gillespy2-solvers-cpp-test-ssa-c-solver-module"></span><h2>gillespy2.solvers.cpp.test_ssa_c_solver module<a class="headerlink" href="#module-gillespy2.solvers.cpp.test_ssa_c_solver" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="gillespy2.solvers.cpp.test_ssa_c_solver.TestSSACSolver">
+<em class="property">class </em><code class="descclassname">gillespy2.solvers.cpp.test_ssa_c_solver.</code><code class="descname">TestSSACSolver</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/cpp/test_ssa_c_solver.html#TestSSACSolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.cpp.test_ssa_c_solver.TestSSACSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="method">
+<dt id="gillespy2.solvers.cpp.test_ssa_c_solver.TestSSACSolver.test_create">
+<code class="descname">test_create</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/cpp/test_ssa_c_solver.html#TestSSACSolver.test_create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.cpp.test_ssa_c_solver.TestSSACSolver.test_create" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.solvers.cpp.test_ssa_c_solver.TestSSACSolver.test_file_with_directory_name_exists">
+<code class="descname">test_file_with_directory_name_exists</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/cpp/test_ssa_c_solver.html#TestSSACSolver.test_file_with_directory_name_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.cpp.test_ssa_c_solver.TestSSACSolver.test_file_with_directory_name_exists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.solvers.cpp.test_ssa_c_solver.TestSSACSolver.test_run_example">
+<code class="descname">test_run_example</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/cpp/test_ssa_c_solver.html#TestSSACSolver.test_run_example"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.cpp.test_ssa_c_solver.TestSSACSolver.test_run_example" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.solvers.cpp.test_ssa_c_solver.TestSSACSolver.test_run_example_precompiled">
+<code class="descname">test_run_example_precompiled</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/cpp/test_ssa_c_solver.html#TestSSACSolver.test_run_example_precompiled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.cpp.test_ssa_c_solver.TestSSACSolver.test_run_example_precompiled" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-gillespy2.solvers.cpp">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-gillespy2.solvers.cpp" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="gillespy2.solvers.cpp.SSACSolver">
+<em class="property">class </em><code class="descclassname">gillespy2.solvers.cpp.</code><code class="descname">SSACSolver</code><span class="sig-paren">(</span><em>model=None</em>, <em>output_directory=None</em>, <em>delete_directory=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/cpp/ssa_c_solver.html#SSACSolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.cpp.SSACSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
+<dl class="method">
+<dt id="gillespy2.solvers.cpp.SSACSolver.compile">
+<code class="descname">compile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/cpp/ssa_c_solver.html#SSACSolver.compile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.cpp.SSACSolver.compile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.solvers.cpp.SSACSolver.name">
+<code class="descname">name</code><em class="property"> = 'SSACSolver'</em><a class="headerlink" href="#gillespy2.solvers.cpp.SSACSolver.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.solvers.cpp.SSACSolver.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>model=None</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>debug=False</em>, <em>profile=False</em>, <em>show_labels=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/cpp/ssa_c_solver.html#SSACSolver.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.cpp.SSACSolver.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.solvers.cpp.SSACSolver.write_template">
+<code class="descname">write_template</code><span class="sig-paren">(</span><em>template_file='SimulationTemplate.cpp'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/cpp/ssa_c_solver.html#SSACSolver.write_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.cpp.SSACSolver.write_template" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">gillespy2.solvers.cpp package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-gillespy2.solvers.cpp.ssa_c_solver">gillespy2.solvers.cpp.ssa_c_solver module</a></li>
+<li><a class="reference internal" href="#module-gillespy2.solvers.cpp.test_ssa_c_solver">gillespy2.solvers.cpp.test_ssa_c_solver module</a></li>
+<li><a class="reference internal" href="#module-gillespy2.solvers.cpp">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="gillespy2.solvers.auto.html"
+                        title="previous chapter">gillespy2.solvers.auto package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="gillespy2.solvers.cython.html"
+                        title="next chapter">gillespy2.solvers.cython package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/gillespy2.solvers.cpp.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="gillespy2.solvers.cython.html" title="gillespy2.solvers.cython package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="gillespy2.solvers.auto.html" title="gillespy2.solvers.auto package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GillesPy2  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="gillespy2.html" >gillespy2 package</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="gillespy2.solvers.html" >gillespy2.solvers package</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+    </div>
+  </body>
+</html>
