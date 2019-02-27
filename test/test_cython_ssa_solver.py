@@ -1,8 +1,4 @@
 import unittest
-import tempfile
-import sys, os
-sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
-from gillespy2.core.gillespyError import SolverError, DirectoryError, BuildError, ExecutionError
 from gillespy2.example_models import Example
 from gillespy2.solvers.cython.cython_ssa_solver import CythonSSASolver
 

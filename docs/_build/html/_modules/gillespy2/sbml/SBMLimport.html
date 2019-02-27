@@ -1,0 +1,300 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>gillespy2.sbml.SBMLimport &#8212; GillesPy2  documentation</title>
+    <link rel="stylesheet" href="../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">GillesPy2  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for gillespy2.sbml.SBMLimport</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">gillespy2</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+
+<div class="viewcode-block" id="convert"><a class="viewcode-back" href="../../../gillespy2.sbml.html#gillespy2.sbml.SBMLimport.convert">[docs]</a><span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gillespy_model</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">libsbml</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;libsbml is required to convert SBML files for GillesPy.&#39;</span><span class="p">)</span>
+
+    <span class="n">document</span> <span class="o">=</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">readSBML</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">error_count</span> <span class="o">=</span> <span class="n">document</span><span class="o">.</span><span class="n">getNumErrors</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">error_count</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">error_count</span><span class="p">):</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="n">document</span><span class="o">.</span><span class="n">getError</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">converter_code</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">converter_code</span> <span class="o">=</span> <span class="o">-</span><span class="mi">10</span>
+
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;SBML </span><span class="si">{0}</span><span class="s2">, code </span><span class="si">{1}</span><span class="s2">, line </span><span class="si">{2}</span><span class="s2">: </span><span class="si">{3}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">getSeverityAsString</span><span class="p">(),</span> <span class="n">error</span><span class="o">.</span><span class="n">getErrorId</span><span class="p">(),</span>
+                                                                      <span class="n">error</span><span class="o">.</span><span class="n">getLine</span><span class="p">(),</span> <span class="n">error</span><span class="o">.</span><span class="n">getMessage</span><span class="p">()),</span>
+                           <span class="n">converter_code</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">min</span><span class="p">([</span><span class="n">code</span> <span class="k">for</span> <span class="n">error</span><span class="p">,</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">errors</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">errors</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">document</span><span class="o">.</span><span class="n">getModel</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">model_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">model_name</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">gillespy_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gillespy_model</span> <span class="o">=</span> <span class="n">gillespy2</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">model_name</span><span class="p">)</span>
+    <span class="n">gillespy_model</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;concentration&quot;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">getNumSpecies</span><span class="p">()):</span>
+        <span class="n">species</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getSpecies</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">species</span><span class="o">.</span><span class="n">getId</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;EmptySet&#39;</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+                              <span class="s2">&quot;EmptySet species detected in model on line </span><span class="si">{0}</span><span class="s2">. EmptySet is not an explicit species in &quot;</span>
+                              <span class="s2">&quot;gillespy&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                  <span class="n">species</span><span class="o">.</span><span class="n">getLine</span><span class="p">()),</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="k">continue</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">getId</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">species</span><span class="o">.</span><span class="n">isSetInitialAmount</span><span class="p">():</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">getInitialAmount</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">species</span><span class="o">.</span><span class="n">isSetInitialConcentration</span><span class="p">():</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">getInitialConcentration</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rule</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getRule</span><span class="p">(</span><span class="n">species</span><span class="o">.</span><span class="n">getId</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">rule</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                <span class="k">if</span> <span class="n">rule</span><span class="o">.</span><span class="n">isAssignment</span><span class="p">():</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;assignment &quot;</span>
+                <span class="k">elif</span> <span class="n">rule</span><span class="o">.</span><span class="n">isRate</span><span class="p">():</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;rate &quot;</span>
+                <span class="k">elif</span> <span class="n">rule</span><span class="o">.</span><span class="n">isAlgebraic</span><span class="p">():</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;algebraic &quot;</span>
+
+                <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;rule&quot;</span>
+
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+                                  <span class="s2">&quot;Species &#39;</span><span class="si">{0}</span><span class="s2">&#39; does not have any initial conditions. Associated </span><span class="si">{1}</span><span class="s2"> &#39;</span><span class="si">{2}</span><span class="s2">&#39; found, &quot;</span>
+                                  <span class="s2">&quot;but </span><span class="si">{1}</span><span class="s2">s are not supported in gillespy. Assuming initial condition 0&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                      <span class="n">species</span><span class="o">.</span><span class="n">getId</span><span class="p">(),</span> <span class="n">msg</span><span class="p">,</span> <span class="n">rule</span><span class="o">.</span><span class="n">getId</span><span class="p">()),</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+                                  <span class="s2">&quot;Species &#39;</span><span class="si">{0}</span><span class="s2">&#39; does not have any initial conditions or rules. Assuming initial &quot;</span>
+                                  <span class="s2">&quot;condition 0&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                      <span class="n">species</span><span class="o">.</span><span class="n">getId</span><span class="p">()),</span> <span class="mi">0</span><span class="p">])</span>
+
+            <span class="n">value</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+                              <span class="s2">&quot;Species &#39;</span><span class="si">{0}</span><span class="s2">&#39; has negative initial condition (</span><span class="si">{1}</span><span class="s2">). gillespy does not support negative &quot;</span>
+                              <span class="s2">&quot;initial conditions. Assuming initial condition 0&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                  <span class="n">species</span><span class="o">.</span><span class="n">getId</span><span class="p">(),</span> <span class="n">value</span><span class="p">),</span> <span class="o">-</span><span class="mi">5</span><span class="p">])</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">gillespy_species</span> <span class="o">=</span> <span class="n">gillespy2</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">initial_value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">gillespy_model</span><span class="o">.</span><span class="n">add_species</span><span class="p">([</span><span class="n">gillespy_species</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">getNumParameters</span><span class="p">()):</span>
+        <span class="n">parameter</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getParameter</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">parameter</span><span class="o">.</span><span class="n">getId</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">parameter</span><span class="o">.</span><span class="n">getValue</span><span class="p">()</span>
+
+        <span class="n">gillespy_parameter</span> <span class="o">=</span> <span class="n">gillespy2</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">gillespy_model</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">([</span><span class="n">gillespy_parameter</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">getNumCompartments</span><span class="p">()):</span>
+        <span class="n">compartment</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getCompartment</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">compartment</span><span class="o">.</span><span class="n">getId</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">compartment</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span>
+
+        <span class="n">gillespy_parameter</span> <span class="o">=</span> <span class="n">gillespy2</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">gillespy_model</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">([</span><span class="n">gillespy_parameter</span><span class="p">])</span>
+
+    <span class="c1"># local parameters</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">getNumReactions</span><span class="p">()):</span>
+        <span class="n">reaction</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getReaction</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">kinetic_law</span> <span class="o">=</span> <span class="n">reaction</span><span class="o">.</span><span class="n">getKineticLaw</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">kinetic_law</span><span class="o">.</span><span class="n">getNumParameters</span><span class="p">()):</span>
+            <span class="n">parameter</span> <span class="o">=</span> <span class="n">kinetic_law</span><span class="o">.</span><span class="n">getParameter</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">parameter</span><span class="o">.</span><span class="n">getId</span><span class="p">()</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">parameter</span><span class="o">.</span><span class="n">getValue</span><span class="p">()</span>
+            <span class="n">gillespy_parameter</span> <span class="o">=</span> <span class="n">gillespy2</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">gillespy_model</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">([</span><span class="n">gillespy_parameter</span><span class="p">])</span>
+
+    <span class="c1"># reactions</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">getNumReactions</span><span class="p">()):</span>
+        <span class="n">reaction</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getReaction</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">reaction</span><span class="o">.</span><span class="n">getId</span><span class="p">()</span>
+
+        <span class="n">reactants</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">products</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">reaction</span><span class="o">.</span><span class="n">getNumReactants</span><span class="p">()):</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="n">reaction</span><span class="o">.</span><span class="n">getReactant</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">species</span><span class="o">.</span><span class="n">getSpecies</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;EmptySet&quot;</span><span class="p">:</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+                                  <span class="s2">&quot;EmptySet species detected as reactant in reaction &#39;</span><span class="si">{0}</span><span class="s2">&#39; on line </span><span class="si">{1}</span><span class="s2">. EmptySet is &quot;</span>
+                                  <span class="s2">&quot;not an explicit species in gillespy&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                      <span class="n">reaction</span><span class="o">.</span><span class="n">getId</span><span class="p">(),</span> <span class="n">species</span><span class="o">.</span><span class="n">getLine</span><span class="p">()),</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">reactants</span><span class="p">[</span><span class="n">species</span><span class="o">.</span><span class="n">getSpecies</span><span class="p">()]</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">getStoichiometry</span><span class="p">()</span>
+
+        <span class="c1"># get products</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">reaction</span><span class="o">.</span><span class="n">getNumProducts</span><span class="p">()):</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="n">reaction</span><span class="o">.</span><span class="n">getProduct</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">species</span><span class="o">.</span><span class="n">getSpecies</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;EmptySet&quot;</span><span class="p">:</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+                                  <span class="s2">&quot;EmptySet species detected as product in reaction &#39;</span><span class="si">{0}</span><span class="s2">&#39; on line </span><span class="si">{1}</span><span class="s2">. EmptySet is &quot;</span>
+                                  <span class="s2">&quot;not an explicit species in gillespy&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                      <span class="n">reaction</span><span class="o">.</span><span class="n">getId</span><span class="p">(),</span> <span class="n">species</span><span class="o">.</span><span class="n">getLine</span><span class="p">()),</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">products</span><span class="p">[</span><span class="n">species</span><span class="o">.</span><span class="n">getSpecies</span><span class="p">()]</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">getStoichiometry</span><span class="p">()</span>
+
+        <span class="c1"># propensity</span>
+        <span class="n">kinetic_law</span> <span class="o">=</span> <span class="n">reaction</span><span class="o">.</span><span class="n">getKineticLaw</span><span class="p">()</span>
+        <span class="n">propensity</span> <span class="o">=</span> <span class="n">kinetic_law</span><span class="o">.</span><span class="n">getFormula</span><span class="p">()</span>
+
+        <span class="n">gillespy_reaction</span> <span class="o">=</span> <span class="n">gillespy2</span><span class="o">.</span><span class="n">Reaction</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">reactants</span><span class="o">=</span><span class="n">reactants</span><span class="p">,</span> <span class="n">products</span><span class="o">=</span><span class="n">products</span><span class="p">,</span>
+                                             <span class="n">propensity_function</span><span class="o">=</span><span class="n">propensity</span><span class="p">)</span>
+
+        <span class="n">gillespy_model</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">([</span><span class="n">gillespy_reaction</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">getNumRules</span><span class="p">()):</span>
+        <span class="n">rule</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getRule</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="n">t</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">rule</span><span class="o">.</span><span class="n">isCompartmentVolume</span><span class="p">():</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;compartment&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rule</span><span class="o">.</span><span class="n">isParameter</span><span class="p">():</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;parameter&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">rule</span><span class="o">.</span><span class="n">isAssignment</span><span class="p">():</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;assignment&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">rule</span><span class="o">.</span><span class="n">isRate</span><span class="p">():</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;rate&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">rule</span><span class="o">.</span><span class="n">isAlgebraic</span><span class="p">():</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;algebraic&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span>
+
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot; rule&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Rule&quot;</span>
+
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> &#39;</span><span class="si">{1}</span><span class="s2">&#39; found on line &#39;</span><span class="si">{2}</span><span class="s2">&#39; with equation &#39;</span><span class="si">{3}</span><span class="s2">&#39;. gillespy does not support SBML Rules&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">msg</span><span class="p">,</span> <span class="n">rule</span><span class="o">.</span><span class="n">getId</span><span class="p">(),</span> <span class="n">rule</span><span class="o">.</span><span class="n">getLine</span><span class="p">(),</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">formulaToString</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">getMath</span><span class="p">())),</span> <span class="o">-</span><span class="mi">5</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">getNumCompartments</span><span class="p">()):</span>
+        <span class="n">compartment</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getCompartment</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+                          <span class="s2">&quot;Compartment &#39;</span><span class="si">{0}</span><span class="s2">&#39; found on line &#39;</span><span class="si">{1}</span><span class="s2">&#39; with volume &#39;</span><span class="si">{2}</span><span class="s2">&#39; and dimension &#39;</span><span class="si">{3}</span><span class="s2">&#39;. gillespy &quot;</span>
+                          <span class="s2">&quot;assumes a single well-mixed, reaction volume&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                              <span class="n">compartment</span><span class="o">.</span><span class="n">getId</span><span class="p">(),</span> <span class="n">compartment</span><span class="o">.</span><span class="n">getLine</span><span class="p">(),</span> <span class="n">compartment</span><span class="o">.</span><span class="n">getVolume</span><span class="p">(),</span>
+                              <span class="n">compartment</span><span class="o">.</span><span class="n">getSpatialDimensions</span><span class="p">()),</span> <span class="o">-</span><span class="mi">5</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">getNumConstraints</span><span class="p">()):</span>
+        <span class="n">constraint</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getConstraint</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+                          <span class="s2">&quot;Constraint &#39;</span><span class="si">{0}</span><span class="s2">&#39; found on line &#39;</span><span class="si">{1}</span><span class="s2">&#39; with equation &#39;</span><span class="si">{2}</span><span class="s2">&#39;. gillespy does not support SBML &quot;</span>
+                          <span class="s2">&quot;Constraints&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                              <span class="n">constraint</span><span class="o">.</span><span class="n">getId</span><span class="p">(),</span> <span class="n">constraint</span><span class="o">.</span><span class="n">getLine</span><span class="p">(),</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">formulaToString</span><span class="p">(</span><span class="n">constraint</span><span class="o">.</span><span class="n">getMath</span><span class="p">())),</span>
+                          <span class="o">-</span><span class="mi">5</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">getNumEvents</span><span class="p">()):</span>
+        <span class="n">event</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getEvent</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+                          <span class="s2">&quot;Event &#39;</span><span class="si">{0}</span><span class="s2">&#39; found on line &#39;</span><span class="si">{1}</span><span class="s2">&#39; with trigger equation &#39;</span><span class="si">{2}</span><span class="s2">&#39;. gillespy does not support &quot;</span>
+                          <span class="s2">&quot;SBML Events&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                              <span class="n">event</span><span class="o">.</span><span class="n">getId</span><span class="p">(),</span> <span class="n">event</span><span class="o">.</span><span class="n">getLine</span><span class="p">(),</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">formulaToString</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">getTrigger</span><span class="p">()</span><span class="o">.</span><span class="n">getMath</span><span class="p">())),</span>
+                          <span class="o">-</span><span class="mi">5</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">getNumFunctionDefinitions</span><span class="p">()):</span>
+        <span class="n">function</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getFunctionDefinition</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+                          <span class="s2">&quot;Function &#39;</span><span class="si">{0}</span><span class="s2">&#39; found on line &#39;</span><span class="si">{1}</span><span class="s2">&#39; with equation &#39;</span><span class="si">{2}</span><span class="s2">&#39;. gillespy does not support SBML &quot;</span>
+                          <span class="s2">&quot;Function Definitions&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                              <span class="n">function</span><span class="o">.</span><span class="n">getId</span><span class="p">(),</span> <span class="n">function</span><span class="o">.</span><span class="n">getLine</span><span class="p">(),</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">formulaToString</span><span class="p">(</span><span class="n">function</span><span class="o">.</span><span class="n">getMath</span><span class="p">())),</span> <span class="o">-</span><span class="mi">5</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">gillespy_model</span><span class="p">,</span> <span class="n">errors</span></div>
+
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">GillesPy2  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+    </div>
+  </body>
+</html>

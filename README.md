@@ -5,7 +5,11 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;We present GillesPy2, a software library intended to solve the needs of many scientists; from the result seeking wet-lab biologist to the performance seeking bioinformatician. GillesPy2 is a next-generation of the original GillesPy library, an open source cross-platform Python library used for creating statistically correct trajectories for biochemical ordinary differential equations. GillesPy2 has been designed with a focus on providing both ease of use and clarity to the end user, using a unique modular solver system that allows the end user to specify the algorithm to solve their system of inquiry. This granularity is coupled with high-level functionality allowing the researcher to communicate and export their findings seamlessly.
 </bq>
 
-[![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2)
+## Build Status
+
+| Master Branch |  Develop Branch |
+|----------------|---|
+| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) |
 
 
 ## Installation
@@ -14,13 +18,14 @@ Please install gillespy2 through the following methods.
 ### Linux
 
 ```
-pip install gillespy2
+python3 -m pip install --upgrade pip
+python3 -m pip install gillespy2
 ```
 ### Mac
-(Pip should work, need to test on Mac machine)
+(Pip should work, same as Linux)
 
-###Windows
-(Pip should work, need to test on Windows machine.)
+### Windows
+(Pip should work, same as Linux)
 
 ## Deployment
 
@@ -33,11 +38,7 @@ pip install gillespy2
 
 ## Contributing
 
-Please read [CONTRIBUTING.md] for details on our code of conduct, and the process for submitting pull requests to us. (These will be determined later.)
-
-## Versioning
-
-(Needs to be decided upon.)
+If you have any problems, or want to request a feature, please submit an issue to this repository.  If you want to contributed to GillesPy2, please send a pull request.  If you have any questions, contact Brian Drawert.
 
 ## Authors
 
@@ -52,6 +53,9 @@ Please read [CONTRIBUTING.md] for details on our code of conduct, and the proces
 
 ## License
 
-(Talk to PI about licensing.)
+GillesPy2 is licenced under GPLv3, see [LICENCE] for details.
+
 
 ## Acknowledgments
+This work has been funded by National Institutes of Health (NIH) NIBIB Award No. 2R01EB014877-04A1
+
