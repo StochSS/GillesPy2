@@ -1,0 +1,392 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>gillespy2.solvers.numpy.basic_tau_leaping_solver &#8212; GillesPy2  documentation</title>
+    <link rel="stylesheet" href="../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">GillesPy2  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for gillespy2.solvers.numpy.basic_tau_leaping_solver</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">GillesPySolver</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+
+<div class="viewcode-block" id="BasicTauLeapingSolver"><a class="viewcode-back" href="../../../../gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver">[docs]</a><span class="k">class</span> <span class="nc">BasicTauLeapingSolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A Basic Tau Leaping Solver for GillesPy2 models.  This solver uses an algorithm calculates</span>
+<span class="sd">    multiple reactions in a single step over a given tau step size.  The change in propensities</span>
+<span class="sd">    over this step are bounded by bounding the relative change in state, yielding greatly improved</span>
+<span class="sd">    run-time performance with very little trade-off in accuracy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Basic Tau Leaping Solver&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.03</span>
+
+    <span class="k">def</span> <span class="nf">__get_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">save_time</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">reactions</span><span class="p">,</span> <span class="n">debug</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper Function to get reactions fired from t to t+tau.  Returns three values:</span>
+<span class="sd">        rxn_count - dict with key=Raection channel value=number of times fired</span>
+<span class="sd">        curr_state - dict containing all state variables for system at current time</span>
+<span class="sd">        curr_time - float representing current time</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
+        <span class="k">if</span> <span class="n">curr_time</span> <span class="o">+</span> <span class="n">step</span> <span class="o">&gt;</span> <span class="n">save_time</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Step exceeds save_time, changing step size from &quot;</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span>
+                      <span class="s2">&quot; to &quot;</span><span class="p">,</span> <span class="n">save_time</span> <span class="o">-</span> <span class="n">curr_time</span><span class="p">)</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="n">save_time</span> <span class="o">-</span> <span class="n">curr_time</span>
+
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Curr Time: &quot;</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="s2">&quot; Save time: &quot;</span><span class="p">,</span> <span class="n">save_time</span><span class="p">,</span> <span class="s2">&quot;step: &quot;</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
+
+        <span class="n">rxn_count</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reactions</span><span class="p">:</span>
+            <span class="n">rxn_count</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">poisson</span><span class="p">(</span><span class="n">propensities</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">*</span> <span class="n">step</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Reactions Fired: &quot;</span><span class="p">,</span> <span class="n">rxn_count</span><span class="p">)</span>
+
+        <span class="n">curr_time</span> <span class="o">=</span> <span class="n">curr_time</span><span class="o">+</span><span class="n">step</span>
+
+        <span class="k">return</span> <span class="n">rxn_count</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span>
+
+    <span class="k">def</span> <span class="nf">__get_tau</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">steps_taken</span><span class="p">,</span> <span class="n">save_time</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">debug</span><span class="p">,</span> <span class="n">profile</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Helper function to analyze best tau to take as next step &quot;&quot;&quot;</span>
+        <span class="n">projected_reaction</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">tau_step</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">tau_j</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;curr_state = {&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&#39;</span><span class="si">{0}</span><span class="s2">&#39; : </span><span class="si">{1}</span><span class="s2">, &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">[</span><span class="n">s</span><span class="p">]),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Salis et al. eq (16)</span>
+        <span class="c1"># TODO: this needs to be optimized.  Going too big is expensive, too small is also expensive</span>
+        <span class="n">propensity_sum</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">):</span>
+            <span class="n">propensities</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">propensity_function</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">)</span>
+            <span class="n">propensity_sum</span> <span class="o">+=</span> <span class="n">propensities</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">propensities</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">tau_j</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">y0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="n">propensities</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Propensity of &quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="s2">&quot; is &quot;</span><span class="p">,</span> <span class="n">propensities</span><span class="p">[</span><span class="n">r</span><span class="p">],</span> <span class="s2">&quot;tau_j is &quot;</span><span class="p">,</span> <span class="n">tau_j</span><span class="p">[</span><span class="n">r</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">tau_step</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">tau_j</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">tau_step</span><span class="p">:</span>
+                    <span class="n">tau_step</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">tau_j</span><span class="p">[</span><span class="n">r</span><span class="p">],</span> <span class="mf">1e-10</span><span class="p">)</span>
+                    <span class="n">projected_reaction</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Propensity of &quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="s2">&quot; is &quot;</span><span class="p">,</span> <span class="n">propensities</span><span class="p">[</span><span class="n">r</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">tau_step</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">tau_step</span> <span class="o">=</span> <span class="n">save_time</span> <span class="o">-</span> <span class="n">curr_time</span>
+
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">projected_reaction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;NO projected reaction&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Projected reaction is: &quot;</span><span class="p">,</span> <span class="n">projected_reaction</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot; at time: &quot;</span><span class="p">,</span> <span class="n">curr_time</span> <span class="o">+</span> <span class="n">tau_step</span><span class="p">,</span>
+                      <span class="s2">&quot; step size: &quot;</span><span class="p">,</span> <span class="n">tau_step</span><span class="p">)</span>
+
+        <span class="c1"># BEGIN NEW TAU SELECTION METHOD</span>
+        <span class="n">g_i</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># used for relative error calculation</span>
+        <span class="n">epsilon_i</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># relative error allowance of species</span>
+        <span class="n">tau_i</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># estimated tau based on depletion of species</span>
+        <span class="n">reactants</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># a list of all species in the model which act as reactants</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># mu_i for each species</span>
+        <span class="n">stand_dev</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># sigma_i squared for each species</span>
+        <span class="n">critical_reactions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">new_tau_step</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">n_fires</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># if a reaction would deplete a resource in n_fires, it is considered critical</span>
+
+        <span class="c1"># Create list of all reactants</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">:</span>
+            <span class="n">reactant_keys</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">reactants</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">reactant_keys</span><span class="p">:</span>
+                <span class="n">reactants</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="c1"># initialize mean and stand_dev for reactants</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reactants</span><span class="p">:</span>
+            <span class="n">mean</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">stand_dev</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">critical</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">:</span>
+            <span class="c1"># For each reaction, determine if critical</span>
+            <span class="k">for</span> <span class="n">reactant</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">reactants</span><span class="p">:</span>
+                <span class="c1"># if species pop / state change &lt;= threshold set critical and break</span>
+                <span class="k">if</span> <span class="n">curr_state</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">reactant</span><span class="p">)]</span> <span class="o">/</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">reactant</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">n_fires</span><span class="p">:</span>
+                    <span class="n">critical</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">critical_reactions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">critical</span><span class="p">:</span>
+            <span class="c1"># Cycle through critical reactions to fire fastest one, if none fire, fire soonest reaction</span>
+            <span class="k">for</span> <span class="n">reaction</span> <span class="ow">in</span> <span class="n">critical_reactions</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">propensities</span><span class="p">[</span><span class="n">reaction</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">new_tau_step</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">new_tau_step</span> <span class="o">=</span> <span class="n">tau_j</span><span class="p">[</span><span class="n">reaction</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">tau_j</span><span class="p">[</span><span class="n">reaction</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">new_tau_step</span><span class="p">:</span>
+                            <span class="n">new_tau_step</span> <span class="o">=</span> <span class="n">tau_j</span><span class="p">[</span><span class="n">reaction</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">new_tau_step</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">new_tau_step</span> <span class="o">=</span> <span class="n">tau_step</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">reactant</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">reactants</span><span class="p">:</span>
+                    <span class="n">g_i</span><span class="p">[</span><span class="n">reactant</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">curr_state</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">reactant</span><span class="p">)]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="p">(</span>
+                            <span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="n">curr_state</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">reactant</span><span class="p">)]</span> <span class="o">-</span> <span class="mi">2</span><span class="p">))</span>  <span class="c1"># Cao, Gillespie, Petzold 27.iii</span>
+                    <span class="n">epsilon_i</span><span class="p">[</span><span class="n">reactant</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">/</span> <span class="n">g_i</span><span class="p">[</span><span class="n">reactant</span><span class="p">]</span>  <span class="c1"># Cao, Gillespie, Petzold 27</span>
+                    <span class="n">mean</span><span class="p">[</span><span class="n">reactant</span><span class="p">]</span> <span class="o">+=</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">reactant</span><span class="p">]</span> <span class="o">*</span> <span class="n">propensities</span><span class="p">[</span>
+                        <span class="n">r</span><span class="p">]</span>  <span class="c1"># Cao, Gillespie, Petzold 29a</span>
+                    <span class="n">stand_dev</span><span class="p">[</span><span class="n">reactant</span><span class="p">]</span> <span class="o">+=</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">reactant</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">propensities</span><span class="p">[</span>
+                        <span class="n">r</span><span class="p">]</span>  <span class="c1"># Cao, Gillespie, Petzold 29b</span>
+                <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reactants</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">mean</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="c1"># Cao, Gillespie, Petzold 33</span>
+                        <span class="n">tau_i</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">((</span><span class="nb">max</span><span class="p">(</span><span class="n">epsilon_i</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">*</span> <span class="n">curr_state</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)],</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">mean</span><span class="p">[</span><span class="n">r</span><span class="p">]),</span>
+                                       <span class="c1"># Cao, Gillespie, Petzold 32A</span>
+                                       <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">epsilon_i</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">*</span> <span class="n">curr_state</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)],</span> <span class="mi">1</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">stand_dev</span><span class="p">[</span>
+                                           <span class="n">r</span><span class="p">]))</span>  <span class="c1"># Cao, Gillespie, Petzold 32B</span>
+                        <span class="k">if</span> <span class="n">new_tau_step</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">tau_i</span><span class="p">[</span>
+                            <span class="n">r</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">new_tau_step</span><span class="p">:</span>  <span class="c1"># set smallest tau from non-critical reactions</span>
+                            <span class="n">new_tau_step</span> <span class="o">=</span> <span class="n">tau_i</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+
+
+        <span class="k">if</span> <span class="n">new_tau_step</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">new_tau_step</span> <span class="o">&lt;</span> <span class="p">(</span>
+                <span class="n">save_time</span> <span class="o">-</span> <span class="n">curr_time</span><span class="p">):</span>  <span class="c1"># if curr+new_tau &lt; save_time, use new_tau</span>
+            <span class="n">tau_step</span> <span class="o">=</span> <span class="n">new_tau_step</span>
+        <span class="k">if</span> <span class="n">profile</span><span class="p">:</span>
+            <span class="n">steps_taken</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tau_step</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new_tau_step</span>
+        <span class="c1"># END NEW TAU SELECTION METHOD</span>
+
+<div class="viewcode-block" id="BasicTauLeapingSolver.run"><a class="viewcode-back" href="../../../../gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver.run">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stochkit_home</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Function calling simulation of the model. This is typically called by the run function in GillesPy2 model</span>
+<span class="sd">                objects and will inherit those parameters which are passed with the model as the arguments this run function.</span>
+
+<span class="sd">                Attributes</span>
+<span class="sd">                ----------</span>
+
+<span class="sd">                model : GillesPy2.Model</span>
+<span class="sd">                    GillesPy2 model object to simulate</span>
+<span class="sd">                t : int</span>
+<span class="sd">                    Simulation run time</span>
+<span class="sd">                number_of_trajectories : int</span>
+<span class="sd">                    The number of times to sample the chemical master equation. Each</span>
+<span class="sd">                    trajectory will be returned at the end of the simulation.</span>
+<span class="sd">                    Optional, defaults to 1.</span>
+<span class="sd">                increment : float</span>
+<span class="sd">                    Save point increment for recording data</span>
+<span class="sd">                seed : int</span>
+<span class="sd">                    The random seed for the simulation. Optional, defaults to None.</span>
+<span class="sd">                debug : bool (False)</span>
+<span class="sd">                    Set to True to provide additional debug information about the</span>
+<span class="sd">                    simulation.</span>
+<span class="sd">                profile : bool (Fasle)</span>
+<span class="sd">                    Set to True to provide information about step size (tau) taken at each step.</span>
+<span class="sd">                show_labels : bool (True)</span>
+<span class="sd">                    Use names of species as index of result object rather than position numbers.</span>
+<span class="sd">                stochkit_home : str</span>
+<span class="sd">                    Path to stochkit. This is set automatically upon installation, but</span>
+<span class="sd">                    may be overwritten if desired.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sys</span><span class="o">.</span><span class="n">warnoptions</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">BasicTauLeapingSolver</span><span class="p">):</span>
+            <span class="bp">self</span> <span class="o">=</span> <span class="n">BasicTauLeapingSolver</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;t = &quot;</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;increment = &quot;</span><span class="p">,</span> <span class="n">increment</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">show_labels</span><span class="p">:</span>
+            <span class="n">trajectories</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">num_save_points</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">t</span> <span class="o">/</span> <span class="n">increment</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">trajectories</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">number_of_trajectories</span><span class="p">,</span> <span class="n">num_save_points</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">trajectory</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_of_trajectories</span><span class="p">):</span>
+            <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+            <span class="n">y0</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfRateRules</span><span class="p">))</span>
+            <span class="n">propensities</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">curr_state</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">curr_time</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">curr_state</span><span class="p">[</span><span class="s1">&#39;vol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">volume</span>
+            <span class="n">save_time</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">show_labels</span><span class="p">:</span>
+                <span class="n">results</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">results</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">number_of_trajectories</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">t</span> <span class="o">/</span> <span class="n">increment</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">steps_taken</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">steps_rejected</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">:</span>
+                <span class="c1"># initialize populations</span>
+                <span class="n">curr_state</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">initial_value</span>
+                <span class="k">if</span> <span class="n">show_labels</span><span class="p">:</span>
+                    <span class="n">results</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">:</span>
+                <span class="n">curr_state</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">[</span><span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">):</span>  <span class="c1"># set reactions to uniform random number and add to y0</span>
+                <span class="n">y0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
+                <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Setting Random number &quot;</span><span class="p">,</span> <span class="n">y0</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="s2">&quot; for &quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="n">timestep</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="n">save_time</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">:</span>
+                <span class="k">while</span> <span class="n">curr_time</span> <span class="o">&lt;</span> <span class="n">save_time</span><span class="p">:</span>
+
+                    <span class="n">tau_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_tau</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">steps_taken</span><span class="p">,</span>
+                                              <span class="n">save_time</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">debug</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span>
+
+                    <span class="n">prev_y0</span> <span class="o">=</span> <span class="n">y0</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                    <span class="n">prev_curr_state</span> <span class="o">=</span> <span class="n">curr_state</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                    <span class="n">prev_curr_time</span> <span class="o">=</span> <span class="n">curr_time</span>
+
+                    <span class="n">loop_cnt</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                        <span class="n">loop_cnt</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">if</span> <span class="n">loop_cnt</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Loop over __get_reactions() exceeded loop count&quot;</span><span class="p">)</span>
+
+                        <span class="n">reactions</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_reactions</span><span class="p">(</span>
+                            <span class="n">tau_step</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">save_time</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">,</span> <span class="n">debug</span><span class="p">)</span>
+
+                        <span class="c1"># Update curr_state with the result of the SSA reaction that fired</span>
+                        <span class="n">species_modified</span> <span class="o">=</span> <span class="p">{}</span>
+                        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="n">reactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="k">for</span> <span class="n">reactant</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">reactants</span><span class="p">:</span>
+                                    <span class="n">species_modified</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">reactant</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">True</span>
+                                    <span class="n">curr_state</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">reactant</span><span class="p">)]</span> <span class="o">-=</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">reactant</span><span class="p">]</span> <span class="o">*</span> <span class="n">reactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+                                <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">products</span><span class="p">:</span>
+                                    <span class="n">species_modified</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">product</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">True</span>
+                                    <span class="n">curr_state</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">product</span><span class="p">)]</span> <span class="o">+=</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">product</span><span class="p">]</span> <span class="o">*</span> <span class="n">reactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+                        <span class="n">neg_state</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species_modified</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                            <span class="k">if</span> <span class="n">curr_state</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="n">neg_state</span> <span class="o">=</span> <span class="kc">True</span>
+                                <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Negative state detected: curr_state[</span><span class="si">{0}</span><span class="s2">]= </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">[</span><span class="n">s</span><span class="p">]))</span>
+                        <span class="k">if</span> <span class="n">neg_state</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">rxn=</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reactions</span><span class="p">))</span>
+                            <span class="n">y0</span> <span class="o">=</span> <span class="n">prev_y0</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                            <span class="n">curr_state</span> <span class="o">=</span> <span class="n">prev_curr_state</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                            <span class="n">curr_time</span> <span class="o">=</span> <span class="n">prev_curr_time</span>
+                            <span class="n">tau_step</span> <span class="o">=</span> <span class="n">tau_step</span> <span class="o">/</span> <span class="mi">2</span>
+                            <span class="n">steps_rejected</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Resetting curr_state[</span><span class="si">{0}</span><span class="s2">]= </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">[</span><span class="n">s</span><span class="p">]))</span>
+                            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Rejecting step, taking step of half size, tau_step=</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tau_step</span><span class="p">))</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">break</span>  <span class="c1"># breakout of the while True</span>
+
+                <span class="k">if</span> <span class="n">show_labels</span><span class="p">:</span>
+                    <span class="n">results</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">save_time</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">):</span>
+                        <span class="n">results</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">curr_state</span><span class="p">[</span><span class="n">s</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">trajectories</span><span class="p">[</span><span class="n">trajectory</span><span class="p">][</span><span class="n">timestep</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">save_time</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">):</span>
+                        <span class="n">trajectories</span><span class="p">[</span><span class="n">trajectory</span><span class="p">][</span><span class="n">timestep</span><span class="p">][</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">curr_state</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+                <span class="n">save_time</span> <span class="o">+=</span> <span class="n">increment</span>
+                <span class="n">timestep</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">show_labels</span><span class="p">:</span>
+               <span class="n">trajectories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">profile</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">steps_taken</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Total Steps Taken: &quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">steps_taken</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Total Steps Rejected: &quot;</span><span class="p">,</span> <span class="n">steps_rejected</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">trajectories</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">GillesPy2  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+    </div>
+  </body>
+</html>

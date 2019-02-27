@@ -22,6 +22,7 @@ class NumPySSASolver(GillesPySolver):
         :param show_labels: Use names of species as index of result object rather than position numbers.
         :return: a list of each trajectory simulated.
         """
+        random.seed(seed)
         # create mapping of species dictionary to array indices
         species_mappings = model.sanitized_species_names()
         species = list(species_mappings.keys())
