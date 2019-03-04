@@ -1,6 +1,8 @@
-from gillespy2.core import GillesPySolver
+"""GillesPy2 Solver for ODE solutions."""
+
 from scipy.integrate import odeint
 import numpy as np
+from gillespy2.core import GillesPySolver
 
 
 class BasicODESolver(GillesPySolver):
@@ -9,50 +11,52 @@ class BasicODESolver(GillesPySolver):
     """
     name = "BasicODESolver"
     @staticmethod
-    def rhs(y0, t, species, parameters, reactions):
+    def rhs(start_state, time, model):
         """
         The right hand side of the differential equation, uses scipy.integrate odeint
-        :param y0: state as a list
+        :param start_state: state as a list
         :param t: time as a numpy array
-        :param species: model list of species
-        :param parameters: model list of parameters
-        :param reactions: model list of reactions
+        :param model: model being simulated
         :return: integration step
         """
+        #   pylint: disable=W0613, W0123
         curr_state = {}
         state_change = {}
-        #   TODO    Fix Volume to take input volume
-        curr_state['vol'] = 1
+        curr_state['vol'] = model.volume
+
         propensity = {}
         results = []
 
-        for i, s in enumerate(species):
-            curr_state[s] = y0[i]
-            state_change[s] = 0
+        for i, species in enumerate(model.listOfSpecies):
+            curr_state[species] = start_state[i]
+            state_change[species] = 0
 
-        for p in parameters:
-            curr_state[p] = parameters[p].value
+        for parameter in model.listOfParameters:
+            curr_state[parameter] = model.listOfParameters[parameter].value
 
-        for r in reactions:
-            propensity[r] = eval(reactions[r].propensity_function, curr_state)  # assumption that prop is massAction
-            for react in reactions[r].reactants:
-                state_change[str(react)] -= propensity[r]
-            for prod in reactions[r].products:
-                state_change[str(prod)] += propensity[r]
+        for reaction in model.listOfReactions:
+            propensity[reaction] = eval(
+                model.listOfReactions[reaction].propensity_function, curr_state)
+            # assumption that prop is massAction
+            for react in model.listOfReactions[reaction].reactants:
+                state_change[str(react)] -= propensity[reaction]
+            for prod in model.listOfReactions[reaction].products:
+                state_change[str(prod)] += propensity[reaction]
 
-        for s in species:
-            results.append(state_change[s])
+        for species in model.listOfSpecies:
+            results.append(state_change[species])
 
-        return (results)
+        return results
 
     @classmethod
-    def run(self, model, t=20, number_of_trajectories=1,
+    def run(cls, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, profile=False, show_labels=True, **kwargs):
         """
 
         :param model: gillespy2.model class object
         :param t: end time of simulation
-        :param number_of_trajectories: Should be 1.  This is deterministic and will always have same results
+        :param number_of_trajectories: Should be 1.
+            This is deterministic and will always have same results
         :param increment: time step increment for plotting
         :param seed: random seed, has no effect
         :param debug: not implemented
@@ -61,38 +65,35 @@ class BasicODESolver(GillesPySolver):
         :param kwargs:
         :return:
         """
-
+        #   pylint: disable=R0913, R0914
         if show_labels:
             results = []
         else:
-            num_save_times = int((t / increment)) + 1
-            results = np.empty((number_of_trajectories, num_save_times, (len(model.listOfSpecies)+1)))
+            num_save_times = int((t / increment))
+            results = np.empty((number_of_trajectories,
+                                num_save_times, (len(model.listOfSpecies)+1)))
         for traj_num in range(number_of_trajectories):
-            y0 = []
-            for s in model.listOfSpecies:
-                y0.append(model.listOfSpecies[s].initial_value)
-            time = np.arange(0, t, increment)
-            result = odeint(BasicODESolver.rhs, y0, time,
-                         args=(model.listOfSpecies, model.listOfParameters, model.listOfReactions))
+            start_state = []
+            for species in model.listOfSpecies:
+                start_state.append(model.listOfSpecies[species].initial_value)
+            time = np.arange(0., t, increment, dtype=np.float64)
+            result = odeint(BasicODESolver.rhs, start_state, time, args=(model,))
 
-            #   TODO: Optimize show_labels
             if show_labels:
                 results_as_dict = {}
                 results_as_dict['time'] = []
-                for i in range(len(time)):
-                    results_as_dict['time'].append(time[i])
-                for i, s in enumerate(model.listOfSpecies):
-                    results_as_dict[s] = []
-                    for j in range(len(result)):
-                        results_as_dict[s].append(result[j][i])
+                for i, timestamp in enumerate(time):
+                    results_as_dict['time'].append(timestamp)
+                for i, species in enumerate(model.listOfSpecies):
+                    results_as_dict[species] = []
+                    for row in result:
+                        results_as_dict[species].append(row[i])
                 results.append(results_as_dict)
             else:
-                for i in range(len(time)):
-                    results[traj_num, i, 0] = time[i]
-                for i, s in enumerate(model.listOfSpecies):
+                for i, timestamp in enumerate(time):
+                    results[traj_num, i, 0] = timestamp
+                for i in enumerate(model.listOfSpecies):
                     for j in range(len(result)):
-                        results[traj_num, j, i+1] = result[j, i]
+                        results[traj_num, j, i[0]+1] = result[j, i[0]]
 
         return results
-        # return[results, time]
-        # return np.append(results, time.reshape(len(time), 1), axis=1)

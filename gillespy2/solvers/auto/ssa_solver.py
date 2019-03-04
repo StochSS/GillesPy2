@@ -22,8 +22,8 @@ def get_best_ssa_solver(omit_cpp=False, omit_cython=False, omit_numpy=False):
             log.debug("Successful Import of NumPySSASolver.")
             return NumPySSASolver
 
-    log('Defaulting to NumPy SSASolver.')
-    return NumPySSASolver
+    log('Minimum software requirements not met.  Please install Numpy.')
+    return None
 
 
 SSASolver = get_best_ssa_solver()
