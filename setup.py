@@ -43,28 +43,45 @@ class bdist_egg_new(bdist_egg):
 class easy_install_new(easy_install):
     pass
 
+with open('README.md', 'r') as fh:
+    full_description = fh.read()
 
 setup(name = "gillespy2",
-      version = "1.0",
+      version = "1.0.4",
       packages = find_packages('.'),
       include_package_data=True,
       description = 'Python interface for Gillespie style biochemical simulations',
+      long_description = full_description,
+      long_description_content_type = "text/markdown",
       
       install_requires = ["numpy",
                           "matplotlib",
                           "scipy"],
       
       author = "Brian Drawert, Kevin Sanft, Sean Matthew, George Hall, Dalton Nickerson",
-      author_email = ["bdrawert@unca.edu"],
+      author_email = "bdrawert@unca.edu",
       license = "GPL",
       keywords = "gillespy2, gillespie algorithm, biochemical simulation",
 
-      url = "http://www.github.com/briandrawert/GillesPy2", # we don't really yet have one
+      url = "https://gillespy2.github.io/GillesPy2/",
 
-      download_url = "https://github.com/briandrawert/GillesPy2/tarball/master/",
+      download_url = "https://github.com/GillesPy2/GillesPy2/tarball/master/",
       
       cmdclass = {'bdist_egg':bdist_egg_new,
                   'install':install_new,
                   'develop':develop_new,
-                  'easy_install':easy_install_new}
+                  'easy_install':easy_install_new},
+      classifiers=[
+          'Development Status :: 5 - Production/Stable',
+          'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+          'Operating System :: OS Independent',
+          'Programming Language :: Python :: 3',
+          'Topic :: Scientific/Engineering',
+          'Topic :: Scientific/Engineering :: Chemistry',
+          'Topic :: Scientific/Engineering :: Mathematics',
+          'Topic :: Scientific/Engineering :: Medical Science Apps.',
+          'Intended Audience :: Science/Research'
+      ],
+
+
       )
