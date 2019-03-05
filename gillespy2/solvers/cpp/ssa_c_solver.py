@@ -152,8 +152,8 @@ class SSACSolver(GillesPySolver):
 
     def compile(self):
         # Use makefile.
-        cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulation'], stdout=subprocess.PIPE)
-        built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cleaned = subprocess.run(["make", "-C", self.output_directory, '--file', 'MakeFile', 'cleanSimulation'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        built = subprocess.run(["make", "-C", self.output_directory, '--file', 'MakeFile', 'UserSimulation'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if built.returncode == 0:
             self.compiled = True
         else:
