@@ -14,11 +14,11 @@ def stoch_path(command_subclass):
     It modifies the run() method.
     """
     orig_run = command_subclass.run
-    
+
     def modified_run(self):
-      
-        success=False
+        success = False
         orig_run(self)
+
     command_subclass.run = modified_run
     return command_subclass
 
@@ -43,34 +43,35 @@ class bdist_egg_new(bdist_egg):
 class easy_install_new(easy_install):
     pass
 
+
 with open('README.md', 'r') as fh:
     full_description = fh.read()
 
-setup(name = "gillespy2",
-      version = "1.0.4",
-      packages = find_packages('.'),
+setup(name="gillespy2",
+      version="1.0.4.1",
+      packages=find_packages('.'),
       include_package_data=True,
-      description = 'Python interface for Gillespie style biochemical simulations',
-      long_description = full_description,
-      long_description_content_type = "text/markdown",
-      
-      install_requires = ["numpy",
-                          "matplotlib",
-                          "scipy"],
-      
-      author = "Brian Drawert, Kevin Sanft, Sean Matthew, George Hall, Dalton Nickerson",
-      author_email = "bdrawert@unca.edu",
-      license = "GPL",
-      keywords = "gillespy2, gillespie algorithm, biochemical simulation",
+      description='Python interface for Gillespie style biochemical simulations',
+      long_description=full_description,
+      long_description_content_type="text/markdown",
 
-      url = "https://gillespy2.github.io/GillesPy2/",
+      install_requires=["numpy",
+                        "matplotlib",
+                        "scipy"],
 
-      download_url = "https://github.com/GillesPy2/GillesPy2/tarball/master/",
-      
-      cmdclass = {'bdist_egg':bdist_egg_new,
-                  'install':install_new,
-                  'develop':develop_new,
-                  'easy_install':easy_install_new},
+      author="Brian Drawert, Kevin Sanft, Sean Matthew, George Hall, Dalton Nickerson",
+      author_email="bdrawert@unca.edu",
+      license="GPL",
+      keywords="gillespy2, gillespie algorithm, biochemical simulation",
+
+      url="https://gillespy2.github.io/GillesPy2/",
+
+      download_url="https://github.com/GillesPy2/GillesPy2/tarball/master/",
+
+      cmdclass={'bdist_egg': bdist_egg_new,
+                'install': install_new,
+                'develop': develop_new,
+                'easy_install': easy_install_new},
       classifiers=[
           'Development Status :: 5 - Production/Stable',
           'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
@@ -82,6 +83,5 @@ setup(name = "gillespy2",
           'Topic :: Scientific/Engineering :: Medical Science Apps.',
           'Intended Audience :: Science/Research'
       ],
-
 
       )
