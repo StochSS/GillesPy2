@@ -34,6 +34,10 @@ class TestSimpleModel(unittest.TestCase):
     def setUp(self):
         self.model = SimpleHybridModel()
 
+#    def test_this_should_fail(self):
+#        name = self.model.name
+#        self.assertEqual(name, "NOT Simple_Hybrid_Model", msg="Unexpected value: {}".format(name))
+
     def test_model_creation(self):
         name = self.model.name
         self.assertEqual(name, "Simple_Hybrid_Model", msg="Unexpected value: {}".format(name))
