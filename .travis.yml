@@ -1,0 +1,9 @@
+os: linux
+dist: xenial
+language: python
+python: "3.6"
+install:
+          - pip3 install .
+script:
+          python test/run_tests.py -m release
+
