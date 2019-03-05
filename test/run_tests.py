@@ -6,7 +6,6 @@ parser.add_argument('-m', '--mode', default='develop', choices=['develop', 'rele
 
 
 if __name__ == '__main__':
-    print("checking does this work")
     args = parser.parse_args()
     if args.mode == 'develop':
         print('Running tests in develop mode. Appending repository directory to system path.')
