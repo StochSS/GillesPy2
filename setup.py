@@ -48,7 +48,7 @@ with open('README.md', 'r') as fh:
     full_description = fh.read()
 
 setup(name="gillespy2",
-      version="1.0.4.1",
+      version="1.0.5",
       packages=find_packages('.'),
       include_package_data=True,
       description='Python interface for Gillespie style biochemical simulations',

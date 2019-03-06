@@ -450,6 +450,8 @@ class Model(object):
                     "argument 'solver' to run() must be a subclass of GillesPySolver")
         else:
             from gillespy2.solvers.auto import SSASolver
+            if debug:
+                print("Using Solver: {0}".format(SSASolver.name))
             return SSASolver.run(model=self, t=self.tspan[-1],
                                       increment=self.tspan[-1] - self.tspan[-2], seed=seed,
                                       number_of_trajectories=number_of_trajectories,
