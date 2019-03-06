@@ -47,7 +47,6 @@ class TestModel(unittest.TestCase):
         model.timespan(np.linspace(0, 1, number_points))
         from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver
         results = model.run(number_of_trajectories=1, solver=NumPySSASolver, seed=1)[0]
-        print(results)
         self.assertTrue(len(results['time']) == number_points)
         self.assertTrue(len(results[species1.name]) == number_points)
         self.assertTrue(len(results[species2.name]) == number_points)
