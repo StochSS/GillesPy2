@@ -344,7 +344,7 @@ class Model(object):
             for r in reactions:
                 self.add_reaction(r)
         elif isinstance(reactions,dict) or isinstance(reactions,OrderedDict):
-                self.add_reaction(reactions.values())
+                self.add_reaction(list(reactions.values()))
         elif isinstance(reactions,Reaction):
             reactions.verify()
             if reactions.name in self.listOfReactions:
