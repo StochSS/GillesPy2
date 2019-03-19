@@ -70,34 +70,28 @@ class BasicODESolver(GillesPySolver):
         if number_of_trajectories > 1:
             log.warning("Generating duplicate trajectories for model with ODE Solver. Consider running with only 1 trajectory.")
         #   pylint: disable=R0913, R0914
-        if show_labels:
-            results = []
-        else:
-            num_save_times = int((t / increment))
-            results = np.empty((number_of_trajectories,
-                                num_save_times, (len(model.listOfSpecies) + 1)))
 
-        start_state = []
-        for species in model.listOfSpecies:
-            start_state.append(model.listOfSpecies[species].initial_value)
-        time = np.arange(0., t, increment, dtype=np.float64)
-        result = odeint(BasicODESolver.rhs, start_state, time, args=(model,))
+        start_state = [model.listOfSpecies[species].initial_value for species in model.listOfSpecies]
+        timeline = np.linspace(0, t, (t // increment + 1))
+        result = odeint(BasicODESolver.rhs, start_state, timeline, args=(model,))
+
+        if show_labels:
+            results_as_dict = {
+                'time': timeline
+            }
+            for i, species in enumerate(model.listOfSpecies):
+                results_as_dict[species] = []
+                for row in result:
+                    results_as_dict[species].append(row[i])
+            results = [results_as_dict] * number_of_trajectories
+        else:
+            results = np.empty((number_of_trajectories,
+                                len(timeline), (len(model.listOfSpecies) + 1)))
 
         for traj_num in range(number_of_trajectories):
-            if show_labels:
-                results_as_dict = {
-                    'time': []
-                }
-                for i, timestamp in enumerate(time):
-                    results_as_dict['time'].append(timestamp)
-                for i, species in enumerate(model.listOfSpecies):
-                    results_as_dict[species] = []
-                    for row in result:
-                        results_as_dict[species].append(row[i])
-                results.append(results_as_dict)
-            else:
-                for i, timestamp in enumerate(time):
-                    results[traj_num, i, 0] = timestamp
+            if not show_labels:
+                # for i, timestamp in enumerate(time):
+                results[traj_num, :, 0] = timeline
                 for i in enumerate(model.listOfSpecies):
                     for j in range(len(result)):
                         results[traj_num, j, i[0] + 1] = result[j, i[0]]
