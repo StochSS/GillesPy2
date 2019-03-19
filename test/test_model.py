@@ -34,6 +34,22 @@ class TestModel(unittest.TestCase):
         with self.assertRaises(ModelError):
             model.add_reaction(reaction2)
 
+    def test_add_reaction_dict(self):
+        model = Model()
+        rate = Parameter(name='rate', expression=0.5)
+        model.add_parameter(rate)
+        species1 = Species('A', initial_value=0)
+        species2 = Species('B', initial_value=0)
+        model.add_species([species1, species2])
+        reactions = {
+                name: Reaction(
+                    name=name, 
+                    reactants={species1: 1}, products={species2: 1}, rate=rate)
+                for name in ["reaction1", "reaction2"]}
+        model.add_reaction(reactions)
+        assert "reaction1" in model.listOfReactions
+        assert "reaction2" in model.listOfReactions
+
     def test_species_parameter_name_substrings(self):
         model = Model()
         rate = Parameter(name='rate', expression=1)
