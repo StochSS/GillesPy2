@@ -21,13 +21,9 @@ class BasicODESolver(GillesPySolver):
         :param model: model being simulated
         :return: integration step
         """
-        #   pylint: disable=W0613, W0123
         curr_state = {}
         state_change = {}
         curr_state['vol'] = model.volume
-
-        propensity = {}
-        results = []
 
         for i, species in enumerate(model.listOfSpecies):
             curr_state[species] = start_state[i]
@@ -36,6 +32,7 @@ class BasicODESolver(GillesPySolver):
         for parameter in model.listOfParameters:
             curr_state[parameter] = model.listOfParameters[parameter].value
 
+        propensity = {}
         for reaction in model.listOfReactions:
             propensity[reaction] = eval(
                 model.listOfReactions[reaction].propensity_function, curr_state)
@@ -45,8 +42,7 @@ class BasicODESolver(GillesPySolver):
             for prod in model.listOfReactions[reaction].products:
                 state_change[str(prod)] += propensity[reaction]
 
-        for species in model.listOfSpecies:
-            results.append(state_change[species])
+        results = [state_change[species] for species in model.listOfSpecies]
 
         return results
 
@@ -69,7 +65,6 @@ class BasicODESolver(GillesPySolver):
         """
         if number_of_trajectories > 1:
             log.warning("Generating duplicate trajectories for model with ODE Solver. Consider running with only 1 trajectory.")
-        #   pylint: disable=R0913, R0914
 
         start_state = [model.listOfSpecies[species].initial_value for species in model.listOfSpecies]
         timeline = np.linspace(0, t, (t // increment + 1))
@@ -83,7 +78,7 @@ class BasicODESolver(GillesPySolver):
                 results_as_dict[species] = [result[:, i]]
             results = [results_as_dict] * number_of_trajectories
         else:
-            result = np.concatenate((np.expand_dims(timeline, -1), result), axis=1)
+            result = np.hstack((np.expand_dims(timeline, -1), result))
             results = np.stack([result] * number_of_trajectories, axis=0)
 
         return results
