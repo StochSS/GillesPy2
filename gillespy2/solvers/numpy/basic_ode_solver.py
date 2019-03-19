@@ -80,20 +80,10 @@ class BasicODESolver(GillesPySolver):
                 'time': timeline
             }
             for i, species in enumerate(model.listOfSpecies):
-                results_as_dict[species] = []
-                for row in result:
-                    results_as_dict[species].append(row[i])
+                results_as_dict[species] = [result[:, i]]
             results = [results_as_dict] * number_of_trajectories
         else:
-            results = np.empty((number_of_trajectories,
-                                len(timeline), (len(model.listOfSpecies) + 1)))
-
-        for traj_num in range(number_of_trajectories):
-            if not show_labels:
-                # for i, timestamp in enumerate(time):
-                results[traj_num, :, 0] = timeline
-                for i in enumerate(model.listOfSpecies):
-                    for j in range(len(result)):
-                        results[traj_num, j, i[0] + 1] = result[j, i[0]]
+            result = np.concatenate((np.expand_dims(timeline, -1), result), axis=1)
+            results = np.stack([result] * number_of_trajectories, axis=0)
 
         return results
