@@ -11,6 +11,7 @@ class BasicODESolver(GillesPySolver):
     This Solver produces the deterministic continuous solution via ODE.
     """
     name = "BasicODESolver"
+
     @staticmethod
     def rhs(start_state, time, model):
         """
@@ -74,17 +75,19 @@ class BasicODESolver(GillesPySolver):
         else:
             num_save_times = int((t / increment))
             results = np.empty((number_of_trajectories,
-                                num_save_times, (len(model.listOfSpecies)+1)))
-        for traj_num in range(number_of_trajectories):
-            start_state = []
-            for species in model.listOfSpecies:
-                start_state.append(model.listOfSpecies[species].initial_value)
-            time = np.arange(0., t, increment, dtype=np.float64)
-            result = odeint(BasicODESolver.rhs, start_state, time, args=(model,))
+                                num_save_times, (len(model.listOfSpecies) + 1)))
 
+        start_state = []
+        for species in model.listOfSpecies:
+            start_state.append(model.listOfSpecies[species].initial_value)
+        time = np.arange(0., t, increment, dtype=np.float64)
+        result = odeint(BasicODESolver.rhs, start_state, time, args=(model,))
+
+        for traj_num in range(number_of_trajectories):
             if show_labels:
-                results_as_dict = {}
-                results_as_dict['time'] = []
+                results_as_dict = {
+                    'time': []
+                }
                 for i, timestamp in enumerate(time):
                     results_as_dict['time'].append(timestamp)
                 for i, species in enumerate(model.listOfSpecies):
@@ -97,6 +100,6 @@ class BasicODESolver(GillesPySolver):
                     results[traj_num, i, 0] = timestamp
                 for i in enumerate(model.listOfSpecies):
                     for j in range(len(result)):
-                        results[traj_num, j, i[0]+1] = result[j, i[0]]
+                        results[traj_num, j, i[0] + 1] = result[j, i[0]]
 
         return results
