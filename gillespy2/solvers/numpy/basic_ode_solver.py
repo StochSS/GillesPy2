@@ -3,6 +3,7 @@
 from scipy.integrate import odeint
 import numpy as np
 from gillespy2.core import GillesPySolver
+from gillespy2.core import log
 
 
 class BasicODESolver(GillesPySolver):
@@ -65,6 +66,8 @@ class BasicODESolver(GillesPySolver):
         :param kwargs:
         :return:
         """
+        if number_of_trajectories > 1:
+            log.warning("Generating duplicate trajectories for model with ODE Solver. Consider running with only 1 trajectory.")
         #   pylint: disable=R0913, R0914
         if show_labels:
             results = []
