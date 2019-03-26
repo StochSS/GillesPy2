@@ -24,6 +24,32 @@ class BasicTauHybridSolver(GillesPySolver):
         self.debug = debug
         self.epsilon = 0.03
 
+    def calculate_statistics(self, model, propensities, curr_state, tau_step, is_det):
+        sd = {}
+        mn = {}
+        CV = {}
+        
+        for species in model.listOfSpecies:
+            mn[species] = curr_state[str(species)]
+            
+        for r in model.listOfReactions:
+                for reactant in model.listOfReactions[r].reactants:
+                    mn[reactant.name] -= (tau_step * propensities[r])
+                    sd[reactant.name] = math.sqrt(mn[reactant.name])
+                for product in model.listOfReactions[r].products:
+                    mn[product.name] += (tau_step * propensities[r])
+                    sd[product.name] = math.sqrt(mn[reactant.name])
+        for species in sd:
+            if mn[species] > 0:
+                CV[species] = sd[species] / mn[species]
+            else:
+                CV[species] = 1
+            if CV[species] < .03:
+                is_det[species] = True
+            else:
+                is_det[species] = False
+        return mn, sd, CV
+    
     @staticmethod
     def __f(t, y, curr_state, reactions, rate_rules, propensities, compiled_reactions, compiled_rate_rules):
         """
@@ -162,12 +188,20 @@ class BasicTauHybridSolver(GillesPySolver):
             steps_rejected = 0
 
             y0 = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
+            is_det = {}
             propensities = {}
             curr_state = {}
             curr_time = 0
             curr_state['vol'] = model.volume
             save_time = 0
 
+            for species in model.listOfSpecies:
+                if model.listOfSpecies[species].continuous == True:
+                    is_det[species] = True
+                else:
+                    is_det[species] = False
+            print('Initializing: is_det:')
+            print(is_det)
             if show_labels:
                 results = {'time': []}
             else:
@@ -218,6 +252,8 @@ class BasicTauHybridSolver(GillesPySolver):
                     propensity_sum = 0
                     for i, r in enumerate(model.listOfReactions):
                         propensities[r] = eval(model.listOfReactions[r].propensity_function, curr_state)
+                        print('propensity of ', r)
+                        print(propensities[r])
                         propensity_sum += propensities[r]
                         if propensities[r] > 0:
                             tau_j[r] = -y0[i] / propensities[r]
@@ -245,8 +281,8 @@ class BasicTauHybridSolver(GillesPySolver):
                     epsilon_i = {}  # relative error allowance of species
                     tau_i = {}  # estimated tau based on depletion of species
                     reactants = []  # a list of all species in the model which act as reactants
-                    mean = {}   # mu_i for each species
-                    stand_dev = {}  # sigma_i squared for each species
+                    mu_i = {}   # mu_i for each species
+                    sigma_i = {}  # sigma_i squared for each species
                     critical_reactions = []
                     new_tau_step = None
                     n_fires = 2  # if a reaction would deplete a resource in n_fires, it is considered critical
@@ -258,8 +294,8 @@ class BasicTauHybridSolver(GillesPySolver):
                             reactants.append(key)
                     # initialize mean and stand_dev for reactants
                     for r in reactants:
-                        mean[r] = 0
-                        stand_dev[r] = 0
+                        mu_i[r] = 0
+                        sigma_i[r] = 0
 
                     critical = False
                     for r in model.listOfReactions:
@@ -275,17 +311,20 @@ class BasicTauHybridSolver(GillesPySolver):
                                 g_i[reactant] = 3 + (1 / (curr_state[str(reactant)] - 1)) + (
                                         2 / (curr_state[str(reactant)] - 2))  # Cao, Gillespie, Petzold 27.iii
                                 epsilon_i[reactant] = self.epsilon / g_i[reactant]  # Cao, Gillespie, Petzold 27
-                                mean[reactant] += model.listOfReactions[r].reactants[reactant] * propensities[
+                                mu_i[reactant] += model.listOfReactions[r].reactants[reactant] * propensities[
                                     r]  # Cao, Gillespie, Petzold 29a
-                                stand_dev[reactant] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[
+                                print('Species {0} adding to mu_i: {1} * {2} = {3}'.format(reactant, model.listOfReactions[r].reactants[reactant], propensities[r], model.listOfReactions[r].reactants[reactant] * propensities[r]))
+                                sigma_i[reactant] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[
                                     r]  # Cao, Gillespie, Petzold 29b
+                                print('Species {0} adding to sigma_i: {1} ** 2 * {2} = {3}'.format(reactant, model.listOfReactions[r].reactants[reactant], propensities[r], model.listOfReactions[r].reactants[reactant] ** 2 * propensities[r]))
                             for r in reactants:
-                                if mean[r] > 0:
+                                if mu_i[r] > 0:
                                     # Cao, Gillespie, Petzold 33
-                                    tau_i[r] = min((max(epsilon_i[r] * curr_state[str(r)], 1) / mean[r]),
+                                    tau_i[r] = min((max(epsilon_i[r] * curr_state[str(r)], 1) / mu_i[r]),
                                                    # Cao, Gillespie, Petzold 32A
-                                                   (max(epsilon_i[r] * curr_state[str(r)], 1) ** 2 / stand_dev[
+                                                   (max(epsilon_i[r] * curr_state[str(r)], 1) ** 2 / sigma_i[
                                                        r]))  # Cao, Gillespie, Petzold 32B
+                                    
                                     if new_tau_step is None or tau_i[
                                         r] < new_tau_step:  # set smallest tau from non-critical reactions
                                         new_tau_step = tau_i[r]
@@ -297,6 +336,13 @@ class BasicTauHybridSolver(GillesPySolver):
                         steps_taken.append(tau_step)
 
                     # END NEW TAU SELECTION METHOD
+                    mn, sd, CV = self.calculate_statistics(model, propensities, curr_state, tau_step, is_det)
+                    print('Calculating mean, standard deviation at time {0}'.format((curr_time + tau_step)))
+                    print('mean: {0}'.format(mn))
+                    print('standard deviation: {0}'.format(sd))
+                    print('CV: {0}'.format(CV))
+                    print('is_det: {0}'.format(is_det))
+                                
                     prev_y0 = y0.copy()
                     prev_curr_state = curr_state.copy()
                     prev_curr_time = curr_time
