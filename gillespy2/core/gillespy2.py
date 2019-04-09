@@ -522,13 +522,21 @@ class Species:
     initial_value : int >= 0
         Initial population of this species. If this is not provided as an int,
         the type will be changed when it is added by numpy.int
+    mode : str
+        ***FOR USE WITH TauHybridSolver ONLY***
+        Sets the mode of representation of this species for the TauHybridSolver,
+        can be discrete, continuous, or dynamic.
+        mode='dynamic' - Default, allows a species to be represented as
+            either discrete or continuous
+        mode='continuous' - Species will only be represented as continuous
+        mode='discrete' - Species will only be represented as discrete
     """
 
-    def __init__(self, name="", initial_value=0, continuous=False):
+    def __init__(self, name="", initial_value=0, mode='dynamic'):
         # A species has a name (string) and an initial value (positive integer)
         self.name = name
         self.initial_value = np.int(initial_value)
-        self.continuous = continuous
+        self.mode = mode
         assert self.initial_value >= 0, "A species initial value has to \
                                         be a positive number."
 
