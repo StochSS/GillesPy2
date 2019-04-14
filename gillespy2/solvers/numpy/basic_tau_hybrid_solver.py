@@ -64,17 +64,17 @@ class BasicTauHybridSolver(GillesPySolver):
         for species in model.listOfSpecies:
             if model.listOfSpecies[species].mode == 'dynamic':
                 diff_eqs[species] = '0' #'curr_state[{0}]'.format(species) or 0??
-#         print(diff_eqs)
+        print(diff_eqs)
 
-#         print('checking rxn prop functions...')
+        print('checking rxn prop functions...')
         for rxn in model.listOfReactions:
-#             print(model.listOfReactions[rxn].propensity_function)
+            print(model.listOfReactions[rxn].propensity_function)
             for spec, num in model.listOfReactions[rxn].reactants.items():
-                diff_eqs[spec.name] += ' - {0}'.format(num * model.listOfReactions[rxn].propensity_function)
+                diff_eqs[spec.name] += ' - {0}*({1})'.format(num, model.listOfReactions[rxn].propensity_function)
             for spec, num in model.listOfReactions[rxn].products.items():
-                diff_eqs[spec.name] += ' + {0}'.format(num * model.listOfReactions[rxn].propensity_function)
-#         print('creating differential equations...')
-#         print(diff_eqs)
+                diff_eqs[spec.name] += ' + {0}*({1})'.format(num, model.listOfReactions[rxn].propensity_function)
+        print('creating differential equations...')
+        print(diff_eqs)
         
         for spec, rate in diff_eqs.items():
             rate_rules[spec] = gillespy2.RateRule(model.listOfSpecies[spec], rate)
