@@ -25,39 +25,103 @@ class BasicTauHybridSolver(GillesPySolver):
         self.debug = debug
         self.epsilon = 0.03
         
-    def toggle_reactions(self, model, all_compiled, det_rxn, dependencies, curr_state, rxn_offset):
-        to_remove = set()
+    def set_dependencies(self, model):
+        #get every species in a reaction
+        rxn_dependencies = {}
+        graph = {}
+        spec_dependencies = {}
+        deep_dependencies = {}
+        spec_checked = {}
+        component_sets = []
+        
+        def bfs(graph, start):
+            visited, queue = set(), [start]
+            while queue:
+                vertex = queue.pop(0)
+                if vertex not in visited:
+                    visited.add(vertex)
+                    queue.extend(graph[vertex] - visited)
+            return visited
+        
+        # Code modified from NetworkX https://networkx.github.io/documentation/stable/_modules/networkx/algorithms/components/connected.html#connected_components
+        def get_connected(graph):
+            seen = set()
+            for vertex in graph:
+                if vertex not in seen:
+                    components = set(bfs(graph, vertex))
+                    yield components
+                    seen.update(components)
+
+        for reaction in model.listOfReactions:
+            rxn_dependencies[reaction] = set()
+            deep_dependencies[reaction] = set()
+            [rxn_dependencies[reaction].add(reactant.name) for reactant in model.listOfReactions[reaction].reactants]
+            [rxn_dependencies[reaction].add(product.name) for product in model.listOfReactions[reaction].products]
+        for species in model.listOfSpecies:
+            spec_dependencies[species] = set()
+            #create empty set for each species
+            graph[species] = set()
+            for rxn in rxn_dependencies:
+                if species in rxn_dependencies[rxn]:
+                    spec_dependencies[species].add(rxn)
+                    for dep in rxn_dependencies[rxn]:
+                        graph[species].add(dep)
+            print('{0}: {1}'.format(species, graph[species]))
+        print('species dependencies')
+        from pprint import pprint
+        pprint(spec_dependencies)
+        print('get connected')
+        for connected_set in get_connected(graph):
+            for rxn in deep_dependencies:
+                for dep in rxn_dependencies[rxn]:
+                    if dep in connected_set:
+                        deep_dependencies[rxn] = connected_set
+            print(connected_set)
+        pprint(deep_dependencies)
+        
+        
+        
+    def toggle_reactions(self, model, all_compiled, det_rxn, dependencies, curr_state, rxn_offset, toggle_state):
         inactive_rate_rules = all_compiled['inactive_rules']
         inactive_reactions = all_compiled['inactive_rxns']
         rate_rules = all_compiled['rules']
         rxns = all_compiled['rxns']
+        rxn = None
         
-#         print('deterministic reactions:')
+        toggle_arguments = (rxn, rxns, inactive_reactions, rate_rules, inactive_rate_rules, rxn_offset)
+        
+        def toggle_to_rate(self, *args):
+            if rxn in rxns:
+#                 print('Setting Reaction {0} to inactive'.format(rxn))
+                inactive_reactions[rxn] = rxns.pop(rxn, None)
+                rxn_offset[rxn] = math.log(random.uniform(0, 1))
+            for species in dependencies[rxn]:
+                if species in inactive_rate_rules:
+                    rate_rules[species] = inactive_rate_rules.pop(species, None)
+#                     print('Setting rate rule for {0} to active'.format(species))
+
+        def toggle_to_rxn(self, *args):
+            if rxn in inactive_reactions:
+#                 print('Setting Reaction {0} to active'.format(rxn))
+                rxns[rxn] = inactive_reactions.pop(rxn, None)
+            for species in dependencies[rxn]:
+                if species in rate_rules:
+#                     print('Setting rate rule for {0} to inactive'.format(species))
+                    curr_state[species] = math.floor(curr_state[species])
+                    inactive_rate_rules[species] = rate_rules.pop(species, None)
+        
         for rxn in det_rxn:
-#             print('{0}: {1} with dependencies:'.format(rxn, det_rxn[rxn]))
-#             print(dependencies[rxn])
-            if det_rxn[rxn]:
-                if rxn in rxns:
-#                     print('Setting Reaction {0} to inactive'.format(rxn))
-                    inactive_reactions[rxn] = rxns.pop(rxn, None)
-                    rxn_offset[rxn] = math.log(random.uniform(0, 1))
-                for species in dependencies[rxn]:
-                    if species in inactive_rate_rules:
-                        rate_rules[species] = inactive_rate_rules.pop(species, None)
-#                         print('Setting rate rule for {0} to active'.format(species))
-            else:
-                if rxn in inactive_reactions:
-#                     print('Setting Reaction {0} to active'.format(rxn))
-                    rxns[rxn] = inactive_reactions.pop(rxn, None)
-                for species in dependencies[rxn]:
-                    if species in rate_rules:
-#                         print('Setting rate rule for {0} to inactive'.format(species))
-                        curr_state[species] = math.floor(curr_state[species])
-                        inactive_rate_rules[species] = rate_rules.pop(species, None)
+#             if det_rxn[rxn]:
+            if toggle_state[rxn] == 1:
+                toggle_to_rate(*toggle_arguments)
+#             else:
+#                 toggle_to_rate(*toggle_arguments)
+            if toggle_state[rxn] == 2:
+                toggle_to_rxn(*toggle_arguments)
                 
                 
 
-    def create_diff_eqs(self, model, det_spec, dependencies):
+    def create_diff_eqs(self, model, det_spec):
         diff_eqs = {}
         reactions = {}
         rate_rules = {}
@@ -93,8 +157,9 @@ class BasicTauHybridSolver(GillesPySolver):
         
 
     
-    def flag_det_reactions(self, model, det_spec, det_rxn, dependencies):
+    def flag_det_reactions(self, model, det_spec, det_rxn, dependencies, toggle_state):
         #Determine if each rxn would be deterministic apart from other reactions
+        prev_state = det_rxn.copy()
         for rxn in model.listOfReactions:
             det_rxn[rxn] = True
             for species in dependencies[rxn]:
@@ -112,8 +177,19 @@ class BasicTauHybridSolver(GillesPySolver):
 #                             print('{0} could be deterministic, but found {1} in {2}, so marking {0} as false'.format(rxn, dep, reaction))
                             det_rxn[rxn] = False
                             break
+        for rxn in det_rxn:
+            if det_rxn[rxn] == prev_state[rxn]:
+#                 print('{0} - no toggle'.format(rxn))
+                toggle_state[rxn] = 0
+#                 continue
+            elif det_rxn[rxn] == True:
+                toggle_state[rxn] = 1
+#                 print('{0} - toggle to rate'.format(rxn))
+            else:
+                toggle_state[rxn] = 2
+#                 print('{0} - toggle to rxn'.format(rxn))
                             
-    def calculate_statistics(self, model, propensities, curr_state, tau_step, det_spec, det_rxn, dependencies):
+    def calculate_statistics(self, model, propensities, curr_state, tau_step, det_spec, dependencies):
         """
         Calculates Mean, Standard Deviation, and Coefficient of Variance for each
         dynamic species, then set if species can be represented determistically
@@ -284,16 +360,21 @@ class BasicTauHybridSolver(GillesPySolver):
             trajectories = numpy.empty((number_of_trajectories, num_save_points, len(model.listOfSpecies)+1))
 
         det_spec = {species:True for (species, value) in model.listOfSpecies.items() if value.mode == 'dynamic'}
-        det_rxn = {rxn:True for (rxn, value) in model.listOfReactions.items()}
+        det_rxn = {rxn:False for (rxn, value) in model.listOfReactions.items()}
         
+#         self.set_dependencies(model)
         #get every species in a reaction
         dependencies = {}
+        toggle_state = {}
+        no_toggle = 0
+
         for reaction in model.listOfReactions:
+            toggle_state[reaction] = no_toggle
             dependencies[reaction] = set()
             [dependencies[reaction].add(reactant.name) for reactant in model.listOfReactions[reaction].reactants]
             [dependencies[reaction].add(product.name) for product in model.listOfReactions[reaction].products]
 
-        inactive_rate_rules = self.create_diff_eqs(model, det_spec, dependencies)
+        inactive_rate_rules = self.create_diff_eqs(model, det_spec)
 
         if debug:
             print('dependencies')
@@ -468,8 +549,8 @@ class BasicTauHybridSolver(GillesPySolver):
                         steps_taken.append(tau_step)
 
                     # END NEW TAU SELECTION METHOD
-                    mn, sd, CV = self.calculate_statistics(model, propensities, curr_state, tau_step, det_spec, det_rxn, dependencies)
-                    self.flag_det_reactions(model, det_spec, det_rxn, dependencies)
+                    mn, sd, CV = self.calculate_statistics(model, propensities, curr_state, tau_step, det_spec, dependencies)
+                    self.flag_det_reactions(model, det_spec, det_rxn, dependencies, toggle_state)
 
                     if debug:
                         print('Calculating mean, standard deviation at time {0}'.format((curr_time + tau_step)))
@@ -479,7 +560,7 @@ class BasicTauHybridSolver(GillesPySolver):
                         print('det_spec: {0}'.format(det_spec))
                         print('det_rxn: {0}'.format(det_rxn))
                                                         
-                    self.toggle_reactions(model, all_compiled, det_rxn, dependencies, curr_state, rxn_offset)
+                    self.toggle_reactions(model, all_compiled, det_rxn, dependencies, curr_state, rxn_offset, toggle_state)
                     y0 = [0] * (len(compiled_reactions) + len(compiled_rate_rules))
                     for i, rxn in enumerate(compiled_reactions):
                         y0[i] = rxn_offset[rxn]
