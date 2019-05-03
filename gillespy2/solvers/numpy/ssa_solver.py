@@ -99,5 +99,5 @@ class NumPySSASolver(GillesPySolver):
                     data[species[i]] = trajectory[:, i+1]
                 simulation_data.append(data)
             else:
-                simulation_data.append(trajectory)
+                simulation_data = trajectory_base
         return simulation_data
