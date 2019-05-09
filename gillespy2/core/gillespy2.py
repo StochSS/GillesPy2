@@ -331,10 +331,14 @@ class Model(object):
     def validate_reactants_and_products(self, reactions):
             for reactant in reactions.reactants.keys():
                 if isinstance(reactant, str):
+                    if reactant not in self.listOfSpecies.keys():
+                        raise ModelError('reactant: {0} for reaction {1} -- not found in model.listOfSpecies'.format(reactant, reactions.name))
                     reactions.reactants[self.listOfSpecies[reactant]] = reactions.reactants[reactant]
                     del reactions.reactants[reactant]
             for product in reactions.products.keys():
                 if isinstance(product, str):
+                    if product not in self.listOfSpecies.keys():
+                        raise ModelError('product: {0} for reaction {1} -- not found in model.listOfSpecies'.format(product, reactions.name))
                     reactions.products[self.listOfSpecies[product]] = reactions.products[product]
                     del reactions.products[product]
 
