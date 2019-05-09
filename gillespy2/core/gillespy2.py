@@ -410,7 +410,7 @@ class Model(object):
         self.listOfReactions.clear()
 
     def run(self, number_of_trajectories=1, seed=None,
-            solver=None, stochkit_home=None, profile=False, debug=False, show_labels=True):
+            solver=None, show_labels=True):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -443,7 +443,6 @@ class Model(object):
                                   increment=self.tspan[-1] - self.tspan[-2],
                                   seed=seed,
                                   number_of_trajectories=number_of_trajectories,
-                                  stochkit_home=stochkit_home, profile=profile, debug=debug,
                                   show_labels=show_labels)
             else:
                 raise SimulationError(
@@ -455,7 +454,6 @@ class Model(object):
             return SSASolver.run(model=self, t=self.tspan[-1],
                                       increment=self.tspan[-1] - self.tspan[-2], seed=seed,
                                       number_of_trajectories=number_of_trajectories,
-                                      stochkit_home=stochkit_home, profile=profile, debug=debug,
                                       show_labels=show_labels)
 
 
