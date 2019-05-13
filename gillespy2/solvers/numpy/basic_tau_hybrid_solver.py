@@ -151,7 +151,7 @@ class BasicTauHybridSolver(GillesPySolver):
                         sample_dict[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].propensity_function)
                 for i, rr in enumerate(model.listOfRateRules):
                     sample_dict[rr] = model.listOfRateRules[rr].expression
-                diff_eqs[i] = sample_dict
+            diff_eqs[i] = sample_dict
 #         print(diff_eqs)
 
         
