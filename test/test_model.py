@@ -64,8 +64,8 @@ class TestModel(unittest.TestCase):
         species2 = Species('B', initial_value=0)
         model.add_species([species1, species2])
         reaction1 = Reaction(name="reaction1", reactants={'A': 1}, products={species2: 1}, rate=rate)
-        with self.assertRaises(ModelError):
-            model.add_reaction(reaction1)
+        model.add_reaction(reaction1)
+        assert "reaction1" in model.listOfReactions
 
     def test_reaction_valid_product(self):
         model = Model()
@@ -75,8 +75,8 @@ class TestModel(unittest.TestCase):
         species2 = Species('B', initial_value=0)
         model.add_species([species1, species2])
         reaction1 = Reaction(name="reaction1", reactants={species1: 1}, products={'B': 1}, rate=rate)
-        with self.assertRaises(ModelError):
-            model.add_reaction(reaction1)
+        model.add_reaction(reaction1)
+        assert "reaction1" in model.listOfReactions
 
 
     def test_add_reaction_dict(self):
