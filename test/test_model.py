@@ -10,7 +10,7 @@ class TestModel(unittest.TestCase):
         model = Model()
         model.timespan(np.linspace(0, 1, 100))
         with self.assertRaises(InvalidModelError):
-            model.timespan(np.array([0, 0.1, 0.5])
+            model.timespan(np.array([0, 0.1, 0.5]))
 
     def test_duplicate_parameter_names(self):
         model = Model()
