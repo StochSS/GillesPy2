@@ -57,7 +57,11 @@ class NumPySSASolver(GillesPySolver):
             # replace all references to species with array indices
             for j, spec in enumerate(species):
                 species_changes[i][j] = model.listOfReactions[reaction].products.get(model.listOfSpecies[spec], 0) - model.listOfReactions[reaction].reactants.get(model.listOfSpecies[spec], 0)
+                if debug:
+                    print('species_changes: {0},i={1}, j={2}... {3}'.format(species, i, j, species_changes[i][j]))
             propensity_functions.append(eval('lambda S:' + model.listOfReactions[reaction].sanitized_propensity_function(species_mappings, parameter_mappings), parameters))
+        if debug:
+            print('propensity_functions', propensity_functions)
         # begin simulating each trajectory
         simulation_data = []
         for trajectory_num in range(number_of_trajectories):
@@ -72,24 +76,41 @@ class NumPySSASolver(GillesPySolver):
                 # determine next reaction
                 for i in range(number_reactions):
                     propensity_sums[i] = propensity_functions[i](current_state)
+                    if debug:
+                        print('propensity: ', propensity_sums[i])
                 propensity_sum = np.sum(propensity_sums)
+                if debug:
+                    print('propensity_sum: ', propensity_sum)
                 # if no more reactions, quit
                 if propensity_sum <= 0:
                     trajectory[entry_count:, 1:] = current_state
                     break
                 cumulative_sum = random.uniform(0, propensity_sum)
                 current_time += -math.log(random.random()) / propensity_sum
+                if debug:
+                    print('cumulative sum: ', cumulative_sum)
+                    print('entry count: ', entry_count)
+                    print('timeline.size: ', timeline.size)
+                    print('current_time: ', current_time)
                 # determine time passed in this reaction
                 while entry_count < timeline.size and timeline[entry_count] <= current_time:
                     trajectory[entry_count, 1:] = current_state
                     entry_count += 1
                 for potential_reaction in range(number_reactions):
                     cumulative_sum -= propensity_sums[potential_reaction]
+                    if debug:
+                        print('if <=0, fire: ', cumulative_sum)
                     if cumulative_sum <= 0:
                         current_state += species_changes[potential_reaction]
+                        if debug:
+                            print('current state: ', current_state)
+                            print('species_changes: ', species_changes)
+                            print('updating: ', potential_reaction)
                         # recompute propensities as needed
                         for i in range(number_reactions):
                             propensity_sums[i] = propensity_functions[i](current_state)
+                            if debug:
+                                print('new propensity sum: ', propensity_sums[i])
                         break
             if show_labels:
                 data = {

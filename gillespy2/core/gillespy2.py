@@ -328,6 +328,20 @@ class Model(object):
         """ Deletes all parameters from model. """
         self.listOfParameters.clear()
 
+    def validate_reactants_and_products(self, reactions):
+            for reactant in reactions.reactants.keys():
+                if isinstance(reactant, str):
+                    if reactant not in self.listOfSpecies.keys():
+                        raise ModelError('reactant: {0} for reaction {1} -- not found in model.listOfSpecies'.format(reactant, reactions.name))
+                    reactions.reactants[self.listOfSpecies[reactant]] = reactions.reactants[reactant]
+                    del reactions.reactants[reactant]
+            for product in reactions.products.keys():
+                if isinstance(product, str):
+                    if product not in self.listOfSpecies.keys():
+                        raise ModelError('product: {0} for reaction {1} -- not found in model.listOfSpecies'.format(product, reactions.name))
+                    reactions.products[self.listOfSpecies[product]] = reactions.products[product]
+                    del reactions.products[product]
+
     def add_reaction(self, reactions):
         """
         Adds a reaction, or list of reactions to the model.
@@ -347,6 +361,7 @@ class Model(object):
                 self.add_reaction(list(reactions.values()))
         elif isinstance(reactions,Reaction):
             reactions.verify()
+            self.validate_reactants_and_products(reactions)
             if reactions.name in self.listOfReactions:
                 raise ModelError("Duplicate name of reaction: {0}".format(reactions.name))
             self.listOfReactions[reactions.name] = reactions
