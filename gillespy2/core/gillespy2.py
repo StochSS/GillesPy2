@@ -389,7 +389,7 @@ class Model(object):
         """
 
         items = np.diff(time_span)
-        items = map(lambda x: round(x, 10), items)
+        items = np.array([round(item, 10) for item in items])
         isuniform = (len(set(items)) == 1)
 
         if isuniform:

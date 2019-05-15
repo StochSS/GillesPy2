@@ -5,6 +5,13 @@ import numpy as np
 
 
 class TestModel(unittest.TestCase):
+
+    def test_uniform_timespan(self):
+        model = Model()
+        model.timespan(np.linspace(0, 1, 100))
+        with self.assertRaises(InvalidModelError):
+            model.timespan(np.array([0, 0.1, 0.5]))
+
     def test_duplicate_parameter_names(self):
         model = Model()
         param1 = Parameter('A', expression=0)
