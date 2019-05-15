@@ -4,7 +4,7 @@ import random
 import math
 import sys
 import warnings
-import numpy
+import numpy as np
 from gillespy2.core import GillesPySolver
 
 
@@ -43,7 +43,7 @@ class BasicTauLeapingSolver(GillesPySolver):
         rxn_count = {}
 
         for rxn in reactions:
-            rxn_count[rxn] = numpy.random.poisson(propensities[rxn] * step)
+            rxn_count[rxn] = np.random.poisson(propensities[rxn] * step)
 
         if self.debug:
             print("Reactions Fired: ", rxn_count)
@@ -211,14 +211,30 @@ class BasicTauLeapingSolver(GillesPySolver):
             print("t = ", t)
             print("increment = ", increment)
 
-        if show_labels:
-            trajectories = []
-        else:
-            num_save_points = int(t / increment)
-            trajectories = numpy.empty((number_of_trajectories,
-                                        num_save_points, len(model.listOfSpecies)+1))
+            
+        species_mappings = model.sanitized_species_names()
+        species = list(species_mappings.keys())
+        parameter_mappings = model.sanitized_parameter_names()
+        number_species = len(species)
 
-        for trajectory in range(number_of_trajectories):
+        # create numpy array for timeline
+        timeline = np.linspace(0, t, (t // increment + 1))
+
+        # create numpy matrix to mark all state data of time and species
+        trajectory_base = np.empty((number_of_trajectories, timeline.size, number_species + 1))
+
+        # copy time values to all trajectory row starts
+        trajectory_base[:, :, 0] = timeline
+        # copy initial populations to base
+
+        for i, s in enumerate(species):
+            trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
+            # create dictionary of all constant parameters for propensity evaluation
+
+
+        simulation_data = []
+
+        for trajectory_num in range(number_of_trajectories):
             random.seed(seed)
             start_state = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
             propensities = {}
@@ -226,19 +242,15 @@ class BasicTauLeapingSolver(GillesPySolver):
             curr_time = 0
             curr_state['vol'] = model.volume
             save_time = 0
-            if show_labels:
-                results = {'time': []}
-            else:
-                results = numpy.empty((number_of_trajectories, int(t / increment)+1,
-                                       len(model.listOfSpecies) + 1))
+            data = { 'time': timeline}
             steps_taken = []
             steps_rejected = 0
+            entry_count = 1
+            trajectory = trajectory_base[trajectory_num]
 
             for spec in model.listOfSpecies:
                 # initialize populations
                 curr_state[spec] = model.listOfSpecies[spec].initial_value
-                if show_labels:
-                    results[spec] = []
 
             for param in model.listOfParameters:
                 curr_state[param] = model.listOfParameters[param].value
@@ -251,7 +263,11 @@ class BasicTauLeapingSolver(GillesPySolver):
                           start_state[i], " for ", model.listOfReactions[rxn].name)
 
             timestep = 0
-            while save_time < t:
+            
+            #Each save step
+            while entry_count < timeline.size:
+                
+                #Until save step reached
                 while curr_time < save_time:
 
                     tau_step = self.get_tau(
@@ -309,21 +325,24 @@ class BasicTauLeapingSolver(GillesPySolver):
                         else:
                             break  # breakout of the while True
 
-                if show_labels:
-                    results['time'].append(save_time)
-                    for i, spec in enumerate(model.listOfSpecies):
-                        results[spec].append(curr_state[spec])
-                else:
-                    trajectories[trajectory][timestep][0] = save_time
-                    for i, spec in enumerate(model.listOfSpecies):
-                        trajectories[trajectory][timestep][i + 1] = curr_state[spec]
+                # save step reached
+                for i in range(number_species):
+#                     print('appending {0} to species {1}'.format(curr_state[species[i]], species[i]))
+                    trajectory[entry_count][i + 1] = curr_state[species[i]]
                 save_time += increment
                 timestep += 1
+                entry_count += 1
+                
+            # end of trajectory
             if show_labels:
-                trajectories.append(results)
+                for i in range(number_species):
+                    data[species[i]] = trajectory[:, i+1]
+                simulation_data.append(data)
+            else:
+                simulation_data.append(trajectory)
             if profile:
                 print(steps_taken)
                 print("Total Steps Taken: ", len(steps_taken))
                 print("Total Steps Rejected: ", steps_rejected)
 
-        return trajectories
+        return simulation_data
