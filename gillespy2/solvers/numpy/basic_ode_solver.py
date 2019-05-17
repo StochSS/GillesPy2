@@ -70,7 +70,6 @@ class BasicODESolver(GillesPySolver):
         timeline = np.linspace(0, t, (t // increment + 1))
         result = odeint(BasicODESolver.rhs, start_state, timeline, args=(model,))
         result = np.hstack((np.expand_dims(timeline, -1), result))
-        print(result)
 
         if show_labels:
             results_as_dict = {
@@ -78,7 +77,6 @@ class BasicODESolver(GillesPySolver):
             }
             for i, species in enumerate(model.listOfSpecies):
                 results_as_dict[species] = result[:, i]
-                print(results_as_dict[species])
             results = [results_as_dict] * number_of_trajectories
         else:
             results = np.stack([result] * number_of_trajectories, axis=0)
