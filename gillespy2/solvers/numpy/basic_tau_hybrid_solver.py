@@ -1,10 +1,6 @@
-import random
+import random, math, sys, warnings
 from scipy.integrate import ode
-import numpy
-import math
-import sys
-import warnings
-from itertools import combinations
+import numpy as np
 import gillespy2
 from gillespy2.core import GillesPySolver
 
@@ -176,7 +172,7 @@ class BasicTauHybridSolver(GillesPySolver):
             # TODO The RateRule linked species should still contain the correct value in current, verify this
             # step size is too small, take a single forward-euler step
             print('*** EULER ***')
-            current = y0 + numpy.array(BasicTauHybridSolver.__f(curr_time, y0,
+            current = y0 + np.array(BasicTauHybridSolver.__f(curr_time, y0,
                                                                 curr_state, model.listOfReactions,
                                                                 model.listOfRateRules, propensities, compiled_reactions,
                                                                 compiled_rate_rules)) * step
@@ -277,11 +273,24 @@ class BasicTauHybridSolver(GillesPySolver):
             print("t = ", t)
             print("increment = ", increment)
 
-        if show_labels:
-            trajectories = []
-        else:
-            num_save_points = int(t / increment) + 1
-            trajectories = numpy.empty((number_of_trajectories, num_save_points, len(model.listOfSpecies)+1))
+        # create mapping of species dictionary to array indices
+        species_mappings = model.sanitized_species_names()
+        species = list(species_mappings.keys())
+        parameter_mappings = model.sanitized_parameter_names()
+        number_species = len(species)
+
+        # create numpy array for timeline
+        timeline = np.linspace(0, t, (t // increment + 1))
+
+        # create numpy matrix to mark all state data of time and species
+        trajectory_base = np.empty((number_of_trajectories, timeline.size, number_species + 1))
+
+        # copy time values to all trajectory row starts
+        trajectory_base[:, :, 0] = timeline
+
+        # copy initial populations to base
+        for i, s in enumerate(species):
+            trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
 
         det_spec = {species:True for (species, value) in model.listOfSpecies.items() if value.mode == 'dynamic'}
         det_rxn = {rxn:False for (rxn, value) in model.listOfReactions.items()}
@@ -302,11 +311,14 @@ class BasicTauHybridSolver(GillesPySolver):
             print('inactive_rate_rules')
             print(inactive_rate_rules)
 
-        for trajectory in range(number_of_trajectories):
+        simulation_data = []
+        for trajectory_num in range(number_of_trajectories):
 
             random.seed(seed)
             steps_taken = []
             steps_rejected = 0
+            entry_count = 1
+            trajectory = trajectory_base[trajectory_num]
 
             y0 = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
             rxn_offset = {}
@@ -315,16 +327,11 @@ class BasicTauHybridSolver(GillesPySolver):
             curr_time = 0
             curr_state['vol'] = model.volume
             save_time = 0
+            data = {'time': timeline}
                                 
-            if show_labels:
-                results = {'time': []}
-            else:
-                results = numpy.empty((number_of_trajectories, int(t / increment) + 1, len(model.listOfSpecies) + 1))
-
             for s in model.listOfSpecies:
                 # initialize populations
                 curr_state[s] = model.listOfSpecies[s].initial_value
-                if show_labels: results[s] = []
 
             for p in model.listOfParameters:
                 curr_state[p] = model.listOfParameters[p].value
@@ -348,7 +355,10 @@ class BasicTauHybridSolver(GillesPySolver):
 
             timestep = 0
 
-            while save_time < t:
+            # Each save step
+            while entry_count < timeline.size:
+
+                # Until save step reached
                 while curr_time < save_time:
                     projected_reaction = None
                     tau_step = None
@@ -513,24 +523,25 @@ class BasicTauHybridSolver(GillesPySolver):
                             break  # breakout of the while True
                 if profile:
                     steps_taken.append(tau_step)
-                if show_labels:
-                    results['time'].append(save_time)
-                    for i, s in enumerate(model.listOfSpecies):
-                        results[s].append(curr_state[s])
-                else:
-                    trajectories[trajectory][timestep][0] = save_time
-                    for i, s in enumerate(model.listOfSpecies):
-                        trajectories[trajectory][timestep][i + 1] = curr_state[s]
 
+                # Save step reached
+                for i in range(number_species):
+                    trajectory[entry_count][i+1] = curr_state[species[i]]
 
                 save_time += increment
                 timestep += 1
+                entry_count += 1
 
+            # End of trajectory
             if show_labels:
-                trajectories.append(results)
+                for i in range(number_species):
+                    data[species[i]] = trajectory[:, i+1]
+                simulation_data.append(data)
+            else:
+                simulation_data.append(trajectory)
             if profile:
                 print(steps_taken)
                 print("Total Steps Taken: ", len(steps_taken))
                 print("Total Steps Rejected: ", steps_rejected)
 
-        return trajectories
+        return simulation_data
