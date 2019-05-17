@@ -6,8 +6,8 @@ from gillespy2.solvers.numpy.basic_tau_leaping_solver import BasicTauLeapingSolv
 class TestBasicTauLeapingSolver(unittest.TestCase):
 
     model = Example()
-    results = model.run(solver=BasicTauHybridSolver, show_labels=False)
-    labels_results = model.run(solver=BasicTauHybridSolver, show_labels=True)
+    results = model.run(solver=BasicTauLeapingSolver, show_labels=False)
+    labels_results = model.run(solver=BasicTauLeapingSolver, show_labels=True)
 
     def test_return_type(self):
         assert(isinstance(self.results, list))
