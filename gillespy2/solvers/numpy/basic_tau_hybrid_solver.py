@@ -211,7 +211,6 @@ class BasicTauHybridSolver(GillesPySolver):
         # UPDATE THE STATE of the continuous species
         for i, s in enumerate(compiled_rate_rules):
             if curr_state[s] == current[i]:
-                print('same continous state detected at ', curr_time)
             curr_state[s] = current[i]
             
         # UPDATE THE STATE of the discrete reactions
