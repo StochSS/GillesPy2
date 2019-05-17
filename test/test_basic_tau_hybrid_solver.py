@@ -12,8 +12,8 @@ class TestBasicTauHybridSolver(unittest.TestCase):
     def test_return_type(self):
         assert(isinstance(self.results, list))
         assert(isinstance(self.results[0], np.ndarray))
-        assert(isinstance(self.results[0]['Sp'], np.ndarray))
-        assert(isinstance(self.results[0]['Sp'][0], np.float))
+        assert(isinstance(self.results[0][0], np.ndarray))
+        assert(isinstance(self.results[0][0][0], np.float))
 
     def test_return_type_show_labels(self):
         assert(isinstance(self.labels_results, list))
