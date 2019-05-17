@@ -5,10 +5,9 @@ from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
 
 class TestBasicTauHybridSolver(unittest.TestCase):
 
-    def test_run_example(self):
-        model = Example()
-        self.results = model.run(solver=BasicTauHybridSolver, show_labels=False)
-        self.labels_results = model.run(solver=BasicTauHybridSolver, show_labels=True)
+    model = Example()
+    self.results = model.run(solver=BasicTauHybridSolver, show_labels=False)
+    self.labels_results = model.run(solver=BasicTauHybridSolver, show_labels=True)
 
     def test_return_type(self):
         assert(isinstance(self.results, list))
