@@ -28,145 +28,74 @@ class BasicTauHybridSolver(GillesPySolver):
         self.epsilon = 0.03
            
         
-    def toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, curr_state, rxn_offset):
-        inactive_rate_rules = all_compiled['inactive_rules']
+    def toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, curr_state, rxn_offset, det_spec):
+        
+        #initialize variables
         inactive_reactions = all_compiled['inactive_rxns']
         rate_rules = all_compiled['rules']
         rxns = all_compiled['rxns']
-        rxn = None
         
-        #rate to reaction
-        reactions_to_add = []
-        for reaction in inactive_reactions:
-            if reaction not in deterministic_reactions:
-                reactions_to_add.append(reaction)
-#             rxn_offset[reaction] = math.log(random.uniform(0, 1))
-        if len(reactions_to_add) > 0:
-#             print('reactions to add')
-#             print(reactions_to_add)
-            for reaction in reactions_to_add:
-                if reaction is not None:
-#                     print('successfully added ', reaction)
-                    rxns[reaction] = inactive_reactions.pop(reaction, None)
-            
-            
-        for species in rate_rules:
-            if species not in inactive_rate_rules[deterministic_reactions]:
-                curr_state[species] = math.floor(curr_state[species])
-        
-        #reaction to rate rule
-        reactions_to_remove = []
-        for reaction in deterministic_reactions:
-            if reaction in rxns:
-#                 print('setting {0} to inactive'.format(reaction))
-                reactions_to_remove.append(reaction)
-        if len(reactions_to_remove) > 0:
-#             print('reactions to remove')
-#             print(reactions_to_remove)
-            for reaction in reactions_to_remove:
-#                 print('successfully removed ', reaction)
-                inactive_reactions[reaction] = rxns.pop(reaction, None)
-        
-        rules_to_remove = []
-        for rule in rate_rules:
-#             print(deterministic_reactions)
-            if rule not in inactive_rate_rules[deterministic_reactions]:
-#                 print('setting {0} to inactive'.format(rule))
-                rules_to_remove.append(rule)
-        for rule in rules_to_remove:
-            rate_rules.pop(rule, None)
-        for rule in inactive_rate_rules[deterministic_reactions]:
-            rate_rules[rule] = inactive_rate_rules[deterministic_reactions][rule]
-            
-#         rate_rules = inactive_rate_rules[deterministic_reactions]
-#         print('in toggle_reactions')
-#         print(rate_rules)
-#         print(rxns)
-        '''
-        toggle_arguments = (rxn, rxns, inactive_reactions, rate_rules, inactive_rate_rules, rxn_offset)
-        
-        def toggle_to_rate(self, *args):
-            if rxn in rxns:
-#                 print('Setting Reaction {0} to inactive'.format(rxn))
-                inactive_reactions[rxn] = rxns.pop(rxn, None)
-                rxn_offset[rxn] = math.log(random.uniform(0, 1))
-            for species in dependencies[rxn]:
-                if species in inactive_rate_rules:
-                    rate_rules[species] = inactive_rate_rules.pop(species, None)
-#                     print('Setting rate rule for {0} to active'.format(species))
+        #Check if this reaction set is already compiled and in use:
+        if deterministic_reactions in rate_rules.keys():
+            return
 
-        def toggle_to_rxn(self, *args):
-            if rxn in inactive_reactions:
-#                 print('Setting Reaction {0} to active'.format(rxn))
-                rxns[rxn] = inactive_reactions.pop(rxn, None)
-            for species in dependencies[rxn]:
-                if species in rate_rules:
-#                     print('Setting rate rule for {0} to inactive'.format(species))
-                    curr_state[species] = math.floor(curr_state[species])
-                    inactive_rate_rules[species] = rate_rules.pop(species, None)
-        
-        for rxn in det_rxn:
-#             if det_rxn[rxn]:
-            if toggle_state[rxn] == 1:
-                toggle_to_rate(*toggle_arguments)
-#             else:
-#                 toggle_to_rate(*toggle_arguments)
-            if toggle_state[rxn] == 2:
-                toggle_to_rxn(*toggle_arguments)
-       '''     
+        #If the set has changed, reactivate non-determinsitic reactions
+        reactivate = []
+        for r in inactive_reactions:
+            if not r in deterministic_reactions:
+                reactivate.append(r)
+        for r in reactivate:
+            rxns[r] = inactive_reactions.pop(r, None)
+
+        # floor non-det species
+        for s, d in det_spec.items():
+            if not d and isinstance(curr_state[s], float):
+                curr_state[s] = math.floor(curr_state[s])
+            
+        #Deactivate Determinsitic Reactions
+        for r in deterministic_reactions:
+            if not r in inactive_reactions:
+                inactive_reactions[r] = rxns.pop(r, None)
+
+        #Otherwise, this is a new determinstic reaction set that must be compiled
+        if not deterministic_reactions in rate_rules:
+            rate_rules[deterministic_reactions] = self.create_diff_eqs(deterministic_reactions, model, dependencies)
                 
+    def create_diff_eqs(self, comb, model, dependencies):
 
-    def create_diff_eqs(self, model, det_spec, dependencies):
         diff_eqs = {}
         reactions = {}
         rate_rules = {}
-        
-        
-        comb = []
-        comb.append(frozenset())
-                
-        for i in range(0, len(model.listOfReactions)+1):
-            for j in combinations(model.listOfReactions, i):
-                comb.append(frozenset(j))
-        
-        for i in comb:
-            sample_dict = {}
-            #Initialize sample dict
-            for reaction in i:
-                for dep in dependencies[reaction]:
-                    if dep not in sample_dict and model.listOfSpecies[dep].mode == 'dynamic':
-                        sample_dict[dep] = '0'
-            #build diff eq for each reaction
-            for reaction in i:                
-                factor = {}
-#                 print(reaction)
-                for dep in dependencies[reaction]:
-                    factor[dep] = 0
-                for key, value in model.listOfReactions[reaction].reactants.items():
-                    factor[key.name] -= value
-                for key, value in model.listOfReactions[reaction].products.items():
-                    factor[key.name] += value
-                for dep in dependencies[reaction]:
-                    if factor[dep] != 0:
-                        sample_dict[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].propensity_function)
-                for i, rr in enumerate(model.listOfRateRules):
-                    sample_dict[rr] = model.listOfRateRules[rr].expression
-            diff_eqs[i] = sample_dict
-#         print(diff_eqs)
 
+        #Initialize sample dict
+        for reaction in comb:
+            for dep in dependencies[reaction]:
+                if dep not in diff_eqs and model.listOfSpecies[dep].mode == 'dynamic':
+                    diff_eqs[dep] = '0'
+
+        # loop through each det reaction and concatenate it's diff eq for each species
+        for reaction in comb:
+            factor = {}
+            for dep in dependencies[reaction]:
+                factor[dep] = 0
+            for key, value in model.listOfReactions[reaction].reactants.items():
+                factor[key.name] -= value
+            for key, value in model.listOfReactions[reaction].products.items():
+                factor[key.name] += value
+            for dep in dependencies[reaction]:
+                if factor[dep] != 0:
+                    diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].propensity_function)
         
-        for comb, data in diff_eqs.items():
-            rate_rules[comb] = {}
-            for spec, rate in data.items():
-                rate_rules[comb][spec] = gillespy2.RateRule(model.listOfSpecies[spec], rate)
-#         print('rate rules')
-#         print(rate_rules)
-        
+        #create a dictionary of compiled gillespy2 rate rules
+        for spec, rate in diff_eqs.items():
+            rate_rules[spec] = compile(gillespy2.RateRule(model.listOfSpecies[spec], rate).expression, '<string>', 'eval')
+
+        # be sure to include model rate rules
+        for i, rr in enumerate(model.listOfRateRules):
+            rate_rules[rr] = compile(model.listOfRateRules[rr].expression, '<string>', 'eval')
+
         return rate_rules
-        
-        
 
-    
     def flag_det_reactions(self, model, det_spec, det_rxn, dependencies):
         #Determine if each rxn would be deterministic apart from other reactions
         prev_state = det_rxn.copy()
@@ -222,18 +151,12 @@ class BasicTauHybridSolver(GillesPySolver):
         """
         curr_state['t'] = t
         state_change = []
-#         print(compiled_rate_rules)
 
         for i, rr in enumerate(compiled_rate_rules):
-#             print(rr)
             state_change.append(eval(compiled_rate_rules[rr], eval_globals, curr_state))
         for i, r in enumerate(compiled_reactions):
-#             print(r)
             propensities[r] = eval(compiled_reactions[r], eval_globals, curr_state)
             state_change.append(propensities[r])
-        
-           
-#         print(state_change) 
 
         return state_change
 
@@ -242,9 +165,6 @@ class BasicTauHybridSolver(GillesPySolver):
                                  compiled_rate_rules):
         """ Helper function to perform the ODE integration of one step """
         rhs = ode(BasicTauHybridSolver.__f)  # set function as ODE object
-#         print('at time of integrate:')
-#         print('firing {0} reactions'.format(len(compiled_reactions)))
-#         print('using {0} rate rules'.format(len(compiled_rate_rules)))
         rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfReactions,
                                                           model.listOfRateRules, propensities, compiled_reactions,
                                                           compiled_rate_rules)
@@ -290,7 +210,8 @@ class BasicTauHybridSolver(GillesPySolver):
 
         # UPDATE THE STATE of the continuous species
         for i, s in enumerate(compiled_rate_rules):
-#             print('continuous - updating {0} from {1} to {2}'.format(s, curr_state[s], current[i]))
+            if curr_state[s] == current[i]:
+                print('same continous state detected at ', curr_time)
             curr_state[s] = current[i]
             
         # UPDATE THE STATE of the discrete reactions
@@ -375,8 +296,6 @@ class BasicTauHybridSolver(GillesPySolver):
             [dependencies[reaction].add(reactant.name) for reactant in model.listOfReactions[reaction].reactants]
             [dependencies[reaction].add(product.name) for product in model.listOfReactions[reaction].products]
 
-        inactive_rate_rules = self.create_diff_eqs(model, det_spec, dependencies)
-
         if debug:
             print('dependencies')
             print(dependencies)
@@ -414,7 +333,6 @@ class BasicTauHybridSolver(GillesPySolver):
 
             for i, r in enumerate(model.listOfReactions):  # set reactions to uniform random number and add to y0
                 rxn_offset[r] = math.log(random.uniform(0, 1))
-#                 y0[i] = (math.log(random.uniform(0, 1)))
                 if debug:
                     print("Setting Random number ", rxn_offset[r], " for ", model.listOfReactions[r].name)
 
@@ -423,26 +341,12 @@ class BasicTauHybridSolver(GillesPySolver):
                 compiled_reactions[r] = compile(model.listOfReactions[r].propensity_function, '<string>',
                                                 'eval')
             compiled_rate_rules = {}
-#             print('compiling rate rules...')
             for i, rr in enumerate(model.listOfRateRules):
                 compiled_rate_rules[rr] = compile(model.listOfRateRules[rr].expression, '<string>', 'eval')
-#                 print('rr: ', rr)
-#                 print('expression: ', model.listOfRateRules[rr].expression)
-#             print('compiled rate rules:')
-#             print(compiled_rate_rules)
-                
-            compiled_inactive_rate_rules = {}
-#             print('compiling inactive rate rules...')
-            for comb in inactive_rate_rules:
-                compiled_inactive_rate_rules[comb] = {}
-                for rr in inactive_rate_rules[comb]:
-                    compiled_inactive_rate_rules[comb][rr] = compile(inactive_rate_rules[comb][rr].expression, '<string>', 'eval')
-#             print('compiled inactive rate rules:')
-#             print(compiled_inactive_rate_rules)
                 
             compiled_inactive_reactions = {}
             
-            all_compiled = {'rxns': compiled_reactions, 'rules': compiled_rate_rules, 'inactive_rxns': compiled_inactive_reactions, 'inactive_rules': compiled_inactive_rate_rules}
+            all_compiled = {'rxns': compiled_reactions, 'rules': compiled_rate_rules, 'inactive_rxns': compiled_inactive_reactions}
 
             timestep = 0
 
@@ -451,10 +355,6 @@ class BasicTauHybridSolver(GillesPySolver):
                     projected_reaction = None
                     tau_step = None
                     tau_j = {}
-                    # For continious species, save the population back into the y0 vector (if modified)
-#                     for i, rr in enumerate(model.listOfRateRules):  # Add continuous species to y0
-#                         spec = model.listOfRateRules[rr].species.name
-#                         y0[i + len(model.listOfReactions)] = curr_state[spec]
 
                     if debug:
                         print("curr_state = {", end='')
@@ -469,7 +369,6 @@ class BasicTauHybridSolver(GillesPySolver):
                         propensities[r] = eval(model.listOfReactions[r].propensity_function, curr_state)
                         propensity_sum += propensities[r]
                         if propensities[r] > 0:
-#                             tau_j[r] = -y0[i] / propensities[r]
                             tau_j[r] = -rxn_offset[r] / propensities[r]
                             if debug:
                                 print("Propensity of ", r, " is ", propensities[r], "tau_j is ", tau_j[r])
@@ -527,10 +426,8 @@ class BasicTauHybridSolver(GillesPySolver):
                                 epsilon_i[reactant] = self.epsilon / g_i[reactant]  # Cao, Gillespie, Petzold 27
                                 mu_i[reactant] += model.listOfReactions[r].reactants[reactant] * propensities[
                                     r]  # Cao, Gillespie, Petzold 29a
-#                                 print('Species {0} adding to mu_i: {1} * {2} = {3}'.format(reactant, model.listOfReactions[r].reactants[reactant], propensities[r], model.listOfReactions[r].reactants[reactant] * propensities[r]))
                                 sigma_i[reactant] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[
                                     r]  # Cao, Gillespie, Petzold 29b
-#                                 print('Species {0} adding to sigma_i: {1} ** 2 * {2} = {3}'.format(reactant, model.listOfReactions[r].reactants[reactant], propensities[r], model.listOfReactions[r].reactants[reactant] ** 2 * propensities[r]))
                             for r in reactants:
                                 if mu_i[r] > 0:
                                     # Cao, Gillespie, Petzold 33
@@ -560,17 +457,15 @@ class BasicTauHybridSolver(GillesPySolver):
                         print('CV: {0}'.format(CV))
                         print('det_spec: {0}'.format(det_spec))
                         print('det_rxn: {0}'.format(det_rxn))
-                                                        
-                    self.toggle_reactions(model, all_compiled, deterministic_reactions, dependencies, curr_state, rxn_offset)
-#                     print('after toggle reactions')
-#                     print(compiled_rate_rules)
-#                     print(compiled_reactions)
-#                     print(all_compiled['inactive_rules'])
-                    y0 = [0] * (len(compiled_reactions) + len(compiled_rate_rules))
-                    for i, spec in enumerate(compiled_rate_rules):
+                         
+                    self.toggle_reactions(model, all_compiled, deterministic_reactions, dependencies, curr_state, rxn_offset, det_spec)
+                    active_rr = compiled_rate_rules[deterministic_reactions]
+
+                    y0 = [0] * (len(compiled_reactions) + len(active_rr))
+                    for i, spec in enumerate(active_rr):
                         y0[i] = curr_state[spec]
                     for i, rxn in enumerate(compiled_reactions):
-                        y0[i+len(compiled_rate_rules)] = rxn_offset[rxn]
+                        y0[i+len(active_rr)] = rxn_offset[rxn]
                     
                     prev_y0 = y0.copy()
                     prev_curr_state = curr_state.copy()
@@ -584,7 +479,7 @@ class BasicTauHybridSolver(GillesPySolver):
 
                         reactions, y0, curr_state, curr_time = self.__get_reactions(
                             tau_step, curr_state, y0, model, curr_time, save_time, propensities, compiled_reactions,
-                            compiled_rate_rules, rxn_offset, debug)
+                            active_rr, rxn_offset, debug)
 
 
                         # Update curr_state with the result of the SSA reaction that fired
@@ -593,11 +488,9 @@ class BasicTauHybridSolver(GillesPySolver):
                             if reactions[r] > 0:
                                 for reactant in model.listOfReactions[r].reactants:
                                     species_modified[str(reactant)] = True
-#                                     print('discrete - updating {0} from {1} subtracting {2}'.format(reactant, curr_state[str(reactant)], model.listOfReactions[r].reactants[reactant]*reactions[r]))
                                     curr_state[str(reactant)] -= model.listOfReactions[r].reactants[reactant] * reactions[r]
                                 for product in model.listOfReactions[r].products:
                                     species_modified[str(product)] = True
-#                                     print('discrete - updating {0} from {1} adding {2}'.format(product, curr_state[str(product)], model.listOfReactions[r].products[product]*reactions[r]))
                                     curr_state[str(product)] += model.listOfReactions[r].products[product] * reactions[r]
                                     
                         neg_state = False
