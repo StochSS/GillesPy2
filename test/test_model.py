@@ -34,6 +34,28 @@ class TestModel(unittest.TestCase):
         with self.assertRaises(ModelError):
             model.add_reaction(reaction2)
 
+    def test_valid_initial_value_float(self):
+        model = Model()
+        species1 = Species('A', initial_value=1.5, mode='continuous')
+        model.add_species(species1)
+
+    def test_invalid_initial_value_float(self):
+        model = Model()
+        species1 = Species('A', initial_value=1.5)
+        with self.assertRaises(ModelError):
+            model.add_species(species1)
+
+    def test_valid_initial_value_negative(self):
+        model = Model()
+        species1 = Species('A', initial_value=-1, allow_negative_populations=True)
+        model.add_species(species1)
+
+    def test_invalid_initial_value_negative(self):
+        model = Model()
+        species1 = Species('A', initial_value=-1)
+        with self.assertRaises(ModelError):
+            model.add_species(species1)
+
     def test_add_reaction_dict(self):
         model = Model()
         rate = Parameter(name='rate', expression=0.5)
