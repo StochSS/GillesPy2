@@ -540,11 +540,11 @@ class Species:
         if mode == 'continuous':
             self.initial_value = np.float(initial_value)
         else:
-            assert isinstance(initial_value, int), 'Discrete values must be of type int.'
+            if not isinstance(initial_value, int): raise ValueError('Discrete avlues must be of type int.')
             self.initial_value = np.int(initial_value)
         if not allow_negative_populations:
-            assert self.initial_value >= 0, 'A species initial value must \
-be non-negative unless allow_negative_populations=True.'
+            if self.initial_value < 0: raise ValueError('A species initial value must be \
+                    non-negative unless allow_negative_populations=True')
 
 
     def __str__(self):

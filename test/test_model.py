@@ -42,7 +42,7 @@ class TestModel(unittest.TestCase):
     def test_invalid_initial_value_float(self):
         model = Model()
         species1 = Species('A', initial_value=1.5)
-        with self.assertRaises(ModelError):
+        with self.assertRaises(ValueError):
             model.add_species(species1)
 
     def test_valid_initial_value_negative(self):
@@ -53,7 +53,7 @@ class TestModel(unittest.TestCase):
     def test_invalid_initial_value_negative(self):
         model = Model()
         species1 = Species('A', initial_value=-1)
-        with self.assertRaises(ModelError):
+        with self.assertRaises(ValueError):
             model.add_species(species1)
 
     def test_add_reaction_dict(self):
