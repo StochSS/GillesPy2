@@ -522,15 +522,29 @@ class Species:
     initial_value : int >= 0
         Initial population of this species. If this is not provided as an int,
         the type will be changed when it is added by numpy.int
+    mode : str
+        ***FOR USE WITH TauHybridSolver ONLY***
+        Sets the mode of representation of this species for the TauHybridSolver,
+        can be discrete, continuous, or dynamic.
+        mode='dynamic' - Default, allows a species to be represented as
+            either discrete or continuous
+        mode='continuous' - Species will only be represented as continuous
+        mode='discrete' - Species will only be represented as discrete
     """
 
-    def __init__(self, name="", initial_value=0, continuous=False):
+    def __init__(self, name="", initial_value=0, mode='dynamic', allow_negative_populations=False):
         # A species has a name (string) and an initial value (positive integer)
         self.name = name
-        self.initial_value = np.int(initial_value)
-        self.continuous = continuous
-        assert self.initial_value >= 0, "A species initial value has to \
-                                        be a positive number."
+        self.mode = mode
+        self.allow_negative_populations = allow_negative_populations
+        if mode == 'continuous':
+            self.initial_value = np.float(initial_value)
+        else:
+            assert isinstance(initial_value, int), 'Discrete values must be of type int.'
+            self.initial_value = np.int(initial_value)
+        if not allow_negative_populations:
+            assert self.initial_value >= 0, 'A species initial value must \
+be non-negative unless allow_negative_populations=True.'
 
 
     def __str__(self):
@@ -680,9 +694,13 @@ class Reaction:
                       "propensity function.").format(self.name)
             raise ReactionError(errmsg)
 
+        invalid_component_error = ('Reaction {} contains a continuous species as a stochastic reactant/product.'
+                                    'consider using a rate rule.'.format(self.name))
         self.reactants = {}
         for r in reactants:
             rtype = type(r).__name__
+            if r.mode == 'continuous':
+                raise ReactionError(invalid_component_error)
             if rtype == 'instance':
                 self.reactants[r.name] = reactants[r]
             else:
@@ -691,6 +709,8 @@ class Reaction:
         self.products = {}
         for p in products:
             rtype = type(p).__name__
+            if p.mode == 'continuous':
+                raise ReactionError(invalid_component_error)
             if rtype == 'instance':
                 self.products[p.name] = products[p]
             else:
