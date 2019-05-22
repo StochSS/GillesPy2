@@ -51,6 +51,7 @@ def select(*tau_args):
     critical = False
     critical_tau = 1000 #arbitrarily large value
     non_critical_tau = 0
+    tau = None
 
     #Determine if there are any critical reactions
     for rxn in model.listOfReactions:
@@ -110,7 +111,7 @@ def select(*tau_args):
                     max_pop_change_sd / sigma_i[r])
 
     if len(tau_i) > 0: non_critical_tau = min(tau_i.values())
-    elif critical_tau is None:
+    if critical_tau is None:
         tau = non_critical_tau
     elif non_critical_tau is None:
         tau = critical_tau
