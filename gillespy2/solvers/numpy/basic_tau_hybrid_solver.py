@@ -147,7 +147,6 @@ class BasicTauHybridSolver(GillesPySolver):
         """
         curr_state['t'] = t
         state_change = []
-        #print(t)
 
         for i, rr in enumerate(compiled_rate_rules):
             state_change.append(eval(compiled_rate_rules[rr], eval_globals, curr_state))

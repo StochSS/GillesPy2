@@ -109,7 +109,13 @@ def select(*tau_args):
                     max_pop_change_mean / mu_i[r], 
                     max_pop_change_sd / sigma_i[r])
 
-    non_critical_tau = min(tau_i.values())
-    tau = non_critical_tau if critical_tau is None else min(non_critical_tau, critical_tau)
+    if len(tau_i) > 0: non_critical_tau = min(tau_i.values())
+    elif critical_tau is None:
+        tau = non_critical_tau
+    elif non_critical_tau is None:
+        tau = critical_tau
+    else:
+        tau = min(non_critical_tau, critical_tau)
     tau_step = min(max(tau, 1e-10), save_time - curr_time)
+    print(tau_step)
     return tau_step
