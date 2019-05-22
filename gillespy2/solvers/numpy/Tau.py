@@ -58,7 +58,6 @@ def select(*tau_args):
             if curr_state[r.name] / v < critical_threshold and propensities[rxn] > 0:
                 critical_reactions.append(rxn)
                 critical = True
-                print('CRITICAL: ', r)
 
     # If a critical reaction is present, estimate tau for a single firing of each
     # critical reaction with propensity > 0
