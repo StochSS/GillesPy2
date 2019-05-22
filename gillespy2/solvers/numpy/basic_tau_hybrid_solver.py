@@ -2,8 +2,8 @@ import random, math, sys, warnings
 from scipy.integrate import ode
 import numpy as np
 import gillespy2
+from gillespy2.solvers.numpy import Tau
 from gillespy2.core import GillesPySolver
-
 
 eval_globals = math.__dict__
 
@@ -147,6 +147,7 @@ class BasicTauHybridSolver(GillesPySolver):
         """
         curr_state['t'] = t
         state_change = []
+        #print(t)
 
         for i, rr in enumerate(compiled_rate_rules):
             state_change.append(eval(compiled_rate_rules[rr], eval_globals, curr_state))
@@ -164,7 +165,11 @@ class BasicTauHybridSolver(GillesPySolver):
         rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfReactions,
                                                           model.listOfRateRules, propensities, compiled_reactions,
                                                           compiled_rate_rules)
-        current = rhs.integrate(step + curr_time)  # current holds integration from current_time to int_time\
+        rhs.set_integrator('lsoda', max_step=5000000000, ixpr=True)
+        int_time = step+curr_time
+        #print('integrating from ', curr_time, ' to ', int_time)
+        current = rhs.integrate(int_time)  # current holds integration from current_time to int_time
+        #print(curr_time)
         if rhs.successful():
             return current, curr_time + step
         else:
@@ -265,6 +270,7 @@ class BasicTauHybridSolver(GillesPySolver):
             Path to stochkit. This is set automatically upon installation, but
             may be overwritten if desired.
         """
+
         if not sys.warnoptions:
             warnings.simplefilter("ignore")
         if not isinstance(self, BasicTauHybridSolver):
@@ -306,10 +312,6 @@ class BasicTauHybridSolver(GillesPySolver):
         if debug:
             print('dependencies')
             print(dependencies)
-            print('det_spec')
-            print(det_spec)
-            print('inactive_rate_rules')
-            print(inactive_rate_rules)
 
         simulation_data = []
         for trajectory_num in range(number_of_trajectories):
@@ -328,7 +330,9 @@ class BasicTauHybridSolver(GillesPySolver):
             curr_state['vol'] = model.volume
             save_time = 0
             data = {'time': timeline}
-                                
+
+            HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold = Tau.initialize(model, self.epsilon)
+
             for s in model.listOfSpecies:
                 # initialize populations
                 curr_state[s] = model.listOfSpecies[s].initial_value
@@ -350,6 +354,10 @@ class BasicTauHybridSolver(GillesPySolver):
                 compiled_rate_rules[rr] = compile(model.listOfRateRules[rr].expression, '<string>', 'eval')
                 
             compiled_inactive_reactions = {}
+
+            compiled_propensities = {}
+            for i, r in enumerate(model.listOfReactions):
+                compiled_propensities[r] = compile(model.listOfReactions[r].propensity_function, '<string>', 'eval')
             
             all_compiled = {'rxns': compiled_reactions, 'rules': compiled_rate_rules, 'inactive_rxns': compiled_inactive_reactions}
 
@@ -360,96 +368,18 @@ class BasicTauHybridSolver(GillesPySolver):
 
                 # Until save step reached
                 while curr_time < save_time:
-                    projected_reaction = None
-                    tau_step = None
-                    tau_j = {}
 
-                    if debug:
-                        print("curr_state = {", end='')
-                        for i, s in enumerate(model.listOfSpecies):
-                            print("'{0}' : {1}, ".format(s, curr_state[s]), end='')
-                        print("}")
-
-                    # Salis et al. eq (16)
-                    # TODO: this needs to be optimized.  Going too big is expensive, too small is also expensive
                     propensity_sum = 0
+
                     for i, r in enumerate(model.listOfReactions):
-                        propensities[r] = eval(model.listOfReactions[r].propensity_function, curr_state)
+                        propensities[r] = eval(compiled_propensities[r], curr_state)
                         propensity_sum += propensities[r]
-                        if propensities[r] > 0:
-                            tau_j[r] = -rxn_offset[r] / propensities[r]
-                            if debug:
-                                print("Propensity of ", r, " is ", propensities[r], "tau_j is ", tau_j[r])
-                            if tau_step is None or tau_j[r] < tau_step:
-                                tau_step = max(tau_j[r], 1e-10)
-                                projected_reaction = model.listOfReactions[r]
-                        else:
-                            if debug:
-                                print("Propensity of ", r, " is ", propensities[r])
 
-                    if tau_step is None:
-                        tau_step = save_time - curr_time
+                    #print(curr_time)
+                    tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold,
+                            model, propensities, curr_state, curr_time, save_time, debug]
 
-                    if debug:
-                        if projected_reaction is None:
-                            print("NO projected reaction")
-                        else:
-                            print("Projected reaction is: ", projected_reaction.name, " at time: ", curr_time + tau_step,
-                                  " step size: ", tau_step)
-
-                    #BEGIN NEW TAU SELECTION METHOD
-                    g_i = {}    # used for relative error calculation
-                    epsilon_i = {}  # relative error allowance of species
-                    tau_i = {}  # estimated tau based on depletion of species
-                    reactants = []  # a list of all species in the model which act as reactants
-                    mu_i = {}   # mu_i for each species
-                    sigma_i = {}  # sigma_i squared for each species
-                    critical_reactions = []
-                    new_tau_step = None
-                    n_fires = 2  # if a reaction would deplete a resource in n_fires, it is considered critical
-
-                    #Create list of all reactants
-                    for r in model.listOfReactions:
-                        reactant_keys = model.listOfReactions[r].reactants.keys()
-                        for key in reactant_keys:
-                            reactants.append(key)
-                    # initialize mean and stand_dev for reactants
-                    for r in reactants:
-                        mu_i[r] = 0
-                        sigma_i[r] = 0
-
-                    critical = False
-                    for r in model.listOfReactions:
-                        # For each reaction, determine if critical
-                        for reactant in model.listOfReactions[r].reactants:
-                            # if species pop / state change <= threshold set critical and break
-                            if curr_state[str(reactant)] / model.listOfReactions[r].reactants[reactant] <= n_fires:
-                                critical = True
-                                critical_reactions.append(r)
-                    if not critical:
-                        for r in model.listOfReactions:
-                            for reactant in model.listOfReactions[r].reactants:
-                                g_i[reactant] = 3 + (1 / (curr_state[str(reactant)] - 1)) + (
-                                        2 / (curr_state[str(reactant)] - 2))  # Cao, Gillespie, Petzold 27.iii
-                                epsilon_i[reactant] = self.epsilon / g_i[reactant]  # Cao, Gillespie, Petzold 27
-                                mu_i[reactant] += model.listOfReactions[r].reactants[reactant] * propensities[
-                                    r]  # Cao, Gillespie, Petzold 29a
-                                sigma_i[reactant] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[
-                                    r]  # Cao, Gillespie, Petzold 29b
-                            for r in reactants:
-                                if mu_i[r] > 0:
-                                    # Cao, Gillespie, Petzold 33
-                                    tau_i[r] = min((max(epsilon_i[r] * curr_state[str(r)], 1) / mu_i[r]),
-                                                   # Cao, Gillespie, Petzold 32A
-                                                   (max(epsilon_i[r] * curr_state[str(r)], 1) ** 2 / sigma_i[
-                                                       r]))  # Cao, Gillespie, Petzold 32B
-                                    
-                                    if new_tau_step is None or tau_i[
-                                        r] < new_tau_step:  # set smallest tau from non-critical reactions
-                                        new_tau_step = tau_i[r]
-
-                    if new_tau_step is not None and new_tau_step < (save_time - curr_time): # if curr+new_tau < save_time, use new_tau
-                        tau_step = max(new_tau_step, 1e-10)
+                    tau_step = Tau.select(*tau_args)
 
                     if profile:
                         steps_taken.append(tau_step)
@@ -457,7 +387,7 @@ class BasicTauHybridSolver(GillesPySolver):
                     # END NEW TAU SELECTION METHOD
                     mn, sd, CV = self.calculate_statistics(model, propensities, curr_state, tau_step, det_spec, dependencies)
                     deterministic_reactions = self.flag_det_reactions(model, det_spec, det_rxn, dependencies)
-
+                    
                     if debug:
                         print('Calculating mean, standard deviation at time {0}'.format((curr_time + tau_step)))
                         print('mean: {0}'.format(mn))
@@ -489,11 +419,11 @@ class BasicTauHybridSolver(GillesPySolver):
                             tau_step, curr_state, y0, model, curr_time, save_time, propensities, compiled_reactions,
                             active_rr, rxn_offset, debug)
 
-
                         # Update curr_state with the result of the SSA reaction that fired
                         species_modified = {}
                         for i, r in enumerate(compiled_reactions):
                             if reactions[r] > 0:
+                                #print('firing ', r, ' ', reactions[r], ' times!')
                                 for reactant in model.listOfReactions[r].reactants:
                                     species_modified[str(reactant)] = True
                                     curr_state[str(reactant)] -= model.listOfReactions[r].reactants[reactant] * reactions[r]
