@@ -118,5 +118,4 @@ def select(*tau_args):
     else:
         tau = min(non_critical_tau, critical_tau)
     tau_step = min(max(tau, 1e-10), save_time - curr_time)
-    print(tau_step)
     return tau_step
