@@ -21,7 +21,6 @@ class BasicTauHybridSolver(GillesPySolver):
 
     def __init__(self, debug=False):
         self.debug = debug
-        self.epsilon = 0.03
            
         
     def toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, curr_state, rxn_offset, det_spec):
@@ -109,7 +108,7 @@ class BasicTauHybridSolver(GillesPySolver):
         deterministic_reactions = frozenset(deterministic_reactions)
         return deterministic_reactions
                             
-    def calculate_statistics(self, model, propensities, curr_state, tau_step, det_spec, dependencies):
+    def calculate_statistics(self, model, propensities, curr_state, tau_step, det_spec, dependencies, hybrid_tol):
         """
         Calculates Mean, Standard Deviation, and Coefficient of Variance for each
         dynamic species, then set if species can be represented determistically
@@ -136,7 +135,7 @@ class BasicTauHybridSolver(GillesPySolver):
             else:
                 sd[species], CV[species] = (0, 1)    # values chosen to guarantee discrete
             #Set species to deterministic if CV is less than threshhold
-            det_spec[species] = True if CV[species] < self.epsilon else False                            
+            det_spec[species] = True if CV[species] < hybrid_tol else False                            
                 
         return mn, sd, CV
     
@@ -238,7 +237,7 @@ class BasicTauHybridSolver(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False,
-            profile=False, show_labels=True, stochkit_home=None, **kwargs):
+            profile=False, show_labels=True, stochkit_home=None, hybrid_tol=0.03, tau_tol=0.03, **kwargs):
         """
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
         objects and will inherit those parameters which are passed with the model as the arguments this run function.
@@ -330,7 +329,7 @@ class BasicTauHybridSolver(GillesPySolver):
             save_time = 0
             data = {'time': timeline}
 
-            HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold = Tau.initialize(model, self.epsilon)
+            HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold = Tau.initialize(model, tau_tol)
 
             for s in model.listOfSpecies:
                 # initialize populations
@@ -364,10 +363,8 @@ class BasicTauHybridSolver(GillesPySolver):
 
             # Each save step
             while entry_count < timeline.size:
-
                 # Until save step reached
                 while curr_time < save_time:
-
                     propensity_sum = 0
 
                     for i, r in enumerate(model.listOfReactions):
@@ -384,7 +381,7 @@ class BasicTauHybridSolver(GillesPySolver):
                         steps_taken.append(tau_step)
 
                     # END NEW TAU SELECTION METHOD
-                    mn, sd, CV = self.calculate_statistics(model, propensities, curr_state, tau_step, det_spec, dependencies)
+                    mn, sd, CV = self.calculate_statistics(model, propensities, curr_state, tau_step, det_spec, dependencies, hybrid_tol)
                     deterministic_reactions = self.flag_det_reactions(model, det_spec, det_rxn, dependencies)
                     
                     if debug:
