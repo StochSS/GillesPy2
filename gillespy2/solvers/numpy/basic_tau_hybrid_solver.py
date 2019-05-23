@@ -165,9 +165,7 @@ class BasicTauHybridSolver(GillesPySolver):
                                                           compiled_rate_rules)
         rhs.set_integrator('lsoda', max_step=5000000000, ixpr=True)
         int_time = step+curr_time
-        #print('integrating from ', curr_time, ' to ', int_time)
         current = rhs.integrate(int_time)  # current holds integration from current_time to int_time
-        #print(curr_time)
         if rhs.successful():
             return current, curr_time + step
         else:
@@ -371,9 +369,8 @@ class BasicTauHybridSolver(GillesPySolver):
                         propensities[r] = eval(compiled_propensities[r], curr_state)
                         propensity_sum += propensities[r]
 
-                    #print(curr_time)
                     tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold,
-                            model, propensities, curr_state, curr_time, save_time, debug]
+                            model, propensities, curr_state, curr_time, save_time]
 
                     tau_step = Tau.select(*tau_args)
 
@@ -419,7 +416,6 @@ class BasicTauHybridSolver(GillesPySolver):
                         species_modified = {}
                         for i, r in enumerate(compiled_reactions):
                             if reactions[r] > 0:
-                                #print('firing ', r, ' ', reactions[r], ' times!')
                                 for reactant in model.listOfReactions[r].reactants:
                                     species_modified[str(reactant)] = True
                                     curr_state[str(reactant)] -= model.listOfReactions[r].reactants[reactant] * reactions[r]

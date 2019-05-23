@@ -44,7 +44,7 @@ Tau Selection method based on Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006). 
 '''
 def select(*tau_args):
     
-    HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold, model, propensities, curr_state, curr_time, save_time, debug = tau_args
+    HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold, model, propensities, curr_state, curr_time, save_time = tau_args
     tau_step = None
     crit_taus = {}
     critical_reactions = []
@@ -61,7 +61,7 @@ def select(*tau_args):
                 critical = True
 
     # If a critical reaction is present, estimate tau for a single firing of each
-    # critical reaction with propensity > 0
+    # critical reaction with propensity > 0, and take the smallest tau
     if critical:
         for rxn in model.listOfReactions:
             if propensities[rxn] > 0:
@@ -69,17 +69,11 @@ def select(*tau_args):
         critical_tau = min(crit_taus.values())
 
 
+    # If a reactant's HOR requires >1 of that reactant, evaluate lambda at curr_state
     for r in g_i:
-        #If a reactant's HOR requires >1 of that reactant, evaluate lambda at curr_state
         if callable(g_i[r]):
             g_i[r] = g_i[r](curr_state[r.name])
             epsilon_i[r] = self.epsilon / g_i[r]
-
-    if debug:
-        print("curr_state = {", end='')
-        for i, s in enumerate(model.listOfSpecies):
-            print("'{0}' : {1}, ".format(s, curr_state[s]), end='')
-        print("}")
 
     tau_i = {}  # estimated tau for non-critical reactions
     non_critical_tau = None
@@ -109,13 +103,19 @@ def select(*tau_args):
             tau_i[r] = min(
                     max_pop_change_mean / mu_i[r], 
                     max_pop_change_sd / sigma_i[r])
-
     if len(tau_i) > 0: non_critical_tau = min(tau_i.values())
+
+    # If all reactions are non-critical, use non-critical tau.
     if critical_tau is None:
         tau = non_critical_tau
+    # If all rxns are critical, use critical tau.
     elif non_critical_tau is None:
         tau = critical_tau
+    # If there are both critical and non-critical reactions,
+    # take the shortest tau between critical and non-critical.
     else:
         tau = min(non_critical_tau, critical_tau)
+    # If selected tau exceeds save time, integrate to save time
     tau_step = min(max(tau, 1e-10), save_time - curr_time)
+
     return tau_step
