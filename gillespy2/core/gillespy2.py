@@ -543,14 +543,20 @@ class Species:
         mode='discrete' - Species will only be represented as discrete
     """
 
-    def __init__(self, name="", initial_value=0, mode='dynamic'):
+    def __init__(self, name="", initial_value=0, mode='dynamic', allow_negative_populations=False):
         # A species has a name (string) and an initial value (positive integer)
         self.name = name
-        self.initial_value = np.int(initial_value)
         self.mode = mode
-        assert self.initial_value >= 0, "A species initial value has to \
-                                        be a positive number."
+        self.allow_negative_populations = allow_negative_populations
 
+        if mode == 'continuous':
+            self.initial_value = np.float(initial_value)
+        else:
+            if not isinstance(initial_value, int): raise ValueError('Discrete values must be of type int.')
+            self.initial_value = np.int(initial_value)
+        if not allow_negative_populations:
+            if self.initial_value < 0: raise ValueError('A species initial value must be \
+non-negative unless allow_negative_populations=True')
 
     def __str__(self):
         return self.name
