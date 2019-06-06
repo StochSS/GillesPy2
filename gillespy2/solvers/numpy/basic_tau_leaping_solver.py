@@ -1,5 +1,6 @@
 """Class and methods for Basic Tau Leaping Solver"""
 
+
 import random, math, sys, warnings
 import numpy as np
 from gillespy2.solvers.numpy import Tau
@@ -113,7 +114,6 @@ class BasicTauLeapingSolver(GillesPySolver):
             trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
             # create dictionary of all constant parameters for propensity evaluation
 
-
         simulation_data = []
 
         for trajectory_num in range(number_of_trajectories):
@@ -129,6 +129,7 @@ class BasicTauLeapingSolver(GillesPySolver):
             steps_rejected = 0
             entry_count = 1
             trajectory = trajectory_base[trajectory_num]
+
 
             HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold = Tau.initialize(model, tau_tol)
 
