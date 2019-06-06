@@ -543,7 +543,6 @@ class Species:
         mode='discrete' - Species will only be represented as discrete
     """
 
-<<<<<<< HEAD
     def __init__(self, name="", initial_value=0, mode='dynamic', allow_negative_populations=False):
         # A species has a name (string) and an initial value (positive integer)
         self.name = name
