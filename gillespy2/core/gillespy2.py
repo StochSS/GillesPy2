@@ -708,8 +708,6 @@ class Reaction:
                       "propensity function.").format(self.name)
             raise ReactionError(errmsg)
 
-        invalid_component_error = ('Reaction {} contains a continuous species as a stochastic reactant/product.'
-                                    'consider using a rate rule.'.format(self.name))
         self.reactants = {}
         for r in reactants:
             rtype = type(r).__name__
@@ -717,8 +715,6 @@ class Reaction:
                 self.reactants[r.name] = reactants[r]
             else:
                 self.reactants[r] = reactants[r]
-            if r.mode == 'continuous':
-                raise ReactionError(invalid_component_error)
 
         self.products = {}
         for p in products:
@@ -727,8 +723,6 @@ class Reaction:
                 self.products[p.name] = products[p]
             else:
                 self.products[p] = products[p]
-            if p.mode == 'continuous':
-                raise ReactionError(invalid_component_error)
 
         if self.massaction:
             self.type = "mass-action"
