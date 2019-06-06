@@ -1,10 +1,9 @@
 """Class and methods for Basic Tau Leaping Solver"""
 
-import random
-import math
-import sys
-import warnings
+
+import random, math, sys, warnings
 import numpy as np
+from gillespy2.solvers.numpy import Tau
 from gillespy2.core import GillesPySolver
 
 
@@ -52,125 +51,9 @@ class BasicTauLeapingSolver(GillesPySolver):
 
         return rxn_count, curr_state, curr_time
 
-    def get_tau(self, model, start_state, curr_state,
-                propensities, steps_taken, save_time, curr_time):
-        """ Helper function to analyze best tau to take as next step """
-        #   pylint: disable=W0123
-        projected_reaction = None
-        tau_step = None
-        tau_j = {}
-
-        if self.debug:
-            print("curr_state = {", end='')
-            for i, spec in enumerate(model.listOfSpecies):
-                print("'{0}' : {1}, ".format(spec, curr_state[spec]), end='')
-            print("}")
-
-        # Salis et al. eq (16)
-        propensity_sum = 0
-        for i, rxn in enumerate(model.listOfReactions):
-            propensities[rxn] = eval(model.listOfReactions[rxn].propensity_function, curr_state)
-            propensity_sum += propensities[rxn]
-            if propensities[rxn] > 0:
-                tau_j[rxn] = -start_state[i] / propensities[rxn]
-                if self.debug:
-                    print("Propensity of ", rxn, " is ", propensities[rxn], "tau_j is ", tau_j[rxn])
-                if tau_step is None or tau_j[rxn] < tau_step:
-                    tau_step = max(tau_j[rxn], 1e-10)
-                    projected_reaction = model.listOfReactions[rxn]
-            else:
-                if self.debug:
-                    print("Propensity of ", rxn, " is ", propensities[rxn])
-
-        if tau_step is None:
-            tau_step = save_time - curr_time
-
-        if self.debug:
-            if projected_reaction is None:
-                print("NO projected reaction")
-            else:
-                print("Projected reaction is: ",
-                      projected_reaction.name, " at time: ", curr_time + tau_step,
-                      " step size: ", tau_step)
-
-        # BEGIN NEW TAU SELECTION METHOD
-        g_i = {}  # used for relative error calculation
-        epsilon_i = {}  # relative error allowance of species
-        tau_i = {}  # estimated tau based on depletion of species
-        reactants = []  # a list of all species in the model which act as reactants
-        mean = {}  # mu_i for each species
-        stand_dev = {}  # sigma_i squared for each species
-        critical_reactions = []
-        new_tau_step = None
-        n_fires = 2  # if a reaction would deplete a resource in n_fires, it is considered critical
-
-        # Create list of all reactants
-        for rxn in model.listOfReactions:
-            reactant_keys = model.listOfReactions[rxn].reactants.keys()
-            for key in reactant_keys:
-                reactants.append(key)
-        # initialize mean and stand_dev for reactants
-        for reactant in reactants:
-            mean[reactant] = 0
-            stand_dev[reactant] = 0
-
-        critical = False
-        for rxn in model.listOfReactions:
-            # For each reaction, determine if critical
-            for reactant in model.listOfReactions[rxn].reactants:
-                # if species pop / state change <= threshold set critical and break
-                if curr_state[str(reactant)] / model.listOfReactions[
-                        rxn].reactants[reactant] <= n_fires:
-                    critical = True
-                    critical_reactions.append(rxn)
-        if critical:
-            # Cycle through critical reactions to fire fastest one,
-            # if none fire, fire soonest reaction
-            for reaction in critical_reactions:
-                if propensities[reaction] > 0:
-                    if new_tau_step is None:
-                        new_tau_step = tau_j[reaction]
-                    else:
-                        if tau_j[reaction] < new_tau_step:
-                            new_tau_step = tau_j[reaction]
-            if new_tau_step is None:
-                new_tau_step = tau_step
-        else:
-            for rxn in model.listOfReactions:
-                for reactant in model.listOfReactions[rxn].reactants:
-                    g_i[reactant] = 3 + (1 / (curr_state[str(reactant)] - 1)) + (
-                        2 / (curr_state[str(reactant)] - 2))  # Cao, Gillespie, Petzold 27.iii
-                    epsilon_i[reactant] = self.epsilon / g_i[reactant]  # Cao, Gillespie, Petzold 27
-                    mean[reactant] += model.listOfReactions[rxn].reactants[reactant] * propensities[
-                        rxn]  # Cao, Gillespie, Petzold 29a
-                    stand_dev[reactant] += model.listOfReactions[rxn].reactants[
-                        reactant] ** 2 * propensities[rxn]  # Cao, Gillespie, Petzold 29b
-                for reactant in reactants:
-                    if mean[reactant] > 0:
-                        # Cao, Gillespie, Petzold 33
-                        tau_i[reactant] = min((max(
-                            epsilon_i[reactant] * curr_state[str(reactant)], 1) / mean[reactant]),
-                                              # Cao, Gillespie, Petzold 32A
-                                              (max(epsilon_i[reactant] * curr_state[
-                                                  str(reactant)], 1) ** 2 / stand_dev[
-                                                      reactant]))  # Cao, Gillespie, Petzold 32B
-                        if new_tau_step is None or tau_i[
-                                reactant] < new_tau_step:
-                            # set smallest tau from non-critical reactions
-                            new_tau_step = tau_i[reactant]
-
-
-        if new_tau_step is not None and new_tau_step < (
-                save_time - curr_time):  # if curr+new_tau < save_time, use new_tau
-            tau_step = new_tau_step
-        if self.profile:
-            steps_taken.append(tau_step)
-        return new_tau_step
-        # END NEW TAU SELECTION METHOD
-
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
-            debug=False, profile=False, show_labels=True, stochkit_home=None, **kwargs):
+            debug=False, profile=False, show_labels=True, stochkit_home=None, tau_tol=0.03, **kwargs):
         """
         Function calling simulation of the model.
         This is typically called by the run function in GillesPy2 model objects
@@ -231,7 +114,6 @@ class BasicTauLeapingSolver(GillesPySolver):
             trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
             # create dictionary of all constant parameters for propensity evaluation
 
-
         simulation_data = []
 
         for trajectory_num in range(number_of_trajectories):
@@ -248,6 +130,9 @@ class BasicTauLeapingSolver(GillesPySolver):
             entry_count = 1
             trajectory = trajectory_base[trajectory_num]
 
+
+            HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold = Tau.initialize(model, tau_tol)
+
             for spec in model.listOfSpecies:
                 # initialize populations
                 curr_state[spec] = model.listOfSpecies[spec].initial_value
@@ -262,6 +147,10 @@ class BasicTauLeapingSolver(GillesPySolver):
                     print("Setting Random number ",
                           start_state[i], " for ", model.listOfReactions[rxn].name)
 
+            compiled_propensities = {}
+            for i, r in enumerate(model.listOfReactions):
+                compiled_propensities[r] = compile(model.listOfReactions[r].propensity_function, '<string>', 'eval')
+
             timestep = 0
             
             #Each save step
@@ -269,10 +158,16 @@ class BasicTauLeapingSolver(GillesPySolver):
                 
                 #Until save step reached
                 while curr_time < save_time:
+                    propensity_sum = 0
 
-                    tau_step = self.get_tau(
-                        model, start_state, curr_state, propensities, steps_taken,
-                        save_time, curr_time)
+                    for i, r in enumerate(model.listOfReactions):
+                        propensities[r] = eval(compiled_propensities[r], curr_state)
+                        propensity_sum += propensities[r]
+
+                    tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold,
+                            model, propensities, curr_state, curr_time, save_time]
+
+                    tau_step = Tau.select(*tau_args)
 
                     prev_start_state = start_state.copy()
                     prev_curr_state = curr_state.copy()

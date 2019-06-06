@@ -5,6 +5,13 @@ import numpy as np
 
 
 class TestModel(unittest.TestCase):
+
+    def test_uniform_timespan(self):
+        model = Model()
+        model.timespan(np.linspace(0, 1, 100))
+        with self.assertRaises(InvalidModelError):
+            model.timespan(np.array([0, 0.1, 0.5]))
+
     def test_duplicate_parameter_names(self):
         model = Model()
         param1 = Parameter('A', expression=0)
@@ -33,6 +40,51 @@ class TestModel(unittest.TestCase):
         model.add_reaction(reaction1)
         with self.assertRaises(ModelError):
             model.add_reaction(reaction2)
+
+    def test_reaction_invalid_reactant(self):
+        model = Model()
+        rate = Parameter(name='rate', expression=0.5)
+        model.add_parameter(rate)
+        species1 = Species('A', initial_value=0)
+        species2 = Species('B', initial_value=0)
+        model.add_species([species1, species2])
+        reaction1 = Reaction(name="reaction1", reactants={'species1': 1}, products={species2: 1}, rate=rate)
+        with self.assertRaises(ModelError):
+            model.add_reaction(reaction1)
+
+    def test_reaction_invalid_product(self):
+        model = Model()
+        rate = Parameter(name='rate', expression=0.5)
+        model.add_parameter(rate)
+        species1 = Species('A', initial_value=0)
+        species2 = Species('B', initial_value=0)
+        model.add_species([species1, species2])
+        reaction1 = Reaction(name="reaction1", reactants={species1: 1}, products={'species2': 1}, rate=rate)
+        with self.assertRaises(ModelError):
+            model.add_reaction(reaction1)
+            
+    def test_reaction_valid_reactant(self):
+        model = Model()
+        rate = Parameter(name='rate', expression=0.5)
+        model.add_parameter(rate)
+        species1 = Species('A', initial_value=0)
+        species2 = Species('B', initial_value=0)
+        model.add_species([species1, species2])
+        reaction1 = Reaction(name="reaction1", reactants={'A': 1}, products={species2: 1}, rate=rate)
+        model.add_reaction(reaction1)
+        assert "reaction1" in model.listOfReactions
+
+    def test_reaction_valid_product(self):
+        model = Model()
+        rate = Parameter(name='rate', expression=0.5)
+        model.add_parameter(rate)
+        species1 = Species('A', initial_value=0)
+        species2 = Species('B', initial_value=0)
+        model.add_species([species1, species2])
+        reaction1 = Reaction(name="reaction1", reactants={species1: 1}, products={'B': 1}, rate=rate)
+        model.add_reaction(reaction1)
+        assert "reaction1" in model.listOfReactions
+
 
     def test_add_reaction_dict(self):
         model = Model()
