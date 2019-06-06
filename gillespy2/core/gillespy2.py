@@ -713,22 +713,22 @@ class Reaction:
         self.reactants = {}
         for r in reactants:
             rtype = type(r).__name__
-            if r.mode == 'continuous':
-                raise ReactionError(invalid_component_error)
             if rtype == 'instance':
                 self.reactants[r.name] = reactants[r]
             else:
                 self.reactants[r] = reactants[r]
+            if r.mode == 'continuous':
+                raise ReactionError(invalid_component_error)
 
         self.products = {}
         for p in products:
             rtype = type(p).__name__
-            if p.mode == 'continuous':
-                raise ReactionError(invalid_component_error)
             if rtype == 'instance':
                 self.products[p.name] = products[p]
             else:
                 self.products[p] = products[p]
+            if p.mode == 'continuous':
+                raise ReactionError(invalid_component_error)
 
         if self.massaction:
             self.type = "mass-action"
