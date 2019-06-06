@@ -8,6 +8,7 @@ from gillespy2.core import GillesPySolver
 eval_globals = math.__dict__
 
 
+
 class BasicTauHybridSolver(GillesPySolver):
     """
     This Solver uses an algorithm that combines the Tau-Leaping and Hybrid ODE/Stochastic methods.
@@ -267,6 +268,19 @@ class BasicTauHybridSolver(GillesPySolver):
             may be overwritten if desired.
         """
 
+        #############################################
+
+        import matplotlib.pyplot as plt
+
+        plt.figure(figsize=(18, 10))
+        plt.xlabel("Time")
+        plt.ylabel("Population")
+        plt.plot([0], [11])
+
+        from time import sleep
+
+        #############################################
+
         if not sys.warnoptions:
             warnings.simplefilter("ignore")
         if not isinstance(self, BasicTauHybridSolver):
@@ -448,7 +462,28 @@ class BasicTauHybridSolver(GillesPySolver):
 
                 # Save step reached
                 for i in range(number_species):
+
                     trajectory[entry_count][i+1] = curr_state[species[i]]
+
+                #################################
+
+                plt.clf()
+
+                timeList = list(item[0] for item in trajectory)
+
+                #print("redrawing")
+                plt.plot(timeList, list(item[1] for item in trajectory), 'r', label='Substrate')
+                plt.plot(timeList, list(item[2] for item in trajectory), 'y', label='Enzyme')
+                plt.plot(timeList, list(item[3] for item in trajectory), 'g', label='Enzyme-Substrate Complex')
+                plt.plot(timeList, list(item[4] for item in trajectory), 'b', label='Product')
+
+                plt.legend(loc='best')
+                plt.plot([0], [11])
+
+                #plt.legend(loc='best')
+
+                ##################################
+
 
                 save_time += increment
                 timestep += 1
