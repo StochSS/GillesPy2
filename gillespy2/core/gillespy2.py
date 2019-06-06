@@ -558,9 +558,6 @@ class Species:
             if self.initial_value < 0: raise ValueError('A species initial value must be \
 non-negative unless allow_negative_populations=True')
 
-        assert self.initial_value >= 0, "A species initial value has to \
-                                        be a positive number."
-
     def __str__(self):
         return self.name
 
