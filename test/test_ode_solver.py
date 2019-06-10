@@ -19,6 +19,15 @@ class TestBasicODESolver(unittest.TestCase):
                         results = model.run(solver=BasicODESolver, show_labels=label, number_of_trajectories=i)
                     self.assertEqual(len(results), i)
                     self.assertTrue(all([isinstance(result, dict if label else np.ndarray) for result in results]))
+                    if label:
+                        result = results[0]
+                        for species in model.listOfSpecies.keys():
+                            self.assertIn(species, result.keys())
+                            self.assertIsInstance(result[species], np.ndarray)
+                            self.assertListEqual(list(result[species].shape), list(model.tspan.shape))
+                    else:
+                        self.assertIsInstance(results, np.ndarray)
+                        self.assertListEqual(list(results.shape), [i, len(model.tspan), len(model.listOfSpecies.keys())+1])
                     for result in results[1:]:
                         if label:
                             self.assertDictEqual(results[0], result)
