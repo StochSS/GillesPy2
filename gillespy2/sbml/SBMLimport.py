@@ -136,6 +136,7 @@ def convert(filename, model_name=None, gillespy_model=None):
         # propensity
         kinetic_law = reaction.getKineticLaw()
         propensity = kinetic_law.getFormula()
+        print(propensity)
 
         gillespy_reaction = gillespy2.Reaction(name=name, reactants=reactants, products=products,
                                              propensity_function=propensity)
