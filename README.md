@@ -30,7 +30,7 @@ GillesPy2 performs stochastic biochemical simulations utilizing simplified objec
 2. call the model's '.run()' method.
 
 The run method can be customized using keyword arguments to select different solvers, random seed, data return type and more.
-For more detailed examples on how to use GillesPy2, please look through the [examples](https://github.com/GillesPy2/GillesPy2/tree/master/examples) contained in the examples subdirectory.
+For more detailed examples on how to use GillesPy2, please see the [Getting Started](/examples/Getting-Started.ipynb) notebook contained in the [examples](/examples) subdirectory.
 
 ## Built With
 
