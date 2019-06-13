@@ -237,6 +237,11 @@ class BasicTauHybridSolver(GillesPySolver):
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False,
             profile=False, show_labels=True, stochkit_home=None, hybrid_tol=0.03, tau_tol=0.03, **kwargs):
+
+        #########################################
+        dynamic_graphing = True
+        #########################################
+
         """
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
         objects and will inherit those parameters which are passed with the model as the arguments this run function.
@@ -270,14 +275,15 @@ class BasicTauHybridSolver(GillesPySolver):
 
         #############################################
 
-        import matplotlib.pyplot as plt
+        if dynamic_graphing:
 
-        plt.figure(figsize=(18, 10))
-        plt.xlabel("Time")
-        plt.ylabel("Population")
-        plt.plot([0], [11])
+            import matplotlib.pyplot as plt
+            from IPython import display
 
-        from time import sleep
+            plt.figure(figsize=(18, 10))
+            plt.xlabel("Time")
+            plt.ylabel("Population")
+            plt.plot([0], [11])
 
         #############################################
 
@@ -299,7 +305,7 @@ class BasicTauHybridSolver(GillesPySolver):
         timeline = np.linspace(0, t, (t // increment + 1))
 
         # create numpy matrix to mark all state data of time and species
-        trajectory_base = np.empty((number_of_trajectories, timeline.size, number_species + 1))
+        trajectory_base = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
 
         # copy time values to all trajectory row starts
         trajectory_base[:, :, 0] = timeline
@@ -467,23 +473,25 @@ class BasicTauHybridSolver(GillesPySolver):
 
                 #################################
 
-                plt.clf()
+                if dynamic_graphing:
 
-                timeList = list(item[0] for item in trajectory)
+                    timeList = trajectory[:entry_count, 0]
 
-                #print("redrawing")
-                plt.plot(timeList, list(item[1] for item in trajectory), 'r', label='Substrate')
-                plt.plot(timeList, list(item[2] for item in trajectory), 'y', label='Enzyme')
-                plt.plot(timeList, list(item[3] for item in trajectory), 'g', label='Enzyme-Substrate Complex')
-                plt.plot(timeList, list(item[4] for item in trajectory), 'b', label='Product')
+                    plt.clf()
 
-                plt.legend(loc='best')
-                plt.plot([0], [11])
+                    #print(model.listOfSpecies)
 
-                #plt.legend(loc='best')
+                    #plot each of the trajectorys
+                    for i,item in enumerate(model.listOfSpecies,1):
+                        plt.plot(timeList,trajectory[:entry_count,i],label=item)
 
-                ##################################
+                    plt.legend(loc='best')
+                    plt.plot([0], [11])
 
+                    display.display(plt.gcf())
+                    display.clear_output(wait=True)
+
+                #################################
 
                 save_time += increment
                 timestep += 1
