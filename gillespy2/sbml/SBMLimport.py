@@ -70,7 +70,6 @@ def convert(filename, model_name=None, gillespy_model=None):
             value = 0
 
         is_negative = value < 0.0
-        print(value)
         gillespy_species = gillespy2.Species(name=name, initial_value=value, mode=mode, allow_negative_populations= is_negative)
         gillespy_model.add_species([gillespy_species])
 
@@ -136,7 +135,6 @@ def convert(filename, model_name=None, gillespy_model=None):
         # propensity
         kinetic_law = reaction.getKineticLaw()
         propensity = kinetic_law.getFormula()
-        print(propensity)
 
         gillespy_reaction = gillespy2.Reaction(name=name, reactants=reactants, products=products,
                                              propensity_function=propensity)
