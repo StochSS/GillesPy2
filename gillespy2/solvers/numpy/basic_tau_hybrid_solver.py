@@ -240,6 +240,7 @@ class BasicTauHybridSolver(GillesPySolver):
 
         #########################################
         dynamic_graphing = True
+        plotly_graphing = False
         #########################################
 
         """
@@ -276,14 +277,24 @@ class BasicTauHybridSolver(GillesPySolver):
         #############################################
 
         if dynamic_graphing:
-
-            import matplotlib.pyplot as plt
             from IPython import display
 
-            plt.figure(figsize=(18, 10))
-            plt.xlabel("Time")
-            plt.ylabel("Population")
-            plt.plot([0], [11])
+            if not plotly_graphing:
+
+                import matplotlib.pyplot as plt
+
+                plt.figure(figsize=(18, 10))
+                plt.xlabel("Time")
+                plt.ylabel("Population")
+                plt.plot([0], [11])
+
+            else:
+                from plotly.offline import init_notebook_mode, iplot
+                import pandas as pd
+                import cufflinks as cf
+
+                init_notebook_mode(connected=True)
+                cf.go_offline()
 
         #############################################
 
@@ -475,21 +486,31 @@ class BasicTauHybridSolver(GillesPySolver):
 
                 if dynamic_graphing:
 
-                    timeList = trajectory[:entry_count, 0]
+                    if not plotly_graphing:
 
-                    plt.clf()
+                        timeList = trajectory[:entry_count, 0]
 
-                    #print(model.listOfSpecies)
+                        plt.clf()
 
-                    #plot each of the trajectorys
-                    for i,item in enumerate(model.listOfSpecies,1):
-                        plt.plot(timeList,trajectory[:entry_count,i],label=item)
+                        #plot each of the trajectorys
+                        for i,item in enumerate(model.listOfSpecies,1):
+                            plt.plot(timeList,trajectory[:entry_count,i],label=item)
 
-                    plt.legend(loc='best')
-                    plt.plot([0], [11])
+                        plt.legend(loc='best')
+                        plt.plot([0], [11])
 
-                    display.display(plt.gcf())
-                    display.clear_output(wait=True)
+                        display.display(plt.gcf())
+                        display.clear_output(wait=True)
+
+                    else:
+                        graphData = {}
+                        for i,item in enumerate(model.listOfSpecies,1):
+                            graphData[item] = trajectory[:entry_count,i]
+
+                        myDataFrame = pd.DataFrame.from_dict(graphData)
+
+                        myDataFrame.iplot()
+                        display.clear_output(wait=True)
 
                 #################################
 
