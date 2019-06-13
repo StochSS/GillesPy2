@@ -1,8 +1,14 @@
 '''
-This method initailizes the state for tau-leaping selections to be made.
-Based on Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006). "Efficient step size selection for the tau-leaping simulation method" (PDF). The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151
+This Python module contains the initialization and selection methods for the Tau-Leaping method described in Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006). "Efficient step size selection for the tau-leaping simulation method" (PDF). The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151.
+
+This module is for use in the basic_tau_leaping_solver and basic_tau_hybrid solver only.
 '''
+
 def initialize(model, epsilon):
+    '''
+    This method initailizes the state for tau-leaping selections to be made.
+    Based on Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006). "Efficient step size selection for the tau-leaping simulation method" (PDF). The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151
+    '''
 
     HOR = {} # Highest Order Reaction of species
     reactants = set()  # a list of all species in the model which act as reactants
@@ -39,10 +45,10 @@ def initialize(model, epsilon):
     # Return components for tau selection
     return HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold
 
-'''
-Tau Selection method based on Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006). "Efficient step size selection for the tau-leaping simulation method" (PDF). The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151
-'''
 def select(*tau_args):
+    '''
+    Tau Selection method based on Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006). "Efficient step size selection for the tau-leaping simulation method" (PDF). The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151
+    '''
     
     HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold, model, propensities, curr_state, curr_time, save_time = tau_args
     tau_step = None
