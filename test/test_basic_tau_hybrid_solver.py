@@ -1,5 +1,6 @@
 import unittest
 import numpy as np
+import gillespy2
 from gillespy2.example_models import Example
 from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
 
@@ -24,9 +25,9 @@ class TestBasicTauHybridSolver(unittest.TestCase):
     def test_add_rate_rule(self):
         species = gillespy2.Species('test_species', initial_value=1, mode='continuous')
         rule = gillespy2.RateRule(species, 'cos(t)')
-        model.add_species([species])
-        model.add_rate_rule([rule])
-        model.run()
+        self.model.add_species([species])
+        self.model.add_rate_rule([rule])
+        self.model.run(solver=BasicTauHybridSolver)
 
 
 if __name__ == '__main__':

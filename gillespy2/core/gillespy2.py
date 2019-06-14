@@ -386,7 +386,7 @@ class Model(object):
             for rr in rate_rules:
                 self.add_rate_rule(rr)
         elif isinstance(rate_rules, dict) or isinstance(rate_rules, OrderedDict):
-            self.add_rate_rule(rate_rules.expression())
+            self.add_rate_rule(rate_rules.values())
         elif isinstance(rate_rules, RateRule):
             self.listOfRateRules[rate_rules.species.name] = rate_rules
         else:
