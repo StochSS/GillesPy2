@@ -21,6 +21,13 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         assert(isinstance(self.labels_results[0]['Sp'], np.ndarray))
         assert(isinstance(self.labels_results[0]['Sp'][0], np.float))
 
+    def test_add_rate_rule(self):
+        species = gillespy2.Species('test_species', initial_value=1, mode='continuous')
+        rule = gillespy2.RateRule(species, 'cos(t)')
+        model.add_species([species])
+        model.add_rate_rule([rule])
+        model.run()
+
 
 if __name__ == '__main__':
     unittest.main()
