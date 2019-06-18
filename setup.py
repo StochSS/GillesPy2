@@ -59,7 +59,7 @@ setup(name="gillespy2",
                         "matplotlib",
                         "scipy"],
 
-      author="Brian Drawert, Kevin Sanft, Sean Matthew, George Hall, Dalton Nickerson",
+      author="Brian Drawert, Kevin Sanft, Sean Matthew, George Hall, Dalton Nickerson, Samuel Hodges, Emma Weisgerber, Eliot Dixon, Ghilman Brock, W.R. Jackson",
       author_email="bdrawert@unca.edu",
       license="GPL",
       keywords="gillespy2, gillespie algorithm, biochemical simulation",
