@@ -315,7 +315,7 @@ class BasicTauHybridSolver(GillesPySolver):
             random.seed(seed)
             steps_taken = []
             steps_rejected = 0
-            entry_count = 1
+            entry_count = 0
             trajectory = trajectory_base[trajectory_num]
 
             y0 = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
@@ -361,6 +361,7 @@ class BasicTauHybridSolver(GillesPySolver):
 
             # Each save step
             while entry_count < timeline.size:
+
                 # Until save step reached
                 while curr_time < save_time:
                     propensity_sum = 0
@@ -411,6 +412,7 @@ class BasicTauHybridSolver(GillesPySolver):
                         reactions, y0, curr_state, curr_time = self.__get_reactions(
                             tau_step, curr_state, y0, model, curr_time, save_time, propensities, compiled_reactions,
                             active_rr, rxn_offset, debug)
+
 
                         # Update curr_state with the result of the SSA reaction that fired
                         species_modified = {}
