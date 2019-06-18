@@ -39,9 +39,11 @@ def convert(filename, model_name=None, gillespy_model=None):
             continue
         name = species.getId()
         if species.isSetInitialAmount():
-            value = species.getInitialAmount()
+            value = int(species.getInitialAmount())
+            mode = 'dynamic'
         elif species.isSetInitialConcentration():
             value = species.getInitialConcentration()
+            mode = 'continuous'
         else:
             rule = model.getRule(species.getId())
             if rule:
@@ -69,7 +71,7 @@ def convert(filename, model_name=None, gillespy_model=None):
 
         is_negative = value < 0.0
 
-        gillespy_species = gillespy2.Species(name=name, initial_value=value, allow_negative_populations= is_negative)
+        gillespy_species = gillespy2.Species(name=name, initial_value=value, allow_negative_populations= is_negative, mode=mode)
         gillespy_model.add_species([gillespy_species])
 
     for i in range(model.getNumParameters()):
