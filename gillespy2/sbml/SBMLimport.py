@@ -67,14 +67,9 @@ def convert(filename, model_name=None, gillespy_model=None):
 
             value = 0
 
-        if value < 0.0:
-            errors.append([
-                              "Species '{0}' has negative initial condition ({1}). gillespy does not support negative "
-                              "initial conditions. Assuming initial condition 0".format(
-                                  species.getId(), value), -5])
-            value = 0
+        is_negative = value < 0.0
 
-        gillespy_species = gillespy2.Species(name=name, initial_value=value)
+        gillespy_species = gillespy2.Species(name=name, initial_value=value, allow_negative_populations= is_negative)
         gillespy_model.add_species([gillespy_species])
 
     for i in range(model.getNumParameters()):

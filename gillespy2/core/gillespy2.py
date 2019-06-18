@@ -328,6 +328,20 @@ class Model(object):
         """ Deletes all parameters from model. """
         self.listOfParameters.clear()
 
+    def validate_reactants_and_products(self, reactions):
+            for reactant in reactions.reactants.keys():
+                if isinstance(reactant, str):
+                    if reactant not in self.listOfSpecies.keys():
+                        raise ModelError('reactant: {0} for reaction {1} -- not found in model.listOfSpecies'.format(reactant, reactions.name))
+                    reactions.reactants[self.listOfSpecies[reactant]] = reactions.reactants[reactant]
+                    del reactions.reactants[reactant]
+            for product in reactions.products.keys():
+                if isinstance(product, str):
+                    if product not in self.listOfSpecies.keys():
+                        raise ModelError('product: {0} for reaction {1} -- not found in model.listOfSpecies'.format(product, reactions.name))
+                    reactions.products[self.listOfSpecies[product]] = reactions.products[product]
+                    del reactions.products[product]
+
     def add_reaction(self, reactions):
         """
         Adds a reaction, or list of reactions to the model.
@@ -347,6 +361,7 @@ class Model(object):
                 self.add_reaction(list(reactions.values()))
         elif isinstance(reactions,Reaction):
             reactions.verify()
+            self.validate_reactants_and_products(reactions)
             if reactions.name in self.listOfReactions:
                 raise ModelError("Duplicate name of reaction: {0}".format(reactions.name))
             self.listOfReactions[reactions.name] = reactions
@@ -389,7 +404,7 @@ class Model(object):
         """
 
         items = np.diff(time_span)
-        items = map(lambda x: round(x, 10), items)
+        items = np.array([round(item, 10) for item in items])
         isuniform = (len(set(items)) == 1)
 
         if isuniform:
@@ -410,7 +425,7 @@ class Model(object):
         self.listOfReactions.clear()
 
     def run(self, number_of_trajectories=1, seed=None,
-            solver=None, stochkit_home=None, profile=False, debug=False, show_labels=True, max_steps=0):
+            solver=None, show_labels=True, max_steps=0):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -427,12 +442,6 @@ class Model(object):
             The solver by which to simulate the model. This solver object may
             be initialized separately to specify an algorithm. Optional, 
             defaults to StochKitSolver SSA.
-        stochkit_home : str
-            Path to stochkit. This is set automatically upon installation, but
-            may be overwritten if desired.
-        debug : bool (False)
-            Set to True to provide additional debug information about the
-            simulation.
         show_labels : bool (True)
             Use names of species as index of result object rather than position numbers.
         max_steps : int
@@ -445,19 +454,15 @@ class Model(object):
                                   increment=self.tspan[-1] - self.tspan[-2],
                                   seed=seed,
                                   number_of_trajectories=number_of_trajectories,
-                                  stochkit_home=stochkit_home, profile=profile, debug=debug,
                                   show_labels=show_labels, max_steps=max_steps)
             else:
                 raise SimulationError(
                     "argument 'solver' to run() must be a subclass of GillesPySolver")
         else:
             from gillespy2.solvers.auto import SSASolver
-            if debug:
-                print("Using Solver: {0}".format(SSASolver.name))
             return SSASolver.run(model=self, t=self.tspan[-1],
                                       increment=self.tspan[-1] - self.tspan[-2], seed=seed,
                                       number_of_trajectories=number_of_trajectories,
-                                      stochkit_home=stochkit_home, profile=profile, debug=debug,
                                       show_labels=show_labels)
 
 
@@ -524,16 +529,30 @@ class Species:
     initial_value : int >= 0
         Initial population of this species. If this is not provided as an int,
         the type will be changed when it is added by numpy.int
+    mode : str
+        ***FOR USE WITH TauHybridSolver ONLY***
+        Sets the mode of representation of this species for the TauHybridSolver,
+        can be discrete, continuous, or dynamic.
+        mode='dynamic' - Default, allows a species to be represented as
+            either discrete or continuous
+        mode='continuous' - Species will only be represented as continuous
+        mode='discrete' - Species will only be represented as discrete
     """
 
-    def __init__(self, name="", initial_value=0, continuous=False):
+    def __init__(self, name="", initial_value=0, mode='dynamic', allow_negative_populations=False):
         # A species has a name (string) and an initial value (positive integer)
         self.name = name
-        self.initial_value = np.int(initial_value)
-        self.continuous = continuous
-        assert self.initial_value >= 0, "A species initial value has to \
-                                        be a positive number."
+        self.mode = mode
+        self.allow_negative_populations = allow_negative_populations
 
+        if mode == 'continuous':
+            self.initial_value = np.float(initial_value)
+        else:
+            if not isinstance(initial_value, int): raise ValueError('Discrete values must be of type int.')
+            self.initial_value = np.int(initial_value)
+        if not allow_negative_populations:
+            if self.initial_value < 0: raise ValueError('A species initial value must be \
+non-negative unless allow_negative_populations=True')
 
     def __str__(self):
         return self.name
@@ -1020,7 +1039,7 @@ class StochMLDocument():
                     try:
                         # The sref list should only contain one element if
                         # the XML file is valid.
-                        reaction.reactants[specname] = stoch
+                        reaction.reactants[sref] = stoch
                     except Exception as e:
                         StochMLImportError(e)
             except:
@@ -1036,7 +1055,7 @@ class StochMLDocument():
                     try:
                         # The sref list should only contain one element if
                         # the XML file is valid.
-                        reaction.products[specname] = stoch
+                        reaction.products[sref] = stoch
                     except Exception as e:
                         raise StochMLImportError(e)
             except:
