@@ -987,8 +987,9 @@ class StochMLDocument():
         for px in root.iter('Parameter'):
             name = px.find('Id').text
             expr = px.find('Expression').text
-            if name.lower() == 'volume':
-                model.volume = expr
+            if name.lower() == 'vol' or name.lower() == 'volume':
+                model.volume = float(expr)
+                print(model.volume)
             else:
                 p = Parameter(name, expression=expr)
                 # Try to evaluate the expression in the empty namespace
@@ -1000,7 +1001,11 @@ class StochMLDocument():
         for spec in root.iter('Species'):
             name = spec.find('Id').text
             val = spec.find('InitialPopulation').text
-            s = Species(name, initial_value=float(val))
+            if '.' in val:
+                val = float(val)
+            else:
+                val = int(val)
+            s = Species(name, initial_value=val)
             model.add_species([s])
 
         # The namespace_propensity for evaluating the propensity function
