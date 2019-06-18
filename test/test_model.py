@@ -111,10 +111,9 @@ class TestModel(unittest.TestCase):
                     name=name, 
                     reactants={species1: 1}, products={species2: 1}, rate=rate)
                 for name in ["reaction1", "reaction2"]}
-        model.add_reaction(reactions)
-        assert "reaction1" in model.listOfReactions
-        assert "reaction2" in model.listOfReactions
-
+        with self.assertRaises(ModelError):
+            model.add_reaction(reactions)
+        
     def test_species_parameter_name_substrings(self):
         model = Model()
         rate = Parameter(name='rate', expression=1)
