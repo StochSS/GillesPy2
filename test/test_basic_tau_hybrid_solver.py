@@ -29,7 +29,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         self.model.add_rate_rule([rule])
         self.model.run(solver=BasicTauHybridSolver)
         
-      def test_add_rate_rule_dict(self):
+    def test_add_rate_rule_dict(self):
         species = gillespy2.Species('test_species', initial_value=1, mode='continuous')
         species2 = gillespy2.Species('test_species2',initial_value=2, mode ='continuous')
         rule = gillespy2.RateRule(species, 'cos(t)')
