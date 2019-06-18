@@ -1043,7 +1043,7 @@ class StochMLDocument():
                     try:
                         # The sref list should only contain one element if
                         # the XML file is valid.
-                        reaction.reactants[specname] = stoch
+                        reaction.reactants[sref] = stoch
                     except Exception as e:
                         StochMLImportError(e)
             except:
@@ -1059,7 +1059,7 @@ class StochMLDocument():
                     try:
                         # The sref list should only contain one element if
                         # the XML file is valid.
-                        reaction.products[specname] = stoch
+                        reaction.products[sref] = stoch
                     except Exception as e:
                         raise StochMLImportError(e)
             except:
