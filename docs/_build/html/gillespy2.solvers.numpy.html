@@ -1,0 +1,583 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>gillespy2.solvers.numpy package &#8212; GillesPy2  documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="gillespy2.solvers.stochkit package" href="gillespy2.solvers.stochkit.html" />
+    <link rel="prev" title="gillespy2.solvers.cython package" href="gillespy2.solvers.cython.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="gillespy2.solvers.stochkit.html" title="gillespy2.solvers.stochkit package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="gillespy2.solvers.cython.html" title="gillespy2.solvers.cython package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GillesPy2  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="gillespy2.html" >gillespy2 package</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="gillespy2.solvers.html" accesskey="U">gillespy2.solvers package</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="gillespy2-solvers-numpy-package">
+<h1>gillespy2.solvers.numpy package<a class="headerlink" href="#gillespy2-solvers-numpy-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-gillespy2.solvers.numpy.basic_ode_solver">
+<span id="gillespy2-solvers-numpy-basic-ode-solver-module"></span><h2>gillespy2.solvers.numpy.basic_ode_solver module<a class="headerlink" href="#module-gillespy2.solvers.numpy.basic_ode_solver" title="Permalink to this headline">¶</a></h2>
+<p>GillesPy2 Solver for ODE solutions.</p>
+<dl class="class">
+<dt id="gillespy2.solvers.numpy.basic_ode_solver.BasicODESolver">
+<em class="property">class </em><code class="descclassname">gillespy2.solvers.numpy.basic_ode_solver.</code><code class="descname">BasicODESolver</code><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_ode_solver.html#BasicODESolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.basic_ode_solver.BasicODESolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
+<p>This Solver produces the deterministic continuous solution via ODE.</p>
+<dl class="attribute">
+<dt id="gillespy2.solvers.numpy.basic_ode_solver.BasicODESolver.name">
+<code class="descname">name</code><em class="property"> = 'BasicODESolver'</em><a class="headerlink" href="#gillespy2.solvers.numpy.basic_ode_solver.BasicODESolver.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="gillespy2.solvers.numpy.basic_ode_solver.BasicODESolver.rhs">
+<em class="property">static </em><code class="descname">rhs</code><span class="sig-paren">(</span><em>start_state</em>, <em>time</em>, <em>model</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_ode_solver.html#BasicODESolver.rhs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.basic_ode_solver.BasicODESolver.rhs" title="Permalink to this definition">¶</a></dt>
+<dd><p>The right hand side of the differential equation, uses scipy.integrate odeint
+:param start_state: state as a list
+:param t: time as a numpy array
+:param model: model being simulated
+:return: integration step</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="gillespy2.solvers.numpy.basic_ode_solver.BasicODESolver.run">
+<em class="property">classmethod </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>debug=False</em>, <em>profile=False</em>, <em>show_labels=True</em>, <em>max_steps=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_ode_solver.html#BasicODESolver.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.basic_ode_solver.BasicODESolver.run" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>model</strong> – gillespy2.model class object</li>
+<li><strong>t</strong> – end time of simulation</li>
+<li><strong>number_of_trajectories</strong> – Should be 1.
+This is deterministic and will always have same results</li>
+<li><strong>increment</strong> – time step increment for plotting</li>
+<li><strong>seed</strong> – random seed, has no effect</li>
+<li><strong>debug</strong> – not implemented</li>
+<li><strong>profile</strong> – not implemented</li>
+<li><strong>show_labels</strong> – not implemented</li>
+<li><strong>max_steps</strong> – Defaults to 0 for odeint
+When using deterministic methods, specifies the maximum number of steps permitted for each integration point in t.</li>
+<li><strong>kwargs</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-gillespy2.solvers.numpy.basic_tau_hybrid_solver">
+<span id="gillespy2-solvers-numpy-basic-tau-hybrid-solver-module"></span><h2>gillespy2.solvers.numpy.basic_tau_hybrid_solver module<a class="headerlink" href="#module-gillespy2.solvers.numpy.basic_tau_hybrid_solver" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver">
+<em class="property">class </em><code class="descclassname">gillespy2.solvers.numpy.basic_tau_hybrid_solver.</code><code class="descname">BasicTauHybridSolver</code><span class="sig-paren">(</span><em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_hybrid_solver.html#BasicTauHybridSolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
+<p>This Solver uses an algorithm that combines the Tau-Leaping and Hybrid ODE/Stochastic methods.
+A root-finding integration is considered over all reaction channels and continuous species rate
+rules, allowing both continuous and discrete regimes to be considered without partitioning the
+system.  Multiple reactions are fired in a single tau step, and the relative change in propensities
+is bounded by bounding the relative change in the state of the system, resulting in increased
+run-time performance with little accuracy trade-off.</p>
+<dl class="method">
+<dt id="gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver.calculate_statistics">
+<code class="descname">calculate_statistics</code><span class="sig-paren">(</span><em>model</em>, <em>propensities</em>, <em>curr_state</em>, <em>tau_step</em>, <em>det_spec</em>, <em>dependencies</em>, <em>hybrid_tol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_hybrid_solver.html#BasicTauHybridSolver.calculate_statistics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver.calculate_statistics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates Mean, Standard Deviation, and Coefficient of Variance for each
+dynamic species, then set if species can be represented determistically</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver.create_diff_eqs">
+<code class="descname">create_diff_eqs</code><span class="sig-paren">(</span><em>comb</em>, <em>model</em>, <em>dependencies</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_hybrid_solver.html#BasicTauHybridSolver.create_diff_eqs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver.create_diff_eqs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver.flag_det_reactions">
+<code class="descname">flag_det_reactions</code><span class="sig-paren">(</span><em>model</em>, <em>det_spec</em>, <em>det_rxn</em>, <em>dependencies</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_hybrid_solver.html#BasicTauHybridSolver.flag_det_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver.flag_det_reactions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver.name">
+<code class="descname">name</code><em class="property"> = 'Basic Tau Hybrid Solver'</em><a class="headerlink" href="#gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver.run">
+<em class="property">classmethod </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>debug=False</em>, <em>profile=False</em>, <em>show_labels=True</em>, <em>stochkit_home=None</em>, <em>hybrid_tol=0.03</em>, <em>tau_tol=0.03</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_hybrid_solver.html#BasicTauHybridSolver.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
+objects and will inherit those parameters which are passed with the model as the arguments this run function.</p>
+<dl class="docutils">
+<dt>model <span class="classifier-delimiter">:</span> <span class="classifier">GillesPy2.Model</span></dt>
+<dd>GillesPy2 model object to simulate</dd>
+<dt>t <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Simulation run time</dd>
+<dt>number_of_trajectories <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The number of times to sample the chemical master equation. Each
+trajectory will be returned at the end of the simulation.
+Optional, defaults to 1.</dd>
+<dt>increment <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Save point increment for recording data</dd>
+<dt>seed <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The random seed for the simulation. Optional, defaults to None.</dd>
+<dt>debug <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
+<dd>Set to True to provide additional debug information about the
+simulation.</dd>
+<dt>profile <span class="classifier-delimiter">:</span> <span class="classifier">bool (Fasle)</span></dt>
+<dd>Set to True to provide information about step size (tau) taken at each step.</dd>
+<dt>show_labels <span class="classifier-delimiter">:</span> <span class="classifier">bool (True)</span></dt>
+<dd>Use names of species as index of result object rather than position numbers.</dd>
+<dt>stochkit_home <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Path to stochkit. This is set automatically upon installation, but
+may be overwritten if desired.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver.toggle_reactions">
+<code class="descname">toggle_reactions</code><span class="sig-paren">(</span><em>model</em>, <em>all_compiled</em>, <em>deterministic_reactions</em>, <em>dependencies</em>, <em>curr_state</em>, <em>rxn_offset</em>, <em>det_spec</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_hybrid_solver.html#BasicTauHybridSolver.toggle_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver.toggle_reactions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-gillespy2.solvers.numpy.basic_tau_leaping_solver">
+<span id="gillespy2-solvers-numpy-basic-tau-leaping-solver-module"></span><h2>gillespy2.solvers.numpy.basic_tau_leaping_solver module<a class="headerlink" href="#module-gillespy2.solvers.numpy.basic_tau_leaping_solver" title="Permalink to this headline">¶</a></h2>
+<p>Class and methods for Basic Tau Leaping Solver</p>
+<dl class="class">
+<dt id="gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver">
+<em class="property">class </em><code class="descclassname">gillespy2.solvers.numpy.basic_tau_leaping_solver.</code><code class="descname">BasicTauLeapingSolver</code><span class="sig-paren">(</span><em>debug=False</em>, <em>profile=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_leaping_solver.html#BasicTauLeapingSolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
+<p>A Basic Tau Leaping Solver for GillesPy2 models.  This solver uses an algorithm calculates
+multiple reactions in a single step over a given tau step size.  The change in propensities
+over this step are bounded by bounding the relative change in state, yielding greatly improved
+run-time performance with very little trade-off in accuracy.</p>
+<dl class="method">
+<dt id="gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver.get_reactions">
+<code class="descname">get_reactions</code><span class="sig-paren">(</span><em>step</em>, <em>curr_state</em>, <em>curr_time</em>, <em>save_time</em>, <em>propensities</em>, <em>reactions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_leaping_solver.html#BasicTauLeapingSolver.get_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver.get_reactions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper Function to get reactions fired from t to t+tau.  Returns three values:
+rxn_count - dict with key=Raection channel value=number of times fired
+curr_state - dict containing all state variables for system at current time
+curr_time - float representing current time</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver.name">
+<code class="descname">name</code><em class="property"> = 'Basic Tau Leaping Solver'</em><a class="headerlink" href="#gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver.run">
+<em class="property">classmethod </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>debug=False</em>, <em>profile=False</em>, <em>show_labels=True</em>, <em>stochkit_home=None</em>, <em>tau_tol=0.03</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_leaping_solver.html#BasicTauLeapingSolver.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function calling simulation of the model.
+This is typically called by the run function in GillesPy2 model objects
+and will inherit those parameters which are passed with the model
+as the arguments this run function.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>model <span class="classifier-delimiter">:</span> <span class="classifier">GillesPy2.Model</span></dt>
+<dd>GillesPy2 model object to simulate</dd>
+<dt>t <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Simulation run time</dd>
+<dt>number_of_trajectories <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The number of times to sample the chemical master equation. Each
+trajectory will be returned at the end of the simulation.
+Optional, defaults to 1.</dd>
+<dt>increment <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Save point increment for recording data</dd>
+<dt>seed <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The random seed for the simulation. Optional, defaults to None.</dd>
+<dt>debug <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
+<dd>Set to True to provide additional debug information about the
+simulation.</dd>
+<dt>profile <span class="classifier-delimiter">:</span> <span class="classifier">bool (Fasle)</span></dt>
+<dd>Set to True to provide information about step size (tau) taken at each step.</dd>
+<dt>show_labels <span class="classifier-delimiter">:</span> <span class="classifier">bool (True)</span></dt>
+<dd>Use names of species as index of result object rather than position numbers.</dd>
+<dt>stochkit_home <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Path to stochkit. This is set automatically upon installation, but
+may be overwritten if desired.</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-gillespy2.solvers.numpy.ssa_solver">
+<span id="gillespy2-solvers-numpy-ssa-solver-module"></span><h2>gillespy2.solvers.numpy.ssa_solver module<a class="headerlink" href="#module-gillespy2.solvers.numpy.ssa_solver" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="gillespy2.solvers.numpy.ssa_solver.NumPySSASolver">
+<em class="property">class </em><code class="descclassname">gillespy2.solvers.numpy.ssa_solver.</code><code class="descname">NumPySSASolver</code><a class="reference internal" href="_modules/gillespy2/solvers/numpy/ssa_solver.html#NumPySSASolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.ssa_solver.NumPySSASolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
+<dl class="attribute">
+<dt id="gillespy2.solvers.numpy.ssa_solver.NumPySSASolver.name">
+<code class="descname">name</code><em class="property"> = 'NumPySSASolver'</em><a class="headerlink" href="#gillespy2.solvers.numpy.ssa_solver.NumPySSASolver.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="gillespy2.solvers.numpy.ssa_solver.NumPySSASolver.run">
+<em class="property">static </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>debug=False</em>, <em>show_labels=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/ssa_solver.html#NumPySSASolver.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.ssa_solver.NumPySSASolver.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
+:param model: The model on which the solver will operate.
+:param t: The end time of the solver.
+:param number_of_trajectories: The number of times to sample the chemical master equation. Each
+trajectory will be returned at the end of the simulation.
+:param increment: The time step of the solution.
+:param seed: The random seed for the simulation. Defaults to None.
+:param debug: Set to True to provide additional debug information about the
+simulation.
+:param show_labels: Use names of species as index of result object rather than position numbers.
+:return: a list of each trajectory simulated.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="gillespy2-solvers-numpy-test-basic-tau-hybrid-solver-module">
+<h2>gillespy2.solvers.numpy.test_basic_tau_hybrid_solver module<a class="headerlink" href="#gillespy2-solvers-numpy-test-basic-tau-hybrid-solver-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="gillespy2-solvers-numpy-test-basic-tau-leaping-solver-module">
+<h2>gillespy2.solvers.numpy.test_basic_tau_leaping_solver module<a class="headerlink" href="#gillespy2-solvers-numpy-test-basic-tau-leaping-solver-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="gillespy2-solvers-numpy-test-ode-solver-module">
+<h2>gillespy2.solvers.numpy.test_ode_solver module<a class="headerlink" href="#gillespy2-solvers-numpy-test-ode-solver-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="gillespy2-solvers-numpy-test-ssa-solver-module">
+<h2>gillespy2.solvers.numpy.test_ssa_solver module<a class="headerlink" href="#gillespy2-solvers-numpy-test-ssa-solver-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-gillespy2.solvers.numpy">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-gillespy2.solvers.numpy" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="gillespy2.solvers.numpy.NumPySSASolver">
+<em class="property">class </em><code class="descclassname">gillespy2.solvers.numpy.</code><code class="descname">NumPySSASolver</code><a class="reference internal" href="_modules/gillespy2/solvers/numpy/ssa_solver.html#NumPySSASolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.NumPySSASolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
+<dl class="attribute">
+<dt id="gillespy2.solvers.numpy.NumPySSASolver.name">
+<code class="descname">name</code><em class="property"> = 'NumPySSASolver'</em><a class="headerlink" href="#gillespy2.solvers.numpy.NumPySSASolver.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="gillespy2.solvers.numpy.NumPySSASolver.run">
+<em class="property">static </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>debug=False</em>, <em>show_labels=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/ssa_solver.html#NumPySSASolver.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.NumPySSASolver.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
+:param model: The model on which the solver will operate.
+:param t: The end time of the solver.
+:param number_of_trajectories: The number of times to sample the chemical master equation. Each
+trajectory will be returned at the end of the simulation.
+:param increment: The time step of the solution.
+:param seed: The random seed for the simulation. Defaults to None.
+:param debug: Set to True to provide additional debug information about the
+simulation.
+:param show_labels: Use names of species as index of result object rather than position numbers.
+:return: a list of each trajectory simulated.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gillespy2.solvers.numpy.BasicODESolver">
+<em class="property">class </em><code class="descclassname">gillespy2.solvers.numpy.</code><code class="descname">BasicODESolver</code><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_ode_solver.html#BasicODESolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.BasicODESolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
+<p>This Solver produces the deterministic continuous solution via ODE.</p>
+<dl class="attribute">
+<dt id="gillespy2.solvers.numpy.BasicODESolver.name">
+<code class="descname">name</code><em class="property"> = 'BasicODESolver'</em><a class="headerlink" href="#gillespy2.solvers.numpy.BasicODESolver.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="gillespy2.solvers.numpy.BasicODESolver.rhs">
+<em class="property">static </em><code class="descname">rhs</code><span class="sig-paren">(</span><em>start_state</em>, <em>time</em>, <em>model</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_ode_solver.html#BasicODESolver.rhs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.BasicODESolver.rhs" title="Permalink to this definition">¶</a></dt>
+<dd><p>The right hand side of the differential equation, uses scipy.integrate odeint
+:param start_state: state as a list
+:param t: time as a numpy array
+:param model: model being simulated
+:return: integration step</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="gillespy2.solvers.numpy.BasicODESolver.run">
+<em class="property">classmethod </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>debug=False</em>, <em>profile=False</em>, <em>show_labels=True</em>, <em>max_steps=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_ode_solver.html#BasicODESolver.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.BasicODESolver.run" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>model</strong> – gillespy2.model class object</li>
+<li><strong>t</strong> – end time of simulation</li>
+<li><strong>number_of_trajectories</strong> – Should be 1.
+This is deterministic and will always have same results</li>
+<li><strong>increment</strong> – time step increment for plotting</li>
+<li><strong>seed</strong> – random seed, has no effect</li>
+<li><strong>debug</strong> – not implemented</li>
+<li><strong>profile</strong> – not implemented</li>
+<li><strong>show_labels</strong> – not implemented</li>
+<li><strong>max_steps</strong> – Defaults to 0 for odeint
+When using deterministic methods, specifies the maximum number of steps permitted for each integration point in t.</li>
+<li><strong>kwargs</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gillespy2.solvers.numpy.BasicTauLeapingSolver">
+<em class="property">class </em><code class="descclassname">gillespy2.solvers.numpy.</code><code class="descname">BasicTauLeapingSolver</code><span class="sig-paren">(</span><em>debug=False</em>, <em>profile=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_leaping_solver.html#BasicTauLeapingSolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.BasicTauLeapingSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
+<p>A Basic Tau Leaping Solver for GillesPy2 models.  This solver uses an algorithm calculates
+multiple reactions in a single step over a given tau step size.  The change in propensities
+over this step are bounded by bounding the relative change in state, yielding greatly improved
+run-time performance with very little trade-off in accuracy.</p>
+<dl class="method">
+<dt id="gillespy2.solvers.numpy.BasicTauLeapingSolver.get_reactions">
+<code class="descname">get_reactions</code><span class="sig-paren">(</span><em>step</em>, <em>curr_state</em>, <em>curr_time</em>, <em>save_time</em>, <em>propensities</em>, <em>reactions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_leaping_solver.html#BasicTauLeapingSolver.get_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.BasicTauLeapingSolver.get_reactions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper Function to get reactions fired from t to t+tau.  Returns three values:
+rxn_count - dict with key=Raection channel value=number of times fired
+curr_state - dict containing all state variables for system at current time
+curr_time - float representing current time</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.solvers.numpy.BasicTauLeapingSolver.name">
+<code class="descname">name</code><em class="property"> = 'Basic Tau Leaping Solver'</em><a class="headerlink" href="#gillespy2.solvers.numpy.BasicTauLeapingSolver.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="gillespy2.solvers.numpy.BasicTauLeapingSolver.run">
+<em class="property">classmethod </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>debug=False</em>, <em>profile=False</em>, <em>show_labels=True</em>, <em>stochkit_home=None</em>, <em>tau_tol=0.03</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_leaping_solver.html#BasicTauLeapingSolver.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.BasicTauLeapingSolver.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function calling simulation of the model.
+This is typically called by the run function in GillesPy2 model objects
+and will inherit those parameters which are passed with the model
+as the arguments this run function.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>model <span class="classifier-delimiter">:</span> <span class="classifier">GillesPy2.Model</span></dt>
+<dd>GillesPy2 model object to simulate</dd>
+<dt>t <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Simulation run time</dd>
+<dt>number_of_trajectories <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The number of times to sample the chemical master equation. Each
+trajectory will be returned at the end of the simulation.
+Optional, defaults to 1.</dd>
+<dt>increment <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Save point increment for recording data</dd>
+<dt>seed <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The random seed for the simulation. Optional, defaults to None.</dd>
+<dt>debug <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
+<dd>Set to True to provide additional debug information about the
+simulation.</dd>
+<dt>profile <span class="classifier-delimiter">:</span> <span class="classifier">bool (Fasle)</span></dt>
+<dd>Set to True to provide information about step size (tau) taken at each step.</dd>
+<dt>show_labels <span class="classifier-delimiter">:</span> <span class="classifier">bool (True)</span></dt>
+<dd>Use names of species as index of result object rather than position numbers.</dd>
+<dt>stochkit_home <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Path to stochkit. This is set automatically upon installation, but
+may be overwritten if desired.</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gillespy2.solvers.numpy.BasicTauHybridSolver">
+<em class="property">class </em><code class="descclassname">gillespy2.solvers.numpy.</code><code class="descname">BasicTauHybridSolver</code><span class="sig-paren">(</span><em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_hybrid_solver.html#BasicTauHybridSolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.BasicTauHybridSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
+<p>This Solver uses an algorithm that combines the Tau-Leaping and Hybrid ODE/Stochastic methods.
+A root-finding integration is considered over all reaction channels and continuous species rate
+rules, allowing both continuous and discrete regimes to be considered without partitioning the
+system.  Multiple reactions are fired in a single tau step, and the relative change in propensities
+is bounded by bounding the relative change in the state of the system, resulting in increased
+run-time performance with little accuracy trade-off.</p>
+<dl class="method">
+<dt id="gillespy2.solvers.numpy.BasicTauHybridSolver.calculate_statistics">
+<code class="descname">calculate_statistics</code><span class="sig-paren">(</span><em>model</em>, <em>propensities</em>, <em>curr_state</em>, <em>tau_step</em>, <em>det_spec</em>, <em>dependencies</em>, <em>hybrid_tol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_hybrid_solver.html#BasicTauHybridSolver.calculate_statistics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.BasicTauHybridSolver.calculate_statistics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates Mean, Standard Deviation, and Coefficient of Variance for each
+dynamic species, then set if species can be represented determistically</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.solvers.numpy.BasicTauHybridSolver.create_diff_eqs">
+<code class="descname">create_diff_eqs</code><span class="sig-paren">(</span><em>comb</em>, <em>model</em>, <em>dependencies</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_hybrid_solver.html#BasicTauHybridSolver.create_diff_eqs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.BasicTauHybridSolver.create_diff_eqs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.solvers.numpy.BasicTauHybridSolver.flag_det_reactions">
+<code class="descname">flag_det_reactions</code><span class="sig-paren">(</span><em>model</em>, <em>det_spec</em>, <em>det_rxn</em>, <em>dependencies</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_hybrid_solver.html#BasicTauHybridSolver.flag_det_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.BasicTauHybridSolver.flag_det_reactions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.solvers.numpy.BasicTauHybridSolver.name">
+<code class="descname">name</code><em class="property"> = 'Basic Tau Hybrid Solver'</em><a class="headerlink" href="#gillespy2.solvers.numpy.BasicTauHybridSolver.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="gillespy2.solvers.numpy.BasicTauHybridSolver.run">
+<em class="property">classmethod </em><code class="descname">run</code><span class="sig-paren">(</span><em>model</em>, <em>t=20</em>, <em>number_of_trajectories=1</em>, <em>increment=0.05</em>, <em>seed=None</em>, <em>debug=False</em>, <em>profile=False</em>, <em>show_labels=True</em>, <em>stochkit_home=None</em>, <em>hybrid_tol=0.03</em>, <em>tau_tol=0.03</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_hybrid_solver.html#BasicTauHybridSolver.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.BasicTauHybridSolver.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
+objects and will inherit those parameters which are passed with the model as the arguments this run function.</p>
+<dl class="docutils">
+<dt>model <span class="classifier-delimiter">:</span> <span class="classifier">GillesPy2.Model</span></dt>
+<dd>GillesPy2 model object to simulate</dd>
+<dt>t <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Simulation run time</dd>
+<dt>number_of_trajectories <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The number of times to sample the chemical master equation. Each
+trajectory will be returned at the end of the simulation.
+Optional, defaults to 1.</dd>
+<dt>increment <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Save point increment for recording data</dd>
+<dt>seed <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The random seed for the simulation. Optional, defaults to None.</dd>
+<dt>debug <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
+<dd>Set to True to provide additional debug information about the
+simulation.</dd>
+<dt>profile <span class="classifier-delimiter">:</span> <span class="classifier">bool (Fasle)</span></dt>
+<dd>Set to True to provide information about step size (tau) taken at each step.</dd>
+<dt>show_labels <span class="classifier-delimiter">:</span> <span class="classifier">bool (True)</span></dt>
+<dd>Use names of species as index of result object rather than position numbers.</dd>
+<dt>stochkit_home <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Path to stochkit. This is set automatically upon installation, but
+may be overwritten if desired.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.solvers.numpy.BasicTauHybridSolver.toggle_reactions">
+<code class="descname">toggle_reactions</code><span class="sig-paren">(</span><em>model</em>, <em>all_compiled</em>, <em>deterministic_reactions</em>, <em>dependencies</em>, <em>curr_state</em>, <em>rxn_offset</em>, <em>det_spec</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_hybrid_solver.html#BasicTauHybridSolver.toggle_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.BasicTauHybridSolver.toggle_reactions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">gillespy2.solvers.numpy package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-gillespy2.solvers.numpy.basic_ode_solver">gillespy2.solvers.numpy.basic_ode_solver module</a></li>
+<li><a class="reference internal" href="#module-gillespy2.solvers.numpy.basic_tau_hybrid_solver">gillespy2.solvers.numpy.basic_tau_hybrid_solver module</a></li>
+<li><a class="reference internal" href="#module-gillespy2.solvers.numpy.basic_tau_leaping_solver">gillespy2.solvers.numpy.basic_tau_leaping_solver module</a></li>
+<li><a class="reference internal" href="#module-gillespy2.solvers.numpy.ssa_solver">gillespy2.solvers.numpy.ssa_solver module</a></li>
+<li><a class="reference internal" href="#gillespy2-solvers-numpy-test-basic-tau-hybrid-solver-module">gillespy2.solvers.numpy.test_basic_tau_hybrid_solver module</a></li>
+<li><a class="reference internal" href="#gillespy2-solvers-numpy-test-basic-tau-leaping-solver-module">gillespy2.solvers.numpy.test_basic_tau_leaping_solver module</a></li>
+<li><a class="reference internal" href="#gillespy2-solvers-numpy-test-ode-solver-module">gillespy2.solvers.numpy.test_ode_solver module</a></li>
+<li><a class="reference internal" href="#gillespy2-solvers-numpy-test-ssa-solver-module">gillespy2.solvers.numpy.test_ssa_solver module</a></li>
+<li><a class="reference internal" href="#module-gillespy2.solvers.numpy">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="gillespy2.solvers.cython.html"
+                        title="previous chapter">gillespy2.solvers.cython package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="gillespy2.solvers.stochkit.html"
+                        title="next chapter">gillespy2.solvers.stochkit package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/gillespy2.solvers.numpy.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="gillespy2.solvers.stochkit.html" title="gillespy2.solvers.stochkit package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="gillespy2.solvers.cython.html" title="gillespy2.solvers.cython package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">GillesPy2  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="gillespy2.html" >gillespy2 package</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="gillespy2.solvers.html" >gillespy2.solvers package</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+    </div>
+  </body>
+</html>
