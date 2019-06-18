@@ -127,7 +127,7 @@ class BasicTauLeapingSolver(GillesPySolver):
             data = { 'time': timeline}
             steps_taken = []
             steps_rejected = 0
-            entry_count = 1
+            entry_count = 0
             trajectory = trajectory_base[trajectory_num]
 
 
