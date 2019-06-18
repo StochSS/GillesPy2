@@ -52,6 +52,8 @@ If you have any problems, or want to request a feature, please submit an issue t
 * **Sean Matthew**
 * **George Hall** 
 * **W.R. Jackson** 
+* **Samuel Hodges**
+* **Emma Weisgerber**
 
 ## License
 
