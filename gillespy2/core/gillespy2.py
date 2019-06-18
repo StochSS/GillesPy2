@@ -357,8 +357,6 @@ class Model(object):
         if isinstance(reactions,list):
             for r in reactions:
                 self.add_reaction(r)
-        elif isinstance(reactions,dict) or isinstance(reactions,OrderedDict):
-                self.add_reaction(list(reactions.values()))
         elif isinstance(reactions,Reaction):
             reactions.verify()
             self.validate_reactants_and_products(reactions)
@@ -385,12 +383,10 @@ class Model(object):
         if isinstance(rate_rules, list):
             for rr in rate_rules:
                 self.add_rate_rule(rr)
-        elif isinstance(rate_rules, dict) or isinstance(rate_rules, OrderedDict):
-            self.add_rate_rule(rate_rules.expression())
         elif isinstance(rate_rules, RateRule):
             self.listOfRateRules[rate_rules.species.name] = rate_rules
         else:
-            raise ParameterError("Could not resolve Rate Rule0 expression {} to a scalar value.".format(param_type))
+            raise ParameterError("Add_rate_rule accepts a RateRule object or a List of RateRule Objects")
         return rate_rules
 
     def timespan(self, time_span):
