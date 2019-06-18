@@ -30,12 +30,12 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         self.model.run(solver=BasicTauHybridSolver)
         
     def test_add_rate_rule_dict(self):
-        species = gillespy2.Species('test_species', initial_value=1, mode='continuous')
         species2 = gillespy2.Species('test_species2',initial_value=2, mode ='continuous')
-        rule = gillespy2.RateRule(species, 'cos(t)')
-        rule2 = gillespy2.RateRule(species2, 'sin(t)')
-        rate_rule_dict = {'rule' :rule, 'rule2':rule2}
-        self.model.add_species([species,species2])
+        species3 = gillespy2.Species('test_species3',initial_value=3, mode='continuous')
+        rule2 = gillespy2.RateRule(species2, 'cos(t)')
+        rule3 = gillespy2.RateRule(species3, 'sin(t)')
+        rate_rule_dict = {'rule2' :rule2, 'rule3':rule3}
+        self.model.add_species([species2,species3])
         with self.assertRaises(ParameterError):
             self.model.add_rate_rule(rate_rule_dict)
             
