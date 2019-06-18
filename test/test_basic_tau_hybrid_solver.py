@@ -3,6 +3,7 @@ import numpy as np
 import gillespy2
 from gillespy2.example_models import Example
 from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
+from gillespy2.core.gillespyError import *
 
 class TestBasicTauHybridSolver(unittest.TestCase):
 
