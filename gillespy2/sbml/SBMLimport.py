@@ -39,6 +39,7 @@ def convert(filename, model_name=None, gillespy_model=None):
             continue
         name = species.getId()
         if species.isSetInitialAmount():
+
             value = int(species.getInitialAmount())
             mode = 'dynamic'
         elif species.isSetInitialConcentration():

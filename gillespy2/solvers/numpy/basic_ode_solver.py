@@ -78,7 +78,7 @@ class BasicODESolver(GillesPySolver):
                 'time': timeline
             }
             for i, species in enumerate(model.listOfSpecies):
-                results_as_dict[species] = result[:, i]
+                results_as_dict[species] = result[:, i+1]
             results = [results_as_dict] * number_of_trajectories
         else:
             results = np.stack([result] * number_of_trajectories, axis=0)
