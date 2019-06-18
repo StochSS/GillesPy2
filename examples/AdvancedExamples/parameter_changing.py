@@ -3,10 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import sys
-sys.path[:0] = ['..']
-import gillespy
+sys.path[:0] = ['../../']
+import gillespy2
 
-class parameter_changing_model(gillespy.Model):
+class parameter_changing_model(gillespy2.Model):
     """
     This toy example shows how we can simply simulate the same model for 
     multiple parameter sets. Our model consists of the following reactions:
@@ -21,33 +21,33 @@ class parameter_changing_model(gillespy.Model):
     def __init__(self, parameter_values=None):
 
         # Initialize the model.
-        gillespy.Model.__init__(self, name="simple1")
+        gillespy2.Model.__init__(self, name="simple1")
         
         # Parameters
-        k1 = gillespy.Parameter(name='k1', expression=parameter_values[0])
-        k2 = gillespy.Parameter(name='k2', expression=parameter_values[1])
-        k3 = gillespy.Parameter(name='k3', expression=parameter_values[2])
+        k1 = gillespy2.Parameter(name='k1', expression=parameter_values[0])
+        k2 = gillespy2.Parameter(name='k2', expression=parameter_values[1])
+        k3 = gillespy2.Parameter(name='k3', expression=parameter_values[2])
         self.add_parameter([k1, k2, k3])
         
         # Species
-        S1 = gillespy.Species(name='S1', initial_value=100)
-        S2 = gillespy.Species(name='S2', initial_value=0)
+        S1 = gillespy2.Species(name='S1', initial_value=100)
+        S2 = gillespy2.Species(name='S2', initial_value=0)
         self.add_species([S1, S2])
         
         # Reactions
-        rxn1 = gillespy.Reaction(
+        rxn1 = gillespy2.Reaction(
                 name = 'S1 production',
                 reactants = {},
                 products = {S1:1},
                 rate = k1 )
 
-        rxn2 = gillespy.Reaction(
+        rxn2 = gillespy2.Reaction(
                 name = 'dimer formation',
                 reactants = {S1:2},
                 products = {S2:1},
                 rate = k2)
 
-        rxn3 = gillespy.Reaction(
+        rxn3 = gillespy2.Reaction(
                 name = 'dimer degradation',
                 reactants = {S2:1},
                 products = {},
@@ -101,8 +101,8 @@ if __name__ == '__main__':
     # Plot for parameter set #1
     ax0 = plt.subplot(gs[0,0])
 
-    set1_S1 = np.array([set1_trajectories[i][:,1] for i in xrange(num_trajectories)]).T
-    set1_S2 = np.array([set2_trajectories[i][:,2] for i in xrange(num_trajectories)]).T
+    set1_S1 = np.array([set1_trajectories[i][:,1] for i in range(num_trajectories)]).T
+    set1_S2 = np.array([set2_trajectories[i][:,2] for i in range(num_trajectories)]).T
 
     
     #plot individual trajectories
@@ -121,8 +121,8 @@ if __name__ == '__main__':
     # Plot for parameter set #2
     ax1 = plt.subplot(gs[0,1])
 
-    set2_S1 = np.array([set2_trajectories[i][:,1] for i in xrange(num_trajectories)]).T
-    set2_S2 = np.array([set2_trajectories[i][:,2] for i in xrange(num_trajectories)]).T
+    set2_S1 = np.array([set2_trajectories[i][:,1] for i in range(num_trajectories)]).T
+    set2_S2 = np.array([set2_trajectories[i][:,2] for i in range(num_trajectories)]).T
 
     
     #plot individual trajectories
@@ -142,16 +142,4 @@ if __name__ == '__main__':
     plt.tight_layout()
     plt.show()
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     

@@ -425,7 +425,7 @@ class Model(object):
         self.listOfReactions.clear()
 
     def run(self, number_of_trajectories=1, seed=None,
-            solver=None, show_labels=True):
+            solver=None, show_labels=True, max_steps=0):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -442,14 +442,10 @@ class Model(object):
             The solver by which to simulate the model. This solver object may
             be initialized separately to specify an algorithm. Optional, 
             defaults to StochKitSolver SSA.
-        stochkit_home : str
-            Path to stochkit. This is set automatically upon installation, but
-            may be overwritten if desired.
-        debug : bool (False)
-            Set to True to provide additional debug information about the
-            simulation.
         show_labels : bool (True)
             Use names of species as index of result object rather than position numbers.
+        max_steps : int
+            When using deterministic methods, specifies the maximum number of steps permitted for each integration point in t.
         """
         if solver is not None:
             if ((isinstance(solver, type)
@@ -458,7 +454,7 @@ class Model(object):
                                   increment=self.tspan[-1] - self.tspan[-2],
                                   seed=seed,
                                   number_of_trajectories=number_of_trajectories,
-                                  show_labels=show_labels)
+                                  show_labels=show_labels, max_steps=max_steps)
             else:
                 raise SimulationError(
                     "argument 'solver' to run() must be a subclass of GillesPySolver")
@@ -987,8 +983,9 @@ class StochMLDocument():
         for px in root.iter('Parameter'):
             name = px.find('Id').text
             expr = px.find('Expression').text
-            if name.lower() == 'volume':
-                model.volume = expr
+            if name.lower() == 'vol' or name.lower() == 'volume':
+                model.volume = float(expr)
+                print(model.volume)
             else:
                 p = Parameter(name, expression=expr)
                 # Try to evaluate the expression in the empty namespace
@@ -1000,7 +997,11 @@ class StochMLDocument():
         for spec in root.iter('Species'):
             name = spec.find('Id').text
             val = spec.find('InitialPopulation').text
-            s = Species(name, initial_value=float(val))
+            if '.' in val:
+                val = float(val)
+            else:
+                val = int(val)
+            s = Species(name, initial_value=val)
             model.add_species([s])
 
         # The namespace_propensity for evaluating the propensity function

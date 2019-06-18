@@ -10,11 +10,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import sys
-sys.path.append('../')
+sys.path.append('../../')
 
-import gillespy
+import gillespy2
 
-class Simple1(gillespy.Model):
+class Simple1(gillespy2.Model):
     """
     This is a simple example for mass-action degradation of species S.
     """
@@ -22,21 +22,21 @@ class Simple1(gillespy.Model):
     def __init__(self, parameter_values=None,volume=1.0):
 
         # Initialize the model.
-        gillespy.Model.__init__(self, name="simple1", volume=volume)
+        gillespy2.Model.__init__(self, name="simple1", volume=volume)
         
         # Parameters
-        k1 = gillespy.Parameter(name='k1', expression=0.03)
+        k1 = gillespy2.Parameter(name='k1', expression=0.03)
         self.add_parameter(k1)
         
         # Species
-        r1 = gillespy.Species(name='r1', initial_value=100)
+        r1 = gillespy2.Species(name='r1', initial_value=100)
         self.add_species(r1)
-        r2 = gillespy.Species(name='r2', initial_value=100)
+        r2 = gillespy2.Species(name='r2', initial_value=100)
         self.add_species(r2)
         
         
         # Reactions
-        rxn1 = gillespy.Reaction(
+        rxn1 = gillespy2.Reaction(
                 name = 'r1d',
                 reactants = {r1:2},
                 products = {},
@@ -44,7 +44,7 @@ class Simple1(gillespy.Model):
                 
         self.add_reaction(rxn1)
         
-        rxn2 = gillespy.Reaction(
+        rxn2 = gillespy2.Reaction(
                 name = 'r2d',
                 reactants = {r2:2},
                 products = {},
@@ -64,9 +64,9 @@ if __name__ == '__main__':
     # The model object is simulated with the StochKit solver, and 25 
     # trajectories are returned.
     num_trajectories = 1
-    simple_1trajectories = gillespy.StochKitSolver.run(simple_1, 
-            number_of_trajectories = num_trajectories, show_labels=False)
-    print time.time() - tick
+    model = Simple1()
+    simple_1trajectories = model.run(number_of_trajectories = num_trajectories, show_labels=False)
+    print(time.time() - tick)
     # PLOTTING
 
     # here, we will plot all trajectories with the mean overlaid
