@@ -6,6 +6,11 @@
   
 https://docs.google.com/forms/d/12tAH4f8CJ-3F-lK44Q9uQHFio_mGoK0oY829q5lD7i4/viewform
 
+![PyPI](https://img.shields.io/pypi/v/gillespy2.svg)
+![PyPI - License](https://img.shields.io/pypi/l/gillespy2.svg?color=green)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/gillespy2.svg)
+
+
 ## Installation
 You can install gillespy2 through the following methods.
 
