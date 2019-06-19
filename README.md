@@ -1,4 +1,4 @@
-# Gillespy2
+# GillesPy2
 
   GillesPy2 is a python library designed to create stochastic simulations for biochemical systems.  This package provides an object-oriented approach to creating mathematical models based on these real-world systems and simulates reaction events over time, selecting from a variety of algorithms including ODE solutions, the Gillespie Direct algorithm (SSA), and several variants of the SSA.  This library contains multiple versions of solvers to support a variety of user environments with optimized code for C++, Cython, and NumPy.  
   
