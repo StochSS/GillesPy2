@@ -224,7 +224,7 @@ This methods must be called before exporting the model.</p>
 
 <dl class="method">
 <dt id="gillespy2.core.gillespy2.Model.run">
-<code class="descname">run</code><span class="sig-paren">(</span><em>number_of_trajectories=1</em>, <em>seed=None</em>, <em>solver=None</em>, <em>stochkit_home=None</em>, <em>profile=False</em>, <em>debug=False</em>, <em>show_labels=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#Model.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.run" title="Permalink to this definition">¶</a></dt>
+<code class="descname">run</code><span class="sig-paren">(</span><em>number_of_trajectories=1</em>, <em>seed=None</em>, <em>solver=None</em>, <em>show_labels=True</em>, <em>max_steps=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#Model.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function calling simulation of the model. There are a number of
 parameters to be set here.</p>
 <dl class="docutils">
@@ -238,14 +238,10 @@ Optional, defaults to 1.</dd>
 <dd>The solver by which to simulate the model. This solver object may
 be initialized separately to specify an algorithm. Optional, 
 defaults to StochKitSolver SSA.</dd>
-<dt>stochkit_home <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Path to stochkit. This is set automatically upon installation, but
-may be overwritten if desired.</dd>
-<dt>debug <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
-<dd>Set to True to provide additional debug information about the
-simulation.</dd>
 <dt>show_labels <span class="classifier-delimiter">:</span> <span class="classifier">bool (True)</span></dt>
 <dd>Use names of species as index of result object rather than position numbers.</dd>
+<dt>max_steps <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>When using deterministic methods, specifies the maximum number of steps permitted for each integration point in t.</dd>
 </dl>
 </dd></dl>
 
@@ -336,6 +332,11 @@ populations during the simulation.</dd>
 <code class="descname">update_namespace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#Model.update_namespace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.update_namespace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a dict with flattened parameter and species objects.</p>
 </dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.gillespy2.Model.validate_reactants_and_products">
+<code class="descname">validate_reactants_and_products</code><span class="sig-paren">(</span><em>reactions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#Model.validate_reactants_and_products"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.validate_reactants_and_products" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -481,7 +482,7 @@ Does nothing on sucesss, raises and error on failure.</p>
 
 <dl class="class">
 <dt id="gillespy2.core.gillespy2.Species">
-<em class="property">class </em><code class="descclassname">gillespy2.core.gillespy2.</code><code class="descname">Species</code><span class="sig-paren">(</span><em>name=''</em>, <em>initial_value=0</em>, <em>continuous=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#Species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Species" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">gillespy2.core.gillespy2.</code><code class="descname">Species</code><span class="sig-paren">(</span><em>name=''</em>, <em>initial_value=0</em>, <em>mode='dynamic'</em>, <em>allow_negative_populations=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#Species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Species" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Chemical species. Can be added to Model object to interact with other
 species or time.</p>
@@ -492,6 +493,16 @@ the model.</dd>
 <dt>initial_value <span class="classifier-delimiter">:</span> <span class="classifier">int &gt;= 0</span></dt>
 <dd>Initial population of this species. If this is not provided as an int,
 the type will be changed when it is added by numpy.int</dd>
+<dt>mode <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first"><strong>*FOR USE WITH TauHybridSolver ONLY*</strong>
+Sets the mode of representation of this species for the TauHybridSolver,
+can be discrete, continuous, or dynamic.
+mode=’dynamic’ - Default, allows a species to be represented as</p>
+<blockquote>
+<div>either discrete or continuous</div></blockquote>
+<p class="last">mode=’continuous’ - Species will only be represented as continuous
+mode=’discrete’ - Species will only be represented as discrete</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -889,7 +900,7 @@ This methods must be called before exporting the model.</p>
 
 <dl class="method">
 <dt id="gillespy2.core.Model.run">
-<code class="descname">run</code><span class="sig-paren">(</span><em>number_of_trajectories=1</em>, <em>seed=None</em>, <em>solver=None</em>, <em>stochkit_home=None</em>, <em>profile=False</em>, <em>debug=False</em>, <em>show_labels=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#Model.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.run" title="Permalink to this definition">¶</a></dt>
+<code class="descname">run</code><span class="sig-paren">(</span><em>number_of_trajectories=1</em>, <em>seed=None</em>, <em>solver=None</em>, <em>show_labels=True</em>, <em>max_steps=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#Model.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function calling simulation of the model. There are a number of
 parameters to be set here.</p>
 <dl class="docutils">
@@ -903,14 +914,10 @@ Optional, defaults to 1.</dd>
 <dd>The solver by which to simulate the model. This solver object may
 be initialized separately to specify an algorithm. Optional, 
 defaults to StochKitSolver SSA.</dd>
-<dt>stochkit_home <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Path to stochkit. This is set automatically upon installation, but
-may be overwritten if desired.</dd>
-<dt>debug <span class="classifier-delimiter">:</span> <span class="classifier">bool (False)</span></dt>
-<dd>Set to True to provide additional debug information about the
-simulation.</dd>
 <dt>show_labels <span class="classifier-delimiter">:</span> <span class="classifier">bool (True)</span></dt>
 <dd>Use names of species as index of result object rather than position numbers.</dd>
+<dt>max_steps <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>When using deterministic methods, specifies the maximum number of steps permitted for each integration point in t.</dd>
 </dl>
 </dd></dl>
 
@@ -1001,6 +1008,11 @@ populations during the simulation.</dd>
 <code class="descname">update_namespace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#Model.update_namespace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.update_namespace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a dict with flattened parameter and species objects.</p>
 </dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.Model.validate_reactants_and_products">
+<code class="descname">validate_reactants_and_products</code><span class="sig-paren">(</span><em>reactions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#Model.validate_reactants_and_products"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.validate_reactants_and_products" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -1146,7 +1158,7 @@ Does nothing on sucesss, raises and error on failure.</p>
 
 <dl class="class">
 <dt id="gillespy2.core.Species">
-<em class="property">class </em><code class="descclassname">gillespy2.core.</code><code class="descname">Species</code><span class="sig-paren">(</span><em>name=''</em>, <em>initial_value=0</em>, <em>continuous=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#Species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Species" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">gillespy2.core.</code><code class="descname">Species</code><span class="sig-paren">(</span><em>name=''</em>, <em>initial_value=0</em>, <em>mode='dynamic'</em>, <em>allow_negative_populations=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#Species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Species" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Chemical species. Can be added to Model object to interact with other
 species or time.</p>
@@ -1157,6 +1169,16 @@ the model.</dd>
 <dt>initial_value <span class="classifier-delimiter">:</span> <span class="classifier">int &gt;= 0</span></dt>
 <dd>Initial population of this species. If this is not provided as an int,
 the type will be changed when it is added by numpy.int</dd>
+<dt>mode <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first"><strong>*FOR USE WITH TauHybridSolver ONLY*</strong>
+Sets the mode of representation of this species for the TauHybridSolver,
+can be discrete, continuous, or dynamic.
+mode=’dynamic’ - Default, allows a species to be represented as</p>
+<blockquote>
+<div>either discrete or continuous</div></blockquote>
+<p class="last">mode=’continuous’ - Species will only be represented as continuous
+mode=’discrete’ - Species will only be represented as discrete</p>
+</dd>
 </dl>
 </dd></dl>
 

@@ -41,6 +41,20 @@ class TestModel(unittest.TestCase):
         with self.assertRaises(ModelError):
             model.add_reaction(reaction2)
 
+    def test_valid_initial_value_float(self):
+        species = Species('A', initial_value=1.5, mode='continuous')
+
+    def test_invalid_initial_value_float(self):
+        with self.assertRaises(ValueError):
+            species = Species('A', initial_value=1.5)
+
+    def test_valid_initial_value_negative(self):
+        species = Species('A', initial_value=-1, allow_negative_populations=True)
+
+    def test_invalid_initial_value_negative(self):
+        with self.assertRaises(ValueError):
+            species = Species('A', initial_value=-1)
+
     def test_reaction_invalid_reactant(self):
         model = Model()
         rate = Parameter(name='rate', expression=0.5)
@@ -85,7 +99,6 @@ class TestModel(unittest.TestCase):
         model.add_reaction(reaction1)
         assert "reaction1" in model.listOfReactions
 
-
     def test_add_reaction_dict(self):
         model = Model()
         rate = Parameter(name='rate', expression=0.5)
@@ -98,10 +111,9 @@ class TestModel(unittest.TestCase):
                     name=name, 
                     reactants={species1: 1}, products={species2: 1}, rate=rate)
                 for name in ["reaction1", "reaction2"]}
-        model.add_reaction(reactions)
-        assert "reaction1" in model.listOfReactions
-        assert "reaction2" in model.listOfReactions
-
+        with self.assertRaises(ModelError):
+            model.add_reaction(reactions)
+        
     def test_species_parameter_name_substrings(self):
         model = Model()
         rate = Parameter(name='rate', expression=1)

@@ -48,7 +48,7 @@ class BasicODESolver(GillesPySolver):
 
     @classmethod
     def run(cls, model, t=20, number_of_trajectories=1,
-            increment=0.05, seed=None, debug=False, profile=False, show_labels=True, **kwargs):
+            increment=0.05, seed=None, debug=False, profile=False, show_labels=True, max_steps=0, **kwargs):
         """
 
         :param model: gillespy2.model class object
@@ -60,6 +60,8 @@ class BasicODESolver(GillesPySolver):
         :param debug: not implemented
         :param profile: not implemented
         :param show_labels: not implemented
+        :param max_steps: Defaults to 0 for odeint
+            When using deterministic methods, specifies the maximum number of steps permitted for each integration point in t.
         :param kwargs:
         :return:
         """
@@ -68,17 +70,17 @@ class BasicODESolver(GillesPySolver):
 
         start_state = [model.listOfSpecies[species].initial_value for species in model.listOfSpecies]
         timeline = np.linspace(0, t, (t // increment + 1))
-        result = odeint(BasicODESolver.rhs, start_state, timeline, args=(model,))
+        result = odeint(BasicODESolver.rhs, start_state, timeline, args=(model,), mxstep=max_steps)
+        result = np.hstack((np.expand_dims(timeline, -1), result))
 
         if show_labels:
             results_as_dict = {
                 'time': timeline
             }
             for i, species in enumerate(model.listOfSpecies):
-                results_as_dict[species] = [result[:, i]]
+                results_as_dict[species] = result[:, i+1]
             results = [results_as_dict] * number_of_trajectories
         else:
-            result = np.hstack((np.expand_dims(timeline, -1), result))
             results = np.stack([result] * number_of_trajectories, axis=0)
 
         return results

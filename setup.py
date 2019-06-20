@@ -48,7 +48,7 @@ with open('README.md', 'r') as fh:
     full_description = fh.read()
 
 setup(name="gillespy2",
-      version="1.0.5",
+      version="1.1.0",
       packages=find_packages('.'),
       include_package_data=True,
       description='Python interface for Gillespie style biochemical simulations',
@@ -59,7 +59,7 @@ setup(name="gillespy2",
                         "matplotlib",
                         "scipy"],
 
-      author="Brian Drawert, Kevin Sanft, Sean Matthew, George Hall, Dalton Nickerson",
+      author="Brian Drawert, Kevin Sanft, Sean Matthew, George Hall, Dalton Nickerson, Samuel Hodges, Emma Weisgerber, Eliot Dixon, Ghilman Brock, W.R. Jackson",
       author_email="bdrawert@unca.edu",
       license="GPL",
       keywords="gillespy2, gillespie algorithm, biochemical simulation",

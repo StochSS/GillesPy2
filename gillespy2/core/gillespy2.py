@@ -357,8 +357,6 @@ class Model(object):
         if isinstance(reactions,list):
             for r in reactions:
                 self.add_reaction(r)
-        elif isinstance(reactions,dict) or isinstance(reactions,OrderedDict):
-                self.add_reaction(list(reactions.values()))
         elif isinstance(reactions,Reaction):
             reactions.verify()
             self.validate_reactants_and_products(reactions)
@@ -385,12 +383,10 @@ class Model(object):
         if isinstance(rate_rules, list):
             for rr in rate_rules:
                 self.add_rate_rule(rr)
-        elif isinstance(rate_rules, dict) or isinstance(rate_rules, OrderedDict):
-            self.add_rate_rule(rate_rules.expression())
         elif isinstance(rate_rules, RateRule):
             self.listOfRateRules[rate_rules.species.name] = rate_rules
         else:
-            raise ParameterError("Could not resolve Rate Rule0 expression {} to a scalar value.".format(param_type))
+            raise ParameterError("Add_rate_rule accepts a RateRule object or a List of RateRule Objects")
         return rate_rules
 
     def timespan(self, time_span):
@@ -425,7 +421,7 @@ class Model(object):
         self.listOfReactions.clear()
 
     def run(self, number_of_trajectories=1, seed=None,
-            solver=None, show_labels=True):
+            solver=None, show_labels=True, max_steps=0):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -442,14 +438,10 @@ class Model(object):
             The solver by which to simulate the model. This solver object may
             be initialized separately to specify an algorithm. Optional, 
             defaults to StochKitSolver SSA.
-        stochkit_home : str
-            Path to stochkit. This is set automatically upon installation, but
-            may be overwritten if desired.
-        debug : bool (False)
-            Set to True to provide additional debug information about the
-            simulation.
         show_labels : bool (True)
             Use names of species as index of result object rather than position numbers.
+        max_steps : int
+            When using deterministic methods, specifies the maximum number of steps permitted for each integration point in t.
         """
         if solver is not None:
             if ((isinstance(solver, type)
@@ -458,7 +450,7 @@ class Model(object):
                                   increment=self.tspan[-1] - self.tspan[-2],
                                   seed=seed,
                                   number_of_trajectories=number_of_trajectories,
-                                  show_labels=show_labels)
+                                  show_labels=show_labels, max_steps=max_steps)
             else:
                 raise SimulationError(
                     "argument 'solver' to run() must be a subclass of GillesPySolver")
@@ -533,16 +525,30 @@ class Species:
     initial_value : int >= 0
         Initial population of this species. If this is not provided as an int,
         the type will be changed when it is added by numpy.int
+    mode : str
+        ***FOR USE WITH TauHybridSolver ONLY***
+        Sets the mode of representation of this species for the TauHybridSolver,
+        can be discrete, continuous, or dynamic.
+        mode='dynamic' - Default, allows a species to be represented as
+            either discrete or continuous
+        mode='continuous' - Species will only be represented as continuous
+        mode='discrete' - Species will only be represented as discrete
     """
 
-    def __init__(self, name="", initial_value=0, continuous=False):
+    def __init__(self, name="", initial_value=0, mode='dynamic', allow_negative_populations=False):
         # A species has a name (string) and an initial value (positive integer)
         self.name = name
-        self.initial_value = np.int(initial_value)
-        self.continuous = continuous
-        assert self.initial_value >= 0, "A species initial value has to \
-                                        be a positive number."
+        self.mode = mode
+        self.allow_negative_populations = allow_negative_populations
 
+        if mode == 'continuous':
+            self.initial_value = np.float(initial_value)
+        else:
+            if not isinstance(initial_value, int): raise ValueError('Discrete values must be of type int.')
+            self.initial_value = np.int(initial_value)
+        if not allow_negative_populations:
+            if self.initial_value < 0: raise ValueError('A species initial value must be \
+non-negative unless allow_negative_populations=True')
 
     def __str__(self):
         return self.name
@@ -973,8 +979,9 @@ class StochMLDocument():
         for px in root.iter('Parameter'):
             name = px.find('Id').text
             expr = px.find('Expression').text
-            if name.lower() == 'volume':
-                model.volume = expr
+            if name.lower() == 'vol' or name.lower() == 'volume':
+                model.volume = float(expr)
+                print(model.volume)
             else:
                 p = Parameter(name, expression=expr)
                 # Try to evaluate the expression in the empty namespace
@@ -986,7 +993,11 @@ class StochMLDocument():
         for spec in root.iter('Species'):
             name = spec.find('Id').text
             val = spec.find('InitialPopulation').text
-            s = Species(name, initial_value=float(val))
+            if '.' in val:
+                val = float(val)
+            else:
+                val = int(val)
+            s = Species(name, initial_value=val)
             model.add_species([s])
 
         # The namespace_propensity for evaluating the propensity function
@@ -1029,7 +1040,7 @@ class StochMLDocument():
                     try:
                         # The sref list should only contain one element if
                         # the XML file is valid.
-                        reaction.reactants[specname] = stoch
+                        reaction.reactants[sref] = stoch
                     except Exception as e:
                         StochMLImportError(e)
             except:
@@ -1045,7 +1056,7 @@ class StochMLDocument():
                     try:
                         # The sref list should only contain one element if
                         # the XML file is valid.
-                        reaction.products[specname] = stoch
+                        reaction.products[sref] = stoch
                     except Exception as e:
                         raise StochMLImportError(e)
             except:

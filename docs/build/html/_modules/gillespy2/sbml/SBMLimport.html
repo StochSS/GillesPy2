@@ -86,9 +86,11 @@
             <span class="k">continue</span>
         <span class="n">name</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">getId</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">species</span><span class="o">.</span><span class="n">isSetInitialAmount</span><span class="p">():</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">getInitialAmount</span><span class="p">()</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">species</span><span class="o">.</span><span class="n">getInitialAmount</span><span class="p">())</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;dynamic&#39;</span>
         <span class="k">elif</span> <span class="n">species</span><span class="o">.</span><span class="n">isSetInitialConcentration</span><span class="p">():</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">getInitialConcentration</span><span class="p">()</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;continuous&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">rule</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">getRule</span><span class="p">(</span><span class="n">species</span><span class="o">.</span><span class="n">getId</span><span class="p">())</span>
             <span class="k">if</span> <span class="n">rule</span><span class="p">:</span>
@@ -114,14 +116,8 @@
 
             <span class="n">value</span> <span class="o">=</span> <span class="mi">0</span>
 
-        <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
-            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
-                              <span class="s2">&quot;Species &#39;</span><span class="si">{0}</span><span class="s2">&#39; has negative initial condition (</span><span class="si">{1}</span><span class="s2">). gillespy does not support negative &quot;</span>
-                              <span class="s2">&quot;initial conditions. Assuming initial condition 0&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                                  <span class="n">species</span><span class="o">.</span><span class="n">getId</span><span class="p">(),</span> <span class="n">value</span><span class="p">),</span> <span class="o">-</span><span class="mi">5</span><span class="p">])</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="mi">0</span>
-
-        <span class="n">gillespy_species</span> <span class="o">=</span> <span class="n">gillespy2</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">initial_value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">is_negative</span> <span class="o">=</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mf">0.0</span>
+        <span class="n">gillespy_species</span> <span class="o">=</span> <span class="n">gillespy2</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">initial_value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">allow_negative_populations</span><span class="o">=</span> <span class="n">is_negative</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
         <span class="n">gillespy_model</span><span class="o">.</span><span class="n">add_species</span><span class="p">([</span><span class="n">gillespy_species</span><span class="p">])</span>
 
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">getNumParameters</span><span class="p">()):</span>
