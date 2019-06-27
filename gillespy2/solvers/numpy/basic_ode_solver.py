@@ -33,14 +33,13 @@ class BasicODESolver(GillesPySolver):
             curr_state[parameter] = model.listOfParameters[parameter].value
 
         propensity = {}
-        for reaction in model.listOfReactions:
-            propensity[reaction] = eval(
-                model.listOfReactions[reaction].propensity_function, curr_state)
+        for r_name, reaction in model.listOfReactions.items():
+            propensity[r_name] = eval(reaction.propensity_function, curr_state)
             # assumption that prop is massAction
-            for react in model.listOfReactions[reaction].reactants:
-                state_change[str(react)] -= propensity[reaction]
-            for prod in model.listOfReactions[reaction].products:
-                state_change[str(prod)] += propensity[reaction]
+            for react, stoich in reaction.reactants.items():
+                state_change[str(react)] -= propensity[r_name] * stoich
+            for prod, stoich in reaction.products.items():
+                state_change[str(prod)] += propensity[r_name] * stoich
 
         results = [state_change[species] for species in model.listOfSpecies]
 
