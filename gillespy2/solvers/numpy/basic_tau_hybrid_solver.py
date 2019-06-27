@@ -30,10 +30,6 @@ class BasicTauHybridSolver(GillesPySolver):
         rate_rules = all_compiled['rules']
         rxns = all_compiled['rxns']
         
-        #Check if this reaction set is already compiled and in use:
-        if deterministic_reactions in rate_rules.keys():
-            return
-
         #If the set has changed, reactivate non-determinsitic reactions
         reactivate = []
         for r in inactive_reactions:
@@ -51,6 +47,10 @@ class BasicTauHybridSolver(GillesPySolver):
         for r in deterministic_reactions:
             if not r in inactive_reactions:
                 inactive_reactions[r] = rxns.pop(r, None)
+
+        #Check if this reaction set is already compiled and in use:
+        if deterministic_reactions in rate_rules.keys():
+            return
 
         #Otherwise, this is a new determinstic reaction set that must be compiled
         if not deterministic_reactions in rate_rules:
@@ -166,7 +166,7 @@ class BasicTauHybridSolver(GillesPySolver):
         rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfReactions,
                                                           model.listOfRateRules, propensities, compiled_reactions,
                                                           compiled_rate_rules)
-        rhs.set_integrator('lsoda', max_step=5000000000, ixpr=True)
+        rhs.set_integrator('lsoda', ixpr=True)
         int_time = step+curr_time
         current = rhs.integrate(int_time)  # current holds integration from current_time to int_time
         if rhs.successful():
