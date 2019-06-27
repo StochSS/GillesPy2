@@ -65,7 +65,7 @@ class BasicTauHybridSolver(GillesPySolver):
         #Initialize sample dict
         for reaction in comb:
             for dep in dependencies[reaction]:
-                if dep not in diff_eqs and model.listOfSpecies[dep].mode == 'dynamic':
+                if dep not in diff_eqs and (model.listOfSpecies[dep].mode == 'dynamic' or model.listOfSpecies[dep].mode == 'continuous'):
                     diff_eqs[dep] = '0'
 
         # loop through each det reaction and concatenate it's diff eq for each species
@@ -97,7 +97,10 @@ class BasicTauHybridSolver(GillesPySolver):
         for rxn in model.listOfReactions:
             det_rxn[rxn] = True
             for species in dependencies[rxn]:
-                if det_spec[species] == False:
+                if model.listOfSpecies[species].mode == 'discrete': 
+                    det_rxn[rxn] = False
+                    break
+                if model.listOfSpecies[species].mode == 'dynamic' and det_spec[species] == False:
                     det_rxn[rxn] = False
                     break
                     
