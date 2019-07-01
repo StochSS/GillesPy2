@@ -4,9 +4,6 @@ def check_cpp_support():
     from gillespy2.example_models import Example
     try:
         model = Example()
-        solver = SSACSolver(model)
-        results = model.run(solver=solver)
-        model = Example()
         results = model.run(solver=SSACSolver)
         return True
     except:
