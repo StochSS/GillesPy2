@@ -34,7 +34,7 @@ class BasicODESolver(GillesPySolver):
 
         propensity = {}
         for r_name, reaction in model.listOfReactions.items():
-            propensity[r_name] = eval(reaction.propensity_function, curr_state)
+            propensity[r_name] = eval(reaction.ode_propensity_function, curr_state)
             # assumption that prop is massAction
             for react, stoich in reaction.reactants.items():
                 state_change[str(react)] -= propensity[r_name] * stoich
