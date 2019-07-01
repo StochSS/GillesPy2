@@ -171,6 +171,14 @@ class SSACSolver(GillesPySolver):
             if isinstance(seed, int):
                 args.append('-seed')
                 args.append(str(seed))
+            else:
+                seed_int = int(seed)
+                if seed_int > 0:
+                    args.append('-seed')
+                    args.append(str(seed_int))
+                else:
+                    raise ModelError("seed must be a positive integer")
+                
             simulation = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             # Parse/return results.
             if simulation.returncode == 0:
