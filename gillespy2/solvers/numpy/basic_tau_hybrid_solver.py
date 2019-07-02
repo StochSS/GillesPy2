@@ -308,11 +308,16 @@ class BasicTauHybridSolver(GillesPySolver):
         
         dependencies = OrderedDict()
 
-
         for reaction in model.listOfReactions:
             dependencies[reaction] = set()
             [dependencies[reaction].add(reactant.name) for reactant in model.listOfReactions[reaction].reactants]
             [dependencies[reaction].add(product.name) for product in model.listOfReactions[reaction].products]
+
+        pure_ode = True
+        for reaction in model.listOfReactions.keys():
+            for dep in dependencies[reaction]:
+                if model.listOfSpecies[dep].mode != 'continuous':
+                    pure_ode = False
 
         if debug:
             print('dependencies')
@@ -386,7 +391,7 @@ class BasicTauHybridSolver(GillesPySolver):
                     tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
                             model, propensities, curr_state, curr_time, save_time]
 
-                    tau_step = Tau.select(*tau_args)
+                    tau_step = save_time-curr_time if pure_ode else Tau.select(*tau_args)
 
                     if profile:
                         steps_taken.append(tau_step)
