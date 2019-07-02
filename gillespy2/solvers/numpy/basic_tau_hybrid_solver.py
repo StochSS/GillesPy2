@@ -84,7 +84,7 @@ class BasicTauHybridSolver(GillesPySolver):
             for dep in dependencies[reaction]:
                 if factor[dep] != 0:
                     if pure_continuous:
-                        diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].ode_propensity_function)
+                        diff_eqs[dep] = '{0}*({1})'.format(factor[dep], model.listOfReactions[reaction].ode_propensity_function)
                     else:
                         diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].propensity_function)
         
@@ -162,7 +162,8 @@ class BasicTauHybridSolver(GillesPySolver):
         for i, r in enumerate(compiled_reactions):
             propensities[r] = eval(compiled_reactions[r], eval_globals, curr_state)
             state_change.append(propensities[r])
-
+    
+        print(state_change)
         return state_change
 
     @staticmethod
@@ -173,8 +174,9 @@ class BasicTauHybridSolver(GillesPySolver):
         rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfReactions,
                                                           model.listOfRateRules, propensities, compiled_reactions,
                                                           compiled_rate_rules)
-        rhs.set_integrator('lsoda', ixpr=True)
+        rhs.set_integrator('lsoda')
         int_time = step+curr_time
+        print(int_time)
         current = rhs.integrate(int_time)  # current holds integration from current_time to int_time
         if rhs.successful():
             return current, curr_time + step
@@ -276,7 +278,6 @@ class BasicTauHybridSolver(GillesPySolver):
             Path to stochkit. This is set automatically upon installation, but
             may be overwritten if desired.
         """
-
         if not sys.warnoptions:
             warnings.simplefilter("ignore")
         if not isinstance(self, BasicTauHybridSolver):
@@ -314,6 +315,11 @@ class BasicTauHybridSolver(GillesPySolver):
             dependencies[reaction] = set()
             [dependencies[reaction].add(reactant.name) for reactant in model.listOfReactions[reaction].reactants]
             [dependencies[reaction].add(product.name) for product in model.listOfReactions[reaction].products]
+
+        pure_ode = True
+        for spec in model.listOfSpecies.values():
+            if spec.mode != 'continuous':
+                pure_ode = False
 
         if debug:
             print('dependencies')
@@ -362,8 +368,13 @@ class BasicTauHybridSolver(GillesPySolver):
             compiled_inactive_reactions = {}
 
             compiled_propensities = {}
-            for i, r in enumerate(model.listOfReactions):
-                compiled_propensities[r] = compile(model.listOfReactions[r].propensity_function, '<string>', 'eval')
+            for name, rxn in model.listOfReactions.items():
+                continuous = True
+                for dep in dependencies[name]:
+                    if dep != 'continuous':
+                        continuous = False
+                if not continuous:
+                    compiled_propensities[name] = compile(rxn.propensity_function, '<string>', 'eval')
             
             all_compiled = {'rxns': compiled_reactions, 'rules': compiled_rate_rules, 'inactive_rxns': compiled_inactive_reactions}
 
@@ -383,7 +394,7 @@ class BasicTauHybridSolver(GillesPySolver):
                     tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
                             model, propensities, curr_state, curr_time, save_time]
 
-                    tau_step = Tau.select(*tau_args)
+                    tau_step = save_time-curr_time if pure_ode else Tau.select(*tau_args)
 
                     if profile:
                         steps_taken.append(tau_step)
