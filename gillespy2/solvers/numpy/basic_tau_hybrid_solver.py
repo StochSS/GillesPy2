@@ -84,7 +84,7 @@ class BasicTauHybridSolver(GillesPySolver):
             for dep in dependencies[reaction]:
                 if factor[dep] != 0:
                     if pure_continuous:
-                        diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].ode_propensity_function)
+                        diff_eqs[dep] = '{0}*({1})'.format(factor[dep], model.listOfReactions[reaction].ode_propensity_function)
                     else:
                         diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].propensity_function)
         
@@ -157,7 +157,9 @@ class BasicTauHybridSolver(GillesPySolver):
         curr_state['t'] = t
         state_change = []
 
+
         for i, rr in enumerate(compiled_rate_rules):
+            curr_state[rr] = y[i]
             state_change.append(eval(compiled_rate_rules[rr], eval_globals, curr_state))
         for i, r in enumerate(compiled_reactions):
             propensities[r] = eval(compiled_reactions[r], eval_globals, curr_state)
@@ -169,16 +171,13 @@ class BasicTauHybridSolver(GillesPySolver):
     def __get_reaction_integrate(step, curr_state, y0, model, curr_time, propensities, compiled_reactions,
                                  compiled_rate_rules):
         """ Helper function to perform the ODE integration of one step """
-        rhs = ode(BasicTauHybridSolver.__f)  # set function as ODE object
+        rhs = ode(BasicTauHybridSolver.__f).set_integrator('lsoda')  # set function as ODE object
         rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfReactions,
                                                           model.listOfRateRules, propensities, compiled_reactions,
                                                           compiled_rate_rules)
-        rhs.set_integrator('lsoda', ixpr=True)
         int_time = step+curr_time
         current = rhs.integrate(int_time)  # current holds integration from current_time to int_time
-        if rhs.successful():
-            return current, curr_time + step
-        else:
+        if not rhs.successful():
             # if step is < 1e-15, take a Forward-Euler step for all species ('propensites' and RateRules)
             # TODO The RateRule linked species should still contain the correct value in current, verify this
             # step size is too small, take a single forward-euler step
@@ -188,7 +187,7 @@ class BasicTauHybridSolver(GillesPySolver):
                                                                 model.listOfRateRules, propensities, compiled_reactions,
                                                                 compiled_rate_rules)) * step
 
-            return current, curr_time + step
+        return current, curr_time + step
 
     def __get_reactions(self, step, curr_state, y0, model, curr_time, save_time,
                         propensities, compiled_reactions, compiled_rate_rules, rxn_offset, debug):
@@ -214,7 +213,6 @@ class BasicTauHybridSolver(GillesPySolver):
         current, curr_time = self.__get_reaction_integrate(step, curr_state, y0, model,
                                                            curr_time, propensities, compiled_reactions,
                                                            compiled_rate_rules)
-
         # UPDATE THE STATE of the continuous species
         for i, s in enumerate(compiled_rate_rules):
             curr_state[s] = current[i]
