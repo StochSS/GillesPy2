@@ -71,6 +71,10 @@ class BasicTauHybridSolver(GillesPySolver):
         # loop through each det reaction and concatenate it's diff eq for each species
         for reaction in comb:
             factor = {}
+            pure_continuous = True
+            for dep in dependencies[reaction]:
+                if model.listOfSpecies[dep].mode != 'continuous':
+                    pure_continuous = False
             for dep in dependencies[reaction]:
                 factor[dep] = 0
             for key, value in model.listOfReactions[reaction].reactants.items():
@@ -79,7 +83,10 @@ class BasicTauHybridSolver(GillesPySolver):
                 factor[key.name] += value
             for dep in dependencies[reaction]:
                 if factor[dep] != 0:
-                    diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].propensity_function)
+                    if pure_continuous:
+                        diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].ode_propensity_function)
+                    else:
+                        diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].propensity_function)
         
         #create a dictionary of compiled gillespy2 rate rules
         for spec, rate in diff_eqs.items():
