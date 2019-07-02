@@ -30,10 +30,6 @@ class BasicTauHybridSolver(GillesPySolver):
         rate_rules = all_compiled['rules']
         rxns = all_compiled['rxns']
         
-        #Check if this reaction set is already compiled and in use:
-        if deterministic_reactions in rate_rules.keys():
-            return
-
         #If the set has changed, reactivate non-determinsitic reactions
         reactivate = []
         for r in inactive_reactions:
@@ -52,6 +48,10 @@ class BasicTauHybridSolver(GillesPySolver):
             if not r in inactive_reactions:
                 inactive_reactions[r] = rxns.pop(r, None)
 
+        #Check if this reaction set is already compiled and in use:
+        if deterministic_reactions in rate_rules.keys():
+            return
+
         #Otherwise, this is a new determinstic reaction set that must be compiled
         if not deterministic_reactions in rate_rules:
             rate_rules[deterministic_reactions] = self.create_diff_eqs(deterministic_reactions, model, dependencies)
@@ -65,12 +65,16 @@ class BasicTauHybridSolver(GillesPySolver):
         #Initialize sample dict
         for reaction in comb:
             for dep in dependencies[reaction]:
-                if dep not in diff_eqs and model.listOfSpecies[dep].mode == 'dynamic':
+                if dep not in diff_eqs and (model.listOfSpecies[dep].mode == 'dynamic' or model.listOfSpecies[dep].mode == 'continuous'):
                     diff_eqs[dep] = '0'
 
         # loop through each det reaction and concatenate it's diff eq for each species
         for reaction in comb:
             factor = {}
+            pure_continuous = True
+            for dep in dependencies[reaction]:
+                if model.listOfSpecies[dep].mode != 'continuous':
+                    pure_continuous = False
             for dep in dependencies[reaction]:
                 factor[dep] = 0
             for key, value in model.listOfReactions[reaction].reactants.items():
@@ -79,7 +83,10 @@ class BasicTauHybridSolver(GillesPySolver):
                 factor[key.name] += value
             for dep in dependencies[reaction]:
                 if factor[dep] != 0:
-                    diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].propensity_function)
+                    if pure_continuous:
+                        diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].ode_propensity_function)
+                    else:
+                        diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].propensity_function)
         
         #create a dictionary of compiled gillespy2 rate rules
         for spec, rate in diff_eqs.items():
@@ -97,7 +104,10 @@ class BasicTauHybridSolver(GillesPySolver):
         for rxn in model.listOfReactions:
             det_rxn[rxn] = True
             for species in dependencies[rxn]:
-                if det_spec[species] == False:
+                if model.listOfSpecies[species].mode == 'discrete': 
+                    det_rxn[rxn] = False
+                    break
+                if model.listOfSpecies[species].mode == 'dynamic' and det_spec[species] == False:
                     det_rxn[rxn] = False
                     break
                     
@@ -163,7 +173,7 @@ class BasicTauHybridSolver(GillesPySolver):
         rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfReactions,
                                                           model.listOfRateRules, propensities, compiled_reactions,
                                                           compiled_rate_rules)
-        rhs.set_integrator('lsoda', max_step=5000000000, ixpr=True)
+        rhs.set_integrator('lsoda', ixpr=True)
         int_time = step+curr_time
         current = rhs.integrate(int_time)  # current holds integration from current_time to int_time
         if rhs.successful():
@@ -370,7 +380,7 @@ class BasicTauHybridSolver(GillesPySolver):
                         propensities[r] = eval(compiled_propensities[r], curr_state)
                         propensity_sum += propensities[r]
 
-                    tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold,
+                    tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
                             model, propensities, curr_state, curr_time, save_time]
 
                     tau_step = Tau.select(*tau_args)
