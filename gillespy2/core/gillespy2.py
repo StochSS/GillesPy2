@@ -760,7 +760,7 @@ class Reaction:
             if self.reactants[r] == 2:
                 propensity_function = ("0.5*" + propensity_function +
                                        "*" + str(r) + "*(" + str(r) + "-1)/vol")
-                ode_propensity_function = str(r) + '*' + str(r) + '*' + ode_propensity_function
+                ode_propensity_function += '*' + str(r) + '*' + str(r)
             else:
                 # Case 3: X1, X2 -> Y;
                 propensity_function += "*" + str(r)
