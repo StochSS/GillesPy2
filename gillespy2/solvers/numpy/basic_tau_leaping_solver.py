@@ -234,7 +234,7 @@ class BasicTauLeapingSolver(GillesPySolver):
                     data[species[i]] = trajectory[:, i+1]
                 simulation_data.append(data)
             else:
-                simulation_data.append(trajectory)
+                simulation_data = trajectory_base
             if profile:
                 print(steps_taken)
                 print("Total Steps Taken: ", len(steps_taken))
