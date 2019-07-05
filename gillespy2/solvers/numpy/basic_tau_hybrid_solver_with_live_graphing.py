@@ -8,8 +8,7 @@ from gillespy2.core import GillesPySolver
 eval_globals = math.__dict__
 
 
-
-class BasicTauHybridSolver(GillesPySolver):
+class BasicTauHybridSolverLiveGraphing(GillesPySolver):
     """
     This Solver uses an algorithm that combines the Tau-Leaping and Hybrid ODE/Stochastic methods.
     A root-finding integration is considered over all reaction channels and continuous species rate
@@ -18,7 +17,7 @@ class BasicTauHybridSolver(GillesPySolver):
     is bounded by bounding the relative change in the state of the system, resulting in increased
     run-time performance with little accuracy trade-off.
     """
-    name = "Basic Tau Hybrid Solver"
+    name = "Basic Tau Hybrid Solver with live graphing"
 
     def __init__(self, debug=False):
         self.debug = debug
@@ -160,7 +159,7 @@ class BasicTauHybridSolver(GillesPySolver):
     def __get_reaction_integrate(step, curr_state, y0, model, curr_time, propensities, compiled_reactions,
                                  compiled_rate_rules):
         """ Helper function to perform the ODE integration of one step """
-        rhs = ode(BasicTauHybridSolver.__f)  # set function as ODE object
+        rhs = ode(BasicTauHybridSolverLiveGraphing.__f)  # set function as ODE object
         rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfReactions,
                                                           model.listOfRateRules, propensities, compiled_reactions,
                                                           compiled_rate_rules)
@@ -174,7 +173,7 @@ class BasicTauHybridSolver(GillesPySolver):
             # TODO The RateRule linked species should still contain the correct value in current, verify this
             # step size is too small, take a single forward-euler step
             print('*** EULER ***')
-            current = y0 + np.array(BasicTauHybridSolver.__f(curr_time, y0,
+            current = y0 + np.array(BasicTauHybridSolverLiveGraphing.__f(curr_time, y0,
                                                                 curr_state, model.listOfReactions,
                                                                 model.listOfRateRules, propensities, compiled_reactions,
                                                                 compiled_rate_rules)) * step
@@ -240,7 +239,7 @@ class BasicTauHybridSolver(GillesPySolver):
 
         #########################################
         dynamic_graphing = True
-        plotly_graphing = False
+        graphing_mode = "matplotlib"
         #########################################
 
         """
@@ -279,7 +278,7 @@ class BasicTauHybridSolver(GillesPySolver):
         if dynamic_graphing:
             from IPython import display
 
-            if not plotly_graphing:
+            if graphing_mode is "matplotlib":
 
                 import matplotlib.pyplot as plt
 
@@ -288,7 +287,7 @@ class BasicTauHybridSolver(GillesPySolver):
                 plt.ylabel("Population")
                 plt.plot([0], [11])
 
-            else:
+            elif graphing_mode is "plotly":
                 from plotly.offline import init_notebook_mode, iplot
                 import pandas as pd
                 import cufflinks as cf
@@ -300,8 +299,8 @@ class BasicTauHybridSolver(GillesPySolver):
 
         if not sys.warnoptions:
             warnings.simplefilter("ignore")
-        if not isinstance(self, BasicTauHybridSolver):
-            self = BasicTauHybridSolver()
+        if not isinstance(self, BasicTauHybridSolverLiveGraphing):
+            self = BasicTauHybridSolverLiveGraphing()
         if debug:
             print("t = ", t)
             print("increment = ", increment)
@@ -488,7 +487,7 @@ class BasicTauHybridSolver(GillesPySolver):
 
                 if dynamic_graphing:
 
-                    if not plotly_graphing:
+                    if graphing_mode is "matplotlib":
 
                         timeList = trajectory[:entry_count, 0]
 
@@ -504,7 +503,7 @@ class BasicTauHybridSolver(GillesPySolver):
                         display.display(plt.gcf())
                         display.clear_output(wait=True)
 
-                    else:
+                    elif graphing_mode is "plotly":
                         graphData = {}
                         for i,item in enumerate(model.listOfSpecies,1):
                             graphData[item] = trajectory[:entry_count,i]
@@ -513,6 +512,9 @@ class BasicTauHybridSolver(GillesPySolver):
 
                         myDataFrame.iplot()
                         display.clear_output(wait=True)
+
+                    else:
+                        print(trajectory[entry_count])
 
                 #################################
 

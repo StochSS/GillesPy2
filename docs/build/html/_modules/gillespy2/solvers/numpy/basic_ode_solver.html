@@ -45,9 +45,12 @@
           <div class="body" role="main">
             
   <h1>Source code for gillespy2.solvers.numpy.basic_ode_solver</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">GillesPySolver</span>
+<span></span><span class="sd">&quot;&quot;&quot;GillesPy2 Solver for ODE solutions.&quot;&quot;&quot;</span>
+
 <span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="k">import</span> <span class="n">odeint</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">GillesPySolver</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">log</span>
 
 
 <div class="viewcode-block" id="BasicODESolver"><a class="viewcode-back" href="../../../../gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.basic_ode_solver.BasicODESolver">[docs]</a><span class="k">class</span> <span class="nc">BasicODESolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
@@ -55,94 +58,79 @@
 <span class="sd">    This Solver produces the deterministic continuous solution via ODE.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;BasicODESolver&quot;</span>
+
 <div class="viewcode-block" id="BasicODESolver.rhs"><a class="viewcode-back" href="../../../../gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.basic_ode_solver.BasicODESolver.rhs">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">rhs</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">reactions</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">rhs</span><span class="p">(</span><span class="n">start_state</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The right hand side of the differential equation, uses scipy.integrate odeint</span>
-<span class="sd">        :param y0: state as a list</span>
+<span class="sd">        :param start_state: state as a list</span>
 <span class="sd">        :param t: time as a numpy array</span>
-<span class="sd">        :param species: model list of species</span>
-<span class="sd">        :param parameters: model list of parameters</span>
-<span class="sd">        :param reactions: model list of reactions</span>
+<span class="sd">        :param model: model being simulated</span>
 <span class="sd">        :return: integration step</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">curr_state</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">state_change</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="c1">#   TODO    Fix Volume to take input volume</span>
-        <span class="n">curr_state</span><span class="p">[</span><span class="s1">&#39;vol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">curr_state</span><span class="p">[</span><span class="s1">&#39;vol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">volume</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">):</span>
+            <span class="n">curr_state</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="n">start_state</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">state_change</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">:</span>
+            <span class="n">curr_state</span><span class="p">[</span><span class="n">parameter</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">[</span><span class="n">parameter</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+
         <span class="n">propensity</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">reaction</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">:</span>
+            <span class="n">propensity</span><span class="p">[</span><span class="n">reaction</span><span class="p">]</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">reaction</span><span class="p">]</span><span class="o">.</span><span class="n">propensity_function</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">)</span>
+            <span class="c1"># assumption that prop is massAction</span>
+            <span class="k">for</span> <span class="n">react</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">reaction</span><span class="p">]</span><span class="o">.</span><span class="n">reactants</span><span class="p">:</span>
+                <span class="n">state_change</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">react</span><span class="p">)]</span> <span class="o">-=</span> <span class="n">propensity</span><span class="p">[</span><span class="n">reaction</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">prod</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">reaction</span><span class="p">]</span><span class="o">.</span><span class="n">products</span><span class="p">:</span>
+                <span class="n">state_change</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">prod</span><span class="p">)]</span> <span class="o">+=</span> <span class="n">propensity</span><span class="p">[</span><span class="n">reaction</span><span class="p">]</span>
 
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">species</span><span class="p">):</span>
-            <span class="n">curr_state</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">y0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-            <span class="n">state_change</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">state_change</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">]</span>
 
-        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
-            <span class="n">curr_state</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
-
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reactions</span><span class="p">:</span>
-            <span class="n">propensity</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">reactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">propensity_function</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">)</span>  <span class="c1"># assumption that prop is massAction</span>
-            <span class="k">for</span> <span class="n">react</span> <span class="ow">in</span> <span class="n">reactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">reactants</span><span class="p">:</span>
-                <span class="n">state_change</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">react</span><span class="p">)]</span> <span class="o">-=</span> <span class="n">propensity</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">prod</span> <span class="ow">in</span> <span class="n">reactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">products</span><span class="p">:</span>
-                <span class="n">state_change</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">prod</span><span class="p">)]</span> <span class="o">+=</span> <span class="n">propensity</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
-
-        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">:</span>
-            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state_change</span><span class="p">[</span><span class="n">s</span><span class="p">])</span>
-
-        <span class="k">return</span> <span class="p">(</span><span class="n">results</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">results</span></div>
 
 <div class="viewcode-block" id="BasicODESolver.run"><a class="viewcode-back" href="../../../../gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.basic_ode_solver.BasicODESolver.run">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-            <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">max_steps</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">        :param model: gillespy2.model class object</span>
 <span class="sd">        :param t: end time of simulation</span>
-<span class="sd">        :param number_of_trajectories: Should be 1.  This is deterministic and will always have same results</span>
+<span class="sd">        :param number_of_trajectories: Should be 1.</span>
+<span class="sd">            This is deterministic and will always have same results</span>
 <span class="sd">        :param increment: time step increment for plotting</span>
 <span class="sd">        :param seed: random seed, has no effect</span>
 <span class="sd">        :param debug: not implemented</span>
 <span class="sd">        :param profile: not implemented</span>
 <span class="sd">        :param show_labels: not implemented</span>
+<span class="sd">        :param max_steps: Defaults to 0 for odeint</span>
+<span class="sd">            When using deterministic methods, specifies the maximum number of steps permitted for each integration point in t.</span>
 <span class="sd">        :param kwargs:</span>
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">number_of_trajectories</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Generating duplicate trajectories for model with ODE Solver. Consider running with only 1 trajectory.&quot;</span><span class="p">)</span>
+
+        <span class="n">start_state</span> <span class="o">=</span> <span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">[</span><span class="n">species</span><span class="p">]</span><span class="o">.</span><span class="n">initial_value</span> <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">]</span>
+        <span class="n">timeline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="p">(</span><span class="n">t</span> <span class="o">//</span> <span class="n">increment</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">odeint</span><span class="p">(</span><span class="n">BasicODESolver</span><span class="o">.</span><span class="n">rhs</span><span class="p">,</span> <span class="n">start_state</span><span class="p">,</span> <span class="n">timeline</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">model</span><span class="p">,),</span> <span class="n">mxstep</span><span class="o">=</span><span class="n">max_steps</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">result</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">show_labels</span><span class="p">:</span>
-            <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">results_as_dict</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">timeline</span>
+            <span class="p">}</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">):</span>
+                <span class="n">results_as_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[:,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">results_as_dict</span><span class="p">]</span> <span class="o">*</span> <span class="n">number_of_trajectories</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">num_save_times</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">t</span> <span class="o">/</span> <span class="n">increment</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span>
-            <span class="n">results</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">number_of_trajectories</span><span class="p">,</span> <span class="n">num_save_times</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)))</span>
-        <span class="k">for</span> <span class="n">traj_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_of_trajectories</span><span class="p">):</span>
-            <span class="n">y0</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">:</span>
-                <span class="n">y0</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">initial_value</span><span class="p">)</span>
-            <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">increment</span><span class="p">)</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">odeint</span><span class="p">(</span><span class="n">BasicODESolver</span><span class="o">.</span><span class="n">rhs</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span>
-                         <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">))</span>
-
-            <span class="c1">#   TODO: Optimize show_labels</span>
-            <span class="k">if</span> <span class="n">show_labels</span><span class="p">:</span>
-                <span class="n">results_as_dict</span> <span class="o">=</span> <span class="p">{}</span>
-                <span class="n">results_as_dict</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">time</span><span class="p">)):</span>
-                    <span class="n">results_as_dict</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">):</span>
-                    <span class="n">results_as_dict</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)):</span>
-                        <span class="n">results_as_dict</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
-                <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">results_as_dict</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">time</span><span class="p">)):</span>
-                    <span class="n">results</span><span class="p">[</span><span class="n">traj_num</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">):</span>
-                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)):</span>
-                        <span class="n">results</span><span class="p">[</span><span class="n">traj_num</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">result</span><span class="p">]</span> <span class="o">*</span> <span class="n">number_of_trajectories</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">results</span></div></div>
-        <span class="c1"># return[results, time]</span>
-        <span class="c1"># return np.append(results, time.reshape(len(time), 1), axis=1)</span>
 </pre></div>
 
           </div>

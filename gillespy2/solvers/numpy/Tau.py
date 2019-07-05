@@ -1,8 +1,14 @@
 '''
-This method initailizes the state for tau-leaping selections to be made.
-Based on Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006). "Efficient step size selection for the tau-leaping simulation method" (PDF). The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151
+This Python module contains the initialization and selection methods for the Tau-Leaping method described in Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006). "Efficient step size selection for the tau-leaping simulation method" (PDF). The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151.
+
+This module is for use in the basic_tau_leaping_solver and basic_tau_hybrid solver only.
 '''
+
 def initialize(model, epsilon):
+    '''
+    This method initailizes the state for tau-leaping selections to be made.
+    Based on Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006). "Efficient step size selection for the tau-leaping simulation method" (PDF). The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151
+    '''
 
     HOR = {} # Highest Order Reaction of species
     reactants = set()  # a list of all species in the model which act as reactants
@@ -24,25 +30,25 @@ def initialize(model, epsilon):
             # Build reactant list
             reactants.add(reactant)
             # Initialize mu and sigma for each reactant
-            mu_i[reactant] = 0
-            sigma_i[reactant] = 0
+            mu_i[str(reactant)] = 0
+            sigma_i[str(reactant)] = 0
             # if this reaction's order is higher than previous, set HOR
-            if reaction_order > HOR[reactant.name]:
-                HOR[reactant.name] = reaction_order
+            if reaction_order > HOR[str(reactant)]:
+                HOR[str(reactant)] = reaction_order
                 if count == 2 and reaction_order == 2: g_i[reactant] = lambda x: 2+(1/(x-1))
                 elif count == 2 and reaction_order == 3: g_i[reactant] = lambda x: (3/2)*(2+(1/(x-1)))
                 elif count == 3: g_i[reactant] = lambda x: (3+(1/(x-1))+(2/(x-2)))
                 else: 
-                    g_i[reactant] = HOR[reactant.name]
-                    epsilon_i[reactant] = epsilon / g_i[reactant]
+                    g_i[str(reactant)] = HOR[str(reactant)]
+                    epsilon_i[str(reactant)] = epsilon / g_i[str(reactant)]
 
     # Return components for tau selection
     return HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold
 
-'''
-Tau Selection method based on Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006). "Efficient step size selection for the tau-leaping simulation method" (PDF). The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151
-'''
 def select(*tau_args):
+    '''
+    Tau Selection method based on Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006). "Efficient step size selection for the tau-leaping simulation method" (PDF). The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151
+    '''
     
     HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold, model, propensities, curr_state, curr_time, save_time = tau_args
     tau_step = None
@@ -71,14 +77,14 @@ def select(*tau_args):
 
     # If a reactant's HOR requires >1 of that reactant, evaluate lambda at curr_state
     for r in g_i:
-        if callable(g_i[r]):
-            g_i[r] = g_i[r](curr_state[r.name])
-            epsilon_i[r] = self.epsilon / g_i[r]
+        if callable(g_i[str(r)]):
+            g_i[str(r)] = g_i[str(r)](curr_state[str(r)])
+            epsilon_i[str(r)] = self.epsilon / g_i[str(r)]
 
     tau_i = {}  # estimated tau for non-critical reactions
     non_critical_tau = None
-    mu_i = {species: 0 for species in model.listOfSpecies.values()}
-    sigma_i = {species: 0 for species in model.listOfSpecies.values()}
+    mu_i = {str(species): 0 for species in model.listOfSpecies.values()}
+    sigma_i = {str(species): 0 for species in model.listOfSpecies.values()}
 
     for r in model.listOfReactions:
         #For non-critical Reactions
@@ -86,23 +92,23 @@ def select(*tau_args):
             #Calculate abs mean and standard deviation for each reactant
             for reactant in model.listOfReactions[r].reactants:
                 if reactant not in mu_i:
-                    mu_i[reactant] = 0
+                    mu_i[str(reactant)] = 0
                 if reactant not in sigma_i:
-                    sigma_i[reactant] = 0
-                mu_i[reactant] += model.listOfReactions[r].reactants[reactant] * propensities[
+                    sigma_i[str(reactant)] = 0
+                mu_i[str(reactant)] += model.listOfReactions[r].reactants[reactant] * propensities[
                     r]  # Cao, Gillespie, Petzold 29a
-                sigma_i[reactant] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[
+                sigma_i[str(reactant)] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[
                     r]  # Cao, Gillespie, Petzold 29b
     for r in reactants:
-        calculated_max = epsilon_i[r] * curr_state[r.name]
+        calculated_max = epsilon_i[str(r)] * curr_state[r.name]
         #print('calculated max: ', calculated_max)
         max_pop_change_mean = max(calculated_max, 1)
         max_pop_change_sd = max(calculated_max, 1) ** 2
-        if mu_i[r] > 0:
+        if mu_i[str(r)] > 0:
             # Cao, Gillespie, Petzold 33
-            tau_i[r] = min(
-                    max_pop_change_mean / mu_i[r], 
-                    max_pop_change_sd / sigma_i[r])
+            tau_i[str(r)] = min(
+                    max_pop_change_mean / mu_i[str(r)], 
+                    max_pop_change_sd / sigma_i[str(r)])
     if len(tau_i) > 0: non_critical_tau = min(tau_i.values())
 
     # If all reactions are non-critical, use non-critical tau.

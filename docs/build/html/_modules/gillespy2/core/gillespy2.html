@@ -375,6 +375,20 @@
         <span class="sd">&quot;&quot;&quot; Deletes all parameters from model. &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
 
+<div class="viewcode-block" id="Model.validate_reactants_and_products"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespy2.Model.validate_reactants_and_products">[docs]</a>    <span class="k">def</span> <span class="nf">validate_reactants_and_products</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reactions</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">reactant</span> <span class="ow">in</span> <span class="n">reactions</span><span class="o">.</span><span class="n">reactants</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reactant</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">reactant</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s1">&#39;reactant: </span><span class="si">{0}</span><span class="s1"> for reaction </span><span class="si">{1}</span><span class="s1"> -- not found in model.listOfSpecies&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reactant</span><span class="p">,</span> <span class="n">reactions</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                    <span class="n">reactions</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">[</span><span class="n">reactant</span><span class="p">]]</span> <span class="o">=</span> <span class="n">reactions</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">reactant</span><span class="p">]</span>
+                    <span class="k">del</span> <span class="n">reactions</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">reactant</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">reactions</span><span class="o">.</span><span class="n">products</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">product</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">product</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s1">&#39;product: </span><span class="si">{0}</span><span class="s1"> for reaction </span><span class="si">{1}</span><span class="s1"> -- not found in model.listOfSpecies&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">product</span><span class="p">,</span> <span class="n">reactions</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                    <span class="n">reactions</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">[</span><span class="n">product</span><span class="p">]]</span> <span class="o">=</span> <span class="n">reactions</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">product</span><span class="p">]</span>
+                    <span class="k">del</span> <span class="n">reactions</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">product</span><span class="p">]</span></div>
+
 <div class="viewcode-block" id="Model.add_reaction"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespy2.Model.add_reaction">[docs]</a>    <span class="k">def</span> <span class="nf">add_reaction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reactions</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds a reaction, or list of reactions to the model.</span>
@@ -391,9 +405,10 @@
             <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reactions</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reactions</span><span class="p">,</span><span class="nb">dict</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reactions</span><span class="p">,</span><span class="n">OrderedDict</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="n">reactions</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">reactions</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reactions</span><span class="p">,</span><span class="n">Reaction</span><span class="p">):</span>
             <span class="n">reactions</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">validate_reactants_and_products</span><span class="p">(</span><span class="n">reactions</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">reactions</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s2">&quot;Duplicate name of reaction: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reactions</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">reactions</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">reactions</span>
@@ -436,7 +451,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">items</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">time_span</span><span class="p">)</span>
-        <span class="n">items</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">items</span><span class="p">)</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">round</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">])</span>
         <span class="n">isuniform</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">items</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">isuniform</span><span class="p">:</span>
@@ -457,7 +472,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Model.run"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespy2.Model.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stochkit_home</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">max_steps</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Function calling simulation of the model. There are a number of</span>
 <span class="sd">        parameters to be set here.</span>
@@ -474,14 +489,10 @@
 <span class="sd">            The solver by which to simulate the model. This solver object may</span>
 <span class="sd">            be initialized separately to specify an algorithm. Optional, </span>
 <span class="sd">            defaults to StochKitSolver SSA.</span>
-<span class="sd">        stochkit_home : str</span>
-<span class="sd">            Path to stochkit. This is set automatically upon installation, but</span>
-<span class="sd">            may be overwritten if desired.</span>
-<span class="sd">        debug : bool (False)</span>
-<span class="sd">            Set to True to provide additional debug information about the</span>
-<span class="sd">            simulation.</span>
 <span class="sd">        show_labels : bool (True)</span>
 <span class="sd">            Use names of species as index of result object rather than position numbers.</span>
+<span class="sd">        max_steps : int</span>
+<span class="sd">            When using deterministic methods, specifies the maximum number of steps permitted for each integration point in t.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">solver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="p">((</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span>
@@ -490,8 +501,7 @@
                                   <span class="n">increment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span>
                                   <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
                                   <span class="n">number_of_trajectories</span><span class="o">=</span><span class="n">number_of_trajectories</span><span class="p">,</span>
-                                  <span class="n">stochkit_home</span><span class="o">=</span><span class="n">stochkit_home</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="n">profile</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span>
-                                  <span class="n">show_labels</span><span class="o">=</span><span class="n">show_labels</span><span class="p">)</span>
+                                  <span class="n">show_labels</span><span class="o">=</span><span class="n">show_labels</span><span class="p">,</span> <span class="n">max_steps</span><span class="o">=</span><span class="n">max_steps</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span>
                     <span class="s2">&quot;argument &#39;solver&#39; to run() must be a subclass of GillesPySolver&quot;</span><span class="p">)</span>
@@ -500,7 +510,6 @@
             <span class="k">return</span> <span class="n">SSASolver</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
                                       <span class="n">increment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
                                       <span class="n">number_of_trajectories</span><span class="o">=</span><span class="n">number_of_trajectories</span><span class="p">,</span>
-                                      <span class="n">stochkit_home</span><span class="o">=</span><span class="n">stochkit_home</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="n">profile</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span>
                                       <span class="n">show_labels</span><span class="o">=</span><span class="n">show_labels</span><span class="p">)</span></div>
 
 
@@ -567,16 +576,30 @@
 <span class="sd">    initial_value : int &gt;= 0</span>
 <span class="sd">        Initial population of this species. If this is not provided as an int,</span>
 <span class="sd">        the type will be changed when it is added by numpy.int</span>
+<span class="sd">    mode : str</span>
+<span class="sd">        ***FOR USE WITH TauHybridSolver ONLY***</span>
+<span class="sd">        Sets the mode of representation of this species for the TauHybridSolver,</span>
+<span class="sd">        can be discrete, continuous, or dynamic.</span>
+<span class="sd">        mode=&#39;dynamic&#39; - Default, allows a species to be represented as</span>
+<span class="sd">            either discrete or continuous</span>
+<span class="sd">        mode=&#39;continuous&#39; - Species will only be represented as continuous</span>
+<span class="sd">        mode=&#39;discrete&#39; - Species will only be represented as discrete</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">initial_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">continuous</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">initial_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;dynamic&#39;</span><span class="p">,</span> <span class="n">allow_negative_populations</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="c1"># A species has a name (string) and an initial value (positive integer)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">initial_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">(</span><span class="n">initial_value</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">continuous</span> <span class="o">=</span> <span class="n">continuous</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_value</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;A species initial value has to </span><span class="se">\</span>
-<span class="s2">                                        be a positive number.&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_negative_populations</span> <span class="o">=</span> <span class="n">allow_negative_populations</span>
 
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;continuous&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initial_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">(</span><span class="n">initial_value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">initial_value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Discrete values must be of type int.&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initial_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">(</span><span class="n">initial_value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">allow_negative_populations</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_value</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;A species initial value must be </span><span class="se">\</span>
+<span class="s1">non-negative unless allow_negative_populations=True&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span></div>
@@ -1007,8 +1030,9 @@
         <span class="k">for</span> <span class="n">px</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="s1">&#39;Parameter&#39;</span><span class="p">):</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;Id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
             <span class="n">expr</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;Expression&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
-            <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;volume&#39;</span><span class="p">:</span>
-                <span class="n">model</span><span class="o">.</span><span class="n">volume</span> <span class="o">=</span> <span class="n">expr</span>
+            <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;vol&#39;</span> <span class="ow">or</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;volume&#39;</span><span class="p">:</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">volume</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">volume</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">p</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="n">expr</span><span class="p">)</span>
                 <span class="c1"># Try to evaluate the expression in the empty namespace</span>
@@ -1020,7 +1044,11 @@
         <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="s1">&#39;Species&#39;</span><span class="p">):</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;Id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
             <span class="n">val</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;InitialPopulation&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
-            <span class="n">s</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">initial_value</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+            <span class="k">if</span> <span class="s1">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">initial_value</span><span class="o">=</span><span class="n">val</span><span class="p">)</span>
             <span class="n">model</span><span class="o">.</span><span class="n">add_species</span><span class="p">([</span><span class="n">s</span><span class="p">])</span>
 
         <span class="c1"># The namespace_propensity for evaluating the propensity function</span>
@@ -1063,7 +1091,7 @@
                     <span class="k">try</span><span class="p">:</span>
                         <span class="c1"># The sref list should only contain one element if</span>
                         <span class="c1"># the XML file is valid.</span>
-                        <span class="n">reaction</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">specname</span><span class="p">]</span> <span class="o">=</span> <span class="n">stoch</span>
+                        <span class="n">reaction</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">sref</span><span class="p">]</span> <span class="o">=</span> <span class="n">stoch</span>
                     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                         <span class="n">StochMLImportError</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
             <span class="k">except</span><span class="p">:</span>
@@ -1079,7 +1107,7 @@
                     <span class="k">try</span><span class="p">:</span>
                         <span class="c1"># The sref list should only contain one element if</span>
                         <span class="c1"># the XML file is valid.</span>
-                        <span class="n">reaction</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">specname</span><span class="p">]</span> <span class="o">=</span> <span class="n">stoch</span>
+                        <span class="n">reaction</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">sref</span><span class="p">]</span> <span class="o">=</span> <span class="n">stoch</span>
                     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="n">StochMLImportError</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
             <span class="k">except</span><span class="p">:</span>
