@@ -238,8 +238,9 @@ class BasicTauHybridSolverLiveGraphing(GillesPySolver):
             profile=False, show_labels=True, stochkit_home=None, hybrid_tol=0.03, tau_tol=0.03, **kwargs):
 
         #########################################
-        dynamic_graphing = True
-        graphing_mode = "matplotlib"
+        #graphing_mode = "matplotlib"
+        graphing_mode = "default"
+        graph_display_interval = 10
         #########################################
 
         """
@@ -275,25 +276,24 @@ class BasicTauHybridSolverLiveGraphing(GillesPySolver):
 
         #############################################
 
-        if dynamic_graphing:
+        graph_display_interval_count = 0
+
+        if graphing_mode is "matplotlib":
+            import matplotlib.pyplot as plt
             from IPython import display
+            plt.figure(figsize=(18, 10))
+            plt.xlabel("Time")
+            plt.ylabel("Population")
+            plt.plot([0], [11])
 
-            if graphing_mode is "matplotlib":
+        elif graphing_mode is "plotly":
+            from plotly.offline import init_notebook_mode, iplot
+            from IPython import display
+            import pandas as pd
+            import cufflinks as cf
 
-                import matplotlib.pyplot as plt
-
-                plt.figure(figsize=(18, 10))
-                plt.xlabel("Time")
-                plt.ylabel("Population")
-                plt.plot([0], [11])
-
-            elif graphing_mode is "plotly":
-                from plotly.offline import init_notebook_mode, iplot
-                import pandas as pd
-                import cufflinks as cf
-
-                init_notebook_mode(connected=True)
-                cf.go_offline()
+            init_notebook_mode(connected=True)
+            cf.go_offline()
 
         #############################################
 
@@ -485,7 +485,7 @@ class BasicTauHybridSolverLiveGraphing(GillesPySolver):
 
                 #################################
 
-                if dynamic_graphing:
+                if graph_display_interval_count is 0:
 
                     if graphing_mode is "matplotlib":
 
@@ -505,16 +505,27 @@ class BasicTauHybridSolverLiveGraphing(GillesPySolver):
 
                     elif graphing_mode is "plotly":
                         graphData = {}
+
+                        # add trajectory data to a dictionary
                         for i,item in enumerate(model.listOfSpecies,1):
                             graphData[item] = trajectory[:entry_count,i]
 
-                        myDataFrame = pd.DataFrame.from_dict(graphData)
+                        printable_data_frame = pd.DataFrame.from_dict(graphData)
 
-                        myDataFrame.iplot()
+                        #plot the dictionary data
+                        printable_data_frame.iplot()
                         display.clear_output(wait=True)
 
                     else:
-                        print(trajectory[entry_count])
+                        #format data for printing
+                        graphData = {"time":entry_count}
+                        for i, item in enumerate(model.listOfSpecies, 1):
+                            graphData[item] = trajectory[entry_count, i]
+                        print(graphData)
+
+                    graph_display_interval_count = graph_display_interval
+
+                graph_display_interval_count -= 1
 
                 #################################
 
