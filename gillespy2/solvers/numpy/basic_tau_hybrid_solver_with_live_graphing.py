@@ -235,13 +235,7 @@ class BasicTauHybridSolverLiveGraphing(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False,
-            profile=False, show_labels=True, stochkit_home=None, hybrid_tol=0.03, tau_tol=0.03, **kwargs):
-
-        #########################################
-        #graphing_mode = "matplotlib"
-        graphing_mode = "default"
-        graph_display_interval = 10
-        #########################################
+            profile=False, show_labels=True, hybrid_tol=0.03, tau_tol=0.03, graphing_mode = None, graph_display_interval = 10, **kwargs):
 
         """
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
@@ -274,10 +268,13 @@ class BasicTauHybridSolverLiveGraphing(GillesPySolver):
             may be overwritten if desired.
         """
 
-        #############################################
+
+        if graphing_mode is None:
+            graphing_mode = "default"
 
         graph_display_interval_count = 0
 
+        # Import graph library and initialize graph
         if graphing_mode is "matplotlib":
             import matplotlib.pyplot as plt
             from IPython import display
@@ -294,8 +291,6 @@ class BasicTauHybridSolverLiveGraphing(GillesPySolver):
 
             init_notebook_mode(connected=True)
             cf.go_offline()
-
-        #############################################
 
         if not sys.warnoptions:
             warnings.simplefilter("ignore")
@@ -483,14 +478,11 @@ class BasicTauHybridSolverLiveGraphing(GillesPySolver):
 
                     trajectory[entry_count][i+1] = curr_state[species[i]]
 
-                #################################
-
                 if graph_display_interval_count is 0:
 
                     if graphing_mode is "matplotlib":
 
                         timeList = trajectory[:entry_count, 0]
-
                         plt.clf()
 
                         #plot each of the trajectorys
@@ -499,7 +491,6 @@ class BasicTauHybridSolverLiveGraphing(GillesPySolver):
 
                         plt.legend(loc='best')
                         plt.plot([0], [11])
-
                         display.display(plt.gcf())
                         display.clear_output(wait=True)
 
@@ -526,8 +517,6 @@ class BasicTauHybridSolverLiveGraphing(GillesPySolver):
                     graph_display_interval_count = graph_display_interval
 
                 graph_display_interval_count -= 1
-
-                #################################
 
                 save_time += increment
                 timestep += 1
