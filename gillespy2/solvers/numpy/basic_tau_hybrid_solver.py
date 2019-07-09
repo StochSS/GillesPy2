@@ -66,7 +66,7 @@ class BasicTauHybridSolver(GillesPySolver):
         #Initialize sample dict
         for reaction in comb:
             for dep in dependencies[reaction]:
-                if dep not in diff_eqs and (model.listOfSpecies[dep].mode == 'dynamic' or model.listOfSpecies[dep].mode == 'continuous'):
+                if dep not in diff_eqs:
                     diff_eqs[dep] = '0'
 
         # loop through each det reaction and concatenate it's diff eq for each species
@@ -178,15 +178,6 @@ class BasicTauHybridSolver(GillesPySolver):
                                                           compiled_rate_rules)
         int_time = step+curr_time
         current = rhs.integrate(int_time)  # current holds integration from current_time to int_time
-        if not rhs.successful():
-            # if step is < 1e-15, take a Forward-Euler step for all species ('propensites' and RateRules)
-            # TODO The RateRule linked species should still contain the correct value in current, verify this
-            # step size is too small, take a single forward-euler step
-            print('*** EULER ***')
-            current = y0 + np.array(BasicTauHybridSolver.__f(curr_time, y0,
-                                                                curr_state, model.listOfReactions,
-                                                                model.listOfRateRules, propensities, compiled_reactions,
-                                                                compiled_rate_rules)) * step
 
         return current, curr_time + step
 
@@ -407,7 +398,7 @@ class BasicTauHybridSolver(GillesPySolver):
                         print('CV: {0}'.format(CV))
                         print('det_spec: {0}'.format(det_spec))
                         print('det_rxn: {0}'.format(det_rxn))
-                         
+                    
                     self.toggle_reactions(model, all_compiled, deterministic_reactions, dependencies, curr_state, rxn_offset, det_spec)
                     active_rr = compiled_rate_rules[deterministic_reactions]
 
