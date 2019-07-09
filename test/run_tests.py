@@ -12,28 +12,24 @@ if __name__ == '__main__':
         sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 
-    import test_basic_tau_hybrid_solver
-    import test_basic_tau_leaping_solver
     # import test_cython_ssa_solver
     import test_empty_model
     import test_model
     import test_ode_solver
     import test_simple_model
-    import test_ssa_solver
     import test_ssa_c_solver
     import test_SBML
+    import test_all_solvers
 
     modules = [
-        test_basic_tau_hybrid_solver,
-        test_basic_tau_leaping_solver,
         # test_cython_ssa_solver,
         test_empty_model,
         test_model,
         test_ode_solver,
         test_simple_model,
-        test_ssa_solver,
         test_ssa_c_solver,
-        test_SBML
+        test_SBML,
+        test_all_solvers
     ]
 
     for module in modules:

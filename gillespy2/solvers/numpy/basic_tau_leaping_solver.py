@@ -21,7 +21,7 @@ class BasicTauLeapingSolver(GillesPySolver):
         self.profile = profile
         self.epsilon = 0.03
 
-    def get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions):
+    def get_reactions(self, seed, step, curr_state, curr_time, save_time, propensities, reactions):
         """
         Helper Function to get reactions fired from t to t+tau.  Returns three values:
         rxn_count - dict with key=Raection channel value=number of times fired
@@ -42,6 +42,7 @@ class BasicTauLeapingSolver(GillesPySolver):
         rxn_count = {}
 
         for rxn in reactions:
+            np.random.seed(seed)
             rxn_count[rxn] = np.random.poisson(propensities[rxn] * step)
 
         if self.debug:
@@ -117,7 +118,6 @@ class BasicTauLeapingSolver(GillesPySolver):
         simulation_data = []
 
         for trajectory_num in range(number_of_trajectories):
-            random.seed(seed)
             start_state = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
             propensities = {}
             curr_state = {}
@@ -130,6 +130,13 @@ class BasicTauLeapingSolver(GillesPySolver):
             entry_count = 0
             trajectory = trajectory_base[trajectory_num]
 
+            if seed is not None:
+                if not isinstance(seed, int):
+                    seed = int(seed)
+                if seed > 0:
+                    random.seed(seed)
+                else:
+                    raise ModelError('seed must be a positive integer')
 
             HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold = Tau.initialize(model, tau_tol)
 
@@ -179,7 +186,7 @@ class BasicTauLeapingSolver(GillesPySolver):
                         if loop_cnt > 100:
                             raise Exception("Loop over get_reactions() exceeded loop count")
 
-                        reactions, curr_state, curr_time = self.get_reactions(
+                        reactions, curr_state, curr_time = self.get_reactions(seed,
                             tau_step, curr_state, curr_time, save_time,
                             propensities, model.listOfReactions)
 
@@ -234,7 +241,7 @@ class BasicTauLeapingSolver(GillesPySolver):
                     data[species[i]] = trajectory[:, i+1]
                 simulation_data.append(data)
             else:
-                simulation_data.append(trajectory)
+                simulation_data = trajectory_base
             if profile:
                 print(steps_taken)
                 print("Total Steps Taken: ", len(steps_taken))
