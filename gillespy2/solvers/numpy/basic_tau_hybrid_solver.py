@@ -5,6 +5,7 @@ import numpy as np
 import gillespy2
 from gillespy2.solvers.numpy import Tau
 from gillespy2.core import GillesPySolver
+from gillespy2.core.gillespyError import *
 
 eval_globals = math.__dict__
 
@@ -66,7 +67,7 @@ class BasicTauHybridSolver(GillesPySolver):
         #Initialize sample dict
         for reaction in comb:
             for dep in dependencies[reaction]:
-                if dep not in diff_eqs and (model.listOfSpecies[dep].mode == 'dynamic' or model.listOfSpecies[dep].mode == 'continuous'):
+                if dep not in diff_eqs:
                     diff_eqs[dep] = '0'
 
         # loop through each det reaction and concatenate it's diff eq for each species
@@ -178,15 +179,6 @@ class BasicTauHybridSolver(GillesPySolver):
                                                           compiled_rate_rules)
         int_time = step+curr_time
         current = rhs.integrate(int_time)  # current holds integration from current_time to int_time
-        if not rhs.successful():
-            # if step is < 1e-15, take a Forward-Euler step for all species ('propensites' and RateRules)
-            # TODO The RateRule linked species should still contain the correct value in current, verify this
-            # step size is too small, take a single forward-euler step
-            print('*** EULER ***')
-            current = y0 + np.array(BasicTauHybridSolver.__f(curr_time, y0,
-                                                                curr_state, model.listOfReactions,
-                                                                model.listOfRateRules, propensities, compiled_reactions,
-                                                                compiled_rate_rules)) * step
 
         return current, curr_time + step
 
@@ -299,8 +291,11 @@ class BasicTauHybridSolver(GillesPySolver):
         # copy time values to all trajectory row starts
         trajectory_base[:, :, 0] = timeline
 
+        spec_modes = ['continuous', 'dynamic', 'discrete']
         # copy initial populations to base
         for i, s in enumerate(species):
+            if model.listOfSpecies[s].mode not in spec_modes:
+                raise SpeciesError('Species mode can only be \'continuous\', \'dynamic\', or \'discrete\'.')
             trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
 
         det_spec = {species:True for (species, value) in model.listOfSpecies.items() if value.mode == 'dynamic'}
@@ -407,7 +402,7 @@ class BasicTauHybridSolver(GillesPySolver):
                         print('CV: {0}'.format(CV))
                         print('det_spec: {0}'.format(det_spec))
                         print('det_rxn: {0}'.format(det_rxn))
-                         
+                    
                     self.toggle_reactions(model, all_compiled, deterministic_reactions, dependencies, curr_state, rxn_offset, det_spec)
                     active_rr = compiled_rate_rules[deterministic_reactions]
 
@@ -480,7 +475,7 @@ class BasicTauHybridSolver(GillesPySolver):
                     data[species[i]] = trajectory[:, i+1]
                 simulation_data.append(data)
             else:
-                simulation_data.append(trajectory)
+                simulation_data = trajectory_base
             if profile:
                 print(steps_taken)
                 print("Total Steps Taken: ", len(steps_taken))

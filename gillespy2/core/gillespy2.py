@@ -542,6 +542,9 @@ class Species:
         self.mode = mode
         self.allow_negative_populations = allow_negative_populations
 
+        mode_list = ['continuous', 'dynamic', 'discrete']
+        if self.mode not in mode_list:
+            raise SpeciesError('Species mode must be either \'continuous\', \'dynamic\', or \'discrete\'.')
         if mode == 'continuous':
             self.initial_value = np.float(initial_value)
         else:
