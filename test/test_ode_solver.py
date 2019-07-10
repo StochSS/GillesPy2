@@ -34,6 +34,14 @@ class TestBasicODESolver(unittest.TestCase):
                         else:
                             self.assertTrue(np.array_equal(results[0], result))
 
+    # Issue #160
+    def test_kwargs_throw_error(self):
+        solver = BasicODESolver
+        with self.assertRaises(TypeError):
+            solver.run(model=Example(), fake_parameter = 10)
+        solver.run(model=Example(), max_steps=0)
+
+
 
 if __name__ == '__main__':
     unittest.main()

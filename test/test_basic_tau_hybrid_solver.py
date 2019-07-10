@@ -39,6 +39,13 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         self.model.add_species([species2,species3])
         with self.assertRaises(ParameterError):
             self.model.add_rate_rule(rate_rule_dict)
+
+    #Issue #160
+    def test_kwargs_throw_error(self):
+        solver = BasicTauHybridSolver
+
+        with self.assertRaises(TypeError):
+            solver.run(model=Example(), max_steps=0)
             
 
 if __name__ == '__main__':

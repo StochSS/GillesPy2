@@ -22,5 +22,12 @@ class TestBasicTauLeapingSolver(unittest.TestCase):
         assert(isinstance(self.labels_results[0]['Sp'], np.ndarray))
         assert(isinstance(self.labels_results[0]['Sp'][0], np.float))
 
+    # Issue #160
+    def test_kwargs_throw_error(self):
+        solver = BasicTauLeapingSolver
+
+        with self.assertRaises(TypeError):
+            solver.run(model=Example(), max_steps=0)
+
 if __name__ == '__main__':
     unittest.main()

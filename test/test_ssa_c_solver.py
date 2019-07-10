@@ -25,6 +25,12 @@ class TestSSACSolver(unittest.TestCase):
         model = Example()
         results = model.run(solver=SSACSolver)
 
+    # Issue #160
+    def test_kwargs_throw_error(self):
+        solver = SSACSolver
+        with self.assertRaises(TypeError):
+            solver.run(model=Example(), max_steps=0)
+
 
 if __name__ == '__main__':
     unittest.main()
