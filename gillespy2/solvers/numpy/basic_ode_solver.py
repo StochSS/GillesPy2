@@ -16,6 +16,15 @@ class BasicODESolver(GillesPySolver):
 
     @staticmethod
     def __f(t, y, curr_state, model, c_prop):
+        """
+        The right hand side of the differential equation, uses scipy.integrate odeint
+        :param t: time as a numpy array
+        :param y: species pops as a list
+        :param current_state: dictionary of eval variables
+        :param model: model being simulated
+        :param c_prop: precompiled reaction propensity function
+        :return: integration step
+        """
         curr_state['t'] = t
         state_change =  OrderedDict()
         for i, species in enumerate(model.listOfSpecies):
@@ -31,42 +40,9 @@ class BasicODESolver(GillesPySolver):
         state_change = list(state_change.values())
         return state_change
 
-    @staticmethod
-    def rhs(start_state, time, model):
-        """
-        The right hand side of the differential equation, uses scipy.integrate odeint
-        :param start_state: state as a list
-        :param t: time as a numpy array
-        :param model: model being simulated
-        :return: integration step
-        """
-        curr_state = {}
-        state_change = []
-        curr_state['vol'] = model.volume
-
-        for i, species in enumerate(model.listOfSpecies):
-            curr_state[species] = start_state[i]
-            state_change[species] = 0
-
-        for p_name, parameter in model.listOfParameters:
-            curr_state[parameter] = model.listOfParameters[parameter].value
-
-        propensity = {}
-        for r_name, reaction in model.listOfReactions.items():
-            propensity[r_name] = eval(reaction.ode_propensity_function, curr_state)
-            # assumption that prop is massAction
-            for react, stoich in reaction.reactants.items():
-                state_change[str(react)] -= propensity[r_name] * stoich
-            for prod, stoich in reaction.products.items():
-                state_change[str(prod)] += propensity[r_name] * stoich
-
-        results = [state_change[species] for species in model.listOfSpecies]
-
-        return results
-
     @classmethod
     def run(cls, model, t=20, number_of_trajectories=1,
-            increment=0.05, seed=None, debug=False, profile=False, show_labels=True, max_steps=0, **kwargs):
+            increment=0.05, show_labels=True, max_steps=0, **kwargs):
         """
 
         :param model: gillespy2.model class object
@@ -74,9 +50,6 @@ class BasicODESolver(GillesPySolver):
         :param number_of_trajectories: Should be 1.
             This is deterministic and will always have same results
         :param increment: time step increment for plotting
-        :param seed: random seed, has no effect
-        :param debug: not implemented
-        :param profile: not implemented
         :param show_labels: not implemented
         :param max_steps: Defaults to 0 for odeint
             When using deterministic methods, specifies the maximum number of steps permitted for each integration point in t.
@@ -134,8 +107,6 @@ class BasicODESolver(GillesPySolver):
             for i, spec in enumerate(model.listOfSpecies):
                 curr_state[spec] = y0[i]
                 result[entry_count][i+1] = curr_state[spec]
-        #result = odeint(BasicODESolver.rhs, start_state, timeline, args=(model,), mxstep=max_steps)
-        #result = np.hstack((np.expand_dims(timeline, -1), result))
 
         if show_labels:
             results_as_dict = {
