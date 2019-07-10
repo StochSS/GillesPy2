@@ -12,7 +12,6 @@ if __name__ == '__main__':
         sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 
-    import test_basic_tau_hybrid_solver
     import test_basic_tau_leaping_solver
     # import test_cython_ssa_solver
     import test_empty_model
@@ -24,7 +23,6 @@ if __name__ == '__main__':
     import test_SBML
 
     modules = [
-        test_basic_tau_hybrid_solver,
         test_basic_tau_leaping_solver,
         # test_cython_ssa_solver,
         test_empty_model,
