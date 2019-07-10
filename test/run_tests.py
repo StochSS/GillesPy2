@@ -1,5 +1,8 @@
 import unittest, sys, os
 import argparse
+import pyximport
+
+pyximport.install()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-m', '--mode', default='develop', choices=['develop', 'release'], help='Run tests in develop mode or release mode.')
