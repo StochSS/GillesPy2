@@ -48,7 +48,7 @@ class BasicODESolver(GillesPySolver):
 
     @classmethod
     def run(cls, model, t=20, number_of_trajectories=1,
-            increment=0.05, seed=None, debug=False, profile=False, show_labels=True, max_steps=0, **kwargs):
+            increment=0.05, seed=None, debug=False, profile=False, show_labels=True, max_steps=0):
         """
 
         :param model: gillespy2.model class object

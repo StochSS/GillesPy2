@@ -422,7 +422,7 @@ class Model(object):
         self.listOfReactions.clear()
 
     def run(self, number_of_trajectories=1, seed=None,
-            solver=None, show_labels=True, max_steps=0):
+            solver=None, show_labels=True):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -441,8 +441,6 @@ class Model(object):
             defaults to StochKitSolver SSA.
         show_labels : bool (True)
             Use names of species as index of result object rather than position numbers.
-        max_steps : int
-            When using deterministic methods, specifies the maximum number of steps permitted for each integration point in t.
         """
         if solver is not None:
             if ((isinstance(solver, type)
@@ -451,7 +449,7 @@ class Model(object):
                                   increment=self.tspan[-1] - self.tspan[-2],
                                   seed=seed,
                                   number_of_trajectories=number_of_trajectories,
-                                  show_labels=show_labels, max_steps=max_steps)
+                                  show_labels=show_labels)
             else:
                 raise SimulationError(
                     "argument 'solver' to run() must be a subclass of GillesPySolver")

@@ -28,7 +28,7 @@ class GillesPySolver:
         Use names of species as index of result object rather than position numbers.
     """
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
-            debug=False, profile=False, show_labels=False, **kwargs):
+            debug=False, profile=False, show_labels=False):
         """ 
         Call out and run the solver. Collect the results.
         """
