@@ -84,7 +84,7 @@ class BasicTauHybridSolver(GillesPySolver):
                 factor[key.name] += value
             for dep in dependencies[reaction]:
                 if factor[dep] != 0:
-                    if pure_continuous:
+                    if model.listOfSpecies[dep].mode == 'continuous':
                         diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].ode_propensity_function)
                     else:
                         diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].propensity_function)
