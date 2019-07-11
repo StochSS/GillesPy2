@@ -761,6 +761,7 @@ class Reaction:
                 propensity_function = ("0.5*" + propensity_function +
                                        "*" + str(r) + "*(" + str(r) + "-1)/vol")
                 ode_propensity_function += '*' + str(r) + '*' + str(r)
+
             else:
                 # Case 3: X1, X2 -> Y;
                 propensity_function += "*" + str(r)
