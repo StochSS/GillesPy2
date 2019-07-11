@@ -85,7 +85,7 @@ class BasicTauHybridSolver(GillesPySolver):
                 factor[key.name] += value
             for dep in dependencies[reaction]:
                 if factor[dep] != 0:
-                    if pure_continuous:
+                    if model.listOfSpecies[dep].mode == 'continuous':
                         diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].ode_propensity_function)
                     else:
                         diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].propensity_function)
@@ -319,9 +319,16 @@ class BasicTauHybridSolver(GillesPySolver):
             print(dependencies)
 
         simulation_data = []
+        if seed is not None:
+            if not isinstance(seed, int):
+                seed = int(seed)
+            if seed > 0:
+                random.seed(seed)
+            else:
+                raise ModelError('seed must be a positive integer')
         for trajectory_num in range(number_of_trajectories):
 
-            random.seed(seed)
+
             steps_taken = []
             steps_rejected = 0
             entry_count = 0
@@ -422,7 +429,7 @@ class BasicTauHybridSolver(GillesPySolver):
                         if loop_cnt > 100:
                             raise Exception("Loop over __get_reactions() exceeded loop count")
 
-                        reactions, y0, curr_state, curr_time = self.__get_reactions(
+                        reactions, y0, curr_state, curr_time = self.__get_reactions(seed,
                             tau_step, curr_state, y0, model, curr_time, save_time, propensities, compiled_reactions,
                             active_rr, rxn_offset, debug)
 
