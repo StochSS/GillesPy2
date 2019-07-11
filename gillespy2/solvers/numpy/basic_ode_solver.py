@@ -41,8 +41,8 @@ class BasicODESolver(GillesPySolver):
         return state_change
 
     @classmethod
-    def run(cls, model, t=20, number_of_trajectories=1,
-            increment=0.05, show_labels=True, max_steps=0, **kwargs):
+    def run(cls, model, t=20, number_of_trajectories=1, increment=0.05, 
+            show_labels=True, integrator='lsoda', integrator_options={}, **kwargs):
         """
 
         :param model: gillespy2.model class object
@@ -50,9 +50,10 @@ class BasicODESolver(GillesPySolver):
         :param number_of_trajectories: Should be 1.
             This is deterministic and will always have same results
         :param increment: time step increment for plotting
-        :param show_labels: not implemented
-        :param max_steps: Defaults to 0 for odeint
-            When using deterministic methods, specifies the maximum number of steps permitted for each integration point in t.
+        :param show_labels: If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]
+        :param integrator: integrator to be used form scipy.integrate.ode. Options include 'vode', 'zvode', 'lsoda', 'dopri5', and 'dop835'.  For more details, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html
+        :param integrator_options: a dictionary containing options to the scipy integrator. for a list of options, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.
+            Example use: {max_step : 0, rtol : .01}
         :param kwargs:
         :return:
         """
@@ -96,7 +97,7 @@ class BasicODESolver(GillesPySolver):
             y0[i] = s.initial_value
         for p_name, param in model.listOfParameters.items():
             curr_state[p_name] = param.value
-        rhs = ode(BasicODESolver.__f).set_integrator('lsoda')
+        rhs = ode(BasicODESolver.__f).set_integrator(integrator, **integrator_options)
         rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model, c_prop)
 
         while entry_count < timeline.size - 1:

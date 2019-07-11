@@ -120,7 +120,7 @@ class BasicTauHybridSolver(GillesPySolver):
         deterministic_reactions = frozenset(deterministic_reactions)
         return deterministic_reactions
                             
-    def calculate_statistics(self, model, propensities, curr_state, tau_step, det_spec, dependencies, hybrid_tol):
+    def calculate_statistics(self, model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol):
         """
         Calculates Mean, Standard Deviation, and Coefficient of Variance for each
         dynamic species, then set if species can be represented determistically
@@ -147,7 +147,7 @@ class BasicTauHybridSolver(GillesPySolver):
             else:
                 sd[species], CV[species] = (0, 1)    # values chosen to guarantee discrete
             #Set species to deterministic if CV is less than threshhold
-            det_spec[species] = True if CV[species] < hybrid_tol else False                            
+            det_spec[species] = True if CV[species] < switch_tol else False                            
                 
         return mn, sd, CV
     
@@ -170,10 +170,10 @@ class BasicTauHybridSolver(GillesPySolver):
         return state_change
 
     @staticmethod
-    def __get_reaction_integrate(step, curr_state, y0, model, curr_time, propensities, compiled_reactions,
-                                 compiled_rate_rules):
+    def __get_reaction_integrate(integrator, integrator_options, step, curr_state, y0, model, curr_time, 
+                                 propensities, compiled_reactions, compiled_rate_rules):
         """ Helper function to perform the ODE integration of one step """
-        rhs = ode(BasicTauHybridSolver.__f).set_integrator('lsoda')  # set function as ODE object
+        rhs = ode(BasicTauHybridSolver.__f).set_integrator(integrator, **integrator_options)  # set function as ODE object
         rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfReactions,
                                                           model.listOfRateRules, propensities, compiled_reactions,
                                                           compiled_rate_rules)
@@ -182,8 +182,8 @@ class BasicTauHybridSolver(GillesPySolver):
 
         return current, curr_time + step
 
-    def __get_reactions(self, step, curr_state, y0, model, curr_time, save_time,
-                        propensities, compiled_reactions, compiled_rate_rules, rxn_offset, debug):
+    def __get_reactions(self, integrator, integrator_options, step, curr_state, y0, model, curr_time, 
+                        save_time, propensities, compiled_reactions, compiled_rate_rules, rxn_offset, debug):
         """
         Function to get reactions fired from t to t+tau.  This function solves for root crossings
         of each reaction channel from over tau step, using poisson random number generation
@@ -203,9 +203,9 @@ class BasicTauHybridSolver(GillesPySolver):
         if debug:
             print("Curr Time: ", curr_time, " Save time: ", save_time, "step: ", step)
 
-        current, curr_time = self.__get_reaction_integrate(step, curr_state, y0, model,
-                                                           curr_time, propensities, compiled_reactions,
-                                                           compiled_rate_rules)
+        current, curr_time = self.__get_reaction_integrate(integrator, integrator_options, step, curr_state, 
+                                                           y0, model, curr_time, propensities, 
+                                                           compiled_reactions, compiled_rate_rules)
         # UPDATE THE STATE of the continuous species
         for i, s in enumerate(compiled_rate_rules):
             curr_state[s] = current[i]
@@ -235,8 +235,9 @@ class BasicTauHybridSolver(GillesPySolver):
         return rxn_count, current, curr_state, curr_time
 
     @classmethod
-    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False,
-            profile=False, show_labels=True, stochkit_home=None, hybrid_tol=0.03, tau_tol=0.03, **kwargs):
+    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
+            debug=False, profile=False, show_labels=True, switch_tol=0.03, tau_tol=0.03, 
+            integrator='lsoda', integrator_options={}, **kwargs):
         """
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
         objects and will inherit those parameters which are passed with the model as the arguments this run function.
@@ -261,11 +262,17 @@ class BasicTauHybridSolver(GillesPySolver):
             simulation.
         profile : bool (Fasle)
             Set to True to provide information about step size (tau) taken at each step.
-        show_labels : bool (True)
-            Use names of species as index of result object rather than position numbers.
-        stochkit_home : str
-            Path to stochkit. This is set automatically upon installation, but
-            may be overwritten if desired.
+        show_labels: bool (True)
+            If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]
+        switch_tol: float
+            Relative error tolerance value for deterministic/stochastic switching condition between 0.0 and 1.0
+        tau_tol: float
+            Relative error tolerance value for calculating tau step between 0.0 and 1.0
+        integrator: String
+            integrator to be used form scipy.integrate.ode. Options include 'vode', 'zvode', 'lsoda', 'dopri5', and 'dop835'.  For more details, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html
+        integrator_options: dictionary
+            contains options to the scipy integrator. for a list of options, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.
+            Example use: {max_step : 0, rtol : .01}
         """
 
         if not sys.warnoptions:
@@ -392,7 +399,7 @@ class BasicTauHybridSolver(GillesPySolver):
                         steps_taken.append(tau_step)
 
                     # END NEW TAU SELECTION METHOD
-                    mn, sd, CV = self.calculate_statistics(model, propensities, curr_state, tau_step, det_spec, dependencies, hybrid_tol)
+                    mn, sd, CV = self.calculate_statistics(model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol)
                     deterministic_reactions = self.flag_det_reactions(model, det_spec, det_rxn, dependencies)
                     
                     if debug:
@@ -422,7 +429,7 @@ class BasicTauHybridSolver(GillesPySolver):
                         if loop_cnt > 100:
                             raise Exception("Loop over __get_reactions() exceeded loop count")
 
-                        reactions, y0, curr_state, curr_time = self.__get_reactions(
+                        reactions, y0, curr_state, curr_time = self.__get_reactions(integrator, integrator_options,
                             tau_step, curr_state, y0, model, curr_time, save_time, propensities, compiled_reactions,
                             active_rr, rxn_offset, debug)
 
