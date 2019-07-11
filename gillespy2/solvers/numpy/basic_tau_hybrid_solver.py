@@ -429,8 +429,8 @@ class BasicTauHybridSolver(GillesPySolver):
                         if loop_cnt > 100:
                             raise Exception("Loop over __get_reactions() exceeded loop count")
 
-                        reactions, y0, curr_state, curr_time = self.__get_reactions(seed,
-                            tau_step, curr_state, y0, model, curr_time, save_time, propensities, compiled_reactions,
+                        reactions, y0, curr_state, curr_time = self.__get_reactions(tau_step, 
+                            curr_state, y0, model, curr_time, save_time, propensities, compiled_reactions,
                             active_rr, rxn_offset, debug)
 
 
