@@ -54,7 +54,7 @@ class BasicTauLeapingSolver(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
-            debug=False, profile=False, show_labels=True, stochkit_home=None, tau_tol=0.03, **kwargs):
+            debug=False, profile=False, show_labels=True, tau_tol=0.03, **kwargs):
         """
         Function calling simulation of the model.
         This is typically called by the run function in GillesPy2 model objects
@@ -83,9 +83,6 @@ class BasicTauLeapingSolver(GillesPySolver):
                     Set to True to provide information about step size (tau) taken at each step.
                 show_labels : bool (True)
                     Use names of species as index of result object rather than position numbers.
-                stochkit_home : str
-                    Path to stochkit. This is set automatically upon installation, but
-                    may be overwritten if desired.
                 """
         if not sys.warnoptions:
             warnings.simplefilter("ignore")
