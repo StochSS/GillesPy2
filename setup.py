@@ -5,6 +5,12 @@ from setuptools.command.bdist_egg import bdist_egg
 from setuptools.command.easy_install import easy_install
 import os
 
+##########################################################
+### HOW TO DO A PYPI RELEASE ###
+# python3 setup.py sdist bdist_wheel
+# twine upload dist/* 
+##########################################################
+
 SETUP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 

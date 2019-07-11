@@ -168,9 +168,18 @@ class SSACSolver(GillesPySolver):
             number_timesteps = int(t//increment + 1)                    
             # Execute simulation.
             args = [os.path.join(self.output_directory, 'UserSimulation'), '-trajectories', str(number_of_trajectories), '-timesteps', str(number_timesteps), '-end', str(t)]
-            if isinstance(seed, int):
-                args.append('-seed')
-                args.append(str(seed))
+            if seed is not None:
+                if isinstance(seed, int):
+                    args.append('-seed')
+                    args.append(str(seed))
+                else:
+                    seed_int = int(seed)
+                    if seed_int > 0:
+                        args.append('-seed')
+                        args.append(str(seed_int))
+                    else:
+                        raise ModelError("seed must be a positive integer")
+                
             simulation = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             # Parse/return results.
             if simulation.returncode == 0:
