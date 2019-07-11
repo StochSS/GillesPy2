@@ -134,6 +134,22 @@ class TestModel(unittest.TestCase):
         self.assertLess(results[species2.name][0], results[species2.name][-1])
         self.assertEqual(np.sum(results[species1.name]) + np.sum(results[species2.name]), number_points * species1.initial_value)
 
+    def test_ode_propensity(self):
+        model = Model()
+        rate = Parameter(name='rate', expression=0.5)
+        model.add_parameter(rate)
+        species1 = Species('A', initial_value=10)
+        species2 = Species('B', initial_value=10)
+        model.add_species([species1, species2])
+        r1 = Reaction(name='r1', reactants={'A':1}, products={}, rate=rate)
+        r2 = Reaction(name='r2', reactants={'A':2}, products={'B':1}, rate=rate)
+        r3 = Reaction(name='r3', reactants={'A':1, 'B':1}, products={}, rate=rate)
+        r4 = Reaction(name='r4', reactants={'A':1}, products={}, propensity_function='t')
+        model.add_reaction([r1, r2, r3, r4])
+        self.assertEqual(model.listOfReactions['r1'].ode_propensity_function, 'rate*A')
+        self.assertEqual(model.listOfReactions['r2'].ode_propensity_function, 'rate*A*A')
+        self.assertEqual(model.listOfReactions['r3'].ode_propensity_function, 'rate*A*B')
+        self.assertEqual(model.listOfReactions['r4'].ode_propensity_function, 't')
 
 if __name__ == '__main__':
     unittest.main()

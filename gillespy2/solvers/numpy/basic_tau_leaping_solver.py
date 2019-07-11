@@ -164,7 +164,7 @@ class BasicTauLeapingSolver(GillesPySolver):
                         propensities[r] = eval(compiled_propensities[r], curr_state)
                         propensity_sum += propensities[r]
 
-                    tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold,
+                    tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
                             model, propensities, curr_state, curr_time, save_time]
 
                     tau_step = Tau.select(*tau_args)
@@ -234,7 +234,7 @@ class BasicTauLeapingSolver(GillesPySolver):
                     data[species[i]] = trajectory[:, i+1]
                 simulation_data.append(data)
             else:
-                simulation_data.append(trajectory)
+                simulation_data = trajectory_base
             if profile:
                 print(steps_taken)
                 print("Total Steps Taken: ", len(steps_taken))
