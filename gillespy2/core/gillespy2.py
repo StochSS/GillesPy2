@@ -693,6 +693,8 @@ class Reaction:
             self.massaction = True
 
         self.propensity_function = propensity_function
+        self.ode_propensity_function = propensity_function
+
         if self.propensity_function is not None and self.massaction:
             errmsg = ("Reaction {} You cannot set the propensity type to mass-action and simultaneously set a "
                       "propensity function.").format(self.name)
@@ -750,6 +752,7 @@ class Reaction:
         # Case EmptySet -> Y
 
         propensity_function = self.marate.name
+        ode_propensity_function = self.marate.name
 
         # There are only three ways to get 'total_stoch==2':
         for r in self.reactants:
@@ -757,9 +760,11 @@ class Reaction:
             if self.reactants[r] == 2:
                 propensity_function = ("0.5*" + propensity_function +
                                        "*" + str(r) + "*(" + str(r) + "-1)/vol")
+                ode_propensity_function = str(r) + '*' + str(r) + '*' + ode_propensity_function
             else:
                 # Case 3: X1, X2 -> Y;
                 propensity_function += "*" + str(r)
+                ode_propensity_function += '*' + str(r)
 
         # Set the volume dependency based on order.
         order = len(self.reactants)
@@ -769,6 +774,7 @@ class Reaction:
             propensity_function += "*vol"
 
         self.propensity_function = propensity_function
+        self.ode_propensity_function = ode_propensity_function
 
     def setType(self, rxntype):
         """
