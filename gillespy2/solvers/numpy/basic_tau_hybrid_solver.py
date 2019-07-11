@@ -5,6 +5,7 @@ import numpy as np
 import gillespy2
 from gillespy2.solvers.numpy import Tau
 from gillespy2.core import GillesPySolver
+from gillespy2.core.gillespyError import *
 
 eval_globals = math.__dict__
 
@@ -181,7 +182,7 @@ class BasicTauHybridSolver(GillesPySolver):
 
         return current, curr_time + step
 
-    def __get_reactions(self, seed, step, curr_state, y0, model, curr_time, save_time,
+    def __get_reactions(self, step, curr_state, y0, model, curr_time, save_time,
                         propensities, compiled_reactions, compiled_rate_rules, rxn_offset, debug):
         """
         Function to get reactions fired from t to t+tau.  This function solves for root crossings
@@ -290,8 +291,11 @@ class BasicTauHybridSolver(GillesPySolver):
         # copy time values to all trajectory row starts
         trajectory_base[:, :, 0] = timeline
 
+        spec_modes = ['continuous', 'dynamic', 'discrete']
         # copy initial populations to base
         for i, s in enumerate(species):
+            if model.listOfSpecies[s].mode not in spec_modes:
+                raise SpeciesError('Species mode can only be \'continuous\', \'dynamic\', or \'discrete\'.')
             trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
 
         det_spec = {species:True for (species, value) in model.listOfSpecies.items() if value.mode == 'dynamic'}
@@ -425,8 +429,8 @@ class BasicTauHybridSolver(GillesPySolver):
                         if loop_cnt > 100:
                             raise Exception("Loop over __get_reactions() exceeded loop count")
 
-                        reactions, y0, curr_state, curr_time = self.__get_reactions(seed,
-                            tau_step, curr_state, y0, model, curr_time, save_time, propensities, compiled_reactions,
+                        reactions, y0, curr_state, curr_time = self.__get_reactions(tau_step, 
+                            curr_state, y0, model, curr_time, save_time, propensities, compiled_reactions,
                             active_rr, rxn_offset, debug)
 
 

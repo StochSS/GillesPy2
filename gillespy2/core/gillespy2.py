@@ -542,6 +542,9 @@ class Species:
         self.mode = mode
         self.allow_negative_populations = allow_negative_populations
 
+        mode_list = ['continuous', 'dynamic', 'discrete']
+        if self.mode not in mode_list:
+            raise SpeciesError('Species mode must be either \'continuous\', \'dynamic\', or \'discrete\'.')
         if mode == 'continuous':
             self.initial_value = np.float(initial_value)
         else:
@@ -761,7 +764,6 @@ class Reaction:
                 propensity_function = ("0.5*" + propensity_function +
                                        "*" + str(r) + "*(" + str(r) + "-1)/vol")
                 ode_propensity_function += '*' + str(r) + '*' + str(r)
-
             else:
                 # Case 3: X1, X2 -> Y;
                 propensity_function += "*" + str(r)
