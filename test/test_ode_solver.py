@@ -1,5 +1,6 @@
 import unittest
 import numpy as np
+import gillespy2
 from gillespy2.example_models import Example
 from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
 
@@ -33,6 +34,23 @@ class TestBasicODESolver(unittest.TestCase):
                             self.assertDictEqual(results[0], result)
                         else:
                             self.assertTrue(np.array_equal(results[0], result))
+
+    def test_stoich2(self):
+        class StoichTestModel(gillespy2.Model):
+            def __init__(self, parameter_values=None):
+                gillespy2.Model.__init__(self, name='StochTest1')
+                A = gillespy2.Species(name='A', initial_value=10)
+                B = gillespy2.Species(name='B', initial_value=0)
+                self.add_species([A, B])
+                k = gillespy2.Parameter(name='k', expression=10)
+                self.add_parameter([k])
+                r = gillespy2.Reaction(name='r', reactants={A: 2}, products={B:1}, rate=k)
+                self.add_reaction([r])
+                self.timespan(np.linspace(0, 100, 101))
+        model = StoichTestModel()
+        result = model.run(solver=BasicODESolver)
+        self.assertAlmostEquals(result[0]['B'][-1], 5, places=3)
+
 
 
 if __name__ == '__main__':
