@@ -13,7 +13,7 @@ improvement over the original.
 """
 from __future__ import division
 from collections import OrderedDict
-from gillespy2.core.results import results
+from gillespy2.core.results import results,ensemble_results
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
 import numpy as np
@@ -443,24 +443,37 @@ class Model(object):
             When using deterministic methods, specifies the maximum number of steps permitted for each integration point in t.
         """
 
-
         if solver is not None:
             if ((isinstance(solver, type)
                     and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
-                return results(solver.run(model=self, t=self.tspan[-1],
+                solver_results = solver.run(model=self, t=self.tspan[-1],
                                   increment=self.tspan[-1] - self.tspan[-2],
                                   seed=seed,
                                   number_of_trajectories=number_of_trajectories,
-                                  show_labels=show_labels, max_steps=max_steps)[0],model_name=self.name,solver_name=solver.name)
+                                  show_labels=show_labels, max_steps=max_steps)
             else:
                 raise SimulationError(
                     "argument 'solver' to run() must be a subclass of GillesPySolver")
         else:
             from gillespy2.solvers.auto import SSASolver
-            return results(SSASolver.run(model=self, t=self.tspan[-1],
+            solver_results = SSASolver.run(model=self, t=self.tspan[-1],
                                       increment=self.tspan[-1] - self.tspan[-2], seed=seed,
                                       number_of_trajectories=number_of_trajectories,
-                                      show_labels=show_labels)[0],model_name=self.name,solver_name=SSASolver.name)
+                                      show_labels=show_labels)
+
+        if show_labels is False:
+            return solver_results
+
+        if number_of_trajectories is 1:
+            return results(data=solver_results[0],model=self,solver_name=solver.name)
+
+        if number_of_trajectories > 1:
+            results_list = []
+            for i in range(0,number_of_trajectories):
+                results_list.append(results(data=solver_results[i][0],model=self,solver_name=solver.name))
+            return ensemble_results(results_list)
+        else:
+            raise ValueError("number_of_trajectories must be non-negative and non-zero")
 
 
 class Species:
