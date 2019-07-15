@@ -13,12 +13,10 @@ improvement over the original.
 """
 from __future__ import division
 from collections import OrderedDict
+from gillespy2.core.results import results
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
 import numpy as np
-
-pretty_graph = False
-
 
 try:
     import lxml.etree as eTree
@@ -444,73 +442,25 @@ class Model(object):
         max_steps : int
             When using deterministic methods, specifies the maximum number of steps permitted for each integration point in t.
         """
+
+
         if solver is not None:
             if ((isinstance(solver, type)
                     and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
-                return solver.run(model=self, t=self.tspan[-1],
+                return results(solver.run(model=self, t=self.tspan[-1],
                                   increment=self.tspan[-1] - self.tspan[-2],
                                   seed=seed,
                                   number_of_trajectories=number_of_trajectories,
-                                  show_labels=show_labels, max_steps=max_steps)
+                                  show_labels=show_labels, max_steps=max_steps)[0],model_name=self.name,solver_name=solver.name)
             else:
                 raise SimulationError(
                     "argument 'solver' to run() must be a subclass of GillesPySolver")
         else:
             from gillespy2.solvers.auto import SSASolver
-            return SSASolver.run(model=self, t=self.tspan[-1],
+            return results(SSASolver.run(model=self, t=self.tspan[-1],
                                       increment=self.tspan[-1] - self.tspan[-2], seed=seed,
                                       number_of_trajectories=number_of_trajectories,
-                                      show_labels=show_labels)
-
-
-
-    #Need to finalize feature set.
-    #title, start time, stop time, automatic legend, legend placement, axis labels, size of graph.
-    #Axis Legend Stuff ends up being complicated, ensure I understand expected scope of function.
-    def plot(self, results, **kwargs):
-
-        try:
-            import seaborn as sbn
-            pretty_graph = True
-        except:
-            import matplotlib.pyplot as plt
-            pretty_graph = False
-
-        if pretty_graph:
-            pass
-        if not pretty_graph:
-            if "height" in kwargs and "width" in kwargs:
-                plt.figure(figsize=(kwargs["height"], kwargs["width"]))
-            #I could just have a throw after this, but I don't know if that's what the expected user behavior would be.
-            if "height" in kwargs and "width" not in kwargs:
-                plt.figure(figsize=(kwargs["height"], kwargs["height"]))
-            if "height" not in kwargs and "width" in kwargs:
-                plt.figure(figsize=(kwargs["width"], kwargs["width"]))
-            if "title" in kwargs:
-                plt.title(kwargs["title"])
-            else:
-                plt.title(str(self.name))
-            if "start" in kwargs and "stop" in kwargs:
-                for key in results.keys():
-                    plt.plot(results[key][kwargs["start"]:kwargs["stop"]])
-            if "start" in kwargs and "stop" not in kwargs:
-                for key in results.keys():
-                    plt.plot(results[key][kwargs["start"]:])
-            if "start" not in kwargs and "stop" in kwargs:
-                for key in results.keys():
-                    plt.plot(results[key][:kwargs["stop"]])
-            if "start" not in kwargs and "stop" not in kwargs:
-                for key in results.keys():
-                    plt.plot(results[key])
-            if "legend" in kwargs and kwargs["legend"] is True and "legend_position" not in kwargs:
-                plt.legend(list(map(str, self.listOfSpecies.keys())))
-            if "legend" in kwargs and kwargs["legend"] is True and "legend_position" in kwargs:
-                plt.legend(list(map(str, self.listOfSpecies.keys())), loc=kwargs["legend_position"])
-            if "xlabel" in kwargs:
-                plt.xlabel(kwargs["xlabel"])
-            if "ylabel" in kwargs:
-                plt.ylabel(kwargs["ylabel"])
-            plt.show()
+                                      show_labels=show_labels)[0],model_name=self.name,solver_name=SSASolver.name)
 
 
 class Species:
