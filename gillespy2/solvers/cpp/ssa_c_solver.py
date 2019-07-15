@@ -30,8 +30,8 @@ def write_constants(outfile, model, reactions, species, parameter_mappings):
         outfile.write("};\nunsigned int populations[] = {")
         #Write initial populations.
         for i in range(len(species)-1):
-            outfile.write('{}, '.format(model.listOfSpecies[species[i]].initial_value))
-        outfile.write('{}'.format(model.listOfSpecies[species[-1]].initial_value))
+            outfile.write('{}, '.format(int(model.listOfSpecies[species[i]].initial_value)))
+        outfile.write('{}'.format(int(model.listOfSpecies[species[-1]].initial_value)))
         outfile.write("};\n")
     if len(reactions) > 0:
         #Write reaction names
@@ -157,7 +157,7 @@ class SSACSolver(GillesPySolver):
         if built.returncode == 0:
             self.compiled = True
         else:
-            raise gillespyError.BuildError("Error encountered while compiling file:\nReturn code: {0}.\nError:\n{1}\n".format(built.returncode, built.stderr))
+            raise gillespyError.BuildError("Error encountered while compiling file:\nReturn code: {0}.\nError:\n{1}\n{2}\n".format(built.returncode, built.stdout.decode('utf-8'),built.stderr.decode('utf-8')))
 
     def run(self=None, model=None, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, profile=False, show_labels=True, **kwargs):
@@ -168,9 +168,18 @@ class SSACSolver(GillesPySolver):
             number_timesteps = int(t//increment + 1)                    
             # Execute simulation.
             args = [os.path.join(self.output_directory, 'UserSimulation'), '-trajectories', str(number_of_trajectories), '-timesteps', str(number_timesteps), '-end', str(t)]
-            if isinstance(seed, int):
-                args.append('-seed')
-                args.append(str(seed))
+            if seed is not None:
+                if isinstance(seed, int):
+                    args.append('-seed')
+                    args.append(str(seed))
+                else:
+                    seed_int = int(seed)
+                    if seed_int > 0:
+                        args.append('-seed')
+                        args.append(str(seed_int))
+                    else:
+                        raise ModelError("seed must be a positive integer")
+                
             simulation = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             # Parse/return results.
             if simulation.returncode == 0:

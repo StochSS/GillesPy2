@@ -5,6 +5,12 @@ from setuptools.command.bdist_egg import bdist_egg
 from setuptools.command.easy_install import easy_install
 import os
 
+##########################################################
+### HOW TO DO A PYPI RELEASE ###
+# python3 setup.py sdist bdist_wheel
+# twine upload dist/* 
+##########################################################
+
 SETUP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -48,7 +54,7 @@ with open('README.md', 'r') as fh:
     full_description = fh.read()
 
 setup(name="gillespy2",
-      version="1.1.0",
+      version="1.1.1",
       packages=find_packages('.'),
       include_package_data=True,
       description='Python interface for Gillespie style biochemical simulations',
