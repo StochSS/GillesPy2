@@ -22,6 +22,7 @@ if __name__ == '__main__':
     import test_ssa_solver
     import test_ssa_c_solver
     import test_SBML
+    import test_example_models
 
     modules = [
         test_basic_tau_hybrid_solver,
@@ -33,7 +34,8 @@ if __name__ == '__main__':
         test_simple_model,
         test_ssa_solver,
         test_ssa_c_solver,
-        test_SBML
+        test_SBML,
+        test_example_models
     ]
 
     for module in modules:

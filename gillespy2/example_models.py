@@ -102,7 +102,7 @@ class LacOperon(Model):
         k19 = Parameter(name='k19', expression=0.3)
         k20 = Parameter(name='k20', expression=9.52e-5)
         k21 = Parameter(name='k21', expression=431)
-        k22 = Parameter(name='22', expression=14)
+        k22 = Parameter(name='k22', expression=14)
         self.add_parameter(
             [k1, k2, k3, k4, k5, k6, k7, k8, k9, k10, k11, k12, k13, k14, k15, k16, k17, k18, k19, k20, k21, k22])
 
@@ -202,8 +202,8 @@ class ToggleSwitch(Model):
         # Initialize the model.
         Model.__init__(self, name="Toggle_Switch")
         # Species
-        A = Species(name='A', initial_value=10.0)
-        B = Species(name='B', initial_value=10.0)
+        A = Species(name='A', initial_value=10)
+        B = Species(name='B', initial_value=10)
         self.add_species([A, B])
         # Parameters
         alpha1 = Parameter(name='alpha1', expression=10.0)
@@ -214,9 +214,9 @@ class ToggleSwitch(Model):
         self.add_parameter([alpha1, alpha2, beta, gamma, mu])
         # Reactions
         cu = Reaction(name="r1", reactants={}, products={A: 1},
-                      rate=alpha1.value * (1 + B.initial_value ** float(beta.expression)))
+                      propensity_function='alpha1.value * (1 + B.initial_value ** float(beta.expression))')
         cv = Reaction(name="r2", reactants={}, products={B: 1},
-                      rate=alpha2.value(1 + A.initial_value ** float(gamma.expression)))
+                      propensity_function='alpha2.value * (1 + A.initial_value ** float(gamma.expression))')
         du = Reaction(name="r3", reactants={A: 1}, products={}, rate=mu)
         dv = Reaction(name="r4", reactants={B: 1}, products={}, rate=mu)
         self.add_reaction([cu, cv, du, dv])
@@ -268,7 +268,7 @@ class Tyson2StateOscillator(Model):
 
         # creation of X:
         rxn1 = Reaction(name='X production', reactants={}, products={X: 1},
-                        propensity_function=300 * 1 / (1 + (Y.initial_value * Y.initial_value / (300 * 300))))
+                        propensity_function='300 * 1 / (1 + (Y.initial_value * Y.initial_value / (300 * 300)))')
 
         # degradadation of X:
         rxn2 = Reaction(name='X degradation', reactants={X: 1}, products={}, rate=kdx)
@@ -280,9 +280,8 @@ class Tyson2StateOscillator(Model):
         rxn4 = Reaction(name='Y degradation', reactants={Y: 1}, products={}, rate=kd)
 
         # nonlinear Y term:
-        rxn5 = Reaction(name='Y nonlin', reactants={Y: 1}, products={}, rate=Y.initial_value / a0.value + a1.value * (
-                Y.initial_value / 300) + a2.value * Y.initial_value * Y.initial_value / (
-                                                                                     300 * 300))
+        rxn5 = Reaction(name='Y nonlin', reactants={Y: 1}, products={}, 
+                propensity_function='Y.initial_value / a0.value + a1.value * (Y.initial_value / 300) + a2.value * Y.initial_value * Y.initial_value / (300 * 300)')
 
         self.add_reaction([rxn1, rxn2, rxn3, rxn4, rxn5])
         self.timespan(np.linspace(0, 100, 101))

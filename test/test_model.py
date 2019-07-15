@@ -166,6 +166,10 @@ class TestModel(unittest.TestCase):
         reserved1 = Parameter(name = "vol", expression = 0.5)
         with self.assertRaises(ModelError):
             model.add_parameter(reserved1)
+        #Add this to name checks, python naming convention
+        #numeric2 = Parameter(name = '1parameter', expression = 0.5)
+        #with self.assertRaises(ModelError):
+            #model.add_parameter(numeric2)
 
     def test_add_nonspecies_nonreaction_nonparameter(self):
         model = Model()
@@ -192,7 +196,6 @@ class TestModel(unittest.TestCase):
         with self.assertRaises(SimulationError):
             results = model.run(number_of_trajectories = 1, solver = 'non_solver', seed = 1)
 
-    #Potential error
     #def test_run_unspecified_solver(self):
         #model = Model()
         #rate = Parameter(name = 'rate', expression = 0.5)
@@ -210,7 +213,6 @@ class TestModel(unittest.TestCase):
 
     def test_model_init_custom_tspan(self):
         model = Model(tspan = np.linspace(0, 20, 401))
-        #What assert?
 
     def test_parameter_init_unspecified_expression(self):
         with self.assertRaises(TypeError):
@@ -219,7 +221,6 @@ class TestModel(unittest.TestCase):
     def test_set_expression(self):
         parameter = Parameter(name = 'parameter', expression = 0.5)
         parameter.set_expression(1)
-        #What assert?
 
     def test_set_null_expression(self):
         parameter = Parameter(name = 'parameter', expression = 0.5)
