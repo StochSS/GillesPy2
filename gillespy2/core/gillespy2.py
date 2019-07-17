@@ -421,9 +421,7 @@ class Model(object):
     def delete_all_reactions(self):
         self.listOfReactions.clear()
 
-    def run(self, number_of_trajectories=1, seed=None, solver=None, show_labels=True, 
-            switch_tol=0.003, tau_tol=0.03, integrator='lsoda', integrator_options={},
-            stoch_kit_home=None, debug=False, profile=False):
+    def run(self, solver=None, **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -455,19 +453,14 @@ class Model(object):
         if solver is not None:
             if ((isinstance(solver, type)
                     and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
-                return solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2],
-                                  seed=seed, number_of_trajectories=number_of_trajectories, 
-                                  show_labels=show_labels, switch_tol=switch_tol, tau_tol=tau_tol, integrator=integrator, 
-                                  integrator_options=integrator_options, stoch_kit_home=stoch_kit_home, debug=debug, profile=profile)
+                return solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
             else:
                 raise SimulationError(
                     "argument 'solver' to run() must be a subclass of GillesPySolver")
         else:
             from gillespy2.solvers.auto import SSASolver
             return SSASolver.run(model=self, t=self.tspan[-1],
-                                      increment=self.tspan[-1] - self.tspan[-2], seed=seed,
-                                      number_of_trajectories=number_of_trajectories,
-                                      show_labels=show_labels)
+                                      increment=self.tspan[-1] - self.tspan[-2], **solver_args)
 
 
 

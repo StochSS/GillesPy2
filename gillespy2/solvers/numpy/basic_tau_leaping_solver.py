@@ -4,7 +4,7 @@
 import random, math, sys, warnings
 import numpy as np
 from gillespy2.solvers.numpy import Tau
-from gillespy2.core import GillesPySolver
+from gillespy2.core import GillesPySolver, log
 
 
 class BasicTauLeapingSolver(GillesPySolver):
@@ -14,12 +14,12 @@ class BasicTauLeapingSolver(GillesPySolver):
     over this step are bounded by bounding the relative change in state, yielding greatly improved
     run-time performance with very little trade-off in accuracy.
     """
-    name = "Basic Tau Leaping Solver"
+    name = "BasicTauLeapingSolver"
 
     def __init__(self, debug=False, profile=False):
+        name = "BasicTauLeapingSolver"
         self.debug = debug
         self.profile = profile
-        self.epsilon = 0.03
 
     def get_reactions(self, seed, step, curr_state, curr_time, save_time, propensities, reactions):
         """
@@ -84,10 +84,13 @@ class BasicTauLeapingSolver(GillesPySolver):
                 show_labels : bool (True)
                     Use names of species as index of result object rather than position numbers.
                 """
-        if not sys.warnoptions:
-            warnings.simplefilter("ignore")
+
         if not isinstance(self, BasicTauLeapingSolver):
-            self = BasicTauLeapingSolver()
+            self = BasicTauLeapingSolver(debug=debug, profile=profile)
+
+        if len(kwargs) > 0:
+            for key in kwargs:
+                log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
         if debug:
             print("t = ", t)
             print("increment = ", increment)

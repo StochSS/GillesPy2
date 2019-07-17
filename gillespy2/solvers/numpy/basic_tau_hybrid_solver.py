@@ -4,7 +4,7 @@ from scipy.integrate import ode
 import numpy as np
 import gillespy2
 from gillespy2.solvers.numpy import Tau
-from gillespy2.core import GillesPySolver
+from gillespy2.core import GillesPySolver, log
 from gillespy2.core.gillespyError import *
 
 eval_globals = math.__dict__
@@ -19,10 +19,10 @@ class BasicTauHybridSolver(GillesPySolver):
     is bounded by bounding the relative change in the state of the system, resulting in increased
     run-time performance with little accuracy trade-off.
     """
-    name = "Basic Tau Hybrid Solver"
+    name = "BasicTauHybridSolver"
 
-    def __init__(self, debug=False):
-        self.debug = debug
+    def __init__(self):
+        name = 'BasicTauHybridSolver'
            
         
     def toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, curr_state, rxn_offset, det_spec):
@@ -48,34 +48,11 @@ class BasicTauHybridSolver(GillesPySolver):
                 reactivate.append(r)
         for r in reactivate:
             rxns[r] = inactive_reactions.pop(r, None)
-            print('************************')
-            print('************************')
-            print('before reactivating ', r)
-            print('************************')
-            print('************************')
-            print('rate rules:')
-            print(rate_rules)
-            '''
-            print('evals of species')
-            for s in model.listOfReactions[r].reactants:
-                print('species ', str(s), ': ', end='')
-                print(eval(rate_rules[str(s)], eval_globals, curr_state))
-            for s in model.listOfReactions[r].products:
-                print('species ', str(s), ': ', end='')
-                print(eval(rate_rules[deterministic_reactions][str(s)], eval_globals, curr_state))
-            '''
-            print('reactivating ', r)
-            print('propensity function: ', model.listOfReactions[r].propensity_function)
-            print('evaluated: ', eval(rxns[r], eval_globals, curr_state))
-            print('inactive reactions: ', inactive_reactions)
-            for species in model.listOfSpecies:
-                print('curr_state of ', species, ': ', curr_state[species])
 
         # floor non-det species
         for s, d in det_spec.items():
             if not d and isinstance(curr_state[s], float):
                 curr_state[s] = math.floor(curr_state[s])
-                print('flooring ', s, ' to ', curr_state[s])
             
         #Deactivate Determinsitic Reactions
         for r in deterministic_reactions:
@@ -89,8 +66,6 @@ class BasicTauHybridSolver(GillesPySolver):
         #Otherwise, this is a new determinstic reaction set that must be compiled
         if not deterministic_reactions in rate_rules:
             rate_rules[deterministic_reactions] = self.create_diff_eqs(deterministic_reactions, model, dependencies)
-            print('creating rate rules for ', deterministic_reactions)
-            print(rate_rules[deterministic_reactions])
                 
     def create_diff_eqs(self, comb, model, dependencies):
 
@@ -125,8 +100,6 @@ class BasicTauHybridSolver(GillesPySolver):
         
         #create a dictionary of compiled gillespy2 rate rules
         for spec, rate in diff_eqs.items():
-            print('diffeq for ', spec)
-            print(gillespy2.RateRule(model.listOfSpecies[spec], rate).expression)
             rate_rules[spec] = compile(gillespy2.RateRule(model.listOfSpecies[spec], rate).expression, '<string>', 'eval')
 
         # be sure to include model rate rules
@@ -193,18 +166,12 @@ class BasicTauHybridSolver(GillesPySolver):
         """
         curr_state['t'] = t
         state_change = []
-        #print('start')
-        #print('compiled_rate_rules: ', compiled_rate_rules)
         for i, rr in enumerate(compiled_rate_rules):
-            #print('curr state of ', rr, ' before: ', curr_state[rr])
             curr_state[rr] = y[i]
-            #print('curr state of ', rr, ' after: ', curr_state[rr])
         for i, rr in enumerate(compiled_rate_rules):
             state_change.append(eval(compiled_rate_rules[rr], eval_globals, curr_state))
-            #print('eval ', rr, ': ', state_change[i])
         for i, r in enumerate(compiled_reactions):
             propensities[r] = eval(compiled_reactions[r], eval_globals, curr_state)
-            #print('eval ', r, ': ', propensities[r])
             state_change.append(propensities[r])
 
         return state_change
@@ -243,7 +210,6 @@ class BasicTauHybridSolver(GillesPySolver):
         if debug:
             print("Curr Time: ", curr_time, " Save time: ", save_time, "step: ", step)
 
-        print('step size: ', step)
         current, curr_time = self.__get_reaction_integrate(integrator, integrator_options, step, curr_state, 
                                                            y0, model, curr_time, propensities, 
                                                            compiled_reactions, compiled_rate_rules)
@@ -265,7 +231,6 @@ class BasicTauHybridSolver(GillesPySolver):
                 urn = (math.log(random.uniform(0, 1)))
                 current[i+len(compiled_rate_rules)] += urn
                 rxn_offset[r] += urn
-        print(rxn_count)
         
 
         if debug:
@@ -316,10 +281,13 @@ class BasicTauHybridSolver(GillesPySolver):
             Example use: {max_step : 0, rtol : .01}
         """
 
-        if not sys.warnoptions:
-            warnings.simplefilter("ignore")
         if not isinstance(self, BasicTauHybridSolver):
             self = BasicTauHybridSolver()
+
+        if len(kwargs) > 0:
+            for key in kwargs:
+                log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
+
         if debug:
             print("t = ", t)
             print("increment = ", increment)
