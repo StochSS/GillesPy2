@@ -13,7 +13,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
     labels_results = model.run(solver=BasicTauHybridSolver, show_labels=True,number_of_trajectories=1)
 
     def test_return_type(self):
-        assert(isinstance(self.results, list))
+        assert(isinstance(self.results, np.ndarray))
         assert(isinstance(self.results[0], np.ndarray))
         assert(isinstance(self.results[0][0], np.ndarray))
         assert(isinstance(self.results[0][0][0], np.float))

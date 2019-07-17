@@ -5,6 +5,7 @@ python: "3.6"
 install:
           - pip3 install .
           - pip3 install python-libsbml
+          - pip3 install cython
 script:
           python test/run_tests.py -m release
 
