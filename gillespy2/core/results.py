@@ -9,7 +9,10 @@ def _plot_iterate(self,num = ""):
         if key is not 'time':
             plt.plot(self.data['time'], self.data[key], label=(key + num))
 
-def _plotplotyl_iterate(self,num = "",outputdata = []):
+def _plotplotyl_iterate(self,num = "",outputdata = None):
+
+    if outputdata is None:
+        outputdata = []
 
     import plotly.graph_objs as go
 
@@ -92,6 +95,9 @@ class EnsembleResults(UserList):
         if title is "default":
             title = (self[0].model.name + " - " + self[0].solver_name)
 
+        if len(self.data) < 2:
+                multiple_graphs = False
+
         if multiple_graphs is True:
             for i,result in enumerate(self.data):
                 result.plot(xaxis_label=xaxis_label,yaxis_label=yaxis_label,title=title + " " + str(i + 1),style=style)
@@ -127,17 +133,26 @@ class EnsembleResults(UserList):
         outputdata = []
         fig = dict(data=[], layout=[])
 
+        if len(self.data) < 2:
+            multiple_graphs = False
+
         if multiple_graphs is True:
 
             from plotly import tools
 
-            fig = tools.make_subplots(rows=len(self.data))
+            fig = tools.make_subplots(print_grid=False,rows=int(len(self.data)/2) + int(len(self.data)%2),cols = int(len(self.data)/2))
 
             for i, result in enumerate(self.data):
-                out = _plotplotyl_iterate(result,num = str(i + 1))
+                out = _plotplotyl_iterate(result,num = str(i + 1),outputdata=[])
                 for b in range(0,len(out)):
-                    fig.append_trace(out[b], i + 1, 1)
+                    if i%2 == 0:
+                        fig.append_trace(out[b], int(i/2) + 1, 1)
+                    else:
+                        fig.append_trace(out[b], int(i/2) + 1, 2)
 
+                fig['layout'].update(autosize=True,
+                                     height=400*len(self.data),
+                                     showlegend=True,title =title)
 
             iplot(fig)
 
