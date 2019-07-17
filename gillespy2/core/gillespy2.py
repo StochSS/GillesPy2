@@ -422,8 +422,8 @@ class Model(object):
         self.listOfReactions.clear()
 
     def run(self, number_of_trajectories=1, seed=None, solver=None, show_labels=True, 
-            switch_tol=0.03, tau_tol=0.03, integrator='lsoda', integrator_options={},
-            stoch_kit_home=None):
+            switch_tol=0.003, tau_tol=0.03, integrator='lsoda', integrator_options={},
+            stoch_kit_home=None, debug=False, profile=False):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -443,7 +443,7 @@ class Model(object):
         show_labels: bool (True)
             If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]
         switch_tol: float
-            Relative error tolerance value for deterministic/stochastic switching condition between 0.0 and 1.0
+            Tolerance for Continuous/Stochastic representation of species, based on coefficient of variance for each step.
         tau_tol: float
             Relative error tolerance value for calculating tau step between 0.0 and 1.0
         integrator: String
@@ -457,8 +457,8 @@ class Model(object):
                     and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
                 return solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2],
                                   seed=seed, number_of_trajectories=number_of_trajectories, 
-                                  show_labels=show_labels, switch_tol=0.03, tau_tol=0.03, integrator='lsoda', 
-                                  integrator_options={}, stoch_kit_home=None)
+                                  show_labels=show_labels, switch_tol=switch_tol, tau_tol=tau_tol, integrator=integrator, 
+                                  integrator_options=integrator_options, stoch_kit_home=stoch_kit_home, debug=debug, profile=profile)
             else:
                 raise SimulationError(
                     "argument 'solver' to run() must be a subclass of GillesPySolver")
