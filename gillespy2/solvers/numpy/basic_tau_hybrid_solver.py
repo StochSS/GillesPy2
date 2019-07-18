@@ -32,15 +32,6 @@ class BasicTauHybridSolver(GillesPySolver):
         rate_rules = all_compiled['rules']
         rxns = all_compiled['rxns']
         
-        #print(inactive_reactions.keys())
-        #print(rxns.keys())
-        '''
-        print('ALL evals for rate rule combos')
-        for comb in rate_rules:
-            print('current deterministic set: ', comb)
-            for species, rr in rate_rules[comb].items():
-                print('Species: ', species, 'evaluated: ', eval(rr, eval_globals, curr_state))
-        '''
         #If the set has changed, reactivate non-determinsitic reactions
         reactivate = []
         for r in inactive_reactions:
