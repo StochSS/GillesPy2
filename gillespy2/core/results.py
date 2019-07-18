@@ -5,9 +5,9 @@ from collections import UserDict,UserList
 def _plot_iterate(self,num = ""):
     import matplotlib.pyplot as plt
 
-    for key in self.data:
-        if key is not 'time':
-            plt.plot(self.data['time'], self.data[key], label=(key + num))
+    for species in self.data:
+        if species is not 'time':
+            plt.plot(self.data['time'], self.data[species], label=(species + num))
 
 def _plotplotyl_iterate(self, num = "", trace_list = None):
 
@@ -16,14 +16,14 @@ def _plotplotyl_iterate(self, num = "", trace_list = None):
 
     import plotly.graph_objs as go
 
-    for key in self.data:
-        if key is not 'time':
+    for species in self.data:
+        if species is not 'time':
             trace_list.append(
                 go.Scatter(
                     x=self.data['time'],
-                    y=self.data[key],
+                    y=self.data[species],
                     mode='lines',
-                    name=key + " " + num
+                    name=species + " " + num
                 )
             )
     return trace_list
@@ -55,10 +55,6 @@ class Results(UserDict):
         title : str
             the title of the graph
         """
-
-        if kwargs.get('multiple_graphs'):
-            warnings.warn("Multiple_Graphs keyword received. Keyword is ony for use with EnsembleResults ")
-
         import matplotlib.pyplot as plt
 
         try:
@@ -92,9 +88,6 @@ class Results(UserDict):
         title : str
             the title of the graph
         """
-
-        if kwargs['multiple_graphs'] is not None:
-            warnings.warn("Multiple_Graphs keyword received. Keyword is ony for use with EnsembleResults ")
 
         from plotly.offline import init_notebook_mode, iplot
         import plotly.graph_objs as go
@@ -256,25 +249,64 @@ class EnsembleResults(UserList):
 
         output = Results(data={},model=results_list[0].model,solver_name=results_list[0].solver_name)
 
-        for result in results_list[0]: #Initialize the output to be the same size as the inputs
-            output[result] = [0]*len(results_list[0][result])
+        for species in results_list[0]: #Initialize the output to be the same size as the inputs
+            output[species] = [0]*len(results_list[0][species])
 
         output['time'] = results_list[0]['time']
 
         for i in range(0,number_of_trajectories): #Add every value of every Results Dict into one output Results
             results_dict = results_list[i]
-            for result in results_dict:
-                if result is 'time':
+            for species in results_dict:
+                if species is 'time':
                     continue
-                for k in range(0,len(output[result])):
-                    output[result][k] += results_dict[result][k]
+                for k in range(0,len(output[species])):
+                    output[species][k] += results_dict[species][k]
 
-        for result in output:   #Divide for mean of every value in output Results
-            if result is 'time':
+        for species in output:   #Divide for mean of every value in output Results
+            if species is 'time':
                 continue
-            for i in range(0,len(output[result])):
-                output[result][i] /= len(results_list)
+            for i in range(0,len(output[species])):
+                output[species][i] /= number_of_trajectories
 
         return output
+
+    def stddev_ensemble(self):
+        """
+                Generate a single Results dictionary that is made of the samplestandard deviation of all trajectories'
+                outputs.
+                :return: the Results dictionary
+                """
+
+        import math
+
+        results_list = self.data
+        average_list = self.average_ensemble()
+        number_of_trajectories = len(results_list)
+        output = Results(data={}, model=results_list[0].model, solver_name=results_list[0].solver_name)
+
+        for species in results_list[0]: #Initialize the output to be the same size as the inputs
+            output[species] = [0]*len(results_list[0][species])
+
+        output['time'] = results_list[0]['time']
+
+        for i in range(0,number_of_trajectories):
+            results_dict = results_list[i]
+            for species in results_dict:
+                if species is 'time':
+                    continue
+                for k in range(0,len(output[species])):
+                    output[species][k] += (results_dict[species][k] - average_list[species][k])\
+                                          *(results_dict[species][k] - average_list[species][k])
+
+        for species in output:   #Divide for mean of every value in output Results
+            if species is 'time':
+                continue
+            for i in range(0,len(output[species])):
+                output[species][i] /= number_of_trajectories
+                output[species][i] = math.sqrt(output[species][i])
+
+        return output
+
+
 
         #TODO Add more funcionality to ensemble_results for better graphing, statistical analysis, etc.
