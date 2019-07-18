@@ -28,6 +28,12 @@ gillespy2.core.gillespySolver module
     :undoc-members:
     :show-inheritance:
 
+gillespy2.core.results module
+------------------------------------
+.. automodule:: gillespy2.core.results
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Module contents
 ---------------
