@@ -187,7 +187,7 @@
 <span class="sd">        later on by GillesPySolvers evaluating reaction propensity functions.</span>
 <span class="sd">        :return: the dictionary mapping user species names to their internal GillesPy notation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">species_name_mapping</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">species_name_mapping</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([])</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
             <span class="n">species_name_mapping</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;S[</span><span class="si">{}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">species_name_mapping</span></div>
@@ -282,7 +282,8 @@
 <span class="sd">        later on by GillesPySolvers evaluating reaction propensity functions.</span>
 <span class="sd">        :return: the dictionary mapping user parameter names to their internal GillesPy notation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">parameter_name_mapping</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;vol&#39;</span><span class="p">:</span> <span class="s1">&#39;V&#39;</span><span class="p">}</span>
+        <span class="n">parameter_name_mapping</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="n">parameter_name_mapping</span><span class="p">[</span><span class="s1">&#39;vol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
             <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">parameter_name_mapping</span><span class="p">:</span>
                 <span class="n">parameter_name_mapping</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;P</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
@@ -404,8 +405,6 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reactions</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reactions</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reactions</span><span class="p">,</span><span class="nb">dict</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reactions</span><span class="p">,</span><span class="n">OrderedDict</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">reactions</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reactions</span><span class="p">,</span><span class="n">Reaction</span><span class="p">):</span>
             <span class="n">reactions</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">validate_reactants_and_products</span><span class="p">(</span><span class="n">reactions</span><span class="p">)</span>
@@ -432,12 +431,10 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rate_rules</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">rr</span> <span class="ow">in</span> <span class="n">rate_rules</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add_rate_rule</span><span class="p">(</span><span class="n">rr</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rate_rules</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rate_rules</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_rate_rule</span><span class="p">(</span><span class="n">rate_rules</span><span class="o">.</span><span class="n">expression</span><span class="p">())</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rate_rules</span><span class="p">,</span> <span class="n">RateRule</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">listOfRateRules</span><span class="p">[</span><span class="n">rate_rules</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">rate_rules</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;Could not resolve Rate Rule0 expression </span><span class="si">{}</span><span class="s2"> to a scalar value.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">param_type</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;Add_rate_rule accepts a RateRule object or a List of RateRule Objects&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">rate_rules</span></div>
 
 <div class="viewcode-block" id="Model.timespan"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespy2.Model.timespan">[docs]</a>    <span class="k">def</span> <span class="nf">timespan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_span</span><span class="p">):</span>
@@ -471,8 +468,9 @@
 <div class="viewcode-block" id="Model.delete_all_reactions"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespy2.Model.delete_all_reactions">[docs]</a>    <span class="k">def</span> <span class="nf">delete_all_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Model.run"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespy2.Model.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">max_steps</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="Model.run"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespy2.Model.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+            <span class="n">switch_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">tau_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="s1">&#39;lsoda&#39;</span><span class="p">,</span> <span class="n">integrator_options</span><span class="o">=</span><span class="p">{},</span>
+            <span class="n">stoch_kit_home</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Function calling simulation of the model. There are a number of</span>
 <span class="sd">        parameters to be set here.</span>
@@ -489,19 +487,25 @@
 <span class="sd">            The solver by which to simulate the model. This solver object may</span>
 <span class="sd">            be initialized separately to specify an algorithm. Optional, </span>
 <span class="sd">            defaults to StochKitSolver SSA.</span>
-<span class="sd">        show_labels : bool (True)</span>
-<span class="sd">            Use names of species as index of result object rather than position numbers.</span>
-<span class="sd">        max_steps : int</span>
-<span class="sd">            When using deterministic methods, specifies the maximum number of steps permitted for each integration point in t.</span>
+<span class="sd">        show_labels: bool (True)</span>
+<span class="sd">            If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]</span>
+<span class="sd">        switch_tol: float</span>
+<span class="sd">            Relative error tolerance value for deterministic/stochastic switching condition between 0.0 and 1.0</span>
+<span class="sd">        tau_tol: float</span>
+<span class="sd">            Relative error tolerance value for calculating tau step between 0.0 and 1.0</span>
+<span class="sd">        integrator: String</span>
+<span class="sd">            integrator to be used form scipy.integrate.ode. Options include &#39;vode&#39;, &#39;zvode&#39;, &#39;lsoda&#39;, &#39;dopri5&#39;, and &#39;dop835&#39;.  For more details, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html</span>
+<span class="sd">        integrator_options: dictionary</span>
+<span class="sd">            contains options to the scipy integrator. for a list of options, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.</span>
+<span class="sd">            Example use: {max_step : 0, rtol : .01}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">solver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="p">((</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span>
                     <span class="ow">and</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">GillesPySolver</span><span class="p">)))</span> <span class="ow">or</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">solver</span><span class="p">),</span> <span class="n">GillesPySolver</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">solver</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
-                                  <span class="n">increment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span>
-                                  <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
-                                  <span class="n">number_of_trajectories</span><span class="o">=</span><span class="n">number_of_trajectories</span><span class="p">,</span>
-                                  <span class="n">show_labels</span><span class="o">=</span><span class="n">show_labels</span><span class="p">,</span> <span class="n">max_steps</span><span class="o">=</span><span class="n">max_steps</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">solver</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">increment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span>
+                                  <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="n">number_of_trajectories</span><span class="p">,</span> 
+                                  <span class="n">show_labels</span><span class="o">=</span><span class="n">show_labels</span><span class="p">,</span> <span class="n">switch_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">tau_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="s1">&#39;lsoda&#39;</span><span class="p">,</span> 
+                                  <span class="n">integrator_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">stoch_kit_home</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span>
                     <span class="s2">&quot;argument &#39;solver&#39; to run() must be a subclass of GillesPySolver&quot;</span><span class="p">)</span>
@@ -592,6 +596,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">allow_negative_populations</span> <span class="o">=</span> <span class="n">allow_negative_populations</span>
 
+        <span class="n">mode_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;continuous&#39;</span><span class="p">,</span> <span class="s1">&#39;dynamic&#39;</span><span class="p">,</span> <span class="s1">&#39;discrete&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mode_list</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SpeciesError</span><span class="p">(</span><span class="s1">&#39;Species mode must be either </span><span class="se">\&#39;</span><span class="s1">continuous</span><span class="se">\&#39;</span><span class="s1">, </span><span class="se">\&#39;</span><span class="s1">dynamic</span><span class="se">\&#39;</span><span class="s1">, or </span><span class="se">\&#39;</span><span class="s1">discrete</span><span class="se">\&#39;</span><span class="s1">.&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;continuous&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">initial_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">(</span><span class="n">initial_value</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -743,6 +750,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="o">=</span> <span class="n">propensity_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="n">propensity_function</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span><span class="p">:</span>
             <span class="n">errmsg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Reaction </span><span class="si">{}</span><span class="s2"> You cannot set the propensity type to mass-action and simultaneously set a &quot;</span>
                       <span class="s2">&quot;propensity function.&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -800,6 +809,7 @@
         <span class="c1"># Case EmptySet -&gt; Y</span>
 
         <span class="n">propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marate</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marate</span><span class="o">.</span><span class="n">name</span>
 
         <span class="c1"># There are only three ways to get &#39;total_stoch==2&#39;:</span>
         <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">:</span>
@@ -807,9 +817,11 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="n">propensity_function</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;0.5*&quot;</span> <span class="o">+</span> <span class="n">propensity_function</span> <span class="o">+</span>
                                        <span class="s2">&quot;*&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;*(&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;-1)/vol&quot;</span><span class="p">)</span>
+                <span class="n">ode_propensity_function</span> <span class="o">+=</span> <span class="s1">&#39;*&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;*&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># Case 3: X1, X2 -&gt; Y;</span>
                 <span class="n">propensity_function</span> <span class="o">+=</span> <span class="s2">&quot;*&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+                <span class="n">ode_propensity_function</span> <span class="o">+=</span> <span class="s1">&#39;*&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
 
         <span class="c1"># Set the volume dependency based on order.</span>
         <span class="n">order</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">)</span>
@@ -818,7 +830,8 @@
         <span class="k">elif</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">propensity_function</span> <span class="o">+=</span> <span class="s2">&quot;*vol&quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="o">=</span> <span class="n">propensity_function</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="o">=</span> <span class="n">propensity_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="n">ode_propensity_function</span></div>
 
 <div class="viewcode-block" id="Reaction.setType"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespy2.Reaction.setType">[docs]</a>    <span class="k">def</span> <span class="nf">setType</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxntype</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>

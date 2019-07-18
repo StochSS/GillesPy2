@@ -1,5 +1,5 @@
 # encoding: utf-8
-from gillespy2.core import GillesPySolver
+from gillespy2.core import GillesPySolver, gillespyError, log
 import numpy as np
 import random
 cimport numpy as np
@@ -33,7 +33,7 @@ cdef double operand_stack[MAX_STACK_SIZE]
 cdef int operator_stack[MAX_STACK_SIZE]
 
 
-cdef void simulate_trajectory(np.ndarray[np.float64_t, ndim=2] trajectory, CythonReaction *reactions, int number_reactions, np.ndarray[np.float64_t, ndim=2] species_changes):
+cdef void simulate_trajectory(np.ndarray[np.float64_t, ndim=2] trajectory, CythonReaction *reactions, int number_reactions, np.ndarray[np.float64_t, ndim=2] species_changes, int seed):
     cdef int i,j
     cdef double current_time = 0
     cdef int number_entries = 0
@@ -50,6 +50,8 @@ cdef void simulate_trajectory(np.ndarray[np.float64_t, ndim=2] trajectory, Cytho
         if propensity_sum <= 0:
             trajectory[number_entries:,1:] = current_state
             break
+        if seed >= 0:
+            random.seed(seed)
         cumulative_sum = random.random() * propensity_sum
         current_time -= math.log(random.random()) / propensity_sum
         while number_entries < trajectory.shape[0] and trajectory[number_entries, 0] <= current_time:
@@ -135,14 +137,33 @@ def convert_infix_prefix(equation):
     
 class CythonSSASolver(GillesPySolver):
     name = "CythonSSASolver"
+    def __init__(self):
+        name = "CythonSSASolver"
     #@cython.boundscheck(False)
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, profile=False, show_labels=True, **kwargs):
+
+        if not isinstance(self, CythonSSASolver):
+            self = CythonSSASolver()
+
+        if len(kwargs) > 0:
+            for key in kwargs:
+                log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
+
         self.simulation_data = []
         #convert dictionary of species to species array
         species = list(model.listOfSpecies.keys())
         cdef int number_species = len(species)
+
+        if seed is not None:
+            if not isinstance(seed, int):
+                seed = int(seed)
+            if seed < 0:
+                raise gillespyError.ModelError('seed must be a positive integer')
+        else:
+            seed = -1
+        cdef int seed_arg = seed
         #set timespan for simulation(s)
         timeline = np.linspace(0,t, (t//increment+1))
         #allocate memory for trajectories
@@ -222,7 +243,7 @@ class CythonSSASolver(GillesPySolver):
         cdef np.ndarray[np.float64_t, ndim=1] current_state = np.zeros((number_species))
         cdef int number_threads = 4
         for i in range(number_of_trajectories):
-            simulate_trajectory(trajectories[i], reactions, number_reactions, species_changes)
+            simulate_trajectory(trajectories[i], reactions, number_reactions, species_changes, seed_arg)
             #assemble complete simulation data in format specified
             if show_labels:
                 data = {'time' : timeline}
@@ -230,7 +251,7 @@ class CythonSSASolver(GillesPySolver):
                     data[species[j]] = trajectories[i,:,j+1]
                 self.simulation_data.append(data)
             else:
-                self.simulation_data.append(trajectories[i])
+                self.simulation_data = trajectories
         #clean up
         for i in range(number_reactions):
             free(reactions[i].affected_reactions)
