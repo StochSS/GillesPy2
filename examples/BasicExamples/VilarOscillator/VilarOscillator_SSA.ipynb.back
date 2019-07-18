@@ -4,7 +4,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "# BasicTauLeapingSolver"
+    "# SSA Vilar Oscillator"
    ]
   },
   {
@@ -24,11 +24,13 @@
     "import os\n",
     "import numpy\n",
     "import matplotlib.pyplot as plt\n",
+    "plt.style.use('dark_background')\n",
     "sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '../../../')))\n",
     "import gillespy2.core.gillespySolver\n",
     "import gillespy2\n",
     "from gillespy2.core.gillespyError import SolverError, DirectoryError, BuildError, ExecutionError\n",
-    "from gillespy2.solvers.numpy.basic_tau_leaping_solver import BasicTauLeapingSolver"
+    "from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver\n",
+    "from gillespy2.solvers.cython.cython_ssa_solver import CythonSSASolver"
    ]
   },
   {
@@ -87,9 +89,9 @@
     "            \n",
     "            #reactions\n",
     "            s_Da = gillespy2.Reaction(name=\"s_Da\",reactants={Da_prime:1}, products={Da:1},rate=Theta_a)\n",
-    "            s_Da_prime = gillespy2.Reaction(name=\"s_Da_prime\",reactants={Da:1,A:1}, products={Da_prime:1},rate=gamma_a)\n",
+    "            s_Da_prime = gillespy2.Reaction(name=\"s_Da_pr1ime\",reactants={Da:1,A:1}, products={Da_prime:1},rate=gamma_a)\n",
     "            s_Dr = gillespy2.Reaction(name=\"s_Dr\",reactants={Dr_prime:1}, products={Dr:1},rate=Theta_r)\n",
-    "            s_Dr_prime = gillespy2.Reaction(name=\"s_Dr_prime\",reactants={Dr:1,A:1}, products={Dr_prime:1},rate=gamma_r)\n",
+    "            s_Dr_prime = gillespy2.Reaction(name=\"s_Dr_pr1ime\",reactants={Dr:1,A:1}, products={Dr_prime:1},rate=gamma_r)\n",
     "            s_Ma1 = gillespy2.Reaction(name=\"s_Ma1\",reactants={Da_prime:1},products={Da_prime:1,Ma:1},rate=alpha_a_prime)\n",
     "            s_Ma2 = gillespy2.Reaction(name=\"s_Ma2\",reactants={Da:1},products={Da:1,Ma:1},rate=alpha_a)\n",
     "            a_Ma = gillespy2.Reaction(name=\"a_Ma\",reactants={Ma:1},products={},rate=delta_ma)\n",
@@ -135,7 +137,8 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "%time results = model.run(solver=BasicTauLeapingSolver(), show_labels=True)"
+    "from gillespy2.solvers.cpp.ssa_c_solver import SSACSolver\n",
+    "%time results = model.run(solver=CythonSSASolver)"
    ]
   },
   {
@@ -145,7 +148,7 @@
    "outputs": [],
    "source": [
     "plt.figure(figsize=(18,10))\n",
-    "plt.title(\"Vilar Oscillator - Basic Tau Leaping\")\n",
+    "plt.title(\"Vilar Oscillator - SSA\")\n",
     "plt.xlabel(\"Time (s)\")\n",
     "plt.ylabel(\"Species Population\")\n",
     "\n",
@@ -190,6 +193,22 @@
     "                                  'Mr':results[0]['Mr'],'R':results[0]['R']})\n",
     "output_data_frame.iplot()"
    ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "results"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
   }
  ],
  "metadata": {

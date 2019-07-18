@@ -421,8 +421,7 @@ class Model(object):
     def delete_all_reactions(self):
         self.listOfReactions.clear()
 
-    def run(self, number_of_trajectories=1, seed=None,
-            solver=None, show_labels=True, max_steps=0):
+    def run(self, solver=None, **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -438,29 +437,30 @@ class Model(object):
         solver : gillespy.GillesPySolver
             The solver by which to simulate the model. This solver object may
             be initialized separately to specify an algorithm. Optional, 
-            defaults to StochKitSolver SSA.
-        show_labels : bool (True)
-            Use names of species as index of result object rather than position numbers.
-        max_steps : int
-            When using deterministic methods, specifies the maximum number of steps permitted for each integration point in t.
+            defaults to ssa solver.
+        show_labels: bool (True)
+            If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]
+        switch_tol: float
+            Tolerance for Continuous/Stochastic representation of species, based on coefficient of variance for each step.
+        tau_tol: float
+            Relative error tolerance value for calculating tau step between 0.0 and 1.0
+        integrator: String
+            integrator to be used form scipy.integrate.ode. Options include 'vode', 'zvode', 'lsoda', 'dopri5', and 'dop835'.  For more details, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html
+        integrator_options: dictionary
+            contains options to the scipy integrator. for a list of options, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.
+            Example use: {max_step : 0, rtol : .01}
         """
         if solver is not None:
             if ((isinstance(solver, type)
                     and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
-                return solver.run(model=self, t=self.tspan[-1],
-                                  increment=self.tspan[-1] - self.tspan[-2],
-                                  seed=seed,
-                                  number_of_trajectories=number_of_trajectories,
-                                  show_labels=show_labels, max_steps=max_steps)
+                return solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
             else:
                 raise SimulationError(
                     "argument 'solver' to run() must be a subclass of GillesPySolver")
         else:
             from gillespy2.solvers.auto import SSASolver
             return SSASolver.run(model=self, t=self.tspan[-1],
-                                      increment=self.tspan[-1] - self.tspan[-2], seed=seed,
-                                      number_of_trajectories=number_of_trajectories,
-                                      show_labels=show_labels)
+                                      increment=self.tspan[-1] - self.tspan[-2], **solver_args)
 
 
 
@@ -542,6 +542,9 @@ class Species:
         self.mode = mode
         self.allow_negative_populations = allow_negative_populations
 
+        mode_list = ['continuous', 'dynamic', 'discrete']
+        if self.mode not in mode_list:
+            raise SpeciesError('Species mode must be either \'continuous\', \'dynamic\', or \'discrete\'.')
         if mode == 'continuous':
             self.initial_value = np.float(initial_value)
         else:
@@ -693,6 +696,8 @@ class Reaction:
             self.massaction = True
 
         self.propensity_function = propensity_function
+        self.ode_propensity_function = propensity_function
+
         if self.propensity_function is not None and self.massaction:
             errmsg = ("Reaction {} You cannot set the propensity type to mass-action and simultaneously set a "
                       "propensity function.").format(self.name)
@@ -750,6 +755,7 @@ class Reaction:
         # Case EmptySet -> Y
 
         propensity_function = self.marate.name
+        ode_propensity_function = self.marate.name
 
         # There are only three ways to get 'total_stoch==2':
         for r in self.reactants:
@@ -757,9 +763,11 @@ class Reaction:
             if self.reactants[r] == 2:
                 propensity_function = ("0.5*" + propensity_function +
                                        "*" + str(r) + "*(" + str(r) + "-1)/vol")
+                ode_propensity_function += '*' + str(r) + '*' + str(r)
             else:
                 # Case 3: X1, X2 -> Y;
                 propensity_function += "*" + str(r)
+                ode_propensity_function += '*' + str(r)
 
         # Set the volume dependency based on order.
         order = len(self.reactants)
@@ -769,6 +777,7 @@ class Reaction:
             propensity_function += "*vol"
 
         self.propensity_function = propensity_function
+        self.ode_propensity_function = ode_propensity_function
 
     def setType(self, rxntype):
         """

@@ -1,9 +1,11 @@
 import random, math, sys, warnings
+from collections import OrderedDict
 from scipy.integrate import ode
 import numpy as np
 import gillespy2
 from gillespy2.solvers.numpy import Tau
-from gillespy2.core import GillesPySolver
+from gillespy2.core import GillesPySolver, log
+from gillespy2.core.gillespyError import *
 
 eval_globals = math.__dict__
 
@@ -17,10 +19,10 @@ class BasicTauHybridSolver(GillesPySolver):
     is bounded by bounding the relative change in the state of the system, resulting in increased
     run-time performance with little accuracy trade-off.
     """
-    name = "Basic Tau Hybrid Solver"
+    name = "BasicTauHybridSolver"
 
-    def __init__(self, debug=False):
-        self.debug = debug
+    def __init__(self):
+        name = 'BasicTauHybridSolver'
            
         
     def toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, curr_state, rxn_offset, det_spec):
@@ -30,10 +32,6 @@ class BasicTauHybridSolver(GillesPySolver):
         rate_rules = all_compiled['rules']
         rxns = all_compiled['rxns']
         
-        #Check if this reaction set is already compiled and in use:
-        if deterministic_reactions in rate_rules.keys():
-            return
-
         #If the set has changed, reactivate non-determinsitic reactions
         reactivate = []
         for r in inactive_reactions:
@@ -52,25 +50,32 @@ class BasicTauHybridSolver(GillesPySolver):
             if not r in inactive_reactions:
                 inactive_reactions[r] = rxns.pop(r, None)
 
+        #Check if this reaction set is already compiled and in use:
+        if deterministic_reactions in rate_rules.keys():
+            return
+
         #Otherwise, this is a new determinstic reaction set that must be compiled
         if not deterministic_reactions in rate_rules:
             rate_rules[deterministic_reactions] = self.create_diff_eqs(deterministic_reactions, model, dependencies)
                 
     def create_diff_eqs(self, comb, model, dependencies):
 
-        diff_eqs = {}
-        reactions = {}
-        rate_rules = {}
+        diff_eqs = OrderedDict()
+        reactions = OrderedDict()
+        rate_rules = OrderedDict()
 
         #Initialize sample dict
         for reaction in comb:
             for dep in dependencies[reaction]:
-                if dep not in diff_eqs and model.listOfSpecies[dep].mode == 'dynamic':
+                if dep not in diff_eqs:
                     diff_eqs[dep] = '0'
 
         # loop through each det reaction and concatenate it's diff eq for each species
         for reaction in comb:
-            factor = {}
+            factor = OrderedDict()
+            for dep in dependencies[reaction]:
+                if model.listOfSpecies[dep].mode != 'continuous':
+                    pure_continuous = False
             for dep in dependencies[reaction]:
                 factor[dep] = 0
             for key, value in model.listOfReactions[reaction].reactants.items():
@@ -79,7 +84,10 @@ class BasicTauHybridSolver(GillesPySolver):
                 factor[key.name] += value
             for dep in dependencies[reaction]:
                 if factor[dep] != 0:
-                    diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].propensity_function)
+                    if model.listOfSpecies[dep].mode == 'continuous':
+                        diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].ode_propensity_function)
+                    else:
+                        diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].propensity_function)
         
         #create a dictionary of compiled gillespy2 rate rules
         for spec, rate in diff_eqs.items():
@@ -97,7 +105,10 @@ class BasicTauHybridSolver(GillesPySolver):
         for rxn in model.listOfReactions:
             det_rxn[rxn] = True
             for species in dependencies[rxn]:
-                if det_spec[species] == False:
+                if model.listOfSpecies[species].mode == 'discrete': 
+                    det_rxn[rxn] = False
+                    break
+                if model.listOfSpecies[species].mode == 'dynamic' and det_spec[species] == False:
                     det_rxn[rxn] = False
                     break
                     
@@ -108,13 +119,13 @@ class BasicTauHybridSolver(GillesPySolver):
         deterministic_reactions = frozenset(deterministic_reactions)
         return deterministic_reactions
                             
-    def calculate_statistics(self, model, propensities, curr_state, tau_step, det_spec, dependencies, hybrid_tol):
+    def calculate_statistics(self, model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol):
         """
         Calculates Mean, Standard Deviation, and Coefficient of Variance for each
         dynamic species, then set if species can be represented determistically
         """
-        sd = {}
-        CV = {}        
+        sd = OrderedDict()
+        CV = OrderedDict()
 
         mn = {species:curr_state[species] for (species, value) in 
               model.listOfSpecies.items() if value.mode == 'dynamic'}
@@ -135,7 +146,7 @@ class BasicTauHybridSolver(GillesPySolver):
             else:
                 sd[species], CV[species] = (0, 1)    # values chosen to guarantee discrete
             #Set species to deterministic if CV is less than threshhold
-            det_spec[species] = True if CV[species] < hybrid_tol else False                            
+            det_spec[species] = True if CV[species] < switch_tol else False                            
                 
         return mn, sd, CV
     
@@ -146,7 +157,8 @@ class BasicTauHybridSolver(GillesPySolver):
         """
         curr_state['t'] = t
         state_change = []
-
+        for i, rr in enumerate(compiled_rate_rules):
+            curr_state[rr] = y[i]
         for i, rr in enumerate(compiled_rate_rules):
             state_change.append(eval(compiled_rate_rules[rr], eval_globals, curr_state))
         for i, r in enumerate(compiled_reactions):
@@ -156,32 +168,20 @@ class BasicTauHybridSolver(GillesPySolver):
         return state_change
 
     @staticmethod
-    def __get_reaction_integrate(step, curr_state, y0, model, curr_time, propensities, compiled_reactions,
-                                 compiled_rate_rules):
+    def __get_reaction_integrate(integrator, integrator_options, step, curr_state, y0, model, curr_time, 
+                                 propensities, compiled_reactions, compiled_rate_rules):
         """ Helper function to perform the ODE integration of one step """
-        rhs = ode(BasicTauHybridSolver.__f)  # set function as ODE object
+        rhs = ode(BasicTauHybridSolver.__f).set_integrator(integrator, **integrator_options)  # set function as ODE object
         rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfReactions,
                                                           model.listOfRateRules, propensities, compiled_reactions,
                                                           compiled_rate_rules)
-        rhs.set_integrator('lsoda', max_step=5000000000, ixpr=True)
         int_time = step+curr_time
         current = rhs.integrate(int_time)  # current holds integration from current_time to int_time
-        if rhs.successful():
-            return current, curr_time + step
-        else:
-            # if step is < 1e-15, take a Forward-Euler step for all species ('propensites' and RateRules)
-            # TODO The RateRule linked species should still contain the correct value in current, verify this
-            # step size is too small, take a single forward-euler step
-            print('*** EULER ***')
-            current = y0 + np.array(BasicTauHybridSolver.__f(curr_time, y0,
-                                                                curr_state, model.listOfReactions,
-                                                                model.listOfRateRules, propensities, compiled_reactions,
-                                                                compiled_rate_rules)) * step
 
-            return current, curr_time + step
+        return current, curr_time + step
 
-    def __get_reactions(self, step, curr_state, y0, model, curr_time, save_time,
-                        propensities, compiled_reactions, compiled_rate_rules, rxn_offset, debug):
+    def __get_reactions(self, integrator, integrator_options, step, curr_state, y0, model, curr_time, 
+                        save_time, propensities, compiled_reactions, compiled_rate_rules, rxn_offset, debug):
         """
         Function to get reactions fired from t to t+tau.  This function solves for root crossings
         of each reaction channel from over tau step, using poisson random number generation
@@ -201,10 +201,9 @@ class BasicTauHybridSolver(GillesPySolver):
         if debug:
             print("Curr Time: ", curr_time, " Save time: ", save_time, "step: ", step)
 
-        current, curr_time = self.__get_reaction_integrate(step, curr_state, y0, model,
-                                                           curr_time, propensities, compiled_reactions,
-                                                           compiled_rate_rules)
-
+        current, curr_time = self.__get_reaction_integrate(integrator, integrator_options, step, curr_state, 
+                                                           y0, model, curr_time, propensities, 
+                                                           compiled_reactions, compiled_rate_rules)
         # UPDATE THE STATE of the continuous species
         for i, s in enumerate(compiled_rate_rules):
             curr_state[s] = current[i]
@@ -212,7 +211,7 @@ class BasicTauHybridSolver(GillesPySolver):
         # UPDATE THE STATE of the discrete reactions
         for i, r in enumerate(compiled_reactions):
             rxn_offset[r] = current[i+len(compiled_rate_rules)]
-        rxn_count = {}
+        rxn_count = OrderedDict()
         fired = False
         for i, r in enumerate(compiled_reactions):
             rxn_count[r] = 0
@@ -223,7 +222,6 @@ class BasicTauHybridSolver(GillesPySolver):
                 urn = (math.log(random.uniform(0, 1)))
                 current[i+len(compiled_rate_rules)] += urn
                 rxn_offset[r] += urn
-
         
 
         if debug:
@@ -234,8 +232,9 @@ class BasicTauHybridSolver(GillesPySolver):
         return rxn_count, current, curr_state, curr_time
 
     @classmethod
-    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False,
-            profile=False, show_labels=True, hybrid_tol=0.03, tau_tol=0.03, **kwargs):
+    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
+            debug=False, profile=False, show_labels=True, switch_tol=0.03, tau_tol=0.03, 
+            integrator='lsoda', integrator_options={}, **kwargs):
         """
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
         objects and will inherit those parameters which are passed with the model as the arguments this run function.
@@ -260,14 +259,26 @@ class BasicTauHybridSolver(GillesPySolver):
             simulation.
         profile : bool (Fasle)
             Set to True to provide information about step size (tau) taken at each step.
-        show_labels : bool (True)
-            Use names of species as index of result object rather than position numbers.
+        show_labels: bool (True)
+            If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]
+        switch_tol: float
+            Relative error tolerance value for deterministic/stochastic switching condition between 0.0 and 1.0
+        tau_tol: float
+            Relative error tolerance value for calculating tau step between 0.0 and 1.0
+        integrator: String
+            integrator to be used form scipy.integrate.ode. Options include 'vode', 'zvode', 'lsoda', 'dopri5', and 'dop835'.  For more details, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html
+        integrator_options: dictionary
+            contains options to the scipy integrator. for a list of options, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.
+            Example use: {max_step : 0, rtol : .01}
         """
 
-        if not sys.warnoptions:
-            warnings.simplefilter("ignore")
         if not isinstance(self, BasicTauHybridSolver):
             self = BasicTauHybridSolver()
+
+        if len(kwargs) > 0:
+            for key in kwargs:
+                log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
+
         if debug:
             print("t = ", t)
             print("increment = ", increment)
@@ -287,42 +298,58 @@ class BasicTauHybridSolver(GillesPySolver):
         # copy time values to all trajectory row starts
         trajectory_base[:, :, 0] = timeline
 
+        spec_modes = ['continuous', 'dynamic', 'discrete']
         # copy initial populations to base
         for i, s in enumerate(species):
+            if model.listOfSpecies[s].mode not in spec_modes:
+                raise SpeciesError('Species mode can only be \'continuous\', \'dynamic\', or \'discrete\'.')
             trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
 
         det_spec = {species:True for (species, value) in model.listOfSpecies.items() if value.mode == 'dynamic'}
         det_rxn = {rxn:False for (rxn, value) in model.listOfReactions.items()}
         
-        dependencies = {}
-
+        dependencies = OrderedDict()
 
         for reaction in model.listOfReactions:
             dependencies[reaction] = set()
             [dependencies[reaction].add(reactant.name) for reactant in model.listOfReactions[reaction].reactants]
             [dependencies[reaction].add(product.name) for product in model.listOfReactions[reaction].products]
 
+        pure_ode = True
+        for reaction in model.listOfReactions.keys():
+            for dep in dependencies[reaction]:
+                if model.listOfSpecies[dep].mode != 'continuous':
+                    pure_ode = False
+
         if debug:
             print('dependencies')
             print(dependencies)
 
         simulation_data = []
+        if seed is not None:
+            if not isinstance(seed, int):
+                seed = int(seed)
+            if seed > 0:
+                random.seed(seed)
+            else:
+                raise ModelError('seed must be a positive integer')
         for trajectory_num in range(number_of_trajectories):
 
-            random.seed(seed)
+
             steps_taken = []
             steps_rejected = 0
             entry_count = 0
             trajectory = trajectory_base[trajectory_num]
 
             y0 = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
-            rxn_offset = {}
-            propensities = {}
-            curr_state = {}
+            rxn_offset = OrderedDict()
+            propensities = OrderedDict()
+            curr_state = OrderedDict()
             curr_time = 0
             curr_state['vol'] = model.volume
             save_time = 0
-            data = {'time': timeline}
+            data = OrderedDict()
+            data['time'] = timeline
 
             HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold = Tau.initialize(model, tau_tol)
 
@@ -338,21 +365,24 @@ class BasicTauHybridSolver(GillesPySolver):
                 if debug:
                     print("Setting Random number ", rxn_offset[r], " for ", model.listOfReactions[r].name)
 
-            compiled_reactions = {}
+            compiled_reactions = OrderedDict()
             for i, r in enumerate(model.listOfReactions):
                 compiled_reactions[r] = compile(model.listOfReactions[r].propensity_function, '<string>',
                                                 'eval')
-            compiled_rate_rules = {}
+            compiled_rate_rules = OrderedDict()
             for i, rr in enumerate(model.listOfRateRules):
                 compiled_rate_rules[rr] = compile(model.listOfRateRules[rr].expression, '<string>', 'eval')
                 
-            compiled_inactive_reactions = {}
+            compiled_inactive_reactions = OrderedDict()
 
-            compiled_propensities = {}
+            compiled_propensities = OrderedDict()
             for i, r in enumerate(model.listOfReactions):
                 compiled_propensities[r] = compile(model.listOfReactions[r].propensity_function, '<string>', 'eval')
             
-            all_compiled = {'rxns': compiled_reactions, 'rules': compiled_rate_rules, 'inactive_rxns': compiled_inactive_reactions}
+            all_compiled = OrderedDict()
+            all_compiled['rxns'] = compiled_reactions
+            all_compiled['rules'] = compiled_rate_rules
+            all_compiled['inactive_rxns'] = compiled_inactive_reactions
 
             timestep = 0
 
@@ -367,16 +397,16 @@ class BasicTauHybridSolver(GillesPySolver):
                         propensities[r] = eval(compiled_propensities[r], curr_state)
                         propensity_sum += propensities[r]
 
-                    tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold,
+                    tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
                             model, propensities, curr_state, curr_time, save_time]
 
-                    tau_step = Tau.select(*tau_args)
+                    tau_step = save_time-curr_time if pure_ode else Tau.select(*tau_args)
 
                     if profile:
                         steps_taken.append(tau_step)
 
                     # END NEW TAU SELECTION METHOD
-                    mn, sd, CV = self.calculate_statistics(model, propensities, curr_state, tau_step, det_spec, dependencies, hybrid_tol)
+                    mn, sd, CV = self.calculate_statistics(model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol)
                     deterministic_reactions = self.flag_det_reactions(model, det_spec, det_rxn, dependencies)
                     
                     if debug:
@@ -386,7 +416,7 @@ class BasicTauHybridSolver(GillesPySolver):
                         print('CV: {0}'.format(CV))
                         print('det_spec: {0}'.format(det_spec))
                         print('det_rxn: {0}'.format(det_rxn))
-                         
+                    
                     self.toggle_reactions(model, all_compiled, deterministic_reactions, dependencies, curr_state, rxn_offset, det_spec)
                     active_rr = compiled_rate_rules[deterministic_reactions]
 
@@ -406,13 +436,13 @@ class BasicTauHybridSolver(GillesPySolver):
                         if loop_cnt > 100:
                             raise Exception("Loop over __get_reactions() exceeded loop count")
 
-                        reactions, y0, curr_state, curr_time = self.__get_reactions(
+                        reactions, y0, curr_state, curr_time = self.__get_reactions(integrator, integrator_options,
                             tau_step, curr_state, y0, model, curr_time, save_time, propensities, compiled_reactions,
                             active_rr, rxn_offset, debug)
 
 
                         # Update curr_state with the result of the SSA reaction that fired
-                        species_modified = {}
+                        species_modified = OrderedDict()
                         for i, r in enumerate(compiled_reactions):
                             if reactions[r] > 0:
                                 for reactant in model.listOfReactions[r].reactants:
@@ -459,7 +489,7 @@ class BasicTauHybridSolver(GillesPySolver):
                     data[species[i]] = trajectory[:, i+1]
                 simulation_data.append(data)
             else:
-                simulation_data.append(trajectory)
+                simulation_data = trajectory_base
             if profile:
                 print(steps_taken)
                 print("Total Steps Taken: ", len(steps_taken))
