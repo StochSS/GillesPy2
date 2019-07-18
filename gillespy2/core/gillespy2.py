@@ -437,7 +437,7 @@ class Model(object):
         solver : gillespy.GillesPySolver
             The solver by which to simulate the model. This solver object may
             be initialized separately to specify an algorithm. Optional, 
-            defaults to StochKitSolver SSA.
+            defaults to ssa solver.
         show_labels: bool (True)
             If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]
         switch_tol: float
