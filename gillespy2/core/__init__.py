@@ -11,6 +11,6 @@ _handler.setFormatter(_formatter)
 log = logging.getLogger()
 log.setLevel(logging.WARN)
 log.addHandler(_handler)
-version = '1.1.1'
+version = '1.1.2'
 
 __all__ = [s for s in dir() if not s.startswith('_')]

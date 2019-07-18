@@ -4,8 +4,7 @@ from scipy.integrate import ode
 from scipy.integrate import odeint
 from collections import OrderedDict
 import numpy as np
-from gillespy2.core import GillesPySolver
-from gillespy2.core import log
+from gillespy2.core import GillesPySolver, log
 
 
 class BasicODESolver(GillesPySolver):
@@ -13,6 +12,9 @@ class BasicODESolver(GillesPySolver):
     This Solver produces the deterministic continuous solution via ODE.
     """
     name = "BasicODESolver"
+    
+    def __init__(self):
+        name = "BasicODESolver"
 
     @staticmethod
     def __f(t, y, curr_state, model, c_prop):
@@ -41,7 +43,7 @@ class BasicODESolver(GillesPySolver):
         return state_change
 
     @classmethod
-    def run(cls, model, t=20, number_of_trajectories=1, increment=0.05, 
+    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, 
             show_labels=True, integrator='lsoda', integrator_options={}, **kwargs):
         """
 
@@ -57,6 +59,11 @@ class BasicODESolver(GillesPySolver):
         :param kwargs:
         :return:
         """
+        if not isinstance(self, BasicODESolver):
+            self = BasicODESolver()
+        if len(kwargs) > 0:
+            for key in kwargs:
+                log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
         if number_of_trajectories > 1:
             log.warning("Generating duplicate trajectories for model with ODE Solver. Consider running with only 1 trajectory.")
 

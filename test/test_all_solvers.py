@@ -40,6 +40,13 @@ class TestAllSolvers(unittest.TestCase):
             diff_results = self.model.run(solver=solver, show_labels=False, seed=2)
             if solver.name != 'BasicODESolver':
                 self.assertFalse(np.array_equal(diff_results, self.results[solver]))
+    
+    def test_extraneous_args(self):
+        for solver in self.solvers:
+            print(solver.name)
+            with self.assertWarns(Warning):
+                model = Example()
+                results = model.run(solver=solver, nonsense='ABC')
 
 if __name__ == '__main__':
     unittest.main()

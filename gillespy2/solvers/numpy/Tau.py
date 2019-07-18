@@ -96,9 +96,9 @@ def select(*tau_args):
                 if reactant not in sigma_i:
                     sigma_i[str(reactant)] = 0
                 mu_i[str(reactant)] += model.listOfReactions[r].reactants[reactant] * propensities[
-                    r]  # Cao, Gillespie, Petzold 29a
+                    r]  # Cao, Gillespie, Petzold 32a
                 sigma_i[str(reactant)] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[
-                    r]  # Cao, Gillespie, Petzold 29b
+                    r]  # Cao, Gillespie, Petzold 32b
     for r in reactants:
         calculated_max = epsilon_i[str(r)] * curr_state[r.name]
         #print('calculated max: ', calculated_max)
