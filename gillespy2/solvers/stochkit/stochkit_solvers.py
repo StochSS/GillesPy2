@@ -5,7 +5,7 @@ import os
 import uuid
 import subprocess
 import shutil
-from gillespy2.core import GillesPySolver, Model
+from gillespy2.core import GillesPySolver, Model, log
 from gillespy2.core.gillespyError import SimulationError, InvalidModelError
 
 
@@ -54,6 +54,9 @@ class StochKitBaseSolver(GillesPySolver):
         """
         Call out and run the solver. Collect the results.
         """
+        if len(kwargs) > 0:
+            for key in kwargs:
+                log.warning('Unsupported keyword argument to solver: {0}'.format(key))
 
         if algorithm is None:
             raise SimulationError("No algorithm selected")
