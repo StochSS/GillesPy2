@@ -9,16 +9,16 @@ def _plot_iterate(self,num = ""):
         if key is not 'time':
             plt.plot(self.data['time'], self.data[key], label=(key + num))
 
-def _plotplotyl_iterate(self,num = "",outputdata = None):
+def _plotplotyl_iterate(self, num = "", trace_list = None):
 
-    if outputdata is None:
-        outputdata = []
+    if trace_list is None:
+        trace_list = []
 
     import plotly.graph_objs as go
 
     for key in self.data:
         if key is not 'time':
-            outputdata.append(
+            trace_list.append(
                 go.Scatter(
                     x=self.data['time'],
                     y=self.data[key],
@@ -26,18 +26,38 @@ def _plotplotyl_iterate(self,num = "",outputdata = None):
                     name=key + " " + num
                 )
             )
-    return outputdata
-
+    return trace_list
 
 class Results(UserDict):
-    """ Result object for a gillespy2 solver, extends the UserDict object. """
+    """ Results Dict created by a gillespy2 solver with single trajectory, extends the UserDict object.
+
+        Attributes
+        ----------
+        data : UserList
+            A list of Results that are created by solvers with multiple trajectories
+        """
 
     def __init__(self,data,model = None,solver_name = "Undefined solver name"):
+
         self.data = data
         self.model = model
         self.solver_name = solver_name
 
-    def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = "default", style="default"):
+    def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = "default", style="default",**kwargs):
+        """ Plots the Results using matplotlib.
+
+         Attributes
+        ----------
+        xaxis_label : str
+            the label for the x-axis
+        yaxis_label : str
+            the label for the y-axis
+        title : str
+            the title of the graph
+        """
+
+        if kwargs.get('multiple_graphs'):
+            warnings.warn("Multiple_Graphs keyword received. Keyword is ony for use with EnsembleResults ")
 
         import matplotlib.pyplot as plt
 
@@ -60,7 +80,21 @@ class Results(UserDict):
         plt.plot([0], [11])
         plt.legend(loc='best')
 
-    def plotplotly(self,xaxis_label = "Time (s)", yaxis_label="Species Population",title = "default"):
+    def plotplotly(self,xaxis_label = "Time (s)", yaxis_label="Species Population",title = "default",**kwargs):
+        """ Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.
+
+         Attributes
+        ----------
+        xaxis_label : str
+            the label for the x-axis
+        yaxis_label : str
+            the label for the y-axis
+        title : str
+            the title of the graph
+        """
+
+        if kwargs['multiple_graphs'] is not None:
+            warnings.warn("Multiple_Graphs keyword received. Keyword is ony for use with EnsembleResults ")
 
         from plotly.offline import init_notebook_mode, iplot
         import plotly.graph_objs as go
@@ -70,7 +104,7 @@ class Results(UserDict):
         if title is "default":
             title = (self.model.name + " - " + self.solver_name)
 
-        outputdata = _plotplotyl_iterate(self)
+        trace_list = _plotplotyl_iterate(self)
 
         layout = go.Layout(
             title= title,
@@ -79,27 +113,48 @@ class Results(UserDict):
             yaxis=dict(
                 title=yaxis_label)
         )
-        fig = dict(data = outputdata,layout=layout)
+        fig = dict(data = trace_list,layout=layout)
         iplot(fig)
 
 class EnsembleResults(UserList):
-    """ Result object for a gillespy2 solver, extends the UserList object. """
+    """ List of Results Dicts created by a gillespy2 solver with multiple trajectories, extends the UserList object.
+
+        Attributes
+        ----------
+        data : UserList
+            A list of Results
+        """
 
     def __init__(self,data):
         self.data = data
 
-    def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", style="default", title = "default", multiple_graphs = False):
+    def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", style="default", title = "default", multiple_graphs = False,**kwargs):
+        """ Plots the Results using matplotlib.
 
+        Attributes
+        ----------
+        xaxis_label : str
+            the label for the x-axis
+        yaxis_label : str
+            the label for the y-axis
+            style : str
+            the matplotlib style to be used for the graph or graphs
+        title : str
+            the title of the graph
+        multiple_graphs : bool
+            if each trajectory should have its own graph or if they should overlap
+            """
         import matplotlib.pyplot as plt
+        results_list = self.data
 
         if title is "default":
             title = (self[0].model.name + " - " + self[0].solver_name)
 
-        if len(self.data) < 2:
+        if len(results_list) < 2:
                 multiple_graphs = False
 
         if multiple_graphs is True:
-            for i,result in enumerate(self.data):
+            for i,result in enumerate(results_list):
                 result.plot(xaxis_label=xaxis_label,yaxis_label=yaxis_label,title=title + " " + str(i + 1),style=style)
 
         if multiple_graphs is False:
@@ -114,52 +169,69 @@ class EnsembleResults(UserList):
             plt.xlabel(xaxis_label)
             plt.ylabel(yaxis_label)
 
-            for i,result in enumerate(self.data):
+            for i,result in enumerate(results_list):
                 _plot_iterate(result,num = (" " + str(i + 1)))
 
             plt.plot([0], [11])
             plt.legend(loc='best')
 
 
-    def plotplotly(self,xaxis_label = "Time (s)", yaxis_label="Species Population",title = "default",multiple_graphs = False):
+    def plotplotly(self,xaxis_label = "Time (s)", yaxis_label="Species Population",title = "default",multiple_graphs = False,**kwargs):
+        """ Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.
+
+        Attributes
+        ----------
+        xaxis_label : str
+            the label for the x-axis
+        yaxis_label : str
+            the label for the y-axis
+        title : str
+            the title of the graph
+        multiple_graphs : bool
+            if each trajectory should have its own graph or if they should overlap
+
+        """
+
         from plotly.offline import init_notebook_mode, iplot
         import plotly.graph_objs as go
 
         init_notebook_mode(connected=True)
 
+        results_list = self.data
+        number_of_trajectories =len(results_list)
+
         if title is "default":
             title = (self[0].model.name + " - " + self[0].solver_name)
 
-        outputdata = []
         fig = dict(data=[], layout=[])
 
-        if len(self.data) < 2:
+        if len(results_list) < 2:
             multiple_graphs = False
 
         if multiple_graphs is True:
 
             from plotly import tools
 
-            fig = tools.make_subplots(print_grid=False,rows=int(len(self.data)/2) + int(len(self.data)%2),cols = int(len(self.data)/2))
+            fig = tools.make_subplots(print_grid=False,rows=int(number_of_trajectories/2) + int(number_of_trajectories%2),cols = 2)
 
-            for i, result in enumerate(self.data):
-                out = _plotplotyl_iterate(result,num = str(i + 1),outputdata=[])
-                for b in range(0,len(out)):
+            for i, result in enumerate(results_list):
+                trace_list = _plotplotyl_iterate(result, num = str(i + 1), trace_list=[])
+                for k in range(0,len(trace_list)):
                     if i%2 == 0:
-                        fig.append_trace(out[b], int(i/2) + 1, 1)
+                        fig.append_trace(trace_list[k], int(i/2) + 1, 1)
                     else:
-                        fig.append_trace(out[b], int(i/2) + 1, 2)
+                        fig.append_trace(trace_list[k], int(i/2) + 1, 2)
 
                 fig['layout'].update(autosize=True,
-                                     height=400*len(self.data),
+                                     height=400*len(results_list),
                                      showlegend=True,title =title)
 
             iplot(fig)
 
         else:
-            for i,result in enumerate(self.data):
-                outputdata = _plotplotyl_iterate(result,num = str(i + 1),outputdata=outputdata)
-
+            trace_list = []
+            for i,result in enumerate(results_list):
+                trace_list = _plotplotyl_iterate(result, num = str(i + 1), trace_list=trace_list)
 
             layout = go.Layout(
                 title=title,
@@ -169,33 +241,39 @@ class EnsembleResults(UserList):
                     title=yaxis_label)
             )
 
-            fig['data'] = outputdata
+            fig['data'] = trace_list
             fig['layout'] = layout
             iplot(fig)
 
-
     def average_ensemble(self):
+        """
+                Generate a single Results dictionary that is made of the mean of all trajectories' outputs
+                :return: the Results dictionary
+                """
 
-        output = Results(data={},model=self.data[0].model,solver_name=self.data[0].solver_name)
+        results_list = self.data
+        number_of_trajectories = len(results_list)
 
-        for key in self.data[0]:
-            output[key] = [0]*len(self.data[0][key])
+        output = Results(data={},model=results_list[0].model,solver_name=results_list[0].solver_name)
 
-        output['time'] = self.data[0]['time']
+        for result in results_list[0]: #Initialize the output to be the same size as the inputs
+            output[result] = [0]*len(results_list[0][result])
 
-        for a in range(0,len(self.data)):
-            results_dict = self.data[a]
-            for key in results_dict:
-                if key is 'time':
+        output['time'] = results_list[0]['time']
+
+        for i in range(0,number_of_trajectories): #Add every value of every Results Dict into one output Results
+            results_dict = results_list[i]
+            for result in results_dict:
+                if result is 'time':
                     continue
-                for i in range(0,len(output[key])):
-                    output[key][i] += results_dict[key][i]
+                for k in range(0,len(output[result])):
+                    output[result][k] += results_dict[result][k]
 
-        for key in output:
-            if key is 'time':
+        for result in output:   #Divide for mean of every value in output Results
+            if result is 'time':
                 continue
-            for i in range(0,len(output[key])):
-                output[key][i] /= len(self.data)
+            for i in range(0,len(output[result])):
+                output[result][i] /= len(results_list)
 
         return output
 
