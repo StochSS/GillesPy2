@@ -45,7 +45,7 @@ class Results(UserDict):
         self.model = model
         self.solver_name = solver_name
 
-    def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = "default", style="default",**kwargs):
+    def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = "default", style="default",show_legend=True,**kwargs):
         """ Plots the Results using matplotlib.
 
          Attributes
@@ -76,9 +76,12 @@ class Results(UserDict):
         _plot_iterate(self)
 
         plt.plot([0], [11])
-        plt.legend(loc='best')
 
-    def plotplotly(self,xaxis_label = "Time (s)", yaxis_label="Species Population",title = "default",**kwargs):
+        if show_legend:
+            plt.legend(loc='best')
+
+
+    def plotplotly(self,xaxis_label = "Time (s)", yaxis_label="Species Population",title = "default",show_legend=True,**kwargs):
         """ Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.
 
          Attributes
@@ -102,6 +105,7 @@ class Results(UserDict):
         trace_list = _plotplotyl_iterate(self)
 
         layout = go.Layout(
+            showlegend=show_legend,
             title= title,
             xaxis=dict(
                 title=xaxis_label),
@@ -123,7 +127,7 @@ class EnsembleResults(UserList):
     def __init__(self,data):
         self.data = data
 
-    def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", style="default", title = "default", multiple_graphs = False,**kwargs):
+    def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", style="default", title = "default",show_legend=True, multiple_graphs = False,**kwargs):
         """ Plots the Results using matplotlib.
 
         Attributes
@@ -167,11 +171,11 @@ class EnsembleResults(UserList):
             for i,result in enumerate(results_list):
                 _plot_iterate(result,num = (" " + str(i + 1)))
 
+            if show_legend:
+                plt.legend(loc='best')
             plt.plot([0], [11])
-            plt.legend(loc='best')
 
-
-    def plotplotly(self,xaxis_label = "Time (s)", yaxis_label="Species Population",title = "default",multiple_graphs = False,**kwargs):
+    def plotplotly(self,xaxis_label = "Time (s)", yaxis_label="Species Population",title = "default",show_legend=True,multiple_graphs = False,**kwargs):
         """ Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.
 
         Attributes
@@ -219,7 +223,7 @@ class EnsembleResults(UserList):
 
                 fig['layout'].update(autosize=True,
                                      height=400*len(results_list),
-                                     showlegend=True,title =title)
+                                     showlegend=show_legend,title =title)
 
             iplot(fig)
 
@@ -229,6 +233,7 @@ class EnsembleResults(UserList):
                 trace_list = _plotplotyl_iterate(result, num = str(i + 1), trace_list=trace_list)
 
             layout = go.Layout(
+                showlegend=show_legend,
                 title=title,
                 xaxis=dict(
                     title=xaxis_label),
@@ -309,7 +314,7 @@ class EnsembleResults(UserList):
 
         return output
 
-    def plotplotly_stddev_mean_ensemble(self,xaxis_label = "Time (s)", yaxis_label="Species Population",title = "default",**kwargs):
+    def plotplotly_std_dev_range(self,xaxis_label = "Time (s)", yaxis_label="Species Population",title = "default",show_legend=True,**kwargs):
 
         average_result = self.average_ensemble()
         stddev_result = self.stddev_ensemble()
@@ -320,30 +325,54 @@ class EnsembleResults(UserList):
         init_notebook_mode(connected=True)
 
         if title is "default":
-            title = (self.model.name + " - " + self.solver_name)
+            title = (average_result.model.name + " - " + average_result.solver_name + " - Standard Deviation error bars")
 
-        lower_bound = average_result
-        upper_bound = average_result
+        trace_list=[]
+        for species in average_result:
+            if species is not 'time':
 
-        trace_list = _plotplotyl_iterate(average_result)
+                upper_bound = []
+                for i in range(0, len(average_result[species])):
+                    upper_bound.append(average_result[species][i] + stddev_result[species][i])
 
-        for species in lower_bound:
-            if species is 'time':
-                continue
-            for i in range(0, len(lower_bound[species])):
-                lower_bound[species][i] -= stddev_result[species][i]
+                trace_list.append(
+                    go.Scatter(
+                        name=species+ ' Upper Bound',
+                        x=average_result['time'],
+                        y = upper_bound,
+                        mode='lines',
+                        marker=dict(color="#444"),
+                        line=dict(width=0)
+                    )
+                )
+                trace_list.append(
+                    go.Scatter(
+                        x=average_result['time'],
+                        y=average_result[species],
+                        name=species,
+                        fillcolor='rgba(68, 68, 68, 0.2)',
+                        fill='tonexty'
+                    )
+                )
 
-        trace_list += _plotplotyl_iterate(lower_bound,line_dict=dict( width=2, dash='dot'),num="lower",fill='tonextyup')
+                lower_bound = []
+                for i in range(0, len(average_result[species])):
+                    lower_bound.append(average_result[species][i] - stddev_result[species][i])
 
-        for species in upper_bound:
-            if species is 'time':
-                continue
-            for i in range(0, len(upper_bound[species])):
-                upper_bound[species][i] += 2*stddev_result[species][i]
-
-        trace_list += _plotplotyl_iterate(upper_bound,line_dict=dict(width=2,dash='dot'),num="upper")
-
+                trace_list.append(
+                    go.Scatter(
+                        name=species + ' Lower Bound',
+                        x=average_result['time'],
+                        y= lower_bound,
+                        mode='lines',
+                        marker=dict(color="#444"),
+                        line=dict(width=0),
+                        fillcolor='rgba(68, 68, 68, 0.2)',
+                        fill='tonexty'
+                    )
+                )
         layout = go.Layout(
+            showlegend=show_legend,
             title=title,
             xaxis=dict(
                 title=xaxis_label),
@@ -353,11 +382,10 @@ class EnsembleResults(UserList):
         fig = dict(data=trace_list, layout=layout)
         iplot(fig)
 
-    def plot_std_dev_error_bars(self,xaxis_label ="Time (s)", yaxis_label ="Species Population", title = "default", style="default"):
+    def plot_std_dev_error_bars(self,xaxis_label ="Time (s)", yaxis_label ="Species Population", title = "default", style="default",show_legend=True,**kwargs):
         """
             Plot a matplotlib graph depicting standard deviation and the mean graph of an ensemble_results object
             """
-
 
         average_result = self.average_ensemble()
         stddev_result = self.stddev_ensemble()
@@ -383,6 +411,7 @@ class EnsembleResults(UserList):
         plt.title(title, fontsize=18)
         plt.xlabel(xaxis_label)
         plt.ylabel(yaxis_label)
-
         plt.plot([0], [11])
-        plt.legend(loc='best')
+        if show_legend:
+            plt.legend(loc='best')
+
