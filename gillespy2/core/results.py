@@ -9,7 +9,7 @@ def _plot_iterate(self,num = ""):
         if species is not 'time':
             plt.plot(self.data['time'], self.data[species], label=(species + num))
 
-def _plotplotyl_iterate(self, num = "", trace_list = None):
+def _plotplotyl_iterate(self, num = "", trace_list = None,line_dict= None,fill = None):
 
     if trace_list is None:
         trace_list = []
@@ -23,7 +23,9 @@ def _plotplotyl_iterate(self, num = "", trace_list = None):
                     x=self.data['time'],
                     y=self.data[species],
                     mode='lines',
-                    name=species + " " + num
+                    name=species + " " + num,
+                    line = line_dict,
+                    fill = fill
                 )
             )
     return trace_list
@@ -307,6 +309,80 @@ class EnsembleResults(UserList):
 
         return output
 
+    def plotplotly_stddev_mean_ensemble(self,xaxis_label = "Time (s)", yaxis_label="Species Population",title = "default",**kwargs):
+
+        average_result = self.average_ensemble()
+        stddev_result = self.stddev_ensemble()
+
+        from plotly.offline import init_notebook_mode, iplot
+        import plotly.graph_objs as go
+
+        init_notebook_mode(connected=True)
+
+        if title is "default":
+            title = (self.model.name + " - " + self.solver_name)
+
+        lower_bound = average_result
+        upper_bound = average_result
+
+        trace_list = _plotplotyl_iterate(average_result)
+
+        for species in lower_bound:
+            if species is 'time':
+                continue
+            for i in range(0, len(lower_bound[species])):
+                lower_bound[species][i] -= stddev_result[species][i]
+
+        trace_list += _plotplotyl_iterate(lower_bound,line_dict=dict( width=2, dash='dot'),num="lower",fill='tonextyup')
+
+        for species in upper_bound:
+            if species is 'time':
+                continue
+            for i in range(0, len(upper_bound[species])):
+                upper_bound[species][i] += 2*stddev_result[species][i]
+
+        trace_list += _plotplotyl_iterate(upper_bound,line_dict=dict(width=2,dash='dot'),num="upper")
+
+        layout = go.Layout(
+            title=title,
+            xaxis=dict(
+                title=xaxis_label),
+            yaxis=dict(
+                title=yaxis_label)
+        )
+        fig = dict(data=trace_list, layout=layout)
+        iplot(fig)
+
+    def plot_std_dev_error_bars(self,xaxis_label ="Time (s)", yaxis_label ="Species Population", title = "default", style="default"):
+        """
+            Plot a matplotlib graph depicting standard deviation and the mean graph of an ensemble_results object
+            """
 
 
-        #TODO Add more funcionality to ensemble_results for better graphing, statistical analysis, etc.
+        average_result = self.average_ensemble()
+        stddev_result = self.stddev_ensemble()
+
+        import matplotlib.pyplot as plt
+
+        try:
+            plt.style.use(style)
+        except:
+            warnings.warn("Invalid matplotlib style. Try using one of the following {}".format(plt.style.available))
+            plt.style.use("default")
+
+        plt.figure(figsize=(18, 10))
+
+        for species in average_result:
+            if species is 'time':
+                continue
+            plt.errorbar(x=average_result['time'], y=average_result[species], yerr=stddev_result[species], fmt='-',label=species)
+
+        if title is "default":
+            title = (average_result.model.name + " - " + average_result.solver_name + " - standard deviation error bars")
+
+        plt.title(title, fontsize=18)
+        plt.xlabel(xaxis_label)
+        plt.ylabel(yaxis_label)
+
+        plt.plot([0], [11])
+        plt.legend(loc='best')
