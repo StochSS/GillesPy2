@@ -68,7 +68,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">profile</span> <span class="o">=</span> <span class="n">profile</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.03</span>
 
-<div class="viewcode-block" id="BasicTauLeapingSolver.get_reactions"><a class="viewcode-back" href="../../../../gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver.get_reactions">[docs]</a>    <span class="k">def</span> <span class="nf">get_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">save_time</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">reactions</span><span class="p">):</span>
+<div class="viewcode-block" id="BasicTauLeapingSolver.get_reactions"><a class="viewcode-back" href="../../../../gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver.get_reactions">[docs]</a>    <span class="k">def</span> <span class="nf">get_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">save_time</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">reactions</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper Function to get reactions fired from t to t+tau.  Returns three values:</span>
 <span class="sd">        rxn_count - dict with key=Raection channel value=number of times fired</span>
@@ -89,6 +89,7 @@
         <span class="n">rxn_count</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">reactions</span><span class="p">:</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
             <span class="n">rxn_count</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">poisson</span><span class="p">(</span><span class="n">propensities</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">*</span> <span class="n">step</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
@@ -100,7 +101,7 @@
 
 <div class="viewcode-block" id="BasicTauLeapingSolver.run"><a class="viewcode-back" href="../../../../gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver.run">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stochkit_home</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tau_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tau_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Function calling simulation of the model.</span>
 <span class="sd">        This is typically called by the run function in GillesPy2 model objects</span>
@@ -129,9 +130,6 @@
 <span class="sd">                    Set to True to provide information about step size (tau) taken at each step.</span>
 <span class="sd">                show_labels : bool (True)</span>
 <span class="sd">                    Use names of species as index of result object rather than position numbers.</span>
-<span class="sd">                stochkit_home : str</span>
-<span class="sd">                    Path to stochkit. This is set automatically upon installation, but</span>
-<span class="sd">                    may be overwritten if desired.</span>
 <span class="sd">                &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">sys</span><span class="o">.</span><span class="n">warnoptions</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
@@ -164,7 +162,6 @@
         <span class="n">simulation_data</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">for</span> <span class="n">trajectory_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_of_trajectories</span><span class="p">):</span>
-            <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
             <span class="n">start_state</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfRateRules</span><span class="p">))</span>
             <span class="n">propensities</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">curr_state</span> <span class="o">=</span> <span class="p">{}</span>
@@ -177,6 +174,13 @@
             <span class="n">entry_count</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">trajectory</span> <span class="o">=</span> <span class="n">trajectory_base</span><span class="p">[</span><span class="n">trajectory_num</span><span class="p">]</span>
 
+            <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                    <span class="n">seed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">seed</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s1">&#39;seed must be a positive integer&#39;</span><span class="p">)</span>
 
             <span class="n">HOR</span><span class="p">,</span> <span class="n">reactants</span><span class="p">,</span> <span class="n">mu_i</span><span class="p">,</span> <span class="n">sigma_i</span><span class="p">,</span> <span class="n">g_i</span><span class="p">,</span> <span class="n">epsilon_i</span><span class="p">,</span> <span class="n">critical_threshold</span> <span class="o">=</span> <span class="n">Tau</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">tau_tol</span><span class="p">)</span>
 
@@ -211,7 +215,7 @@
                         <span class="n">propensities</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">compiled_propensities</span><span class="p">[</span><span class="n">r</span><span class="p">],</span> <span class="n">curr_state</span><span class="p">)</span>
                         <span class="n">propensity_sum</span> <span class="o">+=</span> <span class="n">propensities</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
 
-                    <span class="n">tau_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">HOR</span><span class="p">,</span> <span class="n">reactants</span><span class="p">,</span> <span class="n">mu_i</span><span class="p">,</span> <span class="n">sigma_i</span><span class="p">,</span> <span class="n">g_i</span><span class="p">,</span> <span class="n">epsilon_i</span><span class="p">,</span> <span class="n">critical_threshold</span><span class="p">,</span>
+                    <span class="n">tau_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">HOR</span><span class="p">,</span> <span class="n">reactants</span><span class="p">,</span> <span class="n">mu_i</span><span class="p">,</span> <span class="n">sigma_i</span><span class="p">,</span> <span class="n">g_i</span><span class="p">,</span> <span class="n">epsilon_i</span><span class="p">,</span> <span class="n">tau_tol</span><span class="p">,</span> <span class="n">critical_threshold</span><span class="p">,</span>
                             <span class="n">model</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">save_time</span><span class="p">]</span>
 
                     <span class="n">tau_step</span> <span class="o">=</span> <span class="n">Tau</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">*</span><span class="n">tau_args</span><span class="p">)</span>
@@ -226,7 +230,7 @@
                         <span class="k">if</span> <span class="n">loop_cnt</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
                             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Loop over get_reactions() exceeded loop count&quot;</span><span class="p">)</span>
 
-                        <span class="n">reactions</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_reactions</span><span class="p">(</span>
+                        <span class="n">reactions</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_reactions</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span>
                             <span class="n">tau_step</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">save_time</span><span class="p">,</span>
                             <span class="n">propensities</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">)</span>
 
@@ -281,7 +285,7 @@
                     <span class="n">data</span><span class="p">[</span><span class="n">species</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">trajectory</span><span class="p">[:,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
                 <span class="n">simulation_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">simulation_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trajectory</span><span class="p">)</span>
+                <span class="n">simulation_data</span> <span class="o">=</span> <span class="n">trajectory_base</span>
             <span class="k">if</span> <span class="n">profile</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">steps_taken</span><span class="p">)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Total Steps Taken: &quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">steps_taken</span><span class="p">))</span>

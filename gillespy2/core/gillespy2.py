@@ -419,9 +419,7 @@ class Model(object):
     def delete_all_reactions(self):
         self.listOfReactions.clear()
 
-    def run(self, number_of_trajectories=1, seed=None, solver=None, show_labels=True,
-            switch_tol=0.03, tau_tol=0.03, integrator='lsoda', integrator_options={},
-            stoch_kit_home=None):
+    def run(self, solver=None, **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -437,11 +435,11 @@ class Model(object):
         solver : gillespy.GillesPySolver
             The solver by which to simulate the model. This solver object may
             be initialized separately to specify an algorithm. Optional, 
-            defaults to StochKitSolver SSA.
+            defaults to ssa solver.
         show_labels: bool (True)
             If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]
         switch_tol: float
-            Relative error tolerance value for deterministic/stochastic switching condition between 0.0 and 1.0
+            Tolerance for Continuous/Stochastic representation of species, based on coefficient of variance for each step.
         tau_tol: float
             Relative error tolerance value for calculating tau step between 0.0 and 1.0
         integrator: String
@@ -450,32 +448,29 @@ class Model(object):
             contains options to the scipy integrator. for a list of options, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.
             Example use: {max_step : 0, rtol : .01}
         """
-
         if solver is not None:
             if ((isinstance(solver, type)
                     and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
-                solver_results = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2],
-                                  seed=seed, number_of_trajectories=number_of_trajectories,
-                                  show_labels=show_labels, switch_tol=0.03, tau_tol=0.03, integrator='lsoda',
-                                  integrator_options={}, stoch_kit_home=None)
+                solver_results = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
             else:
                 raise SimulationError(
                     "argument 'solver' to run() must be a subclass of GillesPySolver")
         else:
             from gillespy2.solvers.auto import SSASolver
             solver_results = SSASolver.run(model=self, t=self.tspan[-1],
-                                      increment=self.tspan[-1] - self.tspan[-2], seed=seed,
-                                      number_of_trajectories=number_of_trajectories,
-                                      show_labels=show_labels)
+                                      increment=self.tspan[-1] - self.tspan[-2], **solver_args)
 
-        if show_labels is False:
+        #I'm not sure if this is the proper use of solver_args...
+        #The if statements are required to make results and ensemble results work
+
+        if solver_args.get('show_labels') is False:
             return solver_results
 
-        if number_of_trajectories is 1:
+        if solver_args.get('number_of_trajectories') is 1:
             return Results(data=solver_results[0],model=self,solver_name=solver.name)
-        if number_of_trajectories > 1:
+        if solver_args.get('number_of_trajectories') > 1:
             results_list = []
-            for i in range(0,number_of_trajectories):
+            for i in range(0,solver_args.get('number_of_trajectories')):
                 results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name))
             return EnsembleResults(results_list)
         else:
