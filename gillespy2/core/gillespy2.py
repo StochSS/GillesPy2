@@ -460,15 +460,13 @@ class Model(object):
             solver_results = SSASolver.run(model=self, t=self.tspan[-1],
                                       increment=self.tspan[-1] - self.tspan[-2], **solver_args)
 
-        #I'm not sure if this is the proper use of solver_args...
-        #The if statements are required to make results and ensemble results work
-
-        if solver_args.get('show_labels') is False:
+        if isinstance(solver_results[0], (np.ndarray)):
             return solver_results
 
-        if solver_args.get('number_of_trajectories') is 1:
-            return Results(data=solver_results[0],model=self,solver_name=solver.name)
-        if solver_args.get('number_of_trajectories') > 1:
+        if len(solver_results) is 1:
+            return Results(data=solver_results[0], model=self, solver_name=solver.name)
+
+        if len(solver_results) > 1:
             results_list = []
             for i in range(0,solver_args.get('number_of_trajectories')):
                 results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name))
