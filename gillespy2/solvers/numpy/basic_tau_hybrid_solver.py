@@ -41,7 +41,6 @@ class BasicTauHybridSolver(GillesPySolver):
             rxns[r] = inactive_reactions.pop(r, None)
 
         # floor non-det species
-        print(det_spec)
         for s, d in det_spec.items():
             if not d and isinstance(curr_state[s], float):
                 print('flooring :', s)
