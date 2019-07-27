@@ -87,7 +87,8 @@ class Results(UserDict):
         self.model = model
         self.solver_name = solver_name
 
-    def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None, style="default", show_legend=True, included_species_list=[]):
+    def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None, style="default",
+             show_legend=True, included_species_list=[],save_png=False):
         """ Plots the Results using matplotlib.
 
          Attributes
@@ -98,6 +99,10 @@ class Results(UserDict):
             the label for the y-axis
         title : str
             the title of the graph
+        show_legend : bool
+            whether or not to display a legend which lists species
+        included_species_list : list
+            A list of strings describing which species to include. By default displays all species.
         """
         import matplotlib.pyplot as plt
 
@@ -122,8 +127,12 @@ class Results(UserDict):
         if show_legend:
             plt.legend(loc='best')
 
+        if save_png:
+            plt.savefig(title)
 
-    def plotplotly(self, xaxis_label = "Time (s)", yaxis_label="Species Population", title = None, show_legend=True, included_species_list=[], return_plotly_figure = False):
+
+    def plotplotly(self, xaxis_label = "Time (s)", yaxis_label="Species Population", title = None, show_legend=True,
+                   included_species_list=[], return_plotly_figure = False):
         """ Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.
 
          Attributes
@@ -134,6 +143,14 @@ class Results(UserDict):
             the label for the y-axis
         title : str
             the title of the graph
+        show_legend : bool
+            whether or not to display a legend which lists species
+        included_species_list : list
+            A list of strings describing which species to include. By default displays all species.
+        return_plotly_figure : bool
+            whether or not to return a figure dictionary of data(graph object traces) and layout options
+            which may be edited by the user.
+
         """
 
         from plotly.offline import init_notebook_mode, iplot
@@ -144,7 +161,7 @@ class Results(UserDict):
         if title is None:
             title = (self.model.name + " - " + self.solver_name)
 
-        trace_list = _plotplotyl_iterate(self, included_species_list)
+        trace_list = _plotplotyl_iterate(self, included_species_list = included_species_list,show_labels=True)
 
         layout = go.Layout(
             showlegend=show_legend,
@@ -172,7 +189,8 @@ class EnsembleResults(UserList):
     def __init__(self,data):
         self.data = data
 
-    def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", style="default", title = None, show_legend=True, multiple_graphs = False, included_species_list=[]):
+    def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", style="default", title = None,
+             show_legend=True, multiple_graphs = False, included_species_list=[]):
         """ Plots the Results using matplotlib.
 
         Attributes
@@ -187,6 +205,9 @@ class EnsembleResults(UserList):
             the title of the graph
         multiple_graphs : bool
             if each trajectory should have its own graph or if they should overlap
+        included_species_list : list
+             A list of strings describing which species to include. By default displays all species.
+
             """
         import matplotlib.pyplot as plt
         results_list = self.data
@@ -240,7 +261,11 @@ class EnsembleResults(UserList):
             the title of the graph
         multiple_graphs : bool
             if each trajectory should have its own graph or if they should overlap
-
+        included_species_list : list
+             A list of strings describing which species to include. By default displays all species.
+        return_plotly_figure : bool
+            whether or not to return a figure dictionary of data(graph object traces) and layout options
+            which may be edited by the user.
         """
 
         from plotly.offline import init_notebook_mode, iplot
@@ -307,7 +332,7 @@ class EnsembleResults(UserList):
 
     def average_ensemble(self):
         """
-                Generate a single Results dictionary that is made of the mean of all trajectories' outputs
+                Generate a single Results dictionary that is made of the means of all trajectories' outputs
                 :return: the Results dictionary
                 """
 
@@ -339,7 +364,7 @@ class EnsembleResults(UserList):
 
     def stddev_ensemble(self):
         """
-                Generate a single Results dictionary that is made of the samplestandard deviation of all trajectories'
+                Generate a single Results dictionary that is made of the sample standard deviations of all trajectories'
                 outputs.
                 :return: the Results dictionary
                 """
@@ -374,10 +399,28 @@ class EnsembleResults(UserList):
 
         return output
 
-    def plotplotly_std_dev_range(self, xaxis_label = "Time (s)", yaxis_label="Species Population", title = None, show_legend=True, included_species_list = [],return_plotly_figure=False):
+    def plotplotly_std_dev_range(self, xaxis_label = "Time (s)", yaxis_label="Species Population", title = None,
+                                 show_legend=True, included_species_list = [],return_plotly_figure=False):
         """
            Plot a plotly graph depicting standard deviation and the mean graph of an ensemble_results object
-           """
+
+         Attributes
+        ----------
+        xaxis_label : str
+            the label for the x-axis
+        yaxis_label : str
+            the label for the y-axis
+        title : str
+            the title of the graph
+        show_legend : bool
+            whether or not to display a legend which lists species
+        included_species_list : list
+            A list of strings describing which species to include. By default displays all species.
+        return_plotly_figure : bool
+            whether or not to return a figure dictionary of data(graph object traces) and layout options
+            which may be edited by the user.
+
+        """
 
         average_result = self.average_ensemble()
         stddev_result = self.stddev_ensemble()
@@ -455,10 +498,25 @@ class EnsembleResults(UserList):
         if return_plotly_figure:
             return fig
 
-    def plot_std_dev_range(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None, style="default", show_legend=True, included_species_list=[]):
+    def plot_std_dev_range(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None,
+                           style="default", show_legend=True, included_species_list=[]):
         """
             Plot a matplotlib graph depicting standard deviation and the mean graph of an ensemble_results object
-            """
+
+         Attributes
+        ----------
+        xaxis_label : str
+            the label for the x-axis
+        yaxis_label : str
+            the label for the y-axis
+        title : str
+            the title of the graph
+        show_legend : bool
+            whether or not to display a legend which lists species
+        included_species_list : list
+            A list of strings describing which species to include. By default displays all species.
+
+        """
 
         average_result = self.average_ensemble()
         stddev_result = self.stddev_ensemble()
