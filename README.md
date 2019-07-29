@@ -146,14 +146,14 @@ Authors and history
 
 * [**Dr. Brian Drawert** ](https://github.com/briandrawert)
 * [**Dr. Kevin Sanft**](https://github.com/kevinsanft)
-* **Ghilman Brock**
-* **Eliot Dixon**
-* **Dalton Nickerson**
+* [**Ghilman Brock**](https://github.com/GhilmanBrock)
+* [**Eliot Dixon**](https://github.com/edixon1)
+* [**Dalton Nickerson**](https://github.com/Thisisnotdalton)
 * [**Sean Matthew**](https://github.com/seanebum)
-* **George Hall** 
-* **W.R. Jackson** 
-* **Samuel Hodges**
-* **Emma Weisgerber**
+* [**George Hall** ](https://github.com/georgemhall)
+* [**W.R. Jackson** ](https://github.com/JustJackson)
+* [**Samuel Hodges**](https://github.com/hodgespodge)
+* [**Emma Weisgerber**](https://github.com/eweisger)
 
 New developments happen primarily in the [`develop`](https://github.com/GillesPy2/GillesPy2/commits/develop) branch.  New releases are put in the `master` branch.
 
