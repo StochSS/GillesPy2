@@ -30,14 +30,12 @@ namespace Gillespy{
     }   
     //Check all reactions for common species changes -> affected reactions
     for(unsigned int r1 = 0; r1 < number_reactions; r1++){
-      reactions[r1].affected_reactions.push_back(r1);
-      for(unsigned int r2 = r1 + 1; r2 < number_reactions; r2++){
-	for(unsigned int s = 0; s < number_species; s++){
-	  if(reactions[r1].species_change[s] != 0 and reactions[r2].species_change[s] != 0){
-	    reactions[r1].affected_reactions.push_back(r2);
-	    reactions[r2].affected_reactions.push_back(r1);
-	  }
-	}
+      for(unsigned int r2 = 0; r2 < number_reactions; r2++){
+	    for(unsigned int s = 0; s < number_species; s++){
+	        if(reactions[r2].species_change[s] != 0){
+	            reactions[r1].affected_reactions.push_back(r2);
+	        }
+	    }
       }
     }
   }
