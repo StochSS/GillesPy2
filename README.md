@@ -1,11 +1,12 @@
-# GillesPy2
+GillesPy2
+=========
 
+GillesPy2 is a Python package for stochastic simulation of biochemical systems.  It offers an object-oriented approach for creating mathematical models of biological systems, as well as a variety of methods for performing time simulation of those models.  The methods include the [Gillespie direct method (SSA)](https://en.wikipedia.org/wiki/Gillespie_algorithm), several variant stochastic simulation methods including [tau-leaping](https://en.wikipedia.org/wiki/Tau-leaping), and numerical integration of ODEs.  The solvers support a variety of runtime environments, with optimized code for C++, [Cython](https://cython.org), and [NumPy](https://numpy.org).  GillesPy2 also supports [SBML](https://en.wikipedia.org/wiki/SBML).
 
-  GillesPy2 is a python library designed to create stochastic simulations for biochemical systems.  This package provides an object-oriented approach to creating mathematical models based on these real-world systems and simulates reaction events over time, selecting from a variety of algorithms including ODE solutions, the Gillespie Direct algorithm (SSA), and several variants of the SSA.  This library contains multiple versions of solvers to support a variety of user environments with optimized code for C++, Cython, and NumPy.  
-  
-**GillesPy2 is part of the StochSS project [http://www.stochss.org/], and we are relying on continued funding for sustained development. Please consider registering to show your support. Register [here](https://docs.google.com/forms/d/12tAH4f8CJ-3F-lK44Q9uQHFio_mGoK0oY829q5lD7i4/viewform):**  
-  
-https://docs.google.com/forms/d/12tAH4f8CJ-3F-lK44Q9uQHFio_mGoK0oY829q5lD7i4/viewform
+<table><tr><td><b>
+<img width="20%" align="right" src=".graphics/stochss-logo.svg">
+GillesPy2 is part of the <a href="http://www.stochss.org">StochSS</a> project. We rely on grants to sustain development.<br><a href="https://docs.google.com/forms/d/12tAH4f8CJ-3F-lK44Q9uQHFio_mGoK0oY829q5lD7i4/viewform">PLEASE REGISTER AS A USER</a>, so that we can demonstrate GillesPy2's popularity!</b>
+</td></tr></table>
 
 ![PyPI](https://img.shields.io/pypi/v/gillespy2.svg)
 ![PyPI - License](https://img.shields.io/pypi/l/gillespy2.svg?color=green)
