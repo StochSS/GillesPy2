@@ -58,7 +58,7 @@ GillesPy2 provides simple object-oriented abstractions for defining a model of a
 1. Create a `GillesPy2.Model` containing molecular species, parameters, and reactions (or import it from an [SBML](http://sbml.org) file)
 2. Invoke the model's `.run()` method.
 
-The `run()` method can be customized using keyword arguments to select different solvers, random seed, data return type and more.  For more detailed examples on how to use GillesPy2, please see the [Getting Started](https://github.com/GillesPy2/GillesPy2/tree/master/examples/Getting-Started.ipynb) notebook contained in the [examples](https://github.com/GillesPy2/GillesPy2/tree/master/examples) subdirectory.
+The `run()` method can be customized using keyword arguments to select different solvers, random seed, data return type and more.  For more detailed examples on how to use GillesPy2, please see the [Getting Started](https://github.com/GillesPy2/GillesPy2/tree/master/examples/Getting-Started.ipynb) Jupyter notebook contained in the [examples](https://github.com/GillesPy2/GillesPy2/tree/master/examples) subdirectory.
 
 
 ### _Simple example to illustrate the use of GillesPy2_
@@ -138,7 +138,7 @@ We would be happy to receive your help and participation with enhancing GillesPy
 License
 -------
 
-GillesPy2 is licenced under the GNU General Public License version 3.  Please see the file [LICENCE](LICENSE) for more information.
+GillesPy2 is licensed under the GNU General Public License version 3.  Please see the file [LICENCE](LICENSE) for more information.
 
 
 Authors and history
@@ -161,7 +161,7 @@ New developments happen primarily in the [`develop`](https://github.com/GillesPy
 
 | Master Branch   | Develop Branch | Coverage |
 |:---------------:|:--------------:|:--------:|
-| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | ![Coverage](coverage.svg) |
+| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | ![Coverage](.graphics/coverage.svg) |
 
 
 
