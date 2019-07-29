@@ -35,7 +35,7 @@ if __name__ == '__main__':
         test_simple_model,
         test_ssa_c_solver,
         test_SBML,
-        test_example_models
+        test_example_models,
         test_all_solvers
     ]
 
