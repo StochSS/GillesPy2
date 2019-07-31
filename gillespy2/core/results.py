@@ -87,6 +87,16 @@ class Results(UserDict):
         self.model = model
         self.solver_name = solver_name
 
+    def __getitem__(self, key):
+        if type(key) is type(1):
+            warnings.warn("Results is of type dictionary. Use results['species'] instead of results[0]['species'] ")
+            return self
+        if key in self.data:
+            return self.data[key]
+        if hasattr(self.__class__, "__missing__"):
+            return self.__class__.__missing__(self, key)
+        raise KeyError(key)
+
     def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None, style="default",
              show_legend=True, included_species_list=[],save_png=False):
         """ Plots the Results using matplotlib.
