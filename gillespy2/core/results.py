@@ -372,18 +372,32 @@ class EnsembleResults(UserList):
 
         return output
 
-    def stddev_ensemble(self):
+    def stddev_ensemble(self,ddof = 0):
         """
                 Generate a single Results dictionary that is made of the sample standard deviations of all trajectories'
                 outputs.
+
+                  Attributes
+                ----------
+                ddof : int
+                    Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+                    the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
+                    standard deviation where ddof is 0.
+
                 :return: the Results dictionary
                 """
 
         from math import sqrt
 
         results_list = self.data
-        average_list = self.average_ensemble()
         number_of_trajectories = len(results_list)
+
+        if ddof == number_of_trajectories:
+            warnings.warn("ddof must be less than the number of trajectories. Using ddof of 0")
+            ddof = 0
+
+        average_list = self.average_ensemble()
+
         output = Results(data={}, model=results_list[0].model, solver_name=results_list[0].solver_name)
 
         for species in results_list[0]: #Initialize the output to be the same size as the inputs
@@ -404,13 +418,13 @@ class EnsembleResults(UserList):
             if species is 'time':
                 continue
             for i in range(0,len(output[species])):
-                output[species][i] /= number_of_trajectories
+                output[species][i] /= (number_of_trajectories - ddof)
                 output[species][i] = sqrt(output[species][i])
 
         return output
 
     def plotplotly_std_dev_range(self, xaxis_label = "Time (s)", yaxis_label="Species Population", title = None,
-                                 show_legend=True, included_species_list = [],return_plotly_figure=False):
+                                 show_legend=True, included_species_list = [],return_plotly_figure=False,ddof = 0):
         """
            Plot a plotly graph depicting standard deviation and the mean graph of an ensemble_results object
 
@@ -429,11 +443,15 @@ class EnsembleResults(UserList):
         return_plotly_figure : bool
             whether or not to return a figure dictionary of data(graph object traces) and layout options
             which may be edited by the user.
+        ddof : int
+            Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
+            standard deviation where ddof is 0.
 
         """
 
         average_result = self.average_ensemble()
-        stddev_result = self.stddev_ensemble()
+        stddev_result = self.stddev_ensemble(ddof= ddof)
 
         from plotly.offline import init_notebook_mode, iplot
         import plotly.graph_objs as go
@@ -509,7 +527,7 @@ class EnsembleResults(UserList):
             return fig
 
     def plot_std_dev_range(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None,
-                           style="default", show_legend=True, included_species_list=[]):
+                           style="default", show_legend=True, included_species_list=[],ddof=0):
         """
             Plot a matplotlib graph depicting standard deviation and the mean graph of an ensemble_results object
 
@@ -525,11 +543,15 @@ class EnsembleResults(UserList):
             whether or not to display a legend which lists species
         included_species_list : list
             A list of strings describing which species to include. By default displays all species.
+        ddof : int
+            Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
+            standard deviation where ddof is 0.
 
         """
 
         average_result = self.average_ensemble()
-        stddev_result = self.stddev_ensemble()
+        stddev_result = self.stddev_ensemble(ddof=ddof)
 
         import matplotlib.pyplot as plt
 
