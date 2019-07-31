@@ -35,6 +35,9 @@ class TestAllSolvers(unittest.TestCase):
             self.assertTrue(isinstance(self.labeled_results[solver]['Sp'], np.ndarray))
             self.assertTrue(isinstance(self.labeled_results[solver]['Sp'][0], np.float))
 
+            with self.assertWarns(Warning):
+                self.assertTrue(isinstance(self.labeled_results[solver][0], Results))
+
             self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver], EnsembleResults))
             self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0], Results))
             self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0]['Sp'], np.ndarray))
