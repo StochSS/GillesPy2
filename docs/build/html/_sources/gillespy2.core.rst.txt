@@ -28,7 +28,6 @@ gillespy2.core.gillespySolver module
     :undoc-members:
     :show-inheritance:
 
-
 Module contents
 ---------------
 
