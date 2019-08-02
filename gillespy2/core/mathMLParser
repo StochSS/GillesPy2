@@ -1,0 +1,105 @@
+import xmltodict
+
+timetrigger = """<math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <gt/>
+              <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time</csymbol>
+            </apply>
+          </math>"""
+
+kineticlaw = """<math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> comp1 </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> kf_0 </ci>
+                  <ci> B </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> kr_0 </ci>
+                  <ci> BL </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>"""
+
+foil = """<math xmlns="http://www.w3.org/1998/Math/MathML">
+    <mrow>
+       <msup>
+         <mfenced>
+           <mrow>
+             <mi>a</mi>
+             <mo>+</mo>
+             <mi>b</mi>
+           </mrow>
+         </mfenced>
+         <mn>2</mn>
+       </msup>
+     </mrow>
+    </math>"""
+
+quadratic = """<math xmlns="http://www.w3.org/1998/Math/MathML">
+    <apply>
+      <eq/>
+      <ci>x</ci>
+      <apply>
+        <divide/>
+        <apply>
+          <csymbol>PlusMinus;</csymbol>
+          <apply>
+            <minus/>
+            <ci>b</ci>
+          </apply>
+          <apply>
+            <root/>
+            <degree><cn>2</cn></degree>
+            <apply>
+              <minus/>
+              <apply>
+                <power/>
+                <ci>b</ci>
+                <cn>2</cn>
+              </apply>
+              <apply>
+                <times/>
+                <cn>4</cn>
+                <ci>a</ci>
+                <ci>c</ci>
+              </apply>
+            </apply>
+          </apply>
+        </apply>
+        <apply>
+          <times/>
+          <cn>2</cn>
+          <ci>a</ci>
+        </apply>
+      </apply>
+    </apply>
+</math>"""
+
+
+def mathmltostr(mathml):
+    mathmldict = xmltodict.parse(mathml)['math']
+
+    mathmldict
+
+    print(mathmldict)
+
+import xml.etree.ElementTree as ET
+
+tree = ET.ElementTree(ET.fromstring(quadratic))
+
+treelist = list(tree.iter())
+
+for item in reversed(treelist):
+    print(item)
+
+
+#print(list(tree.iter()))
+
+#mathmltostr(foil)
