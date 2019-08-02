@@ -13,12 +13,10 @@ improvement over the original.
 """
 from __future__ import division
 from collections import OrderedDict
+from gillespy2.core.results import Results,EnsembleResults
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
 import numpy as np
-
-pretty_graph = False
-
 
 try:
     import lxml.etree as eTree
@@ -453,65 +451,28 @@ class Model(object):
         if solver is not None:
             if ((isinstance(solver, type)
                     and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
-                return solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
+                solver_results = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
             else:
                 raise SimulationError(
                     "argument 'solver' to run() must be a subclass of GillesPySolver")
         else:
             from gillespy2.solvers.auto import SSASolver
-            return SSASolver.run(model=self, t=self.tspan[-1],
+            solver_results = SSASolver.run(model=self, t=self.tspan[-1],
                                       increment=self.tspan[-1] - self.tspan[-2], **solver_args)
 
+        if isinstance(solver_results[0], (np.ndarray)):
+            return solver_results
 
+        if len(solver_results) is 1:
+            return Results(data=solver_results[0], model=self, solver_name=solver.name)
 
-    #Need to finalize feature set.
-    #title, start time, stop time, automatic legend, legend placement, axis labels, size of graph.
-    #Axis Legend Stuff ends up being complicated, ensure I understand expected scope of function.
-    def plot(self, results, **kwargs):
-
-        try:
-            import seaborn as sbn
-            pretty_graph = True
-        except:
-            import matplotlib.pyplot as plt
-            pretty_graph = False
-
-        if pretty_graph:
-            pass
-        if not pretty_graph:
-            if "height" in kwargs and "width" in kwargs:
-                plt.figure(figsize=(kwargs["height"], kwargs["width"]))
-            #I could just have a throw after this, but I don't know if that's what the expected user behavior would be.
-            if "height" in kwargs and "width" not in kwargs:
-                plt.figure(figsize=(kwargs["height"], kwargs["height"]))
-            if "height" not in kwargs and "width" in kwargs:
-                plt.figure(figsize=(kwargs["width"], kwargs["width"]))
-            if "title" in kwargs:
-                plt.title(kwargs["title"])
-            else:
-                plt.title(str(self.name))
-            if "start" in kwargs and "stop" in kwargs:
-                for key in results.keys():
-                    plt.plot(results[key][kwargs["start"]:kwargs["stop"]])
-            if "start" in kwargs and "stop" not in kwargs:
-                for key in results.keys():
-                    plt.plot(results[key][kwargs["start"]:])
-            if "start" not in kwargs and "stop" in kwargs:
-                for key in results.keys():
-                    plt.plot(results[key][:kwargs["stop"]])
-            if "start" not in kwargs and "stop" not in kwargs:
-                for key in results.keys():
-                    plt.plot(results[key])
-            if "legend" in kwargs and kwargs["legend"] is True and "legend_position" not in kwargs:
-                plt.legend(list(map(str, self.listOfSpecies.keys())))
-            if "legend" in kwargs and kwargs["legend"] is True and "legend_position" in kwargs:
-                plt.legend(list(map(str, self.listOfSpecies.keys())), loc=kwargs["legend_position"])
-            if "xlabel" in kwargs:
-                plt.xlabel(kwargs["xlabel"])
-            if "ylabel" in kwargs:
-                plt.ylabel(kwargs["ylabel"])
-            plt.show()
-
+        if len(solver_results) > 1:
+            results_list = []
+            for i in range(0,solver_args.get('number_of_trajectories')):
+                results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name))
+            return EnsembleResults(results_list)
+        else:
+            raise ValueError("number_of_trajectories must be non-negative and non-zero")
 
 class Species:
     """
