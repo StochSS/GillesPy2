@@ -42,7 +42,8 @@ foil = """<math xmlns="http://www.w3.org/1998/Math/MathML">
      </mrow>
     </math>"""
 
-quadratic = """<math xmlns="http://www.w3.org/1998/Math/MathML">
+quadratic = """
+<math xmlns="http://www.w3.org/1998/Math/MathML">
     <apply>
       <eq/>
       <ci>x</ci>
@@ -85,9 +86,7 @@ quadratic = """<math xmlns="http://www.w3.org/1998/Math/MathML">
 
 def mathmltostr(mathml):
     mathmldict = xmltodict.parse(mathml)['math']
-
     mathmldict
-
     print(mathmldict)
 
 import xml.etree.ElementTree as ET
@@ -96,10 +95,41 @@ tree = ET.ElementTree(ET.fromstring(quadratic))
 
 treelist = list(tree.iter())
 
-for item in reversed(treelist):
-    print(item)
+# A function to do postorder tree traversal
+def printPostorder(root = None,x = 0,outputstr = ""):
+
+    if root:
+        for i,item in enumerate(list(root)):
+            outputstr += printPostorder(item,x+1)
+
+        for i,item in enumerate(list(root)):
+            # print(" level: ", x ,"index: ",i,item)
+            node = parseNode(item)
+            outputstr += node
+
+    return outputstr
+
+def parseNode(node):
+
+    import re
+
+    nodestr = str(node)
+    nodestr = re.sub('{(.*)}','', nodestr)
+    nodestr = re.search('\'(.*)\'', nodestr).group(1) #remove mathml url
+
+    nodestr = nodestr.strip()
+
+    if nodestr == "ci" or nodestr == "cn" or nodestr == "csymbol" or nodestr == "mo":
+        nodestr = str(node.text).strip()
+
+    nodestr += ' '
+
+    return nodestr
 
 
-#print(list(tree.iter()))
+print(printPostorder(root = tree.getroot(),x = 0))
 
-#mathmltostr(foil)
+#print(list(tree.getroot()))
+
+# for item in treelist:
+#     print(item)
