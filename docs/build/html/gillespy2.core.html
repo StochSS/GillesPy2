@@ -695,6 +695,202 @@ simulation.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-gillespy2.core.results">
+<span id="gillespy2-core-results-module"></span><h2>gillespy2.core.results module<a class="headerlink" href="#module-gillespy2.core.results" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="gillespy2.core.results.EnsembleResults">
+<em class="property">class </em><code class="sig-prename descclassname">gillespy2.core.results.</code><code class="sig-name descname">EnsembleResults</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/results.html#EnsembleResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.EnsembleResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">collections.UserList</span></code></p>
+<p>List of Results Dicts created by a gillespy2 solver with multiple trajectories, extends the UserList object.</p>
+<dl class="simple">
+<dt>data<span class="classifier">UserList</span></dt><dd><p>A list of Results</p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="gillespy2.core.results.EnsembleResults.average_ensemble">
+<code class="sig-name descname">average_ensemble</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/results.html#EnsembleResults.average_ensemble"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.average_ensemble" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a single Results dictionary that is made of the means of all trajectories’ outputs
+:return: the Results dictionary</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.results.EnsembleResults.plot">
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">style='default'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">multiple_graphs=False</em>, <em class="sig-param">included_species_list=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/results.html#EnsembleResults.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the Results using matplotlib.</p>
+<dl class="simple">
+<dt>xaxis_label<span class="classifier">str</span></dt><dd><p>the label for the x-axis</p>
+</dd>
+<dt>yaxis_label<span class="classifier">str</span></dt><dd><p>the label for the y-axis
+style : str
+the matplotlib style to be used for the graph or graphs</p>
+</dd>
+<dt>title<span class="classifier">str</span></dt><dd><p>the title of the graph</p>
+</dd>
+<dt>multiple_graphs<span class="classifier">bool</span></dt><dd><p>if each trajectory should have its own graph or if they should overlap</p>
+</dd>
+<dt>included_species_list<span class="classifier">list</span></dt><dd><p>A list of strings describing which species to include. By default displays all species.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.results.EnsembleResults.plot_std_dev_range">
+<code class="sig-name descname">plot_std_dev_range</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">style='default'</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">ddof=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/results.html#EnsembleResults.plot_std_dev_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.plot_std_dev_range" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><blockquote>
+<div><p>Plot a matplotlib graph depicting standard deviation and the mean graph of an ensemble_results object</p>
+</div></blockquote>
+<p>Attributes</p>
+</div></blockquote>
+<dl class="simple">
+<dt>xaxis_label<span class="classifier">str</span></dt><dd><p>the label for the x-axis</p>
+</dd>
+<dt>yaxis_label<span class="classifier">str</span></dt><dd><p>the label for the y-axis</p>
+</dd>
+<dt>title<span class="classifier">str</span></dt><dd><p>the title of the graph</p>
+</dd>
+<dt>show_legend<span class="classifier">bool</span></dt><dd><p>whether or not to display a legend which lists species</p>
+</dd>
+<dt>included_species_list<span class="classifier">list</span></dt><dd><p>A list of strings describing which species to include. By default displays all species.</p>
+</dd>
+<dt>ddof<span class="classifier">int</span></dt><dd><p>Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
+standard deviation where ddof is 0.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.results.EnsembleResults.plotplotly">
+<code class="sig-name descname">plotplotly</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">multiple_graphs=False</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">return_plotly_figure=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/results.html#EnsembleResults.plotplotly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.plotplotly" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.</p>
+<dl class="simple">
+<dt>xaxis_label<span class="classifier">str</span></dt><dd><p>the label for the x-axis</p>
+</dd>
+<dt>yaxis_label<span class="classifier">str</span></dt><dd><p>the label for the y-axis</p>
+</dd>
+<dt>title<span class="classifier">str</span></dt><dd><p>the title of the graph</p>
+</dd>
+<dt>multiple_graphs<span class="classifier">bool</span></dt><dd><p>if each trajectory should have its own graph or if they should overlap</p>
+</dd>
+<dt>included_species_list<span class="classifier">list</span></dt><dd><p>A list of strings describing which species to include. By default displays all species.</p>
+</dd>
+<dt>return_plotly_figure<span class="classifier">bool</span></dt><dd><p>whether or not to return a figure dictionary of data(graph object traces) and layout options
+which may be edited by the user.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.results.EnsembleResults.plotplotly_std_dev_range">
+<code class="sig-name descname">plotplotly_std_dev_range</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">return_plotly_figure=False</em>, <em class="sig-param">ddof=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/results.html#EnsembleResults.plotplotly_std_dev_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.plotplotly_std_dev_range" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><blockquote>
+<div><p>Plot a plotly graph depicting standard deviation and the mean graph of an ensemble_results object</p>
+</div></blockquote>
+<p>Attributes</p>
+</div></blockquote>
+<dl class="simple">
+<dt>xaxis_label<span class="classifier">str</span></dt><dd><p>the label for the x-axis</p>
+</dd>
+<dt>yaxis_label<span class="classifier">str</span></dt><dd><p>the label for the y-axis</p>
+</dd>
+<dt>title<span class="classifier">str</span></dt><dd><p>the title of the graph</p>
+</dd>
+<dt>show_legend<span class="classifier">bool</span></dt><dd><p>whether or not to display a legend which lists species</p>
+</dd>
+<dt>included_species_list<span class="classifier">list</span></dt><dd><p>A list of strings describing which species to include. By default displays all species.</p>
+</dd>
+<dt>return_plotly_figure<span class="classifier">bool</span></dt><dd><p>whether or not to return a figure dictionary of data(graph object traces) and layout options
+which may be edited by the user.</p>
+</dd>
+<dt>ddof<span class="classifier">int</span></dt><dd><p>Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
+standard deviation where ddof is 0.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.results.EnsembleResults.stddev_ensemble">
+<code class="sig-name descname">stddev_ensemble</code><span class="sig-paren">(</span><em class="sig-param">ddof=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/results.html#EnsembleResults.stddev_ensemble"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.stddev_ensemble" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a single Results dictionary that is made of the sample standard deviations of all trajectories’
+outputs.</p>
+<blockquote>
+<div><p>Attributes</p>
+</div></blockquote>
+<dl class="simple">
+<dt>ddof<span class="classifier">int</span></dt><dd><p>Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
+standard deviation where ddof is 0.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the Results dictionary</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gillespy2.core.results.Results">
+<em class="property">class </em><code class="sig-prename descclassname">gillespy2.core.results.</code><code class="sig-name descname">Results</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">model=None</em>, <em class="sig-param">solver_name='Undefined solver name'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/results.html#Results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.Results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">collections.UserDict</span></code></p>
+<p>Results Dict created by a gillespy2 solver with single trajectory, extends the UserDict object.</p>
+<dl class="simple">
+<dt>data<span class="classifier">UserList</span></dt><dd><p>A list of Results that are created by solvers with multiple trajectories</p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="gillespy2.core.results.Results.plot">
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">style='default'</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">save_png=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/results.html#Results.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.Results.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the Results using matplotlib.</p>
+<blockquote>
+<div><p>Attributes</p>
+</div></blockquote>
+<dl class="simple">
+<dt>xaxis_label<span class="classifier">str</span></dt><dd><p>the label for the x-axis</p>
+</dd>
+<dt>yaxis_label<span class="classifier">str</span></dt><dd><p>the label for the y-axis</p>
+</dd>
+<dt>title<span class="classifier">str</span></dt><dd><p>the title of the graph</p>
+</dd>
+<dt>show_legend<span class="classifier">bool</span></dt><dd><p>whether or not to display a legend which lists species</p>
+</dd>
+<dt>included_species_list<span class="classifier">list</span></dt><dd><p>A list of strings describing which species to include. By default displays all species.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.results.Results.plotplotly">
+<code class="sig-name descname">plotplotly</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">return_plotly_figure=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/results.html#Results.plotplotly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.Results.plotplotly" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.</p>
+<blockquote>
+<div><p>Attributes</p>
+</div></blockquote>
+<dl class="simple">
+<dt>xaxis_label<span class="classifier">str</span></dt><dd><p>the label for the x-axis</p>
+</dd>
+<dt>yaxis_label<span class="classifier">str</span></dt><dd><p>the label for the y-axis</p>
+</dd>
+<dt>title<span class="classifier">str</span></dt><dd><p>the title of the graph</p>
+</dd>
+<dt>show_legend<span class="classifier">bool</span></dt><dd><p>whether or not to display a legend which lists species</p>
+</dd>
+<dt>included_species_list<span class="classifier">list</span></dt><dd><p>A list of strings describing which species to include. By default displays all species.</p>
+</dd>
+<dt>return_plotly_figure<span class="classifier">bool</span></dt><dd><p>whether or not to return a figure dictionary of data(graph object traces) and layout options
+which may be edited by the user.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-gillespy2.core">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-gillespy2.core" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
@@ -1272,6 +1468,7 @@ simulation. Use caution when importing SBML.</p>
 <li><a class="reference internal" href="#module-gillespy2.core.gillespy2">gillespy2.core.gillespy2 module</a></li>
 <li><a class="reference internal" href="#module-gillespy2.core.gillespyError">gillespy2.core.gillespyError module</a></li>
 <li><a class="reference internal" href="#module-gillespy2.core.gillespySolver">gillespy2.core.gillespySolver module</a></li>
+<li><a class="reference internal" href="#module-gillespy2.core.results">gillespy2.core.results module</a></li>
 <li><a class="reference internal" href="#module-gillespy2.core">Module contents</a></li>
 </ul>
 </li>
