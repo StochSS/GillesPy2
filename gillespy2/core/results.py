@@ -298,11 +298,16 @@ class EnsembleResults(UserList):
 
             from plotly import tools
 
-            fig = tools.make_subplots(print_grid=False,rows=int(number_of_trajectories/2) + int(number_of_trajectories%2),cols = 2)
+            fig = tools.make_subplots(print_grid=False,rows=int(number_of_trajectories/2) + int(number_of_trajectories%2),
+                                      cols = 2)
 
             for i, result in enumerate(results_list):
-                trace_list = _plotplotyl_iterate(result, trace_list=[],
-                                                 included_species_list= included_species_list)
+                if i > 0:
+                    trace_list = _plotplotyl_iterate(result, trace_list=[], included_species_list= included_species_list,
+                                                     show_labels=False)
+                else:
+                    trace_list = _plotplotyl_iterate(result, trace_list=[], included_species_list=included_species_list)
+
                 for k in range(0,len(trace_list)):
                     if i%2 == 0:
                         fig.append_trace(trace_list[k], int(i/2) + 1, 1)
@@ -319,9 +324,10 @@ class EnsembleResults(UserList):
             trace_list = []
             for i,result in enumerate(results_list):
                 if i > 0:
-                    trace_list = _plotplotyl_iterate(result, trace_list=trace_list,show_labels = False)
+                    trace_list = _plotplotyl_iterate(result, trace_list=trace_list,included_species_list= included_species_list,
+                                                     show_labels = False)
                 else:
-                    trace_list = _plotplotyl_iterate(result, trace_list=trace_list)
+                    trace_list = _plotplotyl_iterate(result, trace_list=trace_list,included_species_list= included_species_list)
 
             layout = go.Layout(
                 showlegend=show_legend,
