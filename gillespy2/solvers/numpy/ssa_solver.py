@@ -1,4 +1,4 @@
-from gillespy2.core import GillesPySolver, Model, Reaction
+from gillespy2.core import GillesPySolver, Model, Reaction, log
 import random
 import math
 import numpy as np
@@ -7,8 +7,11 @@ import numpy as np
 class NumPySSASolver(GillesPySolver):
     name = "NumPySSASolver"
 
-    @staticmethod
-    def run(model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True, **kwargs):
+    def __init__(self):
+        name = 'NumPySSASolver'
+
+    @classmethod
+    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True, **kwargs):
         """
         Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
         :param model: The model on which the solver will operate.
@@ -22,6 +25,13 @@ class NumPySSASolver(GillesPySolver):
         :param show_labels: Use names of species as index of result object rather than position numbers.
         :return: a list of each trajectory simulated.
         """
+
+        if not isinstance(self, NumPySSASolver):
+            self = NumPySSASolver()
+
+        if len(kwargs) > 0:
+            for key in kwargs:
+                log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
         random.seed(seed)
         # create mapping of species dictionary to array indices
         species_mappings = model.sanitized_species_names()

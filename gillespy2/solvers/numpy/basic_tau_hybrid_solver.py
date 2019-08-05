@@ -4,7 +4,7 @@ from scipy.integrate import ode
 import numpy as np
 import gillespy2
 from gillespy2.solvers.numpy import Tau
-from gillespy2.core import GillesPySolver
+from gillespy2.core import GillesPySolver, log
 from gillespy2.core.gillespyError import *
 
 eval_globals = math.__dict__
@@ -19,10 +19,10 @@ class BasicTauHybridSolver(GillesPySolver):
     is bounded by bounding the relative change in the state of the system, resulting in increased
     run-time performance with little accuracy trade-off.
     """
-    name = "Basic Tau Hybrid Solver"
+    name = "BasicTauHybridSolver"
 
-    def __init__(self, debug=False):
-        self.debug = debug
+    def __init__(self):
+        name = 'BasicTauHybridSolver'
            
         
     def toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, curr_state, rxn_offset, det_spec):
@@ -73,7 +73,6 @@ class BasicTauHybridSolver(GillesPySolver):
         # loop through each det reaction and concatenate it's diff eq for each species
         for reaction in comb:
             factor = OrderedDict()
-            pure_continuous = True
             for dep in dependencies[reaction]:
                 if model.listOfSpecies[dep].mode != 'continuous':
                     pure_continuous = False
@@ -158,7 +157,6 @@ class BasicTauHybridSolver(GillesPySolver):
         """
         curr_state['t'] = t
         state_change = []
-
         for i, rr in enumerate(compiled_rate_rules):
             curr_state[rr] = y[i]
         for i, rr in enumerate(compiled_rate_rules):
@@ -224,7 +222,6 @@ class BasicTauHybridSolver(GillesPySolver):
                 urn = (math.log(random.uniform(0, 1)))
                 current[i+len(compiled_rate_rules)] += urn
                 rxn_offset[r] += urn
-
         
 
         if debug:
@@ -275,10 +272,13 @@ class BasicTauHybridSolver(GillesPySolver):
             Example use: {max_step : 0, rtol : .01}
         """
 
-        if not sys.warnoptions:
-            warnings.simplefilter("ignore")
         if not isinstance(self, BasicTauHybridSolver):
             self = BasicTauHybridSolver()
+
+        if len(kwargs) > 0:
+            for key in kwargs:
+                log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
+
         if debug:
             print("t = ", t)
             print("increment = ", increment)

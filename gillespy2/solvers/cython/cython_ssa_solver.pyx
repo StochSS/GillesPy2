@@ -1,5 +1,5 @@
 # encoding: utf-8
-from gillespy2.core import GillesPySolver, gillespyError
+from gillespy2.core import GillesPySolver, gillespyError, log
 import numpy as np
 import random
 cimport numpy as np
@@ -137,10 +137,20 @@ def convert_infix_prefix(equation):
     
 class CythonSSASolver(GillesPySolver):
     name = "CythonSSASolver"
+    def __init__(self):
+        name = "CythonSSASolver"
     #@cython.boundscheck(False)
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, profile=False, show_labels=True, **kwargs):
+
+        if not isinstance(self, CythonSSASolver):
+            self = CythonSSASolver()
+
+        if len(kwargs) > 0:
+            for key in kwargs:
+                log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
+
         self.simulation_data = []
         #convert dictionary of species to species array
         species = list(model.listOfSpecies.keys())

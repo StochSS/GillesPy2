@@ -1,5 +1,5 @@
 import gillespy2
-from gillespy2.core import Model, Reaction, gillespyError, GillesPySolver
+from gillespy2.core import Model, Reaction, gillespyError, GillesPySolver, log
 import os #for getting directories for C++ files
 import shutil #for deleting/copying files
 import subprocess #For calling make and executing c solver
@@ -163,6 +163,9 @@ class SSACSolver(GillesPySolver):
             increment=0.05, seed=None, debug=False, profile=False, show_labels=True, **kwargs):
         if self is None:
             self = SSACSolver(model)
+        if len(kwargs) > 0:
+            for key in kwargs:
+                log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
         if self.compiled:
             self.simulation_data = None
             number_timesteps = int(t//increment + 1)                    
