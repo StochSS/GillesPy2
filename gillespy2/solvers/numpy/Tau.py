@@ -35,9 +35,9 @@ def initialize(model, epsilon):
             # if this reaction's order is higher than previous, set HOR
             if reaction_order > HOR[str(reactant)]:
                 HOR[str(reactant)] = reaction_order
-                if count == 2 and reaction_order == 2: g_i[reactant] = lambda x: 2+(1/(x-1))
-                elif count == 2 and reaction_order == 3: g_i[reactant] = lambda x: (3/2)*(2+(1/(x-1)))
-                elif count == 3: g_i[reactant] = lambda x: (3+(1/(x-1))+(2/(x-2)))
+                if count == 2 and reaction_order == 2: g_i[str(reactant)] = lambda x: 2+(1/(x-1))
+                elif count == 2 and reaction_order == 3: g_i[str(reactant)] = lambda x: (3/2)*(2+(1/(x-1)))
+                elif count == 3: g_i[str(reactant)] = lambda x: (3+(1/(x-1))+(2/(x-2)))
                 else: 
                     g_i[str(reactant)] = HOR[str(reactant)]
                     epsilon_i[str(reactant)] = epsilon / g_i[str(reactant)]
@@ -50,7 +50,7 @@ def select(*tau_args):
     Tau Selection method based on Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006). "Efficient step size selection for the tau-leaping simulation method" (PDF). The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151
     '''
     
-    HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold, model, propensities, curr_state, curr_time, save_time = tau_args
+    HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, epsilon, critical_threshold, model, propensities, curr_state, curr_time, save_time = tau_args
     tau_step = None
     crit_taus = {}
     critical_reactions = []
@@ -79,7 +79,7 @@ def select(*tau_args):
     for r in g_i:
         if callable(g_i[str(r)]):
             g_i[str(r)] = g_i[str(r)](curr_state[str(r)])
-            epsilon_i[str(r)] = self.epsilon / g_i[str(r)]
+            epsilon_i[str(r)] = epsilon / g_i[str(r)]
 
     tau_i = {}  # estimated tau for non-critical reactions
     non_critical_tau = None
@@ -96,9 +96,9 @@ def select(*tau_args):
                 if reactant not in sigma_i:
                     sigma_i[str(reactant)] = 0
                 mu_i[str(reactant)] += model.listOfReactions[r].reactants[reactant] * propensities[
-                    r]  # Cao, Gillespie, Petzold 29a
+                    r]  # Cao, Gillespie, Petzold 32a
                 sigma_i[str(reactant)] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[
-                    r]  # Cao, Gillespie, Petzold 29b
+                    r]  # Cao, Gillespie, Petzold 32b
     for r in reactants:
         calculated_max = epsilon_i[str(r)] * curr_state[r.name]
         #print('calculated max: ', calculated_max)

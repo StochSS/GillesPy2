@@ -1,0 +1,235 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# SSA Vilar Oscillator"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Imports"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import sys\n",
+    "import os\n",
+    "import numpy\n",
+    "import matplotlib.pyplot as plt\n",
+    "plt.style.use('dark_background')\n",
+    "sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '../../../')))\n",
+    "import gillespy2.core.gillespySolver\n",
+    "import gillespy2\n",
+    "from gillespy2.core.gillespyError import SolverError, DirectoryError, BuildError, ExecutionError\n",
+    "from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver\n",
+    "from gillespy2.solvers.cython.cython_ssa_solver import CythonSSASolver"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Model Instantiation\n",
+    "\n",
+    "Model must include rates, species, and reactions"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import gillespy2\n",
+    "class VilarOscillator(gillespy2.Model):\n",
+    "     def __init__(self, parameter_values=None):\n",
+    "            #initialize Model\n",
+    "            gillespy2.Model.__init__(self, name=\"VilarOscillator\")\n",
+    "            \n",
+    "            #parameters\n",
+    "            alpha_a = gillespy2.Parameter(name='alpha_a', expression= 50.0)\n",
+    "            alpha_a_prime = gillespy2.Parameter(name='alpha_a_prime', expression= 500.0)\n",
+    "            alpha_r = gillespy2.Parameter(name='alpha_r', expression = 0.01)\n",
+    "            alpha_r_prime = gillespy2.Parameter(name='alpha_r_prime', expression = 50.0)\n",
+    "            beta_a = gillespy2.Parameter(name='beta_a', expression= 50.0)\n",
+    "            beta_r = gillespy2.Parameter(name='beta_r', expression= 5.0)\n",
+    "            delta_ma = gillespy2.Parameter(name='delta_ma', expression = 10.0)\n",
+    "            delta_mr = gillespy2.Parameter(name='delta_mr', expression = 0.5)\n",
+    "            delta_a = gillespy2.Parameter(name='delta_a', expression= 1.0)\n",
+    "            delta_r = gillespy2.Parameter(name='delta_r', expression= 0.2)\n",
+    "            gamma_a = gillespy2.Parameter(name='gamma_a', expression= 1.0)\n",
+    "            gamma_r = gillespy2.Parameter(name='gamma_r', expression= 1.0)\n",
+    "            gamma_c = gillespy2.Parameter(name='gamma_c', expression= 2.0)\n",
+    "            Theta_a = gillespy2.Parameter(name='Theta_a', expression= 50.0)\n",
+    "            Theta_r = gillespy2.Parameter(name='Theta_r', expression= 100.0)\n",
+    "        \n",
+    "            self.add_parameter([alpha_a,alpha_a_prime,alpha_r, alpha_r_prime,beta_a,beta_r,delta_ma,delta_mr,\n",
+    "                               delta_a,delta_r,gamma_a,gamma_r,gamma_c,Theta_a,Theta_r])\n",
+    "            \n",
+    "            #Species\n",
+    "            Da = gillespy2.Species(name='Da', initial_value=1)\n",
+    "            Da_prime = gillespy2.Species(name='Da_prime', initial_value=0)\n",
+    "            Ma = gillespy2.Species(name='Ma', initial_value=0)\n",
+    "            Dr = gillespy2.Species(name='Dr', initial_value=1)\n",
+    "            Dr_prime = gillespy2.Species(name='Dr_prime', initial_value=0)\n",
+    "            Mr = gillespy2.Species(name='Mr',initial_value=0)\n",
+    "            C = gillespy2.Species(name='C',initial_value=10)\n",
+    "            A = gillespy2.Species(name='A',initial_value=10)\n",
+    "            R = gillespy2.Species(name='R',initial_value=10)\n",
+    "            \n",
+    "            self.add_species([Da,Da_prime,Ma,Dr,Dr_prime,Mr,C,A,R])\n",
+    "            \n",
+    "            #reactions\n",
+    "            s_Da = gillespy2.Reaction(name=\"s_Da\",reactants={Da_prime:1}, products={Da:1},rate=Theta_a)\n",
+    "            s_Da_prime = gillespy2.Reaction(name=\"s_Da_pr1ime\",reactants={Da:1,A:1}, products={Da_prime:1},rate=gamma_a)\n",
+    "            s_Dr = gillespy2.Reaction(name=\"s_Dr\",reactants={Dr_prime:1}, products={Dr:1},rate=Theta_r)\n",
+    "            s_Dr_prime = gillespy2.Reaction(name=\"s_Dr_pr1ime\",reactants={Dr:1,A:1}, products={Dr_prime:1},rate=gamma_r)\n",
+    "            s_Ma1 = gillespy2.Reaction(name=\"s_Ma1\",reactants={Da_prime:1},products={Da_prime:1,Ma:1},rate=alpha_a_prime)\n",
+    "            s_Ma2 = gillespy2.Reaction(name=\"s_Ma2\",reactants={Da:1},products={Da:1,Ma:1},rate=alpha_a)\n",
+    "            a_Ma = gillespy2.Reaction(name=\"a_Ma\",reactants={Ma:1},products={},rate=delta_ma)\n",
+    "            s_A1 = gillespy2.Reaction(name=\"s_A1\",reactants={Ma:1},products={A:1,Ma:1},rate=beta_a)\n",
+    "            s_A2 = gillespy2.Reaction(name=\"S_A2\",reactants={Da_prime:1},products={Da_prime:1,A:1},rate=Theta_a)\n",
+    "            s_A3 = gillespy2.Reaction(name=\"S_A3\",reactants={Dr_prime:1},products={Dr_prime:1,A:1},rate=Theta_a)\n",
+    "            a_A = gillespy2.Reaction(name=\"a_A\",reactants={A:1},products={},rate=gamma_c)\n",
+    "            s_C = gillespy2.Reaction(name=\"s_C\",reactants={A:1,R:1},products={C:1},rate=gamma_c)\n",
+    "            S_Mr1 = gillespy2.Reaction(name=\"S_Mr1\",reactants={Dr_prime:1},products={Dr_prime:1,Mr:1},rate=alpha_r_prime)\n",
+    "            S_Mr2 = gillespy2.Reaction(name=\"S_Mr2\",reactants={Dr:1},products={Dr:1,Mr:1},rate=alpha_r)\n",
+    "            a_Mr = gillespy2.Reaction(name=\"a_Mr\",reactants={Mr:1},products={},rate=delta_mr)\n",
+    "            s_R1 = gillespy2.Reaction(name=\"s_R1\",reactants={Mr:1},products={Mr:1,R:1},rate=beta_r)\n",
+    "            a_R = gillespy2.Reaction(name=\"a_R\",reactants={R:1},products={},rate=delta_r)\n",
+    "            s_r2 = gillespy2.Reaction(name=\"s_r2\",reactants={C:1},products={R:1},rate=delta_a)\n",
+    "            \n",
+    " \n",
+    "            self.add_reaction([s_Da,s_Da_prime,s_Dr,s_Dr_prime,s_Ma1,s_Ma2,a_Ma,s_A1,s_A2,s_A3,a_A,s_C,\n",
+    "                              S_Mr1,S_Mr2,a_Mr,s_R1,a_R,s_r2])\n",
+    "    \n",
+    "            self.timespan(numpy.linspace(0,200,201))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model = VilarOscillator()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Run Model and plot\n",
+    "Run the model by calling the run function on the model and select solver via 'solver' keyword argument.  if show_labels is True, results are returned as a list of dictionaries, where the list index is the trajectory run index, and dictionary keys are comprised of species names and 'time'.  If show_labels is False, results are returned as a numpy array with indices [trajectory][timestep][species_no]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from gillespy2.solvers.cpp.ssa_c_solver import SSACSolver\n",
+    "%time results = model.run(solver=CythonSSASolver)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plt.figure(figsize=(18,10))\n",
+    "plt.title(\"Vilar Oscillator - SSA\")\n",
+    "plt.xlabel(\"Time (s)\")\n",
+    "plt.ylabel(\"Species Population\")\n",
+    "\n",
+    "plt.plot(results[0]['time'],results[0]['Da'], label='Da')\n",
+    "plt.plot(results[0]['time'],results[0]['Da_prime'], label='Da_prime')\n",
+    "plt.plot(results[0]['time'],results[0]['Ma'], label='Ma')\n",
+    "plt.plot(results[0]['time'],results[0]['Dr'], label='Dr')\n",
+    "plt.plot(results[0]['time'],results[0]['Dr_prime'], label='Dr_prime')\n",
+    "plt.plot(results[0]['time'],results[0]['Mr'], label='Mr')\n",
+    "plt.plot(results[0]['time'],results[0]['C'],'r', label='C')\n",
+    "plt.plot(results[0]['time'],results[0]['A'],'y', label='A')\n",
+    "plt.plot(results[0]['time'],results[0]['R'],'b', label='R')\n",
+    "\n",
+    "plt.plot([0],[11])\n",
+    "plt.legend(loc='best')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Plotly can be used to create interactive graphs.\n",
+    " Plotly graphs can only be viewed in a Jupyter Notebook"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from plotly.offline import init_notebook_mode, iplot\n",
+    "import pandas as pd\n",
+    "import cufflinks as cf\n",
+    "\n",
+    "init_notebook_mode(connected=True)\n",
+    "cf.go_offline()\n",
+    "\n",
+    "output_data_frame = pd.DataFrame({'A':results[0]['A'],'C': results[0]['C'],'Da': results[0]['Da'],\n",
+    "                                  'Da_prime': results[0]['Da_prime'],'Dr':results[0]['Dr'],\n",
+    "                                  'Dr_prime':results[0]['Dr_prime'],'Ma':results[0]['Ma'],\n",
+    "                                  'Mr':results[0]['Mr'],'R':results[0]['R']})\n",
+    "output_data_frame.iplot()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "results"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.8"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 1
+}
