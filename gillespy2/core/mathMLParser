@@ -27,63 +27,6 @@ kineticlaw = """<math xmlns="http://www.w3.org/1998/Math/MathML">
             </apply>
           </math>"""
 
-foil = """<math xmlns="http://www.w3.org/1998/Math/MathML">
-    <mrow>
-       <msup>
-         <mfenced>
-           <mrow>
-             <mi>a</mi>
-             <mo>+</mo>
-             <mi>b</mi>
-           </mrow>
-         </mfenced>
-         <mn>2</mn>
-       </msup>
-     </mrow>
-    </math>"""
-
-quadratic = """
-<math xmlns="http://www.w3.org/1998/Math/MathML">
-    <apply>
-      <eq/>
-      <ci>x</ci>
-      <apply>
-        <divide/>
-        <apply>
-          <csymbol>PlusMinus;</csymbol>
-          <apply>
-            <minus/>
-            <ci>b</ci>
-          </apply>
-          <apply>
-            <root/>
-            <degree><cn>2</cn></degree>
-            <apply>
-              <minus/>
-              <apply>
-                <power/>
-                <ci>b</ci>
-                <cn>2</cn>
-              </apply>
-              <apply>
-                <times/>
-                <cn>4</cn>
-                <ci>a</ci>
-                <ci>c</ci>
-              </apply>
-            </apply>
-          </apply>
-        </apply>
-        <apply>
-          <times/>
-          <cn>2</cn>
-          <ci>a</ci>
-        </apply>
-      </apply>
-    </apply>
-</math>"""
-
-
 def mathmltostr(mathml):
     mathmldict = xmltodict.parse(mathml)['math']
     mathmldict
@@ -91,45 +34,185 @@ def mathmltostr(mathml):
 
 import xml.etree.ElementTree as ET
 
-tree = ET.ElementTree(ET.fromstring(quadratic))
+tree = ET.ElementTree(ET.fromstring(kineticlaw))
+#tree = ET.ElementTree(ET.fromstring(timetrigger))
 
-treelist = list(tree.iter())
+operators = {'times': '*',
+                 'divide': '/',
+                 'plus': '+',
+                 'minus': '-'
+                 }
 
-# A function to do postorder tree traversal
-def printPostorder(root = None,x = 0,outputstr = ""):
-
-    if root:
-        for i,item in enumerate(list(root)):
-            outputstr += printPostorder(item,x+1)
-
-        for i,item in enumerate(list(root)):
-            # print(" level: ", x ,"index: ",i,item)
-            node = parseNode(item)
-            outputstr += node
-
-    return outputstr
-
-def parseNode(node):
-
+def nodestrip(leaf):
     import re
 
-    nodestr = str(node)
-    nodestr = re.sub('{(.*)}','', nodestr)
-    nodestr = re.search('\'(.*)\'', nodestr).group(1) #remove mathml url
+    itemstr = str(leaf)
+    itemstr = re.sub('{(.*)}', '', itemstr)
+    itemstr = re.search('\'(.*)\'', itemstr).group(1)  # remove mathml url
 
-    nodestr = nodestr.strip()
+    if itemstr == "ci" or itemstr == "mi":
+        itemstr = str(leaf.text).strip()
+        return itemstr
 
-    if nodestr == "ci" or nodestr == "cn" or nodestr == "csymbol" or nodestr == "mo":
-        nodestr = str(node.text).strip()
+    if itemstr == "cn" or itemstr == "mn":
+        itemstr = str(leaf.text).strip()
+        return itemstr
 
-    nodestr += ' '
+    if itemstr == "csymbol" or itemstr == "mo":
+        itemstr = str(leaf.text).strip()
+        return itemstr
 
-    return nodestr
+    if itemstr in operators.keys():
+        itemstr = operators[itemstr]
+        return itemstr
+
+    return itemstr
+
+def treewalk(root = tree.getroot()):
+
+    output = ' '
+    if nodestrip(root) == 'apply':
+        output += ('(')
+
+    output += nodestrip(root)
+
+    for child in root:
+        output+= treewalk(child)
+
+    output += ' '
+
+    if nodestrip(root) == 'apply':
+        output += (')')
+
+    return output
+
+# def fixops(equation):
+#     equation = str(equation)
+#     equation = equation.replace('apply','')
+#     equation = list(equation.split())
+#
+#     output = []
+#     i = 0
+#
+#     def fixed(equation): #checks to see if equation is properly formatted
+#
+#         for i in range(0, len(equation)-1):
+#             if equation[i] in operators.values(): #loop through and check to see that operators are in correct places
+#                 if equation[i -1] == '(' or equation[i +1] == ')':
+#                     return False
+#         else:
+#             return True
+#
+#     while(True):
+#
+#         if fixed(equation) is True:
+#             break
+#         print(equation)
+#         for i in range(0, len(equation) - 1):
+#             if equation[i] in operators.values():
+#                 if equation[i + 1] is not '(' :
+#                     equation[i], equation[i + 1] = equation[i + 1], equation[i]
+#                     break
+#                 else:
+#                     operator = equation[i]
+#                     for j in range(i + 1, len(equation) - 1):
+#
+#                         if equation[j] is ')':
+#                             equation.insert(j,operator)
+#                             del equation[i]
+#                             break
+
+                        #
+                        # print("j = ",j)
+                        # if equation[j] == ')':
+                        #     print("found ) at index ", j)
+                        #
+                        #     del equation[i]
+                        #     equation.insert(j,temp)
+                        #     print(equation)
+                        #     break
+
+    # while i < len(equation)-1:
+    #
+    #     # print('i :',i)
+    #     # print('value: ',equation[i])
+    #     # print(equation)
+    #
+    #     if equation[i] in operators.values():
+    #         print(equation[i])
+    #
+    #         if equation[i + 1] is '(':
+    #             # temp = equation[i]
+    #             # # print("found ( at index ",i+1)
+    #             # # print("temp ", temp)
+    #             for j in range(i+1,len(equation)-1):
+    #
+    #                 print(output)
+    #
+    #                 if equation[j] is  ')':
+    #                     output.append(equation[j])
+    #                     output.append(equation[i])
+    #
+    #                     break
+    #                 else:
+    #                     output.append(equation[j])
+    #                 #
+    #                 # print("j = ",j)
+    #                 # if equation[j] == ')':
+    #                 #     print("found ) at index ", j)
+    #                 #
+    #                 #     del equation[i]
+    #                 #     equation.insert(j,temp)
+    #                 #     print(equation)
+    #                 #     break
+    #
+    #         else:
+    #             output.append(equation[i+1])
+    #             output.append(equation[i])
+    #             equation[i],equation[i + 1]= equation[i+1],equation[i]
+    #             i += 1
+    #
+    #     #else:
+    #         #output.append(equation[i])
+    #     print(output)
+    #
+    #     i +=1
 
 
-print(printPostorder(root = tree.getroot(),x = 0))
+    return equation
 
-#print(list(tree.getroot()))
+# ['math', '(', '*', 'comp1', '(', '-', '(', '*', 'kf_0', 'B', ')', '(', '*', 'kr_0', 'BL', ')', ')', ')']
+# ['math', '(', 'comp1', '*', '(', '-', '(', 'kf_0', 'B', ')', '*', '(', 'kr_0', 'BL', ')', ')', ')', '*']
 
+
+print(fixops(treewalk()))
+
+
+
+#treelist = list(tree.iter())
+
+
+# itemlist = []
 # for item in treelist:
-#     print(item)
+#     import re
+#
+#     itemstr = str(item)
+#     itemstr = re.sub('{(.*)}', '', itemstr)
+#     itemstr = re.search('\'(.*)\'', itemstr).group(1)  # remove mathml url
+#
+#     if itemstr == "ci" or itemstr == "mi":
+#         itemstr = str(item.text).strip()
+#
+#     if itemstr == "cn" or itemstr == "mn":
+#         itemstr = str(item.text).strip()
+#
+#     if itemstr == "csymbol" or itemstr == "mo":
+#         itemstr = str(item.text).strip()
+#
+#     if itemstr in operators.keys():
+#         itemstr = operators[itemstr]
+#
+#     itemlist.append(itemstr)
+
+
+
