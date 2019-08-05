@@ -8,9 +8,9 @@ class TestExampleModels(unittest.TestCase):
         trichloroethylene_model = Trichloroethylene()
         results = trichloroethylene_model.run()
 
-    #def test_lacOperon_example(self):
-     #   lacOperon_model = LacOperon()
-      #  results = lacOperon_model.run()
+    def test_lacOperon_example(self):
+        lacOperon_model = LacOperon()
+        results = lacOperon_model.run()
 
     def test_schlogl_example(self):
         schlogl_model = Schlogl()
@@ -20,9 +20,9 @@ class TestExampleModels(unittest.TestCase):
         michaelisMenten_model = MichaelisMenten()
         results = michaelisMenten_model.run()
 
-    def test_toggleSwitch_example(self):
-        toggleSwitch_model = ToggleSwitch()
-        results = toggleSwitch_model.run()
+    #def test_toggleSwitch_example(self):
+     #   toggleSwitch_model = ToggleSwitch()
+      #  results = toggleSwitch_model.run()
 
     def test_example_example(self):
         example_model = Example()

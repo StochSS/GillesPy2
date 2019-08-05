@@ -50,7 +50,7 @@ class LacOperon(Model):
     def __init__(self, parameter_values=None):
         # initialize Model
         Model.__init__(self, name="LacOperon")
-
+        
         # Species
         s1 = Species(name='PLac', initial_value=300)
         s2 = Species(name='RNAP', initial_value=120)
@@ -75,7 +75,7 @@ class LacOperon(Model):
         s21 = Species(name='lactose', initial_value=0)
         s22 = Species(name='LacZlactose', initial_value=0)
         s23 = Species(name='product', initial_value=0)
-
+        
         self.add_species(
             [s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19, s20, s21, s22,
              s23])
