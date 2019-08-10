@@ -16,6 +16,7 @@ from collections import OrderedDict
 from gillespy2.core.results import Results,EnsembleResults
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
+from gillespy2.core.events import *
 import numpy as np
 
 try:
@@ -99,9 +100,6 @@ class Model(object):
 
         ##################################################################
         self.listOfEvents = OrderedDict()
-        # self.listOfEventAssignments = OrderedDict()
-        # self.listOfDelays = OrderedDict()
-        # self.listOfTriggers = OrderedDict()
         ##################################################################
 
         # This defines the unit system at work for all numbers in the model
@@ -158,14 +156,8 @@ class Model(object):
         if name in self.listOfParameters:
             return ModelError('Name "{}" is unavailable. A parameter with that name exists.'.format(name))
         ##################################################################
-        # if name in self.listOfDelays:
-        #     return ModelError('Name "{}" is unavailable. A delay with that name exists.'.format(name))
-        # if name in self.listOfTriggers:
-        #     return ModelError('Name "{}" is unavailable. A trigger with that name exists.'.format(name))
         if name in self.listOfEvents:
             return ModelError('Name "{}" is unavailable. An event with that name exists.'.format(name))
-        # if name in self.listOfEventAssignments:
-        #     return ModelError('Name "{}" is unavailable. An event_assignment with that name exists.'.format(name))
         ##################################################################
 
         if name.isdigit():
@@ -230,7 +222,7 @@ class Model(object):
         """
             Removes all events from the model object.
         """
-        self.listOfSpecies.clear()
+        self.listOfEvents.clear()
 
     ##################################################################
 
@@ -674,8 +666,6 @@ class RateRule:
         self.expression = expression
         self.species = species
         self.name = name
-
-
 
 class Reaction:
     """
@@ -1246,312 +1236,4 @@ class StochMLDocument():
         e.append(products)
 
         return e
-
-
-class EventAssignment:
-    """
-    An EventAssignment can be given as an expression (function) or directly
-    as a value (scalar). If given an expression, it should be
-    understood as evaluable in the namespace of a parent Model.
-
-    Attributes
-    ----------
-    name : str
-        The name by which this EventAssignment is called or referenced in reactions.
-    expression : str
-        String for a function calculating EventAssignment values. Should be evaluable
-        in namespace of Model.
-    value : float
-        Value of an EventAssignment if it is not dependent on other Model entities.
-    """
-
-    def __init__(self, name="", expression=None, value=None):
-
-        self.name = name
-        # We allow expression to be passed in as a non-string type. Invalid strings
-        # will be caught below. It is perfectly fine to give a scalar value as the expression.
-        # This can then be evaluated in an empty namespace to the scalar value.
-        self.expression = expression
-        if expression is not None:
-            self.expression = str(expression)
-
-        self.value = value
-
-        # self.value is allowed to be None, but not self.expression. self.value
-        # might not be evaluable in the namespace of this event, but defined
-        # in the context of a model or reaction.
-        if self.expression is None:
-            raise TypeError
-
-        if self.value is None:
-            self.evaluate()
-
-    def evaluate(self, namespace={}):
-        """
-        Evaluate the expression and return the (scalar) value in the given
-        namespace.
-
-        Attributes
-        ----------
-        namespace : dict (optional)
-            The namespace in which to test evaluation of the event, if it
-            involves other event, etc.
-        """
-        try:
-            self.value = (float(eval(self.expression, namespace)))
-        except:
-            self.value = None
-
-    def set_expression(self, expression):
-        """
-        Sets the expression for a eventAssignment.
-        """
-        self.expression = expression
-        # We allow expression to be passed in as a non-string type. Invalid
-        # strings will be caught below. It is perfectly fine to give a scalar
-        # value as the expression. This can then be evaluated in an empty
-        # namespace to the scalar value.
-        if expression is not None:
-            self.expression = str(expression)
-
-        if self.expression is None:
-            raise TypeError
-
-        self.evaluate()
-
-class EventDelay:
-    """
-    An EventDelay can be given as an expression (function) or directly
-    as a value (scalar). If given an expression, it should be
-    understood as evaluable in the namespace of a parent Model.
-
-    Attributes
-    ----------
-    name : str
-        The name by which this EventDelay is called or referenced in reactions.
-    expression : str
-        String for a function calculating EventDelay values. Should be evaluable
-        in namespace of Model.
-    value : float
-        Value of an EventDelay if it is not dependent on other Model entities.
-    """
-
-    def __init__(self, name="", delay_expression=None, value=None):
-
-        self.name = name
-        # We allow expression to be passed in as a non-string type. Invalid strings
-        # will be caught below. It is perfectly fine to give a scalar value as the expression.
-        # This can then be evaluated in an empty namespace to the scalar value.
-        self.delay_expression = delay_expression
-        if delay_expression is not None:
-            self.expression = str(delay_expression)
-
-        self.value = value
-
-        # self.value is allowed to be None, but not self.expression. self.value
-        # might not be evaluable in the namespace of this eventDelay, but defined
-        # in the context of a model or reaction.
-        if self.delay_expression is None:
-            raise TypeError
-
-        if self.value is None:
-            self.evaluate()
-
-    def evaluate(self, namespace={}):
-        """
-        Evaluate the expression and return the (scalar) value in the given
-        namespace.
-
-        Attributes
-        ----------
-        namespace : dict (optional)
-            The namespace in which to test evaluation of the eventDelay, if it
-            involves other eventDelay, etc.
-        """
-        try:
-            self.value = (float(eval(self.delay_expression, namespace)))
-        except:
-            self.value = None
-
-    def set_expression(self, delay_expression):
-        """
-        Sets the expression for a eventDelay.
-        """
-        self.delay_expression = delay_expression
-        # We allow expression to be passed in as a non-string type. Invalid
-        # strings will be caught below. It is perfectly fine to give a scalar
-        # value as the expression. This can then be evaluated in an empty
-        # namespace to the scalar value.
-        if delay_expression is not None:
-            self.expression = str(delay_expression)
-
-        if self.delay_expression is None:
-            raise TypeError
-
-        self.evaluate()
-
-
-class EventTrigger:
-    """
-    An EventTrigger can be given as an expression (function) or directly
-    as a value (scalar). If given an expression, it should be
-    understood as evaluable in the namespace of a parent Model.
-
-    Attributes
-    ----------
-    name : str
-        The name by which this EventTrigger is called or referenced in reactions.
-    expression : str
-        String for a function calculating EventTrigger values. Should be evaluable
-        in namespace of Model.
-    value : float
-        Value of an EventTrigger if it is not dependent on other Model entities.
-    """
-
-    def __init__(self, name="", trigger_expression=None, value=None,initial_value = False,persistent = False):
-
-        self.name = name
-        # We allow expression to be passed in as a non-string type. Invalid strings
-        # will be caught below. It is perfectly fine to give a scalar value as the expression.
-        # This can then be evaluated in an empty namespace to the scalar value.
-        self.trigger_expression = trigger_expression
-        if trigger_expression is not None:
-            self.trigger_expression = str(trigger_expression)
-
-        self.value = value
-
-        # self.value is allowed to be None, but not self.expression. self.value
-        # might not be evaluable in the namespace of this event, but defined
-        # in the context of a model or reaction.
-        if self.trigger_expression is None:
-            raise TypeError
-
-        if self.value is None:
-            self.evaluate()
-
-    def evaluate(self, namespace={}):
-        """
-        Evaluate the expression and return the (scalar) value in the given
-        namespace.
-
-        Attributes
-        ----------
-        namespace : dict (optional)
-            The namespace in which to test evaluation of the event, if it
-            involves other event, etc.
-        """
-        try:
-            self.value = (float(eval(self.trigger_expression, namespace)))
-        except:
-            self.value = None
-
-    def set_expression(self, trigger_expression):
-        """
-        Sets the expression for a event.
-        """
-        self.trigger_expression = trigger_expression
-        # We allow expression to be passed in as a non-string type. Invalid
-        # strings will be caught below. It is perfectly fine to give a scalar
-        # value as the expression. This can then be evaluated in an empty
-        # namespace to the scalar value.
-        if trigger_expression is not None:
-            self.trigger_expression = str(trigger_expression)
-
-        if self.trigger_expression is None:
-            raise TypeError
-
-        self.evaluate()
-
-class Event:
-    """
-    An Event can be given as an expression (function) or directly
-    as a value (scalar). If given an expression, it should be
-    understood as evaluable in the namespace of a parent Model.
-
-    Attributes
-    ----------
-    name : str
-        The name by which this Event is called or referenced in reactions.
-    expression : str
-        String for a function calculating Event values. Should be evaluable
-        in namespace of Model.
-    value : float
-        Value of an Event if it is not dependent on other Model entities.
-    """
-
-    def __init__(self, name="", delay = None, event_assignments = None, priority_expression=None, value=None):
-
-        self.name = name
-        # We allow expression to be passed in as a non-string type. Invalid strings
-        # will be caught below. It is perfectly fine to give a scalar value as the expression.
-        # This can then be evaluated in an empty namespace to the scalar value.
-        self.priority_expression = priority_expression
-        if priority_expression is not None:
-            self.priority_expression = str(priority_expression)
-
-        self.value = value
-        self.delay = delay
-        self.event_assignments = event_assignments
-
-        # self.value is allowed to be None, but not self.expression. self.value
-        # might not be evaluable in the namespace of this event, but defined
-        # in the context of a model or reaction.
-        if self.priority_expression is None:
-            raise TypeError
-
-        if self.value is None:
-            self.evaluate()
-
-    def evaluate(self, namespace={}):
-        """
-        Evaluate the expression and return the (scalar) value in the given
-        namespace.
-
-        Attributes
-        ----------
-        namespace : dict (optional)
-            The namespace in which to test evaluation of the event, if it
-            involves other event, etc.
-        """
-        try:
-            self.value = (float(eval(self.priority_expression, namespace)))
-        except:
-            self.value = None
-
-
-    def set_expression(self, priority_expression):
-        """
-        Sets the expression for a event.
-        """
-        self.priority_expression = priority_expression
-        # We allow expression to be passed in as a non-string type. Invalid
-        # strings will be caught below. It is perfectly fine to give a scalar
-        # value as the expression. This can then be evaluated in an empty
-        # namespace to the scalar value.
-        if priority_expression is not None:
-            self.priority_expression = str(priority_expression)
-
-        if self.priority_expression is None:
-            raise TypeError
-
-        self.evaluate()
-
-    def set_delay(self,delay):
-        self.delay = delay
-
-        if self.delay is None:
-            raise TypeError
-
-        self.delay
-
-    def addEventAssignment(self,  eventAssignment):
-        """
-        Adds a  ...
-
-        Attributes
-        ----------
-
-        """
-
-        self.event_assignments
 
