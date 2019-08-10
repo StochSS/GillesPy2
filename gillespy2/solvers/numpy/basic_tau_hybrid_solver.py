@@ -4,7 +4,7 @@ from scipy.integrate import ode
 import numpy as np
 import gillespy2
 from gillespy2.solvers.numpy import Tau
-from gillespy2.core import GillesPySolver, log
+from gillespy2.core import GillesPySolver, log, events
 from gillespy2.core.gillespyError import *
 
 eval_globals = math.__dict__
