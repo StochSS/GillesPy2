@@ -18,19 +18,19 @@ class EventAssignment:
         Value of an EventAssignment if it is not dependent on other Model entities.
     """
 
-    def __init__(self, name="", expression=None, value=None):
+    def __init__(self, name="", assignment_expression=None, value=None):
 
         self.name = name
-        # We allow expression to be passed in as a non-string type. Invalid strings
-        # will be caught below. It is perfectly fine to give a scalar value as the expression.
+        # We allow assignment_expression to be passed in as a non-string type. Invalid strings
+        # will be caught below. It is perfectly fine to give a scalar value as the assignment_expression.
         # This can then be evaluated in an empty namespace to the scalar value.
-        self.expression = expression
-        if expression is not None:
-            self.expression = str(expression)
+        self.expression = assignment_expression
+        if assignment_expression is not None:
+            self.expression = str(assignment_expression)
 
         self.value = value
 
-        # self.value is allowed to be None, but not self.expression. self.value
+        # self.value is allowed to be None, but not self.assignment_expression. self.value
         # might not be evaluable in the namespace of this event, but defined
         # in the context of a model or reaction.
         if self.expression is None:
@@ -232,7 +232,7 @@ class Event:
         Value of an Event if it is not dependent on other Model entities.
     """
 
-    def __init__(self, name="", delay = None, listOfevent_assignments = None, priority_expression=None, value=None):
+    def __init__(self, name="", delay = None, listOfevent_assignments = None, priority_expression=None, value=None, event_trigger = None):
 
         self.name = name
         # We allow expression to be passed in as a non-string type. Invalid strings
@@ -241,20 +241,24 @@ class Event:
         self.priority_expression = priority_expression
         if priority_expression is not None:
             self.priority_expression = str(priority_expression)
-
-        self.value = value
-        self.delay = delay
-
-        if listOfevent_assignments is None:
-            self.listOfevent_assignments = OrderedDict()
         else:
-            self.add_EventAssignment(listOfevent_assignments)
-
+            self.priority_expression = "0"
         # self.value is allowed to be None, but not self.expression. self.value
         # might not be evaluable in the namespace of this event, but defined
         # in the context of a model or reaction.
-        if self.priority_expression is None:
+
+        if event_trigger is None:
             raise TypeError
+
+        self.value = value
+        self.delay = delay
+        self.event_trigger = event_trigger
+
+
+        self.event_assignments = OrderedDict()
+
+        if listOfevent_assignments is not None:
+            self.add_EventAssignment(listOfevent_assignments)
 
         if self.value is None:
             self.evaluate()
@@ -303,16 +307,16 @@ class Event:
 
     def add_EventAssignment(self, obj):
         """
-        Adds an event or a list of events.
+        Adds an eventAssignment or a list of eventAssignments.
 
         Attributes
         ----------
-        obj : Event, or list of Events
+        obj : EventAssignment or a list of EventAssignments
             The event or list of events to be added to the model object.
         """
 
-        if isinstance(self, EventAssignment):
-            self.listOfevent_assignments[obj.name] = obj
+        if isinstance(obj, EventAssignment):
+            self.event_assignments[obj.name] = obj
         elif isinstance(obj,list):
             for EA in obj:
                 self.add_EventAssignment(EA)
@@ -329,12 +333,12 @@ class Event:
            obj : str
                Name of the eventAssignment object to be removed.
            """
-        self.listOfEvents.pop(obj)
+        self.event_assignments.pop(obj)
 
     def delete_all_eventAssignments(self):
         """
             Removes all events from the model object.
         """
-        self.listOfevent_assignments.clear()
+        self.event_assignments.clear()
 
 
