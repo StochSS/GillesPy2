@@ -1,4 +1,4 @@
-from gillespy2.core import GillesPySolver, Model, Reaction, log
+from gillespy2.core import GillesPySolver, Model, Reaction, log, events
 import random
 import math
 import numpy as np

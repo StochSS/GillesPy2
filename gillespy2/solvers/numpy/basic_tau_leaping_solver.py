@@ -5,6 +5,7 @@ import random, math, sys, warnings
 import numpy as np
 from gillespy2.solvers.numpy import Tau
 from gillespy2.core import GillesPySolver, log
+from gillespy2.core.gillespyError import *
 
 
 class BasicTauLeapingSolver(GillesPySolver):
@@ -95,7 +96,6 @@ class BasicTauLeapingSolver(GillesPySolver):
             print("t = ", t)
             print("increment = ", increment)
 
-            
         species_mappings = model.sanitized_species_names()
         species = list(species_mappings.keys())
         parameter_mappings = model.sanitized_parameter_names()

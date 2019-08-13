@@ -4,7 +4,7 @@ from scipy.integrate import ode
 import numpy as np
 import gillespy2
 from gillespy2.solvers.numpy import Tau
-from gillespy2.core import GillesPySolver, log, events
+from gillespy2.core import GillesPySolver, log
 from gillespy2.core.gillespyError import *
 
 eval_globals = math.__dict__
@@ -271,6 +271,7 @@ class BasicTauHybridSolver(GillesPySolver):
             contains options to the scipy integrator. for a list of options, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.
             Example use: {max_step : 0, rtol : .01}
         """
+
 
         if not isinstance(self, BasicTauHybridSolver):
             self = BasicTauHybridSolver()
