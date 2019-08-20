@@ -74,6 +74,9 @@ class NumPySSASolver(GillesPySolver):
             print('propensity_functions', propensity_functions)
         # begin simulating each trajectory
         simulation_data = []
+
+        #add precompiling#########################
+
         for trajectory_num in range(number_of_trajectories):
             # copy initial state data
             trajectory = trajectory_base[trajectory_num]
