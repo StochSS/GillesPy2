@@ -107,7 +107,7 @@ class LacOperon(Model):
             [k1, k2, k3, k4, k5, k6, k7, k8, k9, k10, k11, k12, k13, k14, k15, k16, k17, k18, k19, k20, k21, k22])
 
         # Reactions
-        j1 = Reaction(name="j1", reactants={s1: 1, s2: 1}, products={s3: 2.0}, rate=k1)
+        j1 = Reaction(name="j1", reactants={s1: 1, s2: 1}, products={s3: 2}, rate=k1)
         j2 = Reaction(name="j2", reactants={s3: 1}, products={s1: 1, s2: 1}, rate=k2)
         j3 = Reaction(name="j3", reactants={s3: 1}, products={s4: 1}, rate=k3)
         j4 = Reaction(name="j4", reactants={s4: 1}, products={s9: 1, s1: 1, s5: 1}, rate=k4)
