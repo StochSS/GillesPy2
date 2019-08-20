@@ -10,7 +10,7 @@ from gillespy2.core.gillespyError import *
 eval_globals = math.__dict__
 
 
-class BasicTauHybridSolverLive(GillesPySolver):
+class BasicTauHybridSolver(GillesPySolver):
     """
     This Solver uses an algorithm that combines the Tau-Leaping and Hybrid ODE/Stochastic methods.
     A root-finding integration is considered over all reaction channels and continuous species rate
@@ -19,10 +19,10 @@ class BasicTauHybridSolverLive(GillesPySolver):
     is bounded by bounding the relative change in the state of the system, resulting in increased
     run-time performance with little accuracy trade-off.
     """
-    name = "BasicTauHybridSolverLive"
+    name = "BasicTauHybridSolver"
 
     def __init__(self):
-        name = 'BasicTauHybridSolverLive'
+        name = 'BasicTauHybridSolver'
 
     def toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, curr_state, rxn_offset,
                          det_spec):
@@ -174,7 +174,7 @@ class BasicTauHybridSolverLive(GillesPySolver):
     def __get_reaction_integrate(integrator, integrator_options, step, curr_state, y0, model, curr_time,
                                  propensities, compiled_reactions, compiled_rate_rules):
         """ Helper function to perform the ODE integration of one step """
-        rhs = ode(BasicTauHybridSolverLive.__f).set_integrator(integrator,
+        rhs = ode(BasicTauHybridSolver.__f).set_integrator(integrator,
                                                            **integrator_options)  # set function as ODE object
         rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfReactions,
                                                           model.listOfRateRules, propensities, compiled_reactions,
@@ -273,36 +273,8 @@ class BasicTauHybridSolverLive(GillesPySolver):
             Example use: {max_step : 0, rtol : .01}
         """
 
-        #################################################################
-
-        graph_display_interval = 1
-        graphing_mode = 'plotly'
-
-        if graphing_mode is None:
-            graphing_mode = "default"
-
-        # Import graph library and initialize graph
-        if graphing_mode is "matplotlib":
-            import matplotlib.pyplot as plt
-            from IPython import display
-            plt.figure(figsize=(18, 10))
-            plt.xlabel("Time")
-            plt.ylabel("Population")
-            plt.plot([0], [11])
-
-        elif graphing_mode is "plotly":
-            from plotly.offline import init_notebook_mode, iplot
-            from IPython import display
-            import pandas as pd
-            import cufflinks as cf
-
-            init_notebook_mode(connected=True)
-            cf.go_offline()
-        ################################################################
-
-
-        if not isinstance(self, BasicTauHybridSolverLive):
-            self = BasicTauHybridSolverLive()
+        if not isinstance(self, BasicTauHybridSolver):
+            self = BasicTauHybridSolver()
 
         if len(kwargs) > 0:
             for key in kwargs:
@@ -511,46 +483,6 @@ class BasicTauHybridSolverLive(GillesPySolver):
                 # Save step reached
                 for i in range(number_species):
                     trajectory[entry_count][i + 1] = curr_state[species[i]]
-
-                if graph_display_interval_count is 0:
-
-                    if graphing_mode is "matplotlib":
-
-                        timeList = trajectory[:entry_count, 0]
-                        plt.clf()
-
-                        # plot each of the trajectorys
-                        for i, item in enumerate(model.listOfSpecies, 1):
-                            plt.plot(timeList, trajectory[:entry_count, i], label=item)
-
-                        plt.legend(loc='best')
-                        plt.plot([0], [11])
-                        display.display(plt.gcf())
-                        display.clear_output(wait=True)
-
-                    elif graphing_mode is "plotly":
-                        graphData = {}
-
-                        # add trajectory data to a dictionary
-                        for i, item in enumerate(model.listOfSpecies, 1):
-                            graphData[item] = trajectory[:entry_count, i]
-
-                        printable_data_frame = pd.DataFrame.from_dict(graphData)
-
-                        # plot the dictionary data
-                        printable_data_frame.iplot()
-                        display.clear_output(wait=True)
-
-                    else:
-                        # format data for printing
-                        graphData = {"time": entry_count}
-                        for i, item in enumerate(model.listOfSpecies, 1):
-                            graphData[item] = trajectory[entry_count, i]
-                        print(graphData)
-
-                    graph_display_interval_count = graph_display_interval
-
-                graph_display_interval_count -= 1
 
                 save_time += increment
                 timestep += 1
