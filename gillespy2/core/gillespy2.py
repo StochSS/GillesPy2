@@ -383,6 +383,7 @@ class Model(object):
             for rr in rate_rules:
                 self.add_rate_rule(rr)
         elif isinstance(rate_rules, RateRule):
+            if rate_rules.expression == '': raise ModelError('Invalid Rate Rule.  Must be a non-empty string value')
             self.listOfRateRules[rate_rules.species.name] = rate_rules
         else:
             raise ParameterError("Add_rate_rule accepts a RateRule object or a List of RateRule Objects")
@@ -592,7 +593,7 @@ class Parameter:
 
 
 class RateRule:
-    def __init__(self, species, expression, name=None):
+    def __init__(self, species=None, expression='', name=None):
         self.expression = expression
         self.species = species
         self.name = name
