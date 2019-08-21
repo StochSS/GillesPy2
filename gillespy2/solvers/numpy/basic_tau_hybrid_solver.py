@@ -43,7 +43,6 @@ class BasicTauHybridSolver(GillesPySolver):
         # floor non-det species
         for s, d in det_spec.items():
             if not d and isinstance(curr_state[s], float):
-                print('flooring :', s)
                 curr_state[s] = math.floor(curr_state[s])
             
         #Deactivate Determinsitic Reactions
@@ -129,11 +128,26 @@ class BasicTauHybridSolver(GillesPySolver):
         sd = OrderedDict()
         CV = OrderedDict()
 
+        mn = {species:curr_state[species] for (species, value) in 
+              model.listOfSpecies.items() if value.mode == 'dynamic'}
+        sd = {species:0 for (species, value) in 
+              model.listOfSpecies.items() if value.mode == 'dynamic'}
+
+        for r, rxn in model.listOfReactions.items():
+                for reactant in rxn.reactants:
+                    if reactant.mode == 'dynamic':
+                        mn[reactant.name] -= (tau_step * propensities[r] * rxn.reactants[reactant])
+                        sd[reactant.name] += (tau_step * propensities[r] * rxn.reactants[reactant]**2)
+                for product in rxn.products:
+                    if product.mode == 'dynamic':
+                        mn[product.name] += (tau_step * propensities[r] * rxn.products[product])
+                        sd[product.name] += (tau_step * propensities[r] * rxn.products[product]**2)
+                
         # Get mean, standard deviation, and coefficient of variance for each dynamic species
-        for species in mu_i:
-            if mu_i[species] > 0:
-                sd[species] = math.sqrt(sigma_i[species])
-                CV[species] = sd[species] / mu_i[species]
+        for species in mn:
+            if mn[species] > 0:
+                #sd[species] = math.sqrt(mn[species])
+                CV[species] = sd[species] / mn[species]
             else:
                 sd[species], CV[species] = (0, 1)    # values chosen to guarantee discrete
             #Set species to deterministic if CV is less than threshhold
