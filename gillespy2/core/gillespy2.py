@@ -383,7 +383,9 @@ class Model(object):
             for rr in rate_rules:
                 self.add_rate_rule(rr)
         elif isinstance(rate_rules, RateRule):
-            if rate_rules.expression == '': raise ModelError('Invalid Rate Rule.  Must be a non-empty string value')
+            if rate_rules.species is None or not isinstance(rate_rules.species, Species): raise ModelError(
+                'A Rate Rule must be associated with a valid species.')
+            if rate_rules.expression == '': raise ModelError('Invalid Rate Rule. Expression must be a non-empty string value')
             self.listOfRateRules[rate_rules.species.name] = rate_rules
         else:
             raise ParameterError("Add_rate_rule accepts a RateRule object or a List of RateRule Objects")
