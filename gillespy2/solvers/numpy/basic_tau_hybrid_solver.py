@@ -112,6 +112,7 @@ class BasicTauHybridSolver(GillesPySolver):
                     det_rxn[rxn] = False
                     break
                     
+        # Create a hashable frozenset of all determinstic reactions
         deterministic_reactions = set()
         for rxn in det_rxn:
             if det_rxn[rxn]:
@@ -143,13 +144,12 @@ class BasicTauHybridSolver(GillesPySolver):
                         mn[product.name] += (tau_step * propensities[r] * rxn.products[product])
                         sd[product.name] += (tau_step * propensities[r] * rxn.products[product]**2)
                 
-        # Get mean, standard deviation, and coefficient of variance for each dynamic species
+        # Get coefficient of variance for each dynamic species
         for species in mn:
             if mn[species] > 0:
-                #sd[species] = math.sqrt(mn[species])
                 CV[species] = sd[species] / mn[species]
             else:
-                sd[species], CV[species] = (0, 1)    # values chosen to guarantee discrete
+                CV[species] = 1    # value chosen to guarantee discrete
             #Set species to deterministic if CV is less than threshhold
             det_spec[species] = True if CV[species] < switch_tol or model.listOfSpecies[species].mode == 'continuous' else False                            
                 
@@ -325,12 +325,15 @@ class BasicTauHybridSolver(GillesPySolver):
             for dep in dependencies[reaction]:
                 if model.listOfSpecies[dep].mode != 'continuous':
                     pure_ode = False
+                    break
 
         if debug:
             print('dependencies')
             print(dependencies)
 
         simulation_data = []
+
+        # Set seed if supplied
         if seed is not None:
             if not isinstance(seed, int):
                 seed = int(seed)
@@ -341,8 +344,9 @@ class BasicTauHybridSolver(GillesPySolver):
         for trajectory_num in range(number_of_trajectories):
 
 
-            steps_taken = [] # For use with profile=True
-            steps_rejected = 0 # For use with profile=True, incremented when negative state detected
+            if profile:
+                steps_taken = [] # For use with profile=True
+                steps_rejected = 0 # For use with profile=True, incremented when negative state detected
             entry_count = 0 # NumPy array index for results at each timestep
             trajectory = trajectory_base[trajectory_num] # NumPy array containing this simulation's results
 
