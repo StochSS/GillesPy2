@@ -31,7 +31,7 @@ SETUP_DIR = path.dirname(os.path.abspath(__file__))
 with open(path.join(SETUP_DIR, 'requirements.txt')) as f:
     reqs = f.read().rstrip().splitlines()
 
-with open("README.md", "r", errors = 'ignore') as f:
+with open(path.join(SETUP_DIR, 'README.md'), 'r', errors = 'ignore') as f:
     readme = f.read()
 
 # The following reads the variables without doing an "import handprint",
