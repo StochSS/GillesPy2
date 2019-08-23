@@ -1,30 +1,20 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>gillespy2.core.gillespy2 &#8212; GillesPy2  documentation</title>
     <link rel="stylesheet" href="../../../_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../../',
-        VERSION:     '',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
-  </head>
-  <body>
+  </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -60,12 +50,10 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.results</span> <span class="k">import</span> <span class="n">Results</span><span class="p">,</span><span class="n">EnsembleResults</span>
 <span class="kn">from</span> <span class="nn">gillespy2.core.gillespySolver</span> <span class="k">import</span> <span class="n">GillesPySolver</span>
 <span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-
-<span class="n">pretty_graph</span> <span class="o">=</span> <span class="kc">False</span>
-
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">lxml.etree</span> <span class="k">as</span> <span class="nn">eTree</span>
@@ -468,9 +456,7 @@
 <div class="viewcode-block" id="Model.delete_all_reactions"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespy2.Model.delete_all_reactions">[docs]</a>    <span class="k">def</span> <span class="nf">delete_all_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Model.run"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespy2.Model.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
-            <span class="n">switch_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">tau_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="s1">&#39;lsoda&#39;</span><span class="p">,</span> <span class="n">integrator_options</span><span class="o">=</span><span class="p">{},</span>
-            <span class="n">stoch_kit_home</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Model.run"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespy2.Model.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">solver_args</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Function calling simulation of the model. There are a number of</span>
 <span class="sd">        parameters to be set here.</span>
@@ -486,11 +472,11 @@
 <span class="sd">        solver : gillespy.GillesPySolver</span>
 <span class="sd">            The solver by which to simulate the model. This solver object may</span>
 <span class="sd">            be initialized separately to specify an algorithm. Optional, </span>
-<span class="sd">            defaults to StochKitSolver SSA.</span>
+<span class="sd">            defaults to ssa solver.</span>
 <span class="sd">        show_labels: bool (True)</span>
 <span class="sd">            If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]</span>
 <span class="sd">        switch_tol: float</span>
-<span class="sd">            Relative error tolerance value for deterministic/stochastic switching condition between 0.0 and 1.0</span>
+<span class="sd">            Tolerance for Continuous/Stochastic representation of species, based on coefficient of variance for each step.</span>
 <span class="sd">        tau_tol: float</span>
 <span class="sd">            Relative error tolerance value for calculating tau step between 0.0 and 1.0</span>
 <span class="sd">        integrator: String</span>
@@ -502,70 +488,28 @@
         <span class="k">if</span> <span class="n">solver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="p">((</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span>
                     <span class="ow">and</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">GillesPySolver</span><span class="p">)))</span> <span class="ow">or</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">solver</span><span class="p">),</span> <span class="n">GillesPySolver</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">solver</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">increment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span>
-                                  <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="n">number_of_trajectories</span><span class="p">,</span> 
-                                  <span class="n">show_labels</span><span class="o">=</span><span class="n">show_labels</span><span class="p">,</span> <span class="n">switch_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">tau_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="s1">&#39;lsoda&#39;</span><span class="p">,</span> 
-                                  <span class="n">integrator_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">stoch_kit_home</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+                <span class="n">solver_results</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">increment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="o">**</span><span class="n">solver_args</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span>
                     <span class="s2">&quot;argument &#39;solver&#39; to run() must be a subclass of GillesPySolver&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">gillespy2.solvers.auto</span> <span class="k">import</span> <span class="n">SSASolver</span>
-            <span class="k">return</span> <span class="n">SSASolver</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
-                                      <span class="n">increment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
-                                      <span class="n">number_of_trajectories</span><span class="o">=</span><span class="n">number_of_trajectories</span><span class="p">,</span>
-                                      <span class="n">show_labels</span><span class="o">=</span><span class="n">show_labels</span><span class="p">)</span></div>
+            <span class="n">solver_results</span> <span class="o">=</span> <span class="n">SSASolver</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                                      <span class="n">increment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="o">**</span><span class="n">solver_args</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">solver_results</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">solver_results</span>
 
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">solver_results</span><span class="p">)</span> <span class="ow">is</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Results</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">solver_results</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver_name</span><span class="o">=</span><span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
-    <span class="c1">#Need to finalize feature set.</span>
-    <span class="c1">#title, start time, stop time, automatic legend, legend placement, axis labels, size of graph.</span>
-    <span class="c1">#Axis Legend Stuff ends up being complicated, ensure I understand expected scope of function.</span>
-<div class="viewcode-block" id="Model.plot"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespy2.Model.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sbn</span>
-            <span class="n">pretty_graph</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-            <span class="n">pretty_graph</span> <span class="o">=</span> <span class="kc">False</span>
-
-        <span class="k">if</span> <span class="n">pretty_graph</span><span class="p">:</span>
-            <span class="k">pass</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">pretty_graph</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s2">&quot;height&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s2">&quot;width&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;height&quot;</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;width&quot;</span><span class="p">]))</span>
-            <span class="c1">#I could just have a throw after this, but I don&#39;t know if that&#39;s what the expected user behavior would be.</span>
-            <span class="k">if</span> <span class="s2">&quot;height&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s2">&quot;width&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;height&quot;</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;height&quot;</span><span class="p">]))</span>
-            <span class="k">if</span> <span class="s2">&quot;height&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s2">&quot;width&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;width&quot;</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;width&quot;</span><span class="p">]))</span>
-            <span class="k">if</span> <span class="s2">&quot;title&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">])</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
-            <span class="k">if</span> <span class="s2">&quot;start&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s2">&quot;stop&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;start&quot;</span><span class="p">]:</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;stop&quot;</span><span class="p">]])</span>
-            <span class="k">if</span> <span class="s2">&quot;start&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s2">&quot;stop&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;start&quot;</span><span class="p">]:])</span>
-            <span class="k">if</span> <span class="s2">&quot;start&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s2">&quot;stop&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">key</span><span class="p">][:</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;stop&quot;</span><span class="p">]])</span>
-            <span class="k">if</span> <span class="s2">&quot;start&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s2">&quot;stop&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
-            <span class="k">if</span> <span class="s2">&quot;legend&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;legend&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">True</span> <span class="ow">and</span> <span class="s2">&quot;legend_position&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
-            <span class="k">if</span> <span class="s2">&quot;legend&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;legend&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">True</span> <span class="ow">and</span> <span class="s2">&quot;legend_position&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">keys</span><span class="p">())),</span> <span class="n">loc</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;legend_position&quot;</span><span class="p">])</span>
-            <span class="k">if</span> <span class="s2">&quot;xlabel&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;xlabel&quot;</span><span class="p">])</span>
-            <span class="k">if</span> <span class="s2">&quot;ylabel&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;ylabel&quot;</span><span class="p">])</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div></div>
-
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">solver_results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">results_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">solver_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;number_of_trajectories&#39;</span><span class="p">)):</span>
+                <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Results</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">solver_results</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span><span class="n">solver_name</span><span class="o">=</span><span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">EnsembleResults</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;number_of_trajectories must be non-negative and non-zero&quot;</span><span class="p">)</span></div></div>
 
 <div class="viewcode-block" id="Species"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespy2.Species">[docs]</a><span class="k">class</span> <span class="nc">Species</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -1269,13 +1213,13 @@
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -1297,7 +1241,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Author.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
     </div>
   </body>
 </html>

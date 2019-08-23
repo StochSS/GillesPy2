@@ -16,24 +16,17 @@ class TestBasicODESolver(unittest.TestCase):
                     if i > 1:
                         with self.assertWarns(Warning):
                             results = model.run(solver=BasicODESolver, show_labels=label, number_of_trajectories=i)
+                        self.assertEqual(len(results), i)
                     else:
                         results = model.run(solver=BasicODESolver, show_labels=label, number_of_trajectories=i)
-                    self.assertEqual(len(results), i)
-                    self.assertTrue(all([isinstance(result, dict if label else np.ndarray) for result in results]))
-                    if label:
-                        result = results[0]
-                        for species in model.listOfSpecies.keys():
-                            self.assertIn(species, result.keys())
-                            self.assertIsInstance(result[species], np.ndarray)
-                            self.assertListEqual(list(result[species].shape), list(model.tspan.shape))
-                    else:
-                        self.assertIsInstance(results, np.ndarray)
-                        self.assertListEqual(list(results.shape), [i, len(model.tspan), len(model.listOfSpecies.keys())+1])
-                    for result in results[1:]:
-                        if label:
-                            self.assertDictEqual(results[0], result)
-                        else:
-                            self.assertTrue(np.array_equal(results[0], result))
+
+                    if i > 1 or not label:
+                        for result in results[1:]:
+                            if label:
+                                self.assertEqual(results[0], result)
+
+                            else:
+                                self.assertTrue(np.array_equal(results[0], result))
 
     def test_stoich2(self):
         class StoichTestModel(gillespy2.Model):
@@ -49,7 +42,7 @@ class TestBasicODESolver(unittest.TestCase):
                 self.timespan(np.linspace(0, 100, 101))
         model = StoichTestModel()
         result = model.run(solver=BasicODESolver)
-        self.assertAlmostEquals(result[0]['B'][-1], 5, places=3)
+        self.assertAlmostEqual(result['B'][-1], 5, places=3)
 
 
 
