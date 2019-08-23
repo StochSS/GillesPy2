@@ -21,7 +21,7 @@ class BasicTauLeapingSolver(GillesPySolver):
         self.debug = debug
         self.profile = profile
 
-    def get_reactions(self, seed, step, curr_state, curr_time, save_time, propensities, reactions):
+    def get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions):
         """
         Helper Function to get reactions fired from t to t+tau.  Returns three values:
         rxn_count - dict with key=Raection channel value=number of times fired
@@ -42,7 +42,6 @@ class BasicTauLeapingSolver(GillesPySolver):
         rxn_count = {}
 
         for rxn in reactions:
-            np.random.seed(seed)
             rxn_count[rxn] = np.random.poisson(propensities[rxn] * step)
 
         if self.debug:
@@ -186,7 +185,7 @@ class BasicTauLeapingSolver(GillesPySolver):
                         if loop_cnt > 100:
                             raise Exception("Loop over get_reactions() exceeded loop count")
 
-                        reactions, curr_state, curr_time = self.get_reactions(seed,
+                        reactions, curr_state, curr_time = self.get_reactions(
                             tau_step, curr_state, curr_time, save_time,
                             propensities, model.listOfReactions)
 
