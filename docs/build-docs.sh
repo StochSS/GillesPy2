@@ -1,4 +1,4 @@
 #!/bin/sh
 
-sphinx-apidoc -o . ../
+sphinx-apidoc -f -o . ../
 make html
