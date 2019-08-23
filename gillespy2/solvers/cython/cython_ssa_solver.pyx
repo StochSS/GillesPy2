@@ -214,10 +214,16 @@ class CythonSSASolver(GillesPySolver):
             for j in range(len(paramNames)):
                 propensity_functions[i] = propensity_functions[i].replace(paramNames[j],'y{0}'.format(j))
             #replace all references to species with array indices
+            spec_index = {}
+            spec_list = []
             for j in range(number_species):
                 spec = model.listOfSpecies[species[j]]
-                species_changes[i][j] = reaction.products.get(spec,0) - reaction.reactants.get(spec, 0)
-                propensity_functions[i] = propensity_functions[i].replace(species[j], 'x{0}'.format(j))
+                spec_index[spec] = j
+                spec_list.append(spec)
+            spec_list.sort(key=lambda x: -len(str(x)))
+            for spec in spec_list:
+                species_changes[i][spec_index[spec]] = reaction.products.get(spec,0) - reaction.reactants.get(spec, 0)
+                propensity_functions[i] = propensity_functions[i].replace(str(spec), 'x{0}'.format(spec_index[spec]))
             prefix_eqn = convert_infix_prefix(equation_terms.findall(propensity_functions[i]))
             reactions[i].propensity_function.length = len(prefix_eqn)
             reactions[i].propensity_function.terms = <int*> malloc(reactions[i].propensity_function.length * sizeof(int))
