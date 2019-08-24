@@ -1,2 +1,2 @@
 #!/bin/sh
-exec sphinx-autobuild . build
+exec sphinx-autobuild . build/html
