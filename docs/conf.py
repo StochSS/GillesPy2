@@ -1,33 +1,55 @@
 # -*- coding: utf-8 -*-
-#
-# Configuration file for the Sphinx documentation builder.
+# =============================================================================
+# @file  conf.py
+# @brief Configuration file for the Sphinx documentation builder.
+# @license Please see the file named LICENSE in the project directory
+# @website https://github.com/GillesPy2/GillesPy2
 #
 # This file does only contain a selection of the most common options. For a
-# full list see the documentation:
-# http://www.sphinx-doc.org/en/master/config
+# full list see the documentation: http://www.sphinx-doc.org/en/master/config
+# =============================================================================
+
+import os
+from   os import path
+import sys
 
 # -- Path setup --------------------------------------------------------------
+
+ROOT_DIR = path.join(path.dirname(path.abspath(__file__)), '..')
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
-import sys
 #   sys.path.insert(0, '/mnt/c/Users/seanm/OneDrive/Documents/Research/documentation/GillesPy2')
-sys.path.append('../')
+sys.path.append('..')
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'GillesPy2'
-copyright = '2018, Author'
-author = 'Author'
+# The following reads the variables without doing an "import handprint",
+# because the latter will cause the python execution environment to fail if
+# any dependencies are not already installed -- negating most of the reason
+# we're using setup() in the first place.  This code avoids eval, for security.
+
+gillespy2 = {}
+with open(path.join(ROOT_DIR, 'gillespy2/__version__.py')) as f:
+    text = f.read().rstrip().splitlines()
+    vars = [line for line in text if line.startswith('__') and '=' in line]
+    for v in vars:
+        setting = v.split('=')
+        gillespy2[setting[0].strip()] = setting[1].strip().replace("'", '')
+
+
+project   = gillespy2['__title__']
+copyright = gillespy2['__copyright__']
+author    = gillespy2['__author__']
 
 # The short X.Y version
-version = ''
+version   = gillespy2['__version__']
+
 # The full version, including alpha/beta/rc tags
-release = ''
+release   = gillespy2['__version__']
 
 
 # -- General configuration ---------------------------------------------------
@@ -78,7 +100,7 @@ pygments_style = None
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'nature'
+# html_theme = 'nature'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -89,7 +111,13 @@ html_theme = 'nature'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = []
+html_static_path = ['_static']
+
+# These paths are either relative to html_static_path
+# or fully qualified paths (eg. https://...)
+html_css_files = [
+    'css/gillespy2_alabaster_customizations.css',
+]
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -100,6 +128,8 @@ html_static_path = []
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
+
+html_logo = '../.graphics/gillespy2-logo-v2.svg'
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
@@ -178,6 +208,12 @@ epub_exclude_files = ['search.html']
 
 
 # -- Extension configuration -------------------------------------------------
+
+import alabaster
+
+html_theme_path = [alabaster.get_path()]
+extensions.append('alabaster')
+html_theme = 'alabaster'
 
 # -- Options for todo extension ----------------------------------------------
 
