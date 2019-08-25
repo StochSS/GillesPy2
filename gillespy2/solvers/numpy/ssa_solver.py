@@ -3,6 +3,7 @@ import random
 import math
 import numpy as np
 
+from collections import OrderedDict
 
 class NumPySSASolver(GillesPySolver):
     name = "NumPySSASolver"
@@ -70,12 +71,32 @@ class NumPySSASolver(GillesPySolver):
                 if debug:
                     print('species_changes: {0},i={1}, j={2}... {3}'.format(species, i, j, species_changes[i][j]))
             propensity_functions.append(eval('lambda S:' + model.listOfReactions[reaction].sanitized_propensity_function(species_mappings, parameter_mappings), parameters))
+
+
         if debug:
             print('propensity_functions', propensity_functions)
         # begin simulating each trajectory
         simulation_data = []
 
-        #add precompiling#########################
+        #add precompiling#############################################################
+
+        event_triggers = OrderedDict
+
+        #Create the list of event triggers
+
+        for i,e in enumerate(model.listOfEvents):
+            print(e[i]," is ",type(e[i]))
+            if e[i].event_trigger not in event_triggers:
+                event_triggers[e[i].event_trigger] = e[i].event_trigger
+
+        #print(event_triggers)
+
+        event_list = {}
+
+        for i,e in enumerate(model.listOfEvents):
+            event_list[e] = compile(model.listOfEvents[e].priority_expression,'<string>','eval')
+
+        ####################################################################
 
         for trajectory_num in range(number_of_trajectories):
             # copy initial state data

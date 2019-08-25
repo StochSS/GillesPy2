@@ -186,6 +186,7 @@ class Model(object):
                 self.add_event(E)
         else:
             raise ModelError("Unexpected parameter for add_event. Parameter must be Event or list of Events.")
+
         return obj
 
 
