@@ -344,9 +344,8 @@ class BasicTauHybridSolver(GillesPySolver):
         for trajectory_num in range(number_of_trajectories):
 
 
-            if profile:
-                steps_taken = [] # For use with profile=True
-                steps_rejected = 0 # For use with profile=True, incremented when negative state detected
+            steps_taken = [] # For use with profile=True
+            steps_rejected = 0 # For use with profile=True, incremented when negative state detected
             entry_count = 0 # NumPy array index for results at each timestep
             trajectory = trajectory_base[trajectory_num] # NumPy array containing this simulation's results
 
