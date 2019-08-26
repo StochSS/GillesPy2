@@ -2,14 +2,6 @@
 A simple toolkit for creating and simulating discrete stochastic models in
 python.
 
-This serves primarily as a python wrapper for the C-based solvers within
-StochKit2. The gillespy.Model class provides nearly all of the functionality
-present in this project.
-
-This version is updated (4/2017) to contain documentation in a more reasonable
-format. This does not necessarily mean it is perfect, but it is certainly an
-improvement over the original.
-
 """
 from __future__ import division
 from collections import OrderedDict
