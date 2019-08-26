@@ -24,7 +24,7 @@ class BasicTauLeapingSolver(GillesPySolver):
     def get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions):
         """
         Helper Function to get reactions fired from t to t+tau.  Returns three values:
-        rxn_count - dict with key=Raection channel value=number of times fired
+        rxn_count - dict with key=Reaction channel value=number of times fired
         curr_state - dict containing all state variables for system at current time
         curr_time - float representing current time
         """
@@ -100,6 +100,15 @@ class BasicTauLeapingSolver(GillesPySolver):
         parameter_mappings = model.sanitized_parameter_names()
         number_species = len(species)
 
+        if seed is not None:
+            if not isinstance(seed, int):
+                seed = int(seed)
+            if seed > 0:
+                random.seed(seed)
+                np.random.seed(seed)
+            else:
+                raise ModelError('seed must be a positive integer')
+
         # create numpy array for timeline
         timeline = np.linspace(0, t, (t // increment + 1))
 
@@ -129,13 +138,6 @@ class BasicTauLeapingSolver(GillesPySolver):
             entry_count = 0
             trajectory = trajectory_base[trajectory_num]
 
-            if seed is not None:
-                if not isinstance(seed, int):
-                    seed = int(seed)
-                if seed > 0:
-                    random.seed(seed)
-                else:
-                    raise ModelError('seed must be a positive integer')
 
             HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold = Tau.initialize(model, tau_tol)
 
