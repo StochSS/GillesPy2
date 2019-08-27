@@ -62,10 +62,10 @@ help:
 	@echo ''
 
 html docs:
-	sphinx-apidoc -f -o "$(SOURCEDIR)" ../
+	sphinx-apidoc -f -o classes ../gillespy2
 	@$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-autobuild:
+autobuild: html
 	sphinx-autobuild "$(SOURCEDIR)" "$(BUILDDIR)/html"
 
 # Catch-all target: route all unknown targets to Sphinx using the new
@@ -77,4 +77,4 @@ autobuild:
 # Miscellaneous directives.
 # .............................................................................
 
-.PHONY: help html docs build Makefile
+.PHONY: help html docs autobuild Makefile
