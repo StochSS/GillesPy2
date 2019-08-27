@@ -279,7 +279,6 @@ class Event:
         except:
             self.value = None
 
-
     def set_expression(self, priority_expression):
         """
         Sets the expression for a event.

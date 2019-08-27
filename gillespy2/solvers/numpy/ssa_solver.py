@@ -78,23 +78,17 @@ class NumPySSASolver(GillesPySolver):
         # begin simulating each trajectory
         simulation_data = []
 
-        #add precompiling#############################################################
+        #precompiling#############################################################
 
-        event_triggers = OrderedDict
-
-        #Create the list of event triggers
-
-        for i,e in enumerate(model.listOfEvents):
-            print(e[i]," is ",type(e[i]))
-            if e[i].event_trigger not in event_triggers:
-                event_triggers[e[i].event_trigger] = e[i].event_trigger
-
-        #print(event_triggers)
-
-        event_list = {}
+        compiled_priority_expressions = {}
+        compiled_trigger_expressions = {}
 
         for i,e in enumerate(model.listOfEvents):
-            event_list[e] = compile(model.listOfEvents[e].priority_expression,'<string>','eval')
+            # of the form compiled_trigger_expressions{event:priority_expression}
+            compiled_priority_expressions[e] = compile(model.listOfEvents[e].priority_expression,'<string>','eval')
+
+            #of the form compiled_trigger_expressions{event:trigger_expression}
+            compiled_trigger_expressions[e] = compile(model.listOfEvents[e].event_trigger.trigger_expression,'<string>','eval')
 
         ####################################################################
 
@@ -107,6 +101,30 @@ class NumPySSASolver(GillesPySolver):
             propensity_sums = np.zeros(number_reactions)
             # calculate initial propensity sums
             while entry_count < timeline.size:
+
+                ####################################################################
+
+                triggered_events_queue = []
+
+                #append any triggered events
+                for i, e in enumerate(model.listOfEvents):
+                    if eval(compiled_trigger_expressions[e]):
+                        triggered_events_queue.append(e)
+
+                #if more than one event triggered, do priority expression
+                if len(triggered_events_queue) > 1:
+                    print("multiple events triggered in one step. Using priority expression")
+                    #TODO order priority queue
+
+                #iterate through sorted priority queue and fulfil event assignment
+                for i, e in enumerate(triggered_events_queue):
+                    for assignment in model.listOfEvents[e].event_assignments:
+                        print("completing event assignment",assignment , "at", current_time)
+                        exec(model.listOfEvents[e].event_assignments[assignment].expression)
+
+                ####################################################################
+
+
                 # determine next reaction
                 for i in range(number_reactions):
                     propensity_sums[i] = propensity_functions[i](current_state)
