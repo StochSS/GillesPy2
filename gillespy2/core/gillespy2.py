@@ -419,6 +419,14 @@ class Model(object):
         Function calling simulation of the model. There are a number of
         parameters to be set here.
 
+        Return
+        ----------
+
+        If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is True and
+        number_of_trajectories is 1, returns a results object that inherits UserDict and supports plotting functions.
+        If show_labels is False and number_of_trajectories is greater than 1, returns an ensemble_results object that
+        inherits UserList and contains results objects and supports ensemble graphing.
+
         Attributes
         ----------
         number_of_trajectories : int
