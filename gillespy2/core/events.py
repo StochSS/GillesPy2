@@ -89,7 +89,7 @@ class EventDelay:
         Value of an EventDelay if it is not dependent on other Model entities.
     """
 
-    def __init__(self, name="", delay_expression=None, value=None):
+    def __init__(self, name="", delay_expression=None, value=None,useValuesFromTriggerTime = True):
 
         self.name = name
         # We allow expression to be passed in as a non-string type. Invalid strings
@@ -99,6 +99,7 @@ class EventDelay:
         if delay_expression is not None:
             self.expression = str(delay_expression)
 
+        self.useValuesFromTriggerTime = useValuesFromTriggerTime
         self.value = value
 
         # self.value is allowed to be None, but not self.expression. self.value

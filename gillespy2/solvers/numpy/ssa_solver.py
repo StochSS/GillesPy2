@@ -110,11 +110,16 @@ class NumPySSASolver(GillesPySolver):
                 for i, e in enumerate(model.listOfEvents):
                     if eval(compiled_trigger_expressions[e]):
 
+                        #if model.listOfEvents[e].delay.delay_expression
+
                         delay = eval(model.listOfEvents[e].delay.delay_expression)
                         if delay > 0:
 
-                            model.listOfEvents[e].event_trigger_expression.append(" and current_time > ",current_time + delay)
-                            compiled_trigger_expressions[e] = compile(model.listOfEvents[e].event_trigger.trigger_expression, '<string>', 'eval')
+                            print("delay =",delay)
+                            # model.listOfEvents[e].delay.delay_expression =
+
+                            # model.listOfEvents[e].event_trigger_expression.append(" and current_time > ",current_time + delay)
+                            # compiled_trigger_expressions[e] = compile(model.listOfEvents[e].event_trigger.trigger_expression, '<string>', 'eval')
 
                         else:
                             triggered_events_queue.append(e)
