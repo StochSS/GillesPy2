@@ -1,0 +1,15 @@
+p.logo {
+  padding-bottom: 2em !important;
+}
+
+h1 {
+  font-size: 220% !important;
+}
+
+h1.logo {
+  display: none
+}
+
+div.sphinxsidebarwrapper > .caption {
+  font-style: italic;
+}
