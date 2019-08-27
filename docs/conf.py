@@ -27,7 +27,7 @@ sys.path.append('..')
 
 # -- Project information -----------------------------------------------------
 
-# The following reads the variables without doing an "import handprint",
+# The following reads the variables without doing an "import gillespy2",
 # because the latter will cause the python execution environment to fail if
 # any dependencies are not already installed -- negating most of the reason
 # we're using setup() in the first place.  This code avoids eval, for security.
@@ -47,6 +47,7 @@ author    = gillespy2['__author__']
 
 # The short X.Y version
 version   = gillespy2['__version__']
+version   = version[:version.rfind('.')]
 
 # The full version, including alpha/beta/rc tags
 release   = gillespy2['__version__']
@@ -54,13 +55,8 @@ release   = gillespy2['__version__']
 
 # -- General configuration ---------------------------------------------------
 
-# If your documentation needs a minimal Sphinx version, state it here.
-#
-# needs_sphinx = '1.0'
-
 # Add any Sphinx extension module names here, as strings. They can be
-# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
-# ones.
+# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
@@ -97,39 +93,10 @@ pygments_style = None
 
 # -- Options for HTML output -------------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
-# html_theme = 'nature'
-
-# Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
-# documentation.
-#
-# html_theme_options = {}
-
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
-
-# These paths are either relative to html_static_path
-# or fully qualified paths (eg. https://...)
-html_css_files = [
-    'css/gillespy2_alabaster_customizations.css',
-]
-
-# Custom sidebar templates, must be a dictionary that maps document names
-# to template names.
-#
-# The default sidebars (for documents that don't match any pattern) are
-# defined by theme itself.  Builtin themes are using these templates by
-# default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
-# 'searchbox.html']``.
-#
-# html_sidebars = {}
-
-html_logo = '../.graphics/gillespy2-logo-v2.svg'
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
@@ -214,6 +181,22 @@ import alabaster
 html_theme_path = [alabaster.get_path()]
 extensions.append('alabaster')
 html_theme = 'alabaster'
+
+html_theme_options = {
+    'github_user': 'GillesPy2',
+    'github_repo': 'GillesPy2',
+    'fixed_sidebar': 'true',
+    'github_banner': 'true',
+    'logo': 'img/gillespy2-logo.svg',
+    'touch_icon': 'img/gillespy2-logo.svg',
+    'show_relbar_bottom': 'true',
+    'link_hover': 'purple',
+    'caption_font_size': '150%',
+}
+
+html_css_files = [
+    'css/gillespy2_alabaster_customizations.css',
+]
 
 # -- Options for todo extension ----------------------------------------------
 
