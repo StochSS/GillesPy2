@@ -62,7 +62,7 @@ help:
 	@echo ''
 
 html docs:
-	sphinx-apidoc -n -f -o "$(SOURCEDIR)" ../
+	sphinx-apidoc -f -o "$(SOURCEDIR)" ../
 	@$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 autobuild:
