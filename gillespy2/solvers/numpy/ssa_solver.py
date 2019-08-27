@@ -109,7 +109,15 @@ class NumPySSASolver(GillesPySolver):
                 #append any triggered events
                 for i, e in enumerate(model.listOfEvents):
                     if eval(compiled_trigger_expressions[e]):
-                        triggered_events_queue.append(e)
+
+                        delay = eval(model.listOfEvents[e].delay.delay_expression)
+                        if delay > 0:
+
+                            model.listOfEvents[e].event_trigger_expression.append(" and current_time > ",current_time + delay)
+                            compiled_trigger_expressions[e] = compile(model.listOfEvents[e].event_trigger.trigger_expression, '<string>', 'eval')
+
+                        else:
+                            triggered_events_queue.append(e)
 
                 #if more than one event triggered, do priority expression
                 if len(triggered_events_queue) > 1:
@@ -118,7 +126,9 @@ class NumPySSASolver(GillesPySolver):
 
                 #iterate through sorted priority queue and fulfil event assignment
                 for i, e in enumerate(triggered_events_queue):
+
                     for assignment in model.listOfEvents[e].event_assignments:
+
                         print("completing event assignment",assignment , "at", current_time)
                         exec(model.listOfEvents[e].event_assignments[assignment].expression)
 
