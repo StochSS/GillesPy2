@@ -4,93 +4,73 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.core.gillespyError &#8212; GillesPy2  documentation</title>
-    <link rel="stylesheet" href="../../../_static/nature.css" type="text/css" />
+    <title>gillespy2.core.gillespyError &#8212; GillesPy2 1.1.2 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/css/gillespy2_alabaster_customizations.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" /> 
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../../../_static/img/gillespy2-logo.svg" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
   </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">GillesPy2  documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
-      </ul>
-    </div>  
-
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
-  <h1>Source code for gillespy2.core.gillespyError</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Model exceptions</span>
-<div class="viewcode-block" id="ModelError"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespyError.ModelError">[docs]</a><span class="k">class</span> <span class="nc">ModelError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="k">pass</span></div>
-
-
-<div class="viewcode-block" id="SpeciesError"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespyError.SpeciesError">[docs]</a><span class="k">class</span> <span class="nc">SpeciesError</span><span class="p">(</span><span class="n">ModelError</span><span class="p">):</span>
-    <span class="k">pass</span></div>
-
-
-<div class="viewcode-block" id="ReactionError"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespyError.ReactionError">[docs]</a><span class="k">class</span> <span class="nc">ReactionError</span><span class="p">(</span><span class="n">ModelError</span><span class="p">):</span>
-    <span class="k">pass</span></div>
-
-
-<div class="viewcode-block" id="ParameterError"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespyError.ParameterError">[docs]</a><span class="k">class</span> <span class="nc">ParameterError</span><span class="p">(</span><span class="n">ModelError</span><span class="p">):</span>
-    <span class="k">pass</span></div>
-
-
-<span class="c1"># Solver specific errors</span>
-<div class="viewcode-block" id="SolverError"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespyError.SolverError">[docs]</a><span class="k">class</span> <span class="nc">SolverError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="k">pass</span></div>
-
-
-<div class="viewcode-block" id="DirectoryError"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespyError.DirectoryError">[docs]</a><span class="k">class</span> <span class="nc">DirectoryError</span><span class="p">(</span><span class="n">SolverError</span><span class="p">):</span>
-    <span class="k">pass</span></div>
-
-
-<div class="viewcode-block" id="BuildError"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespyError.BuildError">[docs]</a><span class="k">class</span> <span class="nc">BuildError</span><span class="p">(</span><span class="n">SolverError</span><span class="p">):</span>
-    <span class="k">pass</span></div>
-
-
-<div class="viewcode-block" id="ExecutionError"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespyError.ExecutionError">[docs]</a><span class="k">class</span> <span class="nc">ExecutionError</span><span class="p">(</span><span class="n">SolverError</span><span class="p">):</span>
-    <span class="k">pass</span></div>
-
-
-<div class="viewcode-block" id="SimulationError"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespyError.SimulationError">[docs]</a><span class="k">class</span> <span class="nc">SimulationError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="k">pass</span></div>
-
-
-<div class="viewcode-block" id="StochMLImportError"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespyError.StochMLImportError">[docs]</a><span class="k">class</span> <span class="nc">StochMLImportError</span><span class="p">(</span><span class="n">SimulationError</span><span class="p">):</span>
-    <span class="k">pass</span></div>
-
-
-<div class="viewcode-block" id="InvalidStochMLError"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespyError.InvalidStochMLError">[docs]</a><span class="k">class</span> <span class="nc">InvalidStochMLError</span><span class="p">(</span><span class="n">SimulationError</span><span class="p">):</span>
-    <span class="k">pass</span></div>
-
-
-<div class="viewcode-block" id="InvalidModelError"><a class="viewcode-back" href="../../../gillespy2.core.html#gillespy2.core.gillespyError.InvalidModelError">[docs]</a><span class="k">class</span> <span class="nc">InvalidModelError</span><span class="p">(</span><span class="n">SimulationError</span><span class="p">):</span>
-    <span class="k">pass</span></div>
-
-</pre></div>
-
-          </div>
-        </div>
-      </div>
+  <div class="document">
+    
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/img/gillespy2-logo.svg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=GillesPy2&repo=GillesPy2&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/installation/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/basic_usage/basic_usage.html">Basic usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/tut_toggle_switch/tut_toggle_switch.html">Tutorial: ODE vs. SSA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/tut_michaelis_menten/tut_michaelis_menten.html">Tutorial: using solvers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/tut_sbml/tut_sbml.html">Tutorial: using SBML</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
 <div id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
@@ -101,26 +81,102 @@
     </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
-      <div class="clearer"></div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for gillespy2.core.gillespyError</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Model exceptions</span>
+<div class="viewcode-block" id="ModelError"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespyError.ModelError">[docs]</a><span class="k">class</span> <span class="nc">ModelError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="SpeciesError"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespyError.SpeciesError">[docs]</a><span class="k">class</span> <span class="nc">SpeciesError</span><span class="p">(</span><span class="n">ModelError</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ReactionError"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespyError.ReactionError">[docs]</a><span class="k">class</span> <span class="nc">ReactionError</span><span class="p">(</span><span class="n">ModelError</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ParameterError"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespyError.ParameterError">[docs]</a><span class="k">class</span> <span class="nc">ParameterError</span><span class="p">(</span><span class="n">ModelError</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<span class="c1"># Solver specific errors</span>
+<div class="viewcode-block" id="SolverError"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespyError.SolverError">[docs]</a><span class="k">class</span> <span class="nc">SolverError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="DirectoryError"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespyError.DirectoryError">[docs]</a><span class="k">class</span> <span class="nc">DirectoryError</span><span class="p">(</span><span class="n">SolverError</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BuildError"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespyError.BuildError">[docs]</a><span class="k">class</span> <span class="nc">BuildError</span><span class="p">(</span><span class="n">SolverError</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ExecutionError"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespyError.ExecutionError">[docs]</a><span class="k">class</span> <span class="nc">ExecutionError</span><span class="p">(</span><span class="n">SolverError</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="SimulationError"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespyError.SimulationError">[docs]</a><span class="k">class</span> <span class="nc">SimulationError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="StochMLImportError"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespyError.StochMLImportError">[docs]</a><span class="k">class</span> <span class="nc">StochMLImportError</span><span class="p">(</span><span class="n">SimulationError</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="InvalidStochMLError"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespyError.InvalidStochMLError">[docs]</a><span class="k">class</span> <span class="nc">InvalidStochMLError</span><span class="p">(</span><span class="n">SimulationError</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="InvalidModelError"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespyError.InvalidModelError">[docs]</a><span class="k">class</span> <span class="nc">InvalidModelError</span><span class="p">(</span><span class="n">SimulationError</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+</pre></div>
+
+          </div>
+              <div class="related bottom">
+                &nbsp;
+  <nav id="rellinks">
+    <ul>
+    </ul>
+  </nav>
+              </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;Copyright (C) 2017-2019.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">GillesPy2  documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
-        &#169; Copyright 2018, Author.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
-    </div>
+
+    
+    <a href="https://github.com/GillesPy2/GillesPy2" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
   </body>
 </html>
