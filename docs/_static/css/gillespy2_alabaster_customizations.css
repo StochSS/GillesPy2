@@ -10,6 +10,18 @@ h1.logo {
   display: none
 }
 
-div.sphinxsidebarwrapper > .caption {
-  font-style: italic;
+/* Egregious hack to get rid of "Navigation" text in sidebar.
+   This should be done by changing the template, but figuring
+   out how to create the right template would take me 100x longer.
+*/
+div.sphinxsidebarwrapper > h3 {
+  display: none;
+}
+
+div.sphinxsidebarwrapper p.caption {
+  font-size: 175%;
+}
+
+#searchbox {
+  padding-top: 2em;
 }
