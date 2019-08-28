@@ -39,6 +39,7 @@ Documentation
    :name: sec-tutorials
 
    tutorials/tut_toggle_switch/tut_toggle_switch.rst
+..
    tutorials/tut_michaelis_menten/tut_michaelis_menten.rst
    tutorials/tut_sbml/tut_sbml.rst
 
