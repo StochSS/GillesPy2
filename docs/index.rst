@@ -47,7 +47,7 @@ Documentation
    :maxdepth: 3
    :caption: API reference
 
-   gillespy2
+   classes/gillespy2
 
 
 Indices and tables
