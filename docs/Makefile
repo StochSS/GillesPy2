@@ -51,11 +51,11 @@ export SHELLOPTS:=$(if $(SHELLOPTS),$(SHELLOPTS):)pipefail:errexit
 # Variables.  (These can be overriden via command-line args.)
 # .............................................................................
 
-SPHINXOPTS    = -j auto
-SPHINXBUILD   = python3 -m sphinx
-SOURCEDIR     = .
-FORMAT        = html
-BUILDDIR      = build/$(FORMAT)
+SPHINXOPTS  = -j auto
+SPHINXBUILD = python3 -m sphinx
+SOURCEDIR   = .
+FORMAT      = html
+BUILDDIR    = build/$(FORMAT)
 
 
 # Main build targets.
@@ -110,7 +110,7 @@ publish: | clean $(FORMAT)
 	trap restoreGitBranch EXIT
 
 apidocs: build-dir
-	sphinx-apidoc -f -o classes ../gillespy2
+	sphinx-apidoc -f -T -o classes ../gillespy2
 
 build-dir:
 	mkdir -p build/$(FORMAT)
