@@ -33,21 +33,6 @@
 ##
 ## ============================================================================
 
-# Preliminary setup.
-# .............................................................................
-# The following setup is needed to enable shell traps to work.
-# However, the .ONESHELL directive requires GNU make version 3.82 or later.
-# The clever test below is from https://stackoverflow.com/a/12231321/743730
-
-ifeq ($(filter undefine,$(value .FEATURES)),)
-    $(error Unsupported version of Make. Please use GNU Make 3.82 or above.)
-endif
-
-export SHELL:=/bin/bash
-export SHELLOPTS:=$(if $(SHELLOPTS),$(SHELLOPTS):)pipefail:errexit
-.ONESHELL:
-
-
 # Variables.  (These can be overriden via command-line args.)
 # .............................................................................
 
@@ -94,15 +79,12 @@ $(FORMAT) docs: apidocs
 	@$(SPHINXBUILD) -b $(FORMAT) "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 autobuild: $(FORMAT)
-	sphinx-autobuild "$(SOURCEDIR)" "$(BUILDDIR)/$(FORMAT)"
+	sphinx-autobuild "$(SOURCEDIR)" "$(BUILDDIR)"
 
 clean:
 	rm -rf "$(BUILDDIR)"
 
 publish:
-	function restoreGitBranch {
-	    git checkout @{-1}
-	}
 	make clean
 	git stash
 	git checkout gh-pages
@@ -111,8 +93,8 @@ publish:
 	-git commit -m "Latest build." "$(BUILDDIR)"
 	git push origin gh-pages -f
 	make clean
+	git checkout @{-1}
 	git stash pop
-	trap restoreGitBranch EXIT
 
 apidocs: build-dir
 	sphinx-apidoc -f -T -o classes ../gillespy2
