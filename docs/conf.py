@@ -60,6 +60,7 @@ release   = gillespy2['__version__']
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
+    'sphinx.ext.napoleon',
     'sphinx.ext.todo',
 ]
 
