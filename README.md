@@ -30,24 +30,28 @@ GillesPy2 can be installed on your computer using different methods, as describe
 
 ### _Using PyPI_
 
-Using Python 3 on **Linux**, **macOS**, and **Windows** operating systems, you should be able to install GillesPy2 with [pip](https://pip.pypa.io/en/stable/installing/):
+On **Linux**, **macOS**, and **Windows** operating systems, you should be able to install GillesPy2 with [pip](https://pip.pypa.io/en/stable/installing/).  If you don't have the `pip` package or are uncertain, first run the following command in a terminal command line interpreter: 
 ```
-python3 -m pip install --upgrade pip
-python3 -m pip install gillespy2
+sudo python3 -m ensurepip
+```
+
+Then, to install GillesPy2 from the Python package repository, run the following command:
+```
+python3 -m pip install gillespy2 --user --upgrade
 ```
 
 ### _Using the source code repository_
 
 As an alternative to getting it from PyPI, you can instruct `pip` to install GillesPy2 directly from the GitHub repository:
 ```sh
-sudo python3 -m pip install git+https@github.com:GillesPy2/GillesPy2.git --upgrade
+python3 -m pip install git+https@github.com:GillesPy2/GillesPy2.git --user --upgrade
 ```
 
-As a final alternative, you can first use `git` to clone a copy of the GillesPy2 source tree from the GitHub repository and then install it using that copy:
+As a final alternative, you can first use `git` to clone a copy of the GillesPy2 source tree from the GitHub repository to your local computer disk, and then install GillesPy2 using that copy:
 ```sh
 git clone --recursive https@github.com:GillesPy2/GillesPy2.git
 cd GillesPy2
-sudo python3 -m pip install . --upgrade
+python3 -m pip install  .  --user --upgrade
 ```
 
 Usage
