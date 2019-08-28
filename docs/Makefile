@@ -99,14 +99,19 @@ autobuild: $(FORMAT)
 clean:
 	rm -rf "$(BUILDDIR)"
 
-publish: | clean $(FORMAT)
+publish:
 	function restoreGitBranch {
 	    git checkout @{-1}
 	}
+	make clean
+	git stash
 	git checkout gh-pages
+	make html
 	-git add -f "$(BUILDDIR)"
 	-git commit -m "Latest build." "$(BUILDDIR)"
 	git push origin gh-pages -f
+	make clean
+	git stash pop
 	trap restoreGitBranch EXIT
 
 apidocs: build-dir
