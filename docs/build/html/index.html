@@ -1,0 +1,171 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Documentation for GillesPy2 1.2 &#8212; GillesPy2 1.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/css/gillespy2_alabaster_customizations.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="getting_started/installation/installation.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="_static/img/gillespy2-logo.svg" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="#">
+    <img class="logo" src="_static/img/gillespy2-logo.svg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=GillesPy2&repo=GillesPy2&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting_started/installation/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started/basic_usage/basic_usage.html">Basic usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/tut_toggle_switch/tut_toggle_switch.html">Tutorial: ODE vs. SSA</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classes/gillespy2.html">gillespy2 package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="getting_started/installation/installation.html" title="next chapter">Installation</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="documentation-for-gillespy2-release">
+<h1>Documentation for GillesPy2 1.2<a class="headerlink" href="#documentation-for-gillespy2-release" title="Permalink to this headline">¶</a></h1>
+<p>GillesPy2 is an open-source Python package for stochastic simulation of biochemical systems.  It offers an object-oriented approach for creating mathematical models of biological systems, as well as a variety of methods for performing time simulation of those models.  The methods include the <a class="reference external" href="https://en.wikipedia.org/wiki/Gillespie_algorithm">Gillespie direct method (SSA)</a>, several variant stochastic simulation methods including <a class="reference external" href="https://en.wikipedia.org/wiki/Tau-leaping">tau leaping</a>, and numerical integration of ODEs.  The solvers support a variety of user environments, with optimized code for C++, <a class="reference external" href="https://cython.org">Cython</a>, and <a class="reference external" href="https://numpy.org">NumPy</a>.  Models can also be read from files in <a class="reference external" href="https://en.wikipedia.org/wiki/SBML">SBML</a> format.</p>
+<div class="section" id="getting-a-copy-of-gillespy2">
+<h2>Getting a copy of GillesPy2<a class="headerlink" href="#getting-a-copy-of-gillespy2" title="Permalink to this headline">¶</a></h2>
+<p>The latest version of GillesPy2 can be found on <a class="reference external" href="https://pypi.org/project/gillespy2">PyPI</a>.  The source code is available on <a class="reference external" href="https://github.com/GillesPy2/GillesPy2">GitHub</a>.  GillesPy2 is licensed under the GNU General Public License version 3.</p>
+<p style="width: 80%; margin: auto; padding: 0.5em; border: 1px solid purple"><a href="https://docs.google.com/forms/d/12tAH4f8CJ-3F-lK44Q9uQHFio_mGoK0oY829q5lD7i4/viewform"><b>Please register as a user!</b></a>  GillesPy2's development is funded by NIH grant 2R01EB014877, and to continue support, we need to prove GillesPy2 has users. <a href="https://docs.google.com/forms/d/12tAH4f8CJ-3F-lK44Q9uQHFio_mGoK0oY829q5lD7i4/viewform">Please fill out our short registration form!</a></p></div>
+<div class="section" id="getting-help">
+<h2>Getting help<a class="headerlink" href="#getting-help" title="Permalink to this headline">¶</a></h2>
+<p>If you find any problem with GillesPy2 or this documentation, please report it using <a class="reference external" href="https://github.com/GillesPy2/GillesPy2/issues">the GitHub issue tracker</a> for the project.  You can also contact the main author, Dr. <a class="reference external" href="http://www.cs.unca.edu/~drawert">Brian Drawert</a>, directly with questions and suggestions.</p>
+</div>
+<div class="section" id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound" id="sec-getting-started">
+<p class="caption"><span class="caption-text">Getting started</span><a class="headerlink" href="#sec-getting-started" title="Permalink to this toctree">¶</a></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting_started/installation/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started/basic_usage/basic_usage.html">Basic usage</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound" id="sec-tutorials">
+<p class="caption"><span class="caption-text">Tutorials</span><a class="headerlink" href="#sec-tutorials" title="Permalink to this toctree">¶</a></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/tut_toggle_switch/tut_toggle_switch.html">Tutorial: ODE vs. SSA</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">API reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classes/gillespy2.html">gillespy2 package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classes/gillespy2.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="classes/gillespy2.core.html">gillespy2.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="classes/gillespy2.sbml.html">gillespy2.sbml package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="classes/gillespy2.solvers.html">gillespy2.solvers package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="classes/gillespy2.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classes/gillespy2.html#module-gillespy2.example_models">gillespy2.example_models module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classes/gillespy2.html#module-gillespy2">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;Copyright (C) 2017-2019.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/GillesPy2/GillesPy2" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

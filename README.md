@@ -1,10 +1,11 @@
-GillesPy2
-=========
+<p align="left">
+<img src="https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/gillespy2-logo.png">
+</p>
 
 GillesPy2 is a Python package for stochastic simulation of biochemical systems.  It offers an object-oriented approach for creating mathematical models of biological systems, as well as a variety of methods for performing time simulation of those models.  The methods include the [Gillespie direct method (SSA)](https://en.wikipedia.org/wiki/Gillespie_algorithm), several variant stochastic simulation methods including [tau-leaping](https://en.wikipedia.org/wiki/Tau-leaping), and numerical integration of ODEs.  The solvers support a variety of user environments, with optimized code for C++, [Cython](https://cython.org), and [NumPy](https://numpy.org).  GillesPy2 also supports [SBML](https://en.wikipedia.org/wiki/SBML).
 
 <table><tr><td><b>
-<img width="20%" align="right" src=".graphics/stochss-logo.svg">
+<img width="20%" align="right" src="https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/stochss-logo.png">
 <a href="https://docs.google.com/forms/d/12tAH4f8CJ-3F-lK44Q9uQHFio_mGoK0oY829q5lD7i4/viewform">PLEASE REGISTER AS A USER</a>, so that we can prove GillesPy2 has many users when we seek funding to support development. GillesPy2 is part of the <a href="http://www.stochss.org">StochSS</a> project.
 </td></tr></table>
 
@@ -81,7 +82,7 @@ In GillesPy2, a model is expressed as an object having the parent class `Model`.
 class Dimerization(gillespy2.Model):
     def __init__(self, parameter_values=None):
         # First call the gillespy2.Model initializer.
-        super().__init__(self)
+        gillespy2.Model.__init__(self, name='Dimerization')
 
         # Define parameters for the rates of creation and dissociation.
         k_c = gillespy2.Parameter(name='k_c', expression=0.005)
@@ -111,7 +112,17 @@ model = Dimerization()
 results = model.run(number_of_trajectories=10)
 ```
 
-The format of the results from a run is is an array of values for different time points.  There will be one subarray for each trajectory.  In the current example, we can plot each of the 10 trajectories in the same figure using the following code:
+The results are then stored in a class `Results` object for single trajectories, or a class `Ensemble` object for multiple trajectories.  Results/Ensembles can be plotted with matplotlib using `plot()` or in plotly (offline) using `plotplotly()`.  For additional plotting options such as plotting from a selection of species, or statistical plotting, please see the documentation.:
+
+```python
+results.plot()
+```
+
+<p align="center">
+<img width="500px" src="https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/dimerization-example-plot.png">
+</p>
+
+Alternatively, the results object inherits python-builtin `UserDict` for single trajectories, and `UserList` for multiple trajectories.  Results can be plotted easily using any plotting library such as matplot lib as shown below:
 
 ```python
 for index in range(0, 10):
@@ -123,7 +134,7 @@ for index in range(0, 10):
 With a few additional Python Matplotlib commands to create figure labels and such, we end up with a plot like this:
 
 <p align="center">
-<img width="500px" src=".graphics/dimerization-example-plot.png">
+<img width="500px" src="https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/dimerization-example-matplotlib.png">
 </p>
 
 
@@ -165,7 +176,7 @@ New developments happen primarily in the [`develop`](https://github.com/GillesPy
 
 | Master Branch   | Develop Branch | Coverage |
 |:---------------:|:--------------:|:--------:|
-| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | ![Coverage](.graphics/coverage.svg) |
+| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | ![Coverage](https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/coverage.png) |
 
 
 
@@ -187,22 +198,22 @@ Finally, we are grateful for institutional resources made available by the [UNC 
 
 <div align="center">
   <a href="https://www.nigms.nih.gov">
-    <img width="100" height="100" src=".graphics/US-NIH-NIGMS-Logo.svg">
+    <img width="100" height="100" src="https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/US-NIH-NIGMS-Logo.png">
   </a>
   &nbsp;&nbsp;
   <a href="https://www.unca.edu">
-    <img height="102" src=".graphics/UNCASEAL_blue.png">
+    <img height="102" src="https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/UNCASEAL_blue.png">
   </a>
   &nbsp;&nbsp;
   <a href="https://www.ucsb.edu">
-    <img height="108" src=".graphics/ucsb-seal-navy.jpg">
+    <img height="108" src="https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/ucsb-seal-navy.jpg">
   </a>
   &nbsp;&nbsp;
   <a href="https://www.it.uu.se">
-    <img height="115" src=".graphics/uppsala-universitet-logo-svg-vector.svg">
+    <img height="115" src="https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/uppsala-universitet-logo-svg-vector.png">
   </a>
   &nbsp;&nbsp;
   <a href="https://www.caltech.edu">
-    <img width="100" height="100" src=".graphics/caltech-round.svg">
+    <img width="115" src="https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/caltech-round.png">
   </a>
 </div>
