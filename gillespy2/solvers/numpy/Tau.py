@@ -112,10 +112,6 @@ def select(*tau_args):
     for r in model.listOfReactions:
         #Calculate abs mean and standard deviation for each reactant
         for product in model.listOfReactions[r].products:
-            if product not in mu_i:
-                mu_i[str(product)] = 0
-            if product not in sigma_i:
-                sigma_i[str(product)] = 0
             mu_i[str(product)] -= model.listOfReactions[r].products[product] * propensities[
                 r]  # Cao, Gillespie, Petzold 32a
             sigma_i[str(product)] += model.listOfReactions[r].products[product] ** 2 * propensities[
