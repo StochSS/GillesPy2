@@ -223,7 +223,9 @@ class EnsembleResults(UserList):
         results_list = self.data
 
         if title is None:
-            title = (self[0].model.name + " - " + self[0].solver_name)
+            if isinstance(self[0].model.name, str):
+                title = (self[0].model.name + " - " + self[0].solver_name)
+            else: title=''
 
         if len(results_list) < 2:
                 multiple_graphs = False
