@@ -111,7 +111,13 @@ model = Dimerization()
 results = model.run(number_of_trajectories=10)
 ```
 
-The format of the results from a run is is an array of values for different time points.  There will be one subarray for each trajectory.  In the current example, we can plot each of the 10 trajectories in the same figure using the following code:
+The results are then stored in a class 'Results' object for single trajectories, or a class 'Ensemble' object for multiple trajectories.  Results/Ensembles can be plotted with matplotlib using '.plot()' or in plotly (offline) using '.plotplotly()'.  For additional plotting options such as plotting from a selection of species, or statistical plotting, please see the documentation.:
+
+```python
+results.plot()
+```
+
+Alternatively, the results object inherits the type 'UserList' for multiple trajectories, and 'UserDict' for single trajectories.  Results can be plotted easily using any plotting library such as matplot lib as shown below:
 
 ```python
 for index in range(0, 10):
