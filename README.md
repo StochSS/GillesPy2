@@ -81,7 +81,7 @@ In GillesPy2, a model is expressed as an object having the parent class `Model`.
 class Dimerization(gillespy2.Model):
     def __init__(self, parameter_values=None):
         # First call the gillespy2.Model initializer.
-        super().__init__(self)
+        gillespy2.Model.__init__(self, name='Dimerization')
 
         # Define parameters for the rates of creation and dissociation.
         k_c = gillespy2.Parameter(name='k_c', expression=0.005)
@@ -111,7 +111,17 @@ model = Dimerization()
 results = model.run(number_of_trajectories=10)
 ```
 
-The format of the results from a run is is an array of values for different time points.  There will be one subarray for each trajectory.  In the current example, we can plot each of the 10 trajectories in the same figure using the following code:
+The results are then stored in a class `Results` object for single trajectories, or a class `Ensemble` object for multiple trajectories.  Results/Ensembles can be plotted with matplotlib using `plot()` or in plotly (offline) using `plotplotly()`.  For additional plotting options such as plotting from a selection of species, or statistical plotting, please see the documentation.:
+
+```python
+results.plot()
+```
+
+<p align="center">
+<img width="500px" src=".graphics/dimerization-example-plot.png">
+</p>
+
+Alternatively, the results object inherits python-builtin `UserDict` for single trajectories, and `UserList` for multiple trajectories.  Results can be plotted easily using any plotting library such as matplot lib as shown below:
 
 ```python
 for index in range(0, 10):
@@ -123,7 +133,7 @@ for index in range(0, 10):
 With a few additional Python Matplotlib commands to create figure labels and such, we end up with a plot like this:
 
 <p align="center">
-<img width="500px" src=".graphics/dimerization-example-plot.png">
+<img width="500px" src=".graphics/dimerization-example-matplotlib.png">
 </p>
 
 
