@@ -1,5 +1,5 @@
 <p align="left">
-<img width="500px" src=".graphics/gillespy2-logo.svg">
+<img src=".graphics/gillespy2-logo.png">
 </p>
 =========
 
