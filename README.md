@@ -81,7 +81,7 @@ In GillesPy2, a model is expressed as an object having the parent class `Model`.
 class Dimerization(gillespy2.Model):
     def __init__(self, parameter_values=None):
         # First call the gillespy2.Model initializer.
-        super().__init__(self)
+        gillespy2.Model.__init__(self, name='Dimerization')
 
         # Define parameters for the rates of creation and dissociation.
         k_c = gillespy2.Parameter(name='k_c', expression=0.005)
