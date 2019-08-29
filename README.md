@@ -117,6 +117,10 @@ The results are then stored in a class `Results` object for single trajectories,
 results.plot()
 ```
 
+<p align="center">
+<img width="500px" src=".graphics/dimerization-example-plot.png">
+</p>
+
 Alternatively, the results object inherits python-builtin `UserDict` for single trajectories, and `UserList` for multiple trajectories.  Results can be plotted easily using any plotting library such as matplot lib as shown below:
 
 ```python
@@ -129,7 +133,7 @@ for index in range(0, 10):
 With a few additional Python Matplotlib commands to create figure labels and such, we end up with a plot like this:
 
 <p align="center">
-<img width="500px" src=".graphics/dimerization-example-plot.png">
+<img width="500px" src=".graphics/dimerization-example-matplotlib.png">
 </p>
 
 
