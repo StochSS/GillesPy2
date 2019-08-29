@@ -5,7 +5,7 @@
 GillesPy2 is a Python package for stochastic simulation of biochemical systems.  It offers an object-oriented approach for creating mathematical models of biological systems, as well as a variety of methods for performing time simulation of those models.  The methods include the [Gillespie direct method (SSA)](https://en.wikipedia.org/wiki/Gillespie_algorithm), several variant stochastic simulation methods including [tau-leaping](https://en.wikipedia.org/wiki/Tau-leaping), and numerical integration of ODEs.  The solvers support a variety of user environments, with optimized code for C++, [Cython](https://cython.org), and [NumPy](https://numpy.org).  GillesPy2 also supports [SBML](https://en.wikipedia.org/wiki/SBML).
 
 <table><tr><td><b>
-<img width="20%" align="right" src="https://raw.githubusercontent.com/GillesPy2/develop/.graphics/stochss-logo.png">
+<img width="20%" align="right" src="https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/stochss-logo.png">
 <a href="https://docs.google.com/forms/d/12tAH4f8CJ-3F-lK44Q9uQHFio_mGoK0oY829q5lD7i4/viewform">PLEASE REGISTER AS A USER</a>, so that we can prove GillesPy2 has many users when we seek funding to support development. GillesPy2 is part of the <a href="http://www.stochss.org">StochSS</a> project.
 </td></tr></table>
 
@@ -176,7 +176,7 @@ New developments happen primarily in the [`develop`](https://github.com/GillesPy
 
 | Master Branch   | Develop Branch | Coverage |
 |:---------------:|:--------------:|:--------:|
-| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | ![Coverage](https://raw.githubusercontent.com/GillesPy2/develop/.graphics/coverage.png) |
+| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | ![Coverage](https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/coverage.png) |
 
 
 
