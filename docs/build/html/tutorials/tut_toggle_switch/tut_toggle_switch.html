@@ -1,0 +1,191 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Tutorial: ODE vs. SSA &#8212; GillesPy2 1.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/gillespy2_alabaster_customizations.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="gillespy2 package" href="../../classes/gillespy2.html" />
+    <link rel="prev" title="Basic usage" href="../../getting_started/basic_usage/basic_usage.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../../_static/img/gillespy2-logo.svg" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/img/gillespy2-logo.svg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=GillesPy2&repo=GillesPy2&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/installation/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/basic_usage/basic_usage.html">Basic usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial: ODE vs. SSA</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../classes/gillespy2.html">gillespy2 package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../../getting_started/basic_usage/basic_usage.html" title="previous chapter">Basic usage</a></li>
+      <li>Next: <a href="../../classes/gillespy2.html" title="next chapter">gillespy2 package</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="tutorial-ode-vs-ssa">
+<h1>Tutorial: ODE vs. SSA<a class="headerlink" href="#tutorial-ode-vs-ssa" title="Permalink to this headline">¶</a></h1>
+<p>Deterministic ordinary differential equation (ODE) models of biochemical processes are useful and accurate in the high-concentration limit, but often fail to capture stochastic cellular dynamics accurately because the deterministic continuous formulation assumes spatial homogeneity and continuous biomolecule concentrations.  Nevertheless, ODE simulations are appropriate in some situations.  GillesPy2 includes ODE solvers as well as stochastic solvers, and thus allows you to compare the results of both.  This tutorial demonstrates the use of both ODE and stochastic simulation on the same model.</p>
+<p>First, in a Python script that uses GillesPy2 to perform model simulation, we begin by importing some basic Python packages needed in the rest of the script:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">gillespy2</span>
+<span class="kn">from</span> <span class="nn">gillespy2</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">,</span> <span class="n">Reaction</span>
+<span class="kn">from</span> <span class="nn">gillespy2.solvers.numpy.basic_ode_solver</span> <span class="kn">import</span> <span class="n">BasicODESolver</span>
+</pre></div>
+</div>
+<p>Next, we define a model. This is a model based on a publication by Gardner et al. in Nature, 1999, and represents a genetic toggle switch in Escherichia coli.  In GillesPy2, a model is expressed as an object having the parent class <code class="docutils literal notranslate"><span class="pre">Model</span></code>.  Components of the model, such as the reactions, molecular species, and characteristics such as the time span for simulation, are all defined within the subclass definition.  The following Python code represents our model using GillesPy2’s facility:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ToggleSwitch</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+  <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter_values</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+    <span class="c1"># Initialize the model.</span>
+    <span class="n">Model</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;toggle_switch&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Define parameters.</span>
+    <span class="n">alpha1</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;alpha1&#39;</span><span class="p">,</span> <span class="n">expression</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">alpha2</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;alpha2&#39;</span><span class="p">,</span> <span class="n">expression</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">beta</span>   <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;beta&#39;</span><span class="p">,</span>   <span class="n">expression</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">)</span>
+    <span class="n">gamma</span>  <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;gamma&#39;</span><span class="p">,</span>  <span class="n">expression</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">)</span>
+    <span class="n">mu</span>     <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;mu&#39;</span><span class="p">,</span>     <span class="n">expression</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">([</span><span class="n">alpha1</span><span class="p">,</span> <span class="n">alpha2</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">mu</span><span class="p">])</span>
+
+    <span class="c1"># Define molecular species.</span>
+    <span class="n">U</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;U&#39;</span><span class="p">,</span> <span class="n">initial_value</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="n">V</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span><span class="p">,</span> <span class="n">initial_value</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">add_species</span><span class="p">([</span><span class="n">U</span><span class="p">,</span> <span class="n">V</span><span class="p">])</span>
+
+    <span class="c1"># Define reactions.</span>
+    <span class="n">cu</span> <span class="o">=</span> <span class="n">Reaction</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;r1&quot;</span><span class="p">,</span> <span class="n">reactants</span> <span class="o">=</span> <span class="p">{},</span> <span class="n">products</span> <span class="o">=</span> <span class="p">{</span><span class="n">U</span><span class="p">:</span><span class="mi">1</span><span class="p">},</span>
+                  <span class="n">propensity_function</span> <span class="o">=</span> <span class="s2">&quot;alpha1/(1+pow(V,beta))&quot;</span><span class="p">)</span>
+    <span class="n">cv</span> <span class="o">=</span> <span class="n">Reaction</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;r2&quot;</span><span class="p">,</span> <span class="n">reactants</span> <span class="o">=</span> <span class="p">{},</span> <span class="n">products</span> <span class="o">=</span> <span class="p">{</span><span class="n">V</span><span class="p">:</span><span class="mi">1</span><span class="p">},</span>
+                  <span class="n">propensity_function</span> <span class="o">=</span> <span class="s2">&quot;alpha2/(1+pow(U,gamma))&quot;</span><span class="p">)</span>
+    <span class="n">du</span> <span class="o">=</span> <span class="n">Reaction</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;r3&quot;</span><span class="p">,</span> <span class="n">reactants</span> <span class="o">=</span> <span class="p">{</span><span class="n">U</span><span class="p">:</span><span class="mi">1</span><span class="p">},</span> <span class="n">products</span> <span class="o">=</span> <span class="p">{},</span>
+                  <span class="n">rate</span> <span class="o">=</span> <span class="n">mu</span><span class="p">)</span>
+    <span class="n">dv</span> <span class="o">=</span> <span class="n">Reaction</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;r4&quot;</span><span class="p">,</span> <span class="n">reactants</span> <span class="o">=</span> <span class="p">{</span><span class="n">V</span><span class="p">:</span><span class="mi">1</span><span class="p">},</span> <span class="n">products</span> <span class="o">=</span> <span class="p">{},</span>
+                  <span class="n">rate</span> <span class="o">=</span> <span class="n">mu</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">([</span><span class="n">cu</span><span class="p">,</span> <span class="n">cv</span><span class="p">,</span> <span class="n">du</span><span class="p">,</span> <span class="n">dv</span><span class="p">])</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">timespan</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">101</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Given the class definition above, the model can be simulated by first instantiating the class object, and then invoking the <code class="docutils literal notranslate"><span class="pre">run()</span></code> method on the object.  Invoking <code class="docutils literal notranslate"><span class="pre">run()</span></code> without any values for the <code class="docutils literal notranslate"><span class="pre">solver</span></code> keyword argument makes GillesPy2 use the basic SSA solver.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">ToggleSwitch</span><span class="p">()</span>
+<span class="n">s_results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">show_labels</span> <span class="o">=</span> <span class="bp">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We can run the model again, this time using a deterministic ODE solver.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">d_results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">solver</span> <span class="o">=</span> <span class="n">BasicODESolver</span><span class="p">,</span> <span class="n">show_labels</span> <span class="o">=</span> <span class="bp">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, let’s plot the results of the two methods.  First, a plot of the stochastic simulation results:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">s_results</span><span class="p">[</span><span class="mi">0</span><span class="p">][:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">s_results</span><span class="p">[</span><span class="mi">0</span><span class="p">][:,</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;-r&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;U&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">s_results</span><span class="p">[</span><span class="mi">0</span><span class="p">][:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">s_results</span><span class="p">[</span><span class="mi">0</span><span class="p">][:,</span><span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;-b&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Stochastic Switch&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span> <span class="o">=</span> <span class="s1">&#39;best&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../../_images/stochastic.png" class="align-center" src="../../_images/stochastic.png" />
+<p>And here is a plot of the deterministic simulation results:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">d_results</span><span class="p">[</span><span class="mi">0</span><span class="p">][:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">d_results</span><span class="p">[</span><span class="mi">0</span><span class="p">][:,</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;-r&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;U&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">d_results</span><span class="p">[</span><span class="mi">0</span><span class="p">][:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">d_results</span><span class="p">[</span><span class="mi">0</span><span class="p">][:,</span><span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;-b&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Stochastic Switch&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span> <span class="o">=</span> <span class="s1">&#39;best&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../../_images/ode.png" class="align-center" src="../../_images/ode.png" />
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;Copyright (C) 2017-2019.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="../../_sources/tutorials/tut_toggle_switch/tut_toggle_switch.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/GillesPy2/GillesPy2" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>
