@@ -22,6 +22,10 @@ class TestAllSolvers(unittest.TestCase):
         labeled_results[solver] = model.run(solver=solver, show_labels=True,number_of_trajectories=1)
         labeled_results_more_trajectories[solver] = model.run(solver=solver, show_labels=True,number_of_trajectories=2)
 
+    def test_instantiated(self):
+        for solver in self.solvers:
+            self.model.run(solver=solver())
+
     def test_return_type(self):
         for solver in self.solvers:
             self.assertTrue(isinstance(self.results[solver], np.ndarray))
