@@ -161,7 +161,7 @@ class SSACSolver(GillesPySolver):
 
     def run(self=None, model=None, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, profile=False, show_labels=True, **kwargs):
-        if self is None:
+        if self is None or self.model is None:
             self = SSACSolver(model)
         if len(kwargs) > 0:
             for key in kwargs:

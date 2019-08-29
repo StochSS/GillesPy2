@@ -7,6 +7,7 @@ from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
 from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver
 from gillespy2.solvers.numpy.basic_tau_leaping_solver import BasicTauLeapingSolver
 from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
+from gillespy2.core.results import EnsembleResults,Results
 
 class TestAllSolvers(unittest.TestCase):
 
@@ -14,10 +15,16 @@ class TestAllSolvers(unittest.TestCase):
     model = Example()
     results = {}
     labeled_results = {}
+    labeled_results_more_trajectories = {}
 
     for solver in solvers:
         results[solver] = model.run(solver=solver, show_labels=False, seed=1)
-        labeled_results[solver] = model.run(solver=solver, show_labels=True)
+        labeled_results[solver] = model.run(solver=solver, show_labels=True,number_of_trajectories=1)
+        labeled_results_more_trajectories[solver] = model.run(solver=solver, show_labels=True,number_of_trajectories=2)
+
+    def test_instantiated(self):
+        for solver in self.solvers:
+            self.model.run(solver=solver())
 
     def test_return_type(self):
         for solver in self.solvers:
@@ -28,10 +35,18 @@ class TestAllSolvers(unittest.TestCase):
 
     def test_return_type_show_labels(self):
         for solver in self.solvers:
-            self.assertTrue(isinstance(self.labeled_results[solver], list))
-            self.assertTrue(isinstance(self.labeled_results[solver][0], dict))
-            self.assertTrue(isinstance(self.labeled_results[solver][0]['Sp'], np.ndarray))
-            self.assertTrue(isinstance(self.labeled_results[solver][0]['Sp'][0], np.float))
+            self.assertTrue(isinstance(self.labeled_results[solver], Results))
+            self.assertTrue(isinstance(self.labeled_results[solver]['Sp'], np.ndarray))
+            self.assertTrue(isinstance(self.labeled_results[solver]['Sp'][0], np.float))
+
+            with self.assertWarns(Warning):
+                self.assertTrue(isinstance(self.labeled_results[solver][0], Results))
+
+            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver], EnsembleResults))
+            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0], Results))
+            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0]['Sp'], np.ndarray))
+            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0]['Sp'][0], np.float))
+
 
     def test_random_seed(self):
         for solver in self.solvers:

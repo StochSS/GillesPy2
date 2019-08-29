@@ -2,23 +2,13 @@
 A simple toolkit for creating and simulating discrete stochastic models in
 python.
 
-This serves primarily as a python wrapper for the C-based solvers within
-StochKit2. The gillespy.Model class provides nearly all of the functionality
-present in this project.
-
-This version is updated (4/2017) to contain documentation in a more reasonable
-format. This does not necessarily mean it is perfect, but it is certainly an
-improvement over the original.
-
 """
 from __future__ import division
 from collections import OrderedDict
+from gillespy2.core.results import Results,EnsembleResults
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
 import numpy as np
-
-pretty_graph = False
-
 
 try:
     import lxml.etree as eTree
@@ -385,6 +375,9 @@ class Model(object):
             for rr in rate_rules:
                 self.add_rate_rule(rr)
         elif isinstance(rate_rules, RateRule):
+            if rate_rules.species is None or not isinstance(rate_rules.species, Species): raise ModelError(
+                'A Rate Rule must be associated with a valid species.')
+            if rate_rules.expression == '': raise ModelError('Invalid Rate Rule. Expression must be a non-empty string value')
             self.listOfRateRules[rate_rules.species.name] = rate_rules
         else:
             raise ParameterError("Add_rate_rule accepts a RateRule object or a List of RateRule Objects")
@@ -426,6 +419,14 @@ class Model(object):
         Function calling simulation of the model. There are a number of
         parameters to be set here.
 
+        Return
+        ----------
+
+        If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is True and
+        number_of_trajectories is 1, returns a results object that inherits UserDict and supports plotting functions.
+        If show_labels is False and number_of_trajectories is greater than 1, returns an ensemble_results object that
+        inherits UserList and contains results objects and supports ensemble graphing.
+
         Attributes
         ----------
         number_of_trajectories : int
@@ -453,65 +454,29 @@ class Model(object):
         if solver is not None:
             if ((isinstance(solver, type)
                     and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
-                return solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
+                solver_results = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
             else:
                 raise SimulationError(
                     "argument 'solver' to run() must be a subclass of GillesPySolver")
         else:
             from gillespy2.solvers.auto import SSASolver
-            return SSASolver.run(model=self, t=self.tspan[-1],
+            solver = SSASolver
+            solver_results = SSASolver.run(model=self, t=self.tspan[-1],
                                       increment=self.tspan[-1] - self.tspan[-2], **solver_args)
 
+        if isinstance(solver_results[0], (np.ndarray)):
+            return solver_results
 
+        if len(solver_results) is 1:
+            return Results(data=solver_results[0], model=self, solver_name=solver.name)
 
-    #Need to finalize feature set.
-    #title, start time, stop time, automatic legend, legend placement, axis labels, size of graph.
-    #Axis Legend Stuff ends up being complicated, ensure I understand expected scope of function.
-    def plot(self, results, **kwargs):
-
-        try:
-            import seaborn as sbn
-            pretty_graph = True
-        except:
-            import matplotlib.pyplot as plt
-            pretty_graph = False
-
-        if pretty_graph:
-            pass
-        if not pretty_graph:
-            if "height" in kwargs and "width" in kwargs:
-                plt.figure(figsize=(kwargs["height"], kwargs["width"]))
-            #I could just have a throw after this, but I don't know if that's what the expected user behavior would be.
-            if "height" in kwargs and "width" not in kwargs:
-                plt.figure(figsize=(kwargs["height"], kwargs["height"]))
-            if "height" not in kwargs and "width" in kwargs:
-                plt.figure(figsize=(kwargs["width"], kwargs["width"]))
-            if "title" in kwargs:
-                plt.title(kwargs["title"])
-            else:
-                plt.title(str(self.name))
-            if "start" in kwargs and "stop" in kwargs:
-                for key in results.keys():
-                    plt.plot(results[key][kwargs["start"]:kwargs["stop"]])
-            if "start" in kwargs and "stop" not in kwargs:
-                for key in results.keys():
-                    plt.plot(results[key][kwargs["start"]:])
-            if "start" not in kwargs and "stop" in kwargs:
-                for key in results.keys():
-                    plt.plot(results[key][:kwargs["stop"]])
-            if "start" not in kwargs and "stop" not in kwargs:
-                for key in results.keys():
-                    plt.plot(results[key])
-            if "legend" in kwargs and kwargs["legend"] is True and "legend_position" not in kwargs:
-                plt.legend(list(map(str, self.listOfSpecies.keys())))
-            if "legend" in kwargs and kwargs["legend"] is True and "legend_position" in kwargs:
-                plt.legend(list(map(str, self.listOfSpecies.keys())), loc=kwargs["legend_position"])
-            if "xlabel" in kwargs:
-                plt.xlabel(kwargs["xlabel"])
-            if "ylabel" in kwargs:
-                plt.ylabel(kwargs["ylabel"])
-            plt.show()
-
+        if len(solver_results) > 1:
+            results_list = []
+            for i in range(0,solver_args.get('number_of_trajectories')):
+                results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name))
+            return EnsembleResults(results_list)
+        else:
+            raise ValueError("number_of_trajectories must be non-negative and non-zero")
 
 class Species:
     """
@@ -631,7 +596,7 @@ class Parameter:
 
 
 class RateRule:
-    def __init__(self, species, expression, name=None):
+    def __init__(self, species=None, expression='', name=None):
         self.expression = expression
         self.species = species
         self.name = name
@@ -672,8 +637,8 @@ class Reaction:
     For a species that is NOT consumed in the reaction but is part of a mass
     action reaction, add it as both a reactant and a product.
 
-    Mass-action reactions must also have a rate term added. Note that the rate
-    must be scaled by the volume prior to being added for unit consistency.
+    Mass-action reactions must also have a rate term added. Note that the input
+    rate represents the mass-action constant rate independent of volume.
     """
 
     def __init__(self, name="", reactants={}, products={},
@@ -761,7 +726,7 @@ class Reaction:
         for r in self.reactants:
             # Case 1: 2X -> Y
             if self.reactants[r] == 2:
-                propensity_function = ("0.5*" + propensity_function +
+                propensity_function = (propensity_function +
                                        "*" + str(r) + "*(" + str(r) + "-1)/vol")
                 ode_propensity_function += '*' + str(r) + '*' + str(r)
             else:
