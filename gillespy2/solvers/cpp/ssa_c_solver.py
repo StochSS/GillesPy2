@@ -11,7 +11,7 @@ GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
 GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base')
 
 
-def copy_files(destination):
+def __copy_files(destination):
     src_files = os.listdir(GILLESPY_C_DIRECTORY)
     for src_file in src_files:
         src_file = os.path.join(GILLESPY_C_DIRECTORY, src_file)
@@ -19,7 +19,7 @@ def copy_files(destination):
             shutil.copy(src_file, destination)
 
 
-def write_constants(outfile, model, reactions, species, parameter_mappings):
+def __write_constants(outfile, model, reactions, species, parameter_mappings):
     outfile.write("const double V = {};\n".format(model.volume))
     outfile.write("std :: string s_names[] = {");
     if len(species) > 0:
@@ -44,7 +44,7 @@ def write_constants(outfile, model, reactions, species, parameter_mappings):
         outfile.write("const double {0} = {1};\n".format(parameter_mappings[param], model.listOfParameters[param].value))
 
 
-def write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
+def __write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
     for i in range(len(reactions)):
         # Write switch statement case for reaction
         outfile.write("""
@@ -53,7 +53,7 @@ def write_propensity(outfile, model, species_mappings, parameter_mappings, react
         """.format(i, model.listOfReactions[reactions[i]].sanitized_propensity_function(species_mappings, parameter_mappings)))
 
 
-def write_reactions(outfile, model, reactions, species):
+def __write_reactions(outfile, model, reactions, species):
     for i in range(len(reactions)):
         reaction = model.listOfReactions[reactions[i]]
         for j in range(len(species)):
@@ -62,7 +62,7 @@ def write_reactions(outfile, model, reactions, species):
                 outfile.write("model.reactions[{0}].species_change[{1}] = {2};\n".format(i, j, change))
 
 
-def parse_output(results, number_of_trajectories, number_timesteps, number_species):
+def __parse_output(results, number_of_trajectories, number_timesteps, number_species):
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
     for timestep in range(number_timesteps):
         values = results[timestep].split(" ")
@@ -75,7 +75,7 @@ def parse_output(results, number_of_trajectories, number_timesteps, number_speci
     return trajectory_base
 
 
-def parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species):
+def __parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species):
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
     step_size = number_species * number_of_trajectories + 1 #1 for timestep
     data = np.frombuffer(results_buffer, dtype=np.float64)
@@ -96,7 +96,7 @@ class SSACSolver(GillesPySolver):
     """TODO"""
     def __init__(self, model=None, output_directory=None, delete_directory=True):
         super(SSACSolver, self).__init__()
-        self.compiled = False
+        self.__compiled = False
         self.delete_directory = False
         self.model = model
         if self.model is not None:
@@ -123,15 +123,15 @@ class SSACSolver(GillesPySolver):
                 
             if not os.path.isdir(self.output_directory):
                 raise gillespyError.DirectoryError("Errors encountered while setting up directory for Solver C++ files.")
-            copy_files(self.output_directory)
-            self.write_template()
-            self.compile()
+            __copy_files(self.output_directory)
+            self.__write_template()
+            self.__compile()
         
     def __del__(self):
         if self.delete_directory and os.path.isdir(self.output_directory):
             shutil.rmtree(self.output_directory)
         
-    def write_template(self, template_file='SimulationTemplate.cpp'):
+    def __write_template(self, template_file='SimulationTemplate.cpp'):
         # Open up template file for reading.
         with open(os.path.join(self.output_directory, template_file), 'r') as template:
             # Write simulation C++ file.
@@ -142,20 +142,20 @@ class SSACSolver(GillesPySolver):
                     if line.startswith(template_keyword):
                         line = line[len(template_keyword):]
                         if line.startswith("CONSTANTS"):
-                            write_constants(outfile, self.model, self.reactions, self.species, self.parameter_mappings)
+                            __write_constants(outfile, self.model, self.reactions, self.species, self.parameter_mappings)
                         if line.startswith("PROPENSITY"):
-                            write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings, self.reactions)
+                            __write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings, self.reactions)
                         if line.startswith("REACTIONS"):
-                            write_reactions(outfile, self.model, self.reactions, self.species)
+                            __write_reactions(outfile, self.model, self.reactions, self.species)
                     else:
                         outfile.write(line)
 
-    def compile(self):
+    def __compile(self):
         # Use makefile.
         cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulation'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if built.returncode == 0:
-            self.compiled = True
+            self.__compiled = True
         else:
             raise gillespyError.BuildError("Error encountered while compiling file:\nReturn code: {0}.\nError:\n{1}\n{2}\n".format(built.returncode, built.stdout.decode('utf-8'),built.stderr.decode('utf-8')))
 
@@ -166,7 +166,7 @@ class SSACSolver(GillesPySolver):
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
-        if self.compiled:
+        if self.__compiled:
             self.simulation_data = None
             number_timesteps = int(t//increment + 1)                    
             # Execute simulation.
@@ -186,7 +186,7 @@ class SSACSolver(GillesPySolver):
             simulation = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             # Parse/return results.
             if simulation.returncode == 0:
-                trajectory_base = parse_binary_output(simulation.stdout, number_of_trajectories, number_timesteps, len(self.species))
+                trajectory_base = __parse_binary_output(simulation.stdout, number_of_trajectories, number_timesteps, len(self.species))
                 # Format results
                 if show_labels:
                     self.simulation_data = []

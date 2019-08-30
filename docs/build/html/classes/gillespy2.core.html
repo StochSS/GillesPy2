@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.core package &#8212; GillesPy2 1.2 documentation</title>
+    <title>gillespy2.core package &#8212; GillesPy2 1.2.1 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/gillespy2_alabaster_customizations.css" />
@@ -833,13 +833,6 @@ rate represents the mass-action constant rate independent of volume.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gillespy2.core.gillespy2.Reaction.create_mass_action">
-<code class="sig-name descname">create_mass_action</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Reaction.create_mass_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Reaction.create_mass_action" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes the mass action propensity function given
-self.reactants and a single parameter value.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="gillespy2.core.gillespy2.Reaction.sanitized_propensity_function">
 <code class="sig-name descname">sanitized_propensity_function</code><span class="sig-paren">(</span><em class="sig-param">species_mappings</em>, <em class="sig-param">parameter_mappings</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Reaction.sanitized_propensity_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Reaction.sanitized_propensity_function" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -955,21 +948,6 @@ print document.toString()</p>
 <dd><p>Intializes the document from an exisiting native StochKit XML
 file read from disk.</p>
 </dd></dl>
-
-<dl class="method">
-<dt id="gillespy2.core.gillespy2.StochMLDocument.parameter_to_element">
-<code class="sig-name descname">parameter_to_element</code><span class="sig-paren">(</span><em class="sig-param">P</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#StochMLDocument.parameter_to_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.StochMLDocument.parameter_to_element" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="gillespy2.core.gillespy2.StochMLDocument.reaction_to_element">
-<code class="sig-name descname">reaction_to_element</code><span class="sig-paren">(</span><em class="sig-param">R</em>, <em class="sig-param">model_volume</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#StochMLDocument.reaction_to_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.StochMLDocument.reaction_to_element" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="gillespy2.core.gillespy2.StochMLDocument.species_to_element">
-<code class="sig-name descname">species_to_element</code><span class="sig-paren">(</span><em class="sig-param">S</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#StochMLDocument.species_to_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.StochMLDocument.species_to_element" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="method">
 <dt id="gillespy2.core.gillespy2.StochMLDocument.to_model">
@@ -2331,13 +2309,6 @@ rate represents the mass-action constant rate independent of volume.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gillespy2.core.Reaction.create_mass_action">
-<code class="sig-name descname">create_mass_action</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Reaction.create_mass_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Reaction.create_mass_action" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes the mass action propensity function given
-self.reactants and a single parameter value.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="gillespy2.core.Reaction.sanitized_propensity_function">
 <code class="sig-name descname">sanitized_propensity_function</code><span class="sig-paren">(</span><em class="sig-param">species_mappings</em>, <em class="sig-param">parameter_mappings</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Reaction.sanitized_propensity_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Reaction.sanitized_propensity_function" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -2453,21 +2424,6 @@ print document.toString()</p>
 <dd><p>Intializes the document from an exisiting native StochKit XML
 file read from disk.</p>
 </dd></dl>
-
-<dl class="method">
-<dt id="gillespy2.core.StochMLDocument.parameter_to_element">
-<code class="sig-name descname">parameter_to_element</code><span class="sig-paren">(</span><em class="sig-param">P</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#StochMLDocument.parameter_to_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.StochMLDocument.parameter_to_element" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="gillespy2.core.StochMLDocument.reaction_to_element">
-<code class="sig-name descname">reaction_to_element</code><span class="sig-paren">(</span><em class="sig-param">R</em>, <em class="sig-param">model_volume</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#StochMLDocument.reaction_to_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.StochMLDocument.reaction_to_element" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="gillespy2.core.StochMLDocument.species_to_element">
-<code class="sig-name descname">species_to_element</code><span class="sig-paren">(</span><em class="sig-param">S</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#StochMLDocument.species_to_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.StochMLDocument.species_to_element" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="method">
 <dt id="gillespy2.core.StochMLDocument.to_model">
