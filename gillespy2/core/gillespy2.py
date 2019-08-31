@@ -2,14 +2,6 @@
 A simple toolkit for creating and simulating discrete stochastic models in
 python.
 
-This serves primarily as a python wrapper for the C-based solvers within
-StochKit2. The gillespy.Model class provides nearly all of the functionality
-present in this project.
-
-This version is updated (4/2017) to contain documentation in a more reasonable
-format. This does not necessarily mean it is perfect, but it is certainly an
-improvement over the original.
-
 """
 from __future__ import division
 from collections import OrderedDict
@@ -454,6 +446,9 @@ class Model(object):
             for rr in rate_rules:
                 self.add_rate_rule(rr)
         elif isinstance(rate_rules, RateRule):
+            if rate_rules.species is None or not isinstance(rate_rules.species, Species): raise ModelError(
+                'A Rate Rule must be associated with a valid species.')
+            if rate_rules.expression == '': raise ModelError('Invalid Rate Rule. Expression must be a non-empty string value')
             self.listOfRateRules[rate_rules.species.name] = rate_rules
         else:
             raise ParameterError("Add_rate_rule accepts a RateRule object or a List of RateRule Objects")
@@ -495,6 +490,14 @@ class Model(object):
         Function calling simulation of the model. There are a number of
         parameters to be set here.
 
+        Return
+        ----------
+
+        If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is True and
+        number_of_trajectories is 1, returns a results object that inherits UserDict and supports plotting functions.
+        If show_labels is False and number_of_trajectories is greater than 1, returns an ensemble_results object that
+        inherits UserList and contains results objects and supports ensemble graphing.
+
         Attributes
         ----------
         number_of_trajectories : int
@@ -528,6 +531,7 @@ class Model(object):
                     "argument 'solver' to run() must be a subclass of GillesPySolver")
         else:
             from gillespy2.solvers.auto import SSASolver
+            solver = SSASolver
             solver_results = SSASolver.run(model=self, t=self.tspan[-1],
                                       increment=self.tspan[-1] - self.tspan[-2], **solver_args)
 
@@ -663,7 +667,7 @@ class Parameter:
 
 
 class RateRule:
-    def __init__(self, species, expression, name=None):
+    def __init__(self, species=None, expression='', name=None):
         self.expression = expression
         self.species = species
         self.name = name
@@ -702,8 +706,8 @@ class Reaction:
     For a species that is NOT consumed in the reaction but is part of a mass
     action reaction, add it as both a reactant and a product.
 
-    Mass-action reactions must also have a rate term added. Note that the rate
-    must be scaled by the volume prior to being added for unit consistency.
+    Mass-action reactions must also have a rate term added. Note that the input
+    rate represents the mass-action constant rate independent of volume.
     """
 
     def __init__(self, name="", reactants={}, products={},
@@ -791,7 +795,7 @@ class Reaction:
         for r in self.reactants:
             # Case 1: 2X -> Y
             if self.reactants[r] == 2:
-                propensity_function = ("0.5*" + propensity_function +
+                propensity_function = (propensity_function +
                                        "*" + str(r) + "*(" + str(r) + "-1)/vol")
                 ode_propensity_function += '*' + str(r) + '*' + str(r)
             else:
