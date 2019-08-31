@@ -39,14 +39,6 @@
 <span class="sd">A simple toolkit for creating and simulating discrete stochastic models in</span>
 <span class="sd">python.</span>
 
-<span class="sd">This serves primarily as a python wrapper for the C-based solvers within</span>
-<span class="sd">StochKit2. The gillespy.Model class provides nearly all of the functionality</span>
-<span class="sd">present in this project.</span>
-
-<span class="sd">This version is updated (4/2017) to contain documentation in a more reasonable</span>
-<span class="sd">format. This does not necessarily mean it is perfect, but it is certainly an</span>
-<span class="sd">improvement over the original.</span>
-
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
@@ -460,6 +452,14 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Function calling simulation of the model. There are a number of</span>
 <span class="sd">        parameters to be set here.</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is True and</span>
+<span class="sd">        number_of_trajectories is 1, returns a results object that inherits UserDict and supports plotting functions.</span>
+<span class="sd">        If show_labels is False and number_of_trajectories is greater than 1, returns an ensemble_results object that</span>
+<span class="sd">        inherits UserList and contains results objects and supports ensemble graphing.</span>
 
 <span class="sd">        Attributes</span>
 <span class="sd">        ----------</span>

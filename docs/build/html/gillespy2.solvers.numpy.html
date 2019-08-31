@@ -102,7 +102,7 @@ is bounded by bounding the relative change in the state of the system, resulting
 run-time performance with little accuracy trade-off.</p>
 <dl class="method">
 <dt id="gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver.calculate_statistics">
-<code class="sig-name descname">calculate_statistics</code><span class="sig-paren">(</span><em class="sig-param">model</em>, <em class="sig-param">propensities</em>, <em class="sig-param">curr_state</em>, <em class="sig-param">tau_step</em>, <em class="sig-param">det_spec</em>, <em class="sig-param">dependencies</em>, <em class="sig-param">switch_tol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_hybrid_solver.html#BasicTauHybridSolver.calculate_statistics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver.calculate_statistics" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">calculate_statistics</code><span class="sig-paren">(</span><em class="sig-param">*switch_args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_hybrid_solver.html#BasicTauHybridSolver.calculate_statistics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver.calculate_statistics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates Mean, Standard Deviation, and Coefficient of Variance for each
 dynamic species, then set if species can be represented determistically</p>
 </dd></dl>
@@ -180,9 +180,9 @@ over this step are bounded by bounding the relative change in state, yielding gr
 run-time performance with very little trade-off in accuracy.</p>
 <dl class="method">
 <dt id="gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver.get_reactions">
-<code class="sig-name descname">get_reactions</code><span class="sig-paren">(</span><em class="sig-param">seed</em>, <em class="sig-param">step</em>, <em class="sig-param">curr_state</em>, <em class="sig-param">curr_time</em>, <em class="sig-param">save_time</em>, <em class="sig-param">propensities</em>, <em class="sig-param">reactions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_leaping_solver.html#BasicTauLeapingSolver.get_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver.get_reactions" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_reactions</code><span class="sig-paren">(</span><em class="sig-param">step</em>, <em class="sig-param">curr_state</em>, <em class="sig-param">curr_time</em>, <em class="sig-param">save_time</em>, <em class="sig-param">propensities</em>, <em class="sig-param">reactions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_leaping_solver.html#BasicTauLeapingSolver.get_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver.get_reactions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper Function to get reactions fired from t to t+tau.  Returns three values:
-rxn_count - dict with key=Raection channel value=number of times fired
+rxn_count - dict with key=Reaction channel value=number of times fired
 curr_state - dict containing all state variables for system at current time
 curr_time - float representing current time</p>
 </dd></dl>
@@ -344,9 +344,9 @@ over this step are bounded by bounding the relative change in state, yielding gr
 run-time performance with very little trade-off in accuracy.</p>
 <dl class="method">
 <dt id="gillespy2.solvers.numpy.BasicTauLeapingSolver.get_reactions">
-<code class="sig-name descname">get_reactions</code><span class="sig-paren">(</span><em class="sig-param">seed</em>, <em class="sig-param">step</em>, <em class="sig-param">curr_state</em>, <em class="sig-param">curr_time</em>, <em class="sig-param">save_time</em>, <em class="sig-param">propensities</em>, <em class="sig-param">reactions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_leaping_solver.html#BasicTauLeapingSolver.get_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.BasicTauLeapingSolver.get_reactions" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_reactions</code><span class="sig-paren">(</span><em class="sig-param">step</em>, <em class="sig-param">curr_state</em>, <em class="sig-param">curr_time</em>, <em class="sig-param">save_time</em>, <em class="sig-param">propensities</em>, <em class="sig-param">reactions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_leaping_solver.html#BasicTauLeapingSolver.get_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.BasicTauLeapingSolver.get_reactions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper Function to get reactions fired from t to t+tau.  Returns three values:
-rxn_count - dict with key=Raection channel value=number of times fired
+rxn_count - dict with key=Reaction channel value=number of times fired
 curr_state - dict containing all state variables for system at current time
 curr_time - float representing current time</p>
 </dd></dl>
@@ -402,7 +402,7 @@ is bounded by bounding the relative change in the state of the system, resulting
 run-time performance with little accuracy trade-off.</p>
 <dl class="method">
 <dt id="gillespy2.solvers.numpy.BasicTauHybridSolver.calculate_statistics">
-<code class="sig-name descname">calculate_statistics</code><span class="sig-paren">(</span><em class="sig-param">model</em>, <em class="sig-param">propensities</em>, <em class="sig-param">curr_state</em>, <em class="sig-param">tau_step</em>, <em class="sig-param">det_spec</em>, <em class="sig-param">dependencies</em>, <em class="sig-param">switch_tol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_hybrid_solver.html#BasicTauHybridSolver.calculate_statistics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.BasicTauHybridSolver.calculate_statistics" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">calculate_statistics</code><span class="sig-paren">(</span><em class="sig-param">*switch_args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/solvers/numpy/basic_tau_hybrid_solver.html#BasicTauHybridSolver.calculate_statistics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.numpy.BasicTauHybridSolver.calculate_statistics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates Mean, Standard Deviation, and Coefficient of Variance for each
 dynamic species, then set if species can be represented determistically</p>
 </dd></dl>

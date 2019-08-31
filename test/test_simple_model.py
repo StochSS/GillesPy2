@@ -149,8 +149,8 @@ class TestSimpleModel(unittest.TestCase):
 
     def test_model_parameters_correct(self):
         parameters = self.model.get_all_parameters()
-        self.assertEqual(parameters['k1'].expression, '1', msg='Has incorrect expression')
-        self.assertEqual(parameters['k2'].expression, '10', msg='Has incorrect expression')
+        self.assertEqual(parameters['k1'].expression, '1', msg='Has incorrect assignment_expression')
+        self.assertEqual(parameters['k2'].expression, '10', msg='Has incorrect assignment_expression')
 
     def test_model_has_rate_rules(self):
         rate_rules = self.model.listOfRateRules
@@ -190,8 +190,8 @@ class TestSimpleModel(unittest.TestCase):
         species_r2 = list(products_r2)[0]
 
         # Check r1 name & propensity function is set
-        self.assertEqual(reactions['r1'].name, 'r1', msg='Has incorrect expression')
-        self.assertEqual(reactions['r1'].propensity_function, 'k1*B', msg='Has incorrect expression')
+        self.assertEqual(reactions['r1'].name, 'r1', msg='Has incorrect assignment_expression')
+        self.assertEqual(reactions['r1'].propensity_function, 'k1*B', msg='Has incorrect assignment_expression')
 
         # Check r1 reactants are set
         self.assertEqual(reactants_r1[species_A], 1, msg='Has incorrect number of reactants')
@@ -202,8 +202,8 @@ class TestSimpleModel(unittest.TestCase):
         self.assertIsInstance(species_r2, Species, msg='Has incorrect type')
 
         # Check r2 name & rate is set
-        self.assertEqual(reactions['r2'].name, 'r2', msg='Has incorrect expression')
-        self.assertEqual(reactions['r2'].marate.expression, '10', msg='Has incorrect expression')
+        self.assertEqual(reactions['r2'].name, 'r2', msg='Has incorrect assignment_expression')
+        self.assertEqual(reactions['r2'].marate.expression, '10', msg='Has incorrect assignment_expression')
 
     def test_model_has_timespan_correct(self):
         timespan = self.model.tspan

@@ -51,12 +51,6 @@
 <span id="gillespy2-core-gillespy2-module"></span><h2>gillespy2.core.gillespy2 module<a class="headerlink" href="#module-gillespy2.core.gillespy2" title="Permalink to this headline">¶</a></h2>
 <p>A simple toolkit for creating and simulating discrete stochastic models in
 python.</p>
-<p>This serves primarily as a python wrapper for the C-based solvers within
-StochKit2. The gillespy.Model class provides nearly all of the functionality
-present in this project.</p>
-<p>This version is updated (4/2017) to contain documentation in a more reasonable
-format. This does not necessarily mean it is perfect, but it is certainly an
-improvement over the original.</p>
 <dl class="class">
 <dt id="gillespy2.core.gillespy2.Model">
 <em class="property">class </em><code class="sig-prename descclassname">gillespy2.core.gillespy2.</code><code class="sig-name descname">Model</code><span class="sig-paren">(</span><em class="sig-param">name=''</em>, <em class="sig-param">population=True</em>, <em class="sig-param">volume=1.0</em>, <em class="sig-param">tspan=None</em>, <em class="sig-param">annotation='model'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model" title="Permalink to this definition">¶</a></dt>
@@ -212,6 +206,10 @@ This methods must be called before exporting the model.</p>
 <code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">solver=None</em>, <em class="sig-param">**solver_args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#Model.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function calling simulation of the model. There are a number of
 parameters to be set here.</p>
+<p>If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is True and
+number_of_trajectories is 1, returns a results object that inherits UserDict and supports plotting functions.
+If show_labels is False and number_of_trajectories is greater than 1, returns an ensemble_results object that
+inherits UserList and contains results objects and supports ensemble graphing.</p>
 <dl class="simple">
 <dt>number_of_trajectories<span class="classifier">int</span></dt><dd><p>The number of times to sample the chemical master equation. Each
 trajectory will be returned at the end of the simulation.
@@ -370,7 +368,7 @@ involves other parameters, etc.</p>
 
 <dl class="class">
 <dt id="gillespy2.core.gillespy2.RateRule">
-<em class="property">class </em><code class="sig-prename descclassname">gillespy2.core.gillespy2.</code><code class="sig-name descname">RateRule</code><span class="sig-paren">(</span><em class="sig-param">species</em>, <em class="sig-param">expression</em>, <em class="sig-param">name=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#RateRule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.RateRule" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">gillespy2.core.gillespy2.</code><code class="sig-name descname">RateRule</code><span class="sig-paren">(</span><em class="sig-param">species=None</em>, <em class="sig-param">expression=''</em>, <em class="sig-param">name=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#RateRule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.RateRule" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 </dd></dl>
 
@@ -405,8 +403,8 @@ is required.</p>
 </dl>
 <p>For a species that is NOT consumed in the reaction but is part of a mass
 action reaction, add it as both a reactant and a product.</p>
-<p>Mass-action reactions must also have a rate term added. Note that the rate
-must be scaled by the volume prior to being added for unit consistency.</p>
+<p>Mass-action reactions must also have a rate term added. Note that the input
+rate represents the mass-action constant rate independent of volume.</p>
 <dl class="method">
 <dt id="gillespy2.core.gillespy2.Reaction.Annotate">
 <code class="sig-name descname">Annotate</code><span class="sig-paren">(</span><em class="sig-param">annotation</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#Reaction.Annotate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Reaction.Annotate" title="Permalink to this definition">¶</a></dt>
@@ -1086,6 +1084,10 @@ This methods must be called before exporting the model.</p>
 <code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">solver=None</em>, <em class="sig-param">**solver_args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#Model.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function calling simulation of the model. There are a number of
 parameters to be set here.</p>
+<p>If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is True and
+number_of_trajectories is 1, returns a results object that inherits UserDict and supports plotting functions.
+If show_labels is False and number_of_trajectories is greater than 1, returns an ensemble_results object that
+inherits UserList and contains results objects and supports ensemble graphing.</p>
 <dl class="simple">
 <dt>number_of_trajectories<span class="classifier">int</span></dt><dd><p>The number of times to sample the chemical master equation. Each
 trajectory will be returned at the end of the simulation.
@@ -1244,7 +1246,7 @@ involves other parameters, etc.</p>
 
 <dl class="class">
 <dt id="gillespy2.core.RateRule">
-<em class="property">class </em><code class="sig-prename descclassname">gillespy2.core.</code><code class="sig-name descname">RateRule</code><span class="sig-paren">(</span><em class="sig-param">species</em>, <em class="sig-param">expression</em>, <em class="sig-param">name=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#RateRule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.RateRule" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">gillespy2.core.</code><code class="sig-name descname">RateRule</code><span class="sig-paren">(</span><em class="sig-param">species=None</em>, <em class="sig-param">expression=''</em>, <em class="sig-param">name=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#RateRule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.RateRule" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 </dd></dl>
 
@@ -1279,8 +1281,8 @@ is required.</p>
 </dl>
 <p>For a species that is NOT consumed in the reaction but is part of a mass
 action reaction, add it as both a reactant and a product.</p>
-<p>Mass-action reactions must also have a rate term added. Note that the rate
-must be scaled by the volume prior to being added for unit consistency.</p>
+<p>Mass-action reactions must also have a rate term added. Note that the input
+rate represents the mass-action constant rate independent of volume.</p>
 <dl class="method">
 <dt id="gillespy2.core.Reaction.Annotate">
 <code class="sig-name descname">Annotate</code><span class="sig-paren">(</span><em class="sig-param">annotation</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gillespy2/core/gillespy2.html#Reaction.Annotate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Reaction.Annotate" title="Permalink to this definition">¶</a></dt>

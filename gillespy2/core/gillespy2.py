@@ -352,7 +352,7 @@ class Model(object):
                     raise problem
                 self.listOfParameters[params.name] = params
             else:
-                raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(params))
+                raise ParameterError("Could not resolve Parameter assignment_expression {} to a scalar value.".format(params))
         return params
 
     def delete_parameter(self, obj):
@@ -368,7 +368,7 @@ class Model(object):
 
     def set_parameter(self, p_name, expression):
         """
-        Set the value of an existing paramter "pname" to "expression".
+        Set the value of an existing paramter "pname" to "assignment_expression".
 
         Attributes
         ----------
@@ -392,7 +392,7 @@ class Model(object):
             try:
                 self.listOfParameters[param].evaluate(self.namespace)
             except:
-                raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(param))
+                raise ParameterError("Could not resolve Parameter assignment_expression {} to a scalar value.".format(param))
 
     def delete_all_parameters(self):
         """ Deletes all parameters from model. """
@@ -592,8 +592,8 @@ non-negative unless allow_negative_populations=True')
 
 class Parameter:
     """
-    A parameter can be given as an expression (function) or directly
-    as a value (scalar). If given an expression, it should be
+    A parameter can be given as an assignment_expression (function) or directly
+    as a value (scalar). If given an assignment_expression, it should be
     understood as evaluable in the namespace of a parent Model.
 
     Attributes
@@ -610,8 +610,8 @@ class Parameter:
     def __init__(self, name="", expression=None, value=None):
 
         self.name = name
-        # We allow expression to be passed in as a non-string type. Invalid strings
-        # will be caught below. It is perfectly fine to give a scalar value as the expression.
+        # We allow assignment_expression to be passed in as a non-string type. Invalid strings
+        # will be caught below. It is perfectly fine to give a scalar value as the assignment_expression.
         # This can then be evaluated in an empty namespace to the scalar value.
         self.expression = expression
         if expression is not None:
@@ -619,7 +619,7 @@ class Parameter:
 
         self.value = value
 
-        # self.value is allowed to be None, but not self.expression. self.value
+        # self.value is allowed to be None, but not self.assignment_expression. self.value
         # might not be evaluable in the namespace of this parameter, but defined
         # in the context of a model or reaction.
         if self.expression is None:
@@ -630,7 +630,7 @@ class Parameter:
 
     def evaluate(self, namespace={}):
         """
-        Evaluate the expression and return the (scalar) value in the given
+        Evaluate the assignment_expression and return the (scalar) value in the given
         namespace.
 
         Attributes
@@ -646,12 +646,12 @@ class Parameter:
 
     def set_expression(self, expression):
         """
-        Sets the expression for a parameter.
+        Sets the assignment_expression for a parameter.
         """
         self.expression = expression
-        # We allow expression to be passed in as a non-string type. Invalid
+        # We allow assignment_expression to be passed in as a non-string type. Invalid
         # strings will be caught below. It is perfectly fine to give a scalar
-        # value as the expression. This can then be evaluated in an empty
+        # value as the assignment_expression. This can then be evaluated in an empty
         # namespace to the scalar value.
         if expression is not None:
             self.expression = str(expression)
@@ -1024,7 +1024,7 @@ class StochMLDocument():
                 print(model.volume)
             else:
                 p = Parameter(name, expression=expr)
-                # Try to evaluate the expression in the empty namespace
+                # Try to evaluate the assignment_expression in the empty namespace
                 # (if the expr is a scalar value)
                 p.evaluate()
                 model.add_parameter(p)
@@ -1137,7 +1137,7 @@ class StochMLDocument():
                     propfunc = reac.find('PropensityFunction').text
                 except Exception as e:
                     raise InvalidStochMLError(
-                        "Found a customized propensity function, but no expression was given. {}".format(e))
+                        "Found a customized propensity function, but no assignment_expression was given. {}".format(e))
                 reaction.propensity_function = propfunc
             else:
                 raise InvalidStochMLError(

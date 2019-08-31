@@ -103,30 +103,58 @@ class NumPySSASolver(GillesPySolver):
             while entry_count < timeline.size:
 
                 ####################################################################
-
+                from gillespy2.core.events import *
                 triggered_events_queue = []
+
+                delayed_events_queue = []
+
+                # for i, e in enumerate(delayed_events_queue):
+                #     if eval(e.trigger_expression):
+                #         triggered_events_queue.append(e)
 
                 #append any triggered events
                 for i, e in enumerate(model.listOfEvents):
                     if eval(compiled_trigger_expressions[e]):
 
-                        #if model.listOfEvents[e].delay.delay_expression
+                        #is there a delay
+                        if model.listOfEvents[e].delay is not None:
+                            delay = eval(model.listOfEvents[e].delay.delay_expression)
+                            if delay > 0:
+                                print("delay of",delay)
 
-                        delay = eval(model.listOfEvents[e].delay.delay_expression)
-                        if delay > 0:
+                                #does the event evaluate before at the delay or after
+                                if model.listOfEvents[e].delay.useValuesFromTriggerTime:
+                                    print("Delayed. Using values from trigger Time")
 
-                            print("delay =",delay)
-                            # model.listOfEvents[e].delay.delay_expression =
+                                else:
+                                    print("Delayed. Using values at event assignment")
+                                    #Create event with trigger of time
 
-                            # model.listOfEvents[e].event_trigger_expression.append(" and current_time > ",current_time + delay)
-                            # compiled_trigger_expressions[e] = compile(model.listOfEvents[e].event_trigger.trigger_expression, '<string>', 'eval')
+                                    temp_event = model.listOfEvents[e]
+                                    # temp_event.event_trigger = temp_trigger
+                                    temp_event.event_trigger.trigger_expression = "current_time >=" + current_time + delay
+                                    temp_event.delay = None
+
+                                    delayed_events_queue.append(temp_event)
 
                         else:
                             triggered_events_queue.append(e)
 
-                #if more than one event triggered, do priority expression
-                if len(triggered_events_queue) > 1:
-                    print("multiple events triggered in one step. Using priority expression")
+                #Are there any delayed events currently ready to trigger
+                for i, e in enumerate(delayed_events_queue):
+
+                    if eval(delayed_events_queue[e].event_trigger.trigger_expression):
+
+                        for assignment in delayed_events_queue[e].event_assignments:
+                            print("completing event assignment", assignment, "at", current_time)
+
+                            exec(assignment.assignment_expression)
+
+
+
+                #if more than one event triggered, do priority assignment_expression
+                if len(triggered_events_queue) + len(delayed_events_queue) > 1:
+                    print("multiple events triggered in one step. Using priority assignment_expression")
                     #TODO order priority queue
 
                 #iterate through sorted priority queue and fulfil event assignment
@@ -135,7 +163,7 @@ class NumPySSASolver(GillesPySolver):
                     for assignment in model.listOfEvents[e].event_assignments:
 
                         print("completing event assignment",assignment , "at", current_time)
-                        exec(model.listOfEvents[e].event_assignments[assignment].expression)
+                        exec(model.listOfEvents[e].event_assignments[assignment].assignment_expression)
 
                 ####################################################################
 
