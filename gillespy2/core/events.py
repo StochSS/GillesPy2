@@ -174,6 +174,8 @@ class EventTrigger:
 
         self.value = value
 
+        self.initial_value = initial_value
+
         # self.value is allowed to be None, but not self.assignment_expression. self.value
         # might not be evaluable in the namespace of this event, but defined
         # in the context of a model or reaction.

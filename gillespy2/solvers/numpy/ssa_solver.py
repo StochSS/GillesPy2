@@ -2,6 +2,7 @@ from gillespy2.core import GillesPySolver, Model, Reaction, log, events
 import random
 import math
 import numpy as np
+from gillespy2.core.events import *
 
 from collections import OrderedDict
 
@@ -82,6 +83,7 @@ class NumPySSASolver(GillesPySolver):
 
         compiled_priority_expressions = {}
         compiled_trigger_expressions = {}
+        true_events = []
 
         for i,e in enumerate(model.listOfEvents):
             # of the form compiled_trigger_expressions{event:priority_expression}
@@ -89,6 +91,9 @@ class NumPySSASolver(GillesPySolver):
 
             #of the form compiled_trigger_expressions{event:trigger_expression}
             compiled_trigger_expressions[e] = compile(model.listOfEvents[e].event_trigger.trigger_expression,'<string>','eval')
+
+            if model.listOfEvents[e].event_trigger.initial_value:
+                true_events.append(e)
 
         ####################################################################
 
@@ -100,73 +105,85 @@ class NumPySSASolver(GillesPySolver):
             current_state = np.copy(trajectory[0, 1:])
             propensity_sums = np.zeros(number_reactions)
             # calculate initial propensity sums
+
             while entry_count < timeline.size:
 
                 ####################################################################
-                from gillespy2.core.events import *
+
+                # the triggered events queue is used for when multiple events trigger at once
+                # so that their priority expressions can determin which triggers first
                 triggered_events_queue = []
 
-                delayed_events_queue = []
-
-                # for i, e in enumerate(delayed_events_queue):
-                #     if eval(e.trigger_expression):
-                #         triggered_events_queue.append(e)
+                # delayed_events_queue = []
 
                 #append any triggered events
                 for i, e in enumerate(model.listOfEvents):
+
                     if eval(compiled_trigger_expressions[e]):
 
-                        #is there a delay
-                        if model.listOfEvents[e].delay is not None:
-                            delay = eval(model.listOfEvents[e].delay.delay_expression)
-                            if delay > 0:
-                                print("delay of",delay)
+                        # #is there a delay
+                        # if model.listOfEvents[e].delay is not None:
+                        #     delay = eval(model.listOfEvents[e].delay.delay_expression)
+                        #     if delay > 0:
+                        #         print("delay of",delay)
+                        #
+                        #         #does the event evaluate before at the delay or after
+                        #         if model.listOfEvents[e].delay.useValuesFromTriggerTime:
+                        #             print("Delayed. Using values from trigger Time")
+                        #
+                        #         else:
+                        #             print("Delayed. Using values at event assignment")
+                        #             #Create event with trigger of time
+                        #
+                        #             temp_event = model.listOfEvents[e]
+                        #             # temp_event.event_trigger = temp_trigger
+                        #             temp_event.event_trigger.trigger_expression = "current_time >=" + current_time + delay
+                        #             temp_event.delay = None
+                        #
+                        #             delayed_events_queue.append(temp_event)
+                        #
+                        # else:
 
-                                #does the event evaluate before at the delay or after
-                                if model.listOfEvents[e].delay.useValuesFromTriggerTime:
-                                    print("Delayed. Using values from trigger Time")
+                        # if the event is not already marked true, add it to list
 
-                                else:
-                                    print("Delayed. Using values at event assignment")
-                                    #Create event with trigger of time
-
-                                    temp_event = model.listOfEvents[e]
-                                    # temp_event.event_trigger = temp_trigger
-                                    temp_event.event_trigger.trigger_expression = "current_time >=" + current_time + delay
-                                    temp_event.delay = None
-
-                                    delayed_events_queue.append(temp_event)
-
-                        else:
+                        if e not in true_events:
+                            true_events.append(e)
                             triggered_events_queue.append(e)
 
-                #Are there any delayed events currently ready to trigger
-                for i, e in enumerate(delayed_events_queue):
+                    else:
+                        if e in true_events:
+                            true_events.remove(e)
 
-                    if eval(delayed_events_queue[e].event_trigger.trigger_expression):
-
-                        for assignment in delayed_events_queue[e].event_assignments:
-                            print("completing event assignment", assignment, "at", current_time)
-
-                            exec(assignment.assignment_expression)
-
-
+                # #Are there any delayed events currently ready to trigger
+                # for i, e in enumerate(delayed_events_queue):
+                #
+                #     if eval(delayed_events_queue[e].event_trigger.trigger_expression):
+                #
+                #         for assignment in delayed_events_queue[e].event_assignments:
+                #             print("completing event assignment", assignment, "at", current_time)
+                #
+                #             exec(assignment.assignment_expression)
 
                 #if more than one event triggered, do priority assignment_expression
-                if len(triggered_events_queue) + len(delayed_events_queue) > 1:
+                if len(triggered_events_queue) > 1:
                     print("multiple events triggered in one step. Using priority assignment_expression")
-                    #TODO order priority queue
+
+                    def _event_queue_helper(e):
+                        return eval(model.listOfEvents[e].priority_expression)
+
+                    #this should order the queued events by their priority expression
+                    triggered_events_queue.sort(key=_event_queue_helper)
+                    triggered_events_queue.reverse()
 
                 #iterate through sorted priority queue and fulfil event assignment
                 for i, e in enumerate(triggered_events_queue):
 
                     for assignment in model.listOfEvents[e].event_assignments:
 
-                        print("completing event assignment",assignment , "at", current_time)
-                        exec(model.listOfEvents[e].event_assignments[assignment].assignment_expression)
+                        print("completing event assignment \"",model.listOfEvents[e].event_assignments[assignment].assignment_expression , "\" at", current_time)
+                        exec(model.listOfEvents[e].event_assignments[assignment].assignment_expression,locals())
 
                 ####################################################################
-
 
                 # determine next reaction
                 for i in range(number_reactions):
@@ -197,6 +214,8 @@ class NumPySSASolver(GillesPySolver):
                         print('if <=0, fire: ', cumulative_sum)
                     if cumulative_sum <= 0:
                         current_state += species_changes[potential_reaction]
+                        ################################################
+                        # print('current state: ', current_state)
                         if debug:
                             print('current state: ', current_state)
                             print('species_changes: ', species_changes)
