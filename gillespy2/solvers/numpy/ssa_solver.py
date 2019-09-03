@@ -172,8 +172,8 @@ class NumPySSASolver(GillesPySolver):
                         return eval(model.listOfEvents[e].priority_expression)
 
                     #this should order the queued events by their priority expression
-                    triggered_events_queue.sort(key=_event_queue_helper)
-                    triggered_events_queue.reverse()
+                    triggered_events_queue.sort(key=_event_queue_helper,reverse=True)
+                    # triggered_events_queue.reverse()
 
                 #iterate through sorted priority queue and fulfil event assignment
                 for i, e in enumerate(triggered_events_queue):
@@ -214,8 +214,6 @@ class NumPySSASolver(GillesPySolver):
                         print('if <=0, fire: ', cumulative_sum)
                     if cumulative_sum <= 0:
                         current_state += species_changes[potential_reaction]
-                        ################################################
-                        # print('current state: ', current_state)
                         if debug:
                             print('current state: ', current_state)
                             print('species_changes: ', species_changes)
