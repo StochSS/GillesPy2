@@ -9,13 +9,25 @@ from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver
 This script will scan all subdirectories it shares a directory with for sbml case tests.  The user will be prompted to select from all discovereted test cases, and then to select a number of trajectories to run.  The results will be stored in the results subdirectory in csv format for future comparison.
 '''
 
+# Parse Args: TEST_PATH, CASE_NO, TARG_DIR, SBML_LVL, SBML_VER
+
+#assert len(sys.argv) > 5, 'Did not provide all arguments [5]: TEST_PATH, CASE_NO, TARG_DIR, SBML_LVL, SBML_VER, [-d]'
+
+#Parse command line arguments and set up paths
+#TEST_PATH = sys.argv[1]
+#CASE_NO = sys.argv[2]
+#TARG_DIR = sys.argv[3]
+#SBML_LVL = sys.argv[4]
+#SBML_VER = sys.argv[5]
+#if len(sys.argv) > 6 and sys.argv[6] == '-d': debug = True
+#else: debug = False
 print('LIST OF TEST CASES\n')
 for name in os.listdir():
     if os.path.isdir(name) and '0' in name:
         print(name)
 TEST_PATH = '.'
 CASE_NO = input('\nCase Number: ')
-TARG_DIR = './auto_results/'
+TARG_DIR = './results/'
 SBML_LVL = '3'
 SBML_VER = '1'
 

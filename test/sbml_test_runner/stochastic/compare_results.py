@@ -1,12 +1,14 @@
+#! /usr/bin/python3.6
+
 import os, sys, csv
 import matplotlib.pyplot as plt
 import numpy as np
-np.set_printoptions(suppress=True)
-
 
 '''
 This script will scan the local directory for sbml test cases (stored in folders named after the test case, and will also scan a results directory.  It compares the expected test case results to the generated results in the results folder.
 '''
+
+np.set_printoptions(suppress=True)
 
 print('Test Numbers for completed tests:\n')
 for name in os.listdir('./results'):
@@ -16,18 +18,9 @@ for name in os.listdir('./results'):
 
 #TEST_NO = sys.argv[1]
 TEST_NO = input('\nCompare which results? Enter Test_number: ')
-print('test')
-SOLVER_NO = input('\nCompare which results? Enter Solver_number: \
-                   \n 1. Auto \
-                   \n 2. Hybrid \n\n')
-if SOLVER_NO.lower() is '1' or 'auto':
-    TARG_DIR = os.path.join(os.getcwd(), 'auto_results')
-elif SOLVER_NO.lower() is '2' or 'hybrid':
-    TARG_DIR = os.path.join(os.getcwd(), 'hybrid_results')
-    
 EXPECTED_DIR = os.path.join(os.getcwd(), TEST_NO)
 EXPECTED_RESULTS = os.path.join(EXPECTED_DIR, '{0}-results.csv'.format(TEST_NO))
-#TARG_DIR = os.path.join(os.getcwd(), 'results')
+TARG_DIR = os.path.join(os.getcwd(), 'results')
 SIM_RESULTS = os.path.join(TARG_DIR, '{0}-results.csv'.format(TEST_NO))
 TARG_FILE = os.path.join(TARG_DIR, '{0}-scores.csv'.format(TEST_NO))
 

@@ -7,6 +7,18 @@ import gillespy2
 from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
 
 
+# Parse Args: TEST_PATH, CASE_NO, TARG_DIR, SBML_LVL, SBML_VER
+
+#assert len(sys.argv) > 5, 'Did not provide all arguments [5]: TEST_PATH, CASE_NO, TARG_DIR, SBML_LVL, SBML_VER, [-d]'
+
+#Parse command line arguments and set up paths
+#TEST_PATH = sys.argv[1]
+#CASE_NO = sys.argv[2]
+#TARG_DIR = sys.argv[3]
+#SBML_LVL = sys.argv[4]
+#SBML_VER = sys.argv[5]
+#if len(sys.argv) > 6 and sys.argv[6] == '-d': debug = True
+#else: debug = False
 print('LIST OF TEST CASES\n')
 for name in os.listdir():
     if os.path.isdir(name) and '0' in name:
@@ -22,7 +34,7 @@ debug = True
 TEST_DIR = os.path.join(TEST_PATH, CASE_NO)
 TEST_FILE = os.path.join(TEST_DIR, '{0}-sbml-l{1}v{2}.xml'.format(CASE_NO, SBML_LVL, SBML_VER))
 SETTINGS_FILE = os.path.join(TEST_DIR, '{0}-settings.txt'.format(CASE_NO))
-TARG_FILE = os.path.join(TARG_DIR, '{0}-hybrid_results.csv'.format(CASE_NO))
+TARG_FILE = os.path.join(TARG_DIR, '{0}-results.csv'.format(CASE_NO))
 EXPECTED_RESULTS_FILE = os.path.join(TEST_DIR, '{0}-results.csv'.format(CASE_NO))
 
 model, errors = gillespy2.import_SBML(TEST_FILE)
