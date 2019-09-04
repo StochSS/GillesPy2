@@ -2,10 +2,13 @@ import warnings
 
 from collections import UserDict,UserList
 
-def _plot_iterate(self, show_labels = True, included_species_list = []):
+def _plot_iterate(result, show_labels = True, included_species_list = []):
+    '''
+    Helper method for Results and Ensemble .plot() method
+    '''
     import matplotlib.pyplot as plt
 
-    for i,species in enumerate(self.data):
+    for i,species in enumerate(result.data):
         if species is not 'time':
 
             if species not in included_species_list and included_species_list:
@@ -18,9 +21,12 @@ def _plot_iterate(self, show_labels = True, included_species_list = []):
             else:
                 label = ""
 
-            plt.plot(self.data['time'], self.data[species], label=label,color = line_color)
+            plt.plot(result.data['time'], result.data[species], label=label,color = line_color)
 
-def _plotplotly_iterate(self, show_labels = True, trace_list = None, line_dict= None, included_species_list= []):
+def _plotplotly_iterate(result, show_labels = True, trace_list = None, line_dict= None, included_species_list= []):
+    '''
+    Helper method for Results and Ensemble .plotplotly() method
+    '''
 
     # List of 50 hex color values used for plotly graphs
     common_rgb_values = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
@@ -36,7 +42,7 @@ def _plotplotly_iterate(self, show_labels = True, trace_list = None, line_dict= 
 
     import plotly.graph_objs as go
 
-    for i,species in enumerate(self.data):
+    for i,species in enumerate(result.data):
         if species is not 'time':
 
             if species not in included_species_list and included_species_list:
@@ -51,8 +57,8 @@ def _plotplotly_iterate(self, show_labels = True, trace_list = None, line_dict= 
             if show_labels:
                 trace_list.append(
                     go.Scatter(
-                        x=self.data['time'],
-                        y=self.data[species],
+                        x=result.data['time'],
+                        y=result.data[species],
                         mode='lines',
                         name=species,
                         line = line_dict
@@ -61,8 +67,8 @@ def _plotplotly_iterate(self, show_labels = True, trace_list = None, line_dict= 
             else:
                 trace_list.append(
                     go.Scatter(
-                        x=self.data['time'],
-                        y=self.data[species],
+                        x=result.data['time'],
+                        y=result.data[species],
                         mode='lines',
                         name=species,
                         line=line_dict,
@@ -86,6 +92,7 @@ class Results(UserDict):
         self.data = data
         self.model = model
         self.solver_name = solver_name
+
 
     def __getitem__(self, key):
         if type(key) is type(1):

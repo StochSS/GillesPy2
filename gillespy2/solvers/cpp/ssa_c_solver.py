@@ -11,7 +11,7 @@ GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
 GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base')
 
 
-def __copy_files(destination):
+def _copy_files(destination):
     src_files = os.listdir(GILLESPY_C_DIRECTORY)
     for src_file in src_files:
         src_file = os.path.join(GILLESPY_C_DIRECTORY, src_file)
@@ -19,7 +19,7 @@ def __copy_files(destination):
             shutil.copy(src_file, destination)
 
 
-def __write_constants(outfile, model, reactions, species, parameter_mappings):
+def _write_constants(outfile, model, reactions, species, parameter_mappings):
     outfile.write("const double V = {};\n".format(model.volume))
     outfile.write("std :: string s_names[] = {");
     if len(species) > 0:
@@ -44,7 +44,7 @@ def __write_constants(outfile, model, reactions, species, parameter_mappings):
         outfile.write("const double {0} = {1};\n".format(parameter_mappings[param], model.listOfParameters[param].value))
 
 
-def __write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
+def _write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
     for i in range(len(reactions)):
         # Write switch statement case for reaction
         outfile.write("""
@@ -53,7 +53,7 @@ def __write_propensity(outfile, model, species_mappings, parameter_mappings, rea
         """.format(i, model.listOfReactions[reactions[i]].sanitized_propensity_function(species_mappings, parameter_mappings)))
 
 
-def __write_reactions(outfile, model, reactions, species):
+def _write_reactions(outfile, model, reactions, species):
     for i in range(len(reactions)):
         reaction = model.listOfReactions[reactions[i]]
         for j in range(len(species)):
@@ -62,7 +62,7 @@ def __write_reactions(outfile, model, reactions, species):
                 outfile.write("model.reactions[{0}].species_change[{1}] = {2};\n".format(i, j, change))
 
 
-def __parse_output(results, number_of_trajectories, number_timesteps, number_species):
+def _parse_output(results, number_of_trajectories, number_timesteps, number_species):
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
     for timestep in range(number_timesteps):
         values = results[timestep].split(" ")
@@ -75,7 +75,7 @@ def __parse_output(results, number_of_trajectories, number_timesteps, number_spe
     return trajectory_base
 
 
-def __parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species):
+def _parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species):
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
     step_size = number_species * number_of_trajectories + 1 #1 for timestep
     data = np.frombuffer(results_buffer, dtype=np.float64)
@@ -123,7 +123,7 @@ class SSACSolver(GillesPySolver):
                 
             if not os.path.isdir(self.output_directory):
                 raise gillespyError.DirectoryError("Errors encountered while setting up directory for Solver C++ files.")
-            __copy_files(self.output_directory)
+            _copy_files(self.output_directory)
             self.__write_template()
             self.__compile()
         
@@ -142,11 +142,11 @@ class SSACSolver(GillesPySolver):
                     if line.startswith(template_keyword):
                         line = line[len(template_keyword):]
                         if line.startswith("CONSTANTS"):
-                            __write_constants(outfile, self.model, self.reactions, self.species, self.parameter_mappings)
+                            _write_constants(outfile, self.model, self.reactions, self.species, self.parameter_mappings)
                         if line.startswith("PROPENSITY"):
-                            __write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings, self.reactions)
+                            _write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings, self.reactions)
                         if line.startswith("REACTIONS"):
-                            __write_reactions(outfile, self.model, self.reactions, self.species)
+                            _write_reactions(outfile, self.model, self.reactions, self.species)
                     else:
                         outfile.write(line)
 
@@ -186,7 +186,7 @@ class SSACSolver(GillesPySolver):
             simulation = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             # Parse/return results.
             if simulation.returncode == 0:
-                trajectory_base = __parse_binary_output(simulation.stdout, number_of_trajectories, number_timesteps, len(self.species))
+                trajectory_base = _parse_binary_output(simulation.stdout, number_of_trajectories, number_timesteps, len(self.species))
                 # Format results
                 if show_labels:
                     self.simulation_data = []
