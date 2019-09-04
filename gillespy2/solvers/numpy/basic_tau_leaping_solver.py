@@ -4,7 +4,7 @@
 import random, math, sys, warnings
 import numpy as np
 from gillespy2.solvers.numpy import Tau
-from gillespy2.core import GillesPySolver
+from gillespy2.core import GillesPySolver, log
 
 
 class BasicTauLeapingSolver(GillesPySolver):
@@ -14,17 +14,17 @@ class BasicTauLeapingSolver(GillesPySolver):
     over this step are bounded by bounding the relative change in state, yielding greatly improved
     run-time performance with very little trade-off in accuracy.
     """
-    name = "Basic Tau Leaping Solver"
+    name = "BasicTauLeapingSolver"
 
     def __init__(self, debug=False, profile=False):
+        name = "BasicTauLeapingSolver"
         self.debug = debug
         self.profile = profile
-        self.epsilon = 0.03
 
     def get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions):
         """
         Helper Function to get reactions fired from t to t+tau.  Returns three values:
-        rxn_count - dict with key=Raection channel value=number of times fired
+        rxn_count - dict with key=Reaction channel value=number of times fired
         curr_state - dict containing all state variables for system at current time
         curr_time - float representing current time
         """
@@ -53,7 +53,7 @@ class BasicTauLeapingSolver(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
-            debug=False, profile=False, show_labels=True, stochkit_home=None, tau_tol=0.03, **kwargs):
+            debug=False, profile=False, show_labels=True, tau_tol=0.03, **kwargs):
         """
         Function calling simulation of the model.
         This is typically called by the run function in GillesPy2 model objects
@@ -82,14 +82,14 @@ class BasicTauLeapingSolver(GillesPySolver):
                     Set to True to provide information about step size (tau) taken at each step.
                 show_labels : bool (True)
                     Use names of species as index of result object rather than position numbers.
-                stochkit_home : str
-                    Path to stochkit. This is set automatically upon installation, but
-                    may be overwritten if desired.
                 """
-        if not sys.warnoptions:
-            warnings.simplefilter("ignore")
+
         if not isinstance(self, BasicTauLeapingSolver):
-            self = BasicTauLeapingSolver()
+            self = BasicTauLeapingSolver(debug=debug, profile=profile)
+
+        if len(kwargs) > 0:
+            for key in kwargs:
+                log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
         if debug:
             print("t = ", t)
             print("increment = ", increment)
@@ -99,6 +99,15 @@ class BasicTauLeapingSolver(GillesPySolver):
         species = list(species_mappings.keys())
         parameter_mappings = model.sanitized_parameter_names()
         number_species = len(species)
+
+        if seed is not None:
+            if not isinstance(seed, int):
+                seed = int(seed)
+            if seed > 0:
+                random.seed(seed)
+                np.random.seed(seed)
+            else:
+                raise ModelError('seed must be a positive integer')
 
         # create numpy array for timeline
         timeline = np.linspace(0, t, (t // increment + 1))
@@ -117,7 +126,6 @@ class BasicTauLeapingSolver(GillesPySolver):
         simulation_data = []
 
         for trajectory_num in range(number_of_trajectories):
-            random.seed(seed)
             start_state = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
             propensities = {}
             curr_state = {}
@@ -234,7 +242,7 @@ class BasicTauLeapingSolver(GillesPySolver):
                     data[species[i]] = trajectory[:, i+1]
                 simulation_data.append(data)
             else:
-                simulation_data.append(trajectory)
+                simulation_data = trajectory_base
             if profile:
                 print(steps_taken)
                 print("Total Steps Taken: ", len(steps_taken))

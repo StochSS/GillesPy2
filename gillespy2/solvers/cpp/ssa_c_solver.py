@@ -1,5 +1,5 @@
 import gillespy2
-from gillespy2.core import Model, Reaction, gillespyError, GillesPySolver
+from gillespy2.core import Model, Reaction, gillespyError, GillesPySolver, log
 import os #for getting directories for C++ files
 import shutil #for deleting/copying files
 import subprocess #For calling make and executing c solver
@@ -161,16 +161,28 @@ class SSACSolver(GillesPySolver):
 
     def run(self=None, model=None, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, profile=False, show_labels=True, **kwargs):
-        if self is None:
+        if self is None or self.model is None:
             self = SSACSolver(model)
+        if len(kwargs) > 0:
+            for key in kwargs:
+                log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
         if self.compiled:
             self.simulation_data = None
             number_timesteps = int(t//increment + 1)                    
             # Execute simulation.
             args = [os.path.join(self.output_directory, 'UserSimulation'), '-trajectories', str(number_of_trajectories), '-timesteps', str(number_timesteps), '-end', str(t)]
-            if isinstance(seed, int):
-                args.append('-seed')
-                args.append(str(seed))
+            if seed is not None:
+                if isinstance(seed, int):
+                    args.append('-seed')
+                    args.append(str(seed))
+                else:
+                    seed_int = int(seed)
+                    if seed_int > 0:
+                        args.append('-seed')
+                        args.append(str(seed_int))
+                    else:
+                        raise ModelError("seed must be a positive integer")
+                
             simulation = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             # Parse/return results.
             if simulation.returncode == 0:

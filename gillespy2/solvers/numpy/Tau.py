@@ -51,13 +51,13 @@ def select(*tau_args):
     '''
     
     HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, epsilon, critical_threshold, model, propensities, curr_state, curr_time, save_time = tau_args
-    tau_step = None
-    crit_taus = {}
-    critical_reactions = []
-    critical = False
-    critical_tau = 1000 #arbitrarily large value
-    non_critical_tau = 0
-    tau = None
+    tau_step = 0
+    crit_taus = {} # Estimated time to single-firing of critical reactions
+    critical_reactions = [] # List of critical reactions at this step
+    critical = False # system-wide flag, true when any reaction is critical
+    critical_tau = 0 # holds the smallest tau time for critical reactions
+    non_critical_tau = 0 # holds the smallest tau time for non-critical reactions
+    tau = 0
 
     #Determine if there are any critical reactions
     for rxn in model.listOfReactions:
@@ -82,46 +82,55 @@ def select(*tau_args):
             epsilon_i[str(r)] = epsilon / g_i[str(r)]
 
     tau_i = {}  # estimated tau for non-critical reactions
-    non_critical_tau = None
     mu_i = {str(species): 0 for species in model.listOfSpecies.values()}
     sigma_i = {str(species): 0 for species in model.listOfSpecies.values()}
 
     for r in model.listOfReactions:
-        #For non-critical Reactions
-        if not r in critical_reactions:
-            #Calculate abs mean and standard deviation for each reactant
-            for reactant in model.listOfReactions[r].reactants:
-                if reactant not in mu_i:
-                    mu_i[str(reactant)] = 0
-                if reactant not in sigma_i:
-                    sigma_i[str(reactant)] = 0
-                mu_i[str(reactant)] += model.listOfReactions[r].reactants[reactant] * propensities[
-                    r]  # Cao, Gillespie, Petzold 29a
-                sigma_i[str(reactant)] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[
-                    r]  # Cao, Gillespie, Petzold 29b
+        #Calculate abs mean and standard deviation for each reactant
+        for reactant in model.listOfReactions[r].reactants:
+            if reactant not in mu_i:
+                mu_i[str(reactant)] = 0
+            if reactant not in sigma_i:
+                sigma_i[str(reactant)] = 0
+            mu_i[str(reactant)] += model.listOfReactions[r].reactants[reactant] * propensities[
+                r]  # Cao, Gillespie, Petzold 32a
+            sigma_i[str(reactant)] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[
+                r]  # Cao, Gillespie, Petzold 32b
+
     for r in reactants:
         calculated_max = epsilon_i[str(r)] * curr_state[r.name]
-        #print('calculated max: ', calculated_max)
         max_pop_change_mean = max(calculated_max, 1)
         max_pop_change_sd = max(calculated_max, 1) ** 2
         if mu_i[str(r)] > 0:
             # Cao, Gillespie, Petzold 33
             tau_i[str(r)] = min(
-                    max_pop_change_mean / mu_i[str(r)], 
+                    abs(max_pop_change_mean / mu_i[str(r)]), 
                     max_pop_change_sd / sigma_i[str(r)])
+
     if len(tau_i) > 0: non_critical_tau = min(tau_i.values())
 
+    for r in model.listOfReactions:
+        #Calculate abs mean and standard deviation for each reactant
+        for product in model.listOfReactions[r].products:
+            mu_i[str(product)] -= model.listOfReactions[r].products[product] * propensities[
+                r]  # Cao, Gillespie, Petzold 32a
+            sigma_i[str(product)] += model.listOfReactions[r].products[product] ** 2 * propensities[
+                r]  # Cao, Gillespie, Petzold 32b
+
     # If all reactions are non-critical, use non-critical tau.
-    if critical_tau is None:
+    if not critical:
         tau = non_critical_tau
     # If all rxns are critical, use critical tau.
-    elif non_critical_tau is None:
+    elif len(tau_i) == 0:
         tau = critical_tau
     # If there are both critical and non-critical reactions,
     # take the shortest tau between critical and non-critical.
     else:
         tau = min(non_critical_tau, critical_tau)
     # If selected tau exceeds save time, integrate to save time
-    tau_step = min(max(tau, 1e-10), save_time - curr_time)
-
+    if tau > 0: tau = max(tau, 1e-10) # set minimum to prevent integration errors
+    if tau > 0:
+        tau_step = min(tau, save_time - curr_time)
+    else:
+        tau_step = save_time - curr_time
     return tau_step

@@ -5,4 +5,4 @@
 
 coverage run --source=gillespy2 --omit=gillespy2/solvers/stochkit/* test/run_tests.py -m develop
 coverage html
-coverage-badge -fo coverage.svg
+coverage-badge -fo .graphics/coverage.svg

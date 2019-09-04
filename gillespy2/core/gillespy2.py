@@ -2,23 +2,15 @@
 A simple toolkit for creating and simulating discrete stochastic models in
 python.
 
-This serves primarily as a python wrapper for the C-based solvers within
-StochKit2. The gillespy.Model class provides nearly all of the functionality
-present in this project.
-
-This version is updated (4/2017) to contain documentation in a more reasonable
-format. This does not necessarily mean it is perfect, but it is certainly an
-improvement over the original.
-
 """
 from __future__ import division
+import signal
+from contextlib import contextmanager
 from collections import OrderedDict
+from gillespy2.core.results import Results,EnsembleResults
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
 import numpy as np
-
-pretty_graph = False
-
 
 try:
     import lxml.etree as eTree
@@ -30,7 +22,6 @@ except:
     import xml.dom.minidom
     import re
     no_pretty_print = True
-
 
 def import_SBML(filename, name=None, gillespy_model=None):
     """
@@ -385,6 +376,9 @@ class Model(object):
             for rr in rate_rules:
                 self.add_rate_rule(rr)
         elif isinstance(rate_rules, RateRule):
+            if rate_rules.species is None or not isinstance(rate_rules.species, Species): raise ModelError(
+                'A Rate Rule must be associated with a valid species.')
+            if rate_rules.expression == '': raise ModelError('Invalid Rate Rule. Expression must be a non-empty string value')
             self.listOfRateRules[rate_rules.species.name] = rate_rules
         else:
             raise ParameterError("Add_rate_rule accepts a RateRule object or a List of RateRule Objects")
@@ -421,97 +415,77 @@ class Model(object):
     def delete_all_reactions(self):
         self.listOfReactions.clear()
 
-    def run(self, number_of_trajectories=1, seed=None,
-            solver=None, show_labels=True, max_steps=0):
+    def run(self, solver=None, time_out=0, **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
 
+        Return
+        ----------
+
+        If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is True and
+        number_of_trajectories is 1, returns a results object that inherits UserDict and supports plotting functions.
+        If show_labels is False and number_of_trajectories is greater than 1, returns an ensemble_results object that
+        inherits UserList and contains results objects and supports ensemble graphing.
+
         Attributes
         ----------
-        number_of_trajectories : int
-            The number of times to sample the chemical master equation. Each
-            trajectory will be returned at the end of the simulation.
-            Optional, defaults to 1.
-        seed : int
-            The random seed for the simulation. Optional, defaults to None.
         solver : gillespy.GillesPySolver
             The solver by which to simulate the model. This solver object may
             be initialized separately to specify an algorithm. Optional, 
-            defaults to StochKitSolver SSA.
-        show_labels : bool (True)
-            Use names of species as index of result object rather than position numbers.
-        max_steps : int
-            When using deterministic methods, specifies the maximum number of steps permitted for each integration point in t.
+            defaults to ssa solver.
+        time_out : int
+            Allows a timeout value in seconds to be sent to a signal handler, restricting simulation run-time
+        solver_args :
+            solver-specific arguments to be passed to solver.run()
         """
-        if solver is not None:
-            if ((isinstance(solver, type)
-                    and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
-                return solver.run(model=self, t=self.tspan[-1],
-                                  increment=self.tspan[-1] - self.tspan[-2],
-                                  seed=seed,
-                                  number_of_trajectories=number_of_trajectories,
-                                  show_labels=show_labels, max_steps=max_steps)
+        @contextmanager
+        def timeout(time):
+            # Register a function to raise a TimeoutError on the signal.
+            signal.signal(signal.SIGALRM, raise_timeout)
+            # Schedule the signal to be sent after ``time``.
+            signal.alarm(time)
+
+            try:
+                yield
+            except TimeoutError:
+                print('model.run() has exceeded time limit for simulation')
+                pass
+            finally:
+                # Unregister the signal so it won't be triggered
+                # if the timeout is not reached.
+                signal.signal(signal.SIGALRM, signal.SIG_IGN)
+
+        def raise_timeout(signum, frame):
+            raise TimeoutError
+
+        with timeout(time_out):
+            if solver is not None:
+                if ((isinstance(solver, type)
+                        and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
+                    solver_results = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
+                else:
+                    raise SimulationError(
+                        "argument 'solver' to run() must be a subclass of GillesPySolver")
             else:
-                raise SimulationError(
-                    "argument 'solver' to run() must be a subclass of GillesPySolver")
-        else:
-            from gillespy2.solvers.auto import SSASolver
-            return SSASolver.run(model=self, t=self.tspan[-1],
-                                      increment=self.tspan[-1] - self.tspan[-2], seed=seed,
-                                      number_of_trajectories=number_of_trajectories,
-                                      show_labels=show_labels)
+                from gillespy2.solvers.auto import SSASolver
+                solver = SSASolver
+                solver_results = SSASolver.run(model=self, t=self.tspan[-1],
+                                          increment=self.tspan[-1] - self.tspan[-2], **solver_args)
 
+            if isinstance(solver_results[0], (np.ndarray)):
+                return solver_results
 
+            if len(solver_results) is 1:
+                return Results(data=solver_results[0], model=self, solver_name=solver.name)
 
-    #Need to finalize feature set.
-    #title, start time, stop time, automatic legend, legend placement, axis labels, size of graph.
-    #Axis Legend Stuff ends up being complicated, ensure I understand expected scope of function.
-    def plot(self, results, **kwargs):
-
-        try:
-            import seaborn as sbn
-            pretty_graph = True
-        except:
-            import matplotlib.pyplot as plt
-            pretty_graph = False
-
-        if pretty_graph:
-            pass
-        if not pretty_graph:
-            if "height" in kwargs and "width" in kwargs:
-                plt.figure(figsize=(kwargs["height"], kwargs["width"]))
-            #I could just have a throw after this, but I don't know if that's what the expected user behavior would be.
-            if "height" in kwargs and "width" not in kwargs:
-                plt.figure(figsize=(kwargs["height"], kwargs["height"]))
-            if "height" not in kwargs and "width" in kwargs:
-                plt.figure(figsize=(kwargs["width"], kwargs["width"]))
-            if "title" in kwargs:
-                plt.title(kwargs["title"])
+            if len(solver_results) > 1:
+                results_list = []
+                for i in range(0,solver_args.get('number_of_trajectories')):
+                    results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name))
+                return EnsembleResults(results_list)
             else:
-                plt.title(str(self.name))
-            if "start" in kwargs and "stop" in kwargs:
-                for key in results.keys():
-                    plt.plot(results[key][kwargs["start"]:kwargs["stop"]])
-            if "start" in kwargs and "stop" not in kwargs:
-                for key in results.keys():
-                    plt.plot(results[key][kwargs["start"]:])
-            if "start" not in kwargs and "stop" in kwargs:
-                for key in results.keys():
-                    plt.plot(results[key][:kwargs["stop"]])
-            if "start" not in kwargs and "stop" not in kwargs:
-                for key in results.keys():
-                    plt.plot(results[key])
-            if "legend" in kwargs and kwargs["legend"] is True and "legend_position" not in kwargs:
-                plt.legend(list(map(str, self.listOfSpecies.keys())))
-            if "legend" in kwargs and kwargs["legend"] is True and "legend_position" in kwargs:
-                plt.legend(list(map(str, self.listOfSpecies.keys())), loc=kwargs["legend_position"])
-            if "xlabel" in kwargs:
-                plt.xlabel(kwargs["xlabel"])
-            if "ylabel" in kwargs:
-                plt.ylabel(kwargs["ylabel"])
-            plt.show()
-
+                raise ValueError("number_of_trajectories must be non-negative and non-zero")
 
 class Species:
     """
@@ -631,7 +605,7 @@ class Parameter:
 
 
 class RateRule:
-    def __init__(self, species, expression, name=None):
+    def __init__(self, species=None, expression='', name=None):
         self.expression = expression
         self.species = species
         self.name = name
@@ -672,8 +646,8 @@ class Reaction:
     For a species that is NOT consumed in the reaction but is part of a mass
     action reaction, add it as both a reactant and a product.
 
-    Mass-action reactions must also have a rate term added. Note that the rate
-    must be scaled by the volume prior to being added for unit consistency.
+    Mass-action reactions must also have a rate term added. Note that the input
+    rate represents the mass-action constant rate independent of volume.
     """
 
     def __init__(self, name="", reactants={}, products={},
@@ -761,7 +735,7 @@ class Reaction:
         for r in self.reactants:
             # Case 1: 2X -> Y
             if self.reactants[r] == 2:
-                propensity_function = ("0.5*" + propensity_function +
+                propensity_function = (propensity_function +
                                        "*" + str(r) + "*(" + str(r) + "-1)/vol")
                 ode_propensity_function += '*' + str(r) + '*' + str(r)
             else:
