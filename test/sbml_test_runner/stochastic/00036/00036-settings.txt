@@ -1,0 +1,11 @@
+start: 0
+duration: 50
+steps: 50
+variables: P2
+absolute: 
+relative: 
+amount: P2
+concentration: 
+output: P2-mean, P2-sd
+meanRange: (-3, 3)
+sdRange: (-5, 5)

@@ -1,0 +1,11 @@
+start: 0
+duration: 50
+steps: 50
+variables: X, Source, Sink
+absolute: 
+relative: 
+amount: X, Source, Sink
+concentration: 
+output: X-mean, X-sd, Source-mean, Source-sd, Sink-mean, Sink-sd
+meanRange: (-3, 3)
+sdRange: (-5, 5)

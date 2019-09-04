@@ -1,0 +1,233 @@
+
+<script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/modules/exporting.js"></script>
+<style>
+body {
+   background-color: white;
+   font-family: Helvetica, Verdana, sans-serif;
+   font-size: 10pt;
+}
+@media print {
+  .no-print { display: none; }
+}
+#plot-wrapper {
+  display: inline-block;
+}
+#placeholder {
+  margin-top: 0.25em;
+}
+#info-text {
+  text-align: center;
+  position: absolute;
+  z-index: 100;
+  left: 170px;
+  color: #bbb;
+}
+</style>
+<script>
+$(function () {
+    var chart;
+    $(document).ready(function() {
+        chart = new Highcharts.Chart({
+            credits: {
+                enabled: false
+            },
+            chart: {
+                backgroundColor: '#fff',
+                renderTo: 'placeholder',
+                type: 'line',
+                zoomType: 'xy',
+                height: 500,
+                width: 600,
+                spacingTop: 37
+            },
+            plotOptions: {
+                line: {
+                    dashStyle: 'Solid',
+                    marker: {
+                        enabled: false
+                    }
+                }
+
+            },
+            title: {
+                text: null
+            },
+            xAxis: {
+                gridLineWidth: 1,
+                gridLineDashStyle: 'ShortDot',
+                tickPosition: 'inside',
+                maxPadding: 0,
+                lineWidth: 0
+            },
+            yAxis: [{
+                gridLineWidth: 1,
+                gridLineDashStyle: 'ShortDot',
+                tickPosition: 'inside',
+                title: {
+                    text: null
+                }
+            }, {
+                opposite: true,
+                gridLineWidth: 1,
+                gridLineDashStyle: 'ShortDot',
+                tickPosition: 'inside',
+                title: {
+                    text: 'Columns with text "mean" in their names',
+                    style: {
+                        color: "#000000"
+                    }
+                },
+            }],
+            tooltip: {
+                borderWidth: 1,
+                formatter: function() {
+                    return 'At time ' + this.x + '<br><b>' + this.series.name
+                           + '<\/b> = ' + this.y;
+                }
+            },
+            legend: {
+                borderWidth: 0,
+                margin: 10,
+                itemWidth: 140,
+                itemMarginBottom: 10,
+                symbolWidth: 45,
+                symbolPadding: 5,
+                x: 20
+            },
+
+            exporting: {
+                buttons: {
+                    contextButton: {
+                        align: "left",
+                        symbol: "export",
+                        y: -35,
+                        x: 40
+                    }
+                }
+            },
+            series: [
+
+{ name: "X-mean (u)", yAxis: 1, color: "#4572A7", dashStyle: "ShortDot", lineWidth: 2, shadow: false, data: [
+[0, 0],
+[1, 951.6258],
+[2, 1812.692],
+[3, 2591.818],
+[4, 3296.8],
+[5, 3934.693],
+[6, 4511.884],
+[7, 5034.147],
+[8, 5506.71],
+[9, 5934.303],
+[10, 6321.206],
+[11, 6671.289],
+[12, 6988.058],
+[13, 7274.682],
+[14, 7534.03],
+[15, 7768.698],
+[16, 7981.035],
+[17, 8173.165],
+[18, 8347.011],
+[19, 8504.314],
+[20, 8646.647],
+[21, 8775.436],
+[22, 8891.968],
+[23, 8997.412],
+[24, 9092.82],
+[25, 9179.15],
+[26, 9257.264],
+[27, 9327.945],
+[28, 9391.9],
+[29, 9449.768],
+[30, 9502.13],
+[31, 9549.508],
+[32, 9592.378],
+[33, 9631.168],
+[34, 9666.267],
+[35, 9698.026],
+[36, 9726.763],
+[37, 9752.765],
+[38, 9776.292],
+[39, 9797.58],
+[40, 9816.844],
+[41, 9834.273],
+[42, 9850.044],
+[43, 9864.314],
+[44, 9877.227],
+[45, 9888.91],
+[46, 9899.482],
+[47, 9909.047],
+[48, 9917.703],
+[49, 9925.534],
+[50, 9932.62]] },
+{ name: "X-sd", yAxis: 0, color: "#AA4643", dashStyle: "Solid", shadow: false, data: [
+[0, 0],
+[1, 30.84843],
+[2, 42.57572],
+[3, 50.9099],
+[4, 57.41777],
+[5, 62.72713],
+[6, 67.17056],
+[7, 70.95172],
+[8, 74.20721],
+[9, 77.03443],
+[10, 79.50601],
+[11, 81.67796],
+[12, 83.59461],
+[13, 85.29175],
+[14, 86.79879],
+[15, 88.14022],
+[16, 89.33664],
+[17, 90.40556],
+[18, 91.36198],
+[19, 92.21884],
+[20, 92.98735],
+[21, 93.6773],
+[22, 94.29723],
+[23, 94.85469],
+[24, 95.35628],
+[25, 95.80788],
+[26, 96.21468],
+[27, 96.58129],
+[28, 96.91182],
+[29, 97.20992],
+[30, 97.47887],
+[31, 97.72158],
+[32, 97.94069],
+[33, 98.13851],
+[34, 98.31718],
+[35, 98.47856],
+[36, 98.62435],
+[37, 98.75609],
+[38, 98.87513],
+[39, 98.98273],
+[40, 99.07999],
+[41, 99.1679],
+[42, 99.24739],
+[43, 99.31925],
+[44, 99.38424],
+[45, 99.443],
+[46, 99.49614],
+[47, 99.5442],
+[48, 99.58766],
+[49, 99.62697],
+[50, 99.66253]] },
+]
+        });
+    });
+
+});
+$.extend(Highcharts.Renderer.prototype.symbols, {
+  export: function (a,b,c,d) {return ["M",a,b+c,"L",a+c,b+d,a+c,b+d*0.8,a,b+d*0.8,"Z","M",a+c*0.5,b+d*0.8,"L",a+c*0.8,b+d*0.4,a+c*0.4,b+d*0.4,a+c*0.4,b,a+c*0.6,b,a+c*0.6,b+d*0.4,a+c*0.2,b+d*0.4,"Z"]}
+});
+</script>
+
+<div id="plot-wrapper">
+<div id="info-text" class="no-print">
+Drag the mouse to zoom in on a rectangular region.<br>
+Click on variable names in the legend to toggle their visibility.
+</div>
+<div id="placeholder"></div>
+<div id="legend"></div>
+</div>
