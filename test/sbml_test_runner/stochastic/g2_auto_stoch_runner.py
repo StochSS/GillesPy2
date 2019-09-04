@@ -113,7 +113,7 @@ for name in os.listdir():
         print(name)
 TEST_PATH = '.'
 CASE_NO = input('\nCase Number, or type "ALL" to run all tests: ')
-TIME_OUT = int(input('\nPlease input a simulation timeout duration (in seconds) per trajectory.  Use "0" to disable timeout: '))
+TIME_OUT = int(input('\nPlease input a simulation timeout duration (in seconds) per case.  Use "0" to disable timeout: '))
 TARG_DIR = './results/'
 SBML_LVL = '3'
 SBML_VER = '1'
