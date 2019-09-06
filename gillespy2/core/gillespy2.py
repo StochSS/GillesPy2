@@ -463,6 +463,9 @@ class Model(object):
             if solver is not None:
                 if ((isinstance(solver, type)
                         and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
+                    if solver.name == 'SSACSolver':
+                        signal.signal(signal.SIGALRM, signal.SIG_IGN)
+                        solver_args['timeout'] = timeout
                     solver_results = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
                 else:
                     raise SimulationError(
@@ -470,6 +473,9 @@ class Model(object):
             else:
                 from gillespy2.solvers.auto import SSASolver
                 solver = SSASolver
+                if solver.name == 'SSACSolver':
+                    signal.signal(signal.SIGALRM, signal.SIG_IGN)
+                    solver_args['timeout'] = timeout
                 solver_results = SSASolver.run(model=self, t=self.tspan[-1],
                                           increment=self.tspan[-1] - self.tspan[-2], **solver_args)
 
