@@ -415,7 +415,7 @@ class Model(object):
     def delete_all_reactions(self):
         self.listOfReactions.clear()
 
-    def run(self, solver=None, time_out=0, **solver_args):
+    def run(self, solver=None, timeout=0, **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -434,32 +434,32 @@ class Model(object):
             The solver by which to simulate the model. This solver object may
             be initialized separately to specify an algorithm. Optional, 
             defaults to ssa solver.
-        time_out : int
-            Allows a timeout value in seconds to be sent to a signal handler, restricting simulation run-time
+        timeout : int
+            Allows a time_out value in seconds to be sent to a signal handler, restricting simulation run-time
         solver_args :
             solver-specific arguments to be passed to solver.run()
         """
         @contextmanager
-        def timeout(time):
+        def time_out(time):
             # Register a function to raise a TimeoutError on the signal.
-            signal.signal(signal.SIGALRM, raise_timeout)
+            signal.signal(signal.SIGALRM, raise_time_out)
             # Schedule the signal to be sent after ``time``.
             signal.alarm(time)
 
             try:
                 yield
             except TimeoutError:
-                print('model.run() has exceeded time limit for simulation')
+                print('GillesPy2 solver simulation exceeded timeout')
                 pass
             finally:
                 # Unregister the signal so it won't be triggered
-                # if the timeout is not reached.
+                # if the time_out is not reached.
                 signal.signal(signal.SIGALRM, signal.SIG_IGN)
 
-        def raise_timeout(signum, frame):
+        def raise_time_out(signum, frame):
             raise TimeoutError
 
-        with timeout(time_out):
+        with time_out(timeout):
             if solver is not None:
                 if ((isinstance(solver, type)
                         and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
