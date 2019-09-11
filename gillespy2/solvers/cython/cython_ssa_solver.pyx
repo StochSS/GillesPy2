@@ -4,10 +4,10 @@ import numpy as np
 import random
 cimport numpy as np
 cimport cython
+from cpython.exc cimport PyErr_CheckSignals
 from libc.stdlib cimport malloc, free
 cimport libc.math as math
 import re
-
 
 cdef struct Equation:
     int length
@@ -44,6 +44,7 @@ cdef void simulate_trajectory(np.ndarray[np.float64_t, ndim=2] trajectory, Cytho
         propensities[i] = evaluate_prefix(reactions[i].propensity_function, (current_state))
     cdef double propensity_sum, cumulative_sum
     while number_entries < trajectory.shape[0]:
+        PyErr_CheckSignals()
         propensity_sum = 0
         for i in range(number_reactions):
             propensity_sum += propensities[i]
@@ -193,7 +194,7 @@ class CythonSSASolver(GillesPySolver):
             matches = numbers.findall(fun)
             for match in matches:
                 if match not in constants:
-                    constants.append(match[1:])
+                    constants.append(match[:])
         for c in constants:
             parameters[c] = float(c)
         paramNames = list(parameters.keys())
