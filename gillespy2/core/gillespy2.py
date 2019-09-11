@@ -868,7 +868,7 @@ class Reaction(SortableObject):
         self.annotation = annotation
 
     def sanitized_propensity_function(self, species_mappings, parameter_mappings):
-        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()))
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
         sanitized_propensity = self.propensity_function
