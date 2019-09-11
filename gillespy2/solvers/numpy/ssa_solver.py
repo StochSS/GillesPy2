@@ -1,3 +1,4 @@
+import signal
 from gillespy2.core import GillesPySolver, Model, Reaction, log
 import random
 import math
@@ -6,9 +7,11 @@ import numpy as np
 
 class NumPySSASolver(GillesPySolver):
     name = "NumPySSASolver"
+    interrupted = False
 
     def __init__(self):
         name = 'NumPySSASolver'
+        interrupted = False
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True, **kwargs):
@@ -25,6 +28,13 @@ class NumPySSASolver(GillesPySolver):
         :param show_labels: Use names of species as index of result object rather than position numbers.
         :return: a list of each trajectory simulated.
         """
+        def timed_out(signum, frame):
+            self.interrupted = True
+            print('Simulation Timed Out...')
+
+        signal.signal(signal.SIGALRM, timed_out)
+
+
 
         if not isinstance(self, NumPySSASolver):
             self = NumPySSASolver()
@@ -43,7 +53,7 @@ class NumPySSASolver(GillesPySolver):
         timeline = np.linspace(0, t, (t // increment + 1))
 
         # create numpy matrix to mark all state data of time and species
-        trajectory_base = np.empty((number_of_trajectories, timeline.size, number_species + 1))
+        trajectory_base = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
 
         # copy time values to all trajectory row starts
         trajectory_base[:, :, 0] = timeline
@@ -75,6 +85,7 @@ class NumPySSASolver(GillesPySolver):
         # begin simulating each trajectory
         simulation_data = []
         for trajectory_num in range(number_of_trajectories):
+            if self.interrupted: break
             # copy initial state data
             trajectory = trajectory_base[trajectory_num]
             entry_count = 1
@@ -83,6 +94,7 @@ class NumPySSASolver(GillesPySolver):
             propensity_sums = np.zeros(number_reactions)
             # calculate initial propensity sums
             while entry_count < timeline.size:
+                if self.interrupted: break
                 # determine next reaction
                 for i in range(number_reactions):
                     propensity_sums[i] = propensity_functions[i](current_state)
@@ -104,6 +116,7 @@ class NumPySSASolver(GillesPySolver):
                     print('current_time: ', current_time)
                 # determine time passed in this reaction
                 while entry_count < timeline.size and timeline[entry_count] <= current_time:
+                    if self.interrupted: break
                     trajectory[entry_count, 1:] = current_state
                     entry_count += 1
                 for potential_reaction in range(number_reactions):
