@@ -186,9 +186,10 @@ class SSACSolver(GillesPySolver):
 
             #begin subprocess c simulation with timeout (default timeout=0 will not timeout)
             with subprocess.Popen(args, stdout=subprocess.PIPE, preexec_fn=os.setsid) as simulation:
+                return_code = 0
                 try:
                     if timeout > 0:
-                        stdout, stderr = simulation.communicate(timeout=timeout)
+                        stdout, stderr = simulation.communicate(timeout=timeout-2)
                     else:
                         stdout, stderr = simulation.communicate()
                     return_code = simulation.wait()
@@ -196,9 +197,9 @@ class SSACSolver(GillesPySolver):
                         os.killpg(simulation.pid, signal.SIGINT) #send signal to the process group
                         stdout, stderr = simulation.communicate()
                         msg = 'GillesPy2 solver timeout exceeded. '
-                        if stdout is not None: msg += stdout.decode('utf-8')
-                        if stderr is not None: msg += stderr.decode('utf-8')
-                        raise TimeoutError(msg)
+                        if stdout is not None: msg += b'stdout'.decode('utf-8')
+                        if stderr is not None: msg += b'stderr'.decode('utf-8')
+                        #raise TimeoutError(msg)
 
             # Parse/return results.
             if return_code == 0:

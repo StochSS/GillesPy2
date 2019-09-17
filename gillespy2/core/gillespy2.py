@@ -526,6 +526,7 @@ class Model(SortableObject):
                 from gillespy2.solvers.auto import SSASolver
                 solver = SSASolver
                 if solver.name == 'SSACSolver':
+                    print('selecting C solver from auto...')
                     signal.signal(signal.SIGALRM, signal.SIG_IGN)
                     solver_args['timeout'] = timeout
                 solver_results = SSASolver.run(model=self, t=self.tspan[-1],
