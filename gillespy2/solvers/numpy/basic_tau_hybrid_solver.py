@@ -133,19 +133,27 @@ class BasicTauHybridSolver(GillesPySolver):
 
         mn = {species:curr_state[species] for (species, value) in 
               model.listOfSpecies.items() if value.mode == 'dynamic'}
-        sd = {species:0 for (species, value) in 
+        sd = {species:[] for (species, value) in 
               model.listOfSpecies.items() if value.mode == 'dynamic'}
 
         for r, rxn in model.listOfReactions.items():
                 for reactant in rxn.reactants:
                     if reactant.mode == 'dynamic':
-                        mn[reactant.name] -= (tau_step * propensities[r] * rxn.reactants[reactant])
-                        sd[reactant.name] += (tau_step * propensities[r] * rxn.reactants[reactant]**2)
+                        rate = propensities[r] * rxn.reactants[reactant]
+                        mn[reactant.name] -= rate
+                        sd[reactant.name].append(rate)
                 for product in rxn.products:
                     if product.mode == 'dynamic':
-                        mn[product.name] += (tau_step * propensities[r] * rxn.products[product])
-                        sd[product.name] += (tau_step * propensities[r] * rxn.products[product]**2)
-                
+                        rate = propensities[r] * rxn.products[product]
+                        mn[product.name] += rate
+                        sd[product.name].append(rate)
+
+        for species, val_list in sd.items():
+            adjusted_vals = []
+            for val in val_list:
+                adjusted_vals.append(abs(val - mn[species]))
+            sd[species] = math.sqrt(sum(adjusted_vals))
+
         # Get coefficient of variance for each dynamic species
         for species in mn:
             if mn[species] > 0:
@@ -153,8 +161,7 @@ class BasicTauHybridSolver(GillesPySolver):
             else:
                 CV[species] = 1    # value chosen to guarantee discrete
             #Set species to deterministic if CV is less than threshhold
-            det_spec[species] = True if CV[species] < switch_tol or model.listOfSpecies[species].mode == 'continuous' else False                            
-                
+            det_spec[species] = True if CV[species] < switch_tol or model.listOfSpecies[species].mode == 'continuous' else False
         return sd, CV
     
     @staticmethod
