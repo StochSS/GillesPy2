@@ -65,6 +65,7 @@ def select(*tau_args):
             if curr_state[r.name] / v < critical_threshold and propensities[rxn] > 0:
                 critical_reactions.append(rxn)
                 critical = True
+        non_critical_reactions = [rxn for rxn in model.listOfReactions if not rxn in critical_reactions]
 
     # If a critical reaction is present, estimate tau for a single firing of each
     # critical reaction with propensity > 0, and take the smallest tau
@@ -85,13 +86,9 @@ def select(*tau_args):
     mu_i = {str(species): 0 for species in model.listOfSpecies.values()}
     sigma_i = {str(species): 0 for species in model.listOfSpecies.values()}
 
-    for r in model.listOfReactions:
+    for r in non_critical_reactions:
         #Calculate abs mean and standard deviation for each reactant
         for reactant in model.listOfReactions[r].reactants:
-            if reactant not in mu_i:
-                mu_i[str(reactant)] = 0
-            if reactant not in sigma_i:
-                sigma_i[str(reactant)] = 0
             mu_i[str(reactant)] += model.listOfReactions[r].reactants[reactant] * propensities[
                 r]  # Cao, Gillespie, Petzold 32a
             sigma_i[str(reactant)] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[
@@ -108,14 +105,6 @@ def select(*tau_args):
                     max_pop_change_sd / sigma_i[str(r)])
 
     if len(tau_i) > 0: non_critical_tau = min(tau_i.values())
-
-    for r in model.listOfReactions:
-        #Calculate abs mean and standard deviation for each reactant
-        for product in model.listOfReactions[r].products:
-            mu_i[str(product)] -= model.listOfReactions[r].products[product] * propensities[
-                r]  # Cao, Gillespie, Petzold 32a
-            sigma_i[str(product)] += model.listOfReactions[r].products[product] ** 2 * propensities[
-                r]  # Cao, Gillespie, Petzold 32b
 
     # If all reactions are non-critical, use non-critical tau.
     if not critical:
