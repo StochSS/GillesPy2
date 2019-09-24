@@ -113,13 +113,11 @@ class Results(UserDict):
             whether or not to display a legend which lists species
         included_species_list : list
             A list of strings describing which species to include. By default displays all species.
-
-        save_png : bool
-            should the graph be saved as a png file. By default is False.
-
+        save_png : bool or str
+            Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file
+            is named after that string.
         figsize : tuple
             the size of the graph. A tuple of the form (width,height). Is (18,10) by default.
-
 
         """
         import matplotlib.pyplot as plt
@@ -228,10 +226,9 @@ class EnsembleResults(UserList):
             if each trajectory should have its own graph or if they should overlap
         included_species_list : list
              A list of strings describing which species to include. By default displays all species.
-
-        save_png : bool
-            should the graph be saved as a png file. By default is False.
-
+        save_png : bool or str
+            Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file
+            is named after that string.
         figsize : tuple
             the size of the graph. A tuple of the form (width,height). Is (18,10) by default.
 
@@ -584,14 +581,11 @@ class EnsembleResults(UserList):
             Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
             the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
             standard deviation where ddof is 0.
-
         save_png : bool or str
-            Should the graph be saved as a png file. If True, File name is name of graph. If a string is given, file
+            Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file
             is named after that string.
-
         figsize : tuple
             the size of the graph. A tuple of the form (width,height). Is (18,10) by default.
-
 
         """
 
