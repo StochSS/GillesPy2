@@ -76,7 +76,7 @@ class BasicODESolver(GillesPySolver):
         number_species = len(species)
 
         # create numpy array for timeline
-        timeline = np.linspace(0, t, (t // increment + 1))
+        timeline = np.linspace(0, t, round(t / increment + 1))
 
         # create numpy matrix to mark all state data of time and species
         trajectory_base = np.empty((number_of_trajectories, timeline.size, number_species + 1))
