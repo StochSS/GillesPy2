@@ -50,8 +50,3 @@ class InvalidModelError(SimulationError):
 class SimulationTimeoutError(SimulationError):
     pass
 
-class SimulationWarning(Warning):
-    pass
-
-class SimulationTimeoutWarning(SimulationWarning):
-    pass
