@@ -47,3 +47,11 @@ class InvalidStochMLError(SimulationError):
 class InvalidModelError(SimulationError):
     pass
 
+class SimulationTimeoutError(SimulationError):
+    pass
+
+class SimulationWarning(Warning):
+    pass
+
+class SimulationTimeoutWarning(SimulationWarning):
+    pass

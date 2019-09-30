@@ -22,10 +22,12 @@ class BasicTauHybridSolver(GillesPySolver):
     """
     name = "BasicTauHybridSolver"
     interrupted = False
+    rc = 0
 
     def __init__(self):
         name = 'BasicTauHybridSolver'
-        interrupted = False   
+        interrupted = False
+        rc = 0  
         
     def toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, curr_state, rxn_offset, det_spec):
         
@@ -281,7 +283,7 @@ class BasicTauHybridSolver(GillesPySolver):
 
         def timed_out(signum, frame):
             self.interrupted = True
-            print('Simulation Timed Out...')
+            self.rc = 33
 
         signal.signal(signal.SIGALRM, timed_out)
 
@@ -524,4 +526,4 @@ class BasicTauHybridSolver(GillesPySolver):
                 print("Total Steps Taken: ", len(steps_taken))
                 print("Total Steps Rejected: ", steps_rejected)
 
-        return simulation_data
+        return simulation_data, self.rc

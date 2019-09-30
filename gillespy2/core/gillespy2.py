@@ -5,12 +5,12 @@ python.
 """
 from __future__ import division
 import signal
+import numpy as np
 from contextlib import contextmanager
 from collections import OrderedDict
 from gillespy2.core.results import Results,EnsembleResults
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
-import numpy as np
 
 try:
     import lxml.etree as eTree
@@ -509,7 +509,14 @@ class Model(SortableObject):
                 signal.signal(signal.SIGALRM, signal.SIG_IGN)
 
         def raise_time_out(signum, frame):
-            raise TimeoutError
+            from gillespy2.core import log
+            import sys
+            def excepthook(type, value, traceback):
+                pass
+            sys.excepthook = excepthook
+            log.warning('GillesPy2 simulation exceeded timeout.')
+            raise SimulationTimeoutError()
+
 
         with time_out(timeout):
             if solver is not None:
@@ -518,7 +525,7 @@ class Model(SortableObject):
                     if solver.name == 'SSACSolver':
                         signal.signal(signal.SIGALRM, signal.SIG_IGN)
                         solver_args['timeout'] = timeout
-                    solver_results = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
+                    solver_results, rc = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
                 else:
                     raise SimulationError(
                         "argument 'solver' to run() must be a subclass of GillesPySolver")
@@ -528,8 +535,12 @@ class Model(SortableObject):
                 if solver.name == 'SSACSolver':
                     signal.signal(signal.SIGALRM, signal.SIG_IGN)
                     solver_args['timeout'] = timeout
-                solver_results = SSASolver.run(model=self, t=self.tspan[-1],
+                solver_results, rc = SSASolver.run(model=self, t=self.tspan[-1],
                                           increment=self.tspan[-1] - self.tspan[-2], **solver_args)
+           
+            if rc == 33:
+                from gillespy2.core import log
+                log.warning('GillesPy2 simulation exceeded timeout.')
 
             if isinstance(solver_results[0], (np.ndarray)):
                 return solver_results

@@ -265,5 +265,5 @@ class CythonSSASolver(GillesPySolver):
             free(reactions[i].propensity_function.terms)
         free(reactions)
         free(cParameters)
-        return self.simulation_data
+        return self.simulation_data, 0
         

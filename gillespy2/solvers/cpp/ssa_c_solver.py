@@ -189,20 +189,17 @@ class SSACSolver(GillesPySolver):
                 return_code = 0
                 try:
                     if timeout > 0:
-                        stdout, stderr = simulation.communicate(timeout=timeout-2)
+                        stdout, stderr = simulation.communicate(timeout=timeout)
                     else:
                         stdout, stderr = simulation.communicate()
                     return_code = simulation.wait()
                 except subprocess.TimeoutExpired:
                         os.killpg(simulation.pid, signal.SIGINT) #send signal to the process group
                         stdout, stderr = simulation.communicate()
-                        msg = 'GillesPy2 solver timeout exceeded. '
-                        if stdout is not None: msg += b'stdout'.decode('utf-8')
-                        if stderr is not None: msg += b'stderr'.decode('utf-8')
-                        #raise TimeoutError(msg)
-
+                        return_code = 33
+ 
             # Parse/return results.
-            if return_code == 0:
+            if return_code in [0, 33]:
                 trajectory_base = parse_binary_output(stdout, number_of_trajectories, number_timesteps, len(self.species))
                 # Format results
                 if show_labels:
@@ -216,5 +213,5 @@ class SSACSolver(GillesPySolver):
                     self.simulation_data = trajectory_base
             else:
                 raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:\nReturn code: {0}.\nError:\n{1}\n".format(simulation.returncode, simulation.stderr))
-        return self.simulation_data
+        return self.simulation_data, return_code
 

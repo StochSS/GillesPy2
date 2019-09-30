@@ -11,6 +11,7 @@ from gillespy2.core import GillesPySolver, log
 class BasicTauLeapingSolver(GillesPySolver):
     name = 'BasicTauLeapingSolver'
     interrupted = False
+    rc = 0
     """
     A Basic Tau Leaping Solver for GillesPy2 models.  This solver uses an algorithm calculates
     multiple reactions in a single step over a given tau step size.  The change in propensities
@@ -22,6 +23,7 @@ class BasicTauLeapingSolver(GillesPySolver):
     def __init__(self, debug=False, profile=False):
         name = "BasicTauLeapingSolver"
         interrupted = False
+        rc = 0
         self.debug = debug
         self.profile = profile
 
@@ -88,8 +90,8 @@ class BasicTauLeapingSolver(GillesPySolver):
                     Use names of species as index of result object rather than position numbers.
                 """
         def timed_out(signum, frame):
+            self.rc = 33
             self.interrupted = True
-            print('Simulation Timed Out...')
 
         signal.signal(signal.SIGALRM, timed_out)
 
@@ -261,4 +263,4 @@ class BasicTauLeapingSolver(GillesPySolver):
                 print("Total Steps Taken: ", len(steps_taken))
                 print("Total Steps Rejected: ", steps_rejected)
 
-        return simulation_data
+        return simulation_data, self.rc

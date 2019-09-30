@@ -8,10 +8,12 @@ import numpy as np
 class NumPySSASolver(GillesPySolver):
     name = "NumPySSASolver"
     interrupted = False
+    rc = 0
 
     def __init__(self):
         name = 'NumPySSASolver'
         interrupted = False
+        rc = 0
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True, **kwargs):
@@ -29,8 +31,8 @@ class NumPySSASolver(GillesPySolver):
         :return: a list of each trajectory simulated.
         """
         def timed_out(signum, frame):
+            self.rc = 33
             self.interrupted = True
-            print('Simulation Timed Out...')
 
         signal.signal(signal.SIGALRM, timed_out)
 
@@ -144,4 +146,4 @@ class NumPySSASolver(GillesPySolver):
                 simulation_data.append(data)
             else:
                 simulation_data = trajectory_base
-        return simulation_data
+        return simulation_data, self.rc
