@@ -376,7 +376,7 @@ class BasicTauHybridSolver(GillesPySolver):
             data['time'] = timeline # All time entries for show_labels results
 
             # Record Highest Order reactant for each reaction and set error tolerance
-            HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold = Tau.initialize(model, tau_tol)
+            HOR, reactants, g_i, epsilon_i, critical_threshold = Tau.initialize(model, tau_tol)
 
             # initialize species population state
             for s in model.listOfSpecies:
@@ -427,9 +427,9 @@ class BasicTauHybridSolver(GillesPySolver):
                         propensities[r] = eval(compiled_propensities[r], curr_state)
 
                     # Calculate Tau statistics and select a good tau step
-                    tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
+                    tau_args = [HOR, reactants, g_i, epsilon_i, tau_tol, critical_threshold,
                             model, propensities, curr_state, curr_time, save_time]
-                    tau_step = save_time-curr_time if pure_ode else Tau.select(*tau_args)
+                    tau_step, mu_i, sigma_i = save_time-curr_time if pure_ode else Tau.select(*tau_args)
 
                     if profile:
                         steps_taken.append(tau_step)

@@ -150,7 +150,7 @@ class BasicTauLeapingSolver(GillesPySolver):
             trajectory = trajectory_base[trajectory_num]
 
 
-            HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold = Tau.initialize(model, tau_tol)
+            HOR, reactants, g_i, epsilon_i, critical_threshold = Tau.initialize(model, tau_tol)
 
             for spec in model.listOfSpecies:
                 # initialize populations
@@ -185,10 +185,10 @@ class BasicTauLeapingSolver(GillesPySolver):
                         propensities[r] = eval(compiled_propensities[r], curr_state)
                         propensity_sum += propensities[r]
 
-                    tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
+                    tau_args = [HOR, reactants, g_i, epsilon_i, tau_tol, critical_threshold,
                             model, propensities, curr_state, curr_time, save_time]
 
-                    tau_step = Tau.select(*tau_args)
+                    tau_step, _, _ = Tau.select(*tau_args)
 
                     prev_start_state = start_state.copy()
                     prev_curr_state = curr_state.copy()

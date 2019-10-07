@@ -12,8 +12,6 @@ def initialize(model, epsilon):
 
     HOR = {} # Highest Order Reaction of species
     reactants = set()  # a list of all species in the model which act as reactants
-    mu_i = {}   # mu_i for each species
-    sigma_i = {}  # sigma_i squared for each species
     g_i = {}    # Relative species error allowance denominator
     epsilon_i = {} # Relative error allowance of species
     critical_threshold = 10  # Reactant Population to be considered critical
@@ -30,8 +28,6 @@ def initialize(model, epsilon):
             # Build reactant list
             reactants.add(reactant)
             # Initialize mu and sigma for each reactant
-            mu_i[str(reactant)] = 0
-            sigma_i[str(reactant)] = 0
             # if this reaction's order is higher than previous, set HOR
             if reaction_order > HOR[str(reactant)]:
                 HOR[str(reactant)] = reaction_order
@@ -43,14 +39,15 @@ def initialize(model, epsilon):
                     epsilon_i[str(reactant)] = epsilon / g_i[str(reactant)]
 
     # Return components for tau selection
-    return HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold
+    return HOR, reactants, g_i, epsilon_i, critical_threshold
 
 def select(*tau_args):
     '''
     Tau Selection method based on Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006). "Efficient step size selection for the tau-leaping simulation method" (PDF). The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151
     '''
     
-    HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, epsilon, critical_threshold, model, propensities, curr_state, curr_time, save_time = tau_args
+    HOR, reactants, g_i, epsilon_i, epsilon, critical_threshold, \
+    model, propensities, curr_state, curr_time, save_time = tau_args
     tau_step = 0
     crit_taus = {} # Estimated time to single-firing of critical reactions
     critical_reactions = [] # List of critical reactions at this step
@@ -89,20 +86,26 @@ def select(*tau_args):
     for r in non_critical_reactions:
         #Calculate abs mean and standard deviation for each reactant
         for reactant in model.listOfReactions[r].reactants:
-            mu_i[str(reactant)] += model.listOfReactions[r].reactants[reactant] * propensities[
+            mu_i[str(reactant)] -= model.listOfReactions[r].reactants[reactant] * propensities[
                 r]  # Cao, Gillespie, Petzold 32a
             sigma_i[str(reactant)] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[
                 r]  # Cao, Gillespie, Petzold 32b
+        #Calculate abs mean and standard deviation for each product
+        for product in model.listOfReactions[r].products:
+            mu_i[str(product)] += model.listOfReactions[r].products[product] * propensities[
+                r]  # Cao, Gillespie, Petzold 32a
+            sigma_i[str(product)] += model.listOfReactions[r].products[product] ** 2 * propensities[
+                r]  # Cao, Gillespie, Petzold 32b
 
-    for r in reactants:
-        calculated_max = epsilon_i[str(r)] * curr_state[r.name]
-        max_pop_change_mean = max(calculated_max, 1)
-        max_pop_change_sd = max(calculated_max, 1) ** 2
-        if mu_i[str(r)] > 0:
+    for spec in model.listOfSpecies.values():
+        if mu_i[str(spec)] != 0 and str(spec) in epsilon_i:
+            calculated_max = epsilon_i[str(spec)] * curr_state[spec.name]
+            max_pop_change_mean = max(calculated_max, 1)
+            max_pop_change_sd = max(calculated_max, 1) ** 2
             # Cao, Gillespie, Petzold 33
-            tau_i[str(r)] = min(
-                    abs(max_pop_change_mean / mu_i[str(r)]), 
-                    max_pop_change_sd / sigma_i[str(r)])
+            tau_i[str(spec)] = min(
+                    abs(max_pop_change_mean / mu_i[str(spec)]), 
+                    max_pop_change_sd / sigma_i[str(spec)])
 
     if len(tau_i) > 0: non_critical_tau = min(tau_i.values())
 
@@ -122,4 +125,4 @@ def select(*tau_args):
         tau_step = min(tau, save_time - curr_time)
     else:
         tau_step = save_time - curr_time
-    return tau_step
+    return tau_step, mu_i, sigma_i
