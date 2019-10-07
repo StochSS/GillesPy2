@@ -3,6 +3,7 @@ A simple toolkit for creating and simulating discrete stochastic models in
 python.
 
 """
+
 from __future__ import division
 from collections import OrderedDict
 from gillespy2.core.results import Results,EnsembleResults
@@ -12,9 +13,7 @@ import numpy as np
 
 try:
     import lxml.etree as eTree
-
     no_pretty_print = False
-
 except:
     import xml.etree.ElementTree as eTree
     import xml.dom.minidom
@@ -552,13 +551,36 @@ class Species(SortableObject):
             either discrete or continuous
         mode='continuous' - Species will only be represented as continuous
         mode='discrete' - Species will only be represented as discrete
+    boundary : Boolean
+        Indicates whether the species is a boundary species in the SBML sense
+        of "boundaryCondition". A value of True is equivalent to specifying
+        boundaryCondition = true in an SBML model. This means the species's
+        amount is not changed by the reactions in the model, although other
+        processes in the model may affect the amount if the species is not
+        marked "constant" (see below). Often, "boundary" species are those
+        whose quantitites are influenced by external (to the model) factors.
+        In practice, marking a species as either being a boundary species or
+        a constant species means that no rate-of-change equation will be
+        created for it.
+    constant : Boolean
+        Indicates whether the value of the species can be changed by any
+        constructs in a model. A value of True is equivalent to specifying
+        constant = True in an SBML model. These are species whose amounts are
+        unchanged by any process (reactions or otherwise) in the system after
+        initialization. This is more restrictive than marking a species as a
+        boundary species, and is typically only used when a model contains
+        algebraic expression and needs additional constraints in order to
+        reduce the number of unknowns in the system of equations.
     """
 
-    def __init__(self, name="", initial_value=0, mode='dynamic', allow_negative_populations=False):
+    def __init__(self, name="", initial_value=0, mode='dynamic', boundary=False,
+                 constant=False, allow_negative_populations=False):
         # A species has a name (string) and an initial value (positive integer)
         self.name = name
         self.mode = mode
         self.allow_negative_populations = allow_negative_populations
+        self.is_constant = constant
+        self.is_boundary = boundary
 
         mode_list = ['continuous', 'dynamic', 'discrete']
         if self.mode not in mode_list:
