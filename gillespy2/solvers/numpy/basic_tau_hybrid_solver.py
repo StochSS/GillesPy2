@@ -128,41 +128,18 @@ class BasicTauHybridSolver(GillesPySolver):
         dynamic species, then set if species can be represented determistically
         """
         mu_i, sigma_i, model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol = switch_args
-        sd = OrderedDict()
         CV = OrderedDict()
 
-        mn = {species:curr_state[species] for (species, value) in 
-              model.listOfSpecies.items() if value.mode == 'dynamic'}
-        sd = {species:[] for (species, value) in 
-              model.listOfSpecies.items() if value.mode == 'dynamic'}
-
-        for r, rxn in model.listOfReactions.items():
-                for reactant in rxn.reactants:
-                    if reactant.mode == 'dynamic':
-                        rate = propensities[r] * rxn.reactants[reactant]
-                        mn[reactant.name] -= rate
-                        sd[reactant.name].append(rate)
-                for product in rxn.products:
-                    if product.mode == 'dynamic':
-                        rate = propensities[r] * rxn.products[product]
-                        mn[product.name] += rate
-                        sd[product.name].append(rate)
-
-        for species, val_list in sd.items():
-            adjusted_vals = []
-            for val in val_list:
-                adjusted_vals.append(abs(val - mn[species]))
-            sd[species] = math.sqrt(sum(adjusted_vals))
-
-        # Get coefficient of variance for each dynamic species
-        for species in mn:
-            if mn[species] > 0:
-                CV[species] = sd[species] / mn[species]
+        for species in model.listOfSpecies:
+            if mu_i[species] != 0:
+                CV[species] = math.sqrt(sigma_i[species]) / abs(curr_state[species] + mu_i[species])
+                det_spec[species] = True if CV[species] < switch_tol or model.listOfSpecies[species].mode == 'continuous' else False
+            elif mu_i[species] == 0 and sigma_i[species] > 0:
+                det_spec[species] = False
             else:
-                CV[species] = 1    # value chosen to guarantee discrete
-            #Set species to deterministic if CV is less than threshhold
-            det_spec[species] = True if CV[species] < switch_tol or model.listOfSpecies[species].mode == 'continuous' else False
-        return sd, CV
+                det_spec[species] = True
+
+        return CV
     
     @staticmethod
     def __f(t, y, curr_state, reactions, rate_rules, propensities, compiled_reactions, compiled_rate_rules):
@@ -436,7 +413,7 @@ class BasicTauHybridSolver(GillesPySolver):
 
                     # Calculate sd and CV for hybrid switching and flag deterministic reactions
                     switch_args = [mu_i, sigma_i, model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol]
-                    sd, CV = self.calculate_statistics(*switch_args)
+                    CV = self.calculate_statistics(*switch_args)
                     deterministic_reactions = self.flag_det_reactions(model, det_spec, det_rxn, dependencies)
                     
                     if debug:
