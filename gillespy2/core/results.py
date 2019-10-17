@@ -631,3 +631,5 @@ class EnsembleResults(UserList):
 
         elif save_png:
             plt.savefig(title)
+
+        
