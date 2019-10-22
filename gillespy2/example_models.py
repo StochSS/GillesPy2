@@ -61,7 +61,7 @@ class LacOperon(Model):
         s7 = Species(name='TrLacY2', initial_value=0)
         s8 = Species(name='RBSLacY', initial_value=300)
         s9 = Species(name='RBSLacZ', initial_value=120)
-        s10 = Species(name='Ribosome', initial_value=0)
+        s10 = Species(name='Ribosome', initial_value=100)
         s11 = Species(name='RbsRibosomeLacY', initial_value=0)
         s12 = Species(name='RbsRibosomeLacZ', initial_value=0)
         s13 = Species(name='TrRbsLacZ', initial_value=0)
