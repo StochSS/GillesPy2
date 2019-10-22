@@ -339,5 +339,4 @@ class Oregonator(Model):
 
 
 __all__ = ['Trichloroethylene', 'LacOperon', 'Schlogl', 'MichaelisMenten',
-           'ToggleSwitch', 'Example', 'Tyson2StateOscillator']
            'ToggleSwitch', 'Example', 'Tyson2StateOscillator', 'Oregonator']

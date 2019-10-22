@@ -11,7 +11,7 @@ def _plot_iterate(self, show_labels = True, included_species_list = []):
             if species not in included_species_list and included_species_list:
                 continue
 
-            line_color = 'C' + str(i)
+            line_color = 'C' + str(i%10)
 
             if show_labels:
                 label = species
