@@ -47,3 +47,11 @@ class InvalidStochMLError(SimulationError):
 class InvalidModelError(SimulationError):
     pass
 
+<<<<<<< Updated upstream
+=======
+class SimulationTimeoutError(SimulationError):
+    pass
+
+class EventError(ModelError):
+    pass
+>>>>>>> Stashed changes
