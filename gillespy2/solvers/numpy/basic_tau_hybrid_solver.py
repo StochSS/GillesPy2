@@ -156,7 +156,8 @@ class BasicTauHybridSolver(GillesPySolver):
         return sd, CV
     
     @staticmethod
-    def __f(t, y, curr_state, reactions, rate_rules, propensities, compiled_reactions, compiled_rate_rules):
+    def __f(t, y, curr_state, reactions, rate_rules, propensities,
+    compiled_reactions, compiled_rate_rules, events, events_fired):
         """
         Evaluate the propensities for the reactions and the RHS of the Reactions and RateRules.
         """
@@ -169,6 +170,12 @@ class BasicTauHybridSolver(GillesPySolver):
         for i, r in enumerate(compiled_reactions):
             propensities[r] = eval(compiled_reactions[r], eval_globals, curr_state)
             state_change.append(propensities[r])
+        for i, e in enumerate(events):
+            current = eval(e.trigger.expression, eval_globals, curr_state)
+            if current != e.trigger.value:
+                e.trigger.value = current
+                if current:
+                    events_fired.append(e.name)
 
         return state_change
 
@@ -177,13 +184,15 @@ class BasicTauHybridSolver(GillesPySolver):
                                  propensities, compiled_reactions, compiled_rate_rules):
         """ Helper function to perform the ODE integration of one step """
         rhs = ode(BasicTauHybridSolver.__f).set_integrator(integrator, **integrator_options)  # set function as ODE object
+        events_fired = []
         rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfReactions,
                                                           model.listOfRateRules, propensities, compiled_reactions,
-                                                          compiled_rate_rules)
+                                                          compiled_rate_rules,
+                                                          model.listOfEvents.values(),
+                                                          events_fired)
         int_time = step+curr_time
         current = rhs.integrate(int_time)  # current holds integration from current_time to int_time
-
-        return current, curr_time + step
+        return current, curr_time + step, events_fired
 
     def __get_reactions(self, integrator, integrator_options, step, curr_state, y0, model, curr_time, 
                         save_time, propensities, compiled_reactions, compiled_rate_rules, rxn_offset, debug):
@@ -206,12 +215,17 @@ class BasicTauHybridSolver(GillesPySolver):
         if debug:
             print("Curr Time: ", curr_time, " Save time: ", save_time, "step: ", step)
 
-        current, curr_time = self.__get_reaction_integrate(integrator, integrator_options, step, curr_state, 
+        current, curr_time, events_fired = self.__get_reaction_integrate(integrator, integrator_options, step, curr_state, 
                                                            y0, model, curr_time, propensities, 
                                                            compiled_reactions, compiled_rate_rules)
         # UPDATE THE STATE of the continuous species
         for i, s in enumerate(compiled_rate_rules):
             curr_state[s] = current[i]
+
+        # UPDATE THE STATE of event assignment variables
+        for e in events_fired:
+            for a in model.listOfEvents[e].assignments:
+                curr_state[str(a.variable)] = eval(a.expression)
             
         # UPDATE THE STATE of the discrete reactions
         for i, r in enumerate(compiled_reactions):

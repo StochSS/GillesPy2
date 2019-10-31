@@ -29,6 +29,8 @@ class EventAssignment:
         if expression is not None:
             self.expression = str(expression)
 
+        
+        from gillespy2.core.gillespy2 import Species, Parameter
         #TODO: ADD Compartment to valid variable types once implemented
         valid_variable_types = [Species, Parameter]
 
@@ -97,7 +99,7 @@ class EventTrigger:
     expression : str
         String for a function calculating EventTrigger values. Should be evaluable
         in namespace of Model.
-    initial_value : bool
+    value : bool
         Value of EventTrigger at simulation start, with time t=0
     persistent : bool
         Determines of trigger condition is persistent or not.
@@ -111,7 +113,7 @@ class EventTrigger:
             raise EventError('EventTrigger expression must be a string')
 
         if isinstance(initial_value, bool):
-            self.initial_value = initial_value
+            self.value = initial_value
         else:
             raise EventError('EventTrigger initial_value must be bool')
 
