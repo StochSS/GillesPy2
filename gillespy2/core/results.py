@@ -22,8 +22,6 @@ def _plot_iterate(self, show_labels = True, included_species_list = []):
 
             line_color = common_rgb_values[(i - 1) % len(common_rgb_values)]
 
-            # line_color = 'C' + str(i%10)
-
             if show_labels:
                 label = species
             else:
