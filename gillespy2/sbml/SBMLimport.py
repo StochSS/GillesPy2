@@ -145,6 +145,7 @@ def convert(filename, model_name=None, gillespy_model=None):
 
         gillespy_model.add_reaction([gillespy_reaction])
 
+        
     for i in range(model.getNumRules()):
         rule = model.getRule(i)
 
@@ -206,6 +207,25 @@ def convert(filename, model_name=None, gillespy_model=None):
                           "Function '{0}' found on line '{1}' with equation '{2}'. gillespy does not support SBML "
                           "Function Definitions".format(
                               function.getId(), function.getLine(), libsbml.formulaToString(function.getMath())), -5])
+
+    for i in range(model.getNumEvents()):
+        event = model.getEvent(i)
+        gillespy_assignments = []
+        
+        trigger = event.getTrigger()
+        expression=libsbml.formulaToL3String(trigger.getMath())
+        initial_value = trigger.getInitialValue()
+        persistent = trigger.getPersistent()
+        gillespy_trigger = gillespy2.EventTrigger(expression=expression, 
+            initial_value=initial_value, persistent=persistent)
+        assignments = event.getListOfEventAssignments()
+        for a in assignments:
+            gillespy_assignment = gillespy2.EventAssignment(a.getVariable(),
+                libsbml.formulaToL3String(a.getMath()))
+            gillespy_assignments.append(gillespy_assignment)
+        gillespy_event = gillespy2.Event(
+            name=event.name, trigger=gillespy_trigger, assignments=gillespy_assignments)
+        gillespy_model.add_event(gillespy_event)
 
     return gillespy_model, errors
 

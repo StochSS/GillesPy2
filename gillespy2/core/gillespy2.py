@@ -437,7 +437,7 @@ class Model(SortableObject):
             raise ParameterError("Add_rate_rule accepts a RateRule object or a List of RateRule Objects")
         return rate_rules
 
-    def add_events(self, events):
+    def add_event(self, event):
         """
                 Adds an event, or list of events to the model.
 
@@ -448,18 +448,24 @@ class Model(SortableObject):
                     object.
                 """
 
-        if isinstance(events, list):
-            for e in sorted(events):
-                self.add_events(e)
-        elif isinstance(events, Event):
-            if events.trigger is None or not isinstance(events.trigger, EventTrigger): 
+        if isinstance(event, list):
+            for e in event:
+                self.add_event(e)
+        elif isinstance(event, Event):
+            if event.trigger is None or not isinstance(event.trigger, EventTrigger): 
                 raise ModelError(
                 'An Event must contain a valid trigger.')
-            self.listOfEvents[events.name] = events
+            for a in event.assignments:
+                if isinstance(a.variable, str):
+                    if a.variable in self.listOfSpecies:
+                        a.variable = self.listOfSpecies[a.variable]
+                    else:
+                        raise ModelError('{0} not a valid Species'.format(a.variable))
+            self.listOfEvents[event.name] = event
         else:
             raise ParameterError("add_events accepts an Event object or a"
             " List of Event Objects")
-        return events
+        return event
 
     def timespan(self, time_span):
         """

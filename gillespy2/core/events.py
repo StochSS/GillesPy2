@@ -32,12 +32,13 @@ class EventAssignment:
         
         from gillespy2.core.gillespy2 import Species, Parameter
         #TODO: ADD Compartment to valid variable types once implemented
-        valid_variable_types = [Species, Parameter]
+        valid_variable_types = [Species, Parameter, str]
 
-        if not type(self.variable) in valid_variable_types:
+        if not type(variable) in valid_variable_types:
+            print(variable)
+            print(type(variable))
             raise EventError(
-                'GillesPy2 Event Assignment variable must be a '
-                 'valid gillespy2 species')
+                'GillesPy2 Event Assignment variable must be a valid gillespy2 species')
         if not isinstance(self.expression, str):
             raise EventError(
                              'GillesPy2 Event Assignment expression requires a '
@@ -116,6 +117,11 @@ class EventTrigger:
             self.value = initial_value
         else:
             raise EventError('EventTrigger initial_value must be bool')
+
+        if isinstance(persistent, bool):
+            self.persistent = persistent
+        else:
+            raise EventError('EventTrigger.persistent must be bool')
 
 
 class Event:
