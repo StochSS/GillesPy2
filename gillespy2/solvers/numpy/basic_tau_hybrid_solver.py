@@ -1,6 +1,6 @@
 import random, math, sys, warnings
 from collections import OrderedDict
-from scipy.integrate import ode
+from scipy.integrate import ode, solve_ivp
 import heapq
 import numpy as np
 import gillespy2
@@ -162,28 +162,7 @@ class BasicTauHybridSolver(GillesPySolver):
         """
         Evaluate the propensities for the reactions and the RHS of the Reactions and RateRules.
         """
-        event_queue = []
         state_change = [0] * len(y_map)
-        curr_state['t'] = min(t, curr_state['t_max']) # Prevent early trigger
-        print(t)
-        print('y before events: ', y)
-        for e in events:
-            triggered = eval(e.trigger.expression, eval_globals, curr_state)
-            prev = e.trigger.value
-            e.trigger.value = triggered
-            print(triggered)
-            if  triggered and triggered != curr_state[e.name]:
-                heapq.heappush(event_queue, (eval(e.priority), e))
-        while event_queue:
-            print('time: ', t)
-            fired_event = heapq.heappop(event_queue)
-            for a in fired_event[1].assignments:
-                assign_value = eval(a.expression, eval_globals, curr_state)
-                curr_state[a.variable.name] = assign_value
-                state_change[y_map[a.variable.name]] = y[y_map[a.variable.name]] - assign_value
-                y[y_map[a.variable.name]] = assign_value
-                print('curr state of ', a.variable.name, ': ', curr_state[a.variable.name])
-            print('y after events: ', y)
         curr_state['t'] = t
         for item, index in y_map.items():
             curr_state[item] = y[index]
@@ -192,11 +171,35 @@ class BasicTauHybridSolver(GillesPySolver):
         for i, r in enumerate(compiled_reactions):
             propensities[r] = eval(compiled_reactions[r], eval_globals, curr_state)
             state_change[y_map[r]] += propensities[r]
-        print(t)
-        print('y at end: ', y)
-        print('change at end: ', state_change)
 
         return state_change
+
+    @staticmethod
+    def __event(t, y, curr_state, species, reactions, rate_rules, propensities,
+    y_map, compiled_reactions, compiled_rate_rules, events):
+        event_queue = []
+        curr_state['t'] = min(t, curr_state['t_max']) # Prevent early trigger
+        event_fired = 1 # Integration terminates when this crosses 0
+        for e in events:
+            triggered = eval(e.trigger.expression, eval_globals, curr_state)
+            prev = e.trigger.value
+            e.trigger.value = triggered
+            #print(triggered)
+            if  triggered and triggered != curr_state[e.name]:
+                print('REACTION FIRED at ', t, '! STOP!')
+                event_fired = -1 # Will trigger int termination
+                heapq.heappush(event_queue, (eval(e.priority), e))
+        while event_queue:
+            #print('time: ', t)
+            fired_event = heapq.heappop(event_queue)
+            for a in fired_event[1].assignments:
+                assign_value = eval(a.expression, eval_globals, curr_state)
+                curr_state[a.variable.name] = assign_value
+                y[y_map[a.variable.name]] = assign_value
+                #print('curr state of ', a.variable.name, ': ', curr_state[a.variable.name])
+            #print('y after events: ', y)
+        return event_fired
+        
 
     @staticmethod
     def __get_reaction_integrate(integrator, integrator_options, step, curr_state, y0, model, curr_time, 
@@ -206,6 +209,21 @@ class BasicTauHybridSolver(GillesPySolver):
             curr_state[e.name] = e.trigger.value
         int_time = step+curr_time
         curr_state['t_max'] = int_time
+        BasicTauHybridSolver.__event.terminal = True
+        BasicTauHybridSolver.__event.direction = -1
+        int_args = [curr_state, model.listOfSpecies, model.listOfReactions,
+                                                          model.listOfRateRules,
+                                                          propensities, y_map, 
+                                                          compiled_reactions,
+                                                          compiled_rate_rules,
+                                                          model.listOfEvents.values()]
+        sol = solve_ivp(lambda t, y: BasicTauHybridSolver.__f(t, y, *int_args),
+            [curr_time,int_time], y0, events=lambda t, y: BasicTauHybridSolver.__event(t,
+            y, *int_args), method=integrator, options=integrator_options)
+        #print(sol)
+        print('event fire time: ', sol.t_events[0])
+        #print('full timespan: ', sol.t)
+        '''
         rhs = ode(BasicTauHybridSolver.__f).set_integrator(integrator, **integrator_options)  # set function as ODE object
         rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model.listOfSpecies, model.listOfReactions,
                                                           model.listOfRateRules,
@@ -213,11 +231,17 @@ class BasicTauHybridSolver(GillesPySolver):
                                                           compiled_reactions,
                                                           compiled_rate_rules,
                                                           model.listOfEvents.values())
-        current = rhs.integrate(int_time)  # current holds integration from current_time to int_time
-        changes = y0 - current
-        print('current: ', current)
-        print('changes: ', changes)
-        return changes, curr_time + step
+        '''
+        print('time')
+        print(sol.t)
+        print('state')
+        print(sol.y)
+        end_time = sol.t_events[0][0] if len(sol.t_events[0]) else sol.t[-1]
+        print('end of step: ', end_time)
+        current = sol.y[:, -1]
+        #current = rhs.integrate(int_time)  # current holds integration from current_time to int_time
+        print('returning: ', current)
+        return current, end_time
 
     def __get_reactions(self, integrator, integrator_options, step, curr_state, y0, model, curr_time, 
                         save_time, propensities, species, parameters, compiled_reactions,
@@ -247,7 +271,7 @@ class BasicTauHybridSolver(GillesPySolver):
 
         # UPDATE THE STATE of the continuous species
         for i, s in enumerate(species):
-            curr_state[s] -= current[i]
+            curr_state[s] = current[i]
 
         # UPDATE THE STATE of the discrete reactions
         for i, r in enumerate(compiled_reactions):
@@ -274,7 +298,7 @@ class BasicTauHybridSolver(GillesPySolver):
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
             debug=False, profile=False, show_labels=True, switch_tol=0.03, tau_tol=0.03, 
-            integrator='vode', integrator_options={}, **kwargs):
+            integrator='RK45', integrator_options={}, **kwargs):
         """
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
         objects and will inherit those parameters which are passed with the model as the arguments this run function.
