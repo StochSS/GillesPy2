@@ -11,7 +11,7 @@ def _plot_iterate(self, show_labels = True, included_species_list = []):
             if species not in included_species_list and included_species_list:
                 continue
 
-            line_color = 'C' + str(i)
+            line_color = 'C' + str(i%10)
 
             if show_labels:
                 label = species
@@ -98,7 +98,7 @@ class Results(UserDict):
         raise KeyError(key)
 
     def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None, style="default",
-             show_legend=True, included_species_list=[],save_png=False):
+             show_legend=True, included_species_list=[],save_png=False,figsize = (18,10)):
         """ Plots the Results using matplotlib.
 
          Attributes
@@ -113,6 +113,12 @@ class Results(UserDict):
             whether or not to display a legend which lists species
         included_species_list : list
             A list of strings describing which species to include. By default displays all species.
+        save_png : bool or str
+            Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file
+            is named after that string.
+        figsize : tuple
+            the size of the graph. A tuple of the form (width,height). Is (18,10) by default.
+
         """
         import matplotlib.pyplot as plt
 
@@ -125,7 +131,7 @@ class Results(UserDict):
         if title is None:
             title = (self.model.name + " - " + self.solver_name)
 
-        plt.figure(figsize=(18, 10))
+        plt.figure(figsize=figsize)
         plt.title(title,fontsize=18)
         plt.xlabel(xaxis_label)
         plt.ylabel(yaxis_label)
@@ -137,7 +143,10 @@ class Results(UserDict):
         if show_legend:
             plt.legend(loc='best')
 
-        if save_png:
+        if isinstance(save_png, str):
+            plt.savefig(save_png)
+
+        elif save_png:
             plt.savefig(title)
 
 
@@ -200,7 +209,7 @@ class EnsembleResults(UserList):
         self.data = data
 
     def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", style="default", title = None,
-             show_legend=True, multiple_graphs = False, included_species_list=[]):
+             show_legend=True, multiple_graphs = False, included_species_list=[],save_png=False,figsize = (18,10)):
         """ Plots the Results using matplotlib.
 
         Attributes
@@ -217,13 +226,21 @@ class EnsembleResults(UserList):
             if each trajectory should have its own graph or if they should overlap
         included_species_list : list
              A list of strings describing which species to include. By default displays all species.
+        save_png : bool or str
+            Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file
+            is named after that string.
+        figsize : tuple
+            the size of the graph. A tuple of the form (width,height). Is (18,10) by default.
+
 
             """
         import matplotlib.pyplot as plt
         results_list = self.data
 
         if title is None:
-            title = (self[0].model.name + " - " + self[0].solver_name)
+            if isinstance(self[0].model.name, str):
+                title = (self[0].model.name + " - " + self[0].solver_name)
+            else: title=''
 
         if len(results_list) < 2:
                 multiple_graphs = False
@@ -231,8 +248,13 @@ class EnsembleResults(UserList):
         if multiple_graphs:
 
             for i,result in enumerate(results_list):
-                result.plot(xaxis_label=xaxis_label, yaxis_label=yaxis_label, title=title + " " + str(i + 1), style=style,
-                                                 included_species_list=included_species_list)
+
+                if isinstance(save_png, str):
+                    result.plot(xaxis_label=xaxis_label, yaxis_label=yaxis_label, title=title + " " + str(i + 1), style=style,
+                                                 included_species_list=included_species_list,save_png=save_png + str(i + 1),figsize=figsize)
+                else:
+                    result.plot(xaxis_label=xaxis_label, yaxis_label=yaxis_label, title=title + " " + str(i + 1),style=style,
+                                included_species_list=included_species_list, save_png=save_png, figsize=figsize)
 
         else:
             try:
@@ -241,7 +263,7 @@ class EnsembleResults(UserList):
                 warnings.warn("Invalid matplotlib style. Try using one of the following {}".format(plt.style.available))
                 plt.style.use("default")
 
-            plt.figure(figsize=(18, 10))
+            plt.figure(figsize=figsize)
             plt.title(title, fontsize=18)
             plt.xlabel(xaxis_label)
             plt.ylabel(yaxis_label)
@@ -256,6 +278,12 @@ class EnsembleResults(UserList):
             if show_legend:
                 plt.legend(loc='best')
             plt.plot([0], [11])
+
+            if isinstance(save_png, str):
+                plt.savefig(save_png)
+
+            elif save_png:
+                plt.savefig(title)
 
     def plotplotly(self, xaxis_label = "Time (s)", yaxis_label="Species Population", title = None, show_legend=True,
                    multiple_graphs = False, included_species_list=[],return_plotly_figure=False):
@@ -533,7 +561,7 @@ class EnsembleResults(UserList):
             return fig
 
     def plot_std_dev_range(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None,
-                           style="default", show_legend=True, included_species_list=[],ddof=0):
+                           style="default", show_legend=True, included_species_list=[],ddof=0,save_png = False,figsize = (18,10)):
         """
             Plot a matplotlib graph depicting standard deviation and the mean graph of an ensemble_results object
 
@@ -553,6 +581,11 @@ class EnsembleResults(UserList):
             Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
             the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
             standard deviation where ddof is 0.
+        save_png : bool or str
+            Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file
+            is named after that string.
+        figsize : tuple
+            the size of the graph. A tuple of the form (width,height). Is (18,10) by default.
 
         """
 
@@ -567,7 +600,7 @@ class EnsembleResults(UserList):
             warnings.warn("Invalid matplotlib style. Try using one of the following {}".format(plt.style.available))
             plt.style.use("default")
 
-        plt.figure(figsize=(18, 10))
+        plt.figure(figsize=figsize)
 
         for species in average_result:
             if species is 'time':
@@ -593,3 +626,10 @@ class EnsembleResults(UserList):
         if show_legend:
             plt.legend(loc='best')
 
+        if isinstance(save_png, str):
+            plt.savefig(save_png)
+
+        elif save_png:
+            plt.savefig(title)
+
+        

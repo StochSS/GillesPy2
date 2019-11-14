@@ -161,14 +161,14 @@ class SSACSolver(GillesPySolver):
 
     def run(self=None, model=None, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, profile=False, show_labels=True, **kwargs):
-        if self is None:
+        if self is None or self.model is None:
             self = SSACSolver(model)
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
         if self.compiled:
             self.simulation_data = None
-            number_timesteps = int(t//increment + 1)                    
+            number_timesteps = int(round(t/increment + 1))
             # Execute simulation.
             args = [os.path.join(self.output_directory, 'UserSimulation'), '-trajectories', str(number_of_trajectories), '-timesteps', str(number_timesteps), '-end', str(t)]
             if seed is not None:

@@ -1,17 +1,26 @@
 import unittest
 import numpy as np
+
+import gillespy2
 from gillespy2.example_models import Example
+from gillespy2.core.results import EnsembleResults, Results
 from gillespy2.solvers.cpp.ssa_c_solver import SSACSolver
-from gillespy2.solvers.cython.cython_ssa_solver import CythonSSASolver
 from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
 from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver
 from gillespy2.solvers.numpy.basic_tau_leaping_solver import BasicTauLeapingSolver
 from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
-from gillespy2.core.results import EnsembleResults,Results
+
+from gillespy2.solvers.cython import can_use_cython
+if can_use_cython:
+    from gillespy2.solvers.cython.cython_ssa_solver import CythonSSASolver
+
 
 class TestAllSolvers(unittest.TestCase):
 
-    solvers = [SSACSolver, BasicODESolver, NumPySSASolver, BasicTauLeapingSolver, BasicTauHybridSolver, CythonSSASolver]
+    solvers = [SSACSolver, BasicODESolver, NumPySSASolver, BasicTauLeapingSolver, BasicTauHybridSolver]
+    if can_use_cython:
+        solvers.append(CythonSSASolver)
+
     model = Example()
     results = {}
     labeled_results = {}
@@ -21,6 +30,10 @@ class TestAllSolvers(unittest.TestCase):
         results[solver] = model.run(solver=solver, show_labels=False, seed=1)
         labeled_results[solver] = model.run(solver=solver, show_labels=True,number_of_trajectories=1)
         labeled_results_more_trajectories[solver] = model.run(solver=solver, show_labels=True,number_of_trajectories=2)
+
+    def test_instantiated(self):
+        for solver in self.solvers:
+            self.model.run(solver=solver())
 
     def test_return_type(self):
         for solver in self.solvers:

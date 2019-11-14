@@ -2,14 +2,6 @@
 A simple toolkit for creating and simulating discrete stochastic models in
 python.
 
-This serves primarily as a python wrapper for the C-based solvers within
-StochKit2. The gillespy.Model class provides nearly all of the functionality
-present in this project.
-
-This version is updated (4/2017) to contain documentation in a more reasonable
-format. This does not necessarily mean it is perfect, but it is certainly an
-improvement over the original.
-
 """
 from __future__ import division
 from collections import OrderedDict
@@ -54,7 +46,59 @@ def import_SBML(filename, name=None, gillespy_model=None):
     return convert(filename, model_name=name, gillespy_model=gillespy_model)
 
 
-class Model(object):
+class SortableObject(object):
+    """Base class for GillesPy2 objects that are sortable."""
+
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__)
+                and ordered(self) == ordered(other))
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __gt__(self, other):
+        return not __le__(self, other)
+
+    def __ge__(self, other):
+        return not __lt__(self, other)
+
+    def __lt__(self, other):
+        if hasattr(self, 'id') and hasattr(other, 'id'):
+            return self.id.lower() < other.id.lower()
+        elif hasattr(self, 'name') and hasattr(other, 'name'):
+            return self.name.lower() < other.name.lower()
+        else:
+            return repr(self) < repr(other)
+
+    def __le__(self, other):
+        if hasattr(self, 'id') and hasattr(other, 'id'):
+            return self.id.lower() <= other.id.lower()
+        elif hasattr(self, 'name') and hasattr(other, 'name'):
+            return self.name.lower() <= other.name.lower()
+        else:
+            return repr(self) <= repr(other)
+
+    def __cmp__(self, other):
+        if hasattr(self, 'id') and hasattr(other, 'id'):
+            return cmp(self.id.lower(), other.id.lower())
+        elif hasattr(self, 'name') and hasattr(other, 'name'):
+            return cmp(self.name.lower(), other.name.lower())
+        else:
+            return cmp(repr(self), repr(other))
+
+    def __hash__(self):
+        if hasattr(self, '_hash'):
+            return self._hash
+        if hasattr(self, 'id'):
+            self._hash = hash(self.id)
+        elif hasattr(self, 'name'):
+            self._hash = hash(self.name)
+        else:
+            self._hash = hash(self)
+        return self._hash
+
+
+class Model(SortableObject):
     # reserved names for model species/parameter names, volume, and operators.
     reserved_names = ['vol']
     special_characters = ['[', ']', '+', '-', '*', '/', '.', '^']
@@ -139,7 +183,7 @@ class Model(object):
         :return: the dictionary mapping user species names to their internal GillesPy notation.
         """
         species_name_mapping = OrderedDict([])
-        for i, name in enumerate(self.listOfSpecies.keys()):
+        for i, name in enumerate(sorted(self.listOfSpecies.keys())):
             species_name_mapping[name] = 'S[{}]'.format(i)
         return species_name_mapping
 
@@ -190,7 +234,7 @@ class Model(object):
                 raise problem
             self.listOfSpecies[obj.name] = obj
         elif isinstance(obj, list):
-            for S in obj:
+            for S in sorted(obj):
                 self.add_species(S)
         else:
             raise ModelError("Unexpected parameter for add_species. Parameter must be Species or list of Species.")
@@ -235,7 +279,7 @@ class Model(object):
         """
         parameter_name_mapping = OrderedDict()
         parameter_name_mapping['vol'] = 'V'
-        for i, name in enumerate(self.listOfParameters.keys()):
+        for i, name in enumerate(sorted(self.listOfParameters.keys())):
             if name not in parameter_name_mapping:
                 parameter_name_mapping[name] = 'P{}'.format(i)
         return parameter_name_mapping
@@ -271,8 +315,8 @@ class Model(object):
         obj : Parameter, or list of Parameters
             The parameter or list of parameters to be added to the model object.
         """
-        if isinstance(params,list): 
-            for p in params:
+        if isinstance(params,list):
+            for p in sorted(params):
                 self.add_parameter(p)
         else:
             if isinstance(params, Parameter):
@@ -354,7 +398,7 @@ class Model(object):
 
         # TODO, make sure that you cannot overwrite an existing reaction
         if isinstance(reactions,list):
-            for r in reactions:
+            for r in sorted(reactions):
                 self.add_reaction(r)
         elif isinstance(reactions,Reaction):
             reactions.verify()
@@ -380,9 +424,12 @@ class Model(object):
         # TODO, make sure that you cannot overwrite an existing reaction
         # param_type = type(reactions).__name__
         if isinstance(rate_rules, list):
-            for rr in rate_rules:
+            for rr in sorted(rate_rules):
                 self.add_rate_rule(rr)
         elif isinstance(rate_rules, RateRule):
+            if rate_rules.species is None or not isinstance(rate_rules.species, Species): raise ModelError(
+                'A Rate Rule must be associated with a valid species.')
+            if rate_rules.expression == '': raise ModelError('Invalid Rate Rule. Expression must be a non-empty string value')
             self.listOfRateRules[rate_rules.species.name] = rate_rules
         else:
             raise ParameterError("Add_rate_rule accepts a RateRule object or a List of RateRule Objects")
@@ -424,6 +471,14 @@ class Model(object):
         Function calling simulation of the model. There are a number of
         parameters to be set here.
 
+        Return
+        ----------
+
+        If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is True and
+        number_of_trajectories is 1, returns a results object that inherits UserDict and supports plotting functions.
+        If show_labels is False and number_of_trajectories is greater than 1, returns an ensemble_results object that
+        inherits UserList and contains results objects and supports ensemble graphing.
+
         Attributes
         ----------
         number_of_trajectories : int
@@ -457,6 +512,7 @@ class Model(object):
                     "argument 'solver' to run() must be a subclass of GillesPySolver")
         else:
             from gillespy2.solvers.auto import SSASolver
+            solver = SSASolver
             solver_results = SSASolver.run(model=self, t=self.tspan[-1],
                                       increment=self.tspan[-1] - self.tspan[-2], **solver_args)
 
@@ -474,7 +530,8 @@ class Model(object):
         else:
             raise ValueError("number_of_trajectories must be non-negative and non-zero")
 
-class Species:
+
+class Species(SortableObject):
     """
     Chemical species. Can be added to Model object to interact with other
     species or time.
@@ -519,7 +576,7 @@ non-negative unless allow_negative_populations=True')
         return self.name
 
 
-class Parameter:
+class Parameter(SortableObject):
     """
     A parameter can be given as an expression (function) or directly
     as a value (scalar). If given an expression, it should be
@@ -592,14 +649,14 @@ class Parameter:
 
 
 class RateRule:
-    def __init__(self, species, expression, name=None):
+    def __init__(self, species=None, expression='', name=None):
         self.expression = expression
         self.species = species
         self.name = name
 
 
 
-class Reaction:
+class Reaction(SortableObject):
     """
     Models a single reaction. A reaction has its own dicts of species
     (reactants and products) and parameters. The reaction's propensity
@@ -633,8 +690,8 @@ class Reaction:
     For a species that is NOT consumed in the reaction but is part of a mass
     action reaction, add it as both a reactant and a product.
 
-    Mass-action reactions must also have a rate term added. Note that the rate
-    must be scaled by the volume prior to being added for unit consistency.
+    Mass-action reactions must also have a rate term added. Note that the input
+    rate represents the mass-action constant rate independent of volume.
     """
 
     def __init__(self, name="", reactants={}, products={},
@@ -708,7 +765,7 @@ class Reaction:
         # Users can still create such propensities if they really want to,
         # but should then use a custom propensity.
         total_stoch = 0
-        for r in self.reactants:
+        for r in sorted(self.reactants):
             total_stoch += self.reactants[r]
         if total_stoch > 2:
             raise ReactionError("Reaction: A mass-action reaction cannot involve more than two of one species or one "
@@ -719,10 +776,10 @@ class Reaction:
         ode_propensity_function = self.marate.name
 
         # There are only three ways to get 'total_stoch==2':
-        for r in self.reactants:
+        for r in sorted(self.reactants):
             # Case 1: 2X -> Y
             if self.reactants[r] == 2:
-                propensity_function = ("0.5*" + propensity_function +
+                propensity_function = (propensity_function +
                                        "*" + str(r) + "*(" + str(r) + "-1)/vol")
                 ode_propensity_function += '*' + str(r) + '*' + str(r)
             else:
@@ -796,9 +853,9 @@ class Reaction:
         self.annotation = annotation
 
     def sanitized_propensity_function(self, species_mappings, parameter_mappings):
-        names = list(species_mappings.keys()) + list(parameter_mappings.keys())
-        names.sort(key=lambda name: -len(name))
-        replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name] for name in names]
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()))
+        replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
+                        for name in names]
         sanitized_propensity = self.propensity_function
         for id, name in enumerate(names):
             sanitized_propensity = sanitized_propensity.replace(name, "{"+str(id)+"}")

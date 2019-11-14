@@ -1,12 +1,15 @@
 import unittest, sys, os
 import argparse
-import pyximport
 
-pyximport.install()
+try:
+    import pyximport
+    pyximport.install()
+except Exception:
+    pass
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-m', '--mode', default='develop', choices=['develop', 'release'], help='Run tests in develop mode or release mode.')
-
+parser.add_argument('-m', '--mode', default='develop', choices=['develop', 'release'],
+                    help='Run tests in develop mode or release mode.')
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -15,7 +18,7 @@ if __name__ == '__main__':
         sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 
-    # import test_cython_ssa_solver
+    import test_cython_ssa_solver
     import test_empty_model
     import test_model
     import test_ode_solver
@@ -26,7 +29,7 @@ if __name__ == '__main__':
     import test_all_solvers
 
     modules = [
-        # test_cython_ssa_solver,
+        test_cython_ssa_solver,
         test_empty_model,
         test_model,
         test_ode_solver,
