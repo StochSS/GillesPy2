@@ -2,6 +2,7 @@ import random, math, sys, warnings
 from collections import OrderedDict
 from scipy.integrate import ode
 import numpy as np
+import signal
 import gillespy2
 from gillespy2.solvers.numpy import Tau
 from gillespy2.core import GillesPySolver, log
@@ -20,10 +21,13 @@ class BasicTauHybridSolver(GillesPySolver):
     run-time performance with little accuracy trade-off.
     """
     name = "BasicTauHybridSolver"
+    interrupted = False
+    rc = 0
 
     def __init__(self):
         name = 'BasicTauHybridSolver'
-           
+        interrupted = False
+        rc = 0  
         
     def toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, curr_state, rxn_offset, det_spec):
         
@@ -277,6 +281,12 @@ class BasicTauHybridSolver(GillesPySolver):
             Example use: {max_step : 0, rtol : .01}
         """
 
+        def timed_out(signum, frame):
+            self.interrupted = True
+            self.rc = 33
+
+        signal.signal(signal.SIGALRM, timed_out)
+
         if not isinstance(self, BasicTauHybridSolver):
             self = BasicTauHybridSolver()
 
@@ -298,7 +308,7 @@ class BasicTauHybridSolver(GillesPySolver):
         timeline = np.linspace(0, t, round(t / increment + 1))
 
         # create numpy matrix to mark all state data of time and species
-        trajectory_base = np.empty((number_of_trajectories, timeline.size, number_species + 1))
+        trajectory_base = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
 
         # copy time values to all trajectory row starts
         trajectory_base[:, :, 0] = timeline
@@ -343,6 +353,7 @@ class BasicTauHybridSolver(GillesPySolver):
                 raise ModelError('seed must be a positive integer')
         for trajectory_num in range(number_of_trajectories):
 
+            if self.interrupted: break
 
             steps_taken = [] # For use with profile=True
             steps_rejected = 0 # For use with profile=True, incremented when negative state detected
@@ -400,9 +411,11 @@ class BasicTauHybridSolver(GillesPySolver):
 
             # Each save step
             while entry_count < timeline.size:
+                if self.interrupted: break
 
                 # Until save step reached
                 while curr_time < save_time:
+                    if self.interrupted: break
 
                     # Get current propensities
                     for i, r in enumerate(model.listOfReactions):
@@ -513,4 +526,4 @@ class BasicTauHybridSolver(GillesPySolver):
                 print("Total Steps Taken: ", len(steps_taken))
                 print("Total Steps Rejected: ", steps_rejected)
 
-        return simulation_data
+        return simulation_data, self.rc

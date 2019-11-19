@@ -1,5 +1,6 @@
 import gillespy2
 from gillespy2.core import Model, Reaction, gillespyError, GillesPySolver, log
+import signal, time #for solver timeout implementation
 import os #for getting directories for C++ files
 import shutil #for deleting/copying files
 import subprocess #For calling make and executing c solver
@@ -159,7 +160,7 @@ class SSACSolver(GillesPySolver):
         else:
             raise gillespyError.BuildError("Error encountered while compiling file:\nReturn code: {0}.\nError:\n{1}\n{2}\n".format(built.returncode, built.stdout.decode('utf-8'),built.stderr.decode('utf-8')))
 
-    def run(self=None, model=None, t=20, number_of_trajectories=1,
+    def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
             increment=0.05, seed=None, debug=False, profile=False, show_labels=True, **kwargs):
         if self is None or self.model is None:
             self = SSACSolver(model)
@@ -182,11 +183,24 @@ class SSACSolver(GillesPySolver):
                         args.append(str(seed_int))
                     else:
                         raise ModelError("seed must be a positive integer")
-                
-            simulation = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            #begin subprocess c simulation with timeout (default timeout=0 will not timeout)
+            with subprocess.Popen(args, stdout=subprocess.PIPE, preexec_fn=os.setsid) as simulation:
+                return_code = 0
+                try:
+                    if timeout > 0:
+                        stdout, stderr = simulation.communicate(timeout=timeout)
+                    else:
+                        stdout, stderr = simulation.communicate()
+                    return_code = simulation.wait()
+                except subprocess.TimeoutExpired:
+                        os.killpg(simulation.pid, signal.SIGINT) #send signal to the process group
+                        stdout, stderr = simulation.communicate()
+                        return_code = 33
+ 
             # Parse/return results.
-            if simulation.returncode == 0:
-                trajectory_base = parse_binary_output(simulation.stdout, number_of_trajectories, number_timesteps, len(self.species))
+            if return_code in [0, 33]:
+                trajectory_base = parse_binary_output(stdout, number_of_trajectories, number_timesteps, len(self.species))
                 # Format results
                 if show_labels:
                     self.simulation_data = []
@@ -199,5 +213,5 @@ class SSACSolver(GillesPySolver):
                     self.simulation_data = trajectory_base
             else:
                 raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:\nReturn code: {0}.\nError:\n{1}\n".format(simulation.returncode, simulation.stderr))
-        return self.simulation_data
+        return self.simulation_data, return_code
 
