@@ -157,35 +157,47 @@ class BasicTauHybridSolver(GillesPySolver):
     
     @staticmethod
     def __eval_event(event, curr_state):
-        print(event.name)
+        # DO NOT fire event at start time of integration
+        t = curr_state['t']
+        if curr_state['t'] == curr_state['t0']:
+            curr_state['t'] += 1
+
+        res = 0
+
         if '>=' in event.trigger.expression:
             lhs, rhs = event.trigger.expression.split('>=')
             #False to True
-            return eval(lhs, eval_globals, curr_state) - eval(rhs,
+            res = eval(lhs, eval_globals, curr_state) - eval(rhs,
                 eval_globals, curr_state)
         elif '>' in event.trigger.expression:
             lhs, rhs = event.trigger.expression.split('>')
             #False to True
-            return eval(lhs, eval_globals, curr_state) - eval(rhs,
+            res = eval(lhs, eval_globals, curr_state) - eval(rhs,
                 eval_globals, curr_state)
         elif '<=' in event.trigger.expression:
             lhs, rhs = event.trigger.expression.split('<=')
             # False to True
-            return eval(rhs, eval_globals, curr_state) - eval(lhs,
+            res = eval(rhs, eval_globals, curr_state) - eval(lhs,
                 eval_globals, curr_state)
         elif '<' in event.trigger.expression:
             lhs, rhs = event.trigger.expression.split('<')
             # False to True
+            
             return eval(rhs, eval_globals, curr_state) - eval(lhs,
                 eval_globals, curr_state)
 
         elif '==' in event.trigger.expression:
             lhs, rhs = event.trigger.expression.split('==')
-            return abs(eval(lhs, eval_globals, curr_state) - eval(rhs,
+            res = abs(eval(lhs, eval_globals, curr_state) - eval(rhs,
                 eval_globals, curr_state))
         elif '!=' in event.trigger.expression:
             lhs, rhs = event.trigger.expression.split('!=')
         else: print('no comparator found')
+
+        curr_state['t'] = t
+
+        return res
+
 
     @staticmethod
     def __f(t, y, curr_state, species, reactions, rate_rules, propensities,
@@ -207,25 +219,17 @@ class BasicTauHybridSolver(GillesPySolver):
 
     @staticmethod
     def __event(curr_state, species, reactions, rate_rules, propensities,
-    y_map, compiled_reactions, compiled_rate_rules, event_queue, event, t, y):
+    y_map, compiled_reactions, compiled_rate_rules, event_queue, event,
+    t, y):
         curr_state['t'] = t
 
-        print('INSIDE EVENT FUNCTION')
-        print(event.name)
-        print(event.trigger.expression)
-        print('evaluated at: ', curr_state['t'])
         for item, index in y_map.items():
             curr_state[item] = y[index]
 
+        # Detect "Changes" in trigger truth value
         res = BasicTauHybridSolver.__eval_event(event, curr_state)
-        print('result: ', res)
-        triggered = True if res >= 0 else False
-        print('Triggered: ', triggered)
-        if  triggered and not event.trigger.value:
-            print('EVENT FIRED at ', t, '! STOP!')
-            heapq.heappush(event_queue, (eval(event.priority), event.name))
-        #if event.trigger.value and triggered: res = 1
-        event.trigger.value = triggered
+        if not res: # If root is crossed, record firing time to curr_state
+            curr_state[event.name] = t
         return res
 
         
@@ -236,46 +240,65 @@ class BasicTauHybridSolver(GillesPySolver):
                                  compiled_rate_rules, event_queue, entry_pos):
         """ Helper function to perform the ODE integration of one step """
         from functools import partial
-        print('begin integration step: trigger values:')
-        print({e.name:e.trigger.value for e in model.listOfEvents.values()})
-        for e in model.listOfEvents.values():
-            curr_state[e.name] = e.trigger.value
         int_args = [curr_state, model.listOfSpecies, model.listOfReactions,
                                                           model.listOfRateRules,
                                                           propensities, y_map, 
                                                           compiled_reactions,
                                                           compiled_rate_rules]
+
         rhs = lambda t, y: BasicTauHybridSolver.__f(t, y, *int_args)
         event_calls = [partial(BasicTauHybridSolver.__event, *int_args,
         event_queue, e) for e in model.listOfEvents.values()]
         for e in event_calls:
-            e.func_defaults = (e,)
             e.terminal=True
-            e.direction=1
-        print('curr time: ', curr_time)
-        print('end time: ', model.tspan[-1])
-        print('entry pos: ', entry_pos)
-        print('time at entry pos: ', model.tspan[entry_pos])
-        print('curr time same as entry time? ', curr_time == model.tspan[entry_pos])
-        print('t_eval: ', np.hstack((curr_time, model.tspan[entry_pos:])))
+
+        curr_state['t0'] = curr_time
+        curr_state['t'] = curr_time
+
+        # Get evaluation points
         if curr_time == model.tspan[entry_pos]:
             t_eval = model.tspan[entry_pos:]
+        # If re-starting from an event, include event time
         else:
             t_eval = np.hstack((curr_time, model.tspan[entry_pos:]))
+
+        # Get Truth value of triggers before integration
+        for e in model.listOfEvents.values():
+            e.trigger.value = eval(e.trigger.expression, eval_globals,
+                curr_state)
+
+        # Integrate until end or event is reached
         sol = solve_ivp(rhs, [curr_time, model.tspan[-1]], y0, 
-            t_eval=t_eval, events=event_calls, method='RK45',
+            t_eval=t_eval, events=event_calls, method='LSODA',
             options=integrator_options, dense_output=True)
+
+        curr_time = sol.t[-1]
+
+        for i, event in enumerate(model.listOfEvents.values()):
+            fired = len(sol.t_events[i]) # non-zero if fired
+            # IF Event Fired this step, and not previous step (F->T)
+            if fired and not event.trigger.value:
+                # Update trigger value
+                event.trigger.value = True
+                # Add the event to priority heap
+                heapq.heappush(event_queue, (eval(event.priority), event.name))
+            # IF Event Fired previously, but not this step (T->F)
+            elif fired and event.trigger.value:
+                # Update trigger value
+                event.trigger.value = False
         while event_queue:
+            # Get events in priority order
             fired_event = model.listOfEvents[heapq.heappop(event_queue)[1]]
-            fired_event.trigger.value = True
             for a in fired_event.assignments:
+                # Get assignment value
                 assign_value = eval(a.expression, eval_globals, curr_state)
+                # Update state of assignment variable
                 curr_state[a.variable.name] = assign_value
-                if sol.t_events[0] == sol.t[-1]:
+                # Update results at this integration step
+                if sol.t[-1] in sol.t_events[:][0]:
                     sol.y[y_map[a.variable.name]][-1] = assign_value
-        print('end integration step: trigger values:')
-        print({e.name:e.trigger.value for e in model.listOfEvents.values()})
-        return sol
+
+        return sol, curr_time
 
     def __get_reactions(self, integrator, integrator_options, curr_state, y0, model, curr_time, 
                         propensities, species, parameters, compiled_reactions,
@@ -291,9 +314,7 @@ class BasicTauHybridSolver(GillesPySolver):
         """
 
         event_queue = []
-        print('before integration')
-        print({e.name:e.trigger.value for e in model.listOfEvents.values()})
-        sol = self.__get_reaction_integrate(integrator, integrator_options, curr_state, 
+        sol, curr_time = self.__get_reaction_integrate(integrator, integrator_options, curr_state, 
                                                            y0, model, curr_time, propensities, y_map, 
                                                            compiled_reactions,
                                                            compiled_rate_rules,
@@ -319,10 +340,6 @@ class BasicTauHybridSolver(GillesPySolver):
                 current[i+len(compiled_rate_rules)] += urn
                 curr_state[r] += urn
         '''
-        if len(sol.t_events[0]):
-            curr_time = sol.t_events[0]
-        else:
-            curr_time = sol.t[-1]
 
         return sol, curr_state, curr_time
 
@@ -440,7 +457,7 @@ class BasicTauHybridSolver(GillesPySolver):
             curr_state = OrderedDict() # Current state of the system
             curr_time = 0 # Current Simulation Time
             end_time = model.tspan[-1] # End of Simulation time
-            entry_pos = 0
+            entry_pos = 1
             curr_state['vol'] = model.volume # Model volume
             data = OrderedDict() # Dictionary for show_labels results
             data['time'] = timeline # All time entries for show_labels results
@@ -458,6 +475,10 @@ class BasicTauHybridSolver(GillesPySolver):
                 curr_state[r] = math.log(random.uniform(0, 1))
                 if debug:
                     print("Setting Random number ", curr_state[r], " for ", model.listOfReactions[r].name)
+
+            # Initialize event last-fired times to 0
+            for e_name in model.listOfEvents:
+                curr_state[e_name] = 0
 
             # One-time compilations to reduce time spent with eval
             compiled_reactions = OrderedDict()
@@ -526,30 +547,13 @@ class BasicTauHybridSolver(GillesPySolver):
                     curr_state, y0, model, curr_time, propensities, species, 
                     parameters, compiled_reactions, active_rr, y_map,
                     entry_pos, debug)
-                print('sol.t')
-                print(sol.t)
-                print('model.tspan')
-                print(model.tspan)
-                print('completed __get reactions at ', curr_time)
-                print(sol)
                 num_entries = 0
-                for i in range(len(sol.t)):
+                for i in range(1, len(sol.t)):
                     if sol.t[i] in model.tspan:
                         for s in range(number_species):
-                            print('entering value for ', species[s])
-                            print('time entry: ', i)
-                            print('species entry: ', s+1)
-                            print('entry_pos: ', entry_pos)
-                            print('actual pos: ', num_entries+entry_pos)
-                            print('entry: ', sol.y[s][i])
                             trajectory_base[trajectory_num][num_entries+entry_pos][s+1] = sol.y[s][i]
                         num_entries += 1
-                print('trajectory_base: ', trajectory_base)
                 entry_pos += num_entries
-                #entry_pos = len(sol.y[0])-1
-                print('len sol y entry pos ', entry_pos)
-                print('time: ', curr_time)
-                print('base: ', trajectory_base)
                 # TODO WILL HAVE TO UPDATE THIS TO NEW API
                 '''
                 # Update curr_state with the result of the SSA reaction that fired
