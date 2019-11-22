@@ -1,3 +1,15 @@
+# TODO
+'''
+
+the ODE Solution object returned by dense output can be passed an array of data
+points.  We can use this, along with including the boolean results of all
+events in the passed state vector in order to obtain a reasonable time for
+event firings.  The dense output datapoints will require a granularity, which
+can be controlled via some user supplied error tolerance
+'''
+
+
+
 import random, math, sys, warnings
 from collections import OrderedDict
 from scipy.integrate import ode, solve_ivp
@@ -159,8 +171,6 @@ class BasicTauHybridSolver(GillesPySolver):
     def __eval_event(event, curr_state):
         # DO NOT fire event at start time of integration
         t = curr_state['t']
-        if curr_state['t'] == curr_state['t0']:
-            curr_state['t'] += 1
 
         res = 0
 
@@ -235,9 +245,9 @@ class BasicTauHybridSolver(GillesPySolver):
         
 
     @staticmethod
-    def __get_reaction_integrate(integrator, integrator_options, curr_state, y0, model, curr_time, 
+    def __integrate(integrator, integrator_options, curr_state, y0, model, curr_time, 
                                  propensities, y_map, compiled_reactions,
-                                 compiled_rate_rules, event_queue, entry_pos):
+                                 compiled_rate_rules, event_queue):
         """ Helper function to perform the ODE integration of one step """
         from functools import partial
         int_args = [curr_state, model.listOfSpecies, model.listOfReactions,
@@ -249,18 +259,10 @@ class BasicTauHybridSolver(GillesPySolver):
         rhs = lambda t, y: BasicTauHybridSolver.__f(t, y, *int_args)
         event_calls = [partial(BasicTauHybridSolver.__event, *int_args,
         event_queue, e) for e in model.listOfEvents.values()]
-        for e in event_calls:
-            e.terminal=True
 
+        print('curr time: ', curr_time)
         curr_state['t0'] = curr_time
         curr_state['t'] = curr_time
-
-        # Get evaluation points
-        if curr_time == model.tspan[entry_pos]:
-            t_eval = model.tspan[entry_pos:]
-        # If re-starting from an event, include event time
-        else:
-            t_eval = np.hstack((curr_time, model.tspan[entry_pos:]))
 
         # Get Truth value of triggers before integration
         for e in model.listOfEvents.values():
@@ -269,23 +271,83 @@ class BasicTauHybridSolver(GillesPySolver):
 
         # Integrate until end or event is reached
         sol = solve_ivp(rhs, [curr_time, model.tspan[-1]], y0, 
-            t_eval=t_eval, events=event_calls, method='LSODA',
+            events=event_calls, method='LSODA',
             options=integrator_options, dense_output=True)
+        print(sol)
 
-        curr_time = sol.t[-1]
 
-        for i, event in enumerate(model.listOfEvents.values()):
-            fired = len(sol.t_events[i]) # non-zero if fired
-            # IF Event Fired this step, and not previous step (F->T)
-            if fired and not event.trigger.value:
-                # Update trigger value
+
+        return sol, curr_time
+
+    def __simulate(self, integrator, integrator_options, curr_state, y0, model, curr_time, 
+                        propensities, species, parameters, compiled_reactions,
+                        compiled_rate_rules, y_map, trajectory, save_times, debug):
+        """
+        Function to get reactions fired from t to t+tau.  This function solves for root crossings
+        of each reaction channel from over tau step, using poisson random number generation
+        to calculate distance to the root.  Returns four values:
+        rxn_count - dict with key=Reaction channel value=number of times fired
+        current - list containing current displacement of each reaction channel for calculating fired reactions.
+        curr_state - dict containing all state variables for system at current time
+        curr_time - float representing current time
+        """
+
+        event_queue = []
+        sol, curr_time = self.__integrate(integrator, integrator_options, curr_state, 
+                                                           y0, model, curr_time, propensities, y_map, 
+                                                           compiled_reactions,
+                                                           compiled_rate_rules,
+                                                           event_queue)
+
+        print(sol.t_events)
+        next_events = {}
+        for i, e in enumerate(model.listOfEvents.values()):
+            if len(sol.t_events[i]):
+                print('find next event')
+                print(sol.t_events[i][0])
+                print('curr_time: ', curr_time)
+                if sol.t_events[i][0] > curr_time:
+                    if sol.t_events[i][0] in next_events:
+                        next_events[sol.t_events[i][0]].append(e)
+                    else:
+                        next_events[sol.t_events[i][0]] = [e]
+        print(next_events)
+        # Find time of next event, default end of simulation
+        next_event_time = model.tspan[-1]
+        for event in sol.t_events:
+            if len(event):
+                if event[0] == curr_time: continue
+                next_event_time = min(next_event_time, event[0])
+        print(curr_time)
+        events_fired = []
+        if len(next_events):
+            events_fired = next_events[next_event_time]
+            print('events fired: ', events_fired)
+        print(next_event_time)
+        print('state at event before assignment:')
+        print(sol.sol(next_event_time))
+        print(sol.sol([1, 2, 3]))
+        print('save times: ', save_times)
+        # Each Save Time crossed
+        num_saves = 0
+        for time in save_times:
+            # if a solution is given for it
+            if time <= next_event_time:
+                trajectory_index = np.where(model.tspan == time)[0][0]
+                for s in range(len(species)):
+                    trajectory[trajectory_index][s+1] = sol.sol(time)[s]
+                num_saves += 1
+        print('recorded trajectory:\n', trajectory)
+        save_times = save_times[num_saves:]
+        print('remaining save times: ', save_times)
+
+        for event in events_fired:
+            if not event.trigger.value:
                 event.trigger.value = True
-                # Add the event to priority heap
                 heapq.heappush(event_queue, (eval(event.priority), event.name))
-            # IF Event Fired previously, but not this step (T->F)
-            elif fired and event.trigger.value:
-                # Update trigger value
+            else:
                 event.trigger.value = False
+
         while event_queue:
             # Get events in priority order
             fired_event = model.listOfEvents[heapq.heappop(event_queue)[1]]
@@ -294,33 +356,7 @@ class BasicTauHybridSolver(GillesPySolver):
                 assign_value = eval(a.expression, eval_globals, curr_state)
                 # Update state of assignment variable
                 curr_state[a.variable.name] = assign_value
-                # Update results at this integration step
-                if sol.t[-1] in sol.t_events[:][0]:
-                    sol.y[y_map[a.variable.name]][-1] = assign_value
-
-        return sol, curr_time
-
-    def __get_reactions(self, integrator, integrator_options, curr_state, y0, model, curr_time, 
-                        propensities, species, parameters, compiled_reactions,
-                        compiled_rate_rules, y_map, entry_pos, debug):
-        """
-        Function to get reactions fired from t to t+tau.  This function solves for root crossings
-        of each reaction channel from over tau step, using poisson random number generation
-        to calculate distance to the root.  Returns four values:
-        rxn_count - dict with key=Raection channel value=number of times fired
-        current - list containing current displacement of each reaction channel for calculating fired reactions.
-        curr_state - dict containing all state variables for system at current time
-        curr_time - float representing current time
-        """
-
-        event_queue = []
-        sol, curr_time = self.__get_reaction_integrate(integrator, integrator_options, curr_state, 
-                                                           y0, model, curr_time, propensities, y_map, 
-                                                           compiled_reactions,
-                                                           compiled_rate_rules,
-                                                           event_queue,
-                                                           entry_pos)
-
+        curr_time = next_event_time
 
         # TODO THIS NEEDS TO BE HANDLED IN AN EVENT-LIKE MANNER
         # TODO WILL ALSO NEED TO RECALCULATE PROPENSITIES
@@ -341,7 +377,7 @@ class BasicTauHybridSolver(GillesPySolver):
                 curr_state[r] += urn
         '''
 
-        return sol, curr_state, curr_time
+        return sol, curr_state, curr_time, save_times
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
@@ -500,6 +536,8 @@ class BasicTauHybridSolver(GillesPySolver):
             all_compiled['rules'] = compiled_rate_rules
             all_compiled['inactive_rxns'] = compiled_inactive_reactions
 
+            save_times = np.copy(model.tspan)
+
             # Each save step
             while curr_time < model.tspan[-1]:
 
@@ -536,24 +574,14 @@ class BasicTauHybridSolver(GillesPySolver):
                 for i, rxn in enumerate(compiled_reactions):
                     y0[i+len(species)+len(parameters)] = curr_state[rxn]
                     y_map[rxn] = i+len(species)+len(parameters)
+
                 
-                # Back up current state
-                prev_y0 = y0.copy()
-                prev_curr_state = curr_state.copy()
-                prev_curr_time = curr_time
                 #TODO FIX INTEGRATOR OPTIONS
-                integrator_options = {}
-                sol, curr_state, curr_time = self.__get_reactions(integrator, integrator_options,
+
+                sol, curr_state, curr_time, save_times = self.__simulate(integrator, integrator_options,
                     curr_state, y0, model, curr_time, propensities, species, 
                     parameters, compiled_reactions, active_rr, y_map,
-                    entry_pos, debug)
-                num_entries = 0
-                for i in range(1, len(sol.t)):
-                    if sol.t[i] in model.tspan:
-                        for s in range(number_species):
-                            trajectory_base[trajectory_num][num_entries+entry_pos][s+1] = sol.y[s][i]
-                        num_entries += 1
-                entry_pos += num_entries
+                    trajectory, save_times, debug)
                 # TODO WILL HAVE TO UPDATE THIS TO NEW API
                 '''
                 # Update curr_state with the result of the SSA reaction that fired
