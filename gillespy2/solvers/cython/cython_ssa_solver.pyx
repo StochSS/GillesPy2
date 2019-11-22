@@ -37,6 +37,7 @@ cdef void simulate_trajectory(np.ndarray[np.float64_t, ndim=2] trajectory, Cytho
     cdef int i,j
     cdef double current_time = 0
     cdef int number_entries = 0
+    cdef int rc = 0
     cdef np.ndarray[np.float64_t, ndim=1] current_state = np.zeros((trajectory.shape[1]-1))
     cdef double *propensities = <double*> malloc(number_reactions * sizeof(double))
     np.copyto(current_state, trajectory[0,1:])
@@ -138,12 +139,27 @@ def convert_infix_prefix(equation):
     
 class CythonSSASolver(GillesPySolver):
     name = "CythonSSASolver"
+    interrupted = False
+    rc = 0
+
     def __init__(self):
         name = "CythonSSASolver"
+        interrupted = False
+        rc = 0
+
     #@cython.boundscheck(False)
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, profile=False, show_labels=True, **kwargs):
+
+        import signal
+        def timed_out(signum, frame):
+            print('signal raised')
+            self.rc = 33
+            self.interrupted = True
+            raise gillespyError.SimulationTimeoutError()
+
+        signal.signal(signal.SIGALRM, timed_out)
 
         if not isinstance(self, CythonSSASolver):
             self = CythonSSASolver()
@@ -251,6 +267,7 @@ class CythonSSASolver(GillesPySolver):
         cdef int number_threads = 4
         for i in range(number_of_trajectories):
             simulate_trajectory(trajectories[i], reactions, number_reactions, species_changes, seed_arg)
+            print(self.rc)
             #assemble complete simulation data in format specified
             if show_labels:
                 data = {'time' : timeline}
@@ -265,5 +282,5 @@ class CythonSSASolver(GillesPySolver):
             free(reactions[i].propensity_function.terms)
         free(reactions)
         free(cParameters)
-        return self.simulation_data, 0
+        return self.simulation_data, self.rc
         
