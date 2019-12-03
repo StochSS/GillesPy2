@@ -167,51 +167,11 @@ class BasicTauHybridSolver(GillesPySolver):
                 
         return sd, CV
     
-    @staticmethod
-    def __eval_event(event, curr_state):
-        # DO NOT fire event at start time of integration
-        t = curr_state['t']
-
-        res = 0
-
-        if '>=' in event.trigger.expression:
-            lhs, rhs = event.trigger.expression.split('>=')
-            #False to True
-            res = eval(lhs, eval_globals, curr_state) - eval(rhs,
-                eval_globals, curr_state)
-        elif '>' in event.trigger.expression:
-            lhs, rhs = event.trigger.expression.split('>')
-            #False to True
-            res = eval(lhs, eval_globals, curr_state) - eval(rhs,
-                eval_globals, curr_state)
-        elif '<=' in event.trigger.expression:
-            lhs, rhs = event.trigger.expression.split('<=')
-            # False to True
-            res = eval(rhs, eval_globals, curr_state) - eval(lhs,
-                eval_globals, curr_state)
-        elif '<' in event.trigger.expression:
-            lhs, rhs = event.trigger.expression.split('<')
-            # False to True
-            
-            return eval(rhs, eval_globals, curr_state) - eval(lhs,
-                eval_globals, curr_state)
-
-        elif '==' in event.trigger.expression:
-            lhs, rhs = event.trigger.expression.split('==')
-            res = abs(eval(lhs, eval_globals, curr_state) - eval(rhs,
-                eval_globals, curr_state))
-        elif '!=' in event.trigger.expression:
-            lhs, rhs = event.trigger.expression.split('!=')
-        else: print('no comparator found')
-
-        curr_state['t'] = t
-
-        return res
 
 
     @staticmethod
     def __f(t, y, curr_state, species, reactions, rate_rules, propensities,
-    y_map, compiled_reactions, compiled_rate_rules):
+    y_map, compiled_reactions, compiled_rate_rules, events):
         """
         Evaluate the propensities for the reactions and the RHS of the Reactions and RateRules.
         """
@@ -224,6 +184,10 @@ class BasicTauHybridSolver(GillesPySolver):
         for i, r in enumerate(compiled_reactions):
             propensities[r] = eval(compiled_reactions[r], eval_globals, curr_state)
             state_change[y_map[r]] += propensities[r]
+        for event in events:
+            triggered = eval(event.trigger.expression, eval_globals, curr_state)
+            if triggered: state_change[y_map[event]] = 1
+
 
         return state_change
 
@@ -231,30 +195,41 @@ class BasicTauHybridSolver(GillesPySolver):
     def __event(curr_state, species, reactions, rate_rules, propensities,
     y_map, compiled_reactions, compiled_rate_rules, event_queue, event,
     t, y):
-        curr_state['t'] = t
 
-        for item, index in y_map.items():
-            curr_state[item] = y[index]
+        #Put Reactions Here
+        pass
+     
 
-        # Detect "Changes" in trigger truth value
-        res = BasicTauHybridSolver.__eval_event(event, curr_state)
-        if not res: # If root is crossed, record firing time to curr_state
-            curr_state[event.name] = t
-        return res
+    def find_event_time(self, sol, model, start, end, depth):
+        mid = start + (end - start) / 2
+        if start >= mid or mid >= end or depth == 20: return end
+        dense_range = np.linspace(start, end, 3)
+        print('search values: ', dense_range)
+        for i, e in enumerate(model.listOfEvents.values()):
+            solutions = np.diff(sol.sol(dense_range)[-len(model.listOfEvents)+i])
+            as_bool = [int(x)>0 for x in solutions]
+            bool_res = [x>0 for x in solutions] # Maybe compare to trigger value?
+        if bool_res[0]: # event before mid
+            depth += 1
+            return self.find_event_time(sol, model, dense_range[0], dense_range[1], depth)
+        else: # event after mid
+            depth += 1
+            return self.find_event_time(sol, model, dense_range[1], dense_range[2], depth)
 
-        
 
-    @staticmethod
-    def __integrate(integrator, integrator_options, curr_state, y0, model, curr_time, 
+
+    def __integrate(self, integrator, integrator_options, curr_state, y0, model, curr_time, 
                                  propensities, y_map, compiled_reactions,
                                  compiled_rate_rules, event_queue):
         """ Helper function to perform the ODE integration of one step """
         from functools import partial
+        events = model.listOfEvents.values()
         int_args = [curr_state, model.listOfSpecies, model.listOfReactions,
                                                           model.listOfRateRules,
                                                           propensities, y_map, 
                                                           compiled_reactions,
-                                                          compiled_rate_rules]
+                                                          compiled_rate_rules,
+                                                          events]
 
         rhs = lambda t, y: BasicTauHybridSolver.__f(t, y, *int_args)
         event_calls = [partial(BasicTauHybridSolver.__event, *int_args,
@@ -263,6 +238,7 @@ class BasicTauHybridSolver(GillesPySolver):
         print('curr time: ', curr_time)
         curr_state['t0'] = curr_time
         curr_state['t'] = curr_time
+        event_times = {}
 
         # Get Truth value of triggers before integration
         for e in model.listOfEvents.values():
@@ -270,14 +246,43 @@ class BasicTauHybridSolver(GillesPySolver):
                 curr_state)
 
         # Integrate until end or event is reached
+        print('start time: ', curr_time)
         sol = solve_ivp(rhs, [curr_time, model.tspan[-1]], y0, 
-            events=event_calls, method='LSODA',
-            options=integrator_options, dense_output=True)
-        print(sol)
+            method='Radau', options=integrator_options, 
+            dense_output=True)
 
+        # Search for precise event times
+        dense_range = np.linspace(sol.t[0], sol.t[-1], 100*len(sol.t))
+        for i, e in enumerate(model.listOfEvents.values()):
+            solutions = np.diff(sol.sol(dense_range)[-len(model.listOfEvents)+i])
+            as_bool = [int(x)>0 for x in solutions]
+            bool_res = [x>0 for x in solutions] # Maybe compare to trigger value?
+            # Search for changes from False to True in event, record first time
+            for i in range(len(dense_range)-1):
+                # IF triggered from false to true, refine search
+                if bool_res[i] and dense_range[i] != curr_time and bool_res[i-1] == 0:
+                    print('Event: ', e.name, ' found at ', dense_range[i])
+                    event_time = self.find_event_time(sol, model, dense_range[i-1],
+                        dense_range[i+1], 0)
+                    if event_time in event_times:
+                        event_times[event_time].append(e)
+                    else:
+                        event_times[event_time] = [e]
+                    break
+        print(event_times)
+
+        if (len(event_times)):
+            next_event_time = min(event_times)
+            if next_event_time:
+                curr_time = next_event_time
+            for event in event_times[next_event_time]:
+                heapq.heappush(event_queue, (eval(event.priority), event.name))
+        else: curr_time = model.tspan[-1]
+                
 
 
         return sol, curr_time
+
 
     def __simulate(self, integrator, integrator_options, curr_state, y0, model, curr_time, 
                         propensities, species, parameters, compiled_reactions,
@@ -299,64 +304,35 @@ class BasicTauHybridSolver(GillesPySolver):
                                                            compiled_rate_rules,
                                                            event_queue)
 
-        print(sol.t_events)
-        next_events = {}
-        for i, e in enumerate(model.listOfEvents.values()):
-            if len(sol.t_events[i]):
-                print('find next event')
-                print(sol.t_events[i][0])
-                print('curr_time: ', curr_time)
-                if sol.t_events[i][0] > curr_time:
-                    if sol.t_events[i][0] in next_events:
-                        next_events[sol.t_events[i][0]].append(e)
-                    else:
-                        next_events[sol.t_events[i][0]] = [e]
-        print(next_events)
-        # Find time of next event, default end of simulation
-        next_event_time = model.tspan[-1]
-        for event in sol.t_events:
-            if len(event):
-                if event[0] == curr_time: continue
-                next_event_time = min(next_event_time, event[0])
-        print(curr_time)
-        events_fired = []
-        if len(next_events):
-            events_fired = next_events[next_event_time]
-            print('events fired: ', events_fired)
-        print(next_event_time)
-        print('state at event before assignment:')
-        print(sol.sol(next_event_time))
-        print(sol.sol([1, 2, 3]))
-        print('save times: ', save_times)
-        # Each Save Time crossed
+
+
         num_saves = 0
         for time in save_times:
+            if time > curr_time: break
             # if a solution is given for it
-            if time <= next_event_time:
-                trajectory_index = np.where(model.tspan == time)[0][0]
-                for s in range(len(species)):
-                    trajectory[trajectory_index][s+1] = sol.sol(time)[s]
-                num_saves += 1
-        print('recorded trajectory:\n', trajectory)
+            print('TOP: TIME = ', time)
+            trajectory_index = np.where(model.tspan == time)[0][0]
+            for s in range(len(species)):
+                trajectory[trajectory_index][s+1] = sol.sol(time)[s]
+                print(sol.sol(time)[s])
+            num_saves += 1
         save_times = save_times[num_saves:]
-        print('remaining save times: ', save_times)
-
-        for event in events_fired:
-            if not event.trigger.value:
-                event.trigger.value = True
-                heapq.heappush(event_queue, (eval(event.priority), event.name))
-            else:
-                event.trigger.value = False
-
+        for i, s in enumerate(species):
+            curr_state[s] = sol.sol(curr_time)[i]
+        print('at time: ', curr_time)
+        for spec in model.listOfSpecies:
+            print('State of ', spec, ': ', curr_state[spec])
         while event_queue:
             # Get events in priority order
             fired_event = model.listOfEvents[heapq.heappop(event_queue)[1]]
             for a in fired_event.assignments:
                 # Get assignment value
+                print('modifying ', a.variable.name)
                 assign_value = eval(a.expression, eval_globals, curr_state)
                 # Update state of assignment variable
                 curr_state[a.variable.name] = assign_value
-        curr_time = next_event_time
+        for spec in model.listOfSpecies:
+            print('State of ', spec, ': ', curr_state[spec])
 
         # TODO THIS NEEDS TO BE HANDLED IN AN EVENT-LIKE MANNER
         # TODO WILL ALSO NEED TO RECALCULATE PROPENSITIES
@@ -564,7 +540,7 @@ class BasicTauHybridSolver(GillesPySolver):
 
                 y_map = OrderedDict()
                 # Build integration start state
-                y0 = [0] * (len(species) + len(parameters) + len(compiled_reactions))
+                y0 = [0] * (len(species) + len(parameters) + len(compiled_reactions) + len(model.listOfEvents))
                 for i, spec in enumerate(species):
                     y0[i] = curr_state[spec]
                     y_map[spec] = i
@@ -574,6 +550,9 @@ class BasicTauHybridSolver(GillesPySolver):
                 for i, rxn in enumerate(compiled_reactions):
                     y0[i+len(species)+len(parameters)] = curr_state[rxn]
                     y_map[rxn] = i+len(species)+len(parameters)
+                for i, event in enumerate(model.listOfEvents.values()):
+                    y0[i+len(species)+len(parameters)+len(compiled_reactions)] = curr_state[event.name]
+                    y_map[event] = i+len(species)+len(parameters)+len(compiled_reactions)
 
                 
                 #TODO FIX INTEGRATOR OPTIONS
