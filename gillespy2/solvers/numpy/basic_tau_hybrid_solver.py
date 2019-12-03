@@ -200,21 +200,25 @@ class BasicTauHybridSolver(GillesPySolver):
         pass
      
 
-    def find_event_time(self, sol, model, start, end, depth):
-        mid = start + (end - start) / 2
-        if start >= mid or mid >= end or depth == 20: return end
+    def find_event_time(self, sol, model, start, end, index, depth):
         dense_range = np.linspace(start, end, 3)
-        print('search values: ', dense_range)
-        for i, e in enumerate(model.listOfEvents.values()):
-            solutions = np.diff(sol.sol(dense_range)[-len(model.listOfEvents)+i])
-            as_bool = [int(x)>0 for x in solutions]
-            bool_res = [x>0 for x in solutions] # Maybe compare to trigger value?
+        mid = dense_range[1]
+        if start >= mid or mid >= end or depth == 20: return end
+        #print('search times: ', dense_range)
+        # print('sol: ', sol.sol(dense_range))
+        solutions = np.diff(sol.sol(dense_range)[-len(model.listOfEvents)+index])
+        bool_res = [x>0 for x in solutions] # Maybe compare to trigger value?
+        #print(bool_res)
         if bool_res[0]: # event before mid
+            #print('before mid')
             depth += 1
-            return self.find_event_time(sol, model, dense_range[0], dense_range[1], depth)
+            return self.find_event_time(sol, model, dense_range[0],
+                dense_range[1], index, depth)
         else: # event after mid
+            #print('after mid')
             depth += 1
-            return self.find_event_time(sol, model, dense_range[1], dense_range[2], depth)
+            return self.find_event_time(sol, model, dense_range[1],
+                dense_range[2], index, depth)
 
 
 
@@ -235,7 +239,7 @@ class BasicTauHybridSolver(GillesPySolver):
         event_calls = [partial(BasicTauHybridSolver.__event, *int_args,
         event_queue, e) for e in model.listOfEvents.values()]
 
-        print('curr time: ', curr_time)
+        #print('curr time: ', curr_time)
         curr_state['t0'] = curr_time
         curr_state['t'] = curr_time
         event_times = {}
@@ -246,7 +250,7 @@ class BasicTauHybridSolver(GillesPySolver):
                 curr_state)
 
         # Integrate until end or event is reached
-        print('start time: ', curr_time)
+        #print('start time: ', curr_time)
         sol = solve_ivp(rhs, [curr_time, model.tspan[-1]], y0, 
             method='Radau', options=integrator_options, 
             dense_output=True)
@@ -258,18 +262,18 @@ class BasicTauHybridSolver(GillesPySolver):
             as_bool = [int(x)>0 for x in solutions]
             bool_res = [x>0 for x in solutions] # Maybe compare to trigger value?
             # Search for changes from False to True in event, record first time
-            for i in range(len(dense_range)-1):
+            for y in range(len(dense_range)-1):
                 # IF triggered from false to true, refine search
-                if bool_res[i] and dense_range[i] != curr_time and bool_res[i-1] == 0:
-                    print('Event: ', e.name, ' found at ', dense_range[i])
-                    event_time = self.find_event_time(sol, model, dense_range[i-1],
-                        dense_range[i+1], 0)
+                if bool_res[y] and dense_range[y] != curr_time and bool_res[y-1] == 0:
+                    #print('Event: ', e.name, ' found at ', dense_range[y])
+                    event_time = self.find_event_time(sol, model, dense_range[y-1],
+                        dense_range[y+1], i, 0)
                     if event_time in event_times:
                         event_times[event_time].append(e)
                     else:
                         event_times[event_time] = [e]
                     break
-        print(event_times)
+        #print(event_times)
 
         if (len(event_times)):
             next_event_time = min(event_times)
@@ -310,29 +314,29 @@ class BasicTauHybridSolver(GillesPySolver):
         for time in save_times:
             if time > curr_time: break
             # if a solution is given for it
-            print('TOP: TIME = ', time)
+            #print('TOP: TIME = ', time)
             trajectory_index = np.where(model.tspan == time)[0][0]
             for s in range(len(species)):
                 trajectory[trajectory_index][s+1] = sol.sol(time)[s]
-                print(sol.sol(time)[s])
+                #print(sol.sol(time)[s])
             num_saves += 1
         save_times = save_times[num_saves:]
         for i, s in enumerate(species):
             curr_state[s] = sol.sol(curr_time)[i]
-        print('at time: ', curr_time)
-        for spec in model.listOfSpecies:
-            print('State of ', spec, ': ', curr_state[spec])
+        #print('at time: ', curr_time)
+        #for spec in model.listOfSpecies:
+            #print('State of ', spec, ': ', curr_state[spec])
         while event_queue:
             # Get events in priority order
             fired_event = model.listOfEvents[heapq.heappop(event_queue)[1]]
             for a in fired_event.assignments:
                 # Get assignment value
-                print('modifying ', a.variable.name)
+                #print('modifying ', a.variable.name)
                 assign_value = eval(a.expression, eval_globals, curr_state)
                 # Update state of assignment variable
                 curr_state[a.variable.name] = assign_value
-        for spec in model.listOfSpecies:
-            print('State of ', spec, ': ', curr_state[spec])
+        #for spec in model.listOfSpecies:
+            #print('State of ', spec, ': ', curr_state[spec])
 
         # TODO THIS NEEDS TO BE HANDLED IN AN EVENT-LIKE MANNER
         # TODO WILL ALSO NEED TO RECALCULATE PROPENSITIES
