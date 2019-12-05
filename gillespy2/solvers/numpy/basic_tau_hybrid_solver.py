@@ -181,9 +181,11 @@ class BasicTauHybridSolver(GillesPySolver):
             curr_state[item] = y[index]
         for rr in compiled_rate_rules:
             state_change[y_map[rr]] += eval(compiled_rate_rules[rr], eval_globals, curr_state)
+        '''
         for i, r in enumerate(compiled_reactions):
             propensities[r] = eval(compiled_reactions[r], eval_globals, curr_state)
             state_change[y_map[r]] += propensities[r]
+        '''
         for event in events:
             triggered = eval(event.trigger.expression, eval_globals, curr_state)
             if triggered: state_change[y_map[event]] = 1
@@ -197,7 +199,8 @@ class BasicTauHybridSolver(GillesPySolver):
     t, y):
 
         #Put Reactions Here
-        pass
+        propensity = eval(compiled_reactions[r], eval_globals, curr_state)
+        return propensity
      
 
     def find_event_time(self, sol, model, start, end, index, depth):
@@ -237,30 +240,24 @@ class BasicTauHybridSolver(GillesPySolver):
 
         rhs = lambda t, y: BasicTauHybridSolver.__f(t, y, *int_args)
         event_calls = [partial(BasicTauHybridSolver.__event, *int_args,
-        event_queue, e) for e in model.listOfEvents.values()]
+        r) for r in compiled_reactions]
 
-        #print('curr time: ', curr_time)
-        curr_state['t0'] = curr_time
         curr_state['t'] = curr_time
         event_times = {}
 
-        # Get Truth value of triggers before integration
-        for e in model.listOfEvents.values():
-            e.trigger.value = eval(e.trigger.expression, eval_globals,
-                curr_state)
-
         # Integrate until end or event is reached
-        #print('start time: ', curr_time)
         sol = solve_ivp(rhs, [curr_time, model.tspan[-1]], y0, 
-            method='Radau', options=integrator_options, 
-            dense_output=True)
+            method='LSODA', options=integrator_options, 
+            dense_output=True, rtol=1e-9, atol=1e-12)
 
         # Search for precise event times
-        dense_range = np.linspace(sol.t[0], sol.t[-1], 100*len(sol.t))
+        # TODO MAKE USER INPUT VARIABLE FOR SENSITIVITY
+        sensitivity = 100
+        dense_range = np.linspace(sol.t[0], sol.t[-1], len(sol.t)*sensitivity)
         for i, e in enumerate(model.listOfEvents.values()):
             solutions = np.diff(sol.sol(dense_range)[-len(model.listOfEvents)+i])
             as_bool = [int(x)>0 for x in solutions]
-            bool_res = [x>0 for x in solutions] # Maybe compare to trigger value?
+            bool_res = [x>0 for x in solutions]
             # Search for changes from False to True in event, record first time
             for y in range(len(dense_range)-1):
                 # IF triggered from false to true, refine search
@@ -273,7 +270,6 @@ class BasicTauHybridSolver(GillesPySolver):
                     else:
                         event_times[event_time] = [e]
                     break
-        #print(event_times)
 
         if (len(event_times)):
             next_event_time = min(event_times)
@@ -283,7 +279,6 @@ class BasicTauHybridSolver(GillesPySolver):
                 heapq.heappush(event_queue, (eval(event.priority), event.name))
         else: curr_time = model.tspan[-1]
                 
-
 
         return sol, curr_time
 
@@ -314,25 +309,23 @@ class BasicTauHybridSolver(GillesPySolver):
         for time in save_times:
             if time > curr_time: break
             # if a solution is given for it
-            #print('TOP: TIME = ', time)
             trajectory_index = np.where(model.tspan == time)[0][0]
             for s in range(len(species)):
                 trajectory[trajectory_index][s+1] = sol.sol(time)[s]
-                #print(sol.sol(time)[s])
             num_saves += 1
         save_times = save_times[num_saves:]
         for i, s in enumerate(species):
             curr_state[s] = sol.sol(curr_time)[i]
-        #print('at time: ', curr_time)
-        #for spec in model.listOfSpecies:
-            #print('State of ', spec, ': ', curr_state[spec])
+        pre_assignment_state = curr_state.copy()
         while event_queue:
             # Get events in priority order
             fired_event = model.listOfEvents[heapq.heappop(event_queue)[1]]
             for a in fired_event.assignments:
                 # Get assignment value
-                #print('modifying ', a.variable.name)
-                assign_value = eval(a.expression, eval_globals, curr_state)
+                print('modifying ', a.variable.name)
+                print('from ', pre_assignment_state[a.variable.name])
+                assign_value = eval(a.expression, eval_globals, pre_assignment_state)
+                print('to ', assign_value)
                 # Update state of assignment variable
                 curr_state[a.variable.name] = assign_value
         #for spec in model.listOfSpecies:
