@@ -213,9 +213,13 @@ def convert(filename, model_name=None, gillespy_model=None):
         gillespy_assignments = []
         
         trigger = event.getTrigger()
+        delay = event.getDelay()
+        if delay is not None:
+            delay = libsbml.formulaToL3String(delay.getMath())
         expression=libsbml.formulaToL3String(trigger.getMath())
         initial_value = trigger.getInitialValue()
         persistent = trigger.getPersistent()
+        use_values_from_trigger_time = event.getUseValuesFromTriggerTime()
         gillespy_trigger = gillespy2.EventTrigger(expression=expression, 
             initial_value=initial_value, persistent=persistent)
         assignments = event.getListOfEventAssignments()
@@ -224,7 +228,9 @@ def convert(filename, model_name=None, gillespy_model=None):
                 libsbml.formulaToL3String(a.getMath()))
             gillespy_assignments.append(gillespy_assignment)
         gillespy_event = gillespy2.Event(
-            name=event.name, trigger=gillespy_trigger, assignments=gillespy_assignments)
+            name=event.name, trigger=gillespy_trigger,
+            assignments=gillespy_assignments, delay=delay,
+            use_values_from_trigger_time=use_values_from_trigger_time)
         gillespy_model.add_event(gillespy_event)
 
     return gillespy_model, errors

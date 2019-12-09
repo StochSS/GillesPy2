@@ -45,46 +45,6 @@ class EventAssignment:
                              'valid string expression')
 
 
-class EventDelay:
-    """
-    An EventDelay can be given as an assignment_expression (function) or directly
-    as a value (scalar). If given an assignment_expression, it should be
-    understood as evaluable in the namespace of a parent Model.
-
-    Attributes
-    ----------
-    name : str
-        The name by which this EventDelay is called or referenced in reactions.
-    delay_expression : str
-        String for a function calculating EventDelay values. Should be evaluable
-        in namespace of Model.
-    value : float
-        Value of an EventDelay if it is not dependent on other Model entities.
-    """
-
-    def __init__(self, name="", delay_expression=None, value=None, useValuesFromTriggerTime = False):
-
-        self.name = name
-        # We allow assignment_expression to be passed in as a non-string type. Invalid strings
-        # will be caught below. It is perfectly fine to give a scalar value as the assignment_expression.
-        # This can then be evaluated in an empty namespace to the scalar value.
-        self.delay_expression = delay_expression
-        if delay_expression is not None:
-            self.delay_expression = str(delay_expression)
-
-        self.useValuesFromTriggerTime = useValuesFromTriggerTime
-        self.value = value
-
-        # self.value is allowed to be None, but not self.assignment_expression. self.value
-        # might not be evaluable in the namespace of this eventDelay, but defined
-        # in the context of a model or reaction.
-        if self.delay_expression is None:
-            raise TypeError
-
-        if self.value is None:
-            self.evaluate()
-
-
 
 class EventTrigger:
     """
@@ -172,11 +132,11 @@ class Event:
              'trigger must be set to a valid EventTrigger')
         
         # Delay
-        if delay is None or isinstance(delay, EventDelay):
+        if delay is None or isinstance(delay, str):
             self.delay = delay
         else:
             raise EventError(
-             'delay must be a valid EventDelay or None')
+             'delay must be a valid string or None')
 
         # Priority
         self.priority = priority
@@ -195,7 +155,12 @@ class Event:
             raise EventError(
                 'assignments must contain only EventAssignments '
                 'or a list of EventAssignments')
-
+        # Use Values from Trigger Time
+        if isinstance(use_values_from_trigger_time, bool):
+            self.use_values_from_trigger_time = use_values_from_trigger_time
+        else:
+            raise EventError(
+                'use_values_from_trigger_time requires bool')
 
     def add_assignment(self, assignment):
         """

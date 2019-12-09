@@ -197,25 +197,19 @@ class BasicTauHybridSolver(GillesPySolver):
     t, y):
 
         return y[y_map[reaction]]
-        #return dx
      
 
     def find_event_time(self, sol, model, start, end, index, depth):
         dense_range = np.linspace(start, end, 3)
         mid = dense_range[1]
         if start >= mid or mid >= end or depth == 20: return end
-        #print('search times: ', dense_range)
-        # print('sol: ', sol.sol(dense_range))
         solutions = np.diff(sol.sol(dense_range)[-len(model.listOfEvents)+index])
         bool_res = [x>0 for x in solutions] # Maybe compare to trigger value?
-        #print(bool_res)
         if bool_res[0]: # event before mid
-            #print('before mid')
             depth += 1
             return self.find_event_time(sol, model, dense_range[0],
                 dense_range[1], index, depth)
         else: # event after mid
-            #print('after mid')
             depth += 1
             return self.find_event_time(sol, model, dense_range[1],
                 dense_range[2], index, depth)
@@ -224,7 +218,8 @@ class BasicTauHybridSolver(GillesPySolver):
 
     def __integrate(self, integrator, integrator_options, curr_state, y0, model, curr_time, 
                                  propensities, y_map, compiled_reactions,
-                                 compiled_rate_rules, event_queue):
+                                 compiled_rate_rules, event_queue,
+                                 delayed_events):
         """ Helper function to perform the ODE integration of one step """
         from functools import partial
         events = model.listOfEvents.values()
@@ -238,6 +233,8 @@ class BasicTauHybridSolver(GillesPySolver):
         rhs = lambda t, y: BasicTauHybridSolver.__f(t, y, *int_args)
         reaction_events = [partial(BasicTauHybridSolver.__event, *int_args,
         rn) for rn in compiled_reactions]
+        for rxn in reaction_events:
+            rxn.terminal = True
 
         curr_state['t'] = curr_time
         event_times = {}
@@ -269,23 +266,55 @@ class BasicTauHybridSolver(GillesPySolver):
                     else:
                         event_times[event_time] = [e]
                     break
+        
+        # Detect rxns/events
         reaction_times = []
         reaction_fired = False
+        sim_end = model.tspan[-1]
+        next_reaction_time = sim_end + 1
+        next_event_trigger = sim_end + 1
+        next_delayed_event = sim_end + 1
+
+        # rxns
         for rxn in sol.t_events:
             if np.any(rxn):
                 reaction_times.append(rxn[0]) # Append first firing time for each rxn
         curr_time = model.tspan[-1]
         if len(reaction_times):
             next_reaction_time = min(reaction_times)
-            curr_time = next_reaction_time
-            reaction_fired = True
+
+        # event triggers
         if (len(event_times)):
-            next_event_time = min(event_times)
-            if next_event_time and next_event_time < curr_time:
-                curr_time = next_event_time
-                reaction_fired = False
-                for event in event_times[next_event_time]:
+            next_event_trigger = min(event_times)
+
+        # delayed events
+        if len(delayed_events):
+            next_delayed_event = delayed_events[0][0]
+
+        # Execute rxns/events
+        next_step = {sim_end: 'end', next_reaction_time: 'rxn',
+                        next_event_trigger: 'trigger', next_delayed_event: 'delay'}
+
+        curr_time = min(sim_end, next_reaction_time, next_event_trigger,
+                        next_delayed_event)
+
+        if next_step[curr_time] == 'rxn':
+            reaction_fired = True
+
+        elif next_step[curr_time] == 'trigger':
+            for event in event_times[curr_time]:
+                # Fire trigger time events immediately
+                if event.delay is None:
                     heapq.heappush(event_queue, (eval(event.priority), event.name))
+                # Queue delayed events
+                else:
+                    curr_state['t'] = curr_time
+                    execution_time = curr_time + eval(event.delay,eval_globals, curr_state)
+                    heapq.heappush(delayed_events, (execution_time, event.name))
+
+        elif next_step[curr_time] == 'delay':
+            event = heapq.heappop(delayed_events)
+            heapq.heappush(event_queue, (eval(model.listOfEvents[event[1]].priority), event[1]))
 
                 
 
@@ -294,7 +323,8 @@ class BasicTauHybridSolver(GillesPySolver):
 
     def __simulate(self, integrator, integrator_options, curr_state, y0, model, curr_time, 
                         propensities, species, parameters, compiled_reactions,
-                        compiled_rate_rules, y_map, trajectory, save_times, debug):
+                        compiled_rate_rules, y_map, trajectory, save_times,
+                        delayed_events, debug):
         """
         Function to get reactions fired from t to t+tau.  This function solves for root crossings
         of each reaction channel from over tau step, using poisson random number generation
@@ -310,7 +340,8 @@ class BasicTauHybridSolver(GillesPySolver):
                                                            y0, model, curr_time, propensities, y_map, 
                                                            compiled_reactions,
                                                            compiled_rate_rules,
-                                                           event_queue)
+                                                           event_queue,
+                                                           delayed_events)
 
 
         num_saves = 0
@@ -326,7 +357,7 @@ class BasicTauHybridSolver(GillesPySolver):
         save_times = save_times[num_saves:]
         for i, s in enumerate(species): # Update continuous
             curr_state[s] = sol.sol(curr_time)[i]
-        for rxn in model.listOfReactions: # Update discrete
+        for rxn in compiled_reactions: # Update discrete
             curr_state[rxn] = sol.sol(curr_time)[y_map[rxn]]
             if rxn_fired and curr_state[rxn] == max(rxn_state):
                 curr_state[rxn] = math.log(random.uniform(0, 1))
@@ -526,6 +557,7 @@ class BasicTauHybridSolver(GillesPySolver):
             all_compiled['inactive_rxns'] = compiled_inactive_reactions
 
             save_times = np.copy(model.tspan)
+            delayed_events = []
 
             # Each save step
             while curr_time < model.tspan[-1]:
@@ -573,7 +605,7 @@ class BasicTauHybridSolver(GillesPySolver):
                 sol, curr_state, curr_time, save_times = self.__simulate(integrator, integrator_options,
                     curr_state, y0, model, curr_time, propensities, species, 
                     parameters, compiled_reactions, active_rr, y_map,
-                    trajectory, save_times, debug)
+                    trajectory, save_times, delayed_events, debug)
                 # TODO WILL HAVE TO UPDATE THIS TO NEW API
                 '''
                 # Update curr_state with the result of the SSA reaction that fired
