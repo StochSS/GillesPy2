@@ -204,7 +204,8 @@ class BasicTauHybridSolver(GillesPySolver):
         mid = dense_range[1]
         if start >= mid or mid >= end or depth == 20: return end
         solutions = np.diff(sol.sol(dense_range)[-len(model.listOfEvents)+index])
-        bool_res = [x>0 for x in solutions] # Maybe compare to trigger value?
+        bool_res = [x>0 for x in solutions]
+
         if bool_res[0]: # event before mid
             depth += 1
             return self.find_event_time(sol, model, dense_range[0],
@@ -215,11 +216,62 @@ class BasicTauHybridSolver(GillesPySolver):
                 dense_range[2], index, depth)
 
 
+    def __detect_events(self, event_sensitivity, sol, model, delayed_events,
+                        trigger_states, curr_time):
+        event_times = {}
+        dense_range = np.linspace(sol.t[0], sol.t[-1], len(sol.t)*event_sensitivity)
+        for i, e in enumerate(model.listOfEvents.values()):
+            solutions = np.diff(sol.sol(dense_range)[-len(model.listOfEvents)+i])
+            as_bool = [int(x)>0 for x in solutions]
+            bool_res = [x>0 for x in solutions]
+            # Search for changes from False to True in event, record first time
+            for y in range(len(dense_range)-1):
+                # Check Persistent Delays
+                if e.name in delayed_events:
+                    if not bool_res[y]:
+                        heapq.heappop(e.name)
+                        del trigger_states[e.name]
+                # IF triggered from false to true, refine search
+                if bool_res[y] and ((dense_range[y] != curr_time and bool_res[y-1] == 0) or curr_time==0):
+                    event_time = self.find_event_time(sol, model, dense_range[y-1],
+                        dense_range[y+1], i, 0)
+                    if event_time in event_times:
+                        event_times[event_time].append(e)
+                    else:
+                        event_times[event_time] = [e]
+                    break
+        return event_times
+ 
+    def __get_next_step(self, event_times, reaction_times, delayed_events, sim_end):
+
+        next_reaction_time = sim_end + 1
+        next_event_trigger = sim_end + 2
+        next_delayed_event = sim_end + 3
+
+        curr_time = sim_end
+        if len(reaction_times):
+            next_reaction_time = min(reaction_times)
+
+        # event triggers
+        if (len(event_times)):
+            next_event_trigger = min(event_times)
+
+        # delayed events
+        if len(delayed_events):
+            next_delayed_event = delayed_events[0][0]
+
+        # Execute rxns/events
+        next_step = {sim_end: 'end', next_reaction_time: 'rxn', next_event_trigger: 'trigger', next_delayed_event: 'delay'}
+
+        # UPDATE CURR STATE
+        curr_time = min(sim_end, next_reaction_time, next_event_trigger,
+                        next_delayed_event)
+        return next_step[curr_time], curr_time
 
     def __integrate(self, integrator, integrator_options, curr_state, y0, model, curr_time, 
                                  propensities, y_map, compiled_reactions,
                                  compiled_rate_rules, event_queue,
-                                 delayed_events):
+                                 delayed_events, trigger_states):
         """ Helper function to perform the ODE integration of one step """
         from functools import partial
         events = model.listOfEvents.values()
@@ -237,9 +289,6 @@ class BasicTauHybridSolver(GillesPySolver):
             rxn.terminal = True
 
         curr_state['t'] = curr_time
-        event_times = {}
-
-        reaction_index = {i:r_name for i, r_name in enumerate(compiled_reactions)}
 
         # Integrate until end or event is reached
         sol = solve_ivp(rhs, [curr_time, model.tspan[-1]], y0, 
@@ -249,59 +298,35 @@ class BasicTauHybridSolver(GillesPySolver):
         # Search for precise event times
         # TODO MAKE USER INPUT VARIABLE FOR SENSITIVITY
         event_sensitivity = 100
-        dense_range = np.linspace(sol.t[0], sol.t[-1], len(sol.t)*event_sensitivity)
-        for i, e in enumerate(model.listOfEvents.values()):
-            solutions = np.diff(sol.sol(dense_range)[-len(model.listOfEvents)+i])
-            as_bool = [int(x)>0 for x in solutions]
-            bool_res = [x>0 for x in solutions]
-            # Search for changes from False to True in event, record first time
-            for y in range(len(dense_range)-1):
-                # IF triggered from false to true, refine search
-                if bool_res[y] and dense_range[y] != curr_time and bool_res[y-1] == 0:
-                    #print('Event: ', e.name, ' found at ', dense_range[y])
-                    event_time = self.find_event_time(sol, model, dense_range[y-1],
-                        dense_range[y+1], i, 0)
-                    if event_time in event_times:
-                        event_times[event_time].append(e)
-                    else:
-                        event_times[event_time] = [e]
-                    break
-        
-        # Detect rxns/events
-        reaction_times = []
-        reaction_fired = False
-        sim_end = model.tspan[-1]
-        next_reaction_time = sim_end + 1
-        next_event_trigger = sim_end + 1
-        next_delayed_event = sim_end + 1
+        event_times = self.__detect_events(event_sensitivity, sol, model, delayed_events,
+                                    trigger_states, curr_time)
 
         # rxns
+        reaction_times = []
         for rxn in sol.t_events:
             if np.any(rxn):
                 reaction_times.append(rxn[0]) # Append first firing time for each rxn
-        curr_time = model.tspan[-1]
-        if len(reaction_times):
-            next_reaction_time = min(reaction_times)
 
-        # event triggers
-        if (len(event_times)):
-            next_event_trigger = min(event_times)
+        next_step, curr_time = self.__get_next_step(event_times, reaction_times,
+                                                delayed_events, model.tspan[-1])
 
-        # delayed events
-        if len(delayed_events):
-            next_delayed_event = delayed_events[0][0]
 
-        # Execute rxns/events
-        next_step = {sim_end: 'end', next_reaction_time: 'rxn',
-                        next_event_trigger: 'trigger', next_delayed_event: 'delay'}
 
-        curr_time = min(sim_end, next_reaction_time, next_event_trigger,
-                        next_delayed_event)
+        for i, s in enumerate(model.listOfSpecies): # Update continuous
+            curr_state[s] = sol.sol(curr_time)[i]
+        for rxn in compiled_reactions: # Update discrete
+            curr_state[rxn] = sol.sol(curr_time)[y_map[rxn]]
 
-        if next_step[curr_time] == 'rxn':
-            reaction_fired = True
-
-        elif next_step[curr_time] == 'trigger':
+        if next_step == 'rxn':
+            rxn_state = [sol.sol(curr_time)[y_map[r]] for r in compiled_reactions]
+            for rxn in compiled_reactions:
+                if curr_state[rxn] == max(rxn_state):
+                    curr_state[rxn] = math.log(random.uniform(0, 1))
+                    for reactant in model.listOfReactions[rxn].reactants:
+                        curr_state[reactant.name] -= model.listOfReactions[rxn].reactants[reactant]
+                    for product in model.listOfReactions[rxn].products:
+                        curr_state[product.name] += model.listOfReactions[rxn].products[product]
+        elif next_step == 'trigger':
             for event in event_times[curr_time]:
                 # Fire trigger time events immediately
                 if event.delay is None:
@@ -311,20 +336,20 @@ class BasicTauHybridSolver(GillesPySolver):
                     curr_state['t'] = curr_time
                     execution_time = curr_time + eval(event.delay,eval_globals, curr_state)
                     heapq.heappush(delayed_events, (execution_time, event.name))
-
-        elif next_step[curr_time] == 'delay':
+                    trigger_states[event.name] = curr_state.copy()
+        elif next_step == 'delay':
             event = heapq.heappop(delayed_events)
             heapq.heappush(event_queue, (eval(model.listOfEvents[event[1]].priority), event[1]))
 
                 
 
-        return sol, curr_time, reaction_fired
+        return sol, curr_time
 
 
     def __simulate(self, integrator, integrator_options, curr_state, y0, model, curr_time, 
                         propensities, species, parameters, compiled_reactions,
                         compiled_rate_rules, y_map, trajectory, save_times,
-                        delayed_events, debug):
+                        delayed_events, trigger_states, debug):
         """
         Function to get reactions fired from t to t+tau.  This function solves for root crossings
         of each reaction channel from over tau step, using poisson random number generation
@@ -336,17 +361,16 @@ class BasicTauHybridSolver(GillesPySolver):
         """
 
         event_queue = []
-        sol, curr_time, rxn_fired = self.__integrate(integrator, integrator_options, curr_state, 
+        sol, curr_time = self.__integrate(integrator, integrator_options, curr_state, 
                                                            y0, model, curr_time, propensities, y_map, 
                                                            compiled_reactions,
                                                            compiled_rate_rules,
                                                            event_queue,
-                                                           delayed_events)
+                                                           delayed_events,
+                                                           trigger_states)
 
 
         num_saves = 0
-        if rxn_fired:
-            rxn_state = [sol.sol(curr_time)[y_map[r]] for r in model.listOfReactions]
         for time in save_times:
             if time > curr_time: break
             # if a solution is given for it
@@ -355,49 +379,78 @@ class BasicTauHybridSolver(GillesPySolver):
                 trajectory[trajectory_index][s+1] = sol.sol(time)[s]
             num_saves += 1
         save_times = save_times[num_saves:]
-        for i, s in enumerate(species): # Update continuous
-            curr_state[s] = sol.sol(curr_time)[i]
-        for rxn in compiled_reactions: # Update discrete
-            curr_state[rxn] = sol.sol(curr_time)[y_map[rxn]]
-            if rxn_fired and curr_state[rxn] == max(rxn_state):
-                curr_state[rxn] = math.log(random.uniform(0, 1))
-                for reactant in model.listOfReactions[rxn].reactants:
-                    curr_state[reactant.name] -= model.listOfReactions[rxn].reactants[reactant]
-                for product in model.listOfReactions[rxn].products:
-                    curr_state[product.name] += model.listOfReactions[rxn].products[product]
 
         pre_assignment_state = curr_state.copy()
+
         while event_queue:
             # Get events in priority order
             fired_event = model.listOfEvents[heapq.heappop(event_queue)[1]]
+            if fired_event.name in trigger_states:
+                assignment_state = trigger_states[fired_event.name]
+                del trigger_states[fired_event.name]
+            else:
+                assignment_state = pre_assignment_state
             for a in fired_event.assignments:
                 # Get assignment value
-                assign_value = eval(a.expression, eval_globals, pre_assignment_state)
+                assign_value = eval(a.expression, eval_globals, assignment_state)
                 # Update state of assignment variable
                 curr_state[a.variable.name] = assign_value
-        #for spec in model.listOfSpecies:
-            #print('State of ', spec, ': ', curr_state[spec])
 
-        # TODO THIS NEEDS TO BE HANDLED IN AN EVENT-LIKE MANNER
-        # TODO WILL ALSO NEED TO RECALCULATE PROPENSITIES
-        '''
-        # UPDATE THE STATE of the discrete reactions
-        for i, r in enumerate(compiled_reactions):
-            curr_state[r] = current[i+len(species)+len(parameters)]
-        rxn_count = OrderedDict()
-        fired = False
-        for i, r in enumerate(compiled_reactions):
-            rxn_count[r] = 0
-            while curr_state[r] > 0:
-                if not fired:
-                    fired = True
-                rxn_count[r] += 1
-                urn = (math.log(random.uniform(0, 1)))
-                current[i+len(compiled_rate_rules)] += urn
-                curr_state[r] += urn
-        '''
 
         return sol, curr_state, curr_time, save_times
+    
+    def __compile_all(self, model):
+        compiled_reactions = OrderedDict()
+        for i, r in enumerate(model.listOfReactions):
+            compiled_reactions[r] = compile(model.listOfReactions[r].propensity_function, '<string>',
+                                            'eval')
+        compiled_rate_rules = OrderedDict()
+        for i, rr in enumerate(model.listOfRateRules):
+            compiled_rate_rules[rr] = compile(model.listOfRateRules[rr].expression, '<string>', 'eval')
+            
+        compiled_inactive_reactions = OrderedDict()
+
+        compiled_propensities = OrderedDict()
+        for i, r in enumerate(model.listOfReactions):
+            compiled_propensities[r] = compile(model.listOfReactions[r].propensity_function, '<string>', 'eval')
+        return compiled_reactions, compiled_rate_rules, compiled_inactive_reactions, compiled_propensities
+
+    def __initialize_state(self, model, curr_state, debug):
+        # initialize species population state
+        for s in model.listOfSpecies:
+            curr_state[s] = model.listOfSpecies[s].initial_value
+
+        # intialize parameters to current state
+        for p in model.listOfParameters:
+            curr_state[p] = model.listOfParameters[p].value
+
+        # Set reactions to uniform random number
+        for i, r in enumerate(model.listOfReactions):
+            curr_state[r] = math.log(random.uniform(0, 1))
+            if debug:
+                print("Setting Random number ", curr_state[r], " for ", model.listOfReactions[r].name)
+
+        # Initialize event last-fired times to 0
+        for e_name in model.listOfEvents:
+            curr_state[e_name] = 0
+
+    def __map_state(self, species, parameters, compiled_reactions, events, curr_state):
+        y_map = OrderedDict()
+        # Build integration start state
+        y0 = [0] * (len(species) + len(parameters) + len(compiled_reactions) + len(events))
+        for i, spec in enumerate(species):
+            y0[i] = curr_state[spec]
+            y_map[spec] = i
+        for i, param in enumerate(parameters):
+            y0[i+len(species)] = curr_state[param]
+            y_map[param] = i+len(species)
+        for i, rxn in enumerate(compiled_reactions):
+            y0[i+len(species)+len(parameters)] = curr_state[rxn]
+            y_map[rxn] = i+len(species)+len(parameters)
+        for i, event in enumerate(events.values()):
+            y0[i+len(species)+len(parameters)+len(compiled_reactions)] = curr_state[event.name]
+            y_map[event] = i+len(species)+len(parameters)+len(compiled_reactions)
+        return y0, y_map
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
@@ -518,46 +571,19 @@ class BasicTauHybridSolver(GillesPySolver):
             data = OrderedDict() # Dictionary for show_labels results
             data['time'] = timeline # All time entries for show_labels results
 
-            # initialize species population state
-            for s in model.listOfSpecies:
-                curr_state[s] = model.listOfSpecies[s].initial_value
-
-            # intialize parameters to current state
-            for p in model.listOfParameters:
-                curr_state[p] = model.listOfParameters[p].value
-
-            # Set reactions to uniform random number
-            for i, r in enumerate(model.listOfReactions):
-                curr_state[r] = math.log(random.uniform(0, 1))
-                if debug:
-                    print("Setting Random number ", curr_state[r], " for ", model.listOfReactions[r].name)
-
-            # Initialize event last-fired times to 0
-            for e_name in model.listOfEvents:
-                curr_state[e_name] = 0
+            self.__initialize_state(model, curr_state, debug)
 
             # One-time compilations to reduce time spent with eval
-            compiled_reactions = OrderedDict()
-            for i, r in enumerate(model.listOfReactions):
-                compiled_reactions[r] = compile(model.listOfReactions[r].propensity_function, '<string>',
-                                                'eval')
-            compiled_rate_rules = OrderedDict()
-            for i, rr in enumerate(model.listOfRateRules):
-                compiled_rate_rules[rr] = compile(model.listOfRateRules[rr].expression, '<string>', 'eval')
-                
-            compiled_inactive_reactions = OrderedDict()
-
-            compiled_propensities = OrderedDict()
-            for i, r in enumerate(model.listOfReactions):
-                compiled_propensities[r] = compile(model.listOfReactions[r].propensity_function, '<string>', 'eval')
+            compiled_reactions, compiled_rate_rules, compiled_inactive_reactions, compiled_propensities = self.__compile_all(model)
             
             all_compiled = OrderedDict()
             all_compiled['rxns'] = compiled_reactions
-            all_compiled['rules'] = compiled_rate_rules
             all_compiled['inactive_rxns'] = compiled_inactive_reactions
+            all_compiled['rules'] = compiled_rate_rules
 
             save_times = np.copy(model.tspan)
             delayed_events = []
+            trigger_states = {}
 
             # Each save step
             while curr_time < model.tspan[-1]:
@@ -583,21 +609,8 @@ class BasicTauHybridSolver(GillesPySolver):
                 self.toggle_reactions(model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec)
                 active_rr = compiled_rate_rules[deterministic_reactions]
 
-                y_map = OrderedDict()
-                # Build integration start state
-                y0 = [0] * (len(species) + len(parameters) + len(compiled_reactions) + len(model.listOfEvents))
-                for i, spec in enumerate(species):
-                    y0[i] = curr_state[spec]
-                    y_map[spec] = i
-                for i, param in enumerate(parameters):
-                    y0[i+len(species)] = curr_state[param]
-                    y_map[param] = i+len(species)
-                for i, rxn in enumerate(compiled_reactions):
-                    y0[i+len(species)+len(parameters)] = curr_state[rxn]
-                    y_map[rxn] = i+len(species)+len(parameters)
-                for i, event in enumerate(model.listOfEvents.values()):
-                    y0[i+len(species)+len(parameters)+len(compiled_reactions)] = curr_state[event.name]
-                    y_map[event] = i+len(species)+len(parameters)+len(compiled_reactions)
+                y0, y_map = self.__map_state(species, parameters,
+                                        compiled_reactions, model.listOfEvents, curr_state)
 
                 
                 #TODO FIX INTEGRATOR OPTIONS
@@ -605,23 +618,8 @@ class BasicTauHybridSolver(GillesPySolver):
                 sol, curr_state, curr_time, save_times = self.__simulate(integrator, integrator_options,
                     curr_state, y0, model, curr_time, propensities, species, 
                     parameters, compiled_reactions, active_rr, y_map,
-                    trajectory, save_times, delayed_events, debug)
-                # TODO WILL HAVE TO UPDATE THIS TO NEW API
-                '''
-                # Update curr_state with the result of the SSA reaction that fired
-                species_modified = OrderedDict()
-                for i, r in enumerate(compiled_reactions):
-                    if reactions[r] > 0:
-                        for reactant in model.listOfReactions[r].reactants:
-                            species_modified[str(reactant)] = True
-                            curr_state[str(reactant)] -= model.listOfReactions[r].reactants[reactant] * reactions[r]
-                        for product in model.listOfReactions[r].products:
-                            species_modified[str(product)] = True
-                            curr_state[str(product)] += model.listOfReactions[r].products[product] * reactions[r]
-                '''         
+                    trajectory, save_times, delayed_events, trigger_states, debug)
 
-
-            # TODO FIX SHOW_LABELS
             # End of trajectory
             if show_labels:
                 for traj in range(number_of_trajectories):

@@ -217,6 +217,7 @@ def convert(filename, model_name=None, gillespy_model=None):
         if delay is not None:
             delay = libsbml.formulaToL3String(delay.getMath())
         expression=libsbml.formulaToL3String(trigger.getMath())
+        expression = expression.replace('&&', ' and ').replace('||', ' or ')
         initial_value = trigger.getInitialValue()
         persistent = trigger.getPersistent()
         use_values_from_trigger_time = event.getUseValuesFromTriggerTime()
