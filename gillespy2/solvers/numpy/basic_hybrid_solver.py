@@ -321,7 +321,6 @@ class BasicHybridSolver(GillesPySolver):
             dense_output=True, events=reaction_events, **integrator_options)
 
         # Search for precise event times
-        # TODO MAKE USER INPUT VARIABLE FOR SENSITIVITY
         event_times = self.__detect_events(event_sensitivity, sol, model, delayed_events,
                                     trigger_states, curr_time)
 
@@ -658,9 +657,6 @@ class BasicHybridSolver(GillesPySolver):
 
                 y0, y_map = self.__map_state(species, parameters,
                                         compiled_reactions, model.listOfEvents, curr_state)
-
-                
-                #TODO FIX INTEGRATOR OPTIONS
 
                 sol, curr_state, curr_time, save_times = self.__simulate(integrator, integrator_options,
                     curr_state, y0, model, curr_time, propensities, species, 
