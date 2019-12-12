@@ -1,15 +1,3 @@
-# TODO
-'''
-
-the ODE Solution object returned by dense output can be passed an array of data
-points.  We can use this, along with including the boolean results of all
-events in the passed state vector in order to obtain a reasonable time for
-event firings.  The dense output datapoints will require a granularity, which
-can be controlled via some user supplied error tolerance
-'''
-
-
-
 import random, math, sys, warnings
 from collections import OrderedDict
 from scipy.integrate import ode, solve_ivp
@@ -22,22 +10,24 @@ from gillespy2.core.gillespyError import *
 eval_globals = math.__dict__
 
 
-class BasicTauHybridSolver(GillesPySolver):
+class BasicHybridSolver(GillesPySolver):
     """
-    This Solver uses an algorithm that combines the Tau-Leaping and Hybrid ODE/Stochastic methods.
-    A root-finding integration is considered over all reaction channels and continuous species rate
-    rules, allowing both continuous and discrete regimes to be considered without partitioning the
-    system.  Multiple reactions are fired in a single tau step, and the relative change in propensities
-    is bounded by bounding the relative change in the state of the system, resulting in increased
-    run-time performance with little accuracy trade-off.
+    This Solver uses a root-finding interpretation of the direct SSA method,
+    along with ODE solvers to simulate ODE and Stochastic systems
+    interchangeably or simultaneously.
     """
-    name = "BasicTauHybridSolver"
+    name = "BasicHybridSolver"
 
     def __init__(self):
-        name = 'BasicTauHybridSolver'
+        name = 'BasicHybridSolver'
            
         
     def toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec):
+        '''
+        Helper method which is used to convert reaction channels into
+        rate rules, and rate rules into reaction channels, as they are switched
+        dynamically throughout the simulation based on user-supplied tolerance.
+        '''
         
         #initialize variables
         inactive_reactions = all_compiled['inactive_rxns']
@@ -71,7 +61,10 @@ class BasicTauHybridSolver(GillesPySolver):
             rate_rules[deterministic_reactions] = self.create_diff_eqs(deterministic_reactions, model, dependencies)
                 
     def create_diff_eqs(self, comb, model, dependencies):
-
+        '''
+        Helper method used to convert stochastic reaction descriptions into
+        differential equations, used dynamically throught the simulation.
+        '''
         diff_eqs = OrderedDict()
         reactions = OrderedDict()
         rate_rules = OrderedDict()
@@ -112,6 +105,10 @@ class BasicTauHybridSolver(GillesPySolver):
         return rate_rules
 
     def flag_det_reactions(self, model, det_spec, det_rxn, dependencies):
+        '''
+        Helper method used to flag reactions that can be processed
+        deterministically without exceeding the user-supplied tolerance.
+        '''
         #Determine if each rxn would be deterministic apart from other reactions
         prev_state = det_rxn.copy()
         for rxn in model.listOfReactions:
@@ -174,6 +171,7 @@ class BasicTauHybridSolver(GillesPySolver):
     y_map, compiled_reactions, compiled_rate_rules, events):
         """
         Evaluate the propensities for the reactions and the RHS of the Reactions and RateRules.
+        Also evaluates boolean value of event triggers.
         """
         state_change = [0] * len(y_map)
         curr_state['t'] = t
@@ -195,11 +193,21 @@ class BasicTauHybridSolver(GillesPySolver):
     def __event(curr_state, species, reactions, rate_rules, propensities,
     y_map, compiled_reactions, compiled_rate_rules, event_queue, reaction,
     t, y):
+        '''
+        Base "Event" method used in scipy.integrate.solve_ivp.  This method
+        utilizes the brentq method to determine root crossings, and is used in
+        conjunction with model stochastic reactions to discover reaction
+        firings.
+        '''
 
         return y[y_map[reaction]]
      
 
     def find_event_time(self, sol, model, start, end, index, depth):
+        '''
+        Helper method providing binary search implementation for locating
+        precise event times.
+        '''
         dense_range = np.linspace(start, end, 3)
         mid = dense_range[1]
         if start >= mid or mid >= end or depth == 20: return end
@@ -218,6 +226,12 @@ class BasicTauHybridSolver(GillesPySolver):
 
     def __detect_events(self, event_sensitivity, sol, model, delayed_events,
                         trigger_states, curr_time):
+        '''
+        Helper method to locate precise time of event firing.  This method
+        first searches for any instance of an event using event_sensitivity to
+        determine the granularity of the search.  If an event is detected, a
+        binary search is then used to locate the precise time of that event.
+        '''
         event_times = {}
         dense_range = np.linspace(sol.t[0], sol.t[-1], len(sol.t)*event_sensitivity)
         for i, e in enumerate(model.listOfEvents.values()):
@@ -243,6 +257,10 @@ class BasicTauHybridSolver(GillesPySolver):
         return event_times
  
     def __get_next_step(self, event_times, reaction_times, delayed_events, sim_end):
+        '''
+        Helper method to determine the next action to take during simulation,
+        and returns that action along with the time that it occurs.
+        '''
 
         next_reaction_time = sim_end + 1
         next_event_trigger = sim_end + 2
@@ -271,8 +289,15 @@ class BasicTauHybridSolver(GillesPySolver):
     def __integrate(self, integrator, integrator_options, curr_state, y0, model, curr_time, 
                                  propensities, y_map, compiled_reactions,
                                  compiled_rate_rules, event_queue,
-                                 delayed_events, trigger_states):
-        """ Helper function to perform the ODE integration of one step """
+                                 delayed_events, trigger_states,
+                                 event_sensitivity):
+        """ 
+        Helper function to perform the ODE integration of one step.  This
+        method uses scipy.integrate.solve_ivp to get simulation data, and
+        determines the next stopping point of the simulation. The state is
+        updated and returned to __simulate along with curr_time and the
+        solution object. 
+        """
         from functools import partial
         events = model.listOfEvents.values()
         int_args = [curr_state, model.listOfSpecies, model.listOfReactions,
@@ -282,8 +307,8 @@ class BasicTauHybridSolver(GillesPySolver):
                                                           compiled_rate_rules,
                                                           events]
 
-        rhs = lambda t, y: BasicTauHybridSolver.__f(t, y, *int_args)
-        reaction_events = [partial(BasicTauHybridSolver.__event, *int_args,
+        rhs = lambda t, y: BasicHybridSolver.__f(t, y, *int_args)
+        reaction_events = [partial(BasicHybridSolver.__event, *int_args,
         rn) for rn in compiled_reactions]
         for rxn in reaction_events:
             rxn.terminal = True
@@ -292,12 +317,11 @@ class BasicTauHybridSolver(GillesPySolver):
 
         # Integrate until end or event is reached
         sol = solve_ivp(rhs, [curr_time, model.tspan[-1]], y0, 
-            method='LSODA', options=integrator_options, 
-            dense_output=True, events=reaction_events, rtol=1e-9, atol=1e-12)
+            method=integrator, options=integrator_options, 
+            dense_output=True, events=reaction_events, **integrator_options)
 
         # Search for precise event times
         # TODO MAKE USER INPUT VARIABLE FOR SENSITIVITY
-        event_sensitivity = 100
         event_times = self.__detect_events(event_sensitivity, sol, model, delayed_events,
                                     trigger_states, curr_time)
 
@@ -349,15 +373,16 @@ class BasicTauHybridSolver(GillesPySolver):
     def __simulate(self, integrator, integrator_options, curr_state, y0, model, curr_time, 
                         propensities, species, parameters, compiled_reactions,
                         compiled_rate_rules, y_map, trajectory, save_times,
-                        delayed_events, trigger_states, debug):
+                        delayed_events, trigger_states, event_sensitivity, debug):
         """
-        Function to get reactions fired from t to t+tau.  This function solves for root crossings
-        of each reaction channel from over tau step, using poisson random number generation
-        to calculate distance to the root.  Returns four values:
-        rxn_count - dict with key=Reaction channel value=number of times fired
-        current - list containing current displacement of each reaction channel for calculating fired reactions.
+        Function to process simulation until next step, which can be a
+        stochastic reaction firing, an event trigger or assignment, or end of
+        simulation.  Returns three values:
+        sol - Python object returned from solve_ivp which contains all solution
+        data.
         curr_state - dict containing all state variables for system at current time
         curr_time - float representing current time
+        save_times - list of currently unreached save points.
         """
 
         event_queue = []
@@ -367,7 +392,8 @@ class BasicTauHybridSolver(GillesPySolver):
                                                            compiled_rate_rules,
                                                            event_queue,
                                                            delayed_events,
-                                                           trigger_states)
+                                                           trigger_states,
+                                                           event_sensitivity)
 
 
         num_saves = 0
@@ -400,6 +426,9 @@ class BasicTauHybridSolver(GillesPySolver):
         return sol, curr_state, curr_time, save_times
     
     def __compile_all(self, model):
+        '''
+        Compile all run-time evaluables to enhance performance.
+        '''
         compiled_reactions = OrderedDict()
         for i, r in enumerate(model.listOfReactions):
             compiled_reactions[r] = compile(model.listOfReactions[r].propensity_function, '<string>',
@@ -416,6 +445,9 @@ class BasicTauHybridSolver(GillesPySolver):
         return compiled_reactions, compiled_rate_rules, compiled_inactive_reactions, compiled_propensities
 
     def __initialize_state(self, model, curr_state, debug):
+        '''
+        Initialize curr_state for each trajectory.
+        '''
         # initialize species population state
         for s in model.listOfSpecies:
             curr_state[s] = model.listOfSpecies[s].initial_value
@@ -435,6 +467,10 @@ class BasicTauHybridSolver(GillesPySolver):
             curr_state[e_name] = 0
 
     def __map_state(self, species, parameters, compiled_reactions, events, curr_state):
+        '''
+        Creates the start state vector for integration and provides a
+        dictionary map to it's elements.
+        '''
         y_map = OrderedDict()
         # Build integration start state
         y0 = [0] * (len(species) + len(parameters) + len(compiled_reactions) + len(events))
@@ -454,8 +490,9 @@ class BasicTauHybridSolver(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
-            debug=False, profile=False, show_labels=True, switch_tol=0.03, tau_tol=0.03, 
-            integrator='RK45', integrator_options={}, **kwargs):
+            debug=False, profile=False, show_labels=True, switch_tol=0.03,
+            event_sensitivity=100, integrator='LSODA',
+            integrator_options={}, **kwargs):
         """
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
         objects and will inherit those parameters which are passed with the model as the arguments this run function.
@@ -484,17 +521,22 @@ class BasicTauHybridSolver(GillesPySolver):
             If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]
         switch_tol: float
             Relative error tolerance value for deterministic/stochastic switching condition between 0.0 and 1.0
-        tau_tol: float
-            Relative error tolerance value for calculating tau step between 0.0 and 1.0
+        event_sensitivity: int
+            Number of data points to be inspected between integration
+            steps/save points for event detection
         integrator: String
-            integrator to be used form scipy.integrate.ode. Options include 'vode', 'zvode', 'lsoda', 'dopri5', and 'dop835'.  For more details, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html
+            integrator method to be used form scipy.integrate.solve_ivp. Options
+            include 'RK45', 'RK23', 'Radau', 'BDF', and 'LSODA'.  
+            For more details, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html
         integrator_options: dictionary
-            contains options to the scipy integrator. for a list of options, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.
+            contains options to the scipy integrator. by default, this includes
+            rtol=1e-9 and atol=1e-12.  for a list of options,
+            see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html.
             Example use: {max_step : 0, rtol : .01}
         """
 
-        if not isinstance(self, BasicTauHybridSolver):
-            self = BasicTauHybridSolver()
+        if not isinstance(self, BasicHybridSolver):
+            self = BasicHybridSolver()
 
         if len(kwargs) > 0:
             for key in kwargs:
@@ -503,6 +545,11 @@ class BasicTauHybridSolver(GillesPySolver):
         if debug:
             print("t = ", t)
             print("increment = ", increment)
+
+        if 'rtol' not in integrator_options:
+            integrator_options['rtol'] = 1e-9
+        if 'atol' not in integrator_options:
+            integrator_options['atol'] = 1e-12
 
         # create mapping of species dictionary to array indices
         species_mappings = model.sanitized_species_names()
@@ -618,7 +665,8 @@ class BasicTauHybridSolver(GillesPySolver):
                 sol, curr_state, curr_time, save_times = self.__simulate(integrator, integrator_options,
                     curr_state, y0, model, curr_time, propensities, species, 
                     parameters, compiled_reactions, active_rr, y_map,
-                    trajectory, save_times, delayed_events, trigger_states, debug)
+                    trajectory, save_times, delayed_events, trigger_states,
+                    event_sensitivity, debug)
 
             # End of trajectory
             if show_labels:

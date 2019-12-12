@@ -59,7 +59,7 @@ if sys.version_info[0] < 3:
 import os, csv
 import numpy as np
 import gillespy2
-from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
+from gillespy2.solvers.numpy.basic_hybrid_solver import BasicHybridSolver
 
 help = \
 '''This script is an application wrapper for interfacing GillesPy2's ODE solver
@@ -131,7 +131,7 @@ for species in model.listOfSpecies.values():
 	species.mode = 'continuous'
 
 # Run simulation and store results
-solver = BasicTauHybridSolver()
+solver = BasicHybridSolver()
 model.tspan = np.linspace(start, duration, steps+1)
 results = model.run(solver=solver, show_labels=False)
 
