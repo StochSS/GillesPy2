@@ -569,6 +569,10 @@ class BasicHybridSolver(GillesPySolver):
         spec_modes = ['continuous', 'dynamic', 'discrete']
         # copy initial populations to base
         for i, s in enumerate(species):
+            # TODO DYNAMIC is currently forced to DISCRETE, until
+            # reimplemntation of switching
+            if model.listOfSpecies[s].mode == 'dynamic':
+                model.listOfSpecies[s].mode = 'discrete'
             if model.listOfSpecies[s].mode not in spec_modes:
                 raise SpeciesError('Species mode can only be \'continuous\', \'dynamic\', or \'discrete\'.')
             trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
