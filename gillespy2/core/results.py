@@ -191,10 +191,11 @@ class Results(UserDict):
                 title=yaxis_label)
         )
         fig = dict(data = trace_list,layout=layout)
-        iplot(fig)
 
         if return_plotly_figure:
             return fig
+        else:
+            iplot(fig)
 
 class EnsembleResults(UserList):
     """ List of Results Dicts created by a gillespy2 solver with multiple trajectories, extends the UserList object.
