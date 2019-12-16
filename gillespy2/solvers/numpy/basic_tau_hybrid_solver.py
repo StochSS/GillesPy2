@@ -4,22 +4,23 @@ from scipy.integrate import ode, solve_ivp
 import heapq
 import numpy as np
 import gillespy2
+from gillespy2.solvers.numpy import Tau
 from gillespy2.core import GillesPySolver, log
 from gillespy2.core.gillespyError import *
 
 eval_globals = math.__dict__
 
 
-class BasicHybridSolver(GillesPySolver):
+class BasicTauHybridSolver(GillesPySolver):
     """
     This Solver uses a root-finding interpretation of the direct SSA method,
     along with ODE solvers to simulate ODE and Stochastic systems
     interchangeably or simultaneously.
     """
-    name = "BasicHybridSolver"
+    name = "BasicTauHybridSolver"
 
     def __init__(self):
-        name = 'BasicHybridSolver'
+        name = 'BasicTauHybridSolver'
            
         
     def toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec):
@@ -137,7 +138,6 @@ class BasicHybridSolver(GillesPySolver):
         mu_i, sigma_i, model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol = switch_args
         sd = OrderedDict()
         CV = OrderedDict()
-
         mn = {species:curr_state[species] for (species, value) in 
               model.listOfSpecies.items() if value.mode == 'dynamic'}
         sd = {species:0 for (species, value) in 
@@ -161,7 +161,7 @@ class BasicHybridSolver(GillesPySolver):
                 CV[species] = 1    # value chosen to guarantee discrete
             #Set species to deterministic if CV is less than threshhold
             det_spec[species] = True if CV[species] < switch_tol or model.listOfSpecies[species].mode == 'continuous' else False                            
-                
+        
         return sd, CV
     
 
@@ -191,7 +191,7 @@ class BasicHybridSolver(GillesPySolver):
 
     @staticmethod
     def __event(curr_state, species, reactions, rate_rules, propensities,
-    y_map, compiled_reactions, compiled_rate_rules, event_queue, reaction,
+    y_map, compiled_reactions, compiled_rate_rules, event_queue, tau,
     t, y):
         '''
         Base "Event" method used in scipy.integrate.solve_ivp.  This method
@@ -200,7 +200,7 @@ class BasicHybridSolver(GillesPySolver):
         firings.
         '''
 
-        return y[y_map[reaction]]
+        return tau-t
      
 
     def find_event_time(self, sol, model, start, end, index, depth):
@@ -234,19 +234,19 @@ class BasicHybridSolver(GillesPySolver):
         '''
         event_times = {}
         dense_range = np.linspace(sol.t[0], sol.t[-1], len(sol.t)*event_sensitivity)
+        solutions = np.diff(sol.sol(dense_range))
         for i, e in enumerate(model.listOfEvents.values()):
-            solutions = np.diff(sol.sol(dense_range)[-len(model.listOfEvents)+i])
-            as_bool = [int(x)>0 for x in solutions]
-            bool_res = [x>0 for x in solutions]
+            bool_res = [x>0 for x in solutions[i-len(model.listOfEvents)]]
             # Search for changes from False to True in event, record first time
             for y in range(len(dense_range)-1):
                 # Check Persistent Delays
-                if e.name in delayed_events:
+                if e.name in delayed_events and e.trigger.persistent:
                     if not bool_res[y]:
                         heapq.heappop(e.name)
                         del trigger_states[e.name]
+                    break
                 # IF triggered from false to true, refine search
-                if bool_res[y] and ((dense_range[y] != curr_time and bool_res[y-1] == 0) or curr_time==0):
+                elif bool_res[y] and ((dense_range[y] != curr_time and bool_res[y-1] == 0) or curr_time==0):
                     event_time = self.find_event_time(sol, model, dense_range[y-1],
                         dense_range[y+1], i, 0)
                     if event_time in event_times:
@@ -256,19 +256,16 @@ class BasicHybridSolver(GillesPySolver):
                     break
         return event_times
  
-    def __get_next_step(self, event_times, reaction_times, delayed_events, sim_end):
+    def __get_next_step(self, event_times, reaction_times, delayed_events,
+                            sim_end, next_tau):
         '''
         Helper method to determine the next action to take during simulation,
         and returns that action along with the time that it occurs.
         '''
 
-        next_reaction_time = sim_end + 1
         next_event_trigger = sim_end + 2
         next_delayed_event = sim_end + 3
-
         curr_time = sim_end
-        if len(reaction_times):
-            next_reaction_time = min(reaction_times)
 
         # event triggers
         if (len(event_times)):
@@ -279,10 +276,10 @@ class BasicHybridSolver(GillesPySolver):
             next_delayed_event = delayed_events[0][0]
 
         # Execute rxns/events
-        next_step = {sim_end: 'end', next_reaction_time: 'rxn', next_event_trigger: 'trigger', next_delayed_event: 'delay'}
+        next_step = {sim_end: 'end', next_tau: 'tau', next_event_trigger: 'trigger', next_delayed_event: 'delay'}
 
         # UPDATE CURR STATE
-        curr_time = min(sim_end, next_reaction_time, next_event_trigger,
+        curr_time = min(sim_end, next_tau, next_event_trigger,
                         next_delayed_event)
         return next_step[curr_time], curr_time
 
@@ -290,7 +287,7 @@ class BasicHybridSolver(GillesPySolver):
                                  propensities, y_map, compiled_reactions,
                                  compiled_rate_rules, event_queue,
                                  delayed_events, trigger_states,
-                                 event_sensitivity):
+                                 event_sensitivity, tau_step):
         """ 
         Helper function to perform the ODE integration of one step.  This
         method uses scipy.integrate.solve_ivp to get simulation data, and
@@ -307,22 +304,24 @@ class BasicHybridSolver(GillesPySolver):
                                                           compiled_rate_rules,
                                                           events]
 
-        rhs = lambda t, y: BasicHybridSolver.__f(t, y, *int_args)
-        reaction_events = [partial(BasicHybridSolver.__event, *int_args,
-        rn) for rn in compiled_reactions]
-        for rxn in reaction_events:
-            rxn.terminal = True
+        rhs = lambda t, y: BasicTauHybridSolver.__f(t, y, *int_args)
+        next_tau = curr_time+tau_step
+        tau_event = partial(BasicTauHybridSolver.__event, *int_args, next_tau)
+        tau_event.terminal = True
 
         curr_state['t'] = curr_time
 
         # Integrate until end or event is reached
         sol = solve_ivp(rhs, [curr_time, model.tspan[-1]], y0, 
-            method=integrator, options=integrator_options, 
-            dense_output=True, events=reaction_events, **integrator_options)
+            method=integrator, dense_output=True, 
+            events=tau_event, **integrator_options)
 
         # Search for precise event times
-        event_times = self.__detect_events(event_sensitivity, sol, model, delayed_events,
+        if len(model.listOfEvents):
+            event_times = self.__detect_events(event_sensitivity, sol, model, delayed_events,
                                     trigger_states, curr_time)
+        else:
+            event_times = {}
 
         # rxns
         reaction_times = []
@@ -331,25 +330,17 @@ class BasicHybridSolver(GillesPySolver):
                 reaction_times.append(rxn[0]) # Append first firing time for each rxn
 
         next_step, curr_time = self.__get_next_step(event_times, reaction_times,
-                                                delayed_events, model.tspan[-1])
+                                                delayed_events,
+                                                model.tspan[-1], next_tau)
 
 
 
-        for i, s in enumerate(model.listOfSpecies): # Update continuous
-            curr_state[s] = sol.sol(curr_time)[i]
+        for s in model.listOfSpecies: # Update continuous
+            curr_state[s] = sol.sol(curr_time)[y_map[s]]
         for rxn in compiled_reactions: # Update discrete
             curr_state[rxn] = sol.sol(curr_time)[y_map[rxn]]
 
-        if next_step == 'rxn':
-            rxn_state = [sol.sol(curr_time)[y_map[r]] for r in compiled_reactions]
-            for rxn in compiled_reactions:
-                if curr_state[rxn] == max(rxn_state):
-                    curr_state[rxn] = math.log(random.uniform(0, 1))
-                    for reactant in model.listOfReactions[rxn].reactants:
-                        curr_state[reactant.name] -= model.listOfReactions[rxn].reactants[reactant]
-                    for product in model.listOfReactions[rxn].products:
-                        curr_state[product.name] += model.listOfReactions[rxn].products[product]
-        elif next_step == 'trigger':
+        if next_step == 'trigger':
             for event in event_times[curr_time]:
                 # Fire trigger time events immediately
                 if event.delay is None:
@@ -372,7 +363,8 @@ class BasicHybridSolver(GillesPySolver):
     def __simulate(self, integrator, integrator_options, curr_state, y0, model, curr_time, 
                         propensities, species, parameters, compiled_reactions,
                         compiled_rate_rules, y_map, trajectory, save_times,
-                        delayed_events, trigger_states, event_sensitivity, debug):
+                        delayed_events, trigger_states, event_sensitivity,
+                        tau_step, debug):
         """
         Function to process simulation until next step, which can be a
         stochastic reaction firing, an event trigger or assignment, or end of
@@ -392,8 +384,21 @@ class BasicHybridSolver(GillesPySolver):
                                                            event_queue,
                                                            delayed_events,
                                                            trigger_states,
-                                                           event_sensitivity)
+                                                           event_sensitivity,
+                                                           tau_step)
 
+        rxn_count = OrderedDict()
+        # Update stochastic reactions
+        for rxn in compiled_reactions:
+            rxn_count[rxn] = 0
+            while curr_state[rxn] > 0:
+                rxn_count[rxn] += 1
+                curr_state[rxn] += math.log(random.uniform(0,1))
+            if rxn_count[rxn]:
+                for reactant in model.listOfReactions[rxn].reactants:
+                    curr_state[str(reactant)] -= model.listOfReactions[rxn].reactants[reactant] * rxn_count[rxn]
+                for product in model.listOfReactions[rxn].products:
+                    curr_state[str(product)] += model.listOfReactions[rxn].products[product] * rxn_count[rxn]
 
         num_saves = 0
         for time in save_times:
@@ -490,7 +495,7 @@ class BasicHybridSolver(GillesPySolver):
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
             debug=False, profile=False, show_labels=True, switch_tol=0.03,
-            event_sensitivity=100, integrator='LSODA',
+            tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
             integrator_options={}, **kwargs):
         """
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
@@ -534,8 +539,8 @@ class BasicHybridSolver(GillesPySolver):
             Example use: {max_step : 0, rtol : .01}
         """
 
-        if not isinstance(self, BasicHybridSolver):
-            self = BasicHybridSolver()
+        if not isinstance(self, BasicTauHybridSolver):
+            self = BasicTauHybridSolver()
 
         if len(kwargs) > 0:
             for key in kwargs:
@@ -571,8 +576,6 @@ class BasicHybridSolver(GillesPySolver):
         for i, s in enumerate(species):
             # TODO DYNAMIC is currently forced to DISCRETE, until
             # reimplemntation of switching
-            if model.listOfSpecies[s].mode == 'dynamic':
-                model.listOfSpecies[s].mode = 'discrete'
             if model.listOfSpecies[s].mode not in spec_modes:
                 raise SpeciesError('Species mode can only be \'continuous\', \'dynamic\', or \'discrete\'.')
             trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
@@ -620,7 +623,12 @@ class BasicHybridSolver(GillesPySolver):
             curr_state['vol'] = model.volume # Model volume
             data = OrderedDict() # Dictionary for show_labels results
             data['time'] = timeline # All time entries for show_labels results
+            save_times = timeline
 
+            # Record Highest Order reactant for each reaction and set error tolerance
+            HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold = Tau.initialize(model, tau_tol)
+
+            # Populate Curr_State
             self.__initialize_state(model, curr_state, debug)
 
             # One-time compilations to reduce time spent with eval
@@ -642,10 +650,13 @@ class BasicHybridSolver(GillesPySolver):
                 for i, r in enumerate(model.listOfReactions):
                     propensities[r] = eval(compiled_propensities[r], curr_state)
 
+                tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
+                            model, propensities, curr_state, curr_time, save_times[0]]
+                tau_step = save_times[-1]-curr_time if pure_ode else Tau.select(*tau_args)
                 # Calculate sd and CV for hybrid switching and flag deterministic reactions
                 #TODO REWRITE CALCULATION STUFF
-                #switch_args = [mu_i, sigma_i, model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol]
-                #sd, CV = self.calculate_statistics(*switch_args)
+                switch_args = [mu_i, sigma_i, model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol]
+                sd, CV = self.calculate_statistics(*switch_args)
                 deterministic_reactions = self.flag_det_reactions(model, det_spec, det_rxn, dependencies)
                 
                 if debug:
@@ -666,7 +677,7 @@ class BasicHybridSolver(GillesPySolver):
                     curr_state, y0, model, curr_time, propensities, species, 
                     parameters, compiled_reactions, active_rr, y_map,
                     trajectory, save_times, delayed_events, trigger_states,
-                    event_sensitivity, debug)
+                    event_sensitivity, tau_step, debug)
 
             # End of trajectory
             if show_labels:
