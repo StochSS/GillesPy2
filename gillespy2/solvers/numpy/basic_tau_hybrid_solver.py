@@ -85,9 +85,11 @@ class BasicTauHybridSolver(GillesPySolver):
             for dep in dependencies[reaction]:
                 factor[dep] = 0
             for key, value in model.listOfReactions[reaction].reactants.items():
-                factor[key.name] -= value
+                if not key.constant and not key.boundary_condition:
+                    factor[key.name] -= value
             for key, value in model.listOfReactions[reaction].products.items():
-                factor[key.name] += value
+                if not key.constant and not key.boundary_condition:
+                    factor[key.name] += value
             for dep in dependencies[reaction]:
                 if factor[dep] != 0:
                     if model.listOfSpecies[dep].mode == 'continuous':
@@ -278,7 +280,7 @@ class BasicTauHybridSolver(GillesPySolver):
         # Execute rxns/events
         next_step = {sim_end: 'end', next_tau: 'tau', next_event_trigger: 'trigger', next_delayed_event: 'delay'}
 
-        # UPDATE CURR STATE
+        # Set time to next action
         curr_time = min(sim_end, next_tau, next_event_trigger,
                         next_delayed_event)
         return next_step[curr_time], curr_time
@@ -335,8 +337,9 @@ class BasicTauHybridSolver(GillesPySolver):
 
 
 
-        for s in model.listOfSpecies: # Update continuous
-            curr_state[s] = sol.sol(curr_time)[y_map[s]]
+        for spec_name, species in model.listOfSpecies.items(): # Update continuous
+            if not species.constant:
+                curr_state[spec_name] = sol.sol(curr_time)[y_map[spec_name]]
         for rxn in compiled_reactions: # Update discrete
             curr_state[rxn] = sol.sol(curr_time)[y_map[rxn]]
 
@@ -396,8 +399,10 @@ class BasicTauHybridSolver(GillesPySolver):
                 curr_state[rxn] += math.log(random.uniform(0,1))
             if rxn_count[rxn]:
                 for reactant in model.listOfReactions[rxn].reactants:
+                    if reactant.constant or reactant.boundary_condition: continue
                     curr_state[str(reactant)] -= model.listOfReactions[rxn].reactants[reactant] * rxn_count[rxn]
                 for product in model.listOfReactions[rxn].products:
+                    if product.constant or product.boundary_condition: continue
                     curr_state[str(product)] += model.listOfReactions[rxn].products[product] * rxn_count[rxn]
 
         num_saves = 0

@@ -73,8 +73,12 @@ def convert(filename, model_name=None, gillespy_model=None):
 
             value = 0
 
+        constant = species.getConstant()
+        boundary_condition = species.getBoundaryCondition()
         is_negative = value < 0.0
-        gillespy_species = gillespy2.Species(name=name, initial_value=value, allow_negative_populations= is_negative, mode=mode)
+        gillespy_species = gillespy2.Species(name=name, initial_value=value,
+                                                allow_negative_populations= is_negative, mode=mode,
+                                                constant=constant, boundary_condition=boundary_condition)
         gillespy_model.add_species([gillespy_species])
 
     for i in range(model.getNumParameters()):
@@ -175,6 +179,8 @@ def convert(filename, model_name=None, gillespy_model=None):
 
     for i in range(model.getNumCompartments()):
         compartment = model.getCompartment(i)
+        vol = compartment.getSize()
+        gillespy_model.volume = vol
 
         errors.append([
                           "Compartment '{0}' found on line '{1}' with volume '{2}' and dimension '{3}'. gillespy "

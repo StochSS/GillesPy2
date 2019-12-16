@@ -576,19 +576,31 @@ class Species(SortableObject):
     initial_value : int >= 0
         Initial population of this species. If this is not provided as an int,
         the type will be changed when it is added by numpy.int
+    constant: bool
+        If true, the value of the species cannot be changed.
+        (currently BasicTauHybridSolver only)
+    boundary_condition: bool
+        If true, species can be changed by events and rate rules, but not by
+        reactions. (currently BasicTauHybridOnly)
     mode : str
-        ***FOR USE WITH TauHybridSolver ONLY***
+        ***FOR USE WITH BasicTauHybridSolver ONLY***
         Sets the mode of representation of this species for the TauHybridSolver,
         can be discrete, continuous, or dynamic.
         mode='dynamic' - Default, allows a species to be represented as
             either discrete or continuous
         mode='continuous' - Species will only be represented as continuous
         mode='discrete' - Species will only be represented as discrete
+    allow_negative_populations: bool
+        If true, population can be reduced below 0
     """
 
-    def __init__(self, name="", initial_value=0, mode='dynamic', allow_negative_populations=False):
+    def __init__(self, name="", initial_value=0, constant=False,
+                    boundary_condition=False, mode='dynamic',
+                    allow_negative_populations=False):
         # A species has a name (string) and an initial value (positive integer)
         self.name = name
+        self.constant = constant
+        self.boundary_condition = boundary_condition
         self.mode = mode
         self.allow_negative_populations = allow_negative_populations
 
