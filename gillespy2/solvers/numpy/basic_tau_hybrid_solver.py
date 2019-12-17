@@ -237,14 +237,16 @@ class BasicTauHybridSolver(GillesPySolver):
         solutions = np.diff(sol.sol(dense_range))
         for i, e in enumerate(model.listOfEvents.values()):
             bool_res = [x>0 for x in solutions[i-len(model.listOfEvents)]]
+            #for time, result in zip(dense_range, bool_res):
+            #    print('Time: ', time, ' Result: ', result)
             # Search for changes from False to True in event, record first time
             for y in range(len(dense_range)-1):
                 # Check Persistent Delays
-                if e.name in delayed_events and e.trigger.persistent:
+                if e.name in trigger_states and not e.trigger.persistent:
                     if not bool_res[y]:
-                        heapq.heappop(e.name)
+                        delayed_events[i] = delayed_events[-1] # move to end
+                        heapq.heappop(delayed_events)
                         del trigger_states[e.name]
-                    break
                 # IF triggered from false to true, refine search
                 elif bool_res[y] and ((dense_range[y] != curr_time and bool_res[y-1] == 0) or curr_time==0):
                     event_time = self.find_event_time(sol, model, dense_range[y-1],
