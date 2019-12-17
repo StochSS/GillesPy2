@@ -3,10 +3,10 @@ import numpy as np
 import gillespy2
 from gillespy2.core.gillespyError import *
 from gillespy2.example_models import Example
-from gillespy2.solvers.numpy.basic_hybrid_solver import BasicHybridSolver
+from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
 
 
-class TestBasicHybridSolver(unittest.TestCase):
+class TestBasicTauHybridSolver(unittest.TestCase):
     model = Example()
     
     def test_add_rate_rule(self):
@@ -14,7 +14,7 @@ class TestBasicHybridSolver(unittest.TestCase):
         rule = gillespy2.RateRule(species, 'cos(t)')
         self.model.add_species([species])
         self.model.add_rate_rule([rule])
-        self.model.run(solver=BasicHybridSolver)
+        self.model.run(solver=BasicTauHybridSolver)
 
     def test_add_rate_rule_dict(self):
         species2 = gillespy2.Species('test_species2', initial_value=2, mode='continuous')
