@@ -8,7 +8,7 @@ from gillespy2.solvers.cpp.ssa_c_solver import SSACSolver
 from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
 from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver
 from gillespy2.solvers.numpy.basic_tau_leaping_solver import BasicTauLeapingSolver
-from gillespy2.solvers.numpy.basic_hybrid_solver import BasicHybridSolver
+from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
 
 from gillespy2.solvers.cython import can_use_cython
 if can_use_cython:
@@ -17,7 +17,7 @@ if can_use_cython:
 
 class TestAllSolvers(unittest.TestCase):
 
-    solvers = [SSACSolver, BasicODESolver, NumPySSASolver, BasicTauLeapingSolver, BasicHybridSolver]
+    solvers = [SSACSolver, BasicODESolver, NumPySSASolver, BasicTauLeapingSolver, BasicTauHybridSolver]
     if can_use_cython:
         solvers.append(CythonSSASolver)
 
