@@ -208,11 +208,14 @@ def convert(filename, model_name=None, gillespy_model=None):
 
     for i in range(model.getNumFunctionDefinitions()):
         function = model.getFunctionDefinition(i)
+        function_name = function.getId()
+        function_string = libsbml.formulaToL3String(function.getMath())
+        function_elements = function_string.replace('lambda(','')[:-1].split(', ')
+        function_args = function_elements[:-1]
+        function_function = function_elements[-1]
+        gillespy_function = gillespy2.FunctionDefinition(name=function_name, function=function_function, args=function_args)
+        gillespy_model.add_function_definition(gillespy_function)
 
-        errors.append([
-                          "Function '{0}' found on line '{1}' with equation '{2}'. gillespy does not support SBML "
-                          "Function Definitions".format(
-                              function.getId(), function.getLine(), libsbml.formulaToString(function.getMath())), -5])
 
     for i in range(model.getNumEvents()):
         event = model.getEvent(i)

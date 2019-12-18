@@ -380,31 +380,51 @@ class BasicTauHybridSolver(GillesPySolver):
         """
 
         event_queue = []
-        sol, curr_time = self.__integrate(integrator, integrator_options, curr_state, 
-                                                           y0, model, curr_time, propensities, y_map, 
-                                                           compiled_reactions,
-                                                           compiled_rate_rules,
-                                                           event_queue,
-                                                           delayed_events,
-                                                           trigger_states,
-                                                           event_sensitivity,
-                                                           tau_step)
+        prev_y0 = y0.copy()
+        prev_curr_state = curr_state.copy()
+        prev_curr_time = curr_time
+        loop_count = 0
 
-        rxn_count = OrderedDict()
-        # Update stochastic reactions
-        for rxn in compiled_reactions:
-            rxn_count[rxn] = 0
-            while curr_state[rxn] > 0:
-                rxn_count[rxn] += 1
-                curr_state[rxn] += math.log(random.uniform(0,1))
-            if rxn_count[rxn]:
-                for reactant in model.listOfReactions[rxn].reactants:
-                    if reactant.constant or reactant.boundary_condition: continue
-                    curr_state[str(reactant)] -= model.listOfReactions[rxn].reactants[reactant] * rxn_count[rxn]
-                for product in model.listOfReactions[rxn].products:
-                    if product.constant or product.boundary_condition: continue
-                    curr_state[str(product)] += model.listOfReactions[rxn].products[product] * rxn_count[rxn]
+        while True:
+            loop_count += 1
+            if loop_count > 100:
+                raise Exception("Loop over __integrate() exceeded loop count")
+            sol, curr_time = self.__integrate(integrator, integrator_options, curr_state, 
+                                                               y0, model, curr_time, propensities, y_map, 
+                                                               compiled_reactions,
+                                                               compiled_rate_rules,
+                                                               event_queue,
+                                                               delayed_events,
+                                                               trigger_states,
+                                                               event_sensitivity,
+                                                               tau_step)
 
+            rxn_count = OrderedDict()
+            species_modified = OrderedDict()
+            # Update stochastic reactions
+            for rxn in compiled_reactions:
+                rxn_count[rxn] = 0
+                while curr_state[rxn] > 0:
+                    rxn_count[rxn] += 1
+                    curr_state[rxn] += math.log(random.uniform(0,1))
+                if rxn_count[rxn]:
+                    for reactant in model.listOfReactions[rxn].reactants:
+                        species_modified[str(reactant)] = True
+                        curr_state[str(reactant)] -= model.listOfReactions[rxn].reactants[reactant] * rxn_count[rxn]
+                    for product in model.listOfReactions[rxn].products:
+                        species_modified[str(reactant)] = True
+                        curr_state[str(product)] += model.listOfReactions[rxn].products[product] * rxn_count[rxn]
+
+            neg_state = False
+            for s in species_modified.keys():
+                if curr_state[s] < 0:
+                    neg_state = True
+            if neg_state:
+                y0 = prev_y0.copy()
+                curr_state = prev_curr_state.copy()
+                curr_time = prev_curr_time
+                tau_step = tau_step / 2
+            else: break 
         num_saves = 0
         for time in save_times:
             if time > curr_time: break
@@ -448,9 +468,8 @@ class BasicTauHybridSolver(GillesPySolver):
             
         compiled_inactive_reactions = OrderedDict()
 
-        compiled_propensities = OrderedDict()
-        for i, r in enumerate(model.listOfReactions):
-            compiled_propensities[r] = compile(model.listOfReactions[r].propensity_function, '<string>', 'eval')
+        compiled_propensities = compiled_reactions.copy()
+
         return compiled_reactions, compiled_rate_rules, compiled_inactive_reactions, compiled_propensities
 
     def __initialize_state(self, model, curr_state, debug):
@@ -474,6 +493,9 @@ class BasicTauHybridSolver(GillesPySolver):
         # Initialize event last-fired times to 0
         for e_name in model.listOfEvents:
             curr_state[e_name] = 0
+
+        for fd in model.listOfFunctionDefinitions.values():
+            curr_state[fd.name] = fd.function
 
     def __map_state(self, species, parameters, compiled_reactions, events, curr_state):
         '''

@@ -142,6 +142,7 @@ class Model(SortableObject):
         self.listOfReactions = OrderedDict()
         self.listOfRateRules = OrderedDict()
         self.listOfEvents = OrderedDict()
+        self.listOfFunctionDefinitions = OrderedDict()
 
         # This defines the unit system at work for all numbers in the model
         # It should be a logical error to leave this undefined, subclasses
@@ -467,6 +468,15 @@ class Model(SortableObject):
             " List of Event Objects")
         return event
 
+
+    def add_function_definition(self, function_definitions):
+        if isinstance(function_definitions, list):
+            for fd in function_definitions:
+                self.add_function_definition(fd)
+        elif isinstance(function_definitions, FunctionDefinition):
+            self.listOfFunctionDefinitions[function_definitions.name] = function_definitions
+
+
     def timespan(self, time_span):
         """
         Set the time span of simulation. StochKit does not support non-uniform
@@ -690,6 +700,33 @@ class Parameter(SortableObject):
             raise TypeError
 
         self.evaluate()
+
+
+class FunctionDefinition(SortableObject):
+    """
+    Object representation defining an evaluable function to be used during
+    simulation of a GillesPy2 model
+
+    Attributes
+    ----------
+    name : str
+        Name of the function to be made and called.
+    function : str
+        Defined function body of operation to be performed.
+    variables : list
+        String names of Variables to be used as arguments to function.
+    """
+
+    def __init__(self, name="", function=None, args=[]):
+
+        self.name = name
+
+        args = ', '.join(args)
+
+        self.function = eval('lambda ' + args + ': ' + function)
+
+        if self.function is None:
+            raise TypeError
 
 
 class RateRule:

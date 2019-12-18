@@ -1,6 +1,6 @@
 import logging
 from gillespy2.core import gillespyError
-from gillespy2.core.gillespy2 import Model, Species, Reaction, Parameter, RateRule, StochMLDocument, import_SBML
+from gillespy2.core.gillespy2 import Model, Species, Reaction, Parameter, RateRule, StochMLDocument, import_SBML, FunctionDefinition
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.events import *
 from gillespy2.__version__ import __version__
