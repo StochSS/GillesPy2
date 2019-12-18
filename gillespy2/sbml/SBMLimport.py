@@ -1,13 +1,13 @@
 import os
 import gillespy2
 import numpy
+try:
+    import libsbml
+except ImportError:
+    raise ImportError('libsbml is required to convert SBML files for GillesPy.')
 
 
-def convert(filename, model_name=None, gillespy_model=None):
-    try:
-        import libsbml
-    except ImportError:
-        raise ImportError('libsbml is required to convert SBML files for GillesPy.')
+def __read_sbml_model(filename):
 
     document = libsbml.readSBML(filename)
     errors = []
@@ -23,14 +23,14 @@ def convert(filename, model_name=None, gillespy_model=None):
                            converter_code])
     if min([code for error, code in errors] + [0]) < 0:
         return None, errors
-    model = document.getModel()
-    if model_name is None:
-        model_name = model.getName()
-    if gillespy_model is None:
-        gillespy_model = gillespy2.Model(name=model_name)
-    gillespy_model.units = "concentration"
-    for i in range(model.getNumSpecies()):
-        species = model.getSpecies(i)
+    sbml_model = document.getModel()
+
+    return sbml_model, errors
+
+def __get_species(sbml_model, gillespy_model):
+
+    for i in range(sbml_model.getNumSpecies()):
+        species = sbml_model.getSpecies(i)
         if species.getId() == 'EmptySet':
             errors.append([
                               "EmptySet species detected in model on line {0}. EmptySet is not an explicit species in "
@@ -49,7 +49,7 @@ def convert(filename, model_name=None, gillespy_model=None):
             value = species.getInitialConcentration()
             mode = 'continuous'
         else:
-            rule = model.getRule(species.getId())
+            rule = sbml_model.getRule(species.getId())
             if rule:
                 msg = ""
                 if rule.isAssignment():
@@ -80,26 +80,43 @@ def convert(filename, model_name=None, gillespy_model=None):
                                                 allow_negative_populations= is_negative, mode=mode,
                                                 constant=constant, boundary_condition=boundary_condition)
         gillespy_model.add_species([gillespy_species])
+    
+def __get_parameters(sbml_model, gillespy_model):
 
-    for i in range(model.getNumParameters()):
-        parameter = model.getParameter(i)
+    for i in range(sbml_model.getNumParameters()):
+        parameter = sbml_model.getParameter(i)
         name = parameter.getId()
         value = parameter.getValue()
 
         gillespy_parameter = gillespy2.Parameter(name=name, expression=value)
         gillespy_model.add_parameter([gillespy_parameter])
 
-    for i in range(model.getNumCompartments()):
-        compartment = model.getCompartment(i)
+def __get_compartments(sbml_model, gillespy_model):
+    for i in range(sbml_model.getNumCompartments()):
+        compartment = sbml_model.getCompartment(i)
         name = compartment.getId()
         value = compartment.getSize()
 
         gillespy_parameter = gillespy2.Parameter(name=name, expression=value)
         gillespy_model.add_parameter([gillespy_parameter])
 
+    '''
+    for i in range(sbml_model.getNumCompartments()):
+        compartment = sbml_model.getCompartment(i)
+        vol = compartment.getSize()
+        gillespy_model.volume = vol
+
+        errors.append([
+                          "Compartment '{0}' found on line '{1}' with volume '{2}' and dimension '{3}'. gillespy "
+                          "assumes a single well-mixed, reaction volume".format(
+                              compartment.getId(), compartment.getLine(), compartment.getVolume(),
+                              compartment.getSpatialDimensions()), -5])
+    '''
+
+def __get_reactions(sbml_model, gillespy_model):
     # local parameters
-    for i in range(model.getNumReactions()):
-        reaction = model.getReaction(i)
+    for i in range(sbml_model.getNumReactions()):
+        reaction = sbml_model.getReaction(i)
         kinetic_law = reaction.getKineticLaw()
 
         for j in range(kinetic_law.getNumParameters()):
@@ -110,8 +127,8 @@ def convert(filename, model_name=None, gillespy_model=None):
             gillespy_model.add_parameter([gillespy_parameter])
 
     # reactions
-    for i in range(model.getNumReactions()):
-        reaction = model.getReaction(i)
+    for i in range(sbml_model.getNumReactions()):
+        reaction = sbml_model.getReaction(i)
         name = reaction.getId()
 
         reactants = {}
@@ -149,9 +166,9 @@ def convert(filename, model_name=None, gillespy_model=None):
 
         gillespy_model.add_reaction([gillespy_reaction])
 
-        
-    for i in range(model.getNumRules()):
-        rule = model.getRule(i)
+def __get_rules(sbml_model, gillespy_model):
+    for i in range(sbml_model.getNumRules()):
+        rule = sbml_model.getRule(i)
 
         t = []
 
@@ -177,19 +194,9 @@ def convert(filename, model_name=None, gillespy_model=None):
         errors.append(["{0} '{1}' found on line '{2}' with equation '{3}'. gillespy does not support SBML Rules".format(
             msg, rule.getId(), rule.getLine(), libsbml.formulaToString(rule.getMath())), -5])
 
-    for i in range(model.getNumCompartments()):
-        compartment = model.getCompartment(i)
-        vol = compartment.getSize()
-        gillespy_model.volume = vol
-
-        errors.append([
-                          "Compartment '{0}' found on line '{1}' with volume '{2}' and dimension '{3}'. gillespy "
-                          "assumes a single well-mixed, reaction volume".format(
-                              compartment.getId(), compartment.getLine(), compartment.getVolume(),
-                              compartment.getSpatialDimensions()), -5])
-
-    for i in range(model.getNumConstraints()):
-        constraint = model.getConstraint(i)
+def __get_constraints(sbml_model, gillespy_model):
+    for i in range(sbml_model.getNumConstraints()):
+        constraint = sbml_model.getConstraint(i)
 
         errors.append([
                           "Constraint '{0}' found on line '{1}' with equation '{2}'. gillespy does not support SBML "
@@ -197,17 +204,12 @@ def convert(filename, model_name=None, gillespy_model=None):
                               constraint.getId(), constraint.getLine(), libsbml.formulaToString(constraint.getMath())),
                           -5])
 
-    for i in range(model.getNumEvents()):
-        event = model.getEvent(i)
-
-        errors.append([
-                          "Event '{0}' found on line '{1}' with trigger equation '{2}'. gillespy does not support "
-                          "SBML Events".format(
-                              event.getId(), event.getLine(), libsbml.formulaToString(event.getTrigger().getMath())),
-                          -5])
-
-    for i in range(model.getNumFunctionDefinitions()):
-        function = model.getFunctionDefinition(i)
+def __get_function_definitions(sbml_model, gillespy_model):
+    # TODO:
+    # DOES NOT CURRENTLY SUPPORT ALL MATHML 
+    # ALSO DOES NOT SUPPORT NON-MATHML
+    for i in range(sbml_model.getNumFunctionDefinitions()):
+        function = sbml_model.getFunctionDefinition(i)
         function_name = function.getId()
         function_string = libsbml.formulaToL3String(function.getMath())
         function_elements = function_string.replace('lambda(','')[:-1].split(', ')
@@ -216,9 +218,9 @@ def convert(filename, model_name=None, gillespy_model=None):
         gillespy_function = gillespy2.FunctionDefinition(name=function_name, function=function_function, args=function_args)
         gillespy_model.add_function_definition(gillespy_function)
 
-
-    for i in range(model.getNumEvents()):
-        event = model.getEvent(i)
+def __get_events(sbml_model, gillespy_model):
+    for i in range(sbml_model.getNumEvents()):
+        event = sbml_model.getEvent(i)
         gillespy_assignments = []
         
         trigger = event.getTrigger()
@@ -242,6 +244,25 @@ def convert(filename, model_name=None, gillespy_model=None):
             assignments=gillespy_assignments, delay=delay,
             use_values_from_trigger_time=use_values_from_trigger_time)
         gillespy_model.add_event(gillespy_event)
+
+def convert(filename, model_name=None, gillespy_model=None):
+
+    sbml_model, errors = __read_sbml_model(filename)
+
+    if model_name is None:
+        model_name = sbml_model.getName()
+    if gillespy_model is None:
+        gillespy_model = gillespy2.Model(name=model_name)
+    gillespy_model.units = "concentration"
+
+    __get_species(sbml_model, gillespy_model)
+    __get_parameters(sbml_model, gillespy_model)
+    __get_compartments(sbml_model, gillespy_model)
+    __get_reactions(sbml_model, gillespy_model)
+    __get_rules(sbml_model, gillespy_model)
+    __get_constraints(sbml_model, gillespy_model)
+    __get_function_definitions(sbml_model, gillespy_model)
+    __get_events(sbml_model, gillespy_model)
 
     return gillespy_model, errors
 
