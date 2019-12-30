@@ -174,6 +174,7 @@ if debug:
         print('---- Products:')
         for prd, cnt in rxn.products.items():
             print('------ {0}: {1}'.format(str(prd), cnt))
+        print('---- Propensity_Function: ', rxn.propensity_function)
 
     print('Simulation Results:')
     with open(TARG_FILE, 'r') as results_file:

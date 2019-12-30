@@ -23,7 +23,7 @@ class BasicTauHybridSolver(GillesPySolver):
         name = 'BasicTauHybridSolver'
            
         
-    def toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec):
+    def __toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec):
         '''
         Helper method which is used to convert reaction channels into
         rate rules, and rate rules into reaction channels, as they are switched
@@ -90,6 +90,7 @@ class BasicTauHybridSolver(GillesPySolver):
             for key, value in model.listOfReactions[reaction].products.items():
                 if not key.constant and not key.boundary_condition:
                     factor[key.name] += value
+
             for dep in dependencies[reaction]:
                 if factor[dep] != 0:
                     if model.listOfSpecies[dep].mode == 'continuous':
@@ -170,7 +171,7 @@ class BasicTauHybridSolver(GillesPySolver):
 
     @staticmethod
     def __f(t, y, curr_state, species, reactions, rate_rules, propensities,
-    y_map, compiled_reactions, compiled_rate_rules, events):
+    y_map, compiled_reactions, compiled_rate_rules, events, assignment_rules):
         """
         Evaluate the propensities for the reactions and the RHS of the Reactions and RateRules.
         Also evaluates boolean value of event triggers.
@@ -178,7 +179,11 @@ class BasicTauHybridSolver(GillesPySolver):
         state_change = [0] * len(y_map)
         curr_state['t'] = t
         for item, index in y_map.items():
-            curr_state[item] = y[index]
+            if item in assignment_rules:
+                curr_state[item] = eval(assignment_rules[item].formula,
+                                        eval_globals, curr_state)
+            else:
+                curr_state[item] = y[index]
         for rr in compiled_rate_rules:
             state_change[y_map[rr]] += eval(compiled_rate_rules[rr], eval_globals, curr_state)
         for i, r in enumerate(compiled_reactions):
@@ -193,7 +198,8 @@ class BasicTauHybridSolver(GillesPySolver):
 
     @staticmethod
     def __event(curr_state, species, reactions, rate_rules, propensities,
-    y_map, compiled_reactions, compiled_rate_rules, event_queue, tau,
+    y_map, compiled_reactions, compiled_rate_rules, event_queue,
+    assignment_rules, tau,
     t, y):
         '''
         Base "Event" method used in scipy.integrate.solve_ivp.  This method
@@ -304,7 +310,8 @@ class BasicTauHybridSolver(GillesPySolver):
                                                           propensities, y_map, 
                                                           compiled_reactions,
                                                           compiled_rate_rules,
-                                                          events]
+                                                          events,
+                                                          model.listOfAssignmentRules]
 
         rhs = lambda t, y: BasicTauHybridSolver.__f(t, y, *int_args)
         next_tau = curr_time+tau_step
@@ -425,13 +432,22 @@ class BasicTauHybridSolver(GillesPySolver):
                 curr_time = prev_curr_time
                 tau_step = tau_step / 2
             else: break 
+        # Update Assignments
         num_saves = 0
         for time in save_times:
             if time > curr_time: break
             # if a solution is given for it
             trajectory_index = np.where(model.tspan == time)[0][0]
+            assignment_state = curr_state.copy()
             for s in range(len(species)):
                 trajectory[trajectory_index][s+1] = sol.sol(time)[s]
+                if len(model.listOfAssignmentRules):
+                    assignment_state[species[s]] = sol.sol(time)[s]
+            assignment_state['t'] = time
+            for spec, ar in model.listOfAssignmentRules.items():
+                assignment_value = eval(ar.formula, eval_globals, assignment_state)
+                trajectory[trajectory_index][species.index(spec)+1] = assignment_value
+                print('species ', species, ' should be ', assignment_value, ' at time ', time)
             num_saves += 1
         save_times = save_times[num_saves:]
 
@@ -497,6 +513,11 @@ class BasicTauHybridSolver(GillesPySolver):
         for fd in model.listOfFunctionDefinitions.values():
             curr_state[fd.name] = fd.function
 
+        print(model.listOfAssignmentRules)
+        for ar in model.listOfAssignmentRules.values():
+            print('init ', ar.variable, ' to ', ar.formula)
+            curr_state[ar.variable] = ar.formula
+
     def __map_state(self, species, parameters, compiled_reactions, events, curr_state):
         '''
         Creates the start state vector for integration and provides a
@@ -506,7 +527,10 @@ class BasicTauHybridSolver(GillesPySolver):
         # Build integration start state
         y0 = [0] * (len(species) + len(parameters) + len(compiled_reactions) + len(events))
         for i, spec in enumerate(species):
-            y0[i] = curr_state[spec]
+            if isinstance(curr_state[spec], str):
+                y0[i] = eval(curr_state[spec], eval_globals, curr_state)
+            else:
+                y0[i] = curr_state[spec]
             y_map[spec] = i
         for i, param in enumerate(parameters):
             y0[i+len(species)] = curr_state[param]
@@ -674,6 +698,7 @@ class BasicTauHybridSolver(GillesPySolver):
             while curr_time < model.tspan[-1]:
 
                 # Get current propensities
+                print(curr_state)
                 for i, r in enumerate(model.listOfReactions):
                     propensities[r] = eval(compiled_propensities[r], curr_state)
 
@@ -694,7 +719,7 @@ class BasicTauHybridSolver(GillesPySolver):
                     print('det_rxn: {0}'.format(det_rxn))
                 
                 # Set active reactions and rate rules for this integration step
-                self.toggle_reactions(model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec)
+                self.__toggle_reactions(model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec)
                 active_rr = compiled_rate_rules[deterministic_reactions]
 
                 y0, y_map = self.__map_state(species, parameters,

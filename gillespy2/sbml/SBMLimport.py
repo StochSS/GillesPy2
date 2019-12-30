@@ -27,7 +27,7 @@ def __read_sbml_model(filename):
 
     return sbml_model, errors
 
-def __get_species(sbml_model, gillespy_model):
+def __get_species(sbml_model, gillespy_model, errors):
 
     for i in range(sbml_model.getNumSpecies()):
         species = sbml_model.getSpecies(i)
@@ -48,8 +48,9 @@ def __get_species(sbml_model, gillespy_model):
         elif species.isSetInitialConcentration():
             value = species.getInitialConcentration()
             mode = 'continuous'
-        else:
+        else: # Assignment
             rule = sbml_model.getRule(species.getId())
+            mode = 'continuous'
             if rule:
                 msg = ""
                 if rule.isAssignment():
@@ -77,7 +78,7 @@ def __get_species(sbml_model, gillespy_model):
         boundary_condition = species.getBoundaryCondition()
         is_negative = value < 0.0
         gillespy_species = gillespy2.Species(name=name, initial_value=value,
-                                                allow_negative_populations= is_negative, mode=mode,
+                                                allow_negative_populations=is_negative, mode=mode,
                                                 constant=constant, boundary_condition=boundary_condition)
         gillespy_model.add_species([gillespy_species])
     
@@ -166,7 +167,7 @@ def __get_reactions(sbml_model, gillespy_model):
 
         gillespy_model.add_reaction([gillespy_reaction])
 
-def __get_rules(sbml_model, gillespy_model):
+def __get_rules(sbml_model, gillespy_model, errors):
     for i in range(sbml_model.getNumRules()):
         rule = sbml_model.getRule(i)
 
@@ -177,6 +178,12 @@ def __get_rules(sbml_model, gillespy_model):
         if rule.isParameter():
             t.append('parameter')
         elif rule.isAssignment():
+            rule_name = rule.getId()
+            rule_string = libsbml.formulaToL3String(rule.getMath())
+            print('{0}: {1}'.format(rule_name, rule_string))
+            gillespy_rule = gillespy2.AssignmentRule(variable=rule_name,
+                formula=rule_string)
+            gillespy_model.add_assignment_rule(gillespy_rule)
             t.append('assignment')
         elif rule.isRate():
             t.append('rate')
@@ -255,11 +262,11 @@ def convert(filename, model_name=None, gillespy_model=None):
         gillespy_model = gillespy2.Model(name=model_name)
     gillespy_model.units = "concentration"
 
-    __get_species(sbml_model, gillespy_model)
+    __get_species(sbml_model, gillespy_model, errors)
     __get_parameters(sbml_model, gillespy_model)
     __get_compartments(sbml_model, gillespy_model)
     __get_reactions(sbml_model, gillespy_model)
-    __get_rules(sbml_model, gillespy_model)
+    __get_rules(sbml_model, gillespy_model, errors)
     __get_constraints(sbml_model, gillespy_model)
     __get_function_definitions(sbml_model, gillespy_model)
     __get_events(sbml_model, gillespy_model)

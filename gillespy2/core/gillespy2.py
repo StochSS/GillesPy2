@@ -140,6 +140,7 @@ class Model(SortableObject):
         self.listOfParameters = OrderedDict()
         self.listOfSpecies = OrderedDict()
         self.listOfReactions = OrderedDict()
+        self.listOfAssignmentRules = OrderedDict()
         self.listOfRateRules = OrderedDict()
         self.listOfEvents = OrderedDict()
         self.listOfFunctionDefinitions = OrderedDict()
@@ -476,6 +477,13 @@ class Model(SortableObject):
         elif isinstance(function_definitions, FunctionDefinition):
             self.listOfFunctionDefinitions[function_definitions.name] = function_definitions
 
+    def add_assignment_rule(self, assignment_rules):
+        if isinstance(assignment_rules, list):
+            for ar in assignment_rules:
+                self.add_assignment_rule(ar)
+        elif isinstance(assignment_rules, AssignmentRule):
+            self.listOfAssignmentRules[assignment_rules.variable] = assignment_rules
+
 
     def timespan(self, time_span):
         """
@@ -728,8 +736,12 @@ class FunctionDefinition(SortableObject):
         if self.function is None:
             raise TypeError
 
+class AssignmentRule(SortableObject):
+    def __init__(self, variable=None, formula=None):
+        self.variable = variable
+        self.formula = formula
 
-class RateRule:
+class RateRule(SortableObject):
     def __init__(self, species=None, expression='', name=None):
         self.expression = expression
         self.species = species
