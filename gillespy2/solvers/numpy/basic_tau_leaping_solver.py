@@ -122,7 +122,7 @@ class BasicTauLeapingSolver(GillesPySolver):
                 raise ModelError('seed must be a positive integer')
 
         # create numpy array for timeline
-        timeline = np.linspace(0, t, round(t / increment + 1))
+        timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
         # create numpy matrix to mark all state data of time and species
         trajectory_base = np.zeros((number_of_trajectories, timeline.size, number_species + 1))

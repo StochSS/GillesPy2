@@ -45,12 +45,12 @@ python3 -m pip install gillespy2 --user --upgrade
 
 As an alternative to getting it from PyPI, you can instruct `pip` to install GillesPy2 directly from the GitHub repository:
 ```sh
-python3 -m pip install git+https@github.com:GillesPy2/GillesPy2.git --user --upgrade
+python3 -m pip install git+https://github.com/GillesPy2/GillesPy2.git --user --upgrade
 ```
 
 As a final alternative, you can first use `git` to clone a copy of the GillesPy2 source tree from the GitHub repository to your local computer disk, and then install GillesPy2 using that copy:
 ```sh
-git clone --recursive https@github.com:GillesPy2/GillesPy2.git
+git clone https://github.com/GillesPy2/GillesPy2.git
 cd GillesPy2
 python3 -m pip install  .  --user --upgrade
 ```
@@ -122,7 +122,7 @@ results.plot()
 <img width="500px" src="https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/dimerization-example-plot.png">
 </p>
 
-Alternatively, the results object inherits python-builtin `UserDict` for single trajectories, and `UserList` for multiple trajectories.  Results can be plotted easily using any plotting library such as matplot lib as shown below:
+Alternatively, the results object inherits python-builtin `UserDict` for single trajectories, and `UserList` for multiple trajectories.  Results can be plotted easily using any plotting library such as matplotlib as shown below:
 
 ```python
 for index in range(0, 10):
@@ -131,7 +131,7 @@ for index in range(0, 10):
     plt.plot(trajectory['time'], trajectory['dimer'],   'b')
 ```
 
-With a few additional Python Matplotlib commands to create figure labels and such, we end up with a plot like this:
+With a few additional Python matplotlib commands to create figure labels and such, we end up with a plot like this:
 
 <p align="center">
 <img width="500px" src="https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/dimerization-example-matplotlib.png">
@@ -153,7 +153,7 @@ We would be happy to receive your help and participation with enhancing GillesPy
 License
 -------
 
-GillesPy2 is licensed under the GNU General Public License version 3.  Please see the file [LICENCE](LICENSE) for more information.
+GillesPy2 is licensed under the GNU General Public License version 3.  Please see the file [LICENSE](LICENSE) for more information.
 
 
 Authors and history
@@ -190,7 +190,8 @@ GillesPy2 uses numerous open-source packages, without which it would have been e
 * [Jupyter](https://jupyter.org) &ndash; web application for creating documents containing code, visualizations and narrative text
 * [libSBML](http://sbml.org/Software/libSBML) &ndash; a library for reading, writing, and manipulating SBML content
 * [lxml](https://lxml.de) &ndash; an XML parsing library for Python
-* [MatplotLib](https://matplotlib.org/index.html) &ndash; Python 2D plotting library
+* [MatplotLib](https://matplotlib.org/index.html) &ndash; Python plotting library
+* [Plotly](https://plot.ly/) &ndash; Graphing library for making interactive, publication-quality graphs
 * [Numpy](http://www.numpy.org/) &ndash; the fundamental package for scientific computing with Python
 * [Scipy](https://www.scipy.org/) &ndash; Python-based ecosystem of open-source software for mathematics, science, and engineering
 
