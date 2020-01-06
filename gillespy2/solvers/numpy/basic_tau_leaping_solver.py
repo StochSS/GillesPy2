@@ -18,7 +18,6 @@ class BasicTauLeapingSolver(GillesPySolver):
     over this step are bounded by bounding the relative change in state, yielding greatly improved
     run-time performance with very little trade-off in accuracy.
     """
-    name = "BasicTauLeapingSolver"
 
     def __init__(self, debug=False, profile=False):
         name = "BasicTauLeapingSolver"

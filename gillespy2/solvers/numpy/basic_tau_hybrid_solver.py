@@ -1,6 +1,7 @@
 import random, math, sys, warnings
 from collections import OrderedDict
 from scipy.integrate import ode, solve_ivp
+import signal
 import heapq
 import numpy as np
 import gillespy2
@@ -17,11 +18,15 @@ class BasicTauHybridSolver(GillesPySolver):
     along with ODE solvers to simulate ODE and Stochastic systems
     interchangeably or simultaneously.
     """
+
     name = "BasicTauHybridSolver"
+    interrupted = False
+    rc = 0
 
     def __init__(self):
         name = 'BasicTauHybridSolver'
-           
+        interrupted = False
+        rc = 0
         
     def toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec):
         '''
@@ -541,6 +546,13 @@ class BasicTauHybridSolver(GillesPySolver):
             Example use: {max_step : 0, rtol : .01}
         """
 
+        def timed_out(signum, frame):
+            self.rc = 33
+            self.interrupted = True
+
+        signal.signal(signal.SIGALRM, timed_out)
+
+
         if not isinstance(self, BasicTauHybridSolver):
             self = BasicTauHybridSolver()
 
@@ -614,7 +626,7 @@ class BasicTauHybridSolver(GillesPySolver):
             else:
                 raise ModelError('seed must be a positive integer')
         for trajectory_num in range(number_of_trajectories):
-
+            if self.interrupted: break
 
             trajectory = trajectory_base[trajectory_num] # NumPy array containing this simulation's results
             propensities = OrderedDict() # Propensities evaluated at current state
@@ -647,6 +659,8 @@ class BasicTauHybridSolver(GillesPySolver):
 
             # Each save step
             while curr_time < model.tspan[-1]:
+
+                if self.interrupted: break
 
                 # Get current propensities
                 for i, r in enumerate(model.listOfReactions):
@@ -695,4 +709,4 @@ class BasicTauHybridSolver(GillesPySolver):
                 print("Total Steps Taken: ", len(steps_taken))
                 print("Total Steps Rejected: ", steps_rejected)
 
-        return simulation_data
+        return simulation_data, self.rc
