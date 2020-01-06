@@ -50,3 +50,5 @@ class InvalidModelError(SimulationError):
 class SimulationTimeoutError(SimulationError):
     pass
 
+class EventError(ModelError):
+    pass

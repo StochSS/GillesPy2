@@ -67,7 +67,7 @@ class TestAllSolvers(unittest.TestCase):
     
     def test_extraneous_args(self):
         for solver in self.solvers:
-            with self.assertWarns(Warning):
+            with self.assertLogs(level='WARN'):
                 model = Example()
                 results = model.run(solver=solver, nonsense='ABC')
 

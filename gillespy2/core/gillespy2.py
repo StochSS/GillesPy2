@@ -9,6 +9,7 @@ import numpy as np
 from contextlib import contextmanager
 from collections import OrderedDict
 from gillespy2.core.results import Results,EnsembleResults
+from gillespy2.core.events import *
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
 
@@ -141,6 +142,7 @@ class Model(SortableObject):
         self.listOfSpecies = OrderedDict()
         self.listOfReactions = OrderedDict()
         self.listOfRateRules = OrderedDict()
+        self.listOfEvents = OrderedDict()
 
         # This defines the unit system at work for all numbers in the model
         # It should be a logical error to leave this undefined, subclasses
@@ -418,7 +420,7 @@ class Model(SortableObject):
                 Attributes
                 ----------
                 obj : RateRule, or list of RateRules
-                    The reaction or list of raterule objects to be added to the model
+                    The rate rule or list of rate rule objects to be added to the model
                     object.
                 """
 
@@ -435,6 +437,36 @@ class Model(SortableObject):
         else:
             raise ParameterError("Add_rate_rule accepts a RateRule object or a List of RateRule Objects")
         return rate_rules
+
+    def add_event(self, event):
+        """
+                Adds an event, or list of events to the model.
+
+                Attributes
+                ----------
+                event : Event, or list of Events
+                    The event or list of event objects to be added to the model
+                    object.
+                """
+
+        if isinstance(event, list):
+            for e in event:
+                self.add_event(e)
+        elif isinstance(event, Event):
+            if event.trigger is None or not isinstance(event.trigger, EventTrigger): 
+                raise ModelError(
+                'An Event must contain a valid trigger.')
+            for a in event.assignments:
+                if isinstance(a.variable, str):
+                    if a.variable in self.listOfSpecies:
+                        a.variable = self.listOfSpecies[a.variable]
+                    else:
+                        raise ModelError('{0} not a valid Species'.format(a.variable))
+            self.listOfEvents[event.name] = event
+        else:
+            raise ParameterError("add_events accepts an Event object or a"
+            " List of Event Objects")
+        return event
 
     def timespan(self, time_span):
         """
