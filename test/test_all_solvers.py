@@ -73,7 +73,7 @@ class TestAllSolvers(unittest.TestCase):
 
     def test_timeout(self):
         for solver in self.solvers:
-            with self.assertWarns(Warning):
+            with self.assertLogs(level='WARN'):
                 model = Oregonator()
                 model.timespan(np.linspace(0, 1000000, 101))
                 results = model.run(solver=solver, timeout=1)

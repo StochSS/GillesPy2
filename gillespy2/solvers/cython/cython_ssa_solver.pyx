@@ -204,6 +204,7 @@ class CythonSSASolver(GillesPySolver):
             parameters[paramName] = param.value
         propensity_functions = [" "+r.propensity_function.replace(' ','') for r in model.listOfReactions.values()]
         #get all numeric constants from propensity functions
+	# TODO THIS BLOCK OF CODE CONTAINS AN RE MATCHING ERROR FOR PROP FUNCTIONS CONTAINING SUBTRACTION
         numbers = re.compile('[^\[\]\w](\-?\d+\.?\d*)')
         constants = []
         for fun in propensity_functions:
@@ -214,6 +215,7 @@ class CythonSSASolver(GillesPySolver):
         for c in constants:
             parameters[c] = float(c)
         paramNames = list(parameters.keys())
+	# TODO END ERROR BLOCK
         #sort parameter names by longest first to prevent issues of one param containing a shorter param in name
         paramNames.sort(key = lambda x: -len(x))
         cdef double *cParameters = <double*> malloc(len(paramNames)*sizeof(double))
