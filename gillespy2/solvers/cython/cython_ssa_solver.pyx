@@ -165,7 +165,7 @@ class CythonSSASolver(GillesPySolver):
             seed = -1
         cdef int seed_arg = seed
         #set timespan for simulation(s)
-        timeline = np.linspace(0,t, (t//increment+1))
+        timeline = np.linspace(0,t, (t / int(round(increment+1))))
         #allocate memory for trajectories
         cdef np.ndarray[np.float64_t, ndim=3] trajectories = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
         trajectories[:,:,0] = timeline
