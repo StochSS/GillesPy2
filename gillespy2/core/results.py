@@ -81,11 +81,15 @@ class Results(UserDict):
             A list of Results that are created by solvers with multiple trajectories
         """
 
-    def __init__(self,data,model = None,solver_name = "Undefined solver name"):
+    def __init__(self,data,model = None,solver_name = "Undefined solver name", rc=0):
 
         self.data = data
         self.model = model
         self.solver_name = solver_name
+        self.rc = rc
+        
+        status_list = {0: 'Success', 33: 'Timed Out'}
+        self.status = status_list[rc]
 
     def __getitem__(self, key):
         if type(key) is type(1):
