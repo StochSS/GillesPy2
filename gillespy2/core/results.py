@@ -191,10 +191,11 @@ class Results(UserDict):
                 title=yaxis_label)
         )
         fig = dict(data = trace_list,layout=layout)
-        iplot(fig)
 
         if return_plotly_figure:
             return fig
+        else:
+            iplot(fig)
 
 class EnsembleResults(UserList):
     """ List of Results Dicts created by a gillespy2 solver with multiple trajectories, extends the UserList object.
@@ -346,7 +347,7 @@ class EnsembleResults(UserList):
                                      height=400*len(results_list),
                                      showlegend=show_legend,title =title)
 
-            iplot(fig)
+            
 
         else:
             trace_list = []
@@ -368,10 +369,11 @@ class EnsembleResults(UserList):
 
             fig['data'] = trace_list
             fig['layout'] = layout
-            iplot(fig)
 
         if return_plotly_figure:
             return fig
+        else:
+            iplot(fig)
 
 
     def average_ensemble(self):
@@ -555,10 +557,11 @@ class EnsembleResults(UserList):
                 title=yaxis_label)
         )
         fig = dict(data=trace_list, layout=layout)
-        iplot(fig)
 
         if return_plotly_figure:
             return fig
+        else:
+            iplot(fig)
 
     def plot_std_dev_range(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None,
                            style="default", show_legend=True, included_species_list=[],ddof=0,save_png = False,figsize = (18,10)):
