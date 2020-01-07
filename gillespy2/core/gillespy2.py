@@ -499,7 +499,7 @@ class Model(SortableObject):
     def delete_all_reactions(self):
         self.listOfReactions.clear()
 
-    def run(self, solver=None, timeout=0, **solver_args):
+    def run(self, solver=None, timeout=0, print_interval=0,**solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -524,14 +524,12 @@ class Model(SortableObject):
             solver-specific arguments to be passed to solver.run()
         """
         @contextmanager
-        def time_out(time):
+        def interruption_manager(timeout, print_interval):
             # Register a function to raise a TimeoutError on the signal.
             signal.signal(signal.SIGALRM, raise_time_out)
 
             # Schedule the signal to be sent after ``time``.
-            signal.alarm(time)
-
-            print_interval = 2
+            signal.alarm(timeout)
 
             signal.setitimer(signal.ITIMER_PROF,print_interval,print_interval)
 
@@ -555,7 +553,7 @@ class Model(SortableObject):
             log.warning('GillesPy2 simulation exceeded timeout.')
             raise SimulationTimeoutError()
 
-        with time_out(timeout):
+        with interruption_manager(timeout,print_interval):
             if solver is not None:
                 if ((isinstance(solver, type)
                         and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):

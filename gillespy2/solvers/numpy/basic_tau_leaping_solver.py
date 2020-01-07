@@ -4,8 +4,10 @@
 import random, math, sys, warnings
 import signal
 import numpy as np
+import gillespy2.core.results
 from gillespy2.solvers.numpy import Tau
 from gillespy2.core import GillesPySolver, log
+
 
 
 class BasicTauLeapingSolver(GillesPySolver):
@@ -95,7 +97,17 @@ class BasicTauLeapingSolver(GillesPySolver):
 
         def interval_pause(signum,frame):
 
-            print("got sigprof")
+            import matplotlib.pyplot as plt
+
+            try:
+                plt.clf()
+
+                for i in range(number_species):
+                    plt.plot(trajectory_base[0][:,0], trajectory_base[0][:,i + 1])
+                plt.show()
+
+            except:
+                pass
 
         signal.signal(signal.SIGALRM, timed_out)
 
