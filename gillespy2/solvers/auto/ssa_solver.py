@@ -22,7 +22,7 @@ def get_best_ssa_solver(omit_cpp=False, omit_cython=False, omit_numpy=False):
             log.debug("Successful Import of NumPySSASolver.")
             return NumPySSASolver
 
-    log('Minimum software requirements not met.  Please install Numpy.')
+    log.warn('Minimum software requirements not met.  Please install Numpy.')
     return None
 
 
