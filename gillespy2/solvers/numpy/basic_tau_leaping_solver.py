@@ -89,11 +89,17 @@ class BasicTauLeapingSolver(GillesPySolver):
                     Use names of species as index of result object rather than position numbers.
                 """
         def timed_out(signum, frame):
+
             self.rc = 33
             self.interrupted = True
 
+        def interval_pause(signum,frame):
+
+            print("got sigprof")
+
         signal.signal(signal.SIGALRM, timed_out)
 
+        signal.signal(signal.SIGPROF, interval_pause)
 
         if not isinstance(self, BasicTauLeapingSolver):
             self = BasicTauLeapingSolver(debug=debug, profile=profile)
@@ -105,7 +111,7 @@ class BasicTauLeapingSolver(GillesPySolver):
             print("t = ", t)
             print("increment = ", increment)
 
-            
+
         species_mappings = model.sanitized_species_names()
         species = list(species_mappings.keys())
         parameter_mappings = model.sanitized_parameter_names()
@@ -172,11 +178,11 @@ class BasicTauLeapingSolver(GillesPySolver):
                 compiled_propensities[r] = compile(model.listOfReactions[r].propensity_function, '<string>', 'eval')
 
             timestep = 0
-            
+
             #Each save step
             while entry_count < timeline.size:
                 if self.interrupted: break
-                
+
                 #Until save step reached
                 while curr_time < save_time:
                     if self.interrupted: break
@@ -249,7 +255,7 @@ class BasicTauLeapingSolver(GillesPySolver):
                 save_time += increment
                 timestep += 1
                 entry_count += 1
-                
+
             # end of trajectory
             if show_labels:
                 for i in range(number_species):

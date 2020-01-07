@@ -527,8 +527,13 @@ class Model(SortableObject):
         def time_out(time):
             # Register a function to raise a TimeoutError on the signal.
             signal.signal(signal.SIGALRM, raise_time_out)
+
             # Schedule the signal to be sent after ``time``.
             signal.alarm(time)
+
+            print_interval = 2
+
+            signal.setitimer(signal.ITIMER_PROF,print_interval,print_interval)
 
             try:
                 yield
@@ -539,6 +544,7 @@ class Model(SortableObject):
                 # Unregister the signal so it won't be triggered
                 # if the time_out is not reached.
                 signal.signal(signal.SIGALRM, signal.SIG_IGN)
+                signal.signal(signal.SIGPROF, signal.SIG_IGN)
 
         def raise_time_out(signum, frame):
             from gillespy2.core import log
@@ -548,7 +554,6 @@ class Model(SortableObject):
             sys.excepthook = excepthook
             log.warning('GillesPy2 simulation exceeded timeout.')
             raise SimulationTimeoutError()
-
 
         with time_out(timeout):
             if solver is not None:
