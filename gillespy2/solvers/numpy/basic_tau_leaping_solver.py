@@ -4,7 +4,6 @@
 import random, math, sys, warnings
 import signal
 import numpy as np
-import gillespy2.core.results
 from gillespy2.solvers.numpy import Tau
 from gillespy2.core import GillesPySolver, log
 
