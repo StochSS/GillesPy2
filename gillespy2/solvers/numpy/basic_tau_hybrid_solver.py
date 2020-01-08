@@ -3,6 +3,7 @@ from collections import OrderedDict
 from scipy.integrate import ode, solve_ivp
 import heapq
 import numpy as np
+import signal
 import gillespy2
 from gillespy2.solvers.numpy import Tau
 from gillespy2.core import GillesPySolver, log
@@ -18,10 +19,13 @@ class BasicTauHybridSolver(GillesPySolver):
     interchangeably or simultaneously.
     """
     name = "BasicTauHybridSolver"
+    interrupted = False
+    rc = 0
 
     def __init__(self):
         name = 'BasicTauHybridSolver'
-           
+        interrupted = False
+        rc = 0  
         
     def __toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec):
         '''
@@ -542,6 +546,12 @@ class BasicTauHybridSolver(GillesPySolver):
             Example use: {max_step : 0, rtol : .01}
         """
 
+        def timed_out(signum, frame):
+            self.interrupted = True
+            self.rc = 33
+
+        signal.signal(signal.SIGALRM, timed_out)
+
         if not isinstance(self, BasicTauHybridSolver):
             self = BasicTauHybridSolver()
 
@@ -616,6 +626,7 @@ class BasicTauHybridSolver(GillesPySolver):
                 raise ModelError('seed must be a positive integer')
         for trajectory_num in range(number_of_trajectories):
 
+            if self.interrupted: break
 
             trajectory = trajectory_base[trajectory_num] # NumPy array containing this simulation's results
             propensities = OrderedDict() # Propensities evaluated at current state
@@ -649,18 +660,20 @@ class BasicTauHybridSolver(GillesPySolver):
             # Each save step
             while curr_time < model.tspan[-1]:
 
+                if self.interrupted: break
                 # Get current propensities
                 for i, r in enumerate(model.listOfReactions):
                     propensities[r] = eval(compiled_propensities[r], curr_state)
 
+                # Calculate Tau statistics and select a good tau step
                 tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
-                            model, propensities, curr_state, curr_time, save_times[0]]
+                        model, propensities, curr_state, curr_time, save_times[0]]
                 tau_step = save_times[-1]-curr_time if pure_ode else Tau.select(*tau_args)
                 # Calculate sd and CV for hybrid switching and flag deterministic reactions
                 #TODO REWRITE CALCULATION STUFF
                 switch_args = [mu_i, sigma_i, model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol]
-                sd, CV = self.calculate_statistics(*switch_args)
-                deterministic_reactions = self.flag_det_reactions(model, det_spec, det_rxn, dependencies)
+                sd, CV = self.__calculate_statistics(*switch_args)
+                deterministic_reactions = self.__flag_det_reactions(model, det_spec, det_rxn, dependencies)
                 
                 if debug:
                     print('mean: {0}'.format(mu_i))
@@ -670,7 +683,7 @@ class BasicTauHybridSolver(GillesPySolver):
                     print('det_rxn: {0}'.format(det_rxn))
                 
                 # Set active reactions and rate rules for this integration step
-                self.toggle_reactions(model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec)
+                self.__toggle_reactions(model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec)
                 active_rr = compiled_rate_rules[deterministic_reactions]
 
                 y0, y_map = self.__map_state(species, parameters,
@@ -696,4 +709,4 @@ class BasicTauHybridSolver(GillesPySolver):
                 print("Total Steps Taken: ", len(steps_taken))
                 print("Total Steps Rejected: ", steps_rejected)
 
-        return simulation_data
+        return simulation_data, self.rc

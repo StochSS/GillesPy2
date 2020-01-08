@@ -14,7 +14,7 @@ common_rgb_values = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c
 def _plot_iterate(self, show_labels = True, included_species_list = []):
     import matplotlib.pyplot as plt
 
-    for i,species in enumerate(result.data):
+    for i,species in enumerate(self.data):
         if species is not 'time':
 
             if species not in included_species_list and included_species_list:
@@ -27,7 +27,7 @@ def _plot_iterate(self, show_labels = True, included_species_list = []):
             else:
                 label = ""
 
-            plt.plot(result.data['time'], result.data[species], label=label,color = line_color)
+            plt.plot(self.data['time'], self.data[species], label=label,color = line_color)
 
 def _plotplotly_iterate(result, show_labels = True, trace_list = None, line_dict= None, included_species_list= []):
     '''
@@ -84,11 +84,15 @@ class Results(UserDict):
             A list of Results that are created by solvers with multiple trajectories
         """
 
-    def __init__(self,data,model = None,solver_name = "Undefined solver name"):
+    def __init__(self,data,model = None,solver_name = "Undefined solver name", rc=0):
 
         self.data = data
         self.model = model
         self.solver_name = solver_name
+        self.rc = rc
+        
+        status_list = {0: 'Success', 33: 'Timed Out'}
+        self.status = status_list[rc]
 
 
     def __getitem__(self, key):
@@ -195,10 +199,11 @@ class Results(UserDict):
                 title=yaxis_label)
         )
         fig = dict(data = trace_list,layout=layout)
-        iplot(fig)
 
         if return_plotly_figure:
             return fig
+        else:
+            iplot(fig)
 
 class EnsembleResults(UserList):
     """ List of Results Dicts created by a gillespy2 solver with multiple trajectories, extends the UserList object.
@@ -350,7 +355,7 @@ class EnsembleResults(UserList):
                                      height=400*len(results_list),
                                      showlegend=show_legend,title =title)
 
-            iplot(fig)
+            
 
         else:
             trace_list = []
@@ -372,10 +377,11 @@ class EnsembleResults(UserList):
 
             fig['data'] = trace_list
             fig['layout'] = layout
-            iplot(fig)
 
         if return_plotly_figure:
             return fig
+        else:
+            iplot(fig)
 
 
     def average_ensemble(self):
@@ -559,10 +565,11 @@ class EnsembleResults(UserList):
                 title=yaxis_label)
         )
         fig = dict(data=trace_list, layout=layout)
-        iplot(fig)
 
         if return_plotly_figure:
             return fig
+        else:
+            iplot(fig)
 
     def plot_std_dev_range(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None,
                            style="default", show_legend=True, included_species_list=[],ddof=0,save_png = False,figsize = (18,10)):

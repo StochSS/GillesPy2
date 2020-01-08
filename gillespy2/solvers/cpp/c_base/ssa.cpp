@@ -2,9 +2,19 @@
 #include <random>//Included for mt19937 random number generator
 #include <cmath>//Included for natural logarithm
 #include <string.h>//Included for memcpy only
+#include <csignal>//Included for timeout signal handling
 
 namespace Gillespy{
+
+  bool interrupted = false ;
+
+  void signalHandler( int signum){
+    interrupted = true ;
+  }
+
   void ssa_direct(Simulation* simulation){
+    signal(SIGINT, signalHandler) ;
+
     if(simulation){
       std :: mt19937_64 rng(simulation -> random_seed);
       //Number of bytes for copying states
@@ -20,6 +30,9 @@ namespace Gillespy{
       }
       //Simulate for each trajectory
       for(unsigned int trajectory_number = 0; trajectory_number < simulation -> number_trajectories; trajectory_number++){
+    if(interrupted){
+        break ;
+    }
 	//Get simpler reference to memory space for this trajectory
 	unsigned int** trajectory = simulation -> trajectories[trajectory_number];
 	//Copy initial state as needed
@@ -36,6 +49,9 @@ namespace Gillespy{
 	}
 	double propensity_sum;
 	while(current_time < (simulation -> end_time)){
+      if(interrupted){
+        break ;
+      }
 	  //Sum propensities
 	  propensity_sum = 0;
 	  for(unsigned int reaction_number = 0; reaction_number < ((simulation -> model) -> number_reactions); reaction_number++){
@@ -56,6 +72,9 @@ namespace Gillespy{
 	  current_time += -log(rng() * 1.0 / rng.max()) / propensity_sum;
 	  //Copy current state to passed timesteps
 	  while(entry_count < simulation -> number_timesteps && (simulation -> timeline[entry_count]) <= current_time){
+        if(interrupted){
+            break ;
+        }
 	    memcpy(trajectory[entry_count], current_state, state_size);
 	    entry_count++;
 	  }
