@@ -12,4 +12,4 @@ except Exception as e:
     can_use_numpy = False
 
 
-__all__ = ['NumPySSASolver', 'BasicODESolver', 'BasicTauLeapingSolver', 'BasicHybridSolver'] if can_use_numpy else []
+__all__ = ['NumPySSASolver', 'BasicODESolver', 'BasicTauLeapingSolver', 'BasicTauHybridSolver'] if can_use_numpy else []

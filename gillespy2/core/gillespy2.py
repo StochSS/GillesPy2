@@ -4,12 +4,14 @@ python.
 
 """
 from __future__ import division
+import signal
+import numpy as np
+from contextlib import contextmanager
 from collections import OrderedDict
 from gillespy2.core.results import Results,EnsembleResults
 from gillespy2.core.events import *
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
-import numpy as np
 
 try:
     import lxml.etree as eTree
@@ -21,7 +23,6 @@ except:
     import xml.dom.minidom
     import re
     no_pretty_print = True
-
 
 def import_SBML(filename, name=None, gillespy_model=None):
     """
@@ -516,7 +517,7 @@ class Model(SortableObject):
     def delete_all_reactions(self):
         self.listOfReactions.clear()
 
-    def run(self, solver=None, **solver_args):
+    def run(self, solver=None, timeout=0, **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -531,54 +532,81 @@ class Model(SortableObject):
 
         Attributes
         ----------
-        number_of_trajectories : int
-            The number of times to sample the chemical master equation. Each
-            trajectory will be returned at the end of the simulation.
-            Optional, defaults to 1.
-        seed : int
-            The random seed for the simulation. Optional, defaults to None.
         solver : gillespy.GillesPySolver
             The solver by which to simulate the model. This solver object may
             be initialized separately to specify an algorithm. Optional, 
             defaults to ssa solver.
-        show_labels: bool (True)
-            If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]
-        switch_tol: float
-            Tolerance for Continuous/Stochastic representation of species, based on coefficient of variance for each step.
-        tau_tol: float
-            Relative error tolerance value for calculating tau step between 0.0 and 1.0
-        integrator: String
-            integrator to be used form scipy.integrate.ode. Options include 'vode', 'zvode', 'lsoda', 'dopri5', and 'dop835'.  For more details, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html
-        integrator_options: dictionary
-            contains options to the scipy integrator. for a list of options, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.
-            Example use: {max_step : 0, rtol : .01}
+        timeout : int
+            Allows a time_out value in seconds to be sent to a signal handler, restricting simulation run-time
+        solver_args :
+            solver-specific arguments to be passed to solver.run()
         """
-        if solver is not None:
-            if ((isinstance(solver, type)
-                    and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
-                solver_results = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
+        @contextmanager
+        def time_out(time):
+            # Register a function to raise a TimeoutError on the signal.
+            signal.signal(signal.SIGALRM, raise_time_out)
+            # Schedule the signal to be sent after ``time``.
+            signal.alarm(time)
+
+            try:
+                yield
+            except TimeoutError:
+                print('GillesPy2 solver simulation exceeded timeout')
+                pass
+            finally:
+                # Unregister the signal so it won't be triggered
+                # if the time_out is not reached.
+                signal.signal(signal.SIGALRM, signal.SIG_IGN)
+
+        def raise_time_out(signum, frame):
+            from gillespy2.core import log
+            import sys
+            def excepthook(type, value, traceback):
+                pass
+            sys.excepthook = excepthook
+            log.warning('GillesPy2 simulation exceeded timeout.')
+            raise SimulationTimeoutError()
+
+
+        with time_out(timeout):
+            if solver is not None:
+                if ((isinstance(solver, type)
+                        and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
+                    if solver.name == 'SSACSolver':
+                        signal.signal(signal.SIGALRM, signal.SIG_IGN)
+                        solver_args['timeout'] = timeout
+                    solver_results, rc = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
+                else:
+                    raise SimulationError(
+                        "argument 'solver' to run() must be a subclass of GillesPySolver")
             else:
-                raise SimulationError(
-                    "argument 'solver' to run() must be a subclass of GillesPySolver")
-        else:
-            from gillespy2.solvers.auto import SSASolver
-            solver = SSASolver
-            solver_results = SSASolver.run(model=self, t=self.tspan[-1],
-                                      increment=self.tspan[-1] - self.tspan[-2], **solver_args)
+                from gillespy2.solvers.auto import SSASolver
+                solver = SSASolver
+                if solver.name == 'SSACSolver':
+                    signal.signal(signal.SIGALRM, signal.SIG_IGN)
+                    solver_args['timeout'] = timeout
+                solver_results, rc = SSASolver.run(model=self, t=self.tspan[-1],
+                                          increment=self.tspan[-1] - self.tspan[-2], **solver_args)
+           
+            if rc == 33:
+                from gillespy2.core import log
+                log.warning('GillesPy2 simulation exceeded timeout.')
 
-        if isinstance(solver_results[0], (np.ndarray)):
-            return solver_results
+            if isinstance(solver_results[0], (np.ndarray)):
+                return solver_results
 
-        if len(solver_results) is 1:
-            return Results(data=solver_results[0], model=self, solver_name=solver.name)
+            if len(solver_results) is 1:
+                return Results(data=solver_results[0], model=self,
+                    solver_name=solver.name, rc=rc)
 
-        if len(solver_results) > 1:
-            results_list = []
-            for i in range(0,solver_args.get('number_of_trajectories')):
-                results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name))
-            return EnsembleResults(results_list)
-        else:
-            raise ValueError("number_of_trajectories must be non-negative and non-zero")
+            if len(solver_results) > 1:
+                results_list = []
+                for i in range(0,solver_args.get('number_of_trajectories')):
+                    results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name,
+                        rc=rc))
+                return EnsembleResults(results_list)
+            else:
+                raise ValueError("number_of_trajectories must be non-negative and non-zero")
 
 
 class Species(SortableObject):
@@ -946,7 +974,7 @@ class Reaction(SortableObject):
         self.annotation = annotation
 
     def sanitized_propensity_function(self, species_mappings, parameter_mappings):
-        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()))
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
         sanitized_propensity = self.propensity_function
