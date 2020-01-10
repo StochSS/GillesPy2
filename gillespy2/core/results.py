@@ -29,14 +29,17 @@ def _plot_iterate(self, show_labels = True, included_species_list = []):
 
             plt.plot(self.data['time'], self.data[species], label=label,color = line_color)
 
-def _plotplotyl_iterate(self, show_labels = True, trace_list = None, line_dict= None, included_species_list= []):
+def _plotplotly_iterate(result, show_labels = True, trace_list = None, line_dict= None, included_species_list= []):
+    '''
+    Helper method for Results and Ensemble .plotplotly() method
+    '''
 
     if trace_list is None:
         trace_list = []
 
     import plotly.graph_objs as go
 
-    for i,species in enumerate(self.data):
+    for i,species in enumerate(result.data):
         if species is not 'time':
 
             if species not in included_species_list and included_species_list:
@@ -51,8 +54,8 @@ def _plotplotyl_iterate(self, show_labels = True, trace_list = None, line_dict= 
             if show_labels:
                 trace_list.append(
                     go.Scatter(
-                        x=self.data['time'],
-                        y=self.data[species],
+                        x=result.data['time'],
+                        y=result.data[species],
                         mode='lines',
                         name=species,
                         line = line_dict
@@ -61,8 +64,8 @@ def _plotplotyl_iterate(self, show_labels = True, trace_list = None, line_dict= 
             else:
                 trace_list.append(
                     go.Scatter(
-                        x=self.data['time'],
-                        y=self.data[species],
+                        x=result.data['time'],
+                        y=result.data[species],
                         mode='lines',
                         name=species,
                         line=line_dict,
@@ -90,6 +93,7 @@ class Results(UserDict):
         
         status_list = {0: 'Success', 33: 'Timed Out'}
         self.status = status_list[rc]
+
 
     def __getitem__(self, key):
         if type(key) is type(1):
@@ -184,7 +188,7 @@ class Results(UserDict):
         if title is None:
             title = (self.model.name + " - " + self.solver_name)
 
-        trace_list = _plotplotyl_iterate(self, included_species_list = included_species_list,show_labels=True)
+        trace_list = _plotplotly_iterate(self, included_species_list = included_species_list,show_labels=True)
 
         layout = go.Layout(
             showlegend=show_legend,
@@ -336,10 +340,10 @@ class EnsembleResults(UserList):
 
             for i, result in enumerate(results_list):
                 if i > 0:
-                    trace_list = _plotplotyl_iterate(result, trace_list=[], included_species_list= included_species_list,
+                    trace_list = _plotplotly_iterate(result, trace_list=[], included_species_list= included_species_list,
                                                      show_labels=False)
                 else:
-                    trace_list = _plotplotyl_iterate(result, trace_list=[], included_species_list=included_species_list)
+                    trace_list = _plotplotly_iterate(result, trace_list=[], included_species_list=included_species_list)
 
                 for k in range(0,len(trace_list)):
                     if i%2 == 0:
@@ -357,10 +361,10 @@ class EnsembleResults(UserList):
             trace_list = []
             for i,result in enumerate(results_list):
                 if i > 0:
-                    trace_list = _plotplotyl_iterate(result, trace_list=trace_list,included_species_list= included_species_list,
+                    trace_list = _plotplotly_iterate(result, trace_list=trace_list,included_species_list= included_species_list,
                                                      show_labels = False)
                 else:
-                    trace_list = _plotplotyl_iterate(result, trace_list=trace_list,included_species_list= included_species_list)
+                    trace_list = _plotplotly_iterate(result, trace_list=trace_list,included_species_list= included_species_list)
 
             layout = go.Layout(
                 showlegend=show_legend,
