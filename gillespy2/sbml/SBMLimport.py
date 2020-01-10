@@ -7,6 +7,8 @@ except ImportError:
     raise ImportError('libsbml is required to convert SBML files for GillesPy.')
 
 
+init_state = {}
+
 def __read_sbml_model(filename):
 
     document = libsbml.readSBML(filename)
@@ -49,29 +51,7 @@ def __get_species(sbml_model, gillespy_model, errors):
             value = species.getInitialConcentration()
             mode = 'continuous'
         else: # Assignment
-            rule = sbml_model.getRule(species.getId())
             mode = 'continuous'
-            if rule:
-                msg = ""
-                if rule.isAssignment():
-                    msg = "assignment "
-                elif rule.isRate():
-                    msg = "rate "
-                elif rule.isAlgebraic():
-                    msg = "algebraic "
-
-                msg += "rule"
-
-                errors.append([
-                                  "Species '{0}' does not have any initial conditions. Associated {1} '{2}' found, "
-                                  "but {1}s are not supported in gillespy. Assuming initial condition 0".format(
-                                      species.getId(), msg, rule.getId()), 0])
-            else:
-                errors.append([
-                                  "Species '{0}' does not have any initial conditions or rules. Assuming initial "
-                                  "condition 0".format(
-                                      species.getId()), 0])
-
             value = 0
 
         constant = species.getConstant()
@@ -81,6 +61,7 @@ def __get_species(sbml_model, gillespy_model, errors):
                                                 allow_negative_populations=is_negative, mode=mode,
                                                 constant=constant, boundary_condition=boundary_condition)
         gillespy_model.add_species([gillespy_species])
+        init_state[name] = value
     
 def __get_parameters(sbml_model, gillespy_model):
 
@@ -88,6 +69,7 @@ def __get_parameters(sbml_model, gillespy_model):
         parameter = sbml_model.getParameter(i)
         name = parameter.getId()
         value = parameter.getValue()
+        init_state[name] = value
 
         gillespy_parameter = gillespy2.Parameter(name=name, expression=value)
         gillespy_model.add_parameter([gillespy_parameter])
@@ -99,6 +81,7 @@ def __get_compartments(sbml_model, gillespy_model):
         value = compartment.getSize()
 
         gillespy_parameter = gillespy2.Parameter(name=name, expression=value)
+        init_state[name] = value
         gillespy_model.add_parameter([gillespy_parameter])
 
     '''
@@ -172,22 +155,47 @@ def __get_rules(sbml_model, gillespy_model, errors):
         rule = sbml_model.getRule(i)
 
         t = []
-
+        
+        '''
         if rule.isCompartmentVolume():
             t.append('compartment')
         if rule.isParameter():
             t.append('parameter')
-        elif rule.isAssignment():
+        '''
+
+        if rule.isAssignment():
             rule_name = rule.getId()
             rule_string = libsbml.formulaToL3String(rule.getMath())
-            print('{0}: {1}'.format(rule_name, rule_string))
             gillespy_rule = gillespy2.AssignmentRule(variable=rule_name,
                 formula=rule_string)
+            if rule_name in gillespy_model.listOfParameters:
+                # Treat Non-Constant Parameters as Species
+                value = gillespy_model.listOfParameters[rule_name].expression
+                species = gillespy2.Species(name=rule_name,
+                                            initial_value=value,
+                                            mode='continuous')
+                gillespy_model.delete_parameter(rule_name)
+                gillespy_model.add_species([species])
+
             gillespy_model.add_assignment_rule(gillespy_rule)
-            t.append('assignment')
-        elif rule.isRate():
-            t.append('rate')
-        elif rule.isAlgebraic():
+
+        if rule.isRate():
+            rule_name = rule.getId()
+            rule_string = libsbml.formulaToL3String(rule.getMath())
+            if rule_name in gillespy_model.listOfParameters:
+                # Treat Non-Constant Parameters as Species
+                value = gillespy_model.listOfParameters[rule_name].expression
+                species = gillespy2.Species(name=rule_name,
+                                            initial_value=value,
+                                            mode='continuous')
+                gillespy_model.delete_parameter(rule_name)
+                gillespy_model.add_species([species])
+           
+            gillespy_rule = gillespy2.RateRule(species=gillespy_model.listOfSpecies[rule_name],
+                expression=rule_string)
+            gillespy_model.add_rate_rule(gillespy_rule)
+
+        if rule.isAlgebraic():
             t.append('algebraic')
 
         if len(t) > 0:
@@ -198,7 +206,7 @@ def __get_rules(sbml_model, gillespy_model, errors):
         else:
             msg = "Rule"
 
-        errors.append(["{0} '{1}' found on line '{2}' with equation '{3}'. gillespy does not support SBML Rules".format(
+        errors.append(["{0} '{1}' found on line '{2}' with equation '{3}'. gillespy does not support SBML Algebraic, compartment, or parameter Rules".format(
             msg, rule.getId(), rule.getLine(), libsbml.formulaToString(rule.getMath())), -5])
 
 def __get_constraints(sbml_model, gillespy_model):
@@ -221,7 +229,7 @@ def __get_function_definitions(sbml_model, gillespy_model):
         function_string = libsbml.formulaToL3String(function.getMath())
         function_elements = function_string.replace('lambda(','')[:-1].split(', ')
         function_args = function_elements[:-1]
-        function_function = function_elements[-1]
+        function_function = function_elements[-1].replace('^', '**')
         gillespy_function = gillespy2.FunctionDefinition(name=function_name, function=function_function, args=function_args)
         gillespy_model.add_function_definition(gillespy_function)
 
@@ -252,10 +260,21 @@ def __get_events(sbml_model, gillespy_model):
             use_values_from_trigger_time=use_values_from_trigger_time)
         gillespy_model.add_event(gillespy_event)
 
+def __get_initial_assignments(sbml_model, gillespy_model):
+    for i in range(sbml_model.getNumInitialAssignments()):
+        ia = sbml_model.getInitialAssignment(i)
+        variable = ia.getId()
+        expression = libsbml.formulaToL3String(ia.getMath())
+        if variable in gillespy_model.listOfSpecies:
+            print(variable)
+            print(gillespy_model.listOfSpecies)
+            print(init_state)
+            gillespy_model.listOfSpecies[variable].initial_value = eval(expression, init_state)
+
+
 def convert(filename, model_name=None, gillespy_model=None):
 
     sbml_model, errors = __read_sbml_model(filename)
-
     if model_name is None:
         model_name = sbml_model.getName()
     if gillespy_model is None:
@@ -270,6 +289,7 @@ def convert(filename, model_name=None, gillespy_model=None):
     __get_constraints(sbml_model, gillespy_model)
     __get_function_definitions(sbml_model, gillespy_model)
     __get_events(sbml_model, gillespy_model)
+    __get_initial_assignments(sbml_model, gillespy_model)
 
     return gillespy_model, errors
 

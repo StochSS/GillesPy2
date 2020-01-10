@@ -137,7 +137,7 @@ results = model.run(solver=solver, show_labels=False)
 
 # Create headers for csv file
 headers = ['time']
-for species in model.listOfSpecies:
+for species in sorted(model.listOfSpecies):
     headers.append(species)
 
 # Write results to csv file

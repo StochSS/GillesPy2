@@ -189,7 +189,10 @@ class BasicTauHybridSolver(GillesPySolver):
             else:
                 curr_state[item] = y[index]
         for rr in compiled_rate_rules:
-            state_change[y_map[rr]] += eval(compiled_rate_rules[rr], eval_globals, curr_state)
+            try:
+                state_change[y_map[rr]] += eval(compiled_rate_rules[rr], eval_globals, curr_state)
+            except ValueError:
+                pass
         for i, r in enumerate(compiled_reactions):
             propensities[r] = eval(compiled_reactions[r], eval_globals, curr_state)
             state_change[y_map[r]] += propensities[r]
@@ -452,8 +455,8 @@ class BasicTauHybridSolver(GillesPySolver):
             assignment_state['t'] = time
             for spec, ar in model.listOfAssignmentRules.items():
                 assignment_value = eval(ar.formula, eval_globals, assignment_state)
+                assignment_state[spec] = assignment_value
                 trajectory[trajectory_index][species.index(spec)+1] = assignment_value
-                print('species ', species, ' should be ', assignment_value, ' at time ', time)
             num_saves += 1
         save_times = save_times[num_saves:]
 
@@ -519,9 +522,8 @@ class BasicTauHybridSolver(GillesPySolver):
         for fd in model.listOfFunctionDefinitions.values():
             curr_state[fd.name] = fd.function
 
-        print(model.listOfAssignmentRules)
         for ar in model.listOfAssignmentRules.values():
-            print('init ', ar.variable, ' to ', ar.formula)
+            if ar.variable in model.listOfSpecies: continue
             curr_state[ar.variable] = ar.formula
 
     def __map_state(self, species, parameters, compiled_reactions, events, curr_state):
@@ -712,9 +714,8 @@ class BasicTauHybridSolver(GillesPySolver):
 
                 if self.interrupted: break
                 # Get current propensities
-                print(curr_state)
                 for i, r in enumerate(model.listOfReactions):
-                    propensities[r] = eval(compiled_propensities[r], curr_state)
+                    propensities[r] = eval(compiled_propensities[r], eval_globals, curr_state)
 
                 # Calculate Tau statistics and select a good tau step
                 tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
