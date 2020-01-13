@@ -89,6 +89,7 @@ class BasicTauLeapingSolver(GillesPySolver):
                 show_labels : bool (True)
                     Use names of species as index of result object rather than position numbers.
                 """
+
         def timed_out(signum, frame):
 
             self.rc = 33
@@ -103,14 +104,25 @@ class BasicTauLeapingSolver(GillesPySolver):
             try:
 
                 if display_type == "text":
+
+                    # print("time".ljust(5),end="")
+                    # for i in range(number_species):
+                    #     print(" | " , species[i].ljust(8),sep="",end="")
+                    # print("")
+                    #
+                    # print(str(round(curr_time,2)).ljust(5), end="")
+                    # for i in range(number_species):
+                    #     print(" | ", str(curr_state[species[i]]).ljust(8), sep="", end="")
+                    # print("")
+
                     clear_output(wait=True)
-
-
-                    print("\nt =",str(round(curr_time,4)).ljust(8),"progress = ", round((curr_time/timeline.size)*100,2),"%\n")
-
+                    print("\nprogress = ", round((curr_time/timeline.size)*100,2),"%","\nt = ",str(round(curr_time,4)).ljust(8),"\n",sep="")
                     for i in range(number_species):
+                        print(species[i].ljust(16),":",curr_state[species[i]])
 
-                        print(species[i].ljust(12),":",curr_state[species[i]])
+                elif display_type == "progress":
+                    clear_output(wait=True)
+                    print("progress =", round((curr_time / timeline.size) * 100, 2), "%\n")
 
                 elif display_type == "graph":
 
@@ -131,15 +143,13 @@ class BasicTauLeapingSolver(GillesPySolver):
                     plt.show()
 
                 else:
-                    print("Got display_type = \"",display_type,"\". Display_type must be \"graph\" or \"text\"",sep="")
-
+                    print("Got display_type = \"",display_type,"\". Display_type should be \"graph\", \"text\", or \"progress\"",sep="")
 
             except:
                 print("failed to display output at curr_time =",curr_time)
                 pass
 
         signal.signal(signal.SIGALRM, timed_out)
-
         signal.signal(signal.SIGPROF, interval_print)
 
         if not isinstance(self, BasicTauLeapingSolver):
@@ -151,7 +161,6 @@ class BasicTauLeapingSolver(GillesPySolver):
         if debug:
             print("t = ", t)
             print("increment = ", increment)
-
 
         species_mappings = model.sanitized_species_names()
         species = list(species_mappings.keys())
