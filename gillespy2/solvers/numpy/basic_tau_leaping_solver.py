@@ -7,7 +7,7 @@ import numpy as np
 from gillespy2.solvers.numpy import Tau
 from gillespy2.core import GillesPySolver, log
 
-
+from gillespy2.core.results import Results
 
 class BasicTauLeapingSolver(GillesPySolver):
     name = 'BasicTauLeapingSolver'
@@ -94,23 +94,40 @@ class BasicTauLeapingSolver(GillesPySolver):
             self.rc = 33
             self.interrupted = True
 
-        def interval_pause(signum,frame):
+        def interval_print(signum,frame):
 
             import matplotlib.pyplot as plt
+            from IPython.display import clear_output
+
+            # temporary_data = {'time': timeline}
+            #
+            # for i in range(number_species):
+            #     temporary_data[species[i]] = trajectory[:, i + 1]
+            # printable_results = Results(data=temporary_data,model = model,solver_name="basic tau leaping solver")
 
             try:
-                plt.clf()
 
+                clear_output(wait = True)
+
+                print("curr time", curr_time)
+                print("entry count", entry_count)
+
+                plt.figure(figsize=(18,10))
                 for i in range(number_species):
-                    plt.plot(trajectory_base[0][:,0], trajectory_base[0][:,i + 1])
+
+                    plt.plot(trajectory_base[0][:,0][:entry_count] + [curr_time] , trajectory_base[0][:,i + 1][:entry_count] + [curr_state[species[i]]])
+                    # plt.plot(trajectory_base[0][:, 0] , trajectory_base[0][:, i + 1] )
+                #
+                # printable_results.plot()
                 plt.show()
 
             except:
+                print("failed to print at ",curr_time)
                 pass
 
         signal.signal(signal.SIGALRM, timed_out)
 
-        signal.signal(signal.SIGPROF, interval_pause)
+        signal.signal(signal.SIGPROF, interval_print)
 
         if not isinstance(self, BasicTauLeapingSolver):
             self = BasicTauLeapingSolver(debug=debug, profile=profile)
@@ -214,6 +231,18 @@ class BasicTauLeapingSolver(GillesPySolver):
 
                     loop_cnt = 0
                     while True:
+
+
+
+                        ###########################################################
+
+                        # print("\n\n\n\n")
+                        # print(curr_time)
+                        # for i in range(number_species):
+                        #
+                        #     print(species[i],curr_state[species[i]])
+                        ###########################################################
+
                         loop_cnt += 1
                         if loop_cnt > 100:
                             raise Exception("Loop over get_reactions() exceeded loop count")
