@@ -3,7 +3,8 @@ import warnings
 from collections import UserDict,UserList
 
 # List of 50 hex color values used for ploting graphs
-common_rgb_values = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
+def common_rgb_values():
+    return ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
                          '#bcbd22', '#17becf', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff', '#ff00ff',
                          '#800000', '#808000', '#008000', '#800080', '#008080', '#000080', '#ff9999', '#ffcc99',
                          '#ccff99', '#cc99ff', '#ffccff', '#62666a', '#8896bb', '#77a096', '#9d5a6c', '#9d5a6c',
@@ -20,7 +21,7 @@ def _plot_iterate(self, show_labels = True, included_species_list = []):
             if species not in included_species_list and included_species_list:
                 continue
 
-            line_color = common_rgb_values[(i - 1) % len(common_rgb_values)]
+            line_color = common_rgb_values()[(i - 1) % len(common_rgb_values())]
 
             if show_labels:
                 label = species
@@ -46,7 +47,7 @@ def _plotplotyl_iterate(self, show_labels = True, trace_list = None, line_dict= 
                 line_dict = {}
 
             #If number of species exceeds number of available colors, loop back through colors
-            line_dict['color'] = common_rgb_values[(i-1)%len(common_rgb_values)]
+            line_dict['color'] = common_rgb_values()[(i-1)%len(common_rgb_values())]
 
             if show_labels:
                 trace_list.append(
