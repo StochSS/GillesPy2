@@ -97,6 +97,7 @@ class BasicTauLeapingSolver(GillesPySolver):
         def interval_print(signum,frame):
 
             import matplotlib.pyplot as plt
+            from gillespy2.core.results import common_rgb_values
             from IPython.display import clear_output
 
             try:
@@ -118,13 +119,20 @@ class BasicTauLeapingSolver(GillesPySolver):
                     plt.xlim(right = timeline.size)
                     for i in range(number_species):
 
-                        plt.plot(trajectory_base[0][:, 0][:entry_count].tolist() + [curr_time] ,
-                                 trajectory_base[0][:, i + 1][:entry_count].tolist() + [curr_state[species[i]]] )
+                        line_color = common_rgb_values()[(i) % len(common_rgb_values())]
+
+                        plt.plot(trajectory_base[0][:, 0][:entry_count].tolist() ,
+                                 trajectory_base[0][:, i + 1][:entry_count].tolist(),color=line_color,label = species[i] )
+
+                        plt.plot([entry_count- 1,curr_time],[trajectory_base[0][:, i + 1][entry_count-1] ,
+                                 curr_state[species[i]]],linewidth = 3,color = line_color)
+
+                    plt.legend(loc='upper right')
+                    plt.show()
 
                 else:
                     print("Got display_type = \"",display_type,"\". Display_type must be \"graph\" or \"text\"",sep="")
 
-                    plt.show()
 
             except:
                 print("failed to display output at curr_time =",curr_time)
