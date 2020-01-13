@@ -59,7 +59,7 @@ class BasicTauLeapingSolver(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
-            debug=False, profile=False, show_labels=True,live_print_type = None, tau_tol=0.03, **kwargs):
+            debug=False, profile=False, show_labels=True, display_type = None, tau_tol=0.03, **kwargs):
         """
         Function calling simulation of the model.
         This is typically called by the run function in GillesPy2 model objects
@@ -101,11 +101,17 @@ class BasicTauLeapingSolver(GillesPySolver):
 
             try:
 
-                if live_print_type == "text":
+                if display_type == "text":
                     clear_output(wait=True)
-                    print("PRINT SPECIES POPS HERE")
 
-                elif live_print_type == "plot":
+
+                    print("\nt =",str(round(curr_time,4)).ljust(8),"progress = ", round((curr_time/timeline.size)*100,2),"%\n")
+
+                    for i in range(number_species):
+
+                        print(species[i].ljust(12),":",curr_state[species[i]])
+
+                elif display_type == "graph":
 
                     clear_output(wait = True)
                     plt.figure(figsize=(18,10))
@@ -115,10 +121,13 @@ class BasicTauLeapingSolver(GillesPySolver):
                         plt.plot(trajectory_base[0][:, 0][:entry_count].tolist() + [curr_time] ,
                                  trajectory_base[0][:, i + 1][:entry_count].tolist() + [curr_state[species[i]]] )
 
+                else:
+                    print("Got display_type = \"",display_type,"\". Display_type must be \"graph\" or \"text\"",sep="")
+
                     plt.show()
 
             except:
-                print("failed to display live output at curr_time =",curr_time)
+                print("failed to display output at curr_time =",curr_time)
                 pass
 
         signal.signal(signal.SIGALRM, timed_out)
