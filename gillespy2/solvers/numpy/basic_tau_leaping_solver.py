@@ -59,7 +59,7 @@ class BasicTauLeapingSolver(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
-            debug=False, profile=False, show_labels=True, tau_tol=0.03, **kwargs):
+            debug=False, profile=False, show_labels=True,live_print_type = None, tau_tol=0.03, **kwargs):
         """
         Function calling simulation of the model.
         This is typically called by the run function in GillesPy2 model objects
@@ -99,30 +99,26 @@ class BasicTauLeapingSolver(GillesPySolver):
             import matplotlib.pyplot as plt
             from IPython.display import clear_output
 
-            # temporary_data = {'time': timeline}
-            #
-            # for i in range(number_species):
-            #     temporary_data[species[i]] = trajectory[:, i + 1]
-            # printable_results = Results(data=temporary_data,model = model,solver_name="basic tau leaping solver")
-
             try:
 
-                clear_output(wait = True)
+                if live_print_type == "text":
+                    clear_output(wait=True)
+                    print("PRINT SPECIES POPS HERE")
 
-                print("curr time", curr_time)
-                print("entry count", entry_count)
+                elif live_print_type == "plot":
 
-                plt.figure(figsize=(18,10))
-                for i in range(number_species):
+                    clear_output(wait = True)
+                    plt.figure(figsize=(18,10))
+                    plt.xlim(right = timeline.size)
+                    for i in range(number_species):
 
-                    plt.plot(trajectory_base[0][:,0][:entry_count] + [curr_time] , trajectory_base[0][:,i + 1][:entry_count] + [curr_state[species[i]]])
-                    # plt.plot(trajectory_base[0][:, 0] , trajectory_base[0][:, i + 1] )
-                #
-                # printable_results.plot()
-                plt.show()
+                        plt.plot(trajectory_base[0][:, 0][:entry_count].tolist() + [curr_time] ,
+                                 trajectory_base[0][:, i + 1][:entry_count].tolist() + [curr_state[species[i]]] )
+
+                    plt.show()
 
             except:
-                print("failed to print at ",curr_time)
+                print("failed to display live output at curr_time =",curr_time)
                 pass
 
         signal.signal(signal.SIGALRM, timed_out)
@@ -231,17 +227,6 @@ class BasicTauLeapingSolver(GillesPySolver):
 
                     loop_cnt = 0
                     while True:
-
-
-
-                        ###########################################################
-
-                        # print("\n\n\n\n")
-                        # print(curr_time)
-                        # for i in range(number_species):
-                        #
-                        #     print(species[i],curr_state[species[i]])
-                        ###########################################################
 
                         loop_cnt += 1
                         if loop_cnt > 100:

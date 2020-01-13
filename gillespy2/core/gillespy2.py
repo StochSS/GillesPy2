@@ -499,7 +499,7 @@ class Model(SortableObject):
     def delete_all_reactions(self):
         self.listOfReactions.clear()
 
-    def run(self, solver=None, timeout=0, print_interval=0,**solver_args):
+    def run(self, solver=None, timeout=0, live_print_interval=0,live_print_type = "text",**solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -524,14 +524,14 @@ class Model(SortableObject):
             solver-specific arguments to be passed to solver.run()
         """
         @contextmanager
-        def interruption_manager(timeout, print_interval):
+        def interruption_manager(timeout, live_print_interval):
             # Register a function to raise a TimeoutError on the signal.
             signal.signal(signal.SIGALRM, raise_time_out)
 
             # Schedule the signal to be sent after ``time``.
             signal.alarm(timeout)
 
-            signal.setitimer(signal.ITIMER_PROF,print_interval,print_interval)
+            signal.setitimer(signal.ITIMER_PROF, live_print_interval, live_print_interval)
 
             try:
                 yield
@@ -553,14 +553,14 @@ class Model(SortableObject):
             log.warning('GillesPy2 simulation exceeded timeout.')
             raise SimulationTimeoutError()
 
-        with interruption_manager(timeout,print_interval):
+        with interruption_manager(timeout,live_print_interval):
             if solver is not None:
                 if ((isinstance(solver, type)
                         and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
                     if solver.name == 'SSACSolver':
                         signal.signal(signal.SIGALRM, signal.SIG_IGN)
                         solver_args['timeout'] = timeout
-                    solver_results, rc = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
+                    solver_results, rc = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2],live_print_type = live_print_type, **solver_args)
                 else:
                     raise SimulationError(
                         "argument 'solver' to run() must be a subclass of GillesPySolver")
