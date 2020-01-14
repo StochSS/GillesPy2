@@ -253,8 +253,6 @@ class BasicTauHybridSolver(GillesPySolver):
         solutions = np.diff(sol.sol(dense_range))
         for i, e in enumerate(model.listOfEvents.values()):
             bool_res = [x>0 for x in solutions[i-len(model.listOfEvents)]]
-            #for time, result in zip(dense_range, bool_res):
-            #    print('Time: ', time, ' Result: ', result)
             # Search for changes from False to True in event, record first time
             for y in range(len(dense_range)-1):
                 # Check Persistent Delays
@@ -502,13 +500,14 @@ class BasicTauHybridSolver(GillesPySolver):
         '''
         Initialize curr_state for each trajectory.
         '''
-        # initialize species population state
-        for s in model.listOfSpecies:
-            curr_state[s] = model.listOfSpecies[s].initial_value
 
         # intialize parameters to current state
         for p in model.listOfParameters:
             curr_state[p] = model.listOfParameters[p].value
+
+        # initialize species population state
+        for s in model.listOfSpecies:
+            curr_state[s] = model.listOfSpecies[s].initial_value
 
         # Set reactions to uniform random number
         for i, r in enumerate(model.listOfReactions):

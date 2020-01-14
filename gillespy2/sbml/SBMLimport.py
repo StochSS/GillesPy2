@@ -71,8 +71,13 @@ def __get_parameters(sbml_model, gillespy_model):
         value = parameter.getValue()
         init_state[name] = value
 
-        gillespy_parameter = gillespy2.Parameter(name=name, expression=value)
-        gillespy_model.add_parameter([gillespy_parameter])
+        # GillesPy2 represents non-constant parameters as species
+        if parameter.isSetConstant():
+            gillespy_parameter = gillespy2.Parameter(name=name, expression=value)
+            gillespy_model.add_parameter([gillespy_parameter])
+        else:
+            gillespy_species = gillespy2.Species(name=name,initial_value=vaule)
+            gillespy_model.add_species([gillespy_species])
 
 def __get_compartments(sbml_model, gillespy_model):
     for i in range(sbml_model.getNumCompartments()):
@@ -153,44 +158,26 @@ def __get_reactions(sbml_model, gillespy_model):
 def __get_rules(sbml_model, gillespy_model, errors):
     for i in range(sbml_model.getNumRules()):
         rule = sbml_model.getRule(i)
+        rule_name = rule.getId()
+        rule_string = libsbml.formulaToL3String(rule.getMath())
+        if rule_name in gillespy_model.listOfParameters:
+            # Treat Non-Constant Parameters as Species
+            value = gillespy_model.listOfParameters[rule_name].expression
+            species = gillespy2.Species(name=rule_name,
+                                        initial_value=value,
+                                        mode='continuous')
+            gillespy_model.delete_parameter(rule_name)
+            gillespy_model.add_species([species])
 
         t = []
         
-        '''
-        if rule.isCompartmentVolume():
-            t.append('compartment')
-        if rule.isParameter():
-            t.append('parameter')
-        '''
-
         if rule.isAssignment():
-            rule_name = rule.getId()
-            rule_string = libsbml.formulaToL3String(rule.getMath())
             gillespy_rule = gillespy2.AssignmentRule(variable=rule_name,
                 formula=rule_string)
-            if rule_name in gillespy_model.listOfParameters:
-                # Treat Non-Constant Parameters as Species
-                value = gillespy_model.listOfParameters[rule_name].expression
-                species = gillespy2.Species(name=rule_name,
-                                            initial_value=value,
-                                            mode='continuous')
-                gillespy_model.delete_parameter(rule_name)
-                gillespy_model.add_species([species])
-
             gillespy_model.add_assignment_rule(gillespy_rule)
+            init_state[gillespy_rule.variable]=eval(gillespy_rule.formula, init_state)
 
         if rule.isRate():
-            rule_name = rule.getId()
-            rule_string = libsbml.formulaToL3String(rule.getMath())
-            if rule_name in gillespy_model.listOfParameters:
-                # Treat Non-Constant Parameters as Species
-                value = gillespy_model.listOfParameters[rule_name].expression
-                species = gillespy2.Species(name=rule_name,
-                                            initial_value=value,
-                                            mode='continuous')
-                gillespy_model.delete_parameter(rule_name)
-                gillespy_model.add_species([species])
-           
             gillespy_rule = gillespy2.RateRule(species=gillespy_model.listOfSpecies[rule_name],
                 expression=rule_string)
             gillespy_model.add_rate_rule(gillespy_rule)
@@ -232,6 +219,7 @@ def __get_function_definitions(sbml_model, gillespy_model):
         function_function = function_elements[-1].replace('^', '**')
         gillespy_function = gillespy2.FunctionDefinition(name=function_name, function=function_function, args=function_args)
         gillespy_model.add_function_definition(gillespy_function)
+        init_state[gillespy_function.name] = gillespy_function.function
 
 def __get_events(sbml_model, gillespy_model):
     for i in range(sbml_model.getNumEvents()):
@@ -261,15 +249,18 @@ def __get_events(sbml_model, gillespy_model):
         gillespy_model.add_event(gillespy_event)
 
 def __get_initial_assignments(sbml_model, gillespy_model):
+
     for i in range(sbml_model.getNumInitialAssignments()):
         ia = sbml_model.getInitialAssignment(i)
         variable = ia.getId()
-        expression = libsbml.formulaToL3String(ia.getMath())
+        expression = libsbml.formulaToL3String(ia.getMath()).replace('^','**')
+        assigned_value = eval(expression, init_state)
+        init_state[variable] = assigned_value
+
         if variable in gillespy_model.listOfSpecies:
-            print(variable)
-            print(gillespy_model.listOfSpecies)
-            print(init_state)
-            gillespy_model.listOfSpecies[variable].initial_value = eval(expression, init_state)
+            gillespy_model.listOfSpecies[variable].initial_value = assigned_value
+        elif variable in gillespy_model.listOfParameters:
+            gillespy_model.listOfParameters[variable].value = assigned_value
 
 
 def convert(filename, model_name=None, gillespy_model=None):
@@ -281,13 +272,13 @@ def convert(filename, model_name=None, gillespy_model=None):
         gillespy_model = gillespy2.Model(name=model_name)
     gillespy_model.units = "concentration"
 
-    __get_species(sbml_model, gillespy_model, errors)
+    __get_function_definitions(sbml_model, gillespy_model)
     __get_parameters(sbml_model, gillespy_model)
+    __get_species(sbml_model, gillespy_model, errors)
     __get_compartments(sbml_model, gillespy_model)
     __get_reactions(sbml_model, gillespy_model)
     __get_rules(sbml_model, gillespy_model, errors)
     __get_constraints(sbml_model, gillespy_model)
-    __get_function_definitions(sbml_model, gillespy_model)
     __get_events(sbml_model, gillespy_model)
     __get_initial_assignments(sbml_model, gillespy_model)
 
