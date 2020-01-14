@@ -105,16 +105,6 @@ class BasicTauLeapingSolver(GillesPySolver):
 
                 if display_type == "text":
 
-                    # print("time".ljust(5),end="")
-                    # for i in range(number_species):
-                    #     print(" | " , species[i].ljust(8),sep="",end="")
-                    # print("")
-                    #
-                    # print(str(round(curr_time,2)).ljust(5), end="")
-                    # for i in range(number_species):
-                    #     print(" | ", str(curr_state[species[i]]).ljust(8), sep="", end="")
-                    # print("")
-
                     clear_output(wait=True)
                     print("\nprogress = ", round((curr_time/timeline.size)*100,2),"%","\nt = ",str(round(curr_time,4)).ljust(8),"\n",sep="")
                     for i in range(number_species):
@@ -149,8 +139,9 @@ class BasicTauLeapingSolver(GillesPySolver):
                 print("failed to display output at curr_time =",curr_time)
                 pass
 
-        signal.signal(signal.SIGALRM, timed_out)
         signal.signal(signal.SIGPROF, interval_print)
+        signal.signal(signal.SIGALRM, timed_out)
+
 
         if not isinstance(self, BasicTauLeapingSolver):
             self = BasicTauLeapingSolver(debug=debug, profile=profile)
