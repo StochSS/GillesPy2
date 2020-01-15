@@ -130,6 +130,15 @@ with open(SETTINGS_FILE, 'r') as settings:
 for species in model.listOfSpecies.values():
 	species.mode = 'continuous'
 
+# Convert expected results items to species
+with open(EXPECTED_RESULTS_FILE, 'r') as expected_file:
+	reader = csv.reader(expected_file)
+	expected_species = next(reader)[1:]
+	for spec in expected_species:
+		if spec in model.listOfParameters:
+			p_to_s = gillespy2.Species(name=spec, initial_value=model.listOfParameters[spec].value, mode='continuous', allow_negative_populations=True)
+			model.delete_parameter(spec)
+			model.add_species(p_to_s)
 # If no Species, plot Parameters
 if not len(model.listOfSpecies):
     species_to_add = []

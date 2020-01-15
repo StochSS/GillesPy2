@@ -8,6 +8,7 @@ except ImportError:
 
 
 init_state = {'INF': numpy.inf, 'NaN': numpy.nan}
+postponed_evals = {}
 
 def __read_sbml_model(filename):
 
@@ -172,6 +173,9 @@ def __get_rules(sbml_model, gillespy_model, errors):
         t = []
         
         if rule.isAssignment():
+            assign_value = eval(rule_string, init_state)
+            if assign_value != assign_value:
+                postponed_evals[rule_name] = rule_string
             gillespy_rule = gillespy2.AssignmentRule(variable=rule_name,
                 formula=rule_string)
             gillespy_model.add_assignment_rule(gillespy_rule)
@@ -255,6 +259,9 @@ def __get_initial_assignments(sbml_model, gillespy_model):
         variable = ia.getId()
         expression = libsbml.formulaToL3String(ia.getMath()).replace('^','**')
         assigned_value = eval(expression, init_state)
+        if assigned_value != assigned_value:
+            assigned_value = expression
+            postponed_evals[variable] = expression
         init_state[variable] = assigned_value
 
         if variable in gillespy_model.listOfSpecies:
@@ -262,6 +269,22 @@ def __get_initial_assignments(sbml_model, gillespy_model):
         elif variable in gillespy_model.listOfParameters:
             gillespy_model.listOfParameters[variable].set_expression(assigned_value)
 
+def __resolve_evals(gillespy_model, init_state):
+    while True:
+        successful = []
+        if len(postponed_evals):
+            for var, expr in postponed_evals.items():
+                try: assigned_value = eval(expr, init_state)
+                except: assigned_value = numpy.nan
+                if assigned_value == assigned_value:
+                    successful.append(var)
+                    init_state[var] = assigned_value
+                    if var in gillespy_model.listOfSpecies:
+                        gillespy_model.listOfSpecies[var].initial_value = assigned_value
+                    elif var in gillespy_model.listOfParameters:
+                        gillespy_model.listOfParameters[var].value = assigned_value
+        if not len(successful): break
+        for var in successful: del postponed_evals[var]
 
 def convert(filename, model_name=None, gillespy_model=None):
 
@@ -281,6 +304,8 @@ def convert(filename, model_name=None, gillespy_model=None):
     __get_constraints(sbml_model, gillespy_model)
     __get_events(sbml_model, gillespy_model)
     __get_initial_assignments(sbml_model, gillespy_model)
+    __resolve_evals(gillespy_model, init_state)
+
 
     return gillespy_model, errors
 

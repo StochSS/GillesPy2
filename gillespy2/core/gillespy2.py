@@ -1130,7 +1130,6 @@ class StochMLDocument():
             expr = px.find('Expression').text
             if name.lower() == 'vol' or name.lower() == 'volume':
                 model.volume = float(expr)
-                print(model.volume)
             else:
                 p = Parameter(name, expression=expr)
                 # Try to evaluate the expression in the empty namespace
