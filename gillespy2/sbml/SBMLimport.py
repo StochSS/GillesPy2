@@ -7,7 +7,7 @@ except ImportError:
     raise ImportError('libsbml is required to convert SBML files for GillesPy.')
 
 
-init_state = {}
+init_state = {'INF': numpy.inf, 'NaN': numpy.nan}
 
 def __read_sbml_model(filename):
 
@@ -76,7 +76,7 @@ def __get_parameters(sbml_model, gillespy_model):
             gillespy_parameter = gillespy2.Parameter(name=name, expression=value)
             gillespy_model.add_parameter([gillespy_parameter])
         else:
-            gillespy_species = gillespy2.Species(name=name,initial_value=vaule)
+            gillespy_species = gillespy2.Species(name=name,initial_value=value)
             gillespy_model.add_species([gillespy_species])
 
 def __get_compartments(sbml_model, gillespy_model):
@@ -260,7 +260,7 @@ def __get_initial_assignments(sbml_model, gillespy_model):
         if variable in gillespy_model.listOfSpecies:
             gillespy_model.listOfSpecies[variable].initial_value = assigned_value
         elif variable in gillespy_model.listOfParameters:
-            gillespy_model.listOfParameters[variable].value = assigned_value
+            gillespy_model.listOfParameters[variable].set_expression(assigned_value)
 
 
 def convert(filename, model_name=None, gillespy_model=None):

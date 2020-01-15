@@ -130,6 +130,15 @@ with open(SETTINGS_FILE, 'r') as settings:
 for species in model.listOfSpecies.values():
 	species.mode = 'continuous'
 
+# If no Species, plot Parameters
+if not len(model.listOfSpecies):
+    species_to_add = []
+    for name, param in model.listOfParameters.items():
+        species_to_add.append(gillespy2.Species(name=name,
+                                initial_value=param.expression, mode='continuous',
+                                allow_negative_populations=True))
+    model.delete_all_parameters()
+    model.add_species(species_to_add)
 # Run simulation and store results
 solver = BasicTauHybridSolver()
 model.tspan = np.linspace(start, duration, steps+1)
