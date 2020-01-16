@@ -553,11 +553,32 @@ class Model(SortableObject):
             log.warning('GillesPy2 simulation exceeded timeout.')
             raise SimulationTimeoutError()
 
+        def __live_graphing_print_header():
+
+            print("Time      |",end="")
+            for species in self.listOfSpecies:
+                print(species[:10].ljust(10),end="|")
+            print("")
+
+            # print(self.listOfSpecies)
+
         with interruption_manager(timeout, display_interval):
 
-            if display_type is None and display_interval > 0:
-                print("display_type unspecified. Displaying text.")
-                display_type = "text"
+            if display_interval > 0:
+
+                if display_type is None:
+                    print("display_type unspecified. Displaying text.")
+                    display_type = "text"
+                    __live_graphing_print_header()
+
+                elif display_type == "text":
+                    __live_graphing_print_header()
+
+
+
+            # if display_type is None and display_interval > 0:
+            #     print("display_type unspecified. Displaying text.")
+            #     display_type = "text"
 
             if solver is not None:
                 if ((isinstance(solver, type)
