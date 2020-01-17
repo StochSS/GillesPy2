@@ -817,7 +817,7 @@ class RateRule(SortableObject):
         self.species = species
         self.name = name
     def __str__(self):
-        return self.expression + ': ' + self.species.name
+        return self.species.name + ': ' + self.expression
 
 
 class Reaction(SortableObject):
