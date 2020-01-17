@@ -565,7 +565,6 @@ class Model(SortableObject):
         with interruption_manager(timeout, display_interval):
 
             if display_interval > 0:
-
                 if display_type is None:
                     print("display_type unspecified. Displaying text.")
                     display_type = "text"
@@ -574,11 +573,11 @@ class Model(SortableObject):
                 elif display_type == "text":
                     __live_graphing_print_header()
 
-
-
-            # if display_type is None and display_interval > 0:
-            #     print("display_type unspecified. Displaying text.")
-            #     display_type = "text"
+                elif display_type is not "graph" and display_type is not "progress":
+                    print("Got display_type = \"", display_type,
+                          "\". Display_type should be \"graph\", \"text\", or \"progress\"", sep="")
+            else:
+                display_type = None
 
             if solver is not None:
                 if ((isinstance(solver, type)
