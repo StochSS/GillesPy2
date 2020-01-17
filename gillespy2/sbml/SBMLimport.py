@@ -124,6 +124,9 @@ def __get_reactions(sbml_model, gillespy_model):
         reactants = {}
         products = {}
 
+        r_set = set()
+        p_set = set()
+
         for j in range(reaction.getNumReactants()):
             species = reaction.getReactant(j)
 
@@ -133,7 +136,11 @@ def __get_reactions(sbml_model, gillespy_model):
                                   "not an explicit species in gillespy".format(
                                       reaction.getId(), species.getLine()), 0])
             else:
-                reactants[species.getSpecies()] = species.getStoichiometry()
+                if species.getSpecies() in r_set:
+                    reactants[species.getSpecies()] += species.getStoichiometry()
+                else:
+                    r_set.add(species.getSpecies())
+                    reactants[species.getSpecies()] = species.getStoichiometry()
 
         # get products
         for j in range(reaction.getNumProducts()):
@@ -145,7 +152,11 @@ def __get_reactions(sbml_model, gillespy_model):
                                   "not an explicit species in gillespy".format(
                                       reaction.getId(), species.getLine()), 0])
             else:
-                products[species.getSpecies()] = species.getStoichiometry()
+                if species.getSpecies() in p_set:
+                    products[species.getSpecies()] += species.getStoichiometry()
+                else:
+                    p_set.add(species.getSpecies())
+                    products[species.getSpecies()] = species.getStoichiometry()
 
         # propensity
         kinetic_law = reaction.getKineticLaw()
@@ -243,6 +254,14 @@ def __get_events(sbml_model, gillespy_model):
             initial_value=initial_value, persistent=persistent)
         assignments = event.getListOfEventAssignments()
         for a in assignments:
+            # Convert Non-Constant Parameter to Species
+            if a.getVariable() in gillespy_model.listOfParameters:
+                gillespy_species = gillespy2.Species(name=a.getVariable(),
+                                                        initial_value=gillespy_model.listOfParameters[a.getVariable()].expression,
+                                                        mode='continuous', allow_negative_populations=True)
+                gillespy_model.delete_parameter(a.getVariable())
+                gillespy_model.add_species([gillespy_species])
+
             gillespy_assignment = gillespy2.EventAssignment(a.getVariable(),
                 libsbml.formulaToL3String(a.getMath()))
             gillespy_assignments.append(gillespy_assignment)
@@ -250,6 +269,10 @@ def __get_events(sbml_model, gillespy_model):
             name=event.name, trigger=gillespy_trigger,
             assignments=gillespy_assignments, delay=delay,
             use_values_from_trigger_time=use_values_from_trigger_time)
+        for parameter in gillespy_model.listOfParameters:
+            print(parameter)
+        for species in gillespy_model.listOfSpecies:
+            print(species)
         gillespy_model.add_event(gillespy_event)
 
 def __get_initial_assignments(sbml_model, gillespy_model):

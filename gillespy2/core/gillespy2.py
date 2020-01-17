@@ -756,11 +756,8 @@ class FunctionDefinition(SortableObject):
     def __init__(self, name="", function=None, args=[]):
 
         self.name = name
-
         args = ', '.join(args)
-
         self.function = eval('lambda ' + args + ': ' + function)
-
         if self.function is None:
             raise TypeError
 
