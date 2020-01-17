@@ -574,10 +574,8 @@ class BasicTauHybridSolver(GillesPySolver):
 
                     elif display_type == "progress":
 
-                        print()
-
-                        # clear_output(wait=True)
-                        # print("progress =", round((curr_time / timeline.size) * 100, 2), "%\n")
+                        clear_output(wait=True)
+                        print("progress =", round((curr_time / timeline.size) * 100, 2), "%\n")
 
                     elif display_type == "graph":
 
@@ -599,6 +597,7 @@ class BasicTauHybridSolver(GillesPySolver):
                         plt.show()
                 except:
                     print("failed to display output at curr_time =", curr_time)
+                    print("Make sure display_interval > 2")
                     pass
 
 

@@ -142,6 +142,7 @@ class BasicTauLeapingSolver(GillesPySolver):
 
                 except:
                     print("failed to display output at curr_time =", curr_time)
+                    print("Make sure display_interval > 2")
                     pass
 
         if not isinstance(self, BasicTauLeapingSolver):

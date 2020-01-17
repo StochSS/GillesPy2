@@ -528,6 +528,9 @@ class Model(SortableObject):
             # Register a function to raise a TimeoutError on the signal.
             signal.signal(signal.SIGALRM, raise_time_out)
 
+            if display_interval < 2 and display_type == "graph":
+                print('display_interval < 2 with display_type \"graph\" not recommended.')
+
             # Schedule the signal to be sent after ``time``.
             signal.alarm(timeout)
 
