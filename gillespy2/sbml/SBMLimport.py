@@ -171,7 +171,7 @@ def __get_rules(sbml_model, gillespy_model, errors):
     for i in range(sbml_model.getNumRules()):
         rule = sbml_model.getRule(i)
         rule_name = rule.getId()
-        rule_string = libsbml.formulaToL3String(rule.getMath())
+        rule_string = libsbml.formulaToL3String(rule.getMath()).replace('^','**')
         if rule_name in gillespy_model.listOfParameters:
             # Treat Non-Constant Parameters as Species
             value = gillespy_model.listOfParameters[rule_name].expression
@@ -269,10 +269,6 @@ def __get_events(sbml_model, gillespy_model):
             name=event.name, trigger=gillespy_trigger,
             assignments=gillespy_assignments, delay=delay,
             use_values_from_trigger_time=use_values_from_trigger_time)
-        for parameter in gillespy_model.listOfParameters:
-            print(parameter)
-        for species in gillespy_model.listOfSpecies:
-            print(species)
         gillespy_model.add_event(gillespy_event)
 
 def __get_initial_assignments(sbml_model, gillespy_model):

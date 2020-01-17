@@ -183,6 +183,7 @@ class BasicTauHybridSolver(GillesPySolver):
         """
         state_change = [0] * len(y_map)
         curr_state['t'] = t
+        curr_state['time'] = t
         for item, index in y_map.items():
             if item in assignment_rules:
                 curr_state[item] = eval(assignment_rules[item].formula,
@@ -327,6 +328,7 @@ class BasicTauHybridSolver(GillesPySolver):
         tau_event.terminal = True
 
         curr_state['t'] = curr_time
+        curr_state['time'] = curr_time
 
         # Integrate until end or event is reached
         sol = solve_ivp(rhs, [curr_time, model.tspan[-1]], y0, 
@@ -366,6 +368,7 @@ class BasicTauHybridSolver(GillesPySolver):
                 # Queue delayed events
                 else:
                     curr_state['t'] = curr_time
+                    curr_state['time'] = curr_time
                     execution_time = curr_time + eval(event.delay,eval_globals, curr_state)
                     heapq.heappush(delayed_events, (execution_time, event.name))
                     trigger_states[event.name] = curr_state.copy()

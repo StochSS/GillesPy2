@@ -169,6 +169,56 @@ class Model(SortableObject):
         else:
             self.timespan(tspan)
 
+    def print_properties(self):
+        print(self.name)
+        print('-----')
+        if len(self.listOfSpecies):
+            print('Species')
+            for s in self.listOfSpecies.values():
+                print('\t{}:'.format(s.name))
+                print('\t\tInitial Value: ', s.initial_value)
+                print('\t\tMode: ', s.mode)
+                print('\t\tBoundary Condition: ', s.boundary_condition)
+                print('\t\tConstant: ', s.constant)
+        if len(self.listOfParameters):
+            print('Parameters')
+            for p in self.listOfParameters.values():
+                print('\t', p.name)
+                print('\t\tExpression: ', p.expression)
+        if len(self.listOfReactions):
+            print('Reactions')
+            for r in self.listOfReactions.values():
+                print('\t', r.name)
+                print('\t\tReactants:')
+                for react, stoich in r.reactants.items():
+                    print('\t\t\t', react, ': ', stoich)
+                print('\t\tProducts:')
+                for prod, stoich in r.products.items():
+                    print('\t\t\t', prod, ': ', stoich)
+                print('\t\tPropensity Function')
+                print('\t\t\t', r.propensity_function)
+        if len(self.listOfEvents):
+            print('Events')
+            for e in self.listOfEvents.values():
+                print('\t', e.name)
+                print('\t\tTrigger: ', e.trigger.expression)
+                print('\t\tAssignments:')
+                for a in e.assignments:
+                    print('\t\t\t', a.variable, ': ', a.expression)
+        if len(self.listOfRateRules) + len(self.listOfAssignmentRules):
+            print('Rules')
+            if len(self.listOfAssignmentRules):
+                print('\tAssignment Rules')
+                for ar in self.listOfAssignmentRules.values():
+                    print('\t\t', ar.variable, ': ', ar.formula)
+            if len(self.listOfRateRules):
+                print('\tRate Rules')
+                for rr in self.listOfRateRules.values():
+                    print('\t\t', rr.species, ': ', rr.expression)
+        print('Timespan')
+        print(self.tspan)
+
+
     def serialize(self):
         """ Serializes the Model object to valid StochML. """
         self.resolve_parameters()
