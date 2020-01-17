@@ -607,12 +607,14 @@ class Model(SortableObject):
                 return solver_results
 
             if len(solver_results) is 1:
-                return Results(data=solver_results[0], model=self, solver_name=solver.name)
+                return Results(data=solver_results[0], model=self,
+                    solver_name=solver.name, rc=rc)
 
             if len(solver_results) > 1:
                 results_list = []
                 for i in range(0,solver_args.get('number_of_trajectories')):
-                    results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name))
+                    results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name,
+                        rc=rc))
                 return EnsembleResults(results_list)
             else:
                 raise ValueError("number_of_trajectories must be non-negative and non-zero")
@@ -830,7 +832,7 @@ class Reaction(SortableObject):
                 self.marate = None
             else:
                 self.marate = rate
-                self.create_mass_action()
+                self.__create_mass_action()
         else:
             self.type = "customized"
 
@@ -842,7 +844,7 @@ class Reaction(SortableObject):
         if len(self.reactants) == 0 and len(self.products) == 0:
             raise ReactionError("You must have a non-zero number of reactants or products.")
 
-    def create_mass_action(self):
+    def __create_mass_action(self):
         """
         Initializes the mass action propensity function given
         self.reactants and a single parameter value.
@@ -1004,23 +1006,23 @@ class StochMLDocument():
         # Species
         spec = eTree.Element('SpeciesList')
         for sname in model.listOfSpecies:
-            spec.append(md.species_to_element(model.listOfSpecies[sname]))
+            spec.append(md.__species_to_element(model.listOfSpecies[sname]))
         md.document.append(spec)
 
         # Parameters
         params = eTree.Element('ParametersList')
         for pname in model.listOfParameters:
-            params.append(md.parameter_to_element(
+            params.append(md.__parameter_to_element(
                 model.listOfParameters[pname]))
 
-        params.append(md.parameter_to_element(Parameter(name='vol', expression=model.volume)))
+        params.append(md.__parameter_to_element(Parameter(name='vol', expression=model.volume)))
 
         md.document.append(params)
 
         # Reactions
         reacs = eTree.Element('ReactionsList')
         for rname in model.listOfReactions:
-            reacs.append(md.reaction_to_element(model.listOfReactions[rname], model.volume))
+            reacs.append(md.__reaction_to_element(model.listOfReactions[rname], model.volume))
         md.document.append(reacs)
 
         return md
@@ -1204,7 +1206,7 @@ class StochMLDocument():
                         reaction.marate = model.listOfParameters[
                             generated_rate_name]
 
-                    reaction.create_mass_action()
+                    reaction.__create_mass_action()
                 except Exception as e:
                     raise
             elif type == 'customized':
@@ -1237,7 +1239,7 @@ class StochMLDocument():
             prettyXml = text_re.sub(">\g<1></", uglyXml)
             return prettyXml
 
-    def species_to_element(self, S):
+    def __species_to_element(self, S):
         e = eTree.Element('Species')
         idElement = eTree.Element('Id')
         idElement.text = S.name
@@ -1254,7 +1256,7 @@ class StochMLDocument():
 
         return e
 
-    def parameter_to_element(self, P):
+    def __parameter_to_element(self, P):
         e = eTree.Element('Parameter')
         idElement = eTree.Element('Id')
         idElement.text = P.name
@@ -1264,7 +1266,7 @@ class StochMLDocument():
         e.append(expressionElement)
         return e
 
-    def reaction_to_element(self, R, model_volume):
+    def __reaction_to_element(self, R, model_volume):
         e = eTree.Element('Reaction')
 
         idElement = eTree.Element('Id')

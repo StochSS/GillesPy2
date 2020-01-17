@@ -1,9 +1,9 @@
 import random, math, sys, warnings
 from collections import OrderedDict
 from scipy.integrate import ode, solve_ivp
-import signal
 import heapq
 import numpy as np
+import signal
 import gillespy2
 from gillespy2.solvers.numpy import Tau
 from gillespy2.core import GillesPySolver, log
@@ -18,7 +18,6 @@ class BasicTauHybridSolver(GillesPySolver):
     along with ODE solvers to simulate ODE and Stochastic systems
     interchangeably or simultaneously.
     """
-
     name = "BasicTauHybridSolver"
     interrupted = False
     rc = 0
@@ -26,9 +25,9 @@ class BasicTauHybridSolver(GillesPySolver):
     def __init__(self):
         name = 'BasicTauHybridSolver'
         interrupted = False
-        rc = 0
+        rc = 0  
         
-    def toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec):
+    def __toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec):
         '''
         Helper method which is used to convert reaction channels into
         rate rules, and rate rules into reaction channels, as they are switched
@@ -64,9 +63,10 @@ class BasicTauHybridSolver(GillesPySolver):
 
         #Otherwise, this is a new determinstic reaction set that must be compiled
         if not deterministic_reactions in rate_rules:
-            rate_rules[deterministic_reactions] = self.create_diff_eqs(deterministic_reactions, model, dependencies)
+            rate_rules[deterministic_reactions] = self.__create_diff_eqs(deterministic_reactions, model, dependencies)
                 
-    def create_diff_eqs(self, comb, model, dependencies):
+    def __create_diff_eqs(self, comb, model, dependencies):
+
         '''
         Helper method used to convert stochastic reaction descriptions into
         differential equations, used dynamically throught the simulation.
@@ -110,7 +110,7 @@ class BasicTauHybridSolver(GillesPySolver):
 
         return rate_rules
 
-    def flag_det_reactions(self, model, det_spec, det_rxn, dependencies):
+    def __flag_det_reactions(self, model, det_spec, det_rxn, dependencies):
         '''
         Helper method used to flag reactions that can be processed
         deterministically without exceeding the user-supplied tolerance.
@@ -135,7 +135,7 @@ class BasicTauHybridSolver(GillesPySolver):
         deterministic_reactions = frozenset(deterministic_reactions)
         return deterministic_reactions
                             
-    def calculate_statistics(self, *switch_args):
+    def __calculate_statistics(self, *switch_args):
         """
         Calculates Mean, Standard Deviation, and Coefficient of Variance for each
         dynamic species, then set if species can be represented determistically
@@ -547,11 +547,10 @@ class BasicTauHybridSolver(GillesPySolver):
         """
 
         def timed_out(signum, frame):
-            self.rc = 33
             self.interrupted = True
+            self.rc = 33
 
         signal.signal(signal.SIGALRM, timed_out)
-
 
         if not isinstance(self, BasicTauHybridSolver):
             self = BasicTauHybridSolver()
@@ -626,6 +625,7 @@ class BasicTauHybridSolver(GillesPySolver):
             else:
                 raise ModelError('seed must be a positive integer')
         for trajectory_num in range(number_of_trajectories):
+
             if self.interrupted: break
 
             trajectory = trajectory_base[trajectory_num] # NumPy array containing this simulation's results
@@ -661,19 +661,19 @@ class BasicTauHybridSolver(GillesPySolver):
             while curr_time < model.tspan[-1]:
 
                 if self.interrupted: break
-
                 # Get current propensities
                 for i, r in enumerate(model.listOfReactions):
                     propensities[r] = eval(compiled_propensities[r], curr_state)
 
+                # Calculate Tau statistics and select a good tau step
                 tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
-                            model, propensities, curr_state, curr_time, save_times[0]]
+                        model, propensities, curr_state, curr_time, save_times[0]]
                 tau_step = save_times[-1]-curr_time if pure_ode else Tau.select(*tau_args)
                 # Calculate sd and CV for hybrid switching and flag deterministic reactions
                 #TODO REWRITE CALCULATION STUFF
                 switch_args = [mu_i, sigma_i, model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol]
-                sd, CV = self.calculate_statistics(*switch_args)
-                deterministic_reactions = self.flag_det_reactions(model, det_spec, det_rxn, dependencies)
+                sd, CV = self.__calculate_statistics(*switch_args)
+                deterministic_reactions = self.__flag_det_reactions(model, det_spec, det_rxn, dependencies)
                 
                 if debug:
                     print('mean: {0}'.format(mu_i))
@@ -683,7 +683,7 @@ class BasicTauHybridSolver(GillesPySolver):
                     print('det_rxn: {0}'.format(det_rxn))
                 
                 # Set active reactions and rate rules for this integration step
-                self.toggle_reactions(model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec)
+                self.__toggle_reactions(model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec)
                 active_rr = compiled_rate_rules[deterministic_reactions]
 
                 y0, y_map = self.__map_state(species, parameters,

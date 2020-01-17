@@ -30,14 +30,17 @@ def _plot_iterate(self, show_labels = True, included_species_list = []):
 
             plt.plot(self.data['time'], self.data[species], label=label,color = line_color)
 
-def _plotplotyl_iterate(self, show_labels = True, trace_list = None, line_dict= None, included_species_list= []):
+def _plotplotly_iterate(result, show_labels = True, trace_list = None, line_dict= None, included_species_list= []):
+    '''
+    Helper method for Results and Ensemble .plotplotly() method
+    '''
 
     if trace_list is None:
         trace_list = []
 
     import plotly.graph_objs as go
 
-    for i,species in enumerate(self.data):
+    for i,species in enumerate(result.data):
         if species is not 'time':
 
             if species not in included_species_list and included_species_list:
@@ -52,8 +55,8 @@ def _plotplotyl_iterate(self, show_labels = True, trace_list = None, line_dict= 
             if show_labels:
                 trace_list.append(
                     go.Scatter(
-                        x=self.data['time'],
-                        y=self.data[species],
+                        x=result.data['time'],
+                        y=result.data[species],
                         mode='lines',
                         name=species,
                         line = line_dict
@@ -62,8 +65,8 @@ def _plotplotyl_iterate(self, show_labels = True, trace_list = None, line_dict= 
             else:
                 trace_list.append(
                     go.Scatter(
-                        x=self.data['time'],
-                        y=self.data[species],
+                        x=result.data['time'],
+                        y=result.data[species],
                         mode='lines',
                         name=species,
                         line=line_dict,
@@ -82,11 +85,16 @@ class Results(UserDict):
             A list of Results that are created by solvers with multiple trajectories
         """
 
-    def __init__(self,data,model = None,solver_name = "Undefined solver name"):
+    def __init__(self,data,model = None,solver_name = "Undefined solver name", rc=0):
 
         self.data = data
         self.model = model
         self.solver_name = solver_name
+        self.rc = rc
+        
+        status_list = {0: 'Success', 33: 'Timed Out'}
+        self.status = status_list[rc]
+
 
     def __getitem__(self, key):
         if type(key) is type(1):
@@ -181,7 +189,7 @@ class Results(UserDict):
         if title is None:
             title = (self.model.name + " - " + self.solver_name)
 
-        trace_list = _plotplotyl_iterate(self, included_species_list = included_species_list,show_labels=True)
+        trace_list = _plotplotly_iterate(self, included_species_list = included_species_list,show_labels=True)
 
         layout = go.Layout(
             showlegend=show_legend,
@@ -192,10 +200,11 @@ class Results(UserDict):
                 title=yaxis_label)
         )
         fig = dict(data = trace_list,layout=layout)
-        iplot(fig)
 
         if return_plotly_figure:
             return fig
+        else:
+            iplot(fig)
 
 class EnsembleResults(UserList):
     """ List of Results Dicts created by a gillespy2 solver with multiple trajectories, extends the UserList object.
@@ -332,10 +341,10 @@ class EnsembleResults(UserList):
 
             for i, result in enumerate(results_list):
                 if i > 0:
-                    trace_list = _plotplotyl_iterate(result, trace_list=[], included_species_list= included_species_list,
+                    trace_list = _plotplotly_iterate(result, trace_list=[], included_species_list= included_species_list,
                                                      show_labels=False)
                 else:
-                    trace_list = _plotplotyl_iterate(result, trace_list=[], included_species_list=included_species_list)
+                    trace_list = _plotplotly_iterate(result, trace_list=[], included_species_list=included_species_list)
 
                 for k in range(0,len(trace_list)):
                     if i%2 == 0:
@@ -347,16 +356,16 @@ class EnsembleResults(UserList):
                                      height=400*len(results_list),
                                      showlegend=show_legend,title =title)
 
-            iplot(fig)
+            
 
         else:
             trace_list = []
             for i,result in enumerate(results_list):
                 if i > 0:
-                    trace_list = _plotplotyl_iterate(result, trace_list=trace_list,included_species_list= included_species_list,
+                    trace_list = _plotplotly_iterate(result, trace_list=trace_list,included_species_list= included_species_list,
                                                      show_labels = False)
                 else:
-                    trace_list = _plotplotyl_iterate(result, trace_list=trace_list,included_species_list= included_species_list)
+                    trace_list = _plotplotly_iterate(result, trace_list=trace_list,included_species_list= included_species_list)
 
             layout = go.Layout(
                 showlegend=show_legend,
@@ -369,10 +378,11 @@ class EnsembleResults(UserList):
 
             fig['data'] = trace_list
             fig['layout'] = layout
-            iplot(fig)
 
         if return_plotly_figure:
             return fig
+        else:
+            iplot(fig)
 
 
     def average_ensemble(self):
@@ -556,10 +566,11 @@ class EnsembleResults(UserList):
                 title=yaxis_label)
         )
         fig = dict(data=trace_list, layout=layout)
-        iplot(fig)
 
         if return_plotly_figure:
             return fig
+        else:
+            iplot(fig)
 
     def plot_std_dev_range(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None,
                            style="default", show_legend=True, included_species_list=[],ddof=0,save_png = False,figsize = (18,10)):
