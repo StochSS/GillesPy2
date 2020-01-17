@@ -30,17 +30,17 @@ def initialize(model, epsilon):
             # Build reactant list
             reactants.add(reactant)
             # Initialize mu and sigma for each reactant
-            mu_i[str(reactant)] = 0
-            sigma_i[str(reactant)] = 0
+            mu_i[reactant.name] = 0
+            sigma_i[reactant.name] = 0
             # if this reaction's order is higher than previous, set HOR
-            if reaction_order > HOR[str(reactant)]:
-                HOR[str(reactant)] = reaction_order
-                if count == 2 and reaction_order == 2: g_i[str(reactant)] = lambda x: 2+(1/(x-1))
-                elif count == 2 and reaction_order == 3: g_i[str(reactant)] = lambda x: (3/2)*(2+(1/(x-1)))
-                elif count == 3: g_i[str(reactant)] = lambda x: (3+(1/(x-1))+(2/(x-2)))
+            if reaction_order > HOR[reactant.name]:
+                HOR[reactant.name] = reaction_order
+                if count == 2 and reaction_order == 2: g_i[reactant.name] = lambda x: 2+(1/(x-1))
+                elif count == 2 and reaction_order == 3: g_i[reactant.name] = lambda x: (3/2)*(2+(1/(x-1)))
+                elif count == 3: g_i[reactant.name] = lambda x: (3+(1/(x-1))+(2/(x-2)))
                 else: 
-                    g_i[str(reactant)] = HOR[str(reactant)]
-                    epsilon_i[str(reactant)] = epsilon / g_i[str(reactant)]
+                    g_i[reactant.name] = HOR[reactant.name]
+                    epsilon_i[reactant.name] = epsilon / g_i[reactant.name]
 
     # Return components for tau selection
     return HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold
@@ -77,44 +77,44 @@ def select(*tau_args):
 
     # If a reactant's HOR requires >1 of that reactant, evaluate lambda at curr_state
     for r in g_i:
-        if callable(g_i[str(r)]):
-            g_i[str(r)] = g_i[str(r)](curr_state[str(r)])
-            epsilon_i[str(r)] = epsilon / g_i[str(r)]
+        if callable(g_i[r.name]):
+            g_i[r.name] = g_i[r.name](curr_state[r.name])
+            epsilon_i[r.name] = epsilon / g_i[r.name]
 
     tau_i = {}  # estimated tau for non-critical reactions
-    mu_i = {str(species): 0 for species in model.listOfSpecies.values()}
-    sigma_i = {str(species): 0 for species in model.listOfSpecies.values()}
+    mu_i = {species.name: 0 for species in model.listOfSpecies.values()}
+    sigma_i = {species.name: 0 for species in model.listOfSpecies.values()}
 
     for r in model.listOfReactions:
         #Calculate abs mean and standard deviation for each reactant
         for reactant in model.listOfReactions[r].reactants:
             if reactant not in mu_i:
-                mu_i[str(reactant)] = 0
+                mu_i[reactant.name] = 0
             if reactant not in sigma_i:
-                sigma_i[str(reactant)] = 0
-            mu_i[str(reactant)] += model.listOfReactions[r].reactants[reactant] * propensities[
+                sigma_i[reactant.name] = 0
+            mu_i[reactant.name] += model.listOfReactions[r].reactants[reactant] * propensities[
                 r]  # Cao, Gillespie, Petzold 32a
-            sigma_i[str(reactant)] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[
+            sigma_i[reactant.name] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[
                 r]  # Cao, Gillespie, Petzold 32b
 
     for r in reactants:
-        calculated_max = epsilon_i[str(r)] * curr_state[r.name]
+        calculated_max = epsilon_i[r.name] * curr_state[r.name]
         max_pop_change_mean = max(calculated_max, 1)
         max_pop_change_sd = max(calculated_max, 1) ** 2
-        if mu_i[str(r)] > 0:
+        if mu_i[r.name] > 0:
             # Cao, Gillespie, Petzold 33
-            tau_i[str(r)] = min(
-                    abs(max_pop_change_mean / mu_i[str(r)]), 
-                    max_pop_change_sd / sigma_i[str(r)])
+            tau_i[r.name] = min(
+                    abs(max_pop_change_mean / mu_i[r.name]), 
+                    max_pop_change_sd / sigma_i[r.name])
 
     if len(tau_i) > 0: non_critical_tau = min(tau_i.values())
 
     for r in model.listOfReactions:
         #Calculate abs mean and standard deviation for each reactant
         for product in model.listOfReactions[r].products:
-            mu_i[str(product)] -= model.listOfReactions[r].products[product] * propensities[
+            mu_i[product.name] -= model.listOfReactions[r].products[product] * propensities[
                 r]  # Cao, Gillespie, Petzold 32a
-            sigma_i[str(product)] += model.listOfReactions[r].products[product] ** 2 * propensities[
+            sigma_i[product.name] += model.listOfReactions[r].products[product] ** 2 * propensities[
                 r]  # Cao, Gillespie, Petzold 32b
 
     # If all reactions are non-critical, use non-critical tau.

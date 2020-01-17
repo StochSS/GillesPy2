@@ -43,7 +43,8 @@ class EventAssignment:
             raise EventError(
                              'GillesPy2 Event Assignment expression requires a '
                              'valid string expression')
-
+    def __str__(self):
+        return self.variable + ': ' + self.expression
 
 
 class EventTrigger:
@@ -82,7 +83,8 @@ class EventTrigger:
             self.persistent = persistent
         else:
             raise EventError('EventTrigger.persistent must be bool')
-
+    def __str__(self):
+        return self.expression
 
 class Event:
     """
@@ -161,6 +163,14 @@ class Event:
         else:
             raise EventError(
                 'use_values_from_trigger_time requires bool')
+    def __str__(self):
+        print_string = self.name
+        print_string += '\n\tTrigger: ' + str(self.trigger)
+        if len(self.assignments):
+            print_string += '\n\tAssignments:'
+            for a in self.assignments:
+                print_string += '\n\t\t' + a.variable.name + ': ' + a.expression
+        return print_string
 
     def add_assignment(self, assignment):
         """

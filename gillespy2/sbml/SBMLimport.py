@@ -103,7 +103,7 @@ def __get_compartments(sbml_model, gillespy_model):
                               compartment.getSpatialDimensions()), -5])
     '''
 
-def __get_reactions(sbml_model, gillespy_model):
+def __get_reactions(sbml_model, gillespy_model, errors):
     # local parameters
     for i in range(sbml_model.getNumReactions()):
         reaction = sbml_model.getReaction(i)
@@ -318,7 +318,7 @@ def convert(filename, model_name=None, gillespy_model=None):
     __get_parameters(sbml_model, gillespy_model)
     __get_species(sbml_model, gillespy_model, errors)
     __get_compartments(sbml_model, gillespy_model)
-    __get_reactions(sbml_model, gillespy_model)
+    __get_reactions(sbml_model, gillespy_model, errors)
     __get_rules(sbml_model, gillespy_model, errors)
     __get_constraints(sbml_model, gillespy_model)
     __get_events(sbml_model, gillespy_model)

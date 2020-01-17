@@ -169,55 +169,36 @@ class Model(SortableObject):
         else:
             self.timespan(tspan)
 
-    def print_properties(self):
-        print(self.name)
-        print('-----')
+    def __str__(self):
+        divider = '\n**********\n'
+        def decorate(header):
+            return '\n' + divider + header + divider
+        print_string = self.name
         if len(self.listOfSpecies):
-            print('Species')
+            print_string += decorate('Species')
             for s in self.listOfSpecies.values():
-                print('\t{}:'.format(s.name))
-                print('\t\tInitial Value: ', s.initial_value)
-                print('\t\tMode: ', s.mode)
-                print('\t\tBoundary Condition: ', s.boundary_condition)
-                print('\t\tConstant: ', s.constant)
+                print_string += '\n' + str(s)
         if len(self.listOfParameters):
-            print('Parameters')
+            print_string += decorate('Parameters')
             for p in self.listOfParameters.values():
-                print('\t', p.name)
-                print('\t\tExpression: ', p.expression)
+                print_string += '\n' + str(p)
         if len(self.listOfReactions):
-            print('Reactions')
+            print_string += decorate('Reactions')
             for r in self.listOfReactions.values():
-                print('\t', r.name)
-                print('\t\tReactants:')
-                for react, stoich in r.reactants.items():
-                    print('\t\t\t', react, ': ', stoich)
-                print('\t\tProducts:')
-                for prod, stoich in r.products.items():
-                    print('\t\t\t', prod, ': ', stoich)
-                print('\t\tPropensity Function')
-                print('\t\t\t', r.propensity_function)
+                print_string += '\n' + str(r)
         if len(self.listOfEvents):
-            print('Events')
+            print_string += decorate('Events')
             for e in self.listOfEvents.values():
-                print('\t', e.name)
-                print('\t\tTrigger: ', e.trigger.expression)
-                print('\t\tAssignments:')
-                for a in e.assignments:
-                    print('\t\t\t', a.variable, ': ', a.expression)
-        if len(self.listOfRateRules) + len(self.listOfAssignmentRules):
-            print('Rules')
-            if len(self.listOfAssignmentRules):
-                print('\tAssignment Rules')
-                for ar in self.listOfAssignmentRules.values():
-                    print('\t\t', ar.variable, ': ', ar.formula)
-            if len(self.listOfRateRules):
-                print('\tRate Rules')
-                for rr in self.listOfRateRules.values():
-                    print('\t\t', rr.species, ': ', rr.expression)
-        print('Timespan')
-        print(self.tspan)
-
+                print_string += '\n' + str(e)
+        if len(self.listOfAssignmentRules):
+            print_string += decorate('Assignment Rules')
+            for ar in self.listOfAssignmentRules.values():
+                print_string += '\n' + str(ar)
+        if len(self.listOfRateRules):
+            print_string += decorate('Rate Rules')
+            for rr in self.listOfRateRules.values():
+                print_string += '\n' + str(rr)
+        return print_string
 
     def serialize(self):
         """ Serializes the Model object to valid StochML. """
@@ -713,7 +694,16 @@ class Species(SortableObject):
 non-negative unless allow_negative_populations=True')
 
     def __str__(self):
-        return self.name
+        print_string = self.name
+        print_string += ': ' + str(self.initial_value)
+        '''
+        print_string += '\n\tInitial Value: ' + str(self.initial_value)
+        print_string += '\n\tConstant: ' + str(self.constant)
+        print_string += '\n\tBoundary Condition: ' + str(self.boundary_condition)
+        print_string += '\n\tMode: ' + self.mode
+        print_string += '\n\tAllow Negative Populations: ' + str(self.allow_negative_populations)
+        '''
+        return print_string
 
 
 class Parameter(SortableObject):
@@ -753,6 +743,9 @@ class Parameter(SortableObject):
 
         if self.value is None:
             self.evaluate()
+
+    def __str__(self):
+        return self.name + ': ' + self.expression
 
     def evaluate(self, namespace={}):
         """
@@ -815,13 +808,16 @@ class AssignmentRule(SortableObject):
     def __init__(self, variable=None, formula=None):
         self.variable = variable
         self.formula = formula
+    def __str__(self):
+        return self.variable + ': ' + self.formula
 
 class RateRule(SortableObject):
     def __init__(self, species=None, expression='', name=None):
         self.expression = expression
         self.species = species
         self.name = name
-
+    def __str__(self):
+        return self.expression + ': ' + self.species.name
 
 
 class Reaction(SortableObject):
@@ -914,6 +910,19 @@ class Reaction(SortableObject):
                 self.__create_mass_action()
         else:
             self.type = "customized"
+
+    def __str__(self):
+        print_string = self.name
+        if len(self.reactants):
+            print_string += '\n\tReactants'
+            for r, stoich in self.reactants.items():
+                print_string += '\n\t\t' + r.name + ': ' + str(stoich)
+        if len(self.products):
+            print_string += '\n\tProducts'
+            for p, stoich in self.products.items():
+                print_string += '\n\t\t' + p.name + ': ' + str(stoich)
+        print_string += '\n\tPropensity Function: ' + self.propensity_function
+        return print_string
 
     def verify(self):
         """ Check if the reaction is properly formatted.

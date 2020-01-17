@@ -718,7 +718,10 @@ class BasicTauHybridSolver(GillesPySolver):
                 if self.interrupted: break
                 # Get current propensities
                 for i, r in enumerate(model.listOfReactions):
-                    propensities[r] = eval(compiled_propensities[r], eval_globals, curr_state)
+                    try:
+                        propensities[r] = eval(compiled_propensities[r], eval_globals, curr_state)
+                    except Exception as e:
+                        raise SimulationError('Error calculation propensity for {0}.\nReason: {1}'.format(r, e))
 
                 # Calculate Tau statistics and select a good tau step
                 tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
