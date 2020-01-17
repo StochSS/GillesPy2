@@ -46,36 +46,42 @@ class NumPySSASolver(GillesPySolver):
                 from gillespy2.core.results import common_rgb_values
                 from IPython.display import clear_output
 
-                if display_type == "text":
+                try:
 
-                    print(str(round(current_time, 2))[:10].ljust(10), end="|")
-                    for i in range(number_species):
-                        print(str(current_state[i])[:10].ljust(10), end="|")
-                    print("")
+                    if display_type == "text":
 
-                elif display_type == "progress":
+                        print(str(round(current_time, 2))[:10].ljust(10), end="|")
+                        for i in range(number_species):
+                            print(str(current_state[i])[:10].ljust(10), end="|")
+                        print("")
 
-                    clear_output(wait=True)
-                    print("progress =", round((current_time / timeline.size) * 100, 2), "%\n")
+                    elif display_type == "progress":
 
-                elif display_type == "graph":
+                        clear_output(wait=True)
+                        print("progress =", round((current_time / timeline.size) * 100, 2), "%\n")
 
-                    clear_output(wait=True)
-                    plt.figure(figsize=(18, 10))
-                    plt.xlim(right=timeline.size)
-                    for i in range(number_species):
-                        line_color = common_rgb_values()[(i) % len(common_rgb_values())]
+                    elif display_type == "graph":
 
-                        plt.plot(trajectory_base[0][:, 0][:entry_count].tolist(),
-                                 trajectory_base[0][:, i + 1][:entry_count].tolist(), color=line_color,
-                                 label=species[i])
+                        clear_output(wait=True)
+                        plt.figure(figsize=(18, 10))
+                        plt.xlim(right=timeline.size)
+                        for i in range(number_species):
+                            line_color = common_rgb_values()[(i) % len(common_rgb_values())]
 
-                        plt.plot([entry_count - 1, current_time], [trajectory_base[0][:, i + 1][entry_count - 1],
-                                                                   current_state[i]], linewidth=3,
-                                 color=line_color)
+                            plt.plot(trajectory_base[0][:, 0][:entry_count].tolist(),
+                                     trajectory_base[0][:, i + 1][:entry_count].tolist(), color=line_color,
+                                     label=species[i])
 
-                    plt.legend(loc='upper right')
-                    plt.show()
+                            plt.plot([entry_count - 1, current_time], [trajectory_base[0][:, i + 1][entry_count - 1],
+                                                                       current_state[i]], linewidth=3,
+                                     color=line_color)
+
+                        plt.legend(loc='upper right')
+                        plt.show()
+
+                except:
+                    print("failed to display output at curr_time =", curr_time)
+                    pass
 
         if not isinstance(self, NumPySSASolver):
             self = NumPySSASolver()

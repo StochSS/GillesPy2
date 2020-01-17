@@ -558,42 +558,49 @@ class BasicTauHybridSolver(GillesPySolver):
 
         def __display():
             if display_type is not None:
+
                 import matplotlib.pyplot as plt
                 from gillespy2.core.results import common_rgb_values
                 from IPython.display import clear_output
 
-                if display_type == "text":
+                try:
 
-                    print(str(round(curr_time, 2))[:10].ljust(10), end="|")
-                    for i in range(number_species):
-                        print(str(curr_state[species[i]])[:10].ljust(10), end="|")
-                    print("")
+                    if display_type == "text":
 
-                elif display_type == "progress":
+                        print(str(round(curr_time, 2))[:10].ljust(10), end="|")
+                        for i in range(number_species):
+                            print(str(curr_state[species[i]])[:10].ljust(10), end="|")
+                        print("")
 
-                    print()
+                    elif display_type == "progress":
 
-                    # clear_output(wait=True)
-                    # print("progress =", round((curr_time / timeline.size) * 100, 2), "%\n")
+                        print()
 
-                elif display_type == "graph":
+                        # clear_output(wait=True)
+                        # print("progress =", round((curr_time / timeline.size) * 100, 2), "%\n")
 
-                    clear_output(wait=True)
-                    plt.figure(figsize=(18, 10))
-                    plt.xlim(right=timeline.size)
-                    for i in range(number_species):
-                        line_color = common_rgb_values()[(i) % len(common_rgb_values())]
+                    elif display_type == "graph":
 
-                        plt.plot(trajectory_base[0][:, 0][:entry_count].tolist(),
-                                 trajectory_base[0][:, i + 1][:entry_count].tolist(), color=line_color,
-                                 label=species[i])
+                        clear_output(wait=True)
+                        plt.figure(figsize=(18, 10))
+                        plt.xlim(right=timeline.size)
+                        for i in range(number_species):
+                            line_color = common_rgb_values()[(i) % len(common_rgb_values())]
 
-                        plt.plot([entry_count - 1, curr_time], [trajectory_base[0][:, i + 1][entry_count - 1],
-                                                                   curr_state[species[i]]], linewidth=3,
-                                 color=line_color)
+                            plt.plot(trajectory_base[0][:, 0][:entry_count].tolist(),
+                                     trajectory_base[0][:, i + 1][:entry_count].tolist(), color=line_color,
+                                     label=species[i])
 
-                    plt.legend(loc='upper right')
-                    plt.show()
+                            plt.plot([entry_count - 1, curr_time], [trajectory_base[0][:, i + 1][entry_count - 1],
+                                                                       curr_state[species[i]]], linewidth=3,
+                                     color=line_color)
+
+                        plt.legend(loc='upper right')
+                        plt.show()
+                except:
+                    print("failed to display output at curr_time =", curr_time)
+                    pass
+
 
         if not isinstance(self, BasicTauHybridSolver):
             self = BasicTauHybridSolver()
