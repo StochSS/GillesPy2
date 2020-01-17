@@ -208,7 +208,7 @@ def __get_rules(sbml_model, gillespy_model, errors):
         else:
             msg = "Rule"
 
-        errors.append(["{0} '{1}' found on line '{2}' with equation '{3}'. gillespy does not support SBML Algebraic, compartment, or parameter Rules".format(
+        errors.append(["{0} '{1}' found on line '{2}' with equation '{3}'. gillespy does not support SBML Algebraic Rules".format(
             msg, rule.getId(), rule.getLine(), libsbml.formulaToString(rule.getMath())), -5])
 
 def __get_constraints(sbml_model, gillespy_model):
