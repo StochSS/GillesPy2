@@ -503,7 +503,7 @@ class BasicTauHybridSolver(GillesPySolver):
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
             debug=False, profile=False, show_labels=True, switch_tol=0.03,
             tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
-            integrator_options={}, **kwargs):
+            integrator_options={},display_type = None, **kwargs):
         """
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
         objects and will inherit those parameters which are passed with the model as the arguments this run function.
@@ -547,10 +547,53 @@ class BasicTauHybridSolver(GillesPySolver):
         """
 
         def timed_out(signum, frame):
-            self.interrupted = True
             self.rc = 33
+            self.interrupted = True
 
+        def interval_print(signum, frame):
+            __display()
+
+        signal.signal(signal.SIGPROF, interval_print)
         signal.signal(signal.SIGALRM, timed_out)
+
+        def __display():
+            if display_type is not None:
+                import matplotlib.pyplot as plt
+                from gillespy2.core.results import common_rgb_values
+                from IPython.display import clear_output
+
+                if display_type == "text":
+
+                    print(str(round(curr_time, 2))[:10].ljust(10), end="|")
+                    for i in range(number_species):
+                        print(str(curr_state[species[i]])[:10].ljust(10), end="|")
+                    print("")
+
+                elif display_type == "progress":
+
+                    print()
+
+                    # clear_output(wait=True)
+                    # print("progress =", round((curr_time / timeline.size) * 100, 2), "%\n")
+
+                elif display_type == "graph":
+
+                    clear_output(wait=True)
+                    plt.figure(figsize=(18, 10))
+                    plt.xlim(right=timeline.size)
+                    for i in range(number_species):
+                        line_color = common_rgb_values()[(i) % len(common_rgb_values())]
+
+                        plt.plot(trajectory_base[0][:, 0][:entry_count].tolist(),
+                                 trajectory_base[0][:, i + 1][:entry_count].tolist(), color=line_color,
+                                 label=species[i])
+
+                        plt.plot([entry_count - 1, curr_time], [trajectory_base[0][:, i + 1][entry_count - 1],
+                                                                   curr_state[species[i]]], linewidth=3,
+                                 color=line_color)
+
+                    plt.legend(loc='upper right')
+                    plt.show()
 
         if not isinstance(self, BasicTauHybridSolver):
             self = BasicTauHybridSolver()
@@ -638,6 +681,7 @@ class BasicTauHybridSolver(GillesPySolver):
             data = OrderedDict() # Dictionary for show_labels results
             data['time'] = timeline # All time entries for show_labels results
             save_times = timeline
+            entry_count = 0
 
             # Record Highest Order reactant for each reaction and set error tolerance
             HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold = Tau.initialize(model, tau_tol)
@@ -661,6 +705,10 @@ class BasicTauHybridSolver(GillesPySolver):
             while curr_time < model.tspan[-1]:
 
                 if self.interrupted: break
+
+                #TODO create better entry_count variable instead of flooring every time
+                entry_count = math.floor(curr_time)
+
                 # Get current propensities
                 for i, r in enumerate(model.listOfReactions):
                     propensities[r] = eval(compiled_propensities[r], curr_state)
