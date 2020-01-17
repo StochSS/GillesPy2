@@ -7,8 +7,6 @@ import numpy as np
 from gillespy2.solvers.numpy import Tau
 from gillespy2.core import GillesPySolver, log
 
-from gillespy2.core.results import Results
-
 class BasicTauLeapingSolver(GillesPySolver):
     name = 'BasicTauLeapingSolver'
     interrupted = False
@@ -104,11 +102,6 @@ class BasicTauLeapingSolver(GillesPySolver):
             try:
 
                 if display_type == "text":
-
-                    # clear_output(wait=True)
-                    # print("\nprogress = ", round((curr_time/timeline.size)*100,2),"%","\nt = ",str(round(curr_time,4)).ljust(8),"\n",sep="")
-                    # for i in range(number_species):
-                    #     print(species[i].ljust(16),":",curr_state[species[i]])
 
                     print(str(round(curr_time,2))[:10].ljust(10),end = "|")
                     for i in range(number_species):
