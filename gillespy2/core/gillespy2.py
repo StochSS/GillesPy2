@@ -957,12 +957,12 @@ class Reaction(SortableObject):
             # Case 1: 2X -> Y
             if self.reactants[r] == 2:
                 propensity_function = (propensity_function +
-                                       "*" + str(r) + "*(" + str(r) + "-1)/vol")
-                ode_propensity_function += '*' + str(r) + '*' + str(r)
+                                       "*" + r.name + "*(" + r.name + "-1)/vol")
+                ode_propensity_function += '*' + r.name + '*' + r.name
             else:
                 # Case 3: X1, X2 -> Y;
-                propensity_function += "*" + str(r)
-                ode_propensity_function += '*' + str(r)
+                propensity_function += "*" + r.name
+                ode_propensity_function += '*' + r.name
 
         # Set the volume dependency based on order.
         order = len(self.reactants)

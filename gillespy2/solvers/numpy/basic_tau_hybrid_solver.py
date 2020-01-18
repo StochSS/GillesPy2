@@ -427,11 +427,11 @@ class BasicTauHybridSolver(GillesPySolver):
                     curr_state[rxn] += math.log(random.uniform(0,1))
                 if rxn_count[rxn]:
                     for reactant in model.listOfReactions[rxn].reactants:
-                        species_modified[str(reactant)] = True
-                        curr_state[str(reactant)] -= model.listOfReactions[rxn].reactants[reactant] * rxn_count[rxn]
+                        species_modified[reactant.name] = True
+                        curr_state[reactant.name] -= model.listOfReactions[rxn].reactants[reactant] * rxn_count[rxn]
                     for product in model.listOfReactions[rxn].products:
-                        species_modified[str(reactant)] = True
-                        curr_state[str(product)] += model.listOfReactions[rxn].products[product] * rxn_count[rxn]
+                        species_modified[reactant.name] = True
+                        curr_state[product.name] += model.listOfReactions[rxn].products[product] * rxn_count[rxn]
 
             neg_state = False
             for s in species_modified.keys():
@@ -768,3 +768,4 @@ class BasicTauHybridSolver(GillesPySolver):
                 print("Total Steps Rejected: ", steps_rejected)
 
         return simulation_data, self.rc
+
