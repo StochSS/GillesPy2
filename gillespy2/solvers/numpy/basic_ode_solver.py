@@ -1,5 +1,6 @@
 """GillesPy2 Solver for ODE solutions."""
 
+import signal
 from scipy.integrate import ode
 from scipy.integrate import odeint
 from collections import OrderedDict
@@ -16,6 +17,8 @@ class BasicODESolver(GillesPySolver):
 
     def __init__(self):
         name = "BasicODESolver"
+        interrupted = False
+        rc = 0
 
     @staticmethod
     def __f(t, y, curr_state, model, ode_species, prop_functions):

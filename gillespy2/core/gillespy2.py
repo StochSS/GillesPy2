@@ -5,11 +5,14 @@ python.
 """
 
 from __future__ import division
+import signal
+import numpy as np
+from contextlib import contextmanager
 from collections import OrderedDict
 from gillespy2.core.results import Results,EnsembleResults
+from gillespy2.core.events import *
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
-import numpy as np
 
 try:
     import lxml.etree as eTree
@@ -19,7 +22,6 @@ except:
     import xml.dom.minidom
     import re
     no_pretty_print = True
-
 
 def import_SBML(filename, name=None, gillespy_model=None):
     """
@@ -139,6 +141,7 @@ class Model(SortableObject):
         self.listOfSpecies = OrderedDict()
         self.listOfReactions = OrderedDict()
         self.listOfRateRules = OrderedDict()
+        self.listOfEvents = OrderedDict()
 
         # This defines the unit system at work for all numbers in the model
         # It should be a logical error to leave this undefined, subclasses
@@ -416,7 +419,7 @@ class Model(SortableObject):
                 Attributes
                 ----------
                 obj : RateRule, or list of RateRules
-                    The reaction or list of raterule objects to be added to the model
+                    The rate rule or list of rate rule objects to be added to the model
                     object.
                 """
 
@@ -433,6 +436,36 @@ class Model(SortableObject):
         else:
             raise ParameterError("Add_rate_rule accepts a RateRule object or a List of RateRule Objects")
         return rate_rules
+
+    def add_event(self, event):
+        """
+                Adds an event, or list of events to the model.
+
+                Attributes
+                ----------
+                event : Event, or list of Events
+                    The event or list of event objects to be added to the model
+                    object.
+                """
+
+        if isinstance(event, list):
+            for e in event:
+                self.add_event(e)
+        elif isinstance(event, Event):
+            if event.trigger is None or not isinstance(event.trigger, EventTrigger): 
+                raise ModelError(
+                'An Event must contain a valid trigger.')
+            for a in event.assignments:
+                if isinstance(a.variable, str):
+                    if a.variable in self.listOfSpecies:
+                        a.variable = self.listOfSpecies[a.variable]
+                    else:
+                        raise ModelError('{0} not a valid Species'.format(a.variable))
+            self.listOfEvents[event.name] = event
+        else:
+            raise ParameterError("add_events accepts an Event object or a"
+            " List of Event Objects")
+        return event
 
     def timespan(self, time_span):
         """
@@ -465,7 +498,7 @@ class Model(SortableObject):
     def delete_all_reactions(self):
         self.listOfReactions.clear()
 
-    def run(self, solver=None, **solver_args):
+    def run(self, solver=None, timeout=0, **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -480,54 +513,81 @@ class Model(SortableObject):
 
         Attributes
         ----------
-        number_of_trajectories : int
-            The number of times to sample the chemical master equation. Each
-            trajectory will be returned at the end of the simulation.
-            Optional, defaults to 1.
-        seed : int
-            The random seed for the simulation. Optional, defaults to None.
         solver : gillespy.GillesPySolver
             The solver by which to simulate the model. This solver object may
             be initialized separately to specify an algorithm. Optional, 
             defaults to ssa solver.
-        show_labels: bool (True)
-            If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]
-        switch_tol: float
-            Tolerance for Continuous/Stochastic representation of species, based on coefficient of variance for each step.
-        tau_tol: float
-            Relative error tolerance value for calculating tau step between 0.0 and 1.0
-        integrator: String
-            integrator to be used form scipy.integrate.ode. Options include 'vode', 'zvode', 'lsoda', 'dopri5', and 'dop835'.  For more details, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html
-        integrator_options: dictionary
-            contains options to the scipy integrator. for a list of options, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.
-            Example use: {max_step : 0, rtol : .01}
+        timeout : int
+            Allows a time_out value in seconds to be sent to a signal handler, restricting simulation run-time
+        solver_args :
+            solver-specific arguments to be passed to solver.run()
         """
-        if solver is not None:
-            if ((isinstance(solver, type)
-                    and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
-                solver_results = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
+        @contextmanager
+        def time_out(time):
+            # Register a function to raise a TimeoutError on the signal.
+            signal.signal(signal.SIGALRM, raise_time_out)
+            # Schedule the signal to be sent after ``time``.
+            signal.alarm(time)
+
+            try:
+                yield
+            except TimeoutError:
+                print('GillesPy2 solver simulation exceeded timeout')
+                pass
+            finally:
+                # Unregister the signal so it won't be triggered
+                # if the time_out is not reached.
+                signal.signal(signal.SIGALRM, signal.SIG_IGN)
+
+        def raise_time_out(signum, frame):
+            from gillespy2.core import log
+            import sys
+            def excepthook(type, value, traceback):
+                pass
+            sys.excepthook = excepthook
+            log.warning('GillesPy2 simulation exceeded timeout.')
+            raise SimulationTimeoutError()
+
+
+        with time_out(timeout):
+            if solver is not None:
+                if ((isinstance(solver, type)
+                        and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
+                    if solver.name == 'SSACSolver':
+                        signal.signal(signal.SIGALRM, signal.SIG_IGN)
+                        solver_args['timeout'] = timeout
+                    solver_results, rc = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
+                else:
+                    raise SimulationError(
+                        "argument 'solver' to run() must be a subclass of GillesPySolver")
             else:
-                raise SimulationError(
-                    "argument 'solver' to run() must be a subclass of GillesPySolver")
-        else:
-            from gillespy2.solvers.auto import SSASolver
-            solver = SSASolver
-            solver_results = SSASolver.run(model=self, t=self.tspan[-1],
-                                      increment=self.tspan[-1] - self.tspan[-2], **solver_args)
+                from gillespy2.solvers.auto import SSASolver
+                solver = SSASolver
+                if solver.name == 'SSACSolver':
+                    signal.signal(signal.SIGALRM, signal.SIG_IGN)
+                    solver_args['timeout'] = timeout
+                solver_results, rc = SSASolver.run(model=self, t=self.tspan[-1],
+                                          increment=self.tspan[-1] - self.tspan[-2], **solver_args)
+           
+            if rc == 33:
+                from gillespy2.core import log
+                log.warning('GillesPy2 simulation exceeded timeout.')
 
-        if isinstance(solver_results[0], (np.ndarray)):
-            return solver_results
+            if isinstance(solver_results[0], (np.ndarray)):
+                return solver_results
 
-        if len(solver_results) is 1:
-            return Results(data=solver_results[0], model=self, solver_name=solver.name)
+            if len(solver_results) is 1:
+                return Results(data=solver_results[0], model=self,
+                    solver_name=solver.name, rc=rc)
 
-        if len(solver_results) > 1:
-            results_list = []
-            for i in range(0,solver_args.get('number_of_trajectories')):
-                results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name))
-            return EnsembleResults(results_list)
-        else:
-            raise ValueError("number_of_trajectories must be non-negative and non-zero")
+            if len(solver_results) > 1:
+                results_list = []
+                for i in range(0,solver_args.get('number_of_trajectories')):
+                    results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name,
+                        rc=rc))
+                return EnsembleResults(results_list)
+            else:
+                raise ValueError("number_of_trajectories must be non-negative and non-zero")
 
 
 class Species(SortableObject):
@@ -765,7 +825,7 @@ class Reaction(SortableObject):
                 self.marate = None
             else:
                 self.marate = rate
-                self.create_mass_action()
+                self.__create_mass_action()
         else:
             self.type = "customized"
 
@@ -777,7 +837,7 @@ class Reaction(SortableObject):
         if len(self.reactants) == 0 and len(self.products) == 0:
             raise ReactionError("You must have a non-zero number of reactants or products.")
 
-    def create_mass_action(self):
+    def __create_mass_action(self):
         """
         Initializes the mass action propensity function given
         self.reactants and a single parameter value.
@@ -875,7 +935,7 @@ class Reaction(SortableObject):
         self.annotation = annotation
 
     def sanitized_propensity_function(self, species_mappings, parameter_mappings):
-        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()))
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
         sanitized_propensity = self.propensity_function
@@ -939,23 +999,23 @@ class StochMLDocument():
         # Species
         spec = eTree.Element('SpeciesList')
         for sname in model.listOfSpecies:
-            spec.append(md.species_to_element(model.listOfSpecies[sname]))
+            spec.append(md.__species_to_element(model.listOfSpecies[sname]))
         md.document.append(spec)
 
         # Parameters
         params = eTree.Element('ParametersList')
         for pname in model.listOfParameters:
-            params.append(md.parameter_to_element(
+            params.append(md.__parameter_to_element(
                 model.listOfParameters[pname]))
 
-        params.append(md.parameter_to_element(Parameter(name='vol', expression=model.volume)))
+        params.append(md.__parameter_to_element(Parameter(name='vol', expression=model.volume)))
 
         md.document.append(params)
 
         # Reactions
         reacs = eTree.Element('ReactionsList')
         for rname in model.listOfReactions:
-            reacs.append(md.reaction_to_element(model.listOfReactions[rname], model.volume))
+            reacs.append(md.__reaction_to_element(model.listOfReactions[rname], model.volume))
         md.document.append(reacs)
 
         return md
@@ -1139,7 +1199,7 @@ class StochMLDocument():
                         reaction.marate = model.listOfParameters[
                             generated_rate_name]
 
-                    reaction.create_mass_action()
+                    reaction.__create_mass_action()
                 except Exception as e:
                     raise
             elif type == 'customized':
@@ -1172,7 +1232,7 @@ class StochMLDocument():
             prettyXml = text_re.sub(">\g<1></", uglyXml)
             return prettyXml
 
-    def species_to_element(self, S):
+    def __species_to_element(self, S):
         e = eTree.Element('Species')
         idElement = eTree.Element('Id')
         idElement.text = S.name
@@ -1189,7 +1249,7 @@ class StochMLDocument():
 
         return e
 
-    def parameter_to_element(self, P):
+    def __parameter_to_element(self, P):
         e = eTree.Element('Parameter')
         idElement = eTree.Element('Id')
         idElement.text = P.name
@@ -1199,7 +1259,7 @@ class StochMLDocument():
         e.append(expressionElement)
         return e
 
-    def reaction_to_element(self, R, model_volume):
+    def __reaction_to_element(self, R, model_volume):
         e = eTree.Element('Reaction')
 
         idElement = eTree.Element('Id')
