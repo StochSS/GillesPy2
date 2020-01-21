@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.solvers.numpy.basic_tau_leaping_solver &#8212; GillesPy2 1.2 documentation</title>
+    <title>gillespy2.solvers.numpy.basic_tau_leaping_solver &#8212; GillesPy2 1.2.1 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -112,7 +112,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">profile</span> <span class="o">=</span> <span class="n">profile</span>
 
-<div class="viewcode-block" id="BasicTauLeapingSolver.get_reactions"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver.get_reactions">[docs]</a>    <span class="k">def</span> <span class="nf">get_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">save_time</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">reactions</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__get_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">save_time</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">reactions</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper Function to get reactions fired from t to t+tau.  Returns three values:</span>
 <span class="sd">        rxn_count - dict with key=Reaction channel value=number of times fired</span>
@@ -140,7 +140,7 @@
 
         <span class="n">curr_time</span> <span class="o">=</span> <span class="n">curr_time</span><span class="o">+</span><span class="n">step</span>
 
-        <span class="k">return</span> <span class="n">rxn_count</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span></div>
+        <span class="k">return</span> <span class="n">rxn_count</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span>
 
 <div class="viewcode-block" id="BasicTauLeapingSolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver.run">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -276,9 +276,9 @@
                     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
                         <span class="n">loop_cnt</span> <span class="o">+=</span> <span class="mi">1</span>
                         <span class="k">if</span> <span class="n">loop_cnt</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
-                            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Loop over get_reactions() exceeded loop count&quot;</span><span class="p">)</span>
+                            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Loop over __get_reactions() exceeded loop count&quot;</span><span class="p">)</span>
 
-                        <span class="n">reactions</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_reactions</span><span class="p">(</span>
+                        <span class="n">reactions</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_reactions</span><span class="p">(</span>
                             <span class="n">tau_step</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">save_time</span><span class="p">,</span>
                             <span class="n">propensities</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">)</span>
 

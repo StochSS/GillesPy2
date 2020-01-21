@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 
 import gillespy2
-from gillespy2.example_models import Example
+from gillespy2.example_models import Example, Oregonator
 from gillespy2.core.results import EnsembleResults, Results
 from gillespy2.solvers.cpp.ssa_c_solver import SSACSolver
 from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
@@ -61,16 +61,22 @@ class TestAllSolvers(unittest.TestCase):
         for solver in self.solvers:
             same_results = self.model.run(solver=solver, show_labels=False, seed=1)
             self.assertTrue(np.array_equal(same_results, self.results[solver]))
+            if solver.name == 'BasicODESolver': continue
             diff_results = self.model.run(solver=solver, show_labels=False, seed=2)
-            if solver.name != 'BasicODESolver':
-                self.assertFalse(np.array_equal(diff_results, self.results[solver]))
+            self.assertFalse(np.array_equal(diff_results, self.results[solver]))
     
     def test_extraneous_args(self):
         for solver in self.solvers:
-            print(solver.name)
-            with self.assertWarns(Warning):
+            with self.assertLogs(level='WARN'):
                 model = Example()
                 results = model.run(solver=solver, nonsense='ABC')
+
+    def test_timeout(self):
+        for solver in self.solvers:
+            with self.assertLogs(level='WARN'):
+                model = Oregonator()
+                model.timespan(np.linspace(0, 1000000, 101))
+                results = model.run(solver=solver, timeout=1)
 
 if __name__ == '__main__':
     unittest.main()

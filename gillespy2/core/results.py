@@ -2,6 +2,15 @@ import warnings
 
 from collections import UserDict,UserList
 
+# List of 50 hex color values used for ploting graphs
+common_rgb_values = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
+                         '#bcbd22', '#17becf', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff', '#ff00ff',
+                         '#800000', '#808000', '#008000', '#800080', '#008080', '#000080', '#ff9999', '#ffcc99',
+                         '#ccff99', '#cc99ff', '#ffccff', '#62666a', '#8896bb', '#77a096', '#9d5a6c', '#9d5a6c',
+                         '#eabc75', '#ff9600', '#885300', '#9172ad', '#a1b9c4', '#18749b', '#dadecf', '#c5b8a8',
+                         '#000117', '#13a8fe', '#cf0060', '#04354b', '#0297a0', '#037665', '#eed284', '#442244',
+                         '#ffddee', '#702afb']
+
 def _plot_iterate(self, show_labels = True, included_species_list = []):
     import matplotlib.pyplot as plt
 
@@ -11,7 +20,7 @@ def _plot_iterate(self, show_labels = True, included_species_list = []):
             if species not in included_species_list and included_species_list:
                 continue
 
-            line_color = 'C' + str(i)
+            line_color = common_rgb_values[(i - 1) % len(common_rgb_values)]
 
             if show_labels:
                 label = species
@@ -20,23 +29,17 @@ def _plot_iterate(self, show_labels = True, included_species_list = []):
 
             plt.plot(self.data['time'], self.data[species], label=label,color = line_color)
 
-def _plotplotyl_iterate(self, show_labels = True, trace_list = None, line_dict= None, included_species_list= []):
-
-    # List of 50 hex color values used for plotly graphs
-    common_rgb_values = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
-                         '#bcbd22', '#17becf','#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff', '#ff00ff',
-                         '#800000', '#808000','#008000', '#800080', '#008080', '#000080', '#ff9999', '#ffcc99',
-                         '#ccff99', '#cc99ff','#ffccff', '#62666a', '#8896bb', '#77a096', '#9d5a6c', '#9d5a6c',
-                         '#eabc75', '#ff9600','#885300', '#9172ad', '#a1b9c4', '#18749b', '#dadecf', '#c5b8a8',
-                         '#000117', '#13a8fe','#cf0060', '#04354b', '#0297a0', '#037665', '#eed284', '#442244',
-                         '#ffddee', '#702afb']
+def _plotplotly_iterate(result, show_labels = True, trace_list = None, line_dict= None, included_species_list= []):
+    '''
+    Helper method for Results and Ensemble .plotplotly() method
+    '''
 
     if trace_list is None:
         trace_list = []
 
     import plotly.graph_objs as go
 
-    for i,species in enumerate(self.data):
+    for i,species in enumerate(result.data):
         if species is not 'time':
 
             if species not in included_species_list and included_species_list:
@@ -51,8 +54,8 @@ def _plotplotyl_iterate(self, show_labels = True, trace_list = None, line_dict= 
             if show_labels:
                 trace_list.append(
                     go.Scatter(
-                        x=self.data['time'],
-                        y=self.data[species],
+                        x=result.data['time'],
+                        y=result.data[species],
                         mode='lines',
                         name=species,
                         line = line_dict
@@ -61,8 +64,8 @@ def _plotplotyl_iterate(self, show_labels = True, trace_list = None, line_dict= 
             else:
                 trace_list.append(
                     go.Scatter(
-                        x=self.data['time'],
-                        y=self.data[species],
+                        x=result.data['time'],
+                        y=result.data[species],
                         mode='lines',
                         name=species,
                         line=line_dict,
@@ -81,11 +84,16 @@ class Results(UserDict):
             A list of Results that are created by solvers with multiple trajectories
         """
 
-    def __init__(self,data,model = None,solver_name = "Undefined solver name"):
+    def __init__(self,data,model = None,solver_name = "Undefined solver name", rc=0):
 
         self.data = data
         self.model = model
         self.solver_name = solver_name
+        self.rc = rc
+        
+        status_list = {0: 'Success', 33: 'Timed Out'}
+        self.status = status_list[rc]
+
 
     def __getitem__(self, key):
         if type(key) is type(1):
@@ -98,7 +106,7 @@ class Results(UserDict):
         raise KeyError(key)
 
     def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None, style="default",
-             show_legend=True, included_species_list=[],save_png=False):
+             show_legend=True, included_species_list=[],save_png=False,figsize = (18,10)):
         """ Plots the Results using matplotlib.
 
          Attributes
@@ -113,6 +121,12 @@ class Results(UserDict):
             whether or not to display a legend which lists species
         included_species_list : list
             A list of strings describing which species to include. By default displays all species.
+        save_png : bool or str
+            Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file
+            is named after that string.
+        figsize : tuple
+            the size of the graph. A tuple of the form (width,height). Is (18,10) by default.
+
         """
         import matplotlib.pyplot as plt
 
@@ -125,7 +139,7 @@ class Results(UserDict):
         if title is None:
             title = (self.model.name + " - " + self.solver_name)
 
-        plt.figure(figsize=(18, 10))
+        plt.figure(figsize=figsize)
         plt.title(title,fontsize=18)
         plt.xlabel(xaxis_label)
         plt.ylabel(yaxis_label)
@@ -137,7 +151,10 @@ class Results(UserDict):
         if show_legend:
             plt.legend(loc='best')
 
-        if save_png:
+        if isinstance(save_png, str):
+            plt.savefig(save_png)
+
+        elif save_png:
             plt.savefig(title)
 
 
@@ -171,7 +188,7 @@ class Results(UserDict):
         if title is None:
             title = (self.model.name + " - " + self.solver_name)
 
-        trace_list = _plotplotyl_iterate(self, included_species_list = included_species_list,show_labels=True)
+        trace_list = _plotplotly_iterate(self, included_species_list = included_species_list,show_labels=True)
 
         layout = go.Layout(
             showlegend=show_legend,
@@ -182,10 +199,11 @@ class Results(UserDict):
                 title=yaxis_label)
         )
         fig = dict(data = trace_list,layout=layout)
-        iplot(fig)
 
         if return_plotly_figure:
             return fig
+        else:
+            iplot(fig)
 
 class EnsembleResults(UserList):
     """ List of Results Dicts created by a gillespy2 solver with multiple trajectories, extends the UserList object.
@@ -200,7 +218,7 @@ class EnsembleResults(UserList):
         self.data = data
 
     def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", style="default", title = None,
-             show_legend=True, multiple_graphs = False, included_species_list=[]):
+             show_legend=True, multiple_graphs = False, included_species_list=[],save_png=False,figsize = (18,10)):
         """ Plots the Results using matplotlib.
 
         Attributes
@@ -217,6 +235,12 @@ class EnsembleResults(UserList):
             if each trajectory should have its own graph or if they should overlap
         included_species_list : list
              A list of strings describing which species to include. By default displays all species.
+        save_png : bool or str
+            Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file
+            is named after that string.
+        figsize : tuple
+            the size of the graph. A tuple of the form (width,height). Is (18,10) by default.
+
 
             """
         import matplotlib.pyplot as plt
@@ -233,8 +257,13 @@ class EnsembleResults(UserList):
         if multiple_graphs:
 
             for i,result in enumerate(results_list):
-                result.plot(xaxis_label=xaxis_label, yaxis_label=yaxis_label, title=title + " " + str(i + 1), style=style,
-                                                 included_species_list=included_species_list)
+
+                if isinstance(save_png, str):
+                    result.plot(xaxis_label=xaxis_label, yaxis_label=yaxis_label, title=title + " " + str(i + 1), style=style,
+                                                 included_species_list=included_species_list,save_png=save_png + str(i + 1),figsize=figsize)
+                else:
+                    result.plot(xaxis_label=xaxis_label, yaxis_label=yaxis_label, title=title + " " + str(i + 1),style=style,
+                                included_species_list=included_species_list, save_png=save_png, figsize=figsize)
 
         else:
             try:
@@ -243,7 +272,7 @@ class EnsembleResults(UserList):
                 warnings.warn("Invalid matplotlib style. Try using one of the following {}".format(plt.style.available))
                 plt.style.use("default")
 
-            plt.figure(figsize=(18, 10))
+            plt.figure(figsize=figsize)
             plt.title(title, fontsize=18)
             plt.xlabel(xaxis_label)
             plt.ylabel(yaxis_label)
@@ -258,6 +287,12 @@ class EnsembleResults(UserList):
             if show_legend:
                 plt.legend(loc='best')
             plt.plot([0], [11])
+
+            if isinstance(save_png, str):
+                plt.savefig(save_png)
+
+            elif save_png:
+                plt.savefig(title)
 
     def plotplotly(self, xaxis_label = "Time (s)", yaxis_label="Species Population", title = None, show_legend=True,
                    multiple_graphs = False, included_species_list=[],return_plotly_figure=False):
@@ -305,10 +340,10 @@ class EnsembleResults(UserList):
 
             for i, result in enumerate(results_list):
                 if i > 0:
-                    trace_list = _plotplotyl_iterate(result, trace_list=[], included_species_list= included_species_list,
+                    trace_list = _plotplotly_iterate(result, trace_list=[], included_species_list= included_species_list,
                                                      show_labels=False)
                 else:
-                    trace_list = _plotplotyl_iterate(result, trace_list=[], included_species_list=included_species_list)
+                    trace_list = _plotplotly_iterate(result, trace_list=[], included_species_list=included_species_list)
 
                 for k in range(0,len(trace_list)):
                     if i%2 == 0:
@@ -320,16 +355,16 @@ class EnsembleResults(UserList):
                                      height=400*len(results_list),
                                      showlegend=show_legend,title =title)
 
-            iplot(fig)
+            
 
         else:
             trace_list = []
             for i,result in enumerate(results_list):
                 if i > 0:
-                    trace_list = _plotplotyl_iterate(result, trace_list=trace_list,included_species_list= included_species_list,
+                    trace_list = _plotplotly_iterate(result, trace_list=trace_list,included_species_list= included_species_list,
                                                      show_labels = False)
                 else:
-                    trace_list = _plotplotyl_iterate(result, trace_list=trace_list,included_species_list= included_species_list)
+                    trace_list = _plotplotly_iterate(result, trace_list=trace_list,included_species_list= included_species_list)
 
             layout = go.Layout(
                 showlegend=show_legend,
@@ -342,10 +377,11 @@ class EnsembleResults(UserList):
 
             fig['data'] = trace_list
             fig['layout'] = layout
-            iplot(fig)
 
         if return_plotly_figure:
             return fig
+        else:
+            iplot(fig)
 
 
     def average_ensemble(self):
@@ -529,13 +565,14 @@ class EnsembleResults(UserList):
                 title=yaxis_label)
         )
         fig = dict(data=trace_list, layout=layout)
-        iplot(fig)
 
         if return_plotly_figure:
             return fig
+        else:
+            iplot(fig)
 
     def plot_std_dev_range(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None,
-                           style="default", show_legend=True, included_species_list=[],ddof=0):
+                           style="default", show_legend=True, included_species_list=[],ddof=0,save_png = False,figsize = (18,10)):
         """
             Plot a matplotlib graph depicting standard deviation and the mean graph of an ensemble_results object
 
@@ -555,6 +592,11 @@ class EnsembleResults(UserList):
             Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
             the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
             standard deviation where ddof is 0.
+        save_png : bool or str
+            Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file
+            is named after that string.
+        figsize : tuple
+            the size of the graph. A tuple of the form (width,height). Is (18,10) by default.
 
         """
 
@@ -569,7 +611,7 @@ class EnsembleResults(UserList):
             warnings.warn("Invalid matplotlib style. Try using one of the following {}".format(plt.style.available))
             plt.style.use("default")
 
-        plt.figure(figsize=(18, 10))
+        plt.figure(figsize=figsize)
 
         for species in average_result:
             if species is 'time':
@@ -595,3 +637,10 @@ class EnsembleResults(UserList):
         if show_legend:
             plt.legend(loc='best')
 
+        if isinstance(save_png, str):
+            plt.savefig(save_png)
+
+        elif save_png:
+            plt.savefig(title)
+
+        
