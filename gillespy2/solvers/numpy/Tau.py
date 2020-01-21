@@ -77,9 +77,9 @@ def select(*tau_args):
 
     # If a reactant's HOR requires >1 of that reactant, evaluate lambda at curr_state
     for r in g_i:
-        if callable(g_i[r.name]):
-            g_i[r.name] = g_i[r.name](curr_state[r.name])
-            epsilon_i[r.name] = epsilon / g_i[r.name]
+        if callable(g_i[r]):
+            g_i[r] = g_i[r.name](curr_state[r])
+            epsilon_i[r] = epsilon / g_i[r]
 
     tau_i = {}  # estimated tau for non-critical reactions
     mu_i = {species.name: 0 for species in model.listOfSpecies.values()}
