@@ -162,7 +162,7 @@ class BasicODESolver(GillesPySolver):
                     results_dict[species.name] = trajectory[:, species.trajectory_index]
                 else:
                     results_dict[species.name] = [curr_state[species.name]] * len_timeline
-            return [results_dict] * number_of_trajectories, 0
+            return [results_dict] * number_of_trajectories, self.rc
         else:
             results = np.empty((timeline.size, len(model.listOfSpecies) + 1))
             results[:, 0] = timeline
@@ -172,4 +172,4 @@ class BasicODESolver(GillesPySolver):
                 else:
                     results[:, i] = [curr_state[species.name]] * len_timeline
 
-            return np.stack([results] * number_of_trajectories, axis=0), 0
+            return np.stack([results] * number_of_trajectories, axis=0), self.rc
