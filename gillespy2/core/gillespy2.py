@@ -44,7 +44,7 @@ def import_SBML(filename, name=None, gillespy_model=None):
     except ImportError:
         raise ImportError('SBML conversion not imported successfully')
 
-    return convert(filename, model_name=name, gillespy_model=gillespy_model)
+    return convert(filename, model_name=name, model=gillespy_model)
 
 
 class SortableObject(object):
