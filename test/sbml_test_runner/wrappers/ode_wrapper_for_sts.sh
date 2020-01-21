@@ -93,7 +93,7 @@ if '-h' in sys.argv or '--help' in sys.argv:
     sys.exit()
 elif len(sys.argv) < 5 or ('-d' in sys.argv and len(sys.argv) < 6):
     print('Error: missing one or more arguments.')
-    print('Arguments must be TEST_PATH, CASE_NO, TARG_DIR, SBML_LVL, SBML_VER')
+    print('Arguments must be TEST_PATH, CASE_NO, TARG_DIR, SBML_LEVEL, SBML_VERSION')
     print('Optional argument -d can be added to produce debugging output.')
     print('')
     print(help)
