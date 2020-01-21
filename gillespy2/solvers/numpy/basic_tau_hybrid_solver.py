@@ -140,33 +140,36 @@ class BasicTauHybridSolver(GillesPySolver):
         Calculates Mean, Standard Deviation, and Coefficient of Variance for each
         dynamic species, then set if species can be represented determistically
         """
-        mu_i, sigma_i, model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol = switch_args
+        mu_i, sigma_i, model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol, switch_min = switch_args
         sd = OrderedDict()
         CV = OrderedDict()
-        mn = {species:curr_state[species] for (species, value) in 
-              model.listOfSpecies.items() if value.mode == 'dynamic'}
-        sd = {species:0 for (species, value) in 
-              model.listOfSpecies.items() if value.mode == 'dynamic'}
-
-        for r, rxn in model.listOfReactions.items():
-                for reactant in rxn.reactants:
-                    if reactant.mode == 'dynamic':
-                        mn[reactant.name] -= (tau_step * propensities[r] * rxn.reactants[reactant])
-                        sd[reactant.name] += (tau_step * propensities[r] * rxn.reactants[reactant]**2)
-                for product in rxn.products:
-                    if product.mode == 'dynamic':
-                        mn[product.name] += (tau_step * propensities[r] * rxn.products[product])
-                        sd[product.name] += (tau_step * propensities[r] * rxn.products[product]**2)
                 
-        # Get coefficient of variance for each dynamic species
-        for species in mn:
-            if mn[species] > 0:
-                CV[species] = sd[species] / mn[species]
-            else:
-                CV[species] = 1    # value chosen to guarantee discrete
-            #Set species to deterministic if CV is less than threshhold
-            det_spec[species] = True if CV[species] < switch_tol or model.listOfSpecies[species].mode == 'continuous' else False                            
-        
+        # Determine if deterministic if using switch_min
+        if switch_min > 0:
+            for species in model.listOfSpecies:
+                det_spec[species] = True if curr_state[species] > switch_min or model.listOfSpecies[species].mode == 'continuous' else False
+
+        # If using switch_tol
+        else:
+            mn = {sname:curr_state[sname] for sname, species in model.listOfSpecies.items() if species.mode == 'dynamic'}
+            sd = {sname:0 for sname, species in model.listOfSpecies.items() if species.mode == 'dynamic'}
+
+            for r, rxn in model.listOfReactions.items():
+                    for reactant in rxn.reactants:
+                        if reactant.mode == 'dynamic':
+                            mn[reactant.name] -= (tau_step * propensities[r] * rxn.reactants[reactant])
+                            sd[reactant.name] += (tau_step * propensities[r] * rxn.reactants[reactant]**2)
+                    for product in rxn.products:
+                        if product.mode == 'dynamic':
+                            mn[product.name] += (tau_step * propensities[r] * rxn.products[product])
+                            sd[product.name] += (tau_step * propensities[r] * rxn.products[product]**2)
+            # Get coefficient of variance for each dynamic species
+            for species in mn:
+                if mn[species] > 0:
+                    CV[species] = sd[species] / mn[species]
+                else:
+                    CV[species] = 1    # value chosen to guarantee discrete
+                det_spec[species] = True if CV[species] < switch_tol or model.listOfSpecies[species].mode == 'continuous' else False                            
         return sd, CV
     
 
@@ -502,7 +505,7 @@ class BasicTauHybridSolver(GillesPySolver):
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
             debug=False, profile=False, show_labels=True, switch_tol=0.03,
-            tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
+            switch_min = 0, tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
             integrator_options={}, **kwargs):
         """
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
@@ -671,7 +674,7 @@ class BasicTauHybridSolver(GillesPySolver):
                 tau_step = save_times[-1]-curr_time if pure_ode else Tau.select(*tau_args)
                 # Calculate sd and CV for hybrid switching and flag deterministic reactions
                 #TODO REWRITE CALCULATION STUFF
-                switch_args = [mu_i, sigma_i, model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol]
+                switch_args = [mu_i, sigma_i, model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol, switch_min]
                 sd, CV = self.__calculate_statistics(*switch_args)
                 deterministic_reactions = self.__flag_det_reactions(model, det_spec, det_rxn, dependencies)
                 
