@@ -196,17 +196,6 @@ class TestModel(unittest.TestCase):
         with self.assertRaises(SimulationError):
             results = model.run(number_of_trajectories = 1, solver = 'non_solver', seed = 1)
 
-    #def test_run_unspecified_solver(self):
-        #model = Model()
-        #rate = Parameter(name = 'rate', expression = 0.5)
-        #model.add_parameter(rate)
-        #species1 = Species(name = 'A', initial_value = 0)
-        #species2 = Species(name = 'B', initial_value = 0)
-        #model.add_species(species1)
-        #model.add_species(species2)
-        #reaction = Reaction(name = 'reaction1', reactants={species1: 1}, products={species2: 1}, rate=rate)
-        #results = model.run()
-
     def test_model_init_population_false_and_volume_warninag(self):
         with self.assertRaises(Warning):
             model = Model(population = False, volume = 0.9)
