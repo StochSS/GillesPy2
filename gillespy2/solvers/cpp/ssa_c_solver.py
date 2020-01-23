@@ -101,12 +101,18 @@ class SSACSolver(GillesPySolver):
         self.delete_directory = False
         self.model = model
         if self.model is not None:
-            # Create constant, ordered lists for reactions/species
+            # Create constant, ordered lists for reactions/species/
             self.species_mappings = self.model.sanitized_species_names()
             self.species = list(self.species_mappings.keys())
             self.parameter_mappings = self.model.sanitized_parameter_names()
             self.parameters = list(self.parameter_mappings.keys())
             self.reactions = list(self.model.listOfReactions.keys())
+
+            #Ordered list created for test - SSACSolver does not support SBML events currently.
+            self.events = list(self.model.listOfEvents.keys())
+            if len(self.events) > 0:
+                raise gillespyError.EventError("SSACSolver does not currently support SBML events.")
+
             if isinstance(output_directory, str):
                 output_directory = os.path.abspath(output_directory)
             
