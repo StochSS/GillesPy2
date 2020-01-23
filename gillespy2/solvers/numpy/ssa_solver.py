@@ -50,15 +50,15 @@ class NumPySSASolver(GillesPySolver):
 
                     if display_type == "text":
 
-                        print(str(round(current_time, 2))[:10].ljust(10), end="|")
+                        print(str(round(curr_time, 2))[:10].ljust(10), end="|")
                         for i in range(number_species):
-                            print(str(current_state[i])[:10].ljust(10), end="|")
+                            print(str(curr_state[i])[:10].ljust(10), end="|")
                         print("")
 
                     elif display_type == "progress":
 
                         clear_output(wait=True)
-                        print("progress =", round((current_time / timeline.size) * 100, 2), "%\n")
+                        print("progress =", round((curr_time / timeline.size) * 100, 2), "%\n")
 
                     elif display_type == "graph":
 
@@ -72,15 +72,15 @@ class NumPySSASolver(GillesPySolver):
                                      trajectory_base[0][:, i + 1][:entry_count].tolist(), color=line_color,
                                      label=species[i])
 
-                            plt.plot([entry_count - 1, current_time], [trajectory_base[0][:, i + 1][entry_count - 1],
-                                                                       current_state[i]], linewidth=3,
+                            plt.plot([entry_count - 1, curr_time], [trajectory_base[0][:, i + 1][entry_count - 1],
+                                                                       curr_state[i]], linewidth=3,
                                      color=line_color)
 
                         plt.legend(loc='upper right')
                         plt.show()
 
                 except:
-                    print("failed to display output at current_time =", current_time)
+                    print("failed to display output at curr_time =", curr_time)
                     print("Make sure display_interval > 2")
                     pass
 
@@ -137,15 +137,15 @@ class NumPySSASolver(GillesPySolver):
             # copy initial state data
             trajectory = trajectory_base[trajectory_num]
             entry_count = 1
-            current_time = 0
-            current_state = np.copy(trajectory[0, 1:])
+            curr_time = 0
+            curr_state = np.copy(trajectory[0, 1:])
             propensity_sums = np.zeros(number_reactions)
             # calculate initial propensity sums
             while entry_count < timeline.size:
                 if self.interrupted: break
                 # determine next reaction
                 for i in range(number_reactions):
-                    propensity_sums[i] = propensity_functions[i](current_state)
+                    propensity_sums[i] = propensity_functions[i](curr_state)
                     if debug:
                         print('propensity: ', propensity_sums[i])
                 propensity_sum = np.sum(propensity_sums)
@@ -153,33 +153,33 @@ class NumPySSASolver(GillesPySolver):
                     print('propensity_sum: ', propensity_sum)
                 # if no more reactions, quit
                 if propensity_sum <= 0:
-                    trajectory[entry_count:, 1:] = current_state
+                    trajectory[entry_count:, 1:] = curr_state
                     break
                 cumulative_sum = random.uniform(0, propensity_sum)
-                current_time += -math.log(random.random()) / propensity_sum
+                curr_time += -math.log(random.random()) / propensity_sum
                 if debug:
                     print('cumulative sum: ', cumulative_sum)
                     print('entry count: ', entry_count)
                     print('timeline.size: ', timeline.size)
-                    print('current_time: ', current_time)
+                    print('curr_time: ', curr_time)
                 # determine time passed in this reaction
-                while entry_count < timeline.size and timeline[entry_count] <= current_time:
+                while entry_count < timeline.size and timeline[entry_count] <= curr_time:
                     if self.interrupted: break
-                    trajectory[entry_count, 1:] = current_state
+                    trajectory[entry_count, 1:] = curr_state
                     entry_count += 1
                 for potential_reaction in range(number_reactions):
                     cumulative_sum -= propensity_sums[potential_reaction]
                     if debug:
                         print('if <=0, fire: ', cumulative_sum)
                     if cumulative_sum <= 0:
-                        current_state += species_changes[potential_reaction]
+                        curr_state += species_changes[potential_reaction]
                         if debug:
-                            print('current state: ', current_state)
+                            print('current state: ', curr_state)
                             print('species_changes: ', species_changes)
                             print('updating: ', potential_reaction)
                         # recompute propensities as needed
                         for i in range(number_reactions):
-                            propensity_sums[i] = propensity_functions[i](current_state)
+                            propensity_sums[i] = propensity_functions[i](curr_state)
                             if debug:
                                 print('new propensity sum: ', propensity_sums[i])
                         break
