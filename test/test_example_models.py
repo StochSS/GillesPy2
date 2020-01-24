@@ -9,9 +9,9 @@ class TestExampleModels(unittest.TestCase):
         trichloroethylene_model = Trichloroethylene()
         results = trichloroethylene_model.run()
 
-    #def test_lacOperon_example(self):
-     #   lacOperon_model = LacOperon()
-      #  results = lacOperon_model.run(solver=BasicODESolver)
+    def test_lacOperon_example(self):
+        lacOperon_model = LacOperon()
+        results = lacOperon_model.run(solver=BasicODESolver)
 
     def test_schlogl_example(self):
         schlogl_model = Schlogl()
@@ -29,9 +29,9 @@ class TestExampleModels(unittest.TestCase):
         example_model = Example()
         results = example_model.run()
 
-    #def test_tyson2StateOscillator_example(self):
-     #   tyson2StateOscillator_model = Tyson2StateOscillator()
-      #  results = tyson2StateOscillator_model.run()
+    def test_tyson2StateOscillator_example(self):
+        tyson2StateOscillator_model = Tyson2StateOscillator()
+        results = tyson2StateOscillator_model.run()
 
 
 if __name__ == '__main__':
