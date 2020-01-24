@@ -27,7 +27,7 @@ class BasicTauLeapingSolver(GillesPySolver):
         self.debug = debug
         self.profile = profile
 
-    def get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions):
+    def __get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions):
         """
         Helper Function to get reactions fired from t to t+tau.  Returns three values:
         rxn_count - dict with key=Reaction channel value=number of times fired
@@ -122,7 +122,7 @@ class BasicTauLeapingSolver(GillesPySolver):
                 raise ModelError('seed must be a positive integer')
 
         # create numpy array for timeline
-        timeline = np.linspace(0, t, (t // increment + 1))
+        timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
         # create numpy matrix to mark all state data of time and species
         trajectory_base = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
@@ -200,9 +200,9 @@ class BasicTauLeapingSolver(GillesPySolver):
                     while True:
                         loop_cnt += 1
                         if loop_cnt > 100:
-                            raise Exception("Loop over get_reactions() exceeded loop count")
+                            raise Exception("Loop over __get_reactions() exceeded loop count")
 
-                        reactions, curr_state, curr_time = self.get_reactions(
+                        reactions, curr_state, curr_time = self.__get_reactions(
                             tau_step, curr_state, curr_time, save_time,
                             propensities, model.listOfReactions)
 

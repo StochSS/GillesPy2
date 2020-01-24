@@ -37,6 +37,7 @@ cdef void simulate_trajectory(np.ndarray[np.float64_t, ndim=2] trajectory, Cytho
     cdef int i,j
     cdef double current_time = 0
     cdef int number_entries = 0
+    cdef int rc = 0
     cdef np.ndarray[np.float64_t, ndim=1] current_state = np.zeros((trajectory.shape[1]-1))
     cdef double *propensities = <double*> malloc(number_reactions * sizeof(double))
     np.copyto(current_state, trajectory[0,1:])
@@ -138,12 +139,27 @@ def convert_infix_prefix(equation):
     
 class CythonSSASolver(GillesPySolver):
     name = "CythonSSASolver"
+    interrupted = False
+    rc = 0
+
     def __init__(self):
         name = "CythonSSASolver"
+        interrupted = False
+        rc = 0
+
     #@cython.boundscheck(False)
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1,
             increment=0.05, seed=None, debug=False, profile=False, show_labels=True, **kwargs):
+
+        import signal
+        def timed_out(signum, frame):
+            print('signal raised')
+            self.rc = 33
+            self.interrupted = True
+            raise gillespyError.SimulationTimeoutError()
+
+        signal.signal(signal.SIGALRM, timed_out)
 
         if not isinstance(self, CythonSSASolver):
             self = CythonSSASolver()
@@ -166,7 +182,7 @@ class CythonSSASolver(GillesPySolver):
             seed = -1
         cdef int seed_arg = seed
         #set timespan for simulation(s)
-        timeline = np.linspace(0,t, (t//increment+1))
+        timeline = np.linspace(0,t, int(round(t /increment+1)))
         #allocate memory for trajectories
         cdef np.ndarray[np.float64_t, ndim=3] trajectories = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
         trajectories[:,:,0] = timeline
@@ -188,6 +204,7 @@ class CythonSSASolver(GillesPySolver):
             parameters[paramName] = param.value
         propensity_functions = [" "+r.propensity_function.replace(' ','') for r in model.listOfReactions.values()]
         #get all numeric constants from propensity functions
+	# TODO THIS BLOCK OF CODE CONTAINS AN RE MATCHING ERROR FOR PROP FUNCTIONS CONTAINING SUBTRACTION
         numbers = re.compile('[^\[\]\w](\-?\d+\.?\d*)')
         constants = []
         for fun in propensity_functions:
@@ -198,6 +215,7 @@ class CythonSSASolver(GillesPySolver):
         for c in constants:
             parameters[c] = float(c)
         paramNames = list(parameters.keys())
+	# TODO END ERROR BLOCK
         #sort parameter names by longest first to prevent issues of one param containing a shorter param in name
         paramNames.sort(key = lambda x: -len(x))
         cdef double *cParameters = <double*> malloc(len(paramNames)*sizeof(double))
@@ -251,6 +269,7 @@ class CythonSSASolver(GillesPySolver):
         cdef int number_threads = 4
         for i in range(number_of_trajectories):
             simulate_trajectory(trajectories[i], reactions, number_reactions, species_changes, seed_arg)
+            print(self.rc)
             #assemble complete simulation data in format specified
             if show_labels:
                 data = {'time' : timeline}
@@ -265,5 +284,5 @@ class CythonSSASolver(GillesPySolver):
             free(reactions[i].propensity_function.terms)
         free(reactions)
         free(cParameters)
-        return self.simulation_data, 0
+        return self.simulation_data, self.rc
         

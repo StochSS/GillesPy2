@@ -91,7 +91,7 @@ class StochKitBaseSolver(GillesPySolver):
 
         if increment is None:
             increment = t / 20.0
-        num_output_points = t // increment
+        num_output_points = round(t / increment)
 
         # Assemble the argument list
         args = '--model {0} --out-dir {1} -t {2} -i {3}'.format(outfile, out_dir, t, int(num_output_points))

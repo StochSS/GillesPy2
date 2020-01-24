@@ -14,7 +14,7 @@ class TestBasicODESolver(unittest.TestCase):
             for label in [True, False]:
                 with self.subTest(number_of_trajectories=i, show_labels=label):
                     if i > 1:
-                        with self.assertWarns(Warning):
+                        with self.assertLogs(level='WARN'):
                             results = model.run(solver=BasicODESolver, show_labels=label, number_of_trajectories=i)
                         self.assertEqual(len(results), i)
                     else:
