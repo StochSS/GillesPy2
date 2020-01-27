@@ -207,13 +207,10 @@ class ToggleSwitch(Model):
         mu = Parameter(name='mu', expression=1)
         self.add_parameter([alpha1, alpha2, beta, gamma, mu])
         # Reactions
-        cu = Reaction(name="r1", reactants={}, products={A: 1},
-                      propensity_function='(alpha1)*((1)+((B)**(beta)))')
-        cv = Reaction(name="r2", reactants={}, products={B: 1},
-                      propensity_function='(alpha2)*((1)+((A)**(gamma)))')
-        du = Reaction(name="r3", reactants={A: 1}, products={}, rate=mu)
-        dv = Reaction(name="r4", reactants={B: 1}, products={}, rate=mu)
-        self.add_reaction([cu, cv, du, dv])
+        self.add_reaction(Reaction(name="cu", reactants={}, products={'A': 1}, propensity_function="alpha1/(1+pow(B, beta))"))
+        self.add_reaction(Reaction(name="cv", reactants={}, products={'B': 1}, propensity_function="alpha2/(1+pow(A, gamma))"))
+        self.add_reaction(Reaction(name="du", reactants={'A': 1}, products={}, rate=self.listOfParameters["mu"]))
+        self.add_reaction(Reaction(name="dv", reactants={'B': 1}, products={}, rate=self.listOfParameters["mu"]))
         self.timespan(np.linspace(0, 250, 251))
 
 
