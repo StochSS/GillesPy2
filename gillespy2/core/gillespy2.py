@@ -136,8 +136,8 @@ class Model(SortableObject):
         self.name = name
         self.annotation = annotation
 
-        # Dictionaries with Species, Reactions and Parameter objects.
-        # Species, Reaction and Parameter names are used as keys.
+        # Dictionaries with model element objects.
+        # Model element names are used as keys.
         self.listOfParameters = OrderedDict()
         self.listOfSpecies = OrderedDict()
         self.listOfReactions = OrderedDict()
@@ -146,6 +146,18 @@ class Model(SortableObject):
         self.listOfEvents = OrderedDict()
         self.listOfFunctionDefinitions = OrderedDict()
 
+        # Dictionaries with model element objects.
+        # Model element names are used as keys, and values are
+        # sanitized versions of the names/formulas.
+        # These dictionaries contain sanitized values and are for
+        # Internal use only
+        self._listOfParameters = OrderedDict()
+        self._listOfSpecies = OrderedDict()
+        self._listOfReactions = OrderedDict()
+        self._listOfAssignmentRules = OrderedDict()
+        self._listOfRateRules = OrderedDict()
+        self._listOfEvents = OrderedDict()
+        self._listOfFunctionDefinitions = OrderedDict()
         # This defines the unit system at work for all numbers in the model
         # It should be a logical error to leave this undefined, subclasses
         # should set it
@@ -269,6 +281,7 @@ class Model(SortableObject):
             if problem is not None:
                 raise problem
             self.listOfSpecies[obj.name] = obj
+            self._listOfSpecies[obj.name] = 'S{}'.format(len(self._listOfSpecies))
         elif isinstance(obj, list):
             for S in sorted(obj):
                 self.add_species(S)
@@ -286,12 +299,14 @@ class Model(SortableObject):
             Name of the species object to be removed.
         """
         self.listOfSpecies.pop(obj)
+        self._listOfSpecies.pop(obj)
 
     def delete_all_species(self):
         """
         Removes all species from the model object.
         """
         self.listOfSpecies.clear()
+        self._listOfSpecies.clear()
 
     def set_units(self, units):
         """
@@ -360,6 +375,7 @@ class Model(SortableObject):
                 if problem is not None:
                     raise problem
                 self.listOfParameters[params.name] = params
+                self._listOfParameters[params.name]='P{}'.format(len(self._listOfParameters))
             else:
                 raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(params))
         return params
@@ -374,6 +390,7 @@ class Model(SortableObject):
             Name of the parameter object to be removed.
         """
         self.listOfParameters.pop(obj)
+        self._listOfParameters.pop(obj)
 
     def set_parameter(self, p_name, expression):
         """
@@ -406,6 +423,7 @@ class Model(SortableObject):
     def delete_all_parameters(self):
         """ Deletes all parameters from model. """
         self.listOfParameters.clear()
+        self._listOfParameters.clear()
 
     def validate_reactants_and_products(self, reactions):
             for reactant in reactions.reactants.keys():
@@ -442,6 +460,12 @@ class Model(SortableObject):
             if reactions.name in self.listOfReactions:
                 raise ModelError("Duplicate name of reaction: {0}".format(reactions.name))
             self.listOfReactions[reactions.name] = reactions
+            # Build Sanitized reaction as well
+            sanitized_reaction = Reaction(name='R{}'.format(len(self._listOfReactions)))
+            sanitized_reaction.reactants={self._listOfSpecies[species.name]:reactions.reactants[species] for species in reactions.reactants}
+            sanitized_reaction.products={self._listOfSpecies[species.name]:reactions.products[species] for species in reactions.products}
+            sanitized_reaction.propensity_function = reactions.sanitized_propensity_function(self._listOfSpecies, self._listOfParameters)
+            self._listOfReactions[reactions.name] = sanitized_reaction
         else:
             raise ModelError("Unexpected parameter for add_reaction. Parameter must be Reaction or list of Reactions.")
         return reactions
@@ -463,10 +487,14 @@ class Model(SortableObject):
             for rr in sorted(rate_rules):
                 self.add_rate_rule(rr)
         elif isinstance(rate_rules, RateRule):
-            if rate_rules.species is None or not isinstance(rate_rules.species, Species): raise ModelError(
+            if rate_rules.variable is None or not isinstance(rate_rules.variable, Species): raise ModelError(
                 'A Rate Rule must be associated with a valid species.')
-            if rate_rules.expression == '': raise ModelError('Invalid Rate Rule. Expression must be a non-empty string value')
-            self.listOfRateRules[rate_rules.species.name] = rate_rules
+            if rate_rules.formula == '': raise ModelError('Invalid Rate Rule. Expression must be a non-empty string value')
+            self.listOfRateRules[rate_rules.variable.name] = rate_rules
+            sanitized_rate_rule = RateRule(name = 'RR{}'.format(len(self._listOfRateRules)))
+            sanitized_rate_rule.formula = rate_rules.sanitized_formula(self._listOfSpecies,
+                                                    self._listOfParameters)
+            self._listOfRateRules[rate_rules.variable.name] = sanitized_rate_rule
         else:
             raise ParameterError("Add_rate_rule accepts a RateRule object or a List of RateRule Objects")
         return rate_rules
@@ -544,9 +572,11 @@ class Model(SortableObject):
 
     def delete_reaction(self, obj):
         self.listOfReactions.pop(obj)
+        self._listOfReactions.pop(obj)
 
     def delete_all_reactions(self):
         self.listOfReactions.clear()
+        self._listOfReactions.clear()
 
     def run(self, solver=None, timeout=0, **solver_args):
         """
@@ -803,6 +833,14 @@ class FunctionDefinition(SortableObject):
         self.function = eval('lambda ' + args + ': ' + function)
         if self.function is None:
             raise TypeError
+    def sanitized_function(self, species_mappings, parameter_mappings):
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
+        replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
+                        for name in names]
+        sanitized_function = self.function
+        for id, name in enumerate(names):
+            sanitized_function = sanitized_function.replace(name, "{"+str(id)+"}")
+        return sanitized_function.format(*replacements)
 
 class AssignmentRule(SortableObject):
     def __init__(self, variable=None, formula=None):
@@ -810,14 +848,30 @@ class AssignmentRule(SortableObject):
         self.formula = formula
     def __str__(self):
         return self.variable + ': ' + self.formula
+    def sanitized_formula(self, species_mappings, parameter_mappings):
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
+        replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
+                        for name in names]
+        sanitized_formula = self.formula
+        for id, name in enumerate(names):
+            sanitized_formula = sanitized_formula.replace(name, "{"+str(id)+"}")
+        return sanitized_formula.format(*replacements)
 
 class RateRule(SortableObject):
-    def __init__(self, species=None, expression='', name=None):
-        self.expression = expression
-        self.species = species
+    def __init__(self, variable=None, formula='', name=None):
+        self.formula = formula
+        self.variable = variable
         self.name = name
     def __str__(self):
-        return self.species.name + ': ' + self.expression
+        return self.variable.name + ': ' + self.formula
+    def sanitized_formula(self, species_mappings, parameter_mappings):
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
+        replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
+                        for name in names]
+        sanitized_formula = self.formula
+        for id, name in enumerate(names):
+            sanitized_formula = sanitized_formula.replace(name, "{"+str(id)+"}")
+        return sanitized_formula.format(*replacements)
 
 
 class Reaction(SortableObject):

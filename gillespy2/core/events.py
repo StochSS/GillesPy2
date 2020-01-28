@@ -44,7 +44,7 @@ class EventAssignment:
                              'GillesPy2 Event Assignment expression requires a '
                              'valid string expression')
     def __str__(self):
-        return self.variable + ': ' + self.expression
+        return self.variable.name + ': ' + self.expression
 
 
 class EventTrigger:
@@ -85,6 +85,14 @@ class EventTrigger:
             raise EventError('EventTrigger.persistent must be bool')
     def __str__(self):
         return self.expression
+    def sanitized_expression(self, species_mappings, parameter_mappings):
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
+        replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
+                        for name in names]
+        sanitized_expression = self.expression
+        for id, name in enumerate(names):
+            sanitized_expression = sanitized_expression.replace(name, "{"+str(id)+"}")
+        return sanitized_expression.format(*replacements)
 
 class Event:
     """
@@ -114,7 +122,7 @@ class Event:
     """
 
     def __init__(self, name="", delay = None, assignments = [], priority="0", 
-        trigger = None, use_values_from_trigger_time = True):
+        trigger = None, use_values_from_trigger_time = False):
 
         # Events can contain any number of assignments
         self.assignments = []
@@ -183,11 +191,11 @@ class Event:
         """
 
         if isinstance(assignment, EventAssignment):
-            self.listOfAssignments.append(assignment)
+            self.assignments.append(assignment)
         elif isinstance(assignment, list):
             for assign in assignment:
                 if isinstance(assign, EventAssignment):
-                    self.listOfAssignments.append(assign)
+                    self.assignments.append(assign)
                 else:
                     raise EventError('add_assignment failed to add EventAssignment. '
                     'Assignment to be added must be of type EventAssignment '

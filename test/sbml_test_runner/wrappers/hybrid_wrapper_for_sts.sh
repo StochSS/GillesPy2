@@ -139,6 +139,7 @@ with open(EXPECTED_RESULTS_FILE, 'r') as expected_file:
 			p_to_s = gillespy2.Species(name=spec, initial_value=model.listOfParameters[spec].value, mode='continuous', allow_negative_populations=True)
 			model.delete_parameter(spec)
 			model.add_species(p_to_s)
+
 # If no Species, plot Parameters
 if not len(model.listOfSpecies):
     species_to_add = []
@@ -151,19 +152,22 @@ if not len(model.listOfSpecies):
 # Run simulation and store results
 solver = BasicTauHybridSolver()
 model.tspan = np.linspace(start, duration, steps+1)
-results = model.run(solver=solver, show_labels=False)
+results = model.run(solver=solver, show_labels=True, integrator_options={'max_step':.25})
 
 # Create headers for csv file
 headers = ['time']
-for species in sorted(model.listOfSpecies):
+for species in expected_species:
     headers.append(species)
 
 # Write results to csv file
 with open(TARG_FILE, 'w+') as results_file:
     filewriter = csv.writer(results_file, delimiter=',')
     filewriter.writerow(headers)
-    for row in results[0]:
-        filewriter.writerow(row)
+    for timestep in range(len(results[0]['time'])):
+        value_list = [results[0]['time'][timestep]]
+        for species in expected_species:
+            value_list.append(results[0][species][timestep])
+        filewriter.writerow(value_list)
 
 if debug:
     print('SBML FILE:')

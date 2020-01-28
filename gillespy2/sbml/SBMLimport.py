@@ -35,10 +35,12 @@ def __get_species(sbml_model, gillespy_model, errors):
     for i in range(sbml_model.getNumSpecies()):
         species = sbml_model.getSpecies(i)
         if species.getId() == 'EmptySet':
+            '''
             errors.append([
                               "EmptySet species detected in model on line {0}. EmptySet is not an explicit species in "
                               "gillespy".format(
                                   species.getLine()), 0])
+            '''
             continue
         name = species.getId()
         if species.isSetInitialAmount():
@@ -102,8 +104,25 @@ def __get_compartments(sbml_model, gillespy_model):
                               compartment.getId(), compartment.getLine(), compartment.getVolume(),
                               compartment.getSpatialDimensions()), -5])
     '''
-
+def __get_local_parameters(sbml_model, gillespy_model, reaction):
+    kinetic_law = reaction.getKineticLaw()
+    local_params = {}
+    for i in range(kinetic_law.getNumParameters()):
+        parameter = kinetic_law.getParameter(i)
+        name = parameter.getId()
+        value = parameter.getValue()
+        check_local1 = name in gillespy_model.listOfParameters and value != gillespy_model.listOfParameters[name]
+        check_local2 = name in gillespy_model.listOfSpecies and value != gillespy_model.listOfSpecies[name].initial_value
+        check_local3 = name in gillespy_model.listOfReactions
+        if check_local1 or check_local2 or check_local3:
+            name = '{0}_{1}'.format(reaction.getId(), parameter.getId())
+            local_params[name] = parameter.getId()
+        gillespy_parameter = gillespy2.Parameter(name=name, expression=value)
+        gillespy_model.add_parameter([gillespy_parameter])
+    return local_params
+        
 def __get_reactions(sbml_model, gillespy_model, errors):
+    '''
     # local parameters
     for i in range(sbml_model.getNumReactions()):
         reaction = sbml_model.getReaction(i)
@@ -115,11 +134,13 @@ def __get_reactions(sbml_model, gillespy_model, errors):
             value = parameter.getValue()
             gillespy_parameter = gillespy2.Parameter(name=name, expression=value)
             gillespy_model.add_parameter([gillespy_parameter])
+    '''
 
     # reactions
     for i in range(sbml_model.getNumReactions()):
         reaction = sbml_model.getReaction(i)
         name = reaction.getId()
+        local_params = __get_local_parameters(sbml_model, gillespy_model, reaction)
 
         reactants = {}
         products = {}
@@ -131,10 +152,13 @@ def __get_reactions(sbml_model, gillespy_model, errors):
             species = reaction.getReactant(j)
 
             if species.getSpecies() == "EmptySet":
+                continue
+                '''
                 errors.append([
                                   "EmptySet species detected as reactant in reaction '{0}' on line {1}. EmptySet is "
                                   "not an explicit species in gillespy".format(
                                       reaction.getId(), species.getLine()), 0])
+                '''
             else:
                 if species.getSpecies() in r_set:
                     reactants[species.getSpecies()] += species.getStoichiometry()
@@ -147,10 +171,13 @@ def __get_reactions(sbml_model, gillespy_model, errors):
             species = reaction.getProduct(j)
 
             if species.getSpecies() == "EmptySet":
+                continue
+                '''
                 errors.append([
                                   "EmptySet species detected as product in reaction '{0}' on line {1}. EmptySet is "
                                   "not an explicit species in gillespy".format(
                                       reaction.getId(), species.getLine()), 0])
+                '''
             else:
                 if species.getSpecies() in p_set:
                     products[species.getSpecies()] += species.getStoichiometry()
@@ -161,6 +188,8 @@ def __get_reactions(sbml_model, gillespy_model, errors):
         # propensity
         kinetic_law = reaction.getKineticLaw()
         propensity = kinetic_law.getFormula()
+        for lp, p in local_params.items():
+            propensity = propensity.replace(p, lp)
 
         gillespy_reaction = gillespy2.Reaction(name=name, reactants=reactants, products=products,
                                              propensity_function=propensity)
@@ -193,8 +222,8 @@ def __get_rules(sbml_model, gillespy_model, errors):
             init_state[gillespy_rule.variable]=eval(gillespy_rule.formula, init_state)
 
         if rule.isRate():
-            gillespy_rule = gillespy2.RateRule(species=gillespy_model.listOfSpecies[rule_name],
-                expression=rule_string)
+            gillespy_rule = gillespy2.RateRule(variable=gillespy_model.listOfSpecies[rule_name],
+                formula=rule_string)
             gillespy_model.add_rate_rule(gillespy_rule)
 
         if rule.isAlgebraic():
@@ -266,7 +295,7 @@ def __get_events(sbml_model, gillespy_model):
                 libsbml.formulaToL3String(a.getMath()))
             gillespy_assignments.append(gillespy_assignment)
         gillespy_event = gillespy2.Event(
-            name=event.name, trigger=gillespy_trigger,
+            name=event.getId(), trigger=gillespy_trigger,
             assignments=gillespy_assignments, delay=delay,
             use_values_from_trigger_time=use_values_from_trigger_time)
         gillespy_model.add_event(gillespy_event)
