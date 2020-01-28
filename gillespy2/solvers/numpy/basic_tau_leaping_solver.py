@@ -211,12 +211,12 @@ class BasicTauLeapingSolver(GillesPySolver):
                         for i, rxn in enumerate(model.listOfReactions):
                             if reactions[rxn] > 0:
                                 for reactant in model.listOfReactions[rxn].reactants:
-                                    species_modified[str(reactant)] = True
-                                    curr_state[str(reactant)] -= model.listOfReactions[
+                                    species_modified[reactant.name] = True
+                                    curr_state[reactant.name] -= model.listOfReactions[
                                         rxn].reactants[reactant] * reactions[rxn]
                                 for product in model.listOfReactions[rxn].products:
-                                    species_modified[str(product)] = True
-                                    curr_state[str(product)] += model.listOfReactions[
+                                    species_modified[product.name] = True
+                                    curr_state[product.name] += model.listOfReactions[
                                         rxn].products[product] * reactions[rxn]
                         neg_state = False
                         for spec in species_modified:

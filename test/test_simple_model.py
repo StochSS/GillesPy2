@@ -154,8 +154,8 @@ class TestSimpleModel(unittest.TestCase):
 
     def test_model_has_rate_rules(self):
         rate_rules = self.model.listOfRateRules
-        self.assertEqual(rate_rules['B'].species.name, 'B', msg='Has incorrect species')
-        self.assertEqual(rate_rules['B'].expression, 'cos(t)', msg='{0} has incorrect type'.format(rate_rules))
+        self.assertEqual(rate_rules['B'].variable.name, 'B', msg='Has incorrect species')
+        self.assertEqual(rate_rules['B'].formula, 'cos(t)', msg='{0} has incorrect type'.format(rate_rules))
 
     def test_get_reaction(self):
         reaction = self.model.get_reaction('r1')

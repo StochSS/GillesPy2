@@ -59,10 +59,10 @@ class SortableObject(object):
         return not self.__eq__(other)
 
     def __gt__(self, other):
-        return not __le__(self, other)
+        return not self.__le__(other)
 
     def __ge__(self, other):
-        return not __lt__(self, other)
+        return not self.__lt__(other)
 
     def __lt__(self, other):
         if hasattr(self, 'id') and hasattr(other, 'id'):
@@ -1008,15 +1008,19 @@ class Reaction(SortableObject):
 
         # There are only three ways to get 'total_stoch==2':
         for r in sorted(self.reactants):
+            if isinstance(r, str):
+                rname = r
+            else:
+                rname = r.name
             # Case 1: 2X -> Y
             if self.reactants[r] == 2:
                 propensity_function = (propensity_function +
-                                       "*" + r.name + "*(" + r.name + "-1)/vol")
-                ode_propensity_function += '*' + r.name + '*' + r.name
+                                       "*" + rname + "*(" + rname + "-1)/vol")
+                ode_propensity_function += '*' + rname + '*' + rname
             else:
                 # Case 3: X1, X2 -> Y;
-                propensity_function += "*" + r.name
-                ode_propensity_function += '*' + r.name
+                propensity_function += "*" + rname
+                ode_propensity_function += '*' + rname
 
         # Set the volume dependency based on order.
         order = len(self.reactants)
