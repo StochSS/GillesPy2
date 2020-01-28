@@ -633,6 +633,15 @@ class BasicTauHybridSolver(GillesPySolver):
         parameters = list(parameter_mappings.keys())
         number_species = len(species)
 
+        # Set seed if supplied
+        if seed is not None:
+            if not isinstance(seed, int):
+                seed = int(seed)
+            if seed > 0:
+                random.seed(seed)
+            else:
+                raise ModelError('seed must be a positive integer')
+
         initial_state = OrderedDict()
         self.__initialize_state(model, initial_state, debug)
         initial_state['vol'] = model.volume
@@ -689,14 +698,6 @@ class BasicTauHybridSolver(GillesPySolver):
 
         simulation_data = []
 
-        # Set seed if supplied
-        if seed is not None:
-            if not isinstance(seed, int):
-                seed = int(seed)
-            if seed > 0:
-                random.seed(seed)
-            else:
-                raise ModelError('seed must be a positive integer')
         for trajectory_num in range(number_of_trajectories):
 
             if self.interrupted: break
