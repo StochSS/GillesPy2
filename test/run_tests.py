@@ -28,7 +28,7 @@ if __name__ == '__main__':
     import test_SBML
     import test_example_models
     import test_all_solvers
-    import test_results
+    import test_sys_init
 
     modules = [
         test_cython_ssa_solver,
@@ -41,7 +41,7 @@ if __name__ == '__main__':
         test_SBML,
         test_example_models,
         test_all_solvers,
-        test_results
+        test_sys_init
     ]
 
     for module in modules:
