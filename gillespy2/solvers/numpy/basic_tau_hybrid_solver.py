@@ -753,10 +753,10 @@ class BasicTauHybridSolver(GillesPySolver):
 
             # End of trajectory
             if show_labels:
-                for traj in range(number_of_trajectories):
-                    for i in range(number_species):
-                        data[species[i]] = trajectory_base[traj, :, i+1]
-                    simulation_data.append(data)
+                data = {'time':timeline}
+                for i in range(number_species):
+                    data[species[i]] = trajectory[:, i+1]
+                simulation_data.append(data)
             else:
                 simulation_data = trajectory_base
 
