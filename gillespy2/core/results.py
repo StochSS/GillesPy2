@@ -81,8 +81,8 @@ class Results(UserDict):
 
         Attributes
         ----------
-        data : UserList
-            A list of Results that are created by solvers with multiple trajectories
+        data : UserDict
+            A Dictionary of species population data.
         """
 
     def __init__(self,data,model = None,solver_name = "Undefined solver name", rc=0):
