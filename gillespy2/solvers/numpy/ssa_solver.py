@@ -28,6 +28,8 @@ class NumPySSASolver(GillesPySolver):
         :param debug: Set to True to provide additional debug information about the
         simulation.
         :param show_labels: Use names of species as index of result object rather than position numbers.
+        :param display_type : "text", "progress" or "graph"
+            Defines the type of data displayed by display_interval at runtime. Only used if display_interval is defined in model.run.
         :return: a list of each trajectory simulated.
         """
         def timed_out(signum, frame):

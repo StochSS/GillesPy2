@@ -520,6 +520,12 @@ class Model(SortableObject):
             defaults to ssa solver.
         timeout : int
             Allows a time_out value in seconds to be sent to a signal handler, restricting simulation run-time
+        display_interval : float
+            Defines the time interval for which the chosen display_type is displayed during run-time.
+        display_type : "text", "progress" or "graph"
+            the type of simulation data to be returned at the given display_interval.
+            Defaults to "text" output when display_interval > 0
+
         solver_args :
             solver-specific arguments to be passed to solver.run()
         """

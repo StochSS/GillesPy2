@@ -544,6 +544,8 @@ class BasicTauHybridSolver(GillesPySolver):
             rtol=1e-9 and atol=1e-12.  for a list of options,
             see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html.
             Example use: {max_step : 0, rtol : .01}
+        display_type : "text", "progress" or "graph"
+            Defines the type of data displayed by display_interval at runtime. Only used if display_interval is defined in model.run.
         """
 
         def timed_out(signum, frame):

@@ -61,6 +61,9 @@ class BasicODESolver(GillesPySolver):
         :param integrator: integrator to be used form scipy.integrate.ode. Options include 'vode', 'zvode', 'lsoda', 'dopri5', and 'dop835'.  For more details, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html
         :param integrator_options: a dictionary containing options to the scipy integrator. for a list of options, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.
             Example use: {max_step : 0, rtol : .01}
+        :param display_type : "text", "progress" or "graph"
+            Defines the type of data displayed by display_interval at runtime. Only used if display_interval is defined in model.run.
+
         :param kwargs:
         :return:
         """

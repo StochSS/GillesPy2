@@ -86,6 +86,9 @@ class BasicTauLeapingSolver(GillesPySolver):
                     Set to True to provide information about step size (tau) taken at each step.
                 show_labels : bool (True)
                     Use names of species as index of result object rather than position numbers.
+                display_type : "text", "progress" or "graph"
+                    Defines the type of data displayed by display_interval at runtime. Only used if display_interval is defined in model.run.
+
                 """
 
         def timed_out(signum, frame):
