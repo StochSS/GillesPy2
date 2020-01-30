@@ -9,9 +9,10 @@ GillesPy2 is a Python package for stochastic simulation of biochemical systems. 
 <a href="https://docs.google.com/forms/d/12tAH4f8CJ-3F-lK44Q9uQHFio_mGoK0oY829q5lD7i4/viewform">PLEASE REGISTER AS A USER</a>, so that we can prove GillesPy2 has many users when we seek funding to support development. GillesPy2 is part of the <a href="http://www.stochss.org">StochSS</a> project.
 </td></tr></table>
 
-[![PyPI](https://img.shields.io/pypi/v/gillespy2.svg?color=b44e48)](https://pypi.org/project/gillespy2)
+[![PyPI](https://img.shields.io/pypi/v/gillespy2.svg)](https://pypi.org/project/gillespy2)
 ![PyPI - License](https://img.shields.io/pypi/l/gillespy2.svg?color=lightgray)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/gillespy2.svg?color=lightgreen)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/gillespy2.svg?color=brightgreen)
+![Pylint](https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/pylint.svg)
 
 Table of contents
 -----------------
@@ -192,10 +193,10 @@ GillesPy2 uses numerous open-source packages, without which it would have been e
 * [lxml](https://lxml.de) &ndash; an XML parsing library for Python
 * [MatplotLib](https://matplotlib.org/index.html) &ndash; Python plotting library
 * [Plotly](https://plot.ly/) &ndash; Graphing library for making interactive, publication-quality graphs
-* [Numpy](http://www.numpy.org/) &ndash; the fundamental package for scientific computing with Python
+* [Numpy](https://www.numpy.org/) &ndash; the fundamental package for scientific computing with Python
 * [Scipy](https://www.scipy.org/) &ndash; Python-based ecosystem of open-source software for mathematics, science, and engineering
 
-Finally, we are grateful for institutional resources made available by the [UNC Asheville](https://www.unca.edu), the [University of California at Santa Barbara](https://ucsb.edu), [Uppsala University](https://www.it.uu.se), and the [California Institute of Technology](https://www.caltech.edu).
+Finally, we are grateful for institutional resources made available by the [University of North Carolina at Asheville](https://www.unca.edu), the [University of California at Santa Barbara](https://ucsb.edu), [Uppsala University](https://www.it.uu.se), and the [California Institute of Technology](https://www.caltech.edu).
 
 <div align="center">
   <a href="https://www.nigms.nih.gov">
