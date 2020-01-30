@@ -507,11 +507,15 @@ class EnsembleResults(UserList):
             title = (average_result.model.name + " - " + average_result.solver_name + " - Standard Deviation Range")
 
         trace_list=[]
-        for species in average_result:
+        for i,species in enumerate(average_result):
             if species is not 'time':
 
                 if species not in included_species_list and included_species_list:
                     continue
+
+                line_dict = {}
+
+                line_dict['color'] = common_rgb_values()[(i - 1) % len(common_rgb_values())]
 
                 upper_bound = []
                 for i in range(0, len(average_result[species])):
@@ -533,6 +537,7 @@ class EnsembleResults(UserList):
                     go.Scatter(
                         x=average_result['time'],
                         y=average_result[species],
+                        line = line_dict,
                         name=species,
                         fillcolor='rgba(68, 68, 68, 0.2)',
                         fill='tonexty'
@@ -600,11 +605,10 @@ class EnsembleResults(UserList):
             the size of the graph. A tuple of the form (width,height). Is (18,10) by default.
 
         """
+        import matplotlib.pyplot as plt
 
         average_result = self.average_ensemble()
         stddev_result = self.stddev_ensemble(ddof=ddof)
-
-        import matplotlib.pyplot as plt
 
         try:
             plt.style.use(style)
@@ -614,19 +618,21 @@ class EnsembleResults(UserList):
 
         plt.figure(figsize=figsize)
 
-        for species in average_result:
+        for i, species in enumerate(average_result):
             if species is 'time':
                 continue
 
             if species not in included_species_list and included_species_list:
                 continue
 
+            line_color = common_rgb_values()[(i - 1) % len(common_rgb_values())]
+
             lowerBound = [a-b for a,b in zip(average_result[species], stddev_result[species])]
             upperBound = [a+b for a,b in zip(average_result[species], stddev_result[species])]
 
             plt.fill_between(average_result['time'], lowerBound, upperBound,color='whitesmoke')
             plt.plot(average_result['time'],lowerBound,upperBound,color='grey',linestyle='dashed')
-            plt.plot(average_result['time'],average_result[species],label=species)
+            plt.plot(average_result['time'],average_result[species],label=species,color = line_color)
 
         if title is None:
             title = (average_result.model.name + " - " + average_result.solver_name + " - Standard Deviation Range")
