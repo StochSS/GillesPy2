@@ -1,7 +1,6 @@
 # CONTRIBUTING
 
-
-If you are interested in contributing to GillesPy2, please follow these guidelines:  
+By contributing to GillesPy2 you agree to the code of conduct which can be reviewed here [Code of Conduct](/CODE_OF_CONDUCT.md). If after reading you are interested in contributing, please follow these guidelines:  
 
 ### 1. Making Changes:  
 a) Create a fork from this repository ('https://github.com/GillesPy2/GillesPy2')  
@@ -27,4 +26,3 @@ c) Verify that unit tests are provided for the new code, and that they accuratel
 d) Check coverage by running ***./run_coverage.sh*** from the project root directory. The coverage results are stored in the htmlcov subdirectory, which can be compared with the files changed (viewable through github) to ensure that the changes made have been covered by proper testing.  
 e) Make sure that all unit tests in Travis CI pass before merging the changes.  
 f) Merge!  
-
