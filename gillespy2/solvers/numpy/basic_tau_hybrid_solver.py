@@ -216,7 +216,7 @@ class BasicTauHybridSolver(GillesPySolver):
         return tau-t
      
 
-    def find_event_time(self, sol, model, start, end, index, depth):
+    def __find_event_time(self, sol, model, start, end, index, depth):
         '''
         Helper method providing binary search implementation for locating
         precise event times.
@@ -229,11 +229,11 @@ class BasicTauHybridSolver(GillesPySolver):
 
         if bool_res[0]: # event before mid
             depth += 1
-            return self.find_event_time(sol, model, dense_range[0],
+            return self.__find_event_time(sol, model, dense_range[0],
                 dense_range[1], index, depth)
         else: # event after mid
             depth += 1
-            return self.find_event_time(sol, model, dense_range[1],
+            return self.__find_event_time(sol, model, dense_range[1],
                 dense_range[2], index, depth)
 
 
@@ -265,7 +265,7 @@ class BasicTauHybridSolver(GillesPySolver):
                         curr_state[e.name] = False
                 # IF triggered from false to true, refine search
                 elif bool_res[y] and dense_range[y] != curr_time and bool_res[y-1] == 0:
-                    event_time = self.find_event_time(sol, model, dense_range[y-1],
+                    event_time = self.__find_event_time(sol, model, dense_range[y-1],
                         dense_range[y+1], i, 0)
                     if event_time in event_times:
                         event_times[event_time].append(e)
@@ -340,6 +340,23 @@ class BasicTauHybridSolver(GillesPySolver):
                     else:
                         trigger_states[event.name] = curr_state
                         
+    def __check_t0_events(self, model, initial_state):
+        # Check Event State at t==0
+        species_modified_by_events = []
+        t0_delayed_events = {}
+        for e in model.listOfEvents.values():
+            if not e.trigger.value:
+                t0_firing = eval(e.trigger.expression, eval_globals, initial_state)
+                if t0_firing:
+                    if e.delay is None:
+                        for a in e.assignments:
+                            initial_state[a.variable.name] = eval(a.expression, eval_globals, initial_state)
+                            species_modified_by_events.append(a.variable.name)
+                    else:
+                        execution_time = eval(e.delay,eval_globals, initial_state)
+                        t0_delayed_events[e.name] = execution_time
+        return t0_delayed_events, species_modified_by_events
+
     def __update_stochastic_rxn_states(self, model, compiled_reactions, curr_state):
         rxn_count = OrderedDict()
         species_modified = OrderedDict()
@@ -567,6 +584,27 @@ class BasicTauHybridSolver(GillesPySolver):
 
         return sol, curr_state, curr_time, save_times
     
+    def __set_seed(self, seed):
+        # Set seed if supplied
+        if seed is not None:
+            if not isinstance(seed, int):
+                seed = int(seed)
+            if seed > 0:
+                random.seed(seed)
+            else:
+                raise ModelError('seed must be a positive integer')
+
+    def __set_recommended_ode_defaults(self, integrator_options):
+        '''Set some ODE solver defaults.  These values are chosen based on the
+        precision required to successfully complete the SBML Test suite. '''
+
+        if 'rtol' not in integrator_options:
+            integrator_options['rtol'] = 1e-9
+        if 'atol' not in integrator_options:
+            integrator_options['atol'] = 1e-12
+        if 'max_step' not in integrator_options:
+            integrator_options['max_step'] = 0.25
+
     def __compile_all(self, model):
         '''
         Compile all run-time evaluables to enhance performance.
@@ -704,23 +742,8 @@ class BasicTauHybridSolver(GillesPySolver):
             print("t = ", t)
             print("increment = ", increment)
 
-        # Set some ODE solver defaults.  These values are chosen based on the
-        # precision required to successfully complete the SBML Test suite.
-        if 'rtol' not in integrator_options:
-            integrator_options['rtol'] = 1e-9
-        if 'atol' not in integrator_options:
-            integrator_options['atol'] = 1e-12
-        if 'max_step' not in integrator_options:
-            integrator_options['max_step'] = 0.25
-
-        # Set seed if supplied
-        if seed is not None:
-            if not isinstance(seed, int):
-                seed = int(seed)
-            if seed > 0:
-                random.seed(seed)
-            else:
-                raise ModelError('seed must be a positive integer')
+        self.__set_recommended_ode_defaults(integrator_options)
+        self.__set_seed(seed)
 
         # create mapping of species dictionary to array indices
         species_mappings = model._listOfSpecies
@@ -743,31 +766,16 @@ class BasicTauHybridSolver(GillesPySolver):
         # copy time values to all trajectory row starts
         trajectory_base[:, :, 0] = timeline
 
-        # Check Event State at t==0
-        species_modified_by_event = []
-        t0_delayed_events = {}
-        for e in model.listOfEvents.values():
-            if not e.trigger.value:
-                t0_firing = eval(e.trigger.expression, eval_globals, initial_state)
-                if t0_firing:
-                    if e.delay is None:
-                        for a in e.assignments:
-                            initial_state[a.variable.name] = eval(a.expression, eval_globals, initial_state)
-                            species_modified_by_event.append(a.variable.name)
-                    else:
-                        execution_time = eval(e.delay,eval_globals, initial_state)
-                        t0_delayed_events[e.name] = execution_time
+        t0_delayed_events, species_modified_by_events = self.__check_t0_events(model, initial_state)
 
-        spec_modes = ['continuous', 'dynamic', 'discrete']
         # copy initial populations to base
+        spec_modes = ['continuous', 'dynamic', 'discrete']
         for i, s in enumerate(species):
             if model.listOfSpecies[s].mode not in spec_modes:
                 raise SpeciesError('Species mode can only be \'continuous\', \'dynamic\', or \'discrete\'.')
-            if s in species_modified_by_event:
-                trajectory_base[:, 0, i+1] = initial_state[s]
-            else:
-                trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
+            trajectory_base[:, 0, i+1] = initial_state[s]
 
+        # Create deterministic tracking data structures
         det_spec = {species:True for (species, value) in model.listOfSpecies.items() if value.mode == 'dynamic'}
         det_rxn = {rxn:False for (rxn, value) in model.listOfReactions.items()}
 
@@ -789,12 +797,16 @@ class BasicTauHybridSolver(GillesPySolver):
 
         dependencies = OrderedDict()
 
+        # If considering deterministic changes, create dependency data
+        # structure for creating diff eqs later
         if not pure_stochastic:
             for reaction in model.listOfReactions:
                 dependencies[reaction] = set()
                 [dependencies[reaction].add(reactant.name) for reactant in model.listOfReactions[reaction].reactants]
                 [dependencies[reaction].add(product.name) for product in model.listOfReactions[reaction].products]
 
+
+        # Main trajectory loop
         for trajectory_num in range(number_of_trajectories):
 
             if self.interrupted: break
@@ -838,9 +850,7 @@ class BasicTauHybridSolver(GillesPySolver):
                 else:
                     trigger_states[ename] = curr_state
 
-
-
-            # Each save step / MAIN LOOP
+            # Each save step
             while curr_time < model.tspan[-1]:
 
                 if self.interrupted: break
@@ -856,14 +866,15 @@ class BasicTauHybridSolver(GillesPySolver):
                 if not pure_ode:
                     tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
                             model, propensities, curr_state, curr_time, save_times[0]]
-
                 tau_step = save_times[-1]-curr_time if pure_ode else Tau.select(*tau_args)
+
                 # Calculate sd and CV for hybrid switching and flag deterministic reactions
                 if pure_stochastic:
-                    deterministic_reactions = frozenset()
+                    deterministic_reactions = frozenset() # Empty if non-det
                 else:
                     deterministic_reactions = self.__flag_det_reactions(model, det_spec, det_rxn, dependencies)
 
+                # Process switching if used
                 if not pure_stochastic and not pure_ode:
                     switch_args = [mu_i, sigma_i, model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol]
                     sd, CV = self.__calculate_statistics(*switch_args)
@@ -877,21 +888,23 @@ class BasicTauHybridSolver(GillesPySolver):
                 
                 # Set active reactions and rate rules for this integration step
                 if pure_stochastic:
-                    active_rr = compiled_rate_rules
+                    active_rr = compiled_rate_rules 
                 else:
                     self.__toggle_reactions(model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec)
                     active_rr = compiled_rate_rules[deterministic_reactions]
                     
+                # Create integration initial state vector
                 y0, y_map = self.__map_state(species, parameters,
                                         compiled_reactions, model.listOfEvents, curr_state)
-
+    
+                # Run simulation to next step
                 sol, curr_state, curr_time, save_times = self.__simulate(integrator, integrator_options,
                     curr_state, y0, model, curr_time, propensities, species, 
                     parameters, compiled_reactions, active_rr, y_map,
                     trajectory, save_times, delayed_events, trigger_states,
                     event_sensitivity, tau_step, pure_ode, debug)
 
-            # End of trajectory
+            # End of trajectory, format results
             if show_labels:
                 data = {'time':timeline}
                 for i in range(number_species):
