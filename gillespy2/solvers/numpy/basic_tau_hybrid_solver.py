@@ -97,8 +97,9 @@ class BasicTauHybridSolver(GillesPySolver):
                         diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].ode_propensity_function)
                     else:
                         diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].propensity_function)
-                if dep in model.listOfRateRules:
-                    diff_eqs[dep] += ' + ' + model.listOfRateRules[dep].formula
+            for spec in model.listOfSpecies:
+                if spec in model.listOfRateRules:
+                    diff_eqs[spec] += ' + ' + model.listOfRateRules[spec].formula
         
         #create a dictionary of compiled gillespy2 rate rules
         for spec, rate in diff_eqs.items():
