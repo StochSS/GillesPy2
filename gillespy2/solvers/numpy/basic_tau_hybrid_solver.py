@@ -72,7 +72,6 @@ class BasicTauHybridSolver(GillesPySolver):
         differential equations, used dynamically throught the simulation.
         '''
         diff_eqs = OrderedDict()
-        reactions = OrderedDict()
         rate_rules = OrderedDict()
 
         #Initialize sample dict
@@ -83,12 +82,8 @@ class BasicTauHybridSolver(GillesPySolver):
 
         # loop through each det reaction and concatenate it's diff eq for each species
         for reaction in comb:
-            factor = OrderedDict()
-            for dep in dependencies[reaction]:
-                if model.listOfSpecies[dep].mode != 'continuous':
-                    pure_continuous = False
-            for dep in dependencies[reaction]:
-                factor[dep] = 0
+            factor = {dep:0 for dep in dependencies[reaction]}
+
             for key, value in model.listOfReactions[reaction].reactants.items():
                 if not key.constant and not key.boundary_condition:
                     factor[key.name] -= value
@@ -102,6 +97,8 @@ class BasicTauHybridSolver(GillesPySolver):
                         diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].ode_propensity_function)
                     else:
                         diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].propensity_function)
+                if dep in model.listOfRateRules:
+                    diff_eqs[dep] += ' + ' + model.listOfRateRules[dep].formula
         
         #create a dictionary of compiled gillespy2 rate rules
         for spec, rate in diff_eqs.items():
@@ -109,7 +106,8 @@ class BasicTauHybridSolver(GillesPySolver):
 
         # be sure to include model rate rules
         for i, rr in enumerate(model.listOfRateRules):
-            rate_rules[rr] = compile(model.listOfRateRules[rr].formula, '<string>', 'eval')
+            if rr not in rate_rules:
+                rate_rules[rr] = compile(model.listOfRateRules[rr].formula, '<string>', 'eval')
 
         return rate_rules
 
@@ -256,7 +254,10 @@ class BasicTauHybridSolver(GillesPySolver):
             bool_res = [x>0 for x in solutions[i-len(model.listOfEvents)]]
             # Search for changes from False to True in event, record first time
             for y in range(1, len(dense_range)-1):
-                # Check Persistent Delays
+                # Check Persistent Delays.  If an event is not designated as
+                # persistent, and the trigger expression fails to evaluate as
+                # true before assignment is carried out, remove the event from
+                # the queue.
                 if e.name in trigger_states and not e.trigger.persistent:
                     if not bool_res[y]:
                         delayed_events[i] = delayed_events[-1] # move to end
@@ -304,7 +305,7 @@ class BasicTauHybridSolver(GillesPySolver):
                                  propensities, y_map, compiled_reactions,
                                  compiled_rate_rules, event_queue,
                                  delayed_events, trigger_states,
-                                 event_sensitivity, tau_step):
+                                 event_sensitivity, tau_step, pure_ode):
         """ 
         Helper function to perform the ODE integration of one step.  This
         method uses scipy.integrate.solve_ivp to get simulation data, and
@@ -323,14 +324,19 @@ class BasicTauHybridSolver(GillesPySolver):
                                                           model.listOfAssignmentRules]
 
         rhs = lambda t, y: BasicTauHybridSolver.__f(t, y, *int_args)
-        next_tau = curr_time+tau_step
-        tau_event = partial(BasicTauHybridSolver.__event, *int_args, next_tau)
-        tau_event.terminal = True
+
+        if pure_ode:
+            tau_event = None
+            next_tau = model.tspan[-1]
+        else:
+            next_tau = curr_time+tau_step
+            tau_event = partial(BasicTauHybridSolver.__event, *int_args, next_tau)
+            tau_event.terminal = True
 
         curr_state['t'] = curr_time
         curr_state['time'] = curr_time
 
-        # Integrate until end or event is reached
+        # Integrate until end or tau is reached
         sol = solve_ivp(rhs, [curr_time, model.tspan[-1]], y0, 
             method=integrator, dense_output=True, 
             events=tau_event, **integrator_options)
@@ -342,24 +348,53 @@ class BasicTauHybridSolver(GillesPySolver):
         else:
             event_times = {}
 
-        # rxns
+        # TODO REWORK THIS, this now only really adds TAU times in, not very
+        # useful or efficient
         reaction_times = []
-        for rxn in sol.t_events:
-            if np.any(rxn):
-                reaction_times.append(rxn[0]) # Append first firing time for each rxn
+        if tau_event is not None:
+            reaction_times.append(min(sol.t_events))
 
+
+        # Set curr time to next time a change occurs in the system outside of
+        # the standard ODE process.  Determine what kind of change this is,
+        # and set the curr_time of simulation to restart simulation after
+        # making the appropriate state changes.
         next_step, curr_time = self.__get_next_step(event_times, reaction_times,
                                                 delayed_events,
                                                 model.tspan[-1], next_tau)
 
 
 
-        for spec_name, species in model.listOfSpecies.items(): # Update continuous
+        # Update states of all species based on changes made to species through
+        # ODE processes.  This will update all species whose mode is set to
+        # 'continuous', as well as 'dynamic' mode species which have been
+        # flagged as deterministic.
+        for spec_name, species in model.listOfSpecies.items():
             if not species.constant:
                 curr_state[spec_name] = sol.sol(curr_time)[y_map[spec_name]]
-        for rxn in compiled_reactions: # Update discrete
+
+        # Stochastic Reactions are also fired through a root-finding method
+        # which mirrors the standard SSA probability.  Since we are using
+        # Tau-Leaping, rather than firing reactions based on a direct poisson
+        # distribution from the propensity, we use that same poisson
+        # distribution to select a random negative offset for the reaction
+        # state, then integrate forward along with any deterministic
+        # reactions/species for a designated time (tau).  Root crossings
+        # satisfy the SSA firing process, and because multiple reactions can be
+        # fired in a single Tau step, a new random number will be generated and
+        # added (representing a single-firing each time) until the state value
+        # of the reaction is once again negative.
+        for rxn in compiled_reactions:
             curr_state[rxn] = sol.sol(curr_time)[y_map[rxn]]
 
+
+        # In the case that a major change occurs to the system (outside of the
+        # standard ODE process) is caused by an event trigger, we then examine
+        # the event which was triggered.  if Event assignments are carried out
+        # immediately, we add them to a heap in Event Priority order to be
+        # immediately dealt with.  If an Event contains a delay, we can now set
+        # the time of event assignment execution by evaluating the event delay
+        # in the current state.
         if next_step == 'trigger':
             for event in event_times[curr_time]:
                 # Fire trigger time events immediately
@@ -375,6 +410,11 @@ class BasicTauHybridSolver(GillesPySolver):
                         trigger_states[event.name] = curr_state.copy()
                     else:
                         trigger_states[event.name] = curr_state
+        # In the case that a major change occurs to the system (outside of the
+        # standard ODE process) is caused by a delayed event which has now
+        # reached the designated time of execution, we add all currently
+        # designated event assignments to a heap to be processed in Event
+        # Priority order.
         elif next_step == 'delay':
             event = heapq.heappop(delayed_events)
             heapq.heappush(event_queue, (eval(model.listOfEvents[event[1]].priority), event[1]))
@@ -388,7 +428,7 @@ class BasicTauHybridSolver(GillesPySolver):
                         propensities, species, parameters, compiled_reactions,
                         compiled_rate_rules, y_map, trajectory, save_times,
                         delayed_events, trigger_states, event_sensitivity,
-                        tau_step, debug):
+                        tau_step, pure_ode, debug):
         """
         Function to process simulation until next step, which can be a
         stochastic reaction firing, an event trigger or assignment, or end of
@@ -418,7 +458,8 @@ class BasicTauHybridSolver(GillesPySolver):
                                                                delayed_events,
                                                                trigger_states,
                                                                event_sensitivity,
-                                                               tau_step)
+                                                               tau_step,
+                                                               pure_ode)
 
             rxn_count = OrderedDict()
             species_modified = OrderedDict()
@@ -446,7 +487,7 @@ class BasicTauHybridSolver(GillesPySolver):
                 curr_time = prev_curr_time
                 tau_step = tau_step / 2
             else: break 
-        # Update Assignments
+        # Update Assignment Rules for all processed time points
         num_saves = 0
         for time in save_times:
             if time > curr_time: break
@@ -454,8 +495,10 @@ class BasicTauHybridSolver(GillesPySolver):
             trajectory_index = np.where(model.tspan == time)[0][0]
             assignment_state = curr_state.copy()
             for s in range(len(species)):
+                # Get ODE Solutions
                 trajectory[trajectory_index][s+1] = sol.sol(time)[s]
                 if len(model.listOfAssignmentRules):
+                    # Copy ODE state for assignments
                     assignment_state[species[s]] = sol.sol(time)[s]
             assignment_state['t'] = time
             for spec, ar in model.listOfAssignmentRules.items():
@@ -621,17 +664,14 @@ class BasicTauHybridSolver(GillesPySolver):
             print("t = ", t)
             print("increment = ", increment)
 
+        # Set some ODE solver defaults.  These values are chosen based on the
+        # precision required to successfully complete the SBML Test suite.
         if 'rtol' not in integrator_options:
             integrator_options['rtol'] = 1e-9
         if 'atol' not in integrator_options:
             integrator_options['atol'] = 1e-12
-
-        # create mapping of species dictionary to array indices
-        species_mappings = model._listOfSpecies
-        species = list(species_mappings.keys())
-        parameter_mappings = model._listOfParameters
-        parameters = list(parameter_mappings.keys())
-        number_species = len(species)
+        if 'max_step' not in integrator_options:
+            integrator_options['max_step'] = 0.25
 
         # Set seed if supplied
         if seed is not None:
@@ -642,9 +682,17 @@ class BasicTauHybridSolver(GillesPySolver):
             else:
                 raise ModelError('seed must be a positive integer')
 
+        # create mapping of species dictionary to array indices
+        species_mappings = model._listOfSpecies
+        species = list(species_mappings.keys())
+        parameter_mappings = model._listOfParameters
+        parameters = list(parameter_mappings.keys())
+        number_species = len(species)
+
         initial_state = OrderedDict()
         self.__initialize_state(model, initial_state, debug)
         initial_state['vol'] = model.volume
+        initial_state['t'] = 0
 
         # create numpy array for timeline
         timeline = np.linspace(0, t, int(round(t / increment + 1)))
@@ -657,13 +705,18 @@ class BasicTauHybridSolver(GillesPySolver):
 
         # Check Event State at t==0
         species_modified_by_event = []
+        t0_delayed_events = {}
         for e in model.listOfEvents.values():
             if not e.trigger.value:
                 t0_firing = eval(e.trigger.expression, eval_globals, initial_state)
                 if t0_firing:
-                    for a in e.assignments:
-                        initial_state[a.variable.name] = eval(a.expression, eval_globals, initial_state)
-                        species_modified_by_event.append(a.variable.name)
+                    if e.delay is None:
+                        for a in e.assignments:
+                            initial_state[a.variable.name] = eval(a.expression, eval_globals, initial_state)
+                            species_modified_by_event.append(a.variable.name)
+                    else:
+                        execution_time = eval(e.delay,eval_globals, initial_state)
+                        t0_delayed_events[e.name] = execution_time
 
         spec_modes = ['continuous', 'dynamic', 'discrete']
         # copy initial populations to base
@@ -677,26 +730,30 @@ class BasicTauHybridSolver(GillesPySolver):
 
         det_spec = {species:True for (species, value) in model.listOfSpecies.items() if value.mode == 'dynamic'}
         det_rxn = {rxn:False for (rxn, value) in model.listOfReactions.items()}
-        
-        dependencies = OrderedDict()
 
-        for reaction in model.listOfReactions:
-            dependencies[reaction] = set()
-            [dependencies[reaction].add(reactant.name) for reactant in model.listOfReactions[reaction].reactants]
-            [dependencies[reaction].add(product.name) for product in model.listOfReactions[reaction].products]
-
+        # Determine if entire simulation is ODE or Stochastic, in order to
+        # avoid unnecessary calculations during simulation
         pure_ode = True
-        for reaction in model.listOfReactions.keys():
-            for dep in dependencies[reaction]:
-                if model.listOfSpecies[dep].mode != 'continuous':
-                    pure_ode = False
-                    break
+        pure_stochastic = True
+        for spec in model.listOfSpecies.values():
+            if spec.mode != 'discrete':
+                pure_stochastic = False
+            if spec.mode != 'continuous':
+                pure_ode = False
 
         if debug:
             print('dependencies')
             print(dependencies)
 
         simulation_data = []
+
+        dependencies = OrderedDict()
+
+        if not pure_stochastic:
+            for reaction in model.listOfReactions:
+                dependencies[reaction] = set()
+                [dependencies[reaction].add(reactant.name) for reactant in model.listOfReactions[reaction].reactants]
+                [dependencies[reaction].add(product.name) for product in model.listOfReactions[reaction].products]
 
         for trajectory_num in range(number_of_trajectories):
 
@@ -711,9 +768,11 @@ class BasicTauHybridSolver(GillesPySolver):
             data = OrderedDict() # Dictionary for show_labels results
             data['time'] = timeline # All time entries for show_labels results
             save_times = timeline
+            
 
             # Record Highest Order reactant for each reaction and set error tolerance
-            HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold = Tau.initialize(model, tau_tol)
+            if not pure_ode:
+                HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold = Tau.initialize(model, tau_tol)
 
             # One-time compilations to reduce time spent with eval
             compiled_reactions, compiled_rate_rules, compiled_inactive_reactions, compiled_propensities = self.__compile_all(model)
@@ -728,26 +787,42 @@ class BasicTauHybridSolver(GillesPySolver):
             trigger_states = {}
 
 
+            # Handle delayed t0 events
+            for state in trigger_states.values():
+                if state is None: state = curr_state
+            for ename, etime in t0_delayed_events.items():
+                heapq.heappush(delayed_events, (etime, ename))
+                if model.listOfEvents[ename].use_values_from_trigger_time:
+                    trigger_states[ename] = curr_state.copy()
+                else:
+                    trigger_states[ename] = curr_state
             # Each save step
             while curr_time < model.tspan[-1]:
 
                 if self.interrupted: break
                 # Get current propensities
-                for i, r in enumerate(model.listOfReactions):
-                    try:
-                        propensities[r] = eval(compiled_propensities[r], eval_globals, curr_state)
-                    except Exception as e:
-                        raise SimulationError('Error calculation propensity for {0}.\nReason: {1}'.format(r, e))
+                if not pure_ode:
+                    for i, r in enumerate(model.listOfReactions):
+                        try:
+                            propensities[r] = eval(compiled_propensities[r], eval_globals, curr_state)
+                        except Exception as e:
+                            raise SimulationError('Error calculation propensity for {0}.\nReason: {1}'.format(r, e))
 
                 # Calculate Tau statistics and select a good tau step
-                tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
-                        model, propensities, curr_state, curr_time, save_times[0]]
+                if not pure_ode:
+                    tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
+                            model, propensities, curr_state, curr_time, save_times[0]]
+
                 tau_step = save_times[-1]-curr_time if pure_ode else Tau.select(*tau_args)
                 # Calculate sd and CV for hybrid switching and flag deterministic reactions
-                #TODO REWRITE CALCULATION STUFF
-                switch_args = [mu_i, sigma_i, model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol]
-                sd, CV = self.__calculate_statistics(*switch_args)
-                deterministic_reactions = self.__flag_det_reactions(model, det_spec, det_rxn, dependencies)
+                if pure_stochastic:
+                    deterministic_reactions = frozenset()
+                else:
+                    deterministic_reactions = self.__flag_det_reactions(model, det_spec, det_rxn, dependencies)
+
+                if not pure_stochastic and not pure_ode:
+                    switch_args = [mu_i, sigma_i, model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol]
+                    sd, CV = self.__calculate_statistics(*switch_args)
                 
                 if debug:
                     print('mean: {0}'.format(mu_i))
@@ -757,9 +832,12 @@ class BasicTauHybridSolver(GillesPySolver):
                     print('det_rxn: {0}'.format(det_rxn))
                 
                 # Set active reactions and rate rules for this integration step
-                self.__toggle_reactions(model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec)
-                active_rr = compiled_rate_rules[deterministic_reactions]
-
+                if pure_stochastic:
+                    active_rr = compiled_rate_rules
+                else:
+                    self.__toggle_reactions(model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec)
+                    active_rr = compiled_rate_rules[deterministic_reactions]
+                    
                 y0, y_map = self.__map_state(species, parameters,
                                         compiled_reactions, model.listOfEvents, curr_state)
 
@@ -767,14 +845,14 @@ class BasicTauHybridSolver(GillesPySolver):
                     curr_state, y0, model, curr_time, propensities, species, 
                     parameters, compiled_reactions, active_rr, y_map,
                     trajectory, save_times, delayed_events, trigger_states,
-                    event_sensitivity, tau_step, debug)
+                    event_sensitivity, tau_step, pure_ode, debug)
 
             # End of trajectory
             if show_labels:
-                for traj in range(number_of_trajectories):
-                    for i in range(number_species):
-                        data[species[i]] = trajectory_base[traj, :, i+1]
-                    simulation_data.append(data)
+                data = {'time':timeline}
+                for i in range(number_species):
+                    data[species[i]] = trajectory[:, i+1]
+                simulation_data.append(data)
             else:
                 simulation_data = trajectory_base
 
