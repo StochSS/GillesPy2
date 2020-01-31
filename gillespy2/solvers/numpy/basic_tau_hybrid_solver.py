@@ -75,10 +75,11 @@ class BasicTauHybridSolver(GillesPySolver):
         rate_rules = OrderedDict()
 
         #Initialize sample dict
-        for reaction in comb:
-            for dep in dependencies[reaction]:
-                if dep not in diff_eqs:
-                    diff_eqs[dep] = '0'
+        for spec in model.listOfSpecies:
+            if spec in model.listOfRateRules:
+                diff_eqs[spec] = model.listOfRateRules[spec].formula
+            else:
+                diff_eqs[spec] = '0'
 
         # loop through each det reaction and concatenate it's diff eq for each species
         for reaction in comb:
@@ -97,18 +98,14 @@ class BasicTauHybridSolver(GillesPySolver):
                         diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].ode_propensity_function)
                     else:
                         diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep], model.listOfReactions[reaction].propensity_function)
-            for spec in model.listOfSpecies:
-                if spec in model.listOfRateRules:
-                    diff_eqs[spec] += ' + ' + model.listOfRateRules[spec].formula
+
+        for spec in model.listOfSpecies:
+            if diff_eqs[spec] == '0':
+                del diff_eqs[spec]
         
         #create a dictionary of compiled gillespy2 rate rules
         for spec, rate in diff_eqs.items():
             rate_rules[spec] = compile(gillespy2.RateRule(model.listOfSpecies[spec], rate).formula, '<string>', 'eval')
-
-        # be sure to include model rate rules
-        for i, rr in enumerate(model.listOfRateRules):
-            if rr not in rate_rules:
-                rate_rules[rr] = compile(model.listOfRateRules[rr].formula, '<string>', 'eval')
 
         return rate_rules
 
@@ -241,7 +238,7 @@ class BasicTauHybridSolver(GillesPySolver):
 
 
     def __detect_events(self, event_sensitivity, sol, model, delayed_events,
-                        trigger_states, curr_time):
+                        trigger_states, curr_time, curr_state):
         '''
         Helper method to locate precise time of event firing.  This method
         first searches for any instance of an event using event_sensitivity to
@@ -253,6 +250,7 @@ class BasicTauHybridSolver(GillesPySolver):
         solutions = np.diff(sol.sol(dense_range))
         for i, e in enumerate(model.listOfEvents.values()):
             bool_res = [x>0 for x in solutions[i-len(model.listOfEvents)]]
+            curr_state[e.name] = bool_res[-1]
             # Search for changes from False to True in event, record first time
             for y in range(1, len(dense_range)-1):
                 # Check Persistent Delays.  If an event is not designated as
@@ -264,6 +262,7 @@ class BasicTauHybridSolver(GillesPySolver):
                         delayed_events[i] = delayed_events[-1] # move to end
                         heapq.heappop(delayed_events)
                         del trigger_states[e.name]
+                        curr_state[e.name] = False
                 # IF triggered from false to true, refine search
                 elif bool_res[y] and dense_range[y] != curr_time and bool_res[y-1] == 0:
                     event_time = self.find_event_time(sol, model, dense_range[y-1],
@@ -301,6 +300,64 @@ class BasicTauHybridSolver(GillesPySolver):
         curr_time = min(sim_end, next_tau, next_event_trigger,
                         next_delayed_event)
         return next_step[curr_time], curr_time
+
+    def __process_queued_events(self, model, event_queue, trigger_states,
+                                                            curr_state):
+        # Process all queued events
+        events_processed = []
+        pre_assignment_state = curr_state.copy()
+        while event_queue:
+            # Get events in priority order
+            fired_event = model.listOfEvents[heapq.heappop(event_queue)[1]]
+            events_processed.append(fired_event)
+            if fired_event.name in trigger_states:
+                assignment_state = trigger_states[fired_event.name]
+                del trigger_states[fired_event.name]
+            else:
+                assignment_state = pre_assignment_state
+            for a in fired_event.assignments:
+                # Get assignment value
+                assign_value = eval(a.expression, eval_globals, assignment_state)
+                # Update state of assignment variable
+                curr_state[a.variable.name] = assign_value
+
+        return events_processed
+
+    def __handle_event(self, event, curr_state, curr_time, event_queue, 
+                                        trigger_states, delayed_events):
+                # Fire trigger time events immediately
+                if event.delay is None:
+                    heapq.heappush(event_queue, (eval(event.priority), event.name))
+                # Queue delayed events
+                else:
+                    curr_state['t'] = curr_time
+                    curr_state['time'] = curr_time
+                    execution_time = curr_time + eval(event.delay,eval_globals, curr_state)
+                    curr_state[event.name] = True
+                    heapq.heappush(delayed_events, (execution_time, event.name))
+                    if event.use_values_from_trigger_time:
+                        trigger_states[event.name] = curr_state.copy()
+                    else:
+                        trigger_states[event.name] = curr_state
+                        
+    def __update_stochastic_rxn_states(self, model, compiled_reactions, curr_state):
+        rxn_count = OrderedDict()
+        species_modified = OrderedDict()
+        # Update stochastic reactions
+            
+        for rxn in compiled_reactions:
+            rxn_count[rxn] = 0
+            while curr_state[rxn] > 0:
+                rxn_count[rxn] += 1
+                curr_state[rxn] += math.log(random.uniform(0,1))
+            if rxn_count[rxn]:
+                for reactant in model.listOfReactions[rxn].reactants:
+                    species_modified[reactant.name] = True
+                    curr_state[reactant.name] -= model.listOfReactions[rxn].reactants[reactant] * rxn_count[rxn]
+                for product in model.listOfReactions[rxn].products:
+                    species_modified[product.name] = True
+                    curr_state[product.name] += model.listOfReactions[rxn].products[product] * rxn_count[rxn]
+        return species_modified
 
     def __integrate(self, integrator, integrator_options, curr_state, y0, model, curr_time, 
                                  propensities, y_map, compiled_reactions,
@@ -345,16 +402,14 @@ class BasicTauHybridSolver(GillesPySolver):
         # Search for precise event times
         if len(model.listOfEvents):
             event_times = self.__detect_events(event_sensitivity, sol, model, delayed_events,
-                                    trigger_states, curr_time)
+                                    trigger_states, curr_time, curr_state)
         else:
             event_times = {}
 
-        # TODO REWORK THIS, this now only really adds TAU times in, not very
-        # useful or efficient
+        # Get next tau time
         reaction_times = []
         if tau_event is not None:
             reaction_times.append(min(sol.t_events))
-
 
         # Set curr time to next time a change occurs in the system outside of
         # the standard ODE process.  Determine what kind of change this is,
@@ -398,19 +453,8 @@ class BasicTauHybridSolver(GillesPySolver):
         # in the current state.
         if next_step == 'trigger':
             for event in event_times[curr_time]:
-                # Fire trigger time events immediately
-                if event.delay is None:
-                    heapq.heappush(event_queue, (eval(event.priority), event.name))
-                # Queue delayed events
-                else:
-                    curr_state['t'] = curr_time
-                    curr_state['time'] = curr_time
-                    execution_time = curr_time + eval(event.delay,eval_globals, curr_state)
-                    heapq.heappush(delayed_events, (execution_time, event.name))
-                    if event.use_values_from_trigger_time:
-                        trigger_states[event.name] = curr_state.copy()
-                    else:
-                        trigger_states[event.name] = curr_state
+                self.__handle_event(event, curr_state, curr_time, 
+                                event_queue, trigger_states, delayed_events)
         # In the case that a major change occurs to the system (outside of the
         # standard ODE process) is caused by a delayed event which has now
         # reached the designated time of execution, we add all currently
@@ -462,22 +506,15 @@ class BasicTauHybridSolver(GillesPySolver):
                                                                tau_step,
                                                                pure_ode)
 
-            rxn_count = OrderedDict()
-            species_modified = OrderedDict()
-            # Update stochastic reactions
-            for rxn in compiled_reactions:
-                rxn_count[rxn] = 0
-                while curr_state[rxn] > 0:
-                    rxn_count[rxn] += 1
-                    curr_state[rxn] += math.log(random.uniform(0,1))
-                if rxn_count[rxn]:
-                    for reactant in model.listOfReactions[rxn].reactants:
-                        species_modified[reactant.name] = True
-                        curr_state[reactant.name] -= model.listOfReactions[rxn].reactants[reactant] * rxn_count[rxn]
-                    for product in model.listOfReactions[rxn].products:
-                        species_modified[product.name] = True
-                        curr_state[product.name] += model.listOfReactions[rxn].products[product] * rxn_count[rxn]
 
+            species_modified = self.__update_stochastic_rxn_states(model,
+                                                compiled_reactions, curr_state)
+
+            # Occasionally, a tau step can result in an overly-aggressive
+            # forward step and cause a species population to fall below 0,
+            # which would result in an erroneous simulation.  If this occurs,
+            # back simulation up one step and attempt forward simulation using
+            # a smaller tau step.
             neg_state = False
             for s in species_modified.keys():
                 if curr_state[s] < 0:
@@ -488,7 +525,10 @@ class BasicTauHybridSolver(GillesPySolver):
                 curr_time = prev_curr_time
                 tau_step = tau_step / 2
             else: break 
-        # Update Assignment Rules for all processed time points
+
+        # Now update the step and trajectories for this step of the simulation.
+        # Here we make our final assignments for this step, and begin
+        # populating our results trajectory.
         num_saves = 0
         for time in save_times:
             if time > curr_time: break
@@ -498,6 +538,7 @@ class BasicTauHybridSolver(GillesPySolver):
             for s in range(len(species)):
                 # Get ODE Solutions
                 trajectory[trajectory_index][s+1] = sol.sol(time)[s]
+                # Update Assignment Rules for all processed time points
                 if len(model.listOfAssignmentRules):
                     # Copy ODE state for assignments
                     assignment_state[species[s]] = sol.sol(time)[s]
@@ -507,24 +548,22 @@ class BasicTauHybridSolver(GillesPySolver):
                 assignment_state[spec] = assignment_value
                 trajectory[trajectory_index][species.index(spec)+1] = assignment_value
             num_saves += 1
-        save_times = save_times[num_saves:]
+        save_times = save_times[num_saves:] # remove completed save times
 
-        pre_assignment_state = curr_state.copy()
-
-        while event_queue:
-            # Get events in priority order
-            fired_event = model.listOfEvents[heapq.heappop(event_queue)[1]]
-            if fired_event.name in trigger_states:
-                assignment_state = trigger_states[fired_event.name]
-                del trigger_states[fired_event.name]
-            else:
-                assignment_state = pre_assignment_state
-            for a in fired_event.assignments:
-                # Get assignment value
-                assign_value = eval(a.expression, eval_globals, assignment_state)
-                # Update state of assignment variable
-                curr_state[a.variable.name] = assign_value
-
+        events_processed = self.__process_queued_events(model, event_queue, trigger_states, curr_state)
+        
+        # Finally, perform a final check on events after all non-ODE assignment
+        # changes have been carried out on model.
+        event_cycle = True
+        while event_cycle:
+            event_cycle = False
+            for i, e in enumerate(model.listOfEvents.values()):
+                triggered = eval(e.trigger.expression, eval_globals, curr_state)
+                if triggered and not curr_state[e.name]:
+                    curr_state[e.name] = True
+                    self.__handle_event(e, curr_state, curr_time, 
+                                    event_queue, trigger_states, delayed_events)
+                    event_cycle = True
 
         return sol, curr_state, curr_time, save_times
     
@@ -792,12 +831,16 @@ class BasicTauHybridSolver(GillesPySolver):
             for state in trigger_states.values():
                 if state is None: state = curr_state
             for ename, etime in t0_delayed_events.items():
+                curr_state[ename] = True
                 heapq.heappush(delayed_events, (etime, ename))
                 if model.listOfEvents[ename].use_values_from_trigger_time:
                     trigger_states[ename] = curr_state.copy()
                 else:
                     trigger_states[ename] = curr_state
-            # Each save step
+
+
+
+            # Each save step / MAIN LOOP
             while curr_time < model.tspan[-1]:
 
                 if self.interrupted: break
