@@ -699,17 +699,32 @@ class Species(SortableObject):
         mode='discrete' - Species will only be represented as discrete
     allow_negative_populations: bool
         If true, population can be reduced below 0
+    switch_tol : float
+        ***FOR USE WITH BasicTauHybridSolver ONLY***
+        Tolerance level for considering a dynamic species deterministically,
+        value is compared to an estimated sd/mean population of a species after a
+        given time step. This value will be used if a switch_min is not
+        provided.  The default value is 0.03
+    switch_min : float
+        ***FOR USE WITH BasicTauHybridSolver ONLY***
+        Minimum population value at which species will be represented as
+        continuous. If a value is given, switch_min will be used instead of
+        switch_tol
+        
     """
 
     def __init__(self, name="", initial_value=0, constant=False,
                     boundary_condition=False, mode='dynamic',
-                    allow_negative_populations=False):
+                    allow_negative_populations=False, switch_min=0,
+                    switch_tol=0.03):
         # A species has a name (string) and an initial value (positive integer)
         self.name = name
         self.constant = constant
         self.boundary_condition = boundary_condition
         self.mode = mode
         self.allow_negative_populations = allow_negative_populations
+        self.switch_min = switch_min
+        self.switch_tol = switch_tol
 
         mode_list = ['continuous', 'dynamic', 'discrete']
         if self.mode not in mode_list:

@@ -140,11 +140,11 @@ class BasicTauHybridSolver(GillesPySolver):
         dynamic species, then set if species can be represented determistically
         """
         mu_i, sigma_i, model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol = switch_args
-        sd = OrderedDict()
+
         CV = OrderedDict()
-        mn = {species:curr_state[species] for (species, value) in 
+        mn = {species:curr_state[species] for species, value in 
               model.listOfSpecies.items() if value.mode == 'dynamic'}
-        sd = {species:0 for (species, value) in 
+        sd = {species:0 for species, value in 
               model.listOfSpecies.items() if value.mode == 'dynamic'}
 
         for r, rxn in model.listOfReactions.items():
@@ -159,12 +159,16 @@ class BasicTauHybridSolver(GillesPySolver):
                 
         # Get coefficient of variance for each dynamic species
         for species in mn:
+            sref = model.listOfSpecies[species]
             if mn[species] > 0:
                 CV[species] = sd[species] / mn[species]
             else:
                 CV[species] = 1    # value chosen to guarantee discrete
             #Set species to deterministic if CV is less than threshhold
-            det_spec[species] = True if CV[species] < switch_tol or model.listOfSpecies[species].mode == 'continuous' else False                            
+            if sref.switch_min==0:
+                det_spec[species] = True if CV[species] < sref.switch_tol else False
+            else:
+                det_spec[species] = True if mn[species] > sref.switch_min else False
         
         return sd, CV
     
