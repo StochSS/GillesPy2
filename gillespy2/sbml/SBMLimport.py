@@ -229,16 +229,16 @@ def __get_rules(sbml_model, gillespy_model, errors):
         if rule.isAlgebraic():
             t.append('algebraic')
 
-        if len(t) > 0:
-            t[0] = t[0].capitalize()
+            if len(t) > 0:
+                t[0] = t[0].capitalize()
 
-            msg = ", ".join(t)
-            msg += " rule"
-        else:
-            msg = "Rule"
+                msg = ", ".join(t)
+                msg += " rule"
+            else:
+                msg = "Rule"
 
-        errors.append(["{0} '{1}' found on line '{2}' with equation '{3}'. gillespy does not support SBML Algebraic Rules".format(
-            msg, rule.getId(), rule.getLine(), libsbml.formulaToString(rule.getMath())), -5])
+            errors.append(["{0} '{1}' found on line '{2}' with equation '{3}'. gillespy does not support SBML Algebraic Rules".format(
+                msg, rule.getId(), rule.getLine(), libsbml.formulaToString(rule.getMath())), -5])
 
 def __get_constraints(sbml_model, gillespy_model):
     for i in range(sbml_model.getNumConstraints()):
