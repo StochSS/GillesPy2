@@ -439,6 +439,8 @@ class BasicTauHybridSolver(GillesPySolver):
         next_step, curr_time = self.__get_next_step(event_times, reaction_times,
                                                 delayed_events,
                                                 model.tspan[-1], next_tau)
+        print(next_step)
+        print(curr_time)
 
 
 
@@ -744,7 +746,8 @@ class BasicTauHybridSolver(GillesPySolver):
             print("t = ", t)
             print("increment = ", increment)
 
-        self.__set_recommended_ode_defaults(integrator_options)
+        if len(model.listOfEvents):
+            self.__set_recommended_ode_defaults(integrator_options)
         self.__set_seed(seed)
 
         # create mapping of species dictionary to array indices
