@@ -139,7 +139,7 @@ class BasicTauHybridSolver(GillesPySolver):
         Calculates Mean, Standard Deviation, and Coefficient of Variance for each
         dynamic species, then set if species can be represented determistically
         """
-        mu_i, sigma_i, model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol = switch_args
+        model, propensities, curr_state, tau_step, det_spec = switch_args
 
         CV = OrderedDict()
         mn = {species:curr_state[species] for species, value in 
@@ -160,15 +160,15 @@ class BasicTauHybridSolver(GillesPySolver):
         # Get coefficient of variance for each dynamic species
         for species in mn:
             sref = model.listOfSpecies[species]
-            if mn[species] > 0:
-                CV[species] = sd[species] / mn[species]
-            else:
-                CV[species] = 1    # value chosen to guarantee discrete
-            #Set species to deterministic if CV is less than threshhold
             if sref.switch_min==0:
-                det_spec[species] = True if CV[species] < sref.switch_tol else False
+                if mn[species] > 0:
+                    CV[species] = sd[species] / mn[species]
+                else:
+                    CV[species] = 1    # value chosen to guarantee discrete
+                #Set species to deterministic if CV is less than threshhold
+                det_spec[species] = CV[species] < sref.switch_tol
             else:
-                det_spec[species] = True if mn[species] > sref.switch_min else False
+                det_spec[species] = mn[species] > sref.switch_min
         
         return sd, CV
     
@@ -684,7 +684,7 @@ class BasicTauHybridSolver(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
-            debug=False, profile=False, show_labels=True, switch_tol=0.03,
+            debug=False, profile=False, show_labels=True,
             tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
             integrator_options={}, **kwargs):
         """
@@ -713,8 +713,6 @@ class BasicTauHybridSolver(GillesPySolver):
             Set to True to provide information about step size (tau) taken at each step.
         show_labels: bool (True)
             If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]
-        switch_tol: float
-            Relative error tolerance value for deterministic/stochastic switching condition between 0.0 and 1.0
         event_sensitivity: int
             Number of data points to be inspected between integration
             steps/save points for event detection
@@ -880,7 +878,7 @@ class BasicTauHybridSolver(GillesPySolver):
 
                 # Process switching if used
                 if not pure_stochastic and not pure_ode:
-                    switch_args = [mu_i, sigma_i, model, propensities, curr_state, tau_step, det_spec, dependencies, switch_tol]
+                    switch_args = [model, propensities, curr_state, tau_step, det_spec]
                     sd, CV = self.__calculate_statistics(*switch_args)
                 
                 if debug:
