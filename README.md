@@ -174,7 +174,7 @@ New developments happen primarily in the [`develop`](https://github.com/GillesPy
 
 | Master Branch   | Develop Branch | Coverage | PEP8 Compliance|
 |:---------------:|:--------------:|:--------:|:--------:|
-| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | ![Coverage](https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/coverage.png) | ![PEP8](https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/pylint.svg) | 
+| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | ![Coverage](https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/coverage.png) | ![PEP8](https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/pylint.svg?sanitize=true) | 
 
 
 
