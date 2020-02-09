@@ -87,10 +87,12 @@ class BasicODESolver(GillesPySolver):
         if hasattr(signal, 'setitimer'):
             signal.signal(signal.SIGPROF, interval_print)
 
+        from sys import platform
+
         if hasattr(signal, 'SIGALRM'):
             signal.signal(signal.SIGALRM, timed_out)
 
-        elif sys.platform == "win32":
+        elif platform == "win32":
             signal.signal(signal.SIGTERM, timed_out)
 
         def __display():
