@@ -555,8 +555,16 @@ class BasicTauHybridSolver(GillesPySolver):
         def interval_print(signum, frame):
             __display()
 
-        signal.signal(signal.SIGPROF, interval_print)
-        signal.signal(signal.SIGALRM, timed_out)
+        # signal.signal(signal.SIGPROF, interval_print)
+        # signal.signal(signal.SIGALRM, timed_out)
+        if hasattr(signal, 'setitimer'):
+            signal.signal(signal.SIGPROF, interval_print)
+
+        if hasattr(signal, 'SIGALRM'):
+            signal.signal(signal.SIGALRM, timed_out)
+
+        elif sys.platform == "win32":
+            signal.signal(signal.SIGTERM, timed_out)
 
         def __display():
             if display_type is not None:

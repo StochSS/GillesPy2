@@ -532,18 +532,52 @@ class Model(SortableObject):
         solver_args :
             solver-specific arguments to be passed to solver.run()
         """
+
+
+
         @contextmanager
         def interruption_manager(timeout, display_interval):
-            # Register a function to raise a TimeoutError on the signal.
-            signal.signal(signal.SIGALRM, raise_time_out)
 
-            if display_interval < 2 and display_type == "graph":
-                print('display_interval < 2 with display_type \"graph\" not recommended.')
+            if hasattr(signal,'setitimer'):
+                if display_interval < 2 and display_type == "graph":
+                    print('display_interval < 2 with display_type \"graph\" not recommended.')
 
-            # Schedule the signal to be sent after ``time``.
-            signal.alarm(timeout)
+                signal.setitimer(signal.ITIMER_PROF, display_interval, display_interval)
 
-            signal.setitimer(signal.ITIMER_PROF, display_interval, display_interval)
+            from sys import platform
+
+            if hasattr(signal,'SIGALRM'):
+
+                # Register a function to raise a TimeoutError on the signal.
+                signal.signal(signal.SIGALRM, raise_time_out)
+
+                # Schedule the signal to be sent after ``time``.
+                signal.alarm(timeout)
+
+            elif platform == "win32" and timeout > 0:
+
+                from gillespy2.core import log
+                log.warning('Graceful termination not implemented for windows yet...\n Run function will return nothing on timeout.')
+
+                signal.signal(signal.SIGTERM, raise_time_out)
+
+                #TODO Unfortunatly Win32 only emulates shutdown signals and does not really work with handlers...
+                #TODO I suspect the actual solution will make use of windows messages or events...
+
+                #See these examples for solutions
+                #https://stackoverflow.com/questions/35772001/how-to-handle-the-signal-in-python-on-windows-machine
+                #https://docs.microsoft.com/en-us/previous-versions/ms811896(v=msdn.10)#signals-and-signal-handling
+
+                def __abort_win32():
+
+                    log.warning("Terminating...")
+                    os.kill(os.getpid(), signal.SIGTERM)
+
+                import threading
+                import os
+
+                timer = threading.Timer(timeout,lambda: __abort_win32())
+                timer.start()
 
             try:
                 yield
@@ -553,8 +587,13 @@ class Model(SortableObject):
             finally:
                 # Unregister the signal so it won't be triggered
                 # if the time_out is not reached.
-                signal.signal(signal.SIGALRM, signal.SIG_IGN)
-                signal.signal(signal.SIGPROF, signal.SIG_IGN)
+
+                if hasattr(signal, 'setitimer'):
+                    signal.signal(signal.SIGPROF, signal.SIG_IGN)
+                if hasattr(signal,'SIGALRM'):
+                    signal.signal(signal.SIGALRM, signal.SIG_IGN)
+                elif hasattr(signal, 'SIGTERM'):
+                    signal.signal(signal.SIGTERM, signal.SIG_IGN)
 
         def raise_time_out(signum, frame):
             from gillespy2.core import log
