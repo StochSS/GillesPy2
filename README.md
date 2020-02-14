@@ -36,21 +36,21 @@ On **Linux**, **macOS**, and **Windows** operating systems, you should be able t
 
 Then, to install GillesPy2 from the Python package repository, run the following command:
 ```sh
-pip3 install gillespy2 --user --upgrade
+python3 -m pip install gillespy2 --user --upgrade
 ```
 
 ### _Using the source code repository_
 
 As an alternative to getting it from PyPI, you can instruct `pip` to install GillesPy2 directly from the GitHub repository:
 ```sh
-pip3 install https://github.com/GillesPy2/GillesPy2/archive/master.zip --user --upgrade
+python3 -m pip install https://github.com/GillesPy2/GillesPy2/archive/master.zip --user --upgrade
 ```
 
 As a final alternative, you can first use `git` to clone a copy of the GillesPy2 source tree from the GitHub repository to your local computer disk, and then install GillesPy2 using that copy:
 ```sh
 git clone https://github.com/GillesPy2/GillesPy2.git
 cd GillesPy2
-pip3 install  .  --user --upgrade
+python3 -m pip install  .  --user --upgrade
 ```
 
 Usage
@@ -174,8 +174,7 @@ New developments happen primarily in the [`develop`](https://github.com/GillesPy
 
 | Master Branch   | Develop Branch | Coverage | PEP8 Compliance|
 |:---------------:|:--------------:|:--------:|:--------:|
-| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | ![Coverage](https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/coverage.png) | ![PEP8](https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/pylint.svg?sanitize=true) | 
-
+| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | ![Coverage](https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/coverage.png) |
 
 
 Acknowledgments
