@@ -829,8 +829,9 @@ class Reaction(SortableObject):
             total_stoch += self.reactants[r]
         if total_stoch > 2:
             raise ReactionError("Reaction: A mass-action reaction cannot involve more than two of one species or one "
-                                "of two species. "
-                                "To declare a custom propensity, replace 'rate' with 'propensity_function'.")
+                                "of two species. To declare a custom propensity, replace 'rate' with "
+                                "'propensity_function'.")
+
         # Case EmptySet -> Y
 
         propensity_function = self.marate.name
