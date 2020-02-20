@@ -1,7 +1,7 @@
 # Release Checklist
 
 
-# Github/Code
+### Github/Code
 
 1. Ensure requirements.txt (dependencies) and our acknowledgments are up to date
 
@@ -13,12 +13,12 @@
 
 5. Update all instances of the version number (including __version__.py)
 
-6. Push changes to mast
+6. Push changes to master
 
 
 
 
-# PyPI
+### PyPI
 
 1. After following the above, ensure that setup.py will be updated correctly per changes in __version__.py, 
    ensure any other necessary changes to setup.py
@@ -38,7 +38,7 @@
 
 
 
-# conda-forge
+### conda-forge
 
 1. Ensure you are entered as a maintainer in the meta.yaml file of our conda-forge fork
 
@@ -46,6 +46,8 @@
 
 3. In fork, update all necessary elements of meta.yaml. This includes:
    Authors, version numbers, URL and sha256, dependencies
+   
+4. Bump build number AS NEEDED (click on first link for appropriate reasons to do so)
    
 4. Commit changes and submit pull request to feedstock location
 
