@@ -5,15 +5,17 @@
 
 1. Ensure requirements.txt (dependencies) and our acknowledgments are up to date
 
-2. Verify that user documentation matches the current release
+2. Be sure to mark code as deprecated/remove as necessary 
 
-3. Verify all testing procedures 
+3. Verify that user documentation matches the current release
 
-4. Update authors/maintainers list and acknowledgments (in README.md as well as version.py!)
+4. Verify all testing procedures 
 
-5. Update all instances of the version number (including version.py)
+5. Update authors/maintainers list and acknowledgments (in README.md as well as version.py!)
 
-6. Push changes to master
+6. Update all instances of the version number (including version.py)
+
+7. Push changes to master
 
 
 
