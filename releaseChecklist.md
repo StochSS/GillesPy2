@@ -1,0 +1,53 @@
+#Release Checklist
+
+
+#Github/Code
+
+1. Ensure requirements.txt (dependencies) and our acknowledgements are up to date
+
+2. Verify that user documentation matches current release
+
+3. Verify all testing procedures 
+
+4. Update authors/maintainers list and acknowledgements (in README.md as well as __version__.py!)
+
+5. Update all instances of version number (including __version__.py)
+
+6. Push changes to master
+
+
+
+
+#PyPI
+
+1. After following the above, ensure that setup.py will be updated correctly in accordance to changes in __version__.py, 
+   ensure any other necesarry changes to setup.py
+
+2. Build wheel and source file for upload to PyPI
+
+3. Upload to PyPI
+
+4. Ensure pip install works properly 
+
+5. Check PyPI listing page to match that README and other documentation display properly
+
+
+
+[For complete documentation on uploading to PyPI, including code, refer to this link](https://packaging.python.org/guides/distributing-packages-using-setuptools/)
+
+
+
+
+#conda-forge
+
+1. Ensure you are entered as a maintainer in the meta.yaml file of our conda-forge fork
+
+2. Create fork of our feedstock at the conda-forge feedstocks github
+
+3. In fork, update all necesarry elements of meta.yaml. This includes:
+   Authors, version numbers, URL and sha256, dependencies
+   
+4. Commit changes and submit pull request to feedstock location
+
+[For complete documentation on updating conda-forge feedstock, including code, refer to this link](https://conda-forge.org/docs/maintainer/updating_pkgs.html#)
+[For complete information on various attributes of the meta.yaml file, refer to this link](https://conda-forge.org/docs/maintainer/adding_pkgs.html)
