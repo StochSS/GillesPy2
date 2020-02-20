@@ -9,9 +9,9 @@
 
 3. Verify all testing procedures 
 
-4. Update authors/maintainers list and acknowledgments (in README.md as well as __version__.py!)
+4. Update authors/maintainers list and acknowledgments (in README.md as well as version.py!)
 
-5. Update all instances of the version number (including __version__.py)
+5. Update all instances of the version number (including version.py)
 
 6. Push changes to master
 
@@ -20,7 +20,7 @@
 
 ### PyPI
 
-1. After following the above, ensure that setup.py will be updated correctly per changes in __version__.py, 
+1. After following the above, ensure that setup.py will be updated correctly per changes in versio.py, 
    ensure any other necessary changes to setup.py
 
 2. Build wheel and source file for upload to PyPI
@@ -52,4 +52,5 @@
 4. Commit changes and submit pull request to feedstock location
 
 [For complete documentation on updating conda-forge feedstock, including code, refer to this link](https://conda-forge.org/docs/maintainer/updating_pkgs.html#)
+
 [For complete information on various attributes of the meta.yaml file, refer to this link](https://conda-forge.org/docs/maintainer/adding_pkgs.html)
