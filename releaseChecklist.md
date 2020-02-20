@@ -22,7 +22,7 @@
 
 ### PyPI
 
-1. After following the above, ensure that setup.py will be updated correctly per changes in versio.py, 
+1. After following the above, ensure that setup.py will be updated correctly per changes in version.py, 
    ensure any other necessary changes to setup.py
 
 2. Build wheel and source file for upload to PyPI
