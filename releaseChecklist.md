@@ -47,7 +47,7 @@
 2. Create fork of our feedstock at the conda-forge feedstocks github
 
 3. In fork, update all necessary elements of meta.yaml. This includes:
-   Authors, version numbers, URL and sha256, dependencies
+   authors, version numbers, URL and sha256, dependencies
    
 4. Bump build number AS NEEDED (click on first link for appropriate reasons to do so)
    
