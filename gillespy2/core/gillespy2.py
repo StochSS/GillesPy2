@@ -12,6 +12,7 @@ from gillespy2.core.results import Results,EnsembleResults
 from gillespy2.core.events import *
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
+import os
 
 try:
     import lxml.etree as eTree
@@ -538,46 +539,18 @@ class Model(SortableObject):
         @contextmanager
         def interruption_manager(timeout, display_interval):
 
-            if hasattr(signal,'setitimer'):
-                if display_interval < 2 and display_type == "graph":
-                    print('display_interval < 2 with display_type \"graph\" not recommended.')
+            if display_interval > 0:
 
-                signal.setitimer(signal.ITIMER_PROF, display_interval, display_interval)
+                    if display_interval < 2 and display_type == "graph":
+                        print('display_interval < 2 with display_type \"graph\" not recommended.')
 
-            from sys import platform
+                    signal.setitimer(signal.ITIMER_PROF, display_interval, display_interval)
 
-            if hasattr(signal,'SIGALRM'):
+            if timeout > 0:
 
-                # Register a function to raise a TimeoutError on the signal.
                 signal.signal(signal.SIGALRM, raise_time_out)
-
                 # Schedule the signal to be sent after ``time``.
                 signal.alarm(timeout)
-
-            elif platform == "win32" and timeout > 0:
-
-                from gillespy2.core import log
-                log.warning('Graceful termination not implemented for windows yet...\n Run function will return nothing on timeout.')
-
-                signal.signal(signal.SIGTERM, raise_time_out)
-
-                #TODO Unfortunatly Win32 only emulates shutdown signals and does not really work with handlers...
-                #TODO I suspect the actual solution will make use of windows messages or events...
-
-                #See these examples for solutions
-                #https://stackoverflow.com/questions/35772001/how-to-handle-the-signal-in-python-on-windows-machine
-                #https://docs.microsoft.com/en-us/previous-versions/ms811896(v=msdn.10)#signals-and-signal-handling
-
-                def __abort_win32():
-
-                    log.warning("Terminating...")
-                    os.kill(os.getpid(), signal.SIGTERM)
-
-                import threading
-                import os
-
-                timer = threading.Timer(timeout,lambda: __abort_win32())
-                timer.start()
 
             try:
                 yield
@@ -611,24 +584,35 @@ class Model(SortableObject):
                 print(species[:10].ljust(10),end="|")
             print("")
 
-            # print(self.listOfSpecies)
+
+        if os.name != "posix":
+            if display_interval > 0:
+                from gillespy2.core import log
+                log.warning("Windows currently unsupported for live graphing.")
+                display_interval = 0
+
+            if timeout > 0:
+                from gillespy2.core import log
+                log.warning("Windows currently unsupported for timeouts")
+                timeout = 0
+
+        if display_interval > 0:
+            if display_type is None:
+                print("display_type unspecified. Displaying text.")
+                display_type = "text"
+                __live_graphing_print_header()
+
+            elif display_type == "text":
+                __live_graphing_print_header()
+
+            elif display_type is not "graph" and display_type is not "progress":
+                print("Got display_type = \"", display_type,
+                      "\". Display_type should be \"graph\", \"text\", or \"progress\"", sep="")
+        else:
+            display_type = None
+
 
         with interruption_manager(timeout, display_interval):
-
-            if display_interval > 0:
-                if display_type is None:
-                    print("display_type unspecified. Displaying text.")
-                    display_type = "text"
-                    __live_graphing_print_header()
-
-                elif display_type == "text":
-                    __live_graphing_print_header()
-
-                elif display_type is not "graph" and display_type is not "progress":
-                    print("Got display_type = \"", display_type,
-                          "\". Display_type should be \"graph\", \"text\", or \"progress\"", sep="")
-            else:
-                display_type = None
 
             if solver is not None:
                 if ((isinstance(solver, type)

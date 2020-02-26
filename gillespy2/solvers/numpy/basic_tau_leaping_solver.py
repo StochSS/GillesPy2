@@ -92,25 +92,17 @@ class BasicTauLeapingSolver(GillesPySolver):
                 """
 
         def timed_out(signum, frame):
-
             self.rc = 33
             self.interrupted = True
-
-        def interval_print(signum, frame):
-            __display()
-
-        # signal.signal(signal.SIGPROF, interval_print)
-        # signal.signal(signal.SIGALRM, timed_out)
-        if hasattr(signal, 'setitimer'):
-            signal.signal(signal.SIGPROF, interval_print)
-
-        from sys import platform
 
         if hasattr(signal, 'SIGALRM'):
             signal.signal(signal.SIGALRM, timed_out)
 
-        elif platform == "win32":
-            signal.signal(signal.SIGTERM, timed_out)
+        def interval_print(signum, frame):
+            __display()
+
+        if hasattr(signal, 'setitimer'):
+            signal.signal(signal.SIGPROF, interval_print)
 
         def __display():
 
