@@ -13,7 +13,6 @@ GillesPy2 is a Python 3 package for stochastic simulation of biochemical systems
 ![PyPI - License](https://img.shields.io/pypi/l/gillespy2.svg?color=informational)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/gillespy2.svg)
 
-
 Table of contents
 -----------------
 
@@ -62,7 +61,6 @@ GillesPy2 provides simple object-oriented abstractions for defining a model of a
 2. Invoke the model's `.run()` method.
 
 The `run()` method can be customized using keyword arguments to select different solvers, random seed, data return type and more.  For more detailed examples on how to use GillesPy2, please see the [Getting Started](https://github.com/GillesPy2/GillesPy2/tree/master/examples/Getting-Started.ipynb) Jupyter notebook contained in the [examples](https://github.com/GillesPy2/GillesPy2/tree/master/examples) subdirectory.
-
 
 ### _Simple example to illustrate the use of GillesPy2_
 
@@ -135,24 +133,28 @@ With a few additional Python matplotlib commands to create figure labels and suc
 <img width="500px" src="https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/dimerization-example-matplotlib.png">
 </p>
 
-
 Getting help
 ------------
 
-GillesPy2's [online documentation](https://gillespy2.github.io/GillesPy2/) provides more details about using the software.  If you find any problem with GillesPy2 or the documentation, please report it using [the GitHub issue tracker](https://github.com/GillesPy2/GillesPy2/issues) for this repository.  You can also contact Dr. [Brian Drawert](http://www.cs.unca.edu/~drawert) directly with questions and suggestions.
-
+GillesPy2's [online documentation](https://gillespy2.github.io/GillesPy2/) provides more details about using the software.  If you find any problem with GillesPy2 or the documentation, please report it using the [GitHub issue tracker](https://github.com/GillesPy2/GillesPy2/issues) for this repository.  You can also contact Dr. [Brian Drawert](http://www.cs.unca.edu/~drawert) directly with questions and suggestions.
 
 Contributing
 ------------
 
 We would be happy to receive your help and participation with enhancing GillesPy2!  Please follow the guidelines described in [CONTRIBUTING.md](https://github.com/GillesPy2/GillesPy2/tree/master/CONTRIBUTING.md).
 
+New developments happen primarily in the [`develop`](https://github.com/GillesPy2/GillesPy2/commits/develop) branch.  New releases are put in the `master` branch.
+
+<p align="center">
+
+| Master Branch   | Develop Branch | Coverage |
+|:---------------:|:--------------:|:--------:|
+| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | ![Coverage](https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/coverage.png) |
 
 License
 -------
 
-GillesPy2 is licensed under the GNU General Public License version 3.  Please see the file [LICENSE](LICENSE) for more information.
-
+GillesPy2 is licensed under the GNU General Public License version 3.  Please see the file [LICENSE](https://github.com/GillesPy2/GillesPy2/blob/master/LICENSE) for more information.
 
 Authors and history
 ---------------------------
@@ -167,15 +169,6 @@ Authors and history
 * [**W.R. Jackson** ](https://github.com/JustJackson)
 * [**Samuel Hodges**](https://github.com/hodgespodge)
 * [**Emma Weisgerber**](https://github.com/eweisger)
-
-New developments happen primarily in the [`develop`](https://github.com/GillesPy2/GillesPy2/commits/develop) branch.  New releases are put in the `master` branch.
-
-<p align="center">
-
-| Master Branch   | Develop Branch | Coverage |
-|:---------------:|:--------------:|:--------:|
-| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | ![Coverage](https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/coverage.png) |
-
 
 Acknowledgments
 ---------------
