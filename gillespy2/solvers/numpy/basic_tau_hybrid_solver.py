@@ -601,8 +601,8 @@ class BasicTauHybridSolver(GillesPySolver):
                         plt.legend(loc='upper right')
                         plt.show()
                 except:
-                    print("failed to display output at curr_time =", curr_time)
-                    print("Make sure display_interval > 2")
+                    log.warning("failed to display output at curr_time = {0}".format(curr_time))
+                    log.warning("Make sure display_interval > 2")
                     pass
 
 
