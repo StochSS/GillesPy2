@@ -523,7 +523,8 @@ class Model(SortableObject):
             Allows a time_out value in seconds to be sent to a signal handler, restricting simulation run-time
             Posix only.
         display_interval : float
-            Defines the time interval for which the chosen display_type is displayed during run-time.
+            Defines the time interval for which the chosen display_type is displayed during run-time. If using
+            display_type = \"graph\", low display_intervals can crash Ipython kernel. display_intervel > 2 recommended.
             Posix only.
         display_type : "text", "progress" or "graph"
             the type of simulation data to be returned at the given display_interval.
@@ -542,7 +543,9 @@ class Model(SortableObject):
             if display_interval > 0:
 
                     if display_interval < 2 and display_type == "graph":
-                        print('display_interval < 2 with display_type \"graph\" not recommended.')
+                        from gillespy2.core import log
+
+                        log.warning('display_interval < 2 with display_type \"graph\" not recommended.')
 
                     signal.setitimer(signal.ITIMER_PROF, display_interval, display_interval)
 
