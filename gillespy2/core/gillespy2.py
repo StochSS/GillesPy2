@@ -481,20 +481,18 @@ class Model(SortableObject):
                     object.
                 """
 
-        # TODO, make sure that you cannot overwrite an existing reaction
-        # param_type = type(reactions).__name__
         if isinstance(rate_rules, list):
             for rr in sorted(rate_rules):
                 self.add_rate_rule(rr)
         elif isinstance(rate_rules, RateRule):
-            if rate_rules.variable is None or not isinstance(rate_rules.variable, Species): raise ModelError(
-                'A Rate Rule must be associated with a valid species.')
             if rate_rules.formula == '': raise ModelError('Invalid Rate Rule. Expression must be a non-empty string value')
-            self.listOfRateRules[rate_rules.variable.name] = rate_rules
+            if rate_rules.variable == None:
+                raise ModelError('A GillesPy2 Rate Rule must be associated with a valid variable')
+            self.listOfRateRules[rate_rules.variable] = rate_rules
             sanitized_rate_rule = RateRule(name = 'RR{}'.format(len(self._listOfRateRules)))
             sanitized_rate_rule.formula = rate_rules.sanitized_formula(self._listOfSpecies,
                                                     self._listOfParameters)
-            self._listOfRateRules[rate_rules.variable.name] = sanitized_rate_rule
+            self._listOfRateRules[rate_rules.variable] = sanitized_rate_rule
         else:
             raise ParameterError("Add_rate_rule accepts a RateRule object or a List of RateRule Objects")
         return rate_rules
@@ -841,11 +839,15 @@ class FunctionDefinition(SortableObject):
         String names of Variables to be used as arguments to function.
     """
 
+
     def __init__(self, name="", function=None, args=[]):
+
+        import math
+        eval_globals = math.__dict__
 
         self.name = name
         args = ', '.join(args)
-        self.function = eval('lambda ' + args + ': ' + function)
+        self.function = eval('lambda ' + args + ': ' + function, eval_globals)
         if self.function is None:
             raise TypeError
     def sanitized_function(self, species_mappings, parameter_mappings):
@@ -858,9 +860,10 @@ class FunctionDefinition(SortableObject):
         return sanitized_function.format(*replacements)
 
 class AssignmentRule(SortableObject):
-    def __init__(self, variable=None, formula=None):
+    def __init__(self, variable=None, formula=None, name=None):
         self.variable = variable
         self.formula = formula
+        self.name = name
     def __str__(self):
         return self.variable + ': ' + self.formula
     def sanitized_formula(self, species_mappings, parameter_mappings):
@@ -878,7 +881,7 @@ class RateRule(SortableObject):
         self.variable = variable
         self.name = name
     def __str__(self):
-        return self.variable.name + ': ' + self.formula
+        return self.name + ': Var: ' + self.variable + ': ' + self.formula
     def sanitized_formula(self, species_mappings, parameter_mappings):
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]

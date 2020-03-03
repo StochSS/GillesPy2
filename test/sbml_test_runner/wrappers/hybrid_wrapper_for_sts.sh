@@ -118,13 +118,19 @@ EXPECTED_RESULTS_FILE = os.path.join(TEST_DIR, '{0}-results.csv'.format(CASE_NO)
 # Read in the SBML model.
 model, errors = gillespy2.import_SBML(TEST_FILE)
 
-# Retrieve simulation times from settings file.
+# Create absolute and relative tolerance defaults
+atol = 1e-9
+rtol = 1e-6
+
+# Retrieve simulation settings from file.
 start, duration, steps = [0]*3
 with open(SETTINGS_FILE, 'r') as settings:
     for line in settings:
         if 'start' in line: start = float(line.split(': ')[1])
         elif 'duration' in line: duration = float(line.split(': ')[1])
         elif 'steps' in line: steps = int(line.split(': ')[1])
+        elif 'absolute' in line: atol = float(line.split(': ')[1])
+        elif 'relative' in line: rtol = float(line.split(': ')[1])
 
 #Force Continuous Species
 for species in model.listOfSpecies.values():
@@ -152,7 +158,8 @@ if not len(model.listOfSpecies):
 # Run simulation and store results
 solver = BasicTauHybridSolver()
 model.tspan = np.linspace(start, duration, steps+1)
-results = model.run(solver=solver, show_labels=True, integrator_options={'max_step':.25})
+results = model.run(solver=solver, show_labels=True, integrator='Radau',
+integrator_options={'max_step':.25, 'atol':atol, 'rtol':rtol})
 
 # Create headers for csv file
 headers = ['time']

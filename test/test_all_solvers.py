@@ -22,6 +22,8 @@ class TestAllSolvers(unittest.TestCase):
         solvers.append(CythonSSASolver)
 
     model = Example()
+    for sp in model.listOfSpecies.values():
+        sp.mode = 'discrete'
     results = {}
     labeled_results = {}
     labeled_results_more_trajectories = {}
@@ -59,12 +61,7 @@ class TestAllSolvers(unittest.TestCase):
 
     def test_random_seed(self):
         for solver in self.solvers:
-            print(solver)
-            print('first results')
-            print(self.results[solver])
             same_results = self.model.run(solver=solver, show_labels=False, seed=1)
-            print('second results')
-            print(same_results)
             self.assertTrue(np.array_equal(same_results, self.results[solver]))
             if solver.name == 'BasicODESolver': continue
             diff_results = self.model.run(solver=solver, show_labels=False, seed=2)

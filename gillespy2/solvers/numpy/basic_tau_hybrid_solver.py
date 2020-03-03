@@ -11,6 +11,27 @@ from gillespy2.core.gillespyError import *
 
 eval_globals = math.__dict__
 
+def piecewise(*args):
+    args = list(args)
+    sol = None
+    if len(args) % 2: args.append(True)
+    for i, arg in enumerate(args):
+        if not i % 2: continue
+        if arg:
+            sol = args[i-1]
+            break
+    return sol
+def xor(*args):
+    from operator import ixor
+    from functools import reduce
+    args = list(args)
+    return reduce(ixor, args)
+
+eval_globals['false'] = False
+eval_globals['true'] = True
+eval_globals['piecewise'] = piecewise
+eval_globals['xor'] = xor
+
 
 class BasicTauHybridSolver(GillesPySolver):
     """
@@ -172,8 +193,6 @@ class BasicTauHybridSolver(GillesPySolver):
         
         return sd, CV
     
-
-
     @staticmethod
     def __f(t, y, curr_state, species, reactions, rate_rules, propensities,
     y_map, compiled_reactions, compiled_rate_rules, events, assignment_rules):
@@ -186,20 +205,19 @@ class BasicTauHybridSolver(GillesPySolver):
         curr_state['time'] = t
         for item, index in y_map.items():
             if item in assignment_rules:
-                curr_state[item] = eval(assignment_rules[item].formula,
-                                        eval_globals, curr_state)
+                curr_state[item] = eval(assignment_rules[item].formula, {**curr_state, **eval_globals})
             else:
                 curr_state[item] = y[index]
         for rr in compiled_rate_rules:
             try:
-                state_change[y_map[rr]] += eval(compiled_rate_rules[rr], eval_globals, curr_state)
+                state_change[y_map[rr]] += eval(compiled_rate_rules[rr], {**curr_state, **eval_globals})
             except ValueError:
                 pass
         for i, r in enumerate(compiled_reactions):
-            propensities[r] = eval(compiled_reactions[r], eval_globals, curr_state)
+            propensities[r] = eval(compiled_reactions[r],{**curr_state, **eval_globals})
             state_change[y_map[r]] += propensities[r]
         for event in events:
-            triggered = eval(event.trigger.expression, eval_globals, curr_state)
+            triggered = eval(event.trigger.expression, {**curr_state, **eval_globals})
             if triggered: state_change[y_map[event]] = 1
 
 
@@ -439,8 +457,6 @@ class BasicTauHybridSolver(GillesPySolver):
         next_step, curr_time = self.__get_next_step(event_times, reaction_times,
                                                 delayed_events,
                                                 model.tspan[-1], next_tau)
-        print(next_step)
-        print(curr_time)
 
 
 
