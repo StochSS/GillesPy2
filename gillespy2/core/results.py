@@ -108,26 +108,28 @@ class Results(UserDict):
             return self.__class__.__missing__(self, key)
         raise KeyError(key)
 
-    def to_csv(self, path=None, nametag=None):
+    def to_csv(self, path=None, nametag=None, stamp=None):
         """ outputs the Results to one or more .csv files in a new directory.
 
              Attributes
             ----------
             user_tag: allows the user to optionally "tag" the directory and included files. Defaults to the model name.
             path: path to the location for the new directory and included files. Defaults to model location.
+            stamp: allows the user to optionally identify the directory (not included files). Defaults to timestamp.
             """
-        now = datetime.now()
-        timestamp=datetime.timestamp(now)
+        if stamp=None:
+            now = datetime.now()
+            stamp=datetime.timestamp(now)
         if nametag is None:
             identifier = (self.model.name + " - " + self.solver_name)
         else:
             identifier = nametag
         if isinstance(self.data,dict):#if only one trajectory
             if path is None:
-                directory = os.path.join(".",str(identifier)+str(timestamp))
+                directory = os.path.join(".",str(identifier)+str(stamp))
                 os.mkdir(directory)
             else:
-                directory = os.path.join(path,str(identifier)+str(timestamp))
+                directory = os.path.join(path,str(identifier)+str(stamp))
                 os.mkdir(directory)
             filename = directory+"/"+identifier+".csv"
             field_names = []
@@ -256,24 +258,26 @@ class EnsembleResults(UserList):
     def __init__(self,data):
         self.data = data
 
-    def to_csv(self, path=None, nametag=None):
+    def to_csv(self, path=None, nametag=None, stamp=None):
         """ outputs the Results to one or more .csv files in a new directory.
 
              Attributes
             ----------
             nametag: allows the user to optionally "tag" the directory and included files. Defaults to the model name.
             path: the location for the new directory and included files. Defaults to model location.
+            stamp: Allows the user to optionally "tag" the directory (not included files). Default is timestamp.
             """
+        if stamp is None:
         now = datetime.now()
-        timestamp=datetime.timestamp(now)
+        stamp=datetime.timestamp(now)
         if nametag is None:
             identifier = (self[0].model.name + " - " + self[0].solver_name)
         else:
             identifier = nametag
         if path is None:
-            directory = "./"+str(identifier)+str(timestamp)
+            directory = "./"+str(identifier)+str(stamp)
         else:
-            directory = path+"/"+str(identifier)+str(timestamp)
+            directory = path+"/"+str(identifier)+str(stamp)
     #multiple trajectories
         if isinstance(self.data,list):
             
