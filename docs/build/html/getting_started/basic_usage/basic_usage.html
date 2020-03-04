@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Basic usage &#8212; GillesPy2 1.2.1 documentation</title>
+    <title>Basic usage &#8212; GillesPy2 1.2 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -98,7 +98,6 @@
 <li><p>Invoke the model’s <code class="docutils literal notranslate"><span class="pre">.run()</span></code> method.</p></li>
 </ol>
 <p>The <code class="docutils literal notranslate"><span class="pre">run()</span></code> method can be customized using keyword arguments to select different solvers, random seed, data return type and more.</p>
-<p> <a href="../../../../getting_started/uml_class_model/GillesPy2_UML_class_diagram.png">Click here</a> to view the UML class diagram (a visualization of the program's structure). This diagram was derived from a <a href="../../../../getting_started/uml_class_model/GillesPy2_UML_class_model.pyns">UML class model</a> generated automatically by <a href=https://pynsource.com/>Pynsource</a>, an open-source UML tool for the Python language.
 <div class="section" id="simple-example-of-using-gillespy2">
 <h2>Simple example of using GillesPy2<a class="headerlink" href="#simple-example-of-using-gillespy2" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference external" href="https://www.ncbi.nlm.nih.gov/books/NBK26830">Dimerization</a> is a process in which two molecules of some molecular species (known as a “monomer” in this situation &amp;ndash; let’s call it “M” for short) come together to create a new molecule (call it “D”), but do so in a way that is reversible, meaning the combined structure can also decay or dissociate back into “M”.  A simple model of the dimerization process represents it as two reactions: a reaction in which one molecule of “M” reacts with another molecule of “M” to form one new molecule (“D”), and another reaction in which a molecule of “D” breaks apart into two molecules of “M”.  In terms of biochemical reactions, it looks like this (where <em>k</em><sub>c</sub> and <em>k</em><sub>d</sub> represent the rate constants for creation and dissociation of the dimer, respectively; <em>M</em> represents the number of molecules of “M”; and <em>D</em> is the number of molecules of “D”):</p>
