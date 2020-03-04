@@ -10,7 +10,8 @@ c) Please use a meaningful name, and include the issue # if applicable.
 d) For bug fixes, branch from 'master'  
 e) For new features, branch from 'develop'  
 e) Be sure to document your code  
-f) Create unit tests to cover changes.  Unit tests should be placed in the [test](/test) subdirectory.  
+f) Create unit tests to cover changes.  Unit tests should be placed in the [test](/test) subdirectory.
+g) Update the UML class model and UML class diagram screenshot located in the [docs/getting_started/uml_class_model](/docs/getting_started/uml_class_model) subdirectory. The model was built with Pynsource, an open-source UML tool for Python.
   
 ### 2. Submitting a Pull Request:  
 a) If changes are bug/hotfix, make a pull request to 'master'.  
