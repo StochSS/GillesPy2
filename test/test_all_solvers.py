@@ -22,6 +22,8 @@ class TestAllSolvers(unittest.TestCase):
         solvers.append(CythonSSASolver)
 
     model = Example()
+    for sp in model.listOfSpecies.values():
+        sp.mode = 'discrete'
     results = {}
     labeled_results = {}
     labeled_results_more_trajectories = {}

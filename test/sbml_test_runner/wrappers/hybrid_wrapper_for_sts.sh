@@ -118,34 +118,63 @@ EXPECTED_RESULTS_FILE = os.path.join(TEST_DIR, '{0}-results.csv'.format(CASE_NO)
 # Read in the SBML model.
 model, errors = gillespy2.import_SBML(TEST_FILE)
 
-# Retrieve simulation times from settings file.
+# Create absolute and relative tolerance defaults
+atol = 1e-9
+rtol = 1e-6
+
+# Retrieve simulation settings from file.
 start, duration, steps = [0]*3
 with open(SETTINGS_FILE, 'r') as settings:
     for line in settings:
         if 'start' in line: start = float(line.split(': ')[1])
         elif 'duration' in line: duration = float(line.split(': ')[1])
         elif 'steps' in line: steps = int(line.split(': ')[1])
+        elif 'absolute' in line: atol = float(line.split(': ')[1])
+        elif 'relative' in line: rtol = float(line.split(': ')[1])
 
 #Force Continuous Species
 for species in model.listOfSpecies.values():
 	species.mode = 'continuous'
 
+# Convert expected results items to species
+with open(EXPECTED_RESULTS_FILE, 'r') as expected_file:
+	reader = csv.reader(expected_file)
+	expected_species = next(reader)[1:]
+	for spec in expected_species:
+		if spec in model.listOfParameters:
+			p_to_s = gillespy2.Species(name=spec, initial_value=model.listOfParameters[spec].value, mode='continuous', allow_negative_populations=True)
+			model.delete_parameter(spec)
+			model.add_species(p_to_s)
+
+# If no Species, plot Parameters
+if not len(model.listOfSpecies):
+    species_to_add = []
+    for name, param in model.listOfParameters.items():
+        species_to_add.append(gillespy2.Species(name=name,
+                                initial_value=param.expression, mode='continuous',
+                                allow_negative_populations=True))
+    model.delete_all_parameters()
+    model.add_species(species_to_add)
 # Run simulation and store results
 solver = BasicTauHybridSolver()
 model.tspan = np.linspace(start, duration, steps+1)
-results = model.run(solver=solver, show_labels=False)
+results = model.run(solver=solver, show_labels=True, integrator='Radau',
+integrator_options={'max_step':.25, 'atol':atol, 'rtol':rtol})
 
 # Create headers for csv file
 headers = ['time']
-for species in model.listOfSpecies:
+for species in expected_species:
     headers.append(species)
 
 # Write results to csv file
 with open(TARG_FILE, 'w+') as results_file:
     filewriter = csv.writer(results_file, delimiter=',')
     filewriter.writerow(headers)
-    for row in results[0]:
-        filewriter.writerow(row)
+    for timestep in range(len(results[0]['time'])):
+        value_list = [results[0]['time'][timestep]]
+        for species in expected_species:
+            value_list.append(results[0][species][timestep])
+        filewriter.writerow(value_list)
 
 if debug:
     print('SBML FILE:')
@@ -174,6 +203,7 @@ if debug:
         print('---- Products:')
         for prd, cnt in rxn.products.items():
             print('------ {0}: {1}'.format(str(prd), cnt))
+        print('---- Propensity_Function: ', rxn.propensity_function)
 
     print('Simulation Results:')
     with open(TARG_FILE, 'r') as results_file:
