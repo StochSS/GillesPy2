@@ -24,16 +24,19 @@
 
 1. After following the above, ensure that setup.py will be updated correctly per changes in version.py, 
    ensure any other necessary changes to setup.py
+   
+2. Follow instructions on link below to TEST our PyPI package (refer to #6 on this list after doing so)
 
-2. Build wheel and source file for upload to PyPI
+3. Build wheel and source file for upload to PyPI
 
-3. Upload to PyPI
+4. Upload to PyPI
 
-4. Ensure pip install works properly 
+5. Ensure pip install works properly 
 
-5. Check PyPI listing page to match that README and other documentation display properly
+6. Check PyPI listing page to match that README and other documentation display properly
 
 
+[For documentation on testing PyPI, clicker here](https://packaging.python.org/guides/using-testpypi/#using-test-pypi)
 
 [For complete documentation on uploading to PyPI, including code, refer to this link](https://packaging.python.org/guides/distributing-packages-using-setuptools/)
 
