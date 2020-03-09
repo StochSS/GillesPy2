@@ -148,6 +148,18 @@ def traverse_math(node, old_id, new_id):
 def __get_kinetic_law(sbml_model, gillespy_model, reaction):
     kinetic_law = reaction.getKineticLaw()
     tree = kinetic_law.getMath()
+    # Only when concentration?
+    for i in range(reaction.getNumReactants()):
+         r_name = reaction.getReactant(i).getSpecies()
+         r_comp = sbml_model.getSpecies(r_name).getCompartment()
+         concentration = r_name + '/' + r_comp
+         traverse_math(tree, r_name, concentration)
+    for i in range(reaction.getNumProducts()):
+         p_name = reaction.getProduct(i).getSpecies()
+         p_comp = sbml_model.getSpecies(p_name).getCompartment()
+         concentration = p_name + '/' + p_comp
+         traverse_math(tree, p_name, concentration)
+
     params = kinetic_law.getListOfParameters()
     local_params = kinetic_law.getListOfLocalParameters()
     for i in range(kinetic_law.getNumLocalParameters()):
