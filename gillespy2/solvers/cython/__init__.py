@@ -7,7 +7,6 @@ try:
     can_use_cython = True
     log.debug("Successful Import of Cython solvers.")
 except Exception as e:
-    log.warn(" Unable to use Cython optimized SSA: {0}. The performance of this package can be significantly increased if you install Cython.".format(e))
     can_use_cython = False
 
 __all__ = ['CythonSSASolver'] if can_use_cython else []
