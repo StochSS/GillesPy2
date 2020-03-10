@@ -4,7 +4,7 @@ python.
 
 """
 from __future__ import division
-import signal
+import signal, os
 import numpy as np
 from contextlib import contextmanager
 from collections import OrderedDict
@@ -12,7 +12,6 @@ from gillespy2.core.results import Results,EnsembleResults
 from gillespy2.core.events import *
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
-from gillespy2.core import log
 
 try:
     import lxml.etree as eTree
@@ -603,6 +602,7 @@ class Model(SortableObject):
         """
 
         if os.name == 'nt' and timeout > 0:
+            from gillespy2.core import log
             log.warning('Timeouts are not currently supported in Windows.')
         @contextmanager
         def time_out(time):
@@ -622,6 +622,7 @@ class Model(SortableObject):
                 signal.signal(signal.SIGALRM, signal.SIG_IGN)
 
         def raise_time_out(signum, frame):
+            from gillespy2.core import log
             import sys
             def excepthook(type, value, traceback):
                 pass
