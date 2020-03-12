@@ -147,7 +147,7 @@ GillesPy2's [online document](https://gillespy2.github.io/GillesPy2/) provides m
 Contributing
 ------------
 
-We would be happy to receive your help and participation with enhancing GillesPy2!  Please follow the guidelines described in [CONTRIBUTING.md](https://github.com/GillesPy2/GillesPy2/tree/master/CONTRIBUTING.md).
+We would be happy to receive your help and participation with enhancing GillesPy2!  The [UML class diagram](UML_CLASS_DIAGRAM.md) and [Pynsource](https://pynsource.com/) [UML class model](docs/getting_started/basic_usage/gillespy2-UML-class-model.pyns) may help you familiarize yourself with the existing code. Please follow the guidelines described in [CONTRIBUTING.md](https://github.com/GillesPy2/GillesPy2/tree/master/CONTRIBUTING.md).
 
 
 License
