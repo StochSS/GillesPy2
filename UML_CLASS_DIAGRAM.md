@@ -1,6 +1,6 @@
 # UML Class Diagram
 
-This diagram was built from a [UML class model](docs/getting_started/basic_usage/gillespy2-UML-class-model.pyns) created by [Pynsource](https://pynsource.com/), an open-source UML tool for Python. It displays the major functional elements (classes) of GillesPy2:
+This diagram was built from a [UML class model](gillespy2-UML-class-model.pyns) created by [Pynsource](https://pynsource.com/), an open-source UML tool for Python. It displays the major functional elements (classes) of GillesPy2:
 
 -StochMLDocument: affords serializiation and deserialization of a GillesPy2 model to/from the native StochKit2 XML format.
 
