@@ -113,18 +113,18 @@ class Results(UserDict):
 
              Attributes
             ----------
-            user_tag: allows the user to optionally "tag" the directory and included files. Defaults to the model name.
+            nametag: allows the user to optionally "tag" the directory and included files. Defaults to the model name.
             path: path to the location for the new directory and included files. Defaults to model location.
             stamp: allows the user to optionally identify the directory (not included files). Defaults to timestamp.
             """
-        if stamp=None:
+        if stamp is None:
             now = datetime.now()
             stamp=datetime.timestamp(now)
         if nametag is None:
             identifier = (self.model.name + " - " + self.solver_name)
         else:
             identifier = nametag
-        if isinstance(self.data,dict):#if only one trajectory
+        if isinstance(self.data,dict):  #if only one trajectory
             if path is None:
                 directory = os.path.join(".",str(identifier)+str(stamp))
                 os.mkdir(directory)
@@ -268,8 +268,8 @@ class EnsembleResults(UserList):
             stamp: Allows the user to optionally "tag" the directory (not included files). Default is timestamp.
             """
         if stamp is None:
-        now = datetime.now()
-        stamp=datetime.timestamp(now)
+            now = datetime.now()
+            stamp=datetime.timestamp(now)
         if nametag is None:
             identifier = (self[0].model.name + " - " + self[0].solver_name)
         else:
@@ -280,7 +280,6 @@ class EnsembleResults(UserList):
             directory = path+"/"+str(identifier)+str(stamp)
     #multiple trajectories
         if isinstance(self.data,list):
-            
             os.mkdir(directory)
             for i, trajectory in enumerate(self.data):#write each CSV file
                 filename = directory+"/"+str(identifier)+str(i)+".csv"
