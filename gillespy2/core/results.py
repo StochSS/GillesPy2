@@ -127,10 +127,9 @@ class Results(UserDict):
         if isinstance(self.data,dict):  #if only one trajectory
             if path is None:
                 directory = os.path.join(".",str(identifier)+str(stamp))
-                os.mkdir(directory)
             else:
                 directory = os.path.join(path,str(identifier)+str(stamp))
-                os.mkdir(directory)
+            os.mkdir(directory)
             filename = directory+"/"+identifier+".csv"
             field_names = []
             for species in self.data: #build the header
