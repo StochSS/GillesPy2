@@ -4,7 +4,7 @@ python.
 
 """
 from __future__ import division
-import signal
+import signal, os
 import numpy as np
 from contextlib import contextmanager
 from collections import OrderedDict
@@ -600,6 +600,10 @@ class Model(SortableObject):
         solver_args :
             solver-specific arguments to be passed to solver.run()
         """
+
+        if os.name == 'nt' and timeout > 0:
+            from gillespy2.core import log
+            log.warning('Timeouts are not currently supported in Windows.')
         @contextmanager
         def time_out(time):
             # Register a function to raise a TimeoutError on the signal.
