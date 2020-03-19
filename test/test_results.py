@@ -132,7 +132,7 @@ class TestResults(unittest.TestCase):
         test_stamp = "test_stamp"
 
         with tempfile.TemporaryDirectory() as tempdir:
-            result.to_csv(stamp=test_stamp, path=tempdir,nametag=None)
+            ensemble_result.to_csv(stamp=test_stamp, path=tempdir,nametag=None)
             assert len(os.listdir(tempdir)) is not 0
 
     def test_to_csv_ensemble_result_no_path(self):
