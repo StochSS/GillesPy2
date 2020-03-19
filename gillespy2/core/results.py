@@ -23,7 +23,7 @@ def _plot_iterate(self, show_labels = True, included_species_list = []):
             if species not in included_species_list and included_species_list:
                 continue
 
-            line_color = 'C' + str(i%10)
+            line_color = common_rgb_values[(i - 1) % len(common_rgb_values)]
 
             if show_labels:
                 label = species
