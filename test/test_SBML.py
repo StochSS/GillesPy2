@@ -7,10 +7,13 @@ from gillespy2.core.gillespyError import *
 from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
 import numpy as np
 
-
 class TestSBML(unittest.TestCase):
 
     def test_sbml_conversion(self):
+        try:
+            import libsbml
+        except ImportError:
+            return
 
         try:
             from urllib2 import urlopen
@@ -26,7 +29,6 @@ class TestSBML(unittest.TestCase):
         sbml_model, errors = import_SBML(tmp.name)
         os.remove(tmp.name)
         sbml_results = sbml_model.run(solver=BasicODESolver)
-
 
 if __name__ == '__main__':
     unittest.main()
