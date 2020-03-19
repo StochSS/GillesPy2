@@ -11,7 +11,10 @@ from gillespy2.core.gillespyError import *
 
 eval_globals = math.__dict__
 
-def piecewise(*args):
+def __piecewise(*args):
+    '''
+    Eval entry for piecewise functions
+    '''
     args = list(args)
     sol = None
     if len(args) % 2: args.append(True)
@@ -21,7 +24,10 @@ def piecewise(*args):
             sol = args[i-1]
             break
     return sol
-def xor(*args):
+def __xor(*args):
+    '''
+    Eval entry for MathML xor function
+    '''
     from operator import ixor
     from functools import reduce
     args = list(args)
@@ -29,8 +35,8 @@ def xor(*args):
 
 eval_globals['false'] = False
 eval_globals['true'] = True
-eval_globals['piecewise'] = piecewise
-eval_globals['xor'] = xor
+eval_globals['piecewise'] = __piecewise
+eval_globals['xor'] = __xor
 
 
 class BasicTauHybridSolver(GillesPySolver):
@@ -234,7 +240,6 @@ class BasicTauHybridSolver(GillesPySolver):
         conjunction with model stochastic reactions to discover reaction
         firings.
         '''
-
         return tau-t
      
 
@@ -325,6 +330,11 @@ class BasicTauHybridSolver(GillesPySolver):
 
     def __process_queued_events(self, model, event_queue, trigger_states,
                                                             curr_state):
+        '''
+        Helper method which processes the events queue. Method is primarily for
+        evaluating assignments at the designated state (trigger time or event
+        time).
+        '''
         # Process all queued events
         events_processed = []
         pre_assignment_state = curr_state.copy()
@@ -347,22 +357,29 @@ class BasicTauHybridSolver(GillesPySolver):
 
     def __handle_event(self, event, curr_state, curr_time, event_queue, 
                                         trigger_states, delayed_events):
-                # Fire trigger time events immediately
-                if event.delay is None:
-                    heapq.heappush(event_queue, (eval(event.priority), event.name))
-                # Queue delayed events
-                else:
-                    curr_state['t'] = curr_time
-                    curr_state['time'] = curr_time
-                    execution_time = curr_time + eval(event.delay,eval_globals, curr_state)
-                    curr_state[event.name] = True
-                    heapq.heappush(delayed_events, (execution_time, event.name))
-                    if event.use_values_from_trigger_time:
-                        trigger_states[event.name] = curr_state.copy()
-                    else:
-                        trigger_states[event.name] = curr_state
+        '''
+        Helper method providing logic for updating states based on assignments.
+        '''
+        # Fire trigger time events immediately
+        if event.delay is None:
+            heapq.heappush(event_queue, (eval(event.priority), event.name))
+        # Queue delayed events
+        else:
+            curr_state['t'] = curr_time
+            curr_state['time'] = curr_time
+            execution_time = curr_time + eval(event.delay,eval_globals, curr_state)
+            curr_state[event.name] = True
+            heapq.heappush(delayed_events, (execution_time, event.name))
+            if event.use_values_from_trigger_time:
+                trigger_states[event.name] = curr_state.copy()
+            else:
+                trigger_states[event.name] = curr_state
                         
     def __check_t0_events(self, model, initial_state):
+        '''
+        Helper method for firing events who reach a trigger condition at start
+        of simulation, time == 0.
+        '''
         # Check Event State at t==0
         species_modified_by_events = []
         t0_delayed_events = {}
@@ -380,6 +397,9 @@ class BasicTauHybridSolver(GillesPySolver):
         return t0_delayed_events, species_modified_by_events
 
     def __update_stochastic_rxn_states(self, model, compiled_reactions, curr_state):
+        '''
+        Helper method for updating the state of stochastic reactions.
+        '''
         rxn_count = OrderedDict()
         species_modified = OrderedDict()
         # Update stochastic reactions
@@ -438,6 +458,7 @@ class BasicTauHybridSolver(GillesPySolver):
             method=integrator, dense_output=True, 
             events=tau_event, **integrator_options)
 
+
         # Search for precise event times
         if len(model.listOfEvents):
             event_times = self.__detect_events(event_sensitivity, sol, model, delayed_events,
@@ -457,7 +478,6 @@ class BasicTauHybridSolver(GillesPySolver):
         next_step, curr_time = self.__get_next_step(event_times, reaction_times,
                                                 delayed_events,
                                                 model.tspan[-1], next_tau)
-
 
 
         # Update states of all species based on changes made to species through
@@ -731,6 +751,9 @@ class BasicTauHybridSolver(GillesPySolver):
             Set to True to provide information about step size (tau) taken at each step.
         show_labels: bool (True)
             If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]
+        tau_tol: float
+            Tolerance level for Tau leaping algorithm.  Larger tolerance values will
+            result in larger tau steps. Default value is 0.03.
         event_sensitivity: int
             Number of data points to be inspected between integration
             steps/save points for event detection

@@ -864,6 +864,19 @@ class FunctionDefinition(SortableObject):
         return sanitized_function.format(*replacements)
 
 class AssignmentRule(SortableObject):
+    """
+    An AssignmentRule is used to express equations that set the values of
+    variables.  This would correspond to a function in the form of x = f(V)
+
+    Attributes
+    ----------
+    name : str
+        Name of the Rule
+    variable : str
+        Target Species/Parameter to be modified by rule
+    formula : str
+        String representation of formula to be evaluated
+    """
     def __init__(self, variable=None, formula=None, name=None):
         self.variable = variable
         self.formula = formula
@@ -880,6 +893,19 @@ class AssignmentRule(SortableObject):
         return sanitized_formula.format(*replacements)
 
 class RateRule(SortableObject):
+    """
+    A RateRule is used to express equations that determine the rates of change
+    of variables. This would correspond to a function in the form of dx/dt=f(W)
+
+    Attributes
+    ----------
+    name : str
+        Name of Rule
+    variable : str
+        Target Species/Parameter to be modified by rule
+    formula : str
+        String representation of formula to be evaluated
+    """
     def __init__(self, variable=None, formula='', name=None):
         self.formula = formula
         self.variable = variable
