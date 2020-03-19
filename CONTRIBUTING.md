@@ -10,6 +10,7 @@ d) For bug fixes, branch from 'master'
 e) For new features, branch from 'develop'  
 e) Be sure to document your code  
 f) Create unit tests to cover changes.  Unit tests should be placed in the [test](/test) subdirectory.  
+g) Update [UML_CLASS_DIAGRAM.md](UML_CLASS_DIAGRAM.md) in the root directory, the [UML class diagram](.graphics/gillespy2-UML-class-diagram.png) in the [.graphics](.graphics) subdirectory, and the [UML class model](docs/getting_started/basic_usage/gillespy2-UML-class-model.pyns) in the [docs/getting_started/basic_usage/](docs/getting_started/basic_usage/) subdirectory to reflect your changes. These files were created using [Pynsource](https://pynsource.com/), an open-source UML tool for Python.
   
 ### 2. Submitting a Pull Request:  
 a) If changes are bug/hotfix, make a pull request to 'master'.  
