@@ -130,7 +130,7 @@ class Results(UserDict):
             else:
                 directory = os.path.join(path,str(identifier)+str(stamp))
             os.mkdir(directory)
-            filename = directory+"/"+identifier+".csv"
+            filename = os.path.join(directory,identifier+".csv")
             field_names = []
             for species in self.data: #build the header
                 field_names.append(species)
@@ -274,14 +274,14 @@ class EnsembleResults(UserList):
         else:
             identifier = nametag
         if path is None:
-            directory = "./"+str(identifier)+str(stamp)
+            directory = os.path.join(".",str(identifier)+str(stamp))
         else:
-            directory = path+"/"+str(identifier)+str(stamp)
+            directory = os.path.join(path,str(identifier)+str(stamp))
     #multiple trajectories
         if isinstance(self.data,list):
             os.mkdir(directory)
             for i, trajectory in enumerate(self.data):#write each CSV file
-                filename = directory+"/"+str(identifier)+str(i)+".csv"
+                filename = os.path.join(directory,str(identifier)+str(i)+".csv")
                 field_names = []
                 for species in trajectory: #build the header
                     field_names.append(species)
