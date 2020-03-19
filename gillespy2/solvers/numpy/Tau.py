@@ -128,9 +128,10 @@ def select(*tau_args):
     else:
         tau = min(non_critical_tau, critical_tau)
     # If selected tau exceeds save time, integrate to save time
-    if tau > 0: tau = max(tau, 1e-10) # set minimum to prevent integration errors
     if tau > 0:
-        tau_step = min(tau, save_time - curr_time)
+        tau = max(tau, 1e-10) # set minimum to prevent integration errors
+        if save_time - curr_time > 0:
+            tau = min(tau, save_time - curr_time)
     else:
-        tau_step = save_time - curr_time
-    return tau_step
+        tau = save_time - curr_time
+    return tau
