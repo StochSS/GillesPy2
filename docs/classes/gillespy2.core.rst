@@ -4,6 +4,22 @@ gillespy2.core package
 Submodules
 ----------
 
+gillespy2.core.events module
+----------------------------
+
+.. automodule:: gillespy2.core.events
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+gillespy2.core.gillespy2 module
+-------------------------------
+
+.. automodule:: gillespy2.core.gillespy2
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 gillespy2.core.gillespy2 module
 -------------------------------
 
