@@ -4,21 +4,22 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.core.gillespy2 &#8212; GillesPy2 1.2.1 documentation</title>
+    <title>gillespy2.core.gillespy2 &#8212; GillesPy2 1.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/gillespy2_alabaster_customizations.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
   <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
   
     <link rel="apple-touch-icon" href="../../../_static/img/gillespy2-logo.svg" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
@@ -81,11 +82,21 @@
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <h1>Source code for gillespy2.core.gillespy2</h1><div class="highlight"><pre>
@@ -95,11 +106,14 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">signal</span><span class="o">,</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">contextlib</span> <span class="k">import</span> <span class="n">contextmanager</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">gillespy2.core.results</span> <span class="k">import</span> <span class="n">Results</span><span class="p">,</span><span class="n">EnsembleResults</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.events</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">gillespy2.core.gillespySolver</span> <span class="k">import</span> <span class="n">GillesPySolver</span>
 <span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">lxml.etree</span> <span class="k">as</span> <span class="nn">eTree</span>
@@ -111,7 +125,6 @@
     <span class="kn">import</span> <span class="nn">xml.dom.minidom</span>
     <span class="kn">import</span> <span class="nn">re</span>
     <span class="n">no_pretty_print</span> <span class="o">=</span> <span class="kc">True</span>
-
 
 <div class="viewcode-block" id="import_SBML"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.import_SBML">[docs]</a><span class="k">def</span> <span class="nf">import_SBML</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gillespy_model</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -137,7 +150,59 @@
     <span class="k">return</span> <span class="n">convert</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">gillespy_model</span><span class="o">=</span><span class="n">gillespy_model</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="SortableObject"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.SortableObject">[docs]</a><span class="k">class</span> <span class="nc">SortableObject</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for GillesPy2 objects that are sortable.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="n">ordered</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="n">ordered</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__le__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__lt__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">repr</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="n">other</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="n">other</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__cmp__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">cmp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">other</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">cmp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">other</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">cmp</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_hash&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hash</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hash</span> <span class="o">=</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hash</span> <span class="o">=</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hash</span> <span class="o">=</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hash</span></div>
+
+
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">SortableObject</span><span class="p">):</span>
     <span class="c1"># reserved names for model species/parameter names, volume, and operators.</span>
     <span class="n">reserved_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;vol&#39;</span><span class="p">]</span>
     <span class="n">special_characters</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;^&#39;</span><span class="p">]</span>
@@ -173,13 +238,28 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="n">annotation</span>
 
-        <span class="c1"># Dictionaries with Species, Reactions and Parameter objects.</span>
-        <span class="c1"># Species, Reaction and Parameter names are used as keys.</span>
+        <span class="c1"># Dictionaries with model element objects.</span>
+        <span class="c1"># Model element names are used as keys.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listOfAssignmentRules</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">listOfRateRules</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listOfEvents</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listOfFunctionDefinitions</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
 
+        <span class="c1"># Dictionaries with model element objects.</span>
+        <span class="c1"># Model element names are used as keys, and values are</span>
+        <span class="c1"># sanitized versions of the names/formulas.</span>
+        <span class="c1"># These dictionaries contain sanitized values and are for</span>
+        <span class="c1"># Internal use only</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_listOfParameters</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_listOfSpecies</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_listOfReactions</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_listOfAssignmentRules</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_listOfRateRules</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_listOfEvents</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_listOfFunctionDefinitions</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="c1"># This defines the unit system at work for all numbers in the model</span>
         <span class="c1"># It should be a logical error to leave this undefined, subclasses</span>
         <span class="c1"># should set it</span>
@@ -203,6 +283,37 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">timespan</span><span class="p">(</span><span class="n">tspan</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">divider</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">**********</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="k">def</span> <span class="nf">decorate</span><span class="p">(</span><span class="n">header</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">divider</span> <span class="o">+</span> <span class="n">header</span> <span class="o">+</span> <span class="n">divider</span>
+        <span class="n">print_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">):</span>
+            <span class="n">print_string</span> <span class="o">+=</span> <span class="n">decorate</span><span class="p">(</span><span class="s1">&#39;Species&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">):</span>
+            <span class="n">print_string</span> <span class="o">+=</span> <span class="n">decorate</span><span class="p">(</span><span class="s1">&#39;Parameters&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">):</span>
+            <span class="n">print_string</span> <span class="o">+=</span> <span class="n">decorate</span><span class="p">(</span><span class="s1">&#39;Reactions&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfEvents</span><span class="p">):</span>
+            <span class="n">print_string</span> <span class="o">+=</span> <span class="n">decorate</span><span class="p">(</span><span class="s1">&#39;Events&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfEvents</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfAssignmentRules</span><span class="p">):</span>
+            <span class="n">print_string</span> <span class="o">+=</span> <span class="n">decorate</span><span class="p">(</span><span class="s1">&#39;Assignment Rules&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ar</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfAssignmentRules</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ar</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfRateRules</span><span class="p">):</span>
+            <span class="n">print_string</span> <span class="o">+=</span> <span class="n">decorate</span><span class="p">(</span><span class="s1">&#39;Rate Rules&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">rr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfRateRules</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">rr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">print_string</span>
+
 <div class="viewcode-block" id="Model.serialize"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Model.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Serializes the Model object to valid StochML. &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">resolve_parameters</span><span class="p">()</span>
@@ -222,7 +333,7 @@
 <span class="sd">        :return: the dictionary mapping user species names to their internal GillesPy notation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">species_name_mapping</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([])</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">keys</span><span class="p">())):</span>
             <span class="n">species_name_mapping</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;S[</span><span class="si">{}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">species_name_mapping</span></div>
 
@@ -272,8 +383,9 @@
             <span class="k">if</span> <span class="n">problem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">problem</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_listOfSpecies</span><span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;S</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_listOfSpecies</span><span class="p">))</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">S</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">S</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add_species</span><span class="p">(</span><span class="n">S</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s2">&quot;Unexpected parameter for add_species. Parameter must be Species or list of Species.&quot;</span><span class="p">)</span>
@@ -288,13 +400,15 @@
 <span class="sd">        obj : str</span>
 <span class="sd">            Name of the species object to be removed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_listOfSpecies</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Model.delete_all_species"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Model.delete_all_species">[docs]</a>    <span class="k">def</span> <span class="nf">delete_all_species</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Removes all species from the model object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_listOfSpecies</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Model.set_units"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Model.set_units">[docs]</a>    <span class="k">def</span> <span class="nf">set_units</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -318,7 +432,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">parameter_name_mapping</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="n">parameter_name_mapping</span><span class="p">[</span><span class="s1">&#39;vol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="o">.</span><span class="n">keys</span><span class="p">())):</span>
             <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">parameter_name_mapping</span><span class="p">:</span>
                 <span class="n">parameter_name_mapping</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;P</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">parameter_name_mapping</span></div>
@@ -354,8 +468,8 @@
 <span class="sd">        obj : Parameter, or list of Parameters</span>
 <span class="sd">            The parameter or list of parameters to be added to the model object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span> 
-            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">):</span>
@@ -363,6 +477,7 @@
                 <span class="k">if</span> <span class="n">problem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="n">problem</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_listOfParameters</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="s1">&#39;P</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_listOfParameters</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;Could not resolve Parameter expression </span><span class="si">{}</span><span class="s2"> to a scalar value.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">params</span></div>
@@ -376,7 +491,8 @@
 <span class="sd">        obj : str</span>
 <span class="sd">            Name of the parameter object to be removed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_listOfParameters</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Model.set_parameter"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Model.set_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">set_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_name</span><span class="p">,</span> <span class="n">expression</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -408,7 +524,8 @@
 
 <div class="viewcode-block" id="Model.delete_all_parameters"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Model.delete_all_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">delete_all_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Deletes all parameters from model. &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_listOfParameters</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Model.validate_reactants_and_products"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Model.validate_reactants_and_products">[docs]</a>    <span class="k">def</span> <span class="nf">validate_reactants_and_products</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reactions</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">reactant</span> <span class="ow">in</span> <span class="n">reactions</span><span class="o">.</span><span class="n">reactants</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -437,7 +554,7 @@
 
         <span class="c1"># TODO, make sure that you cannot overwrite an existing reaction</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reactions</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reactions</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">reactions</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reactions</span><span class="p">,</span><span class="n">Reaction</span><span class="p">):</span>
             <span class="n">reactions</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
@@ -445,6 +562,12 @@
             <span class="k">if</span> <span class="n">reactions</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s2">&quot;Duplicate name of reaction: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reactions</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">reactions</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">reactions</span>
+            <span class="c1"># Build Sanitized reaction as well</span>
+            <span class="n">sanitized_reaction</span> <span class="o">=</span> <span class="n">Reaction</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;R</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_listOfReactions</span><span class="p">)))</span>
+            <span class="n">sanitized_reaction</span><span class="o">.</span><span class="n">reactants</span><span class="o">=</span><span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_listOfSpecies</span><span class="p">[</span><span class="n">species</span><span class="o">.</span><span class="n">name</span><span class="p">]:</span><span class="n">reactions</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">reactions</span><span class="o">.</span><span class="n">reactants</span><span class="p">}</span>
+            <span class="n">sanitized_reaction</span><span class="o">.</span><span class="n">products</span><span class="o">=</span><span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_listOfSpecies</span><span class="p">[</span><span class="n">species</span><span class="o">.</span><span class="n">name</span><span class="p">]:</span><span class="n">reactions</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">reactions</span><span class="o">.</span><span class="n">products</span><span class="p">}</span>
+            <span class="n">sanitized_reaction</span><span class="o">.</span><span class="n">propensity_function</span> <span class="o">=</span> <span class="n">reactions</span><span class="o">.</span><span class="n">sanitized_propensity_function</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_listOfSpecies</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_listOfParameters</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_listOfReactions</span><span class="p">[</span><span class="n">reactions</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">sanitized_reaction</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s2">&quot;Unexpected parameter for add_reaction. Parameter must be Reaction or list of Reactions.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">reactions</span></div>
@@ -456,23 +579,71 @@
 <span class="sd">                Attributes</span>
 <span class="sd">                ----------</span>
 <span class="sd">                obj : RateRule, or list of RateRules</span>
-<span class="sd">                    The reaction or list of raterule objects to be added to the model</span>
+<span class="sd">                    The rate rule or list of rate rule objects to be added to the model</span>
 <span class="sd">                    object.</span>
 <span class="sd">                &quot;&quot;&quot;</span>
 
-        <span class="c1"># TODO, make sure that you cannot overwrite an existing reaction</span>
-        <span class="c1"># param_type = type(reactions).__name__</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rate_rules</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">rr</span> <span class="ow">in</span> <span class="n">rate_rules</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">rr</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">rate_rules</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add_rate_rule</span><span class="p">(</span><span class="n">rr</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rate_rules</span><span class="p">,</span> <span class="n">RateRule</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">rate_rules</span><span class="o">.</span><span class="n">species</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rate_rules</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">Species</span><span class="p">):</span> <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span>
-                <span class="s1">&#39;A Rate Rule must be associated with a valid species.&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">rate_rules</span><span class="o">.</span><span class="n">expression</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span> <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s1">&#39;Invalid Rate Rule. Expression must be a non-empty string value&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">listOfRateRules</span><span class="p">[</span><span class="n">rate_rules</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">rate_rules</span>
+            <span class="k">if</span> <span class="n">rate_rules</span><span class="o">.</span><span class="n">formula</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span> <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s1">&#39;Invalid Rate Rule. Expression must be a non-empty string value&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">rate_rules</span><span class="o">.</span><span class="n">variable</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s1">&#39;A GillesPy2 Rate Rule must be associated with a valid variable&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">listOfRateRules</span><span class="p">[</span><span class="n">rate_rules</span><span class="o">.</span><span class="n">variable</span><span class="p">]</span> <span class="o">=</span> <span class="n">rate_rules</span>
+            <span class="n">sanitized_rate_rule</span> <span class="o">=</span> <span class="n">RateRule</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;RR</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_listOfRateRules</span><span class="p">)))</span>
+            <span class="n">sanitized_rate_rule</span><span class="o">.</span><span class="n">formula</span> <span class="o">=</span> <span class="n">rate_rules</span><span class="o">.</span><span class="n">sanitized_formula</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_listOfSpecies</span><span class="p">,</span>
+                                                    <span class="bp">self</span><span class="o">.</span><span class="n">_listOfParameters</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_listOfRateRules</span><span class="p">[</span><span class="n">rate_rules</span><span class="o">.</span><span class="n">variable</span><span class="p">]</span> <span class="o">=</span> <span class="n">sanitized_rate_rule</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;Add_rate_rule accepts a RateRule object or a List of RateRule Objects&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">rate_rules</span></div>
+
+<div class="viewcode-block" id="Model.add_event"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Model.add_event">[docs]</a>    <span class="k">def</span> <span class="nf">add_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Adds an event, or list of events to the model.</span>
+
+<span class="sd">                Attributes</span>
+<span class="sd">                ----------</span>
+<span class="sd">                event : Event, or list of Events</span>
+<span class="sd">                    The event or list of event objects to be added to the model</span>
+<span class="sd">                    object.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">event</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_event</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">Event</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">trigger</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">trigger</span><span class="p">,</span> <span class="n">EventTrigger</span><span class="p">):</span> 
+                <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span>
+                <span class="s1">&#39;An Event must contain a valid trigger.&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">event</span><span class="o">.</span><span class="n">assignments</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">variable</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">variable</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">:</span>
+                        <span class="n">a</span><span class="o">.</span><span class="n">variable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">variable</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0}</span><span class="s1"> not a valid Species&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">variable</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">listOfEvents</span><span class="p">[</span><span class="n">event</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">event</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;add_events accepts an Event object or a&quot;</span>
+            <span class="s2">&quot; List of Event Objects&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">event</span></div>
+
+
+<div class="viewcode-block" id="Model.add_function_definition"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Model.add_function_definition">[docs]</a>    <span class="k">def</span> <span class="nf">add_function_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">function_definitions</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">function_definitions</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">fd</span> <span class="ow">in</span> <span class="n">function_definitions</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_function_definition</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">function_definitions</span><span class="p">,</span> <span class="n">FunctionDefinition</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">listOfFunctionDefinitions</span><span class="p">[</span><span class="n">function_definitions</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">function_definitions</span></div>
+
+<div class="viewcode-block" id="Model.add_assignment_rule"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Model.add_assignment_rule">[docs]</a>    <span class="k">def</span> <span class="nf">add_assignment_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">assignment_rules</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">assignment_rules</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">ar</span> <span class="ow">in</span> <span class="n">assignment_rules</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_assignment_rule</span><span class="p">(</span><span class="n">ar</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">assignment_rules</span><span class="p">,</span> <span class="n">AssignmentRule</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">listOfAssignmentRules</span><span class="p">[</span><span class="n">assignment_rules</span><span class="o">.</span><span class="n">variable</span><span class="p">]</span> <span class="o">=</span> <span class="n">assignment_rules</span></div>
+
 
 <div class="viewcode-block" id="Model.timespan"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Model.timespan">[docs]</a>    <span class="k">def</span> <span class="nf">timespan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_span</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -500,12 +671,14 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span></div>
 
 <div class="viewcode-block" id="Model.delete_reaction"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Model.delete_reaction">[docs]</a>    <span class="k">def</span> <span class="nf">delete_reaction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_listOfReactions</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Model.delete_all_reactions"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Model.delete_all_reactions">[docs]</a>    <span class="k">def</span> <span class="nf">delete_all_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_listOfReactions</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Model.run"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Model.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">solver_args</span><span class="p">):</span>
+<div class="viewcode-block" id="Model.run"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Model.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">solver_args</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Function calling simulation of the model. There are a number of</span>
 <span class="sd">        parameters to be set here.</span>
@@ -520,56 +693,88 @@
 
 <span class="sd">        Attributes</span>
 <span class="sd">        ----------</span>
-<span class="sd">        number_of_trajectories : int</span>
-<span class="sd">            The number of times to sample the chemical master equation. Each</span>
-<span class="sd">            trajectory will be returned at the end of the simulation.</span>
-<span class="sd">            Optional, defaults to 1.</span>
-<span class="sd">        seed : int</span>
-<span class="sd">            The random seed for the simulation. Optional, defaults to None.</span>
 <span class="sd">        solver : gillespy.GillesPySolver</span>
 <span class="sd">            The solver by which to simulate the model. This solver object may</span>
 <span class="sd">            be initialized separately to specify an algorithm. Optional, </span>
 <span class="sd">            defaults to ssa solver.</span>
-<span class="sd">        show_labels: bool (True)</span>
-<span class="sd">            If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]</span>
-<span class="sd">        switch_tol: float</span>
-<span class="sd">            Tolerance for Continuous/Stochastic representation of species, based on coefficient of variance for each step.</span>
-<span class="sd">        tau_tol: float</span>
-<span class="sd">            Relative error tolerance value for calculating tau step between 0.0 and 1.0</span>
-<span class="sd">        integrator: String</span>
-<span class="sd">            integrator to be used form scipy.integrate.ode. Options include &#39;vode&#39;, &#39;zvode&#39;, &#39;lsoda&#39;, &#39;dopri5&#39;, and &#39;dop835&#39;.  For more details, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html</span>
-<span class="sd">        integrator_options: dictionary</span>
-<span class="sd">            contains options to the scipy integrator. for a list of options, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.</span>
-<span class="sd">            Example use: {max_step : 0, rtol : .01}</span>
+<span class="sd">        timeout : int</span>
+<span class="sd">            Allows a time_out value in seconds to be sent to a signal handler, restricting simulation run-time</span>
+<span class="sd">        solver_args :</span>
+<span class="sd">            solver-specific arguments to be passed to solver.run()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">solver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="p">((</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span>
-                    <span class="ow">and</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">GillesPySolver</span><span class="p">)))</span> <span class="ow">or</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">solver</span><span class="p">),</span> <span class="n">GillesPySolver</span><span class="p">):</span>
-                <span class="n">solver_results</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">increment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="o">**</span><span class="n">solver_args</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;nt&#39;</span> <span class="ow">and</span> <span class="n">timeout</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">log</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Timeouts are not currently supported in Windows.&#39;</span><span class="p">)</span>
+        <span class="nd">@contextmanager</span>
+        <span class="k">def</span> <span class="nf">time_out</span><span class="p">(</span><span class="n">time</span><span class="p">):</span>
+            <span class="c1"># Register a function to raise a TimeoutError on the signal.</span>
+            <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGALRM</span><span class="p">,</span> <span class="n">raise_time_out</span><span class="p">)</span>
+            <span class="c1"># Schedule the signal to be sent after ``time``.</span>
+            <span class="n">signal</span><span class="o">.</span><span class="n">alarm</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">yield</span>
+            <span class="k">except</span> <span class="ne">TimeoutError</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;GillesPy2 solver simulation exceeded timeout&#39;</span><span class="p">)</span>
+                <span class="k">pass</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="c1"># Unregister the signal so it won&#39;t be triggered</span>
+                <span class="c1"># if the time_out is not reached.</span>
+                <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGALRM</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIG_IGN</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">raise_time_out</span><span class="p">(</span><span class="n">signum</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">log</span>
+            <span class="kn">import</span> <span class="nn">sys</span>
+            <span class="k">def</span> <span class="nf">excepthook</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
+                <span class="k">pass</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">excepthook</span> <span class="o">=</span> <span class="n">excepthook</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;GillesPy2 simulation exceeded timeout.&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">SimulationTimeoutError</span><span class="p">()</span>
+
+
+        <span class="k">with</span> <span class="n">time_out</span><span class="p">(</span><span class="n">timeout</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">solver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">((</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span>
+                        <span class="ow">and</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">GillesPySolver</span><span class="p">)))</span> <span class="ow">or</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">solver</span><span class="p">),</span> <span class="n">GillesPySolver</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">solver</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;SSACSolver&#39;</span><span class="p">:</span>
+                        <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGALRM</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIG_IGN</span><span class="p">)</span>
+                        <span class="n">solver_args</span><span class="p">[</span><span class="s1">&#39;timeout&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">timeout</span>
+                    <span class="n">solver_results</span><span class="p">,</span> <span class="n">rc</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">increment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="o">**</span><span class="n">solver_args</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span>
+                        <span class="s2">&quot;argument &#39;solver&#39; to run() must be a subclass of GillesPySolver&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span>
-                    <span class="s2">&quot;argument &#39;solver&#39; to run() must be a subclass of GillesPySolver&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">gillespy2.solvers.auto</span> <span class="k">import</span> <span class="n">SSASolver</span>
-            <span class="n">solver</span> <span class="o">=</span> <span class="n">SSASolver</span>
-            <span class="n">solver_results</span> <span class="o">=</span> <span class="n">SSASolver</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
-                                      <span class="n">increment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="o">**</span><span class="n">solver_args</span><span class="p">)</span>
+                <span class="kn">from</span> <span class="nn">gillespy2.solvers.auto</span> <span class="k">import</span> <span class="n">SSASolver</span>
+                <span class="n">solver</span> <span class="o">=</span> <span class="n">SSASolver</span>
+                <span class="k">if</span> <span class="n">solver</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;SSACSolver&#39;</span><span class="p">:</span>
+                    <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGALRM</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIG_IGN</span><span class="p">)</span>
+                    <span class="n">solver_args</span><span class="p">[</span><span class="s1">&#39;timeout&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">timeout</span>
+                <span class="n">solver_results</span><span class="p">,</span> <span class="n">rc</span> <span class="o">=</span> <span class="n">SSASolver</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                                          <span class="n">increment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="o">**</span><span class="n">solver_args</span><span class="p">)</span>
+           
+            <span class="k">if</span> <span class="n">rc</span> <span class="o">==</span> <span class="mi">33</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">log</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;GillesPy2 simulation exceeded timeout.&#39;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">solver_results</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
-            <span class="k">return</span> <span class="n">solver_results</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">solver_results</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+                <span class="k">return</span> <span class="n">solver_results</span>
 
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">solver_results</span><span class="p">)</span> <span class="ow">is</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">Results</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">solver_results</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver_name</span><span class="o">=</span><span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">solver_results</span><span class="p">)</span> <span class="ow">is</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">Results</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">solver_results</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+                    <span class="n">solver_name</span><span class="o">=</span><span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">rc</span><span class="o">=</span><span class="n">rc</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">solver_results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">results_list</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">solver_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;number_of_trajectories&#39;</span><span class="p">)):</span>
-                <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Results</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">solver_results</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span><span class="n">solver_name</span><span class="o">=</span><span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
-            <span class="k">return</span> <span class="n">EnsembleResults</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;number_of_trajectories must be non-negative and non-zero&quot;</span><span class="p">)</span></div></div>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">solver_results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">results_list</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">solver_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;number_of_trajectories&#39;</span><span class="p">)):</span>
+                    <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Results</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">solver_results</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span><span class="n">solver_name</span><span class="o">=</span><span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                        <span class="n">rc</span><span class="o">=</span><span class="n">rc</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">EnsembleResults</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;number_of_trajectories must be non-negative and non-zero&quot;</span><span class="p">)</span></div></div>
 
-<div class="viewcode-block" id="Species"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Species">[docs]</a><span class="k">class</span> <span class="nc">Species</span><span class="p">:</span>
+
+<div class="viewcode-block" id="Species"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Species">[docs]</a><span class="k">class</span> <span class="nc">Species</span><span class="p">(</span><span class="n">SortableObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Chemical species. Can be added to Model object to interact with other</span>
 <span class="sd">    species or time.</span>
@@ -582,21 +787,48 @@
 <span class="sd">    initial_value : int &gt;= 0</span>
 <span class="sd">        Initial population of this species. If this is not provided as an int,</span>
 <span class="sd">        the type will be changed when it is added by numpy.int</span>
+<span class="sd">    constant: bool</span>
+<span class="sd">        If true, the value of the species cannot be changed.</span>
+<span class="sd">        (currently BasicTauHybridSolver only)</span>
+<span class="sd">    boundary_condition: bool</span>
+<span class="sd">        If true, species can be changed by events and rate rules, but not by</span>
+<span class="sd">        reactions. (currently BasicTauHybridOnly)</span>
 <span class="sd">    mode : str</span>
-<span class="sd">        ***FOR USE WITH TauHybridSolver ONLY***</span>
+<span class="sd">        ***FOR USE WITH BasicTauHybridSolver ONLY***</span>
 <span class="sd">        Sets the mode of representation of this species for the TauHybridSolver,</span>
 <span class="sd">        can be discrete, continuous, or dynamic.</span>
 <span class="sd">        mode=&#39;dynamic&#39; - Default, allows a species to be represented as</span>
 <span class="sd">            either discrete or continuous</span>
 <span class="sd">        mode=&#39;continuous&#39; - Species will only be represented as continuous</span>
 <span class="sd">        mode=&#39;discrete&#39; - Species will only be represented as discrete</span>
+<span class="sd">    allow_negative_populations: bool</span>
+<span class="sd">        If true, population can be reduced below 0</span>
+<span class="sd">    switch_tol : float</span>
+<span class="sd">        ***FOR USE WITH BasicTauHybridSolver ONLY***</span>
+<span class="sd">        Tolerance level for considering a dynamic species deterministically,</span>
+<span class="sd">        value is compared to an estimated sd/mean population of a species after a</span>
+<span class="sd">        given time step. This value will be used if a switch_min is not</span>
+<span class="sd">        provided.  The default value is 0.03</span>
+<span class="sd">    switch_min : float</span>
+<span class="sd">        ***FOR USE WITH BasicTauHybridSolver ONLY***</span>
+<span class="sd">        Minimum population value at which species will be represented as</span>
+<span class="sd">        continuous. If a value is given, switch_min will be used instead of</span>
+<span class="sd">        switch_tol</span>
+<span class="sd">        </span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">initial_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;dynamic&#39;</span><span class="p">,</span> <span class="n">allow_negative_populations</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">initial_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">constant</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">boundary_condition</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;dynamic&#39;</span><span class="p">,</span>
+                    <span class="n">allow_negative_populations</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">switch_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                    <span class="n">switch_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">):</span>
         <span class="c1"># A species has a name (string) and an initial value (positive integer)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constant</span> <span class="o">=</span> <span class="n">constant</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boundary_condition</span> <span class="o">=</span> <span class="n">boundary_condition</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">allow_negative_populations</span> <span class="o">=</span> <span class="n">allow_negative_populations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">switch_min</span> <span class="o">=</span> <span class="n">switch_min</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">switch_tol</span> <span class="o">=</span> <span class="n">switch_tol</span>
 
         <span class="n">mode_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;continuous&#39;</span><span class="p">,</span> <span class="s1">&#39;dynamic&#39;</span><span class="p">,</span> <span class="s1">&#39;discrete&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mode_list</span><span class="p">:</span>
@@ -611,10 +843,19 @@
 <span class="s1">non-negative unless allow_negative_populations=True&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span></div>
+        <span class="n">print_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_value</span><span class="p">)</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        print_string += &#39;\n\tInitial Value: &#39; + str(self.initial_value)</span>
+<span class="sd">        print_string += &#39;\n\tConstant: &#39; + str(self.constant)</span>
+<span class="sd">        print_string += &#39;\n\tBoundary Condition: &#39; + str(self.boundary_condition)</span>
+<span class="sd">        print_string += &#39;\n\tMode: &#39; + self.mode</span>
+<span class="sd">        print_string += &#39;\n\tAllow Negative Populations: &#39; + str(self.allow_negative_populations)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">print_string</span></div>
 
 
-<div class="viewcode-block" id="Parameter"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Parameter">[docs]</a><span class="k">class</span> <span class="nc">Parameter</span><span class="p">:</span>
+<div class="viewcode-block" id="Parameter"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Parameter">[docs]</a><span class="k">class</span> <span class="nc">Parameter</span><span class="p">(</span><span class="n">SortableObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A parameter can be given as an expression (function) or directly</span>
 <span class="sd">    as a value (scalar). If given an expression, it should be</span>
@@ -652,6 +893,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
 
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">expression</span>
+
 <div class="viewcode-block" id="Parameter.evaluate"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Parameter.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">namespace</span><span class="o">=</span><span class="p">{}):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Evaluate the expression and return the (scalar) value in the given</span>
@@ -686,15 +930,101 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span></div></div>
 
 
-<div class="viewcode-block" id="RateRule"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.RateRule">[docs]</a><span class="k">class</span> <span class="nc">RateRule</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">expression</span> <span class="o">=</span> <span class="n">expression</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">species</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span></div>
+<div class="viewcode-block" id="FunctionDefinition"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.FunctionDefinition">[docs]</a><span class="k">class</span> <span class="nc">FunctionDefinition</span><span class="p">(</span><span class="n">SortableObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object representation defining an evaluable function to be used during</span>
+<span class="sd">    simulation of a GillesPy2 model</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        Name of the function to be made and called.</span>
+<span class="sd">    function : str</span>
+<span class="sd">        Defined function body of operation to be performed.</span>
+<span class="sd">    variables : list</span>
+<span class="sd">        String names of Variables to be used as arguments to function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
 
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[]):</span>
 
-<div class="viewcode-block" id="Reaction"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Reaction">[docs]</a><span class="k">class</span> <span class="nc">Reaction</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">math</span>
+        <span class="n">eval_globals</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="vm">__dict__</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;lambda &#39;</span> <span class="o">+</span> <span class="n">args</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="n">function</span><span class="p">,</span> <span class="n">eval_globals</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span>
+<div class="viewcode-block" id="FunctionDefinition.sanitized_function"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.FunctionDefinition.sanitized_function">[docs]</a>    <span class="k">def</span> <span class="nf">sanitized_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species_mappings</span><span class="p">,</span> <span class="n">parameter_mappings</span><span class="p">):</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">species_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">parameter_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">key</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">replacements</span> <span class="o">=</span> <span class="p">[</span><span class="n">parameter_mappings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">parameter_mappings</span> <span class="k">else</span> <span class="n">species_mappings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
+        <span class="n">sanitized_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span>
+        <span class="k">for</span> <span class="nb">id</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
+            <span class="n">sanitized_function</span> <span class="o">=</span> <span class="n">sanitized_function</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;{&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sanitized_function</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">replacements</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="AssignmentRule"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.AssignmentRule">[docs]</a><span class="k">class</span> <span class="nc">AssignmentRule</span><span class="p">(</span><span class="n">SortableObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An AssignmentRule is used to express equations that set the values of</span>
+<span class="sd">    variables.  This would correspond to a function in the form of x = f(V)</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        Name of the Rule</span>
+<span class="sd">    variable : str</span>
+<span class="sd">        Target Species/Parameter to be modified by rule</span>
+<span class="sd">    formula : str</span>
+<span class="sd">        String representation of formula to be evaluated</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">formula</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variable</span> <span class="o">=</span> <span class="n">variable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">formula</span> <span class="o">=</span> <span class="n">formula</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">formula</span>
+<div class="viewcode-block" id="AssignmentRule.sanitized_formula"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.AssignmentRule.sanitized_formula">[docs]</a>    <span class="k">def</span> <span class="nf">sanitized_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species_mappings</span><span class="p">,</span> <span class="n">parameter_mappings</span><span class="p">):</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">species_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">parameter_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">key</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">replacements</span> <span class="o">=</span> <span class="p">[</span><span class="n">parameter_mappings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">parameter_mappings</span> <span class="k">else</span> <span class="n">species_mappings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
+        <span class="n">sanitized_formula</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">formula</span>
+        <span class="k">for</span> <span class="nb">id</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
+            <span class="n">sanitized_formula</span> <span class="o">=</span> <span class="n">sanitized_formula</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;{&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sanitized_formula</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">replacements</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="RateRule"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.RateRule">[docs]</a><span class="k">class</span> <span class="nc">RateRule</span><span class="p">(</span><span class="n">SortableObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A RateRule is used to express equations that determine the rates of change</span>
+<span class="sd">    of variables. This would correspond to a function in the form of dx/dt=f(W)</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        Name of Rule</span>
+<span class="sd">    variable : str</span>
+<span class="sd">        Target Species/Parameter to be modified by rule</span>
+<span class="sd">    formula : str</span>
+<span class="sd">        String representation of formula to be evaluated</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">formula</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">formula</span> <span class="o">=</span> <span class="n">formula</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variable</span> <span class="o">=</span> <span class="n">variable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;: Var: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">formula</span>
+<div class="viewcode-block" id="RateRule.sanitized_formula"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.RateRule.sanitized_formula">[docs]</a>    <span class="k">def</span> <span class="nf">sanitized_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species_mappings</span><span class="p">,</span> <span class="n">parameter_mappings</span><span class="p">):</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">species_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">parameter_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">key</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">replacements</span> <span class="o">=</span> <span class="p">[</span><span class="n">parameter_mappings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">parameter_mappings</span> <span class="k">else</span> <span class="n">species_mappings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
+        <span class="n">sanitized_formula</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">formula</span>
+        <span class="k">for</span> <span class="nb">id</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
+            <span class="n">sanitized_formula</span> <span class="o">=</span> <span class="n">sanitized_formula</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;{&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sanitized_formula</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">replacements</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="Reaction"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Reaction">[docs]</a><span class="k">class</span> <span class="nc">Reaction</span><span class="p">(</span><span class="n">SortableObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Models a single reaction. A reaction has its own dicts of species</span>
 <span class="sd">    (reactants and products) and parameters. The reaction&#39;s propensity</span>
@@ -781,9 +1111,22 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">marate</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">marate</span> <span class="o">=</span> <span class="n">rate</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">create_mass_action</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__create_mass_action</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;customized&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">print_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">):</span>
+            <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t</span><span class="s1">Reactants&#39;</span>
+            <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">stoich</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">r</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">stoich</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="p">):</span>
+            <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t</span><span class="s1">Products&#39;</span>
+            <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">stoich</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">stoich</span><span class="p">)</span>
+        <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t</span><span class="s1">Propensity Function: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span>
+        <span class="k">return</span> <span class="n">print_string</span>
 
 <div class="viewcode-block" id="Reaction.verify"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Reaction.verify">[docs]</a>    <span class="k">def</span> <span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Check if the reaction is properly formatted.</span>
@@ -793,7 +1136,7 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;You must have a non-zero number of reactants or products.&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Reaction.create_mass_action"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Reaction.create_mass_action">[docs]</a>    <span class="k">def</span> <span class="nf">create_mass_action</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__create_mass_action</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializes the mass action propensity function given</span>
 <span class="sd">        self.reactants and a single parameter value.</span>
@@ -803,27 +1146,33 @@
         <span class="c1"># Users can still create such propensities if they really want to,</span>
         <span class="c1"># but should then use a custom propensity.</span>
         <span class="n">total_stoch</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">):</span>
             <span class="n">total_stoch</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">total_stoch</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;Reaction: A mass-action reaction cannot involve more than two of one species or one &quot;</span>
-                                <span class="s2">&quot;of two species.&quot;</span><span class="p">)</span>
+                                <span class="s2">&quot;of two species. To declare a custom propensity, replace &#39;rate&#39; with &quot;</span>
+                                <span class="s2">&quot;&#39;propensity_function&#39;.&quot;</span><span class="p">)</span>
+
         <span class="c1"># Case EmptySet -&gt; Y</span>
 
         <span class="n">propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marate</span><span class="o">.</span><span class="n">name</span>
         <span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marate</span><span class="o">.</span><span class="n">name</span>
 
         <span class="c1"># There are only three ways to get &#39;total_stoch==2&#39;:</span>
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">rname</span> <span class="o">=</span> <span class="n">r</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">rname</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">name</span>
             <span class="c1"># Case 1: 2X -&gt; Y</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="n">propensity_function</span> <span class="o">=</span> <span class="p">(</span><span class="n">propensity_function</span> <span class="o">+</span>
-                                       <span class="s2">&quot;*&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;*(&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;-1)/vol&quot;</span><span class="p">)</span>
-                <span class="n">ode_propensity_function</span> <span class="o">+=</span> <span class="s1">&#39;*&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;*&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+                                       <span class="s2">&quot;*&quot;</span> <span class="o">+</span> <span class="n">rname</span> <span class="o">+</span> <span class="s2">&quot;*(&quot;</span> <span class="o">+</span> <span class="n">rname</span> <span class="o">+</span> <span class="s2">&quot;-1)/vol&quot;</span><span class="p">)</span>
+                <span class="n">ode_propensity_function</span> <span class="o">+=</span> <span class="s1">&#39;*&#39;</span> <span class="o">+</span> <span class="n">rname</span> <span class="o">+</span> <span class="s1">&#39;*&#39;</span> <span class="o">+</span> <span class="n">rname</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># Case 3: X1, X2 -&gt; Y;</span>
-                <span class="n">propensity_function</span> <span class="o">+=</span> <span class="s2">&quot;*&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
-                <span class="n">ode_propensity_function</span> <span class="o">+=</span> <span class="s1">&#39;*&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+                <span class="n">propensity_function</span> <span class="o">+=</span> <span class="s2">&quot;*&quot;</span> <span class="o">+</span> <span class="n">rname</span>
+                <span class="n">ode_propensity_function</span> <span class="o">+=</span> <span class="s1">&#39;*&#39;</span> <span class="o">+</span> <span class="n">rname</span>
 
         <span class="c1"># Set the volume dependency based on order.</span>
         <span class="n">order</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">)</span>
@@ -833,7 +1182,7 @@
             <span class="n">propensity_function</span> <span class="o">+=</span> <span class="s2">&quot;*vol&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="o">=</span> <span class="n">propensity_function</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="n">ode_propensity_function</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="n">ode_propensity_function</span>
 
 <div class="viewcode-block" id="Reaction.setType"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Reaction.setType">[docs]</a>    <span class="k">def</span> <span class="nf">setType</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxntype</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -891,9 +1240,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="n">annotation</span></div>
 
 <div class="viewcode-block" id="Reaction.sanitized_propensity_function"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.Reaction.sanitized_propensity_function">[docs]</a>    <span class="k">def</span> <span class="nf">sanitized_propensity_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species_mappings</span><span class="p">,</span> <span class="n">parameter_mappings</span><span class="p">):</span>
-        <span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">species_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">parameter_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="n">names</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">name</span><span class="p">:</span> <span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
-        <span class="n">replacements</span> <span class="o">=</span> <span class="p">[</span><span class="n">parameter_mappings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">parameter_mappings</span> <span class="k">else</span> <span class="n">species_mappings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">species_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">parameter_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">key</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">replacements</span> <span class="o">=</span> <span class="p">[</span><span class="n">parameter_mappings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">parameter_mappings</span> <span class="k">else</span> <span class="n">species_mappings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
         <span class="n">sanitized_propensity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span>
         <span class="k">for</span> <span class="nb">id</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
             <span class="n">sanitized_propensity</span> <span class="o">=</span> <span class="n">sanitized_propensity</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;{&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
@@ -955,23 +1304,23 @@
         <span class="c1"># Species</span>
         <span class="n">spec</span> <span class="o">=</span> <span class="n">eTree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;SpeciesList&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">sname</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">:</span>
-            <span class="n">spec</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">species_to_element</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">[</span><span class="n">sname</span><span class="p">]))</span>
+            <span class="n">spec</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">__species_to_element</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">[</span><span class="n">sname</span><span class="p">]))</span>
         <span class="n">md</span><span class="o">.</span><span class="n">document</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 
         <span class="c1"># Parameters</span>
         <span class="n">params</span> <span class="o">=</span> <span class="n">eTree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;ParametersList&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">pname</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">:</span>
-            <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">parameter_to_element</span><span class="p">(</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">__parameter_to_element</span><span class="p">(</span>
                 <span class="n">model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">[</span><span class="n">pname</span><span class="p">]))</span>
 
-        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">parameter_to_element</span><span class="p">(</span><span class="n">Parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;vol&#39;</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">volume</span><span class="p">)))</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">__parameter_to_element</span><span class="p">(</span><span class="n">Parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;vol&#39;</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">volume</span><span class="p">)))</span>
 
         <span class="n">md</span><span class="o">.</span><span class="n">document</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
 
         <span class="c1"># Reactions</span>
         <span class="n">reacs</span> <span class="o">=</span> <span class="n">eTree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;ReactionsList&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">rname</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">:</span>
-            <span class="n">reacs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">reaction_to_element</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">rname</span><span class="p">],</span> <span class="n">model</span><span class="o">.</span><span class="n">volume</span><span class="p">))</span>
+            <span class="n">reacs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">__reaction_to_element</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">rname</span><span class="p">],</span> <span class="n">model</span><span class="o">.</span><span class="n">volume</span><span class="p">))</span>
         <span class="n">md</span><span class="o">.</span><span class="n">document</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reacs</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">md</span></div>
@@ -1047,7 +1396,6 @@
             <span class="n">expr</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;Expression&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
             <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;vol&#39;</span> <span class="ow">or</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;volume&#39;</span><span class="p">:</span>
                 <span class="n">model</span><span class="o">.</span><span class="n">volume</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">volume</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">p</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="n">expr</span><span class="p">)</span>
                 <span class="c1"># Try to evaluate the expression in the empty namespace</span>
@@ -1155,7 +1503,7 @@
                         <span class="n">reaction</span><span class="o">.</span><span class="n">marate</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">[</span>
                             <span class="n">generated_rate_name</span><span class="p">]</span>
 
-                    <span class="n">reaction</span><span class="o">.</span><span class="n">create_mass_action</span><span class="p">()</span>
+                    <span class="n">reaction</span><span class="o">.</span><span class="n">__create_mass_action</span><span class="p">()</span>
                 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                     <span class="k">raise</span>
             <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;customized&#39;</span><span class="p">:</span>
@@ -1188,7 +1536,7 @@
             <span class="n">prettyXml</span> <span class="o">=</span> <span class="n">text_re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&gt;\g&lt;1&gt;&lt;/&quot;</span><span class="p">,</span> <span class="n">uglyXml</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">prettyXml</span></div>
 
-<div class="viewcode-block" id="StochMLDocument.species_to_element"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.StochMLDocument.species_to_element">[docs]</a>    <span class="k">def</span> <span class="nf">species_to_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">S</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__species_to_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">S</span><span class="p">):</span>
         <span class="n">e</span> <span class="o">=</span> <span class="n">eTree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;Species&#39;</span><span class="p">)</span>
         <span class="n">idElement</span> <span class="o">=</span> <span class="n">eTree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;Id&#39;</span><span class="p">)</span>
         <span class="n">idElement</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">name</span>
@@ -1203,9 +1551,9 @@
         <span class="n">initialPopulationElement</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">initial_value</span><span class="p">)</span>
         <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">initialPopulationElement</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">e</span></div>
+        <span class="k">return</span> <span class="n">e</span>
 
-<div class="viewcode-block" id="StochMLDocument.parameter_to_element"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.StochMLDocument.parameter_to_element">[docs]</a>    <span class="k">def</span> <span class="nf">parameter_to_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__parameter_to_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
         <span class="n">e</span> <span class="o">=</span> <span class="n">eTree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;Parameter&#39;</span><span class="p">)</span>
         <span class="n">idElement</span> <span class="o">=</span> <span class="n">eTree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;Id&#39;</span><span class="p">)</span>
         <span class="n">idElement</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">name</span>
@@ -1213,9 +1561,9 @@
         <span class="n">expressionElement</span> <span class="o">=</span> <span class="n">eTree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;Expression&#39;</span><span class="p">)</span>
         <span class="n">expressionElement</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">P</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
         <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">expressionElement</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">e</span></div>
+        <span class="k">return</span> <span class="n">e</span>
 
-<div class="viewcode-block" id="StochMLDocument.reaction_to_element"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespy2.StochMLDocument.reaction_to_element">[docs]</a>    <span class="k">def</span> <span class="nf">reaction_to_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">model_volume</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__reaction_to_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">model_volume</span><span class="p">):</span>
         <span class="n">e</span> <span class="o">=</span> <span class="n">eTree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;Reaction&#39;</span><span class="p">)</span>
 
         <span class="n">idElement</span> <span class="o">=</span> <span class="n">eTree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;Id&#39;</span><span class="p">)</span>
@@ -1262,20 +1610,28 @@
             <span class="n">products</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">srElement</span><span class="p">)</span>
         <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">products</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">e</span></div></div>
+        <span class="k">return</span> <span class="n">e</span></div>
 </pre></div>
 
           </div>
+              <div class="related bottom">
+                &nbsp;
+  <nav id="rellinks">
+    <ul>
+    </ul>
+  </nav>
+              </div>
+          
         </div>
       </div>
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;Copyright (C) 2017-2019.
+      &copy;Copyright (C) 2017-2020.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
 
