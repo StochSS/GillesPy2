@@ -4,15 +4,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.solvers.auto package &#8212; GillesPy2 1.2.1 documentation</title>
+    <title>gillespy2.solvers.auto package &#8212; GillesPy2 1.3.0 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/gillespy2_alabaster_customizations.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="gillespy2.solvers.cpp package" href="gillespy2.solvers.cpp.html" />
@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
     <link rel="apple-touch-icon" href="../_static/img/gillespy2-logo.svg" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
@@ -98,11 +99,21 @@
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="gillespy2-solvers-auto-package">
@@ -115,12 +126,12 @@
 <dl class="attribute">
 <dt id="gillespy2.solvers.auto.ssa_solver.SSASolver">
 <code class="sig-prename descclassname">gillespy2.solvers.auto.ssa_solver.</code><code class="sig-name descname">SSASolver</code><a class="headerlink" href="#gillespy2.solvers.auto.ssa_solver.SSASolver" title="Permalink to this definition">¶</a></dt>
-<dd><p>alias of <a class="reference internal" href="gillespy2.solvers.cython.html#gillespy2.solvers.cython.cython_ssa_solver.CythonSSASolver" title="gillespy2.solvers.cython.cython_ssa_solver.CythonSSASolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.solvers.cython.cython_ssa_solver.CythonSSASolver</span></code></a></p>
+<dd><p>alias of <a class="reference internal" href="gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.ssa_c_solver.SSACSolver" title="gillespy2.solvers.cpp.ssa_c_solver.SSACSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.solvers.cpp.ssa_c_solver.SSACSolver</span></code></a></p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gillespy2.solvers.auto.ssa_solver.get_best_ssa_solver">
-<code class="sig-prename descclassname">gillespy2.solvers.auto.ssa_solver.</code><code class="sig-name descname">get_best_ssa_solver</code><span class="sig-paren">(</span><em class="sig-param">omit_cpp=False</em>, <em class="sig-param">omit_cython=False</em>, <em class="sig-param">omit_numpy=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/auto/ssa_solver.html#get_best_ssa_solver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.auto.ssa_solver.get_best_ssa_solver" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">gillespy2.solvers.auto.ssa_solver.</code><code class="sig-name descname">get_best_ssa_solver</code><span class="sig-paren">(</span><em class="sig-param">omit_cpp=False</em>, <em class="sig-param">omit_cython=True</em>, <em class="sig-param">omit_numpy=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/auto/ssa_solver.html#get_best_ssa_solver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.auto.ssa_solver.get_best_ssa_solver" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -129,12 +140,12 @@
 <dl class="attribute">
 <dt id="gillespy2.solvers.auto.SSASolver">
 <code class="sig-prename descclassname">gillespy2.solvers.auto.</code><code class="sig-name descname">SSASolver</code><a class="headerlink" href="#gillespy2.solvers.auto.SSASolver" title="Permalink to this definition">¶</a></dt>
-<dd><p>alias of <a class="reference internal" href="gillespy2.solvers.cython.html#gillespy2.solvers.cython.cython_ssa_solver.CythonSSASolver" title="gillespy2.solvers.cython.cython_ssa_solver.CythonSSASolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.solvers.cython.cython_ssa_solver.CythonSSASolver</span></code></a></p>
+<dd><p>alias of <a class="reference internal" href="gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.ssa_c_solver.SSACSolver" title="gillespy2.solvers.cpp.ssa_c_solver.SSACSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.solvers.cpp.ssa_c_solver.SSACSolver</span></code></a></p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gillespy2.solvers.auto.get_best_ssa_solver">
-<code class="sig-prename descclassname">gillespy2.solvers.auto.</code><code class="sig-name descname">get_best_ssa_solver</code><span class="sig-paren">(</span><em class="sig-param">omit_cpp=False</em>, <em class="sig-param">omit_cython=False</em>, <em class="sig-param">omit_numpy=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/auto/ssa_solver.html#get_best_ssa_solver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.auto.get_best_ssa_solver" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">gillespy2.solvers.auto.</code><code class="sig-name descname">get_best_ssa_solver</code><span class="sig-paren">(</span><em class="sig-param">omit_cpp=False</em>, <em class="sig-param">omit_cython=True</em>, <em class="sig-param">omit_numpy=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/auto/ssa_solver.html#get_best_ssa_solver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.solvers.auto.get_best_ssa_solver" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -142,16 +153,32 @@
 
 
           </div>
+              <div class="related bottom">
+                &nbsp;
+  <nav id="rellinks">
+    <ul>
+        <li>
+          &larr;
+          <a href="gillespy2.solvers.html" title="Previous document">gillespy2.solvers package</a>
+        </li>
+        <li>
+          <a href="gillespy2.solvers.cpp.html" title="Next document">gillespy2.solvers.cpp package</a>
+          &rarr;
+        </li>
+    </ul>
+  </nav>
+              </div>
+          
         </div>
       </div>
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;Copyright (C) 2017-2019.
+      &copy;Copyright (C) 2017-2020.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="../_sources/classes/gillespy2.solvers.auto.rst.txt"
