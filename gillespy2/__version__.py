@@ -5,12 +5,12 @@
 # @website https://github.com/GillesPy2/GillesPy2
 # =============================================================================
 
-__version__      = '1.2.3'
+__version__      = '1.3.0'
 __title__        = 'GillesPy2'
 __description__  = 'Python interface for Gillespie-style biochemical simulations'
 __url__          = 'https://github.com/GillesPy2/GillesPy2'
 __download_url__ = 'https://pypi.org/project/gillespy2/#files'
-__author__       = 'Brian Drawert, Kevin Sanft, Sean Matthew, George Hall, Dalton Nickerson, Samuel Hodges, Emma Weisgerber, Eliot Dixon, Ghilman Brock, W.R. Jackson'
+__author__       = 'See AUTHORS'
 __email__        = 'bdrawert@unca.edu'
 __license__      = 'GPL'
-__copyright__    = 'Copyright (C) 2017-2019'
+__copyright__    = 'Copyright (C) 2017-2020'

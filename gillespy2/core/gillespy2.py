@@ -4,11 +4,14 @@ python.
 
 """
 from __future__ import division
+import signal, os
+import numpy as np
+from contextlib import contextmanager
 from collections import OrderedDict
 from gillespy2.core.results import Results,EnsembleResults
+from gillespy2.core.events import *
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
-import numpy as np
 
 try:
     import lxml.etree as eTree
@@ -20,7 +23,6 @@ except:
     import xml.dom.minidom
     import re
     no_pretty_print = True
-
 
 def import_SBML(filename, name=None, gillespy_model=None):
     """
@@ -46,7 +48,59 @@ def import_SBML(filename, name=None, gillespy_model=None):
     return convert(filename, model_name=name, gillespy_model=gillespy_model)
 
 
-class Model(object):
+class SortableObject(object):
+    """Base class for GillesPy2 objects that are sortable."""
+
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__)
+                and ordered(self) == ordered(other))
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __gt__(self, other):
+        return not self.__le__(other)
+
+    def __ge__(self, other):
+        return not self.__lt__(other)
+
+    def __lt__(self, other):
+        if hasattr(self, 'id') and hasattr(other, 'id'):
+            return self.id.lower() < other.id.lower()
+        elif hasattr(self, 'name') and hasattr(other, 'name'):
+            return self.name.lower() < other.name.lower()
+        else:
+            return repr(self) < repr(other)
+
+    def __le__(self, other):
+        if hasattr(self, 'id') and hasattr(other, 'id'):
+            return self.id.lower() <= other.id.lower()
+        elif hasattr(self, 'name') and hasattr(other, 'name'):
+            return self.name.lower() <= other.name.lower()
+        else:
+            return repr(self) <= repr(other)
+
+    def __cmp__(self, other):
+        if hasattr(self, 'id') and hasattr(other, 'id'):
+            return cmp(self.id.lower(), other.id.lower())
+        elif hasattr(self, 'name') and hasattr(other, 'name'):
+            return cmp(self.name.lower(), other.name.lower())
+        else:
+            return cmp(repr(self), repr(other))
+
+    def __hash__(self):
+        if hasattr(self, '_hash'):
+            return self._hash
+        if hasattr(self, 'id'):
+            self._hash = hash(self.id)
+        elif hasattr(self, 'name'):
+            self._hash = hash(self.name)
+        else:
+            self._hash = hash(self)
+        return self._hash
+
+
+class Model(SortableObject):
     # reserved names for model species/parameter names, volume, and operators.
     reserved_names = ['vol']
     special_characters = ['[', ']', '+', '-', '*', '/', '.', '^']
@@ -82,13 +136,28 @@ class Model(object):
         self.name = name
         self.annotation = annotation
 
-        # Dictionaries with Species, Reactions and Parameter objects.
-        # Species, Reaction and Parameter names are used as keys.
+        # Dictionaries with model element objects.
+        # Model element names are used as keys.
         self.listOfParameters = OrderedDict()
         self.listOfSpecies = OrderedDict()
         self.listOfReactions = OrderedDict()
+        self.listOfAssignmentRules = OrderedDict()
         self.listOfRateRules = OrderedDict()
+        self.listOfEvents = OrderedDict()
+        self.listOfFunctionDefinitions = OrderedDict()
 
+        # Dictionaries with model element objects.
+        # Model element names are used as keys, and values are
+        # sanitized versions of the names/formulas.
+        # These dictionaries contain sanitized values and are for
+        # Internal use only
+        self._listOfParameters = OrderedDict()
+        self._listOfSpecies = OrderedDict()
+        self._listOfReactions = OrderedDict()
+        self._listOfAssignmentRules = OrderedDict()
+        self._listOfRateRules = OrderedDict()
+        self._listOfEvents = OrderedDict()
+        self._listOfFunctionDefinitions = OrderedDict()
         # This defines the unit system at work for all numbers in the model
         # It should be a logical error to leave this undefined, subclasses
         # should set it
@@ -112,6 +181,37 @@ class Model(object):
         else:
             self.timespan(tspan)
 
+    def __str__(self):
+        divider = '\n**********\n'
+        def decorate(header):
+            return '\n' + divider + header + divider
+        print_string = self.name
+        if len(self.listOfSpecies):
+            print_string += decorate('Species')
+            for s in self.listOfSpecies.values():
+                print_string += '\n' + str(s)
+        if len(self.listOfParameters):
+            print_string += decorate('Parameters')
+            for p in self.listOfParameters.values():
+                print_string += '\n' + str(p)
+        if len(self.listOfReactions):
+            print_string += decorate('Reactions')
+            for r in self.listOfReactions.values():
+                print_string += '\n' + str(r)
+        if len(self.listOfEvents):
+            print_string += decorate('Events')
+            for e in self.listOfEvents.values():
+                print_string += '\n' + str(e)
+        if len(self.listOfAssignmentRules):
+            print_string += decorate('Assignment Rules')
+            for ar in self.listOfAssignmentRules.values():
+                print_string += '\n' + str(ar)
+        if len(self.listOfRateRules):
+            print_string += decorate('Rate Rules')
+            for rr in self.listOfRateRules.values():
+                print_string += '\n' + str(rr)
+        return print_string
+
     def serialize(self):
         """ Serializes the Model object to valid StochML. """
         self.resolve_parameters()
@@ -131,7 +231,7 @@ class Model(object):
         :return: the dictionary mapping user species names to their internal GillesPy notation.
         """
         species_name_mapping = OrderedDict([])
-        for i, name in enumerate(self.listOfSpecies.keys()):
+        for i, name in enumerate(sorted(self.listOfSpecies.keys())):
             species_name_mapping[name] = 'S[{}]'.format(i)
         return species_name_mapping
 
@@ -181,8 +281,9 @@ class Model(object):
             if problem is not None:
                 raise problem
             self.listOfSpecies[obj.name] = obj
+            self._listOfSpecies[obj.name] = 'S{}'.format(len(self._listOfSpecies))
         elif isinstance(obj, list):
-            for S in obj:
+            for S in sorted(obj):
                 self.add_species(S)
         else:
             raise ModelError("Unexpected parameter for add_species. Parameter must be Species or list of Species.")
@@ -198,12 +299,14 @@ class Model(object):
             Name of the species object to be removed.
         """
         self.listOfSpecies.pop(obj)
+        self._listOfSpecies.pop(obj)
 
     def delete_all_species(self):
         """
         Removes all species from the model object.
         """
         self.listOfSpecies.clear()
+        self._listOfSpecies.clear()
 
     def set_units(self, units):
         """
@@ -227,7 +330,7 @@ class Model(object):
         """
         parameter_name_mapping = OrderedDict()
         parameter_name_mapping['vol'] = 'V'
-        for i, name in enumerate(self.listOfParameters.keys()):
+        for i, name in enumerate(sorted(self.listOfParameters.keys())):
             if name not in parameter_name_mapping:
                 parameter_name_mapping[name] = 'P{}'.format(i)
         return parameter_name_mapping
@@ -263,8 +366,8 @@ class Model(object):
         obj : Parameter, or list of Parameters
             The parameter or list of parameters to be added to the model object.
         """
-        if isinstance(params,list): 
-            for p in params:
+        if isinstance(params,list):
+            for p in sorted(params):
                 self.add_parameter(p)
         else:
             if isinstance(params, Parameter):
@@ -272,6 +375,7 @@ class Model(object):
                 if problem is not None:
                     raise problem
                 self.listOfParameters[params.name] = params
+                self._listOfParameters[params.name]='P{}'.format(len(self._listOfParameters))
             else:
                 raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(params))
         return params
@@ -286,6 +390,7 @@ class Model(object):
             Name of the parameter object to be removed.
         """
         self.listOfParameters.pop(obj)
+        self._listOfParameters.pop(obj)
 
     def set_parameter(self, p_name, expression):
         """
@@ -318,6 +423,7 @@ class Model(object):
     def delete_all_parameters(self):
         """ Deletes all parameters from model. """
         self.listOfParameters.clear()
+        self._listOfParameters.clear()
 
     def validate_reactants_and_products(self, reactions):
             for reactant in reactions.reactants.keys():
@@ -346,7 +452,7 @@ class Model(object):
 
         # TODO, make sure that you cannot overwrite an existing reaction
         if isinstance(reactions,list):
-            for r in reactions:
+            for r in sorted(reactions):
                 self.add_reaction(r)
         elif isinstance(reactions,Reaction):
             reactions.verify()
@@ -354,6 +460,12 @@ class Model(object):
             if reactions.name in self.listOfReactions:
                 raise ModelError("Duplicate name of reaction: {0}".format(reactions.name))
             self.listOfReactions[reactions.name] = reactions
+            # Build Sanitized reaction as well
+            sanitized_reaction = Reaction(name='R{}'.format(len(self._listOfReactions)))
+            sanitized_reaction.reactants={self._listOfSpecies[species.name]:reactions.reactants[species] for species in reactions.reactants}
+            sanitized_reaction.products={self._listOfSpecies[species.name]:reactions.products[species] for species in reactions.products}
+            sanitized_reaction.propensity_function = reactions.sanitized_propensity_function(self._listOfSpecies, self._listOfParameters)
+            self._listOfReactions[reactions.name] = sanitized_reaction
         else:
             raise ModelError("Unexpected parameter for add_reaction. Parameter must be Reaction or list of Reactions.")
         return reactions
@@ -365,23 +477,71 @@ class Model(object):
                 Attributes
                 ----------
                 obj : RateRule, or list of RateRules
-                    The reaction or list of raterule objects to be added to the model
+                    The rate rule or list of rate rule objects to be added to the model
                     object.
                 """
 
-        # TODO, make sure that you cannot overwrite an existing reaction
-        # param_type = type(reactions).__name__
         if isinstance(rate_rules, list):
-            for rr in rate_rules:
+            for rr in sorted(rate_rules):
                 self.add_rate_rule(rr)
         elif isinstance(rate_rules, RateRule):
-            if rate_rules.species is None or not isinstance(rate_rules.species, Species): raise ModelError(
-                'A Rate Rule must be associated with a valid species.')
-            if rate_rules.expression == '': raise ModelError('Invalid Rate Rule. Expression must be a non-empty string value')
-            self.listOfRateRules[rate_rules.species.name] = rate_rules
+            if rate_rules.formula == '': raise ModelError('Invalid Rate Rule. Expression must be a non-empty string value')
+            if rate_rules.variable == None:
+                raise ModelError('A GillesPy2 Rate Rule must be associated with a valid variable')
+            self.listOfRateRules[rate_rules.variable] = rate_rules
+            sanitized_rate_rule = RateRule(name = 'RR{}'.format(len(self._listOfRateRules)))
+            sanitized_rate_rule.formula = rate_rules.sanitized_formula(self._listOfSpecies,
+                                                    self._listOfParameters)
+            self._listOfRateRules[rate_rules.variable] = sanitized_rate_rule
         else:
             raise ParameterError("Add_rate_rule accepts a RateRule object or a List of RateRule Objects")
         return rate_rules
+
+    def add_event(self, event):
+        """
+                Adds an event, or list of events to the model.
+
+                Attributes
+                ----------
+                event : Event, or list of Events
+                    The event or list of event objects to be added to the model
+                    object.
+                """
+
+        if isinstance(event, list):
+            for e in event:
+                self.add_event(e)
+        elif isinstance(event, Event):
+            if event.trigger is None or not isinstance(event.trigger, EventTrigger): 
+                raise ModelError(
+                'An Event must contain a valid trigger.')
+            for a in event.assignments:
+                if isinstance(a.variable, str):
+                    if a.variable in self.listOfSpecies:
+                        a.variable = self.listOfSpecies[a.variable]
+                    else:
+                        raise ModelError('{0} not a valid Species'.format(a.variable))
+            self.listOfEvents[event.name] = event
+        else:
+            raise ParameterError("add_events accepts an Event object or a"
+            " List of Event Objects")
+        return event
+
+
+    def add_function_definition(self, function_definitions):
+        if isinstance(function_definitions, list):
+            for fd in function_definitions:
+                self.add_function_definition(fd)
+        elif isinstance(function_definitions, FunctionDefinition):
+            self.listOfFunctionDefinitions[function_definitions.name] = function_definitions
+
+    def add_assignment_rule(self, assignment_rules):
+        if isinstance(assignment_rules, list):
+            for ar in assignment_rules:
+                self.add_assignment_rule(ar)
+        elif isinstance(assignment_rules, AssignmentRule):
+            self.listOfAssignmentRules[assignment_rules.variable] = assignment_rules
+
 
     def timespan(self, time_span):
         """
@@ -410,11 +570,13 @@ class Model(object):
 
     def delete_reaction(self, obj):
         self.listOfReactions.pop(obj)
+        self._listOfReactions.pop(obj)
 
     def delete_all_reactions(self):
         self.listOfReactions.clear()
+        self._listOfReactions.clear()
 
-    def run(self, solver=None, **solver_args):
+    def run(self, solver=None, timeout=0, **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -429,56 +591,88 @@ class Model(object):
 
         Attributes
         ----------
-        number_of_trajectories : int
-            The number of times to sample the chemical master equation. Each
-            trajectory will be returned at the end of the simulation.
-            Optional, defaults to 1.
-        seed : int
-            The random seed for the simulation. Optional, defaults to None.
         solver : gillespy.GillesPySolver
             The solver by which to simulate the model. This solver object may
             be initialized separately to specify an algorithm. Optional, 
             defaults to ssa solver.
-        show_labels: bool (True)
-            If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]
-        switch_tol: float
-            Tolerance for Continuous/Stochastic representation of species, based on coefficient of variance for each step.
-        tau_tol: float
-            Relative error tolerance value for calculating tau step between 0.0 and 1.0
-        integrator: String
-            integrator to be used form scipy.integrate.ode. Options include 'vode', 'zvode', 'lsoda', 'dopri5', and 'dop835'.  For more details, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html
-        integrator_options: dictionary
-            contains options to the scipy integrator. for a list of options, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.
-            Example use: {max_step : 0, rtol : .01}
+        timeout : int
+            Allows a time_out value in seconds to be sent to a signal handler, restricting simulation run-time
+        solver_args :
+            solver-specific arguments to be passed to solver.run()
         """
-        if solver is not None:
-            if ((isinstance(solver, type)
-                    and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
-                solver_results = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
+
+        if os.name == 'nt' and timeout > 0:
+            from gillespy2.core import log
+            log.warning('Timeouts are not currently supported in Windows.')
+        @contextmanager
+        def time_out(time):
+            # Register a function to raise a TimeoutError on the signal.
+            signal.signal(signal.SIGALRM, raise_time_out)
+            # Schedule the signal to be sent after ``time``.
+            signal.alarm(time)
+
+            try:
+                yield
+            except TimeoutError:
+                print('GillesPy2 solver simulation exceeded timeout')
+                pass
+            finally:
+                # Unregister the signal so it won't be triggered
+                # if the time_out is not reached.
+                signal.signal(signal.SIGALRM, signal.SIG_IGN)
+
+        def raise_time_out(signum, frame):
+            from gillespy2.core import log
+            import sys
+            def excepthook(type, value, traceback):
+                pass
+            sys.excepthook = excepthook
+            log.warning('GillesPy2 simulation exceeded timeout.')
+            raise SimulationTimeoutError()
+
+
+        with time_out(timeout):
+            if solver is not None:
+                if ((isinstance(solver, type)
+                        and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
+                    if solver.name == 'SSACSolver':
+                        signal.signal(signal.SIGALRM, signal.SIG_IGN)
+                        solver_args['timeout'] = timeout
+                    solver_results, rc = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
+                else:
+                    raise SimulationError(
+                        "argument 'solver' to run() must be a subclass of GillesPySolver")
             else:
-                raise SimulationError(
-                    "argument 'solver' to run() must be a subclass of GillesPySolver")
-        else:
-            from gillespy2.solvers.auto import SSASolver
-            solver = SSASolver
-            solver_results = SSASolver.run(model=self, t=self.tspan[-1],
-                                      increment=self.tspan[-1] - self.tspan[-2], **solver_args)
+                from gillespy2.solvers.auto import SSASolver
+                solver = SSASolver
+                if solver.name == 'SSACSolver':
+                    signal.signal(signal.SIGALRM, signal.SIG_IGN)
+                    solver_args['timeout'] = timeout
+                solver_results, rc = SSASolver.run(model=self, t=self.tspan[-1],
+                                          increment=self.tspan[-1] - self.tspan[-2], **solver_args)
+           
+            if rc == 33:
+                from gillespy2.core import log
+                log.warning('GillesPy2 simulation exceeded timeout.')
 
-        if isinstance(solver_results[0], (np.ndarray)):
-            return solver_results
+            if isinstance(solver_results[0], (np.ndarray)):
+                return solver_results
 
-        if len(solver_results) is 1:
-            return Results(data=solver_results[0], model=self, solver_name=solver.name)
+            if len(solver_results) is 1:
+                return Results(data=solver_results[0], model=self,
+                    solver_name=solver.name, rc=rc)
 
-        if len(solver_results) > 1:
-            results_list = []
-            for i in range(0,solver_args.get('number_of_trajectories')):
-                results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name))
-            return EnsembleResults(results_list)
-        else:
-            raise ValueError("number_of_trajectories must be non-negative and non-zero")
+            if len(solver_results) > 1:
+                results_list = []
+                for i in range(0,solver_args.get('number_of_trajectories')):
+                    results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name,
+                        rc=rc))
+                return EnsembleResults(results_list)
+            else:
+                raise ValueError("number_of_trajectories must be non-negative and non-zero")
 
-class Species:
+
+class Species(SortableObject):
     """
     Chemical species. Can be added to Model object to interact with other
     species or time.
@@ -491,21 +685,48 @@ class Species:
     initial_value : int >= 0
         Initial population of this species. If this is not provided as an int,
         the type will be changed when it is added by numpy.int
+    constant: bool
+        If true, the value of the species cannot be changed.
+        (currently BasicTauHybridSolver only)
+    boundary_condition: bool
+        If true, species can be changed by events and rate rules, but not by
+        reactions. (currently BasicTauHybridOnly)
     mode : str
-        ***FOR USE WITH TauHybridSolver ONLY***
+        ***FOR USE WITH BasicTauHybridSolver ONLY***
         Sets the mode of representation of this species for the TauHybridSolver,
         can be discrete, continuous, or dynamic.
         mode='dynamic' - Default, allows a species to be represented as
             either discrete or continuous
         mode='continuous' - Species will only be represented as continuous
         mode='discrete' - Species will only be represented as discrete
+    allow_negative_populations: bool
+        If true, population can be reduced below 0
+    switch_tol : float
+        ***FOR USE WITH BasicTauHybridSolver ONLY***
+        Tolerance level for considering a dynamic species deterministically,
+        value is compared to an estimated sd/mean population of a species after a
+        given time step. This value will be used if a switch_min is not
+        provided.  The default value is 0.03
+    switch_min : float
+        ***FOR USE WITH BasicTauHybridSolver ONLY***
+        Minimum population value at which species will be represented as
+        continuous. If a value is given, switch_min will be used instead of
+        switch_tol
+        
     """
 
-    def __init__(self, name="", initial_value=0, mode='dynamic', allow_negative_populations=False):
+    def __init__(self, name="", initial_value=0, constant=False,
+                    boundary_condition=False, mode='dynamic',
+                    allow_negative_populations=False, switch_min=0,
+                    switch_tol=0.03):
         # A species has a name (string) and an initial value (positive integer)
         self.name = name
+        self.constant = constant
+        self.boundary_condition = boundary_condition
         self.mode = mode
         self.allow_negative_populations = allow_negative_populations
+        self.switch_min = switch_min
+        self.switch_tol = switch_tol
 
         mode_list = ['continuous', 'dynamic', 'discrete']
         if self.mode not in mode_list:
@@ -520,10 +741,19 @@ class Species:
 non-negative unless allow_negative_populations=True')
 
     def __str__(self):
-        return self.name
+        print_string = self.name
+        print_string += ': ' + str(self.initial_value)
+        '''
+        print_string += '\n\tInitial Value: ' + str(self.initial_value)
+        print_string += '\n\tConstant: ' + str(self.constant)
+        print_string += '\n\tBoundary Condition: ' + str(self.boundary_condition)
+        print_string += '\n\tMode: ' + self.mode
+        print_string += '\n\tAllow Negative Populations: ' + str(self.allow_negative_populations)
+        '''
+        return print_string
 
 
-class Parameter:
+class Parameter(SortableObject):
     """
     A parameter can be given as an expression (function) or directly
     as a value (scalar). If given an expression, it should be
@@ -561,6 +791,9 @@ class Parameter:
         if self.value is None:
             self.evaluate()
 
+    def __str__(self):
+        return self.name + ': ' + self.expression
+
     def evaluate(self, namespace={}):
         """
         Evaluate the expression and return the (scalar) value in the given
@@ -595,15 +828,101 @@ class Parameter:
         self.evaluate()
 
 
-class RateRule:
-    def __init__(self, species=None, expression='', name=None):
-        self.expression = expression
-        self.species = species
+class FunctionDefinition(SortableObject):
+    """
+    Object representation defining an evaluable function to be used during
+    simulation of a GillesPy2 model
+
+    Attributes
+    ----------
+    name : str
+        Name of the function to be made and called.
+    function : str
+        Defined function body of operation to be performed.
+    variables : list
+        String names of Variables to be used as arguments to function.
+    """
+
+
+    def __init__(self, name="", function=None, args=[]):
+
+        import math
+        eval_globals = math.__dict__
+
         self.name = name
+        args = ', '.join(args)
+        self.function = eval('lambda ' + args + ': ' + function, eval_globals)
+        if self.function is None:
+            raise TypeError
+    def sanitized_function(self, species_mappings, parameter_mappings):
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
+        replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
+                        for name in names]
+        sanitized_function = self.function
+        for id, name in enumerate(names):
+            sanitized_function = sanitized_function.replace(name, "{"+str(id)+"}")
+        return sanitized_function.format(*replacements)
+
+class AssignmentRule(SortableObject):
+    """
+    An AssignmentRule is used to express equations that set the values of
+    variables.  This would correspond to a function in the form of x = f(V)
+
+    Attributes
+    ----------
+    name : str
+        Name of the Rule
+    variable : str
+        Target Species/Parameter to be modified by rule
+    formula : str
+        String representation of formula to be evaluated
+    """
+    def __init__(self, variable=None, formula=None, name=None):
+        self.variable = variable
+        self.formula = formula
+        self.name = name
+    def __str__(self):
+        return self.variable + ': ' + self.formula
+    def sanitized_formula(self, species_mappings, parameter_mappings):
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
+        replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
+                        for name in names]
+        sanitized_formula = self.formula
+        for id, name in enumerate(names):
+            sanitized_formula = sanitized_formula.replace(name, "{"+str(id)+"}")
+        return sanitized_formula.format(*replacements)
+
+class RateRule(SortableObject):
+    """
+    A RateRule is used to express equations that determine the rates of change
+    of variables. This would correspond to a function in the form of dx/dt=f(W)
+
+    Attributes
+    ----------
+    name : str
+        Name of Rule
+    variable : str
+        Target Species/Parameter to be modified by rule
+    formula : str
+        String representation of formula to be evaluated
+    """
+    def __init__(self, variable=None, formula='', name=None):
+        self.formula = formula
+        self.variable = variable
+        self.name = name
+    def __str__(self):
+        return self.name + ': Var: ' + self.variable + ': ' + self.formula
+    def sanitized_formula(self, species_mappings, parameter_mappings):
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
+        replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
+                        for name in names]
+        sanitized_formula = self.formula
+        for id, name in enumerate(names):
+            sanitized_formula = sanitized_formula.replace(name, "{"+str(id)+"}")
+        return sanitized_formula.format(*replacements)
 
 
-
-class Reaction:
+class Reaction(SortableObject):
     """
     Models a single reaction. A reaction has its own dicts of species
     (reactants and products) and parameters. The reaction's propensity
@@ -690,9 +1009,22 @@ class Reaction:
                 self.marate = None
             else:
                 self.marate = rate
-                self.create_mass_action()
+                self.__create_mass_action()
         else:
             self.type = "customized"
+
+    def __str__(self):
+        print_string = self.name
+        if len(self.reactants):
+            print_string += '\n\tReactants'
+            for r, stoich in self.reactants.items():
+                print_string += '\n\t\t' + r.name + ': ' + str(stoich)
+        if len(self.products):
+            print_string += '\n\tProducts'
+            for p, stoich in self.products.items():
+                print_string += '\n\t\t' + p.name + ': ' + str(stoich)
+        print_string += '\n\tPropensity Function: ' + self.propensity_function
+        return print_string
 
     def verify(self):
         """ Check if the reaction is properly formatted.
@@ -702,7 +1034,7 @@ class Reaction:
         if len(self.reactants) == 0 and len(self.products) == 0:
             raise ReactionError("You must have a non-zero number of reactants or products.")
 
-    def create_mass_action(self):
+    def __create_mass_action(self):
         """
         Initializes the mass action propensity function given
         self.reactants and a single parameter value.
@@ -712,27 +1044,33 @@ class Reaction:
         # Users can still create such propensities if they really want to,
         # but should then use a custom propensity.
         total_stoch = 0
-        for r in self.reactants:
+        for r in sorted(self.reactants):
             total_stoch += self.reactants[r]
         if total_stoch > 2:
             raise ReactionError("Reaction: A mass-action reaction cannot involve more than two of one species or one "
-                                "of two species.")
+                                "of two species. To declare a custom propensity, replace 'rate' with "
+                                "'propensity_function'.")
+
         # Case EmptySet -> Y
 
         propensity_function = self.marate.name
         ode_propensity_function = self.marate.name
 
         # There are only three ways to get 'total_stoch==2':
-        for r in self.reactants:
+        for r in sorted(self.reactants):
+            if isinstance(r, str):
+                rname = r
+            else:
+                rname = r.name
             # Case 1: 2X -> Y
             if self.reactants[r] == 2:
                 propensity_function = (propensity_function +
-                                       "*" + str(r) + "*(" + str(r) + "-1)/vol")
-                ode_propensity_function += '*' + str(r) + '*' + str(r)
+                                       "*" + rname + "*(" + rname + "-1)/vol")
+                ode_propensity_function += '*' + rname + '*' + rname
             else:
                 # Case 3: X1, X2 -> Y;
-                propensity_function += "*" + str(r)
-                ode_propensity_function += '*' + str(r)
+                propensity_function += "*" + rname
+                ode_propensity_function += '*' + rname
 
         # Set the volume dependency based on order.
         order = len(self.reactants)
@@ -800,9 +1138,9 @@ class Reaction:
         self.annotation = annotation
 
     def sanitized_propensity_function(self, species_mappings, parameter_mappings):
-        names = list(species_mappings.keys()) + list(parameter_mappings.keys())
-        names.sort(key=lambda name: -len(name))
-        replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name] for name in names]
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
+        replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
+                        for name in names]
         sanitized_propensity = self.propensity_function
         for id, name in enumerate(names):
             sanitized_propensity = sanitized_propensity.replace(name, "{"+str(id)+"}")
@@ -864,23 +1202,23 @@ class StochMLDocument():
         # Species
         spec = eTree.Element('SpeciesList')
         for sname in model.listOfSpecies:
-            spec.append(md.species_to_element(model.listOfSpecies[sname]))
+            spec.append(md.__species_to_element(model.listOfSpecies[sname]))
         md.document.append(spec)
 
         # Parameters
         params = eTree.Element('ParametersList')
         for pname in model.listOfParameters:
-            params.append(md.parameter_to_element(
+            params.append(md.__parameter_to_element(
                 model.listOfParameters[pname]))
 
-        params.append(md.parameter_to_element(Parameter(name='vol', expression=model.volume)))
+        params.append(md.__parameter_to_element(Parameter(name='vol', expression=model.volume)))
 
         md.document.append(params)
 
         # Reactions
         reacs = eTree.Element('ReactionsList')
         for rname in model.listOfReactions:
-            reacs.append(md.reaction_to_element(model.listOfReactions[rname], model.volume))
+            reacs.append(md.__reaction_to_element(model.listOfReactions[rname], model.volume))
         md.document.append(reacs)
 
         return md
@@ -956,7 +1294,6 @@ class StochMLDocument():
             expr = px.find('Expression').text
             if name.lower() == 'vol' or name.lower() == 'volume':
                 model.volume = float(expr)
-                print(model.volume)
             else:
                 p = Parameter(name, expression=expr)
                 # Try to evaluate the expression in the empty namespace
@@ -1064,7 +1401,7 @@ class StochMLDocument():
                         reaction.marate = model.listOfParameters[
                             generated_rate_name]
 
-                    reaction.create_mass_action()
+                    reaction.__create_mass_action()
                 except Exception as e:
                     raise
             elif type == 'customized':
@@ -1097,7 +1434,7 @@ class StochMLDocument():
             prettyXml = text_re.sub(">\g<1></", uglyXml)
             return prettyXml
 
-    def species_to_element(self, S):
+    def __species_to_element(self, S):
         e = eTree.Element('Species')
         idElement = eTree.Element('Id')
         idElement.text = S.name
@@ -1114,7 +1451,7 @@ class StochMLDocument():
 
         return e
 
-    def parameter_to_element(self, P):
+    def __parameter_to_element(self, P):
         e = eTree.Element('Parameter')
         idElement = eTree.Element('Id')
         idElement.text = P.name
@@ -1124,7 +1461,7 @@ class StochMLDocument():
         e.append(expressionElement)
         return e
 
-    def reaction_to_element(self, R, model_volume):
+    def __reaction_to_element(self, R, model_volume):
         e = eTree.Element('Reaction')
 
         idElement = eTree.Element('Id')

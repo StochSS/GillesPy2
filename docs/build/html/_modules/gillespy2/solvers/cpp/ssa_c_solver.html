@@ -4,21 +4,22 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.solvers.cpp.ssa_c_solver &#8212; GillesPy2 1.2 documentation</title>
+    <title>gillespy2.solvers.cpp.ssa_c_solver &#8212; GillesPy2 1.3.0 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/gillespy2_alabaster_customizations.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../../../_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
   <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
   
     <link rel="apple-touch-icon" href="../../../../_static/img/gillespy2-logo.svg" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
@@ -81,16 +82,27 @@
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <h1>Source code for gillespy2.solvers.cpp.ssa_c_solver</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">gillespy2</span>
 <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Reaction</span><span class="p">,</span> <span class="n">gillespyError</span><span class="p">,</span> <span class="n">GillesPySolver</span><span class="p">,</span> <span class="n">log</span>
+<span class="kn">import</span> <span class="nn">signal</span><span class="o">,</span> <span class="nn">time</span> <span class="c1">#for solver timeout implementation</span>
 <span class="kn">import</span> <span class="nn">os</span> <span class="c1">#for getting directories for C++ files</span>
 <span class="kn">import</span> <span class="nn">shutil</span> <span class="c1">#for deleting/copying files</span>
 <span class="kn">import</span> <span class="nn">subprocess</span> <span class="c1">#For calling make and executing c solver</span>
@@ -102,15 +114,15 @@
 <span class="n">GILLESPY_C_DIRECTORY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GILLESPY_PATH</span><span class="p">,</span> <span class="s1">&#39;solvers/cpp/c_base&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="copy_files"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.ssa_c_solver.copy_files">[docs]</a><span class="k">def</span> <span class="nf">copy_files</span><span class="p">(</span><span class="n">destination</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_copy_files</span><span class="p">(</span><span class="n">destination</span><span class="p">):</span>
     <span class="n">src_files</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">GILLESPY_C_DIRECTORY</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">src_file</span> <span class="ow">in</span> <span class="n">src_files</span><span class="p">:</span>
         <span class="n">src_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GILLESPY_C_DIRECTORY</span><span class="p">,</span> <span class="n">src_file</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">src_file</span><span class="p">):</span>
-            <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">src_file</span><span class="p">,</span> <span class="n">destination</span><span class="p">)</span></div>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">src_file</span><span class="p">,</span> <span class="n">destination</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="write_constants"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.ssa_c_solver.write_constants">[docs]</a><span class="k">def</span> <span class="nf">write_constants</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">reactions</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">parameter_mappings</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_write_constants</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">reactions</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">parameter_mappings</span><span class="p">):</span>
     <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;const double V = </span><span class="si">{}</span><span class="s2">;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">volume</span><span class="p">))</span>
     <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;std :: string s_names[] = {&quot;</span><span class="p">);</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -132,28 +144,28 @@
         <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reactions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
         <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;};</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">:</span>
-        <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;const double </span><span class="si">{0}</span><span class="s2"> = </span><span class="si">{1}</span><span class="s2">;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">parameter_mappings</span><span class="p">[</span><span class="n">param</span><span class="p">],</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">))</span></div>
+        <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;const double </span><span class="si">{0}</span><span class="s2"> = </span><span class="si">{1}</span><span class="s2">;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">parameter_mappings</span><span class="p">[</span><span class="n">param</span><span class="p">],</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 
 
-<div class="viewcode-block" id="write_propensity"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.ssa_c_solver.write_propensity">[docs]</a><span class="k">def</span> <span class="nf">write_propensity</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">species_mappings</span><span class="p">,</span> <span class="n">parameter_mappings</span><span class="p">,</span> <span class="n">reactions</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_write_propensity</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">species_mappings</span><span class="p">,</span> <span class="n">parameter_mappings</span><span class="p">,</span> <span class="n">reactions</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">reactions</span><span class="p">)):</span>
         <span class="c1"># Write switch statement case for reaction</span>
         <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        case </span><span class="si">{0}</span><span class="s2">:</span>
 <span class="s2">            return </span><span class="si">{1}</span><span class="s2">;</span>
-<span class="s2">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">reactions</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">.</span><span class="n">sanitized_propensity_function</span><span class="p">(</span><span class="n">species_mappings</span><span class="p">,</span> <span class="n">parameter_mappings</span><span class="p">)))</span></div>
+<span class="s2">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">reactions</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">.</span><span class="n">sanitized_propensity_function</span><span class="p">(</span><span class="n">species_mappings</span><span class="p">,</span> <span class="n">parameter_mappings</span><span class="p">)))</span>
 
 
-<div class="viewcode-block" id="write_reactions"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.ssa_c_solver.write_reactions">[docs]</a><span class="k">def</span> <span class="nf">write_reactions</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">reactions</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_write_reactions</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">reactions</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">reactions</span><span class="p">)):</span>
         <span class="n">reaction</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">reactions</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)):</span>
             <span class="n">change</span> <span class="o">=</span> <span class="p">(</span><span class="n">reaction</span><span class="o">.</span><span class="n">products</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">[</span><span class="n">species</span><span class="p">[</span><span class="n">j</span><span class="p">]],</span> <span class="mi">0</span><span class="p">))</span> <span class="o">-</span> <span class="p">(</span><span class="n">reaction</span><span class="o">.</span><span class="n">reactants</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">[</span><span class="n">species</span><span class="p">[</span><span class="n">j</span><span class="p">]],</span> <span class="mi">0</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">change</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;model.reactions[</span><span class="si">{0}</span><span class="s2">].species_change[</span><span class="si">{1}</span><span class="s2">] = </span><span class="si">{2}</span><span class="s2">;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">change</span><span class="p">))</span></div>
+                <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;model.reactions[</span><span class="si">{0}</span><span class="s2">].species_change[</span><span class="si">{1}</span><span class="s2">] = </span><span class="si">{2}</span><span class="s2">;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">change</span><span class="p">))</span>
 
 
-<div class="viewcode-block" id="parse_output"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.ssa_c_solver.parse_output">[docs]</a><span class="k">def</span> <span class="nf">parse_output</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="p">,</span> <span class="n">number_timesteps</span><span class="p">,</span> <span class="n">number_species</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_parse_output</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="p">,</span> <span class="n">number_timesteps</span><span class="p">,</span> <span class="n">number_species</span><span class="p">):</span>
     <span class="n">trajectory_base</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">number_of_trajectories</span><span class="p">,</span> <span class="n">number_timesteps</span><span class="p">,</span> <span class="n">number_species</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">timestep</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_timesteps</span><span class="p">):</span>
         <span class="n">values</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="n">timestep</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
@@ -163,10 +175,10 @@
             <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_species</span><span class="p">):</span>
                 <span class="n">trajectory_base</span><span class="p">[</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">timestep</span><span class="p">,</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="n">species</span><span class="p">])</span>
             <span class="n">index</span> <span class="o">+=</span> <span class="n">number_species</span>
-    <span class="k">return</span> <span class="n">trajectory_base</span></div>
+    <span class="k">return</span> <span class="n">trajectory_base</span>
 
 
-<div class="viewcode-block" id="parse_binary_output"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.ssa_c_solver.parse_binary_output">[docs]</a><span class="k">def</span> <span class="nf">parse_binary_output</span><span class="p">(</span><span class="n">results_buffer</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="p">,</span> <span class="n">number_timesteps</span><span class="p">,</span> <span class="n">number_species</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_parse_binary_output</span><span class="p">(</span><span class="n">results_buffer</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="p">,</span> <span class="n">number_timesteps</span><span class="p">,</span> <span class="n">number_species</span><span class="p">):</span>
     <span class="n">trajectory_base</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">number_of_trajectories</span><span class="p">,</span> <span class="n">number_timesteps</span><span class="p">,</span> <span class="n">number_species</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
     <span class="n">step_size</span> <span class="o">=</span> <span class="n">number_species</span> <span class="o">*</span> <span class="n">number_of_trajectories</span> <span class="o">+</span> <span class="mi">1</span> <span class="c1">#1 for timestep</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">results_buffer</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
@@ -179,24 +191,25 @@
             <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_species</span><span class="p">):</span>
                 <span class="n">trajectory_base</span><span class="p">[</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">timestep</span><span class="p">,</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="n">species</span><span class="p">]</span>
             <span class="n">index</span> <span class="o">+=</span> <span class="n">number_species</span>
-    <span class="k">return</span> <span class="n">trajectory_base</span></div>
+    <span class="k">return</span> <span class="n">trajectory_base</span>
 
 
-<div class="viewcode-block" id="SSACSolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.ssa_c_solver.SSACSolver">[docs]</a><span class="k">class</span> <span class="nc">SSACSolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">SSACSolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;SSACSolver&quot;</span>
     <span class="sd">&quot;&quot;&quot;TODO&quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">delete_directory</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">SSACSolver</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">compiled</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__compiled</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delete_directory</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># Create constant, ordered lists for reactions/species</span>
+            <span class="c1"># Create constant, ordered lists for reactions/species/</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">species_mappings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sanitized_species_names</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">parameter_mappings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sanitized_parameter_names</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output_directory</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">output_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">output_directory</span><span class="p">)</span>
             
@@ -214,15 +227,15 @@
                 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_directory</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">DirectoryError</span><span class="p">(</span><span class="s2">&quot;Errors encountered while setting up directory for Solver C++ files.&quot;</span><span class="p">)</span>
-            <span class="n">copy_files</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_directory</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">write_template</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span>
+            <span class="n">_copy_files</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_directory</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__write_template</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__compile</span><span class="p">()</span>
         
     <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">delete_directory</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_directory</span><span class="p">):</span>
             <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_directory</span><span class="p">)</span>
         
-<div class="viewcode-block" id="SSACSolver.write_template"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.ssa_c_solver.SSACSolver.write_template">[docs]</a>    <span class="k">def</span> <span class="nf">write_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template_file</span><span class="o">=</span><span class="s1">&#39;SimulationTemplate.cpp&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__write_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template_file</span><span class="o">=</span><span class="s1">&#39;SimulationTemplate.cpp&#39;</span><span class="p">):</span>
         <span class="c1"># Open up template file for reading.</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_directory</span><span class="p">,</span> <span class="n">template_file</span><span class="p">),</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">template</span><span class="p">:</span>
             <span class="c1"># Write simulation C++ file.</span>
@@ -233,33 +246,50 @@
                     <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">template_keyword</span><span class="p">):</span>
                         <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">template_keyword</span><span class="p">):]</span>
                         <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;CONSTANTS&quot;</span><span class="p">):</span>
-                            <span class="n">write_constants</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_mappings</span><span class="p">)</span>
+                            <span class="n">_write_constants</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_mappings</span><span class="p">)</span>
                         <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;PROPENSITY&quot;</span><span class="p">):</span>
-                            <span class="n">write_propensity</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_mappings</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_mappings</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="p">)</span>
+                            <span class="n">_write_propensity</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_mappings</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_mappings</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="p">)</span>
                         <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;REACTIONS&quot;</span><span class="p">):</span>
-                            <span class="n">write_reactions</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
+                            <span class="n">_write_reactions</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span></div>
+                        <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
 
-<div class="viewcode-block" id="SSACSolver.compile"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.ssa_c_solver.SSACSolver.compile">[docs]</a>    <span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__compile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Use makefile.</span>
         <span class="n">cleaned</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">&quot;make&quot;</span><span class="p">,</span> <span class="s2">&quot;-C&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_directory</span><span class="p">,</span> <span class="s1">&#39;cleanSimulation&#39;</span><span class="p">],</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
         <span class="n">built</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">&quot;make&quot;</span><span class="p">,</span> <span class="s2">&quot;-C&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_directory</span><span class="p">,</span> <span class="s1">&#39;UserSimulation&#39;</span><span class="p">],</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">built</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">compiled</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__compiled</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">BuildError</span><span class="p">(</span><span class="s2">&quot;Error encountered while compiling file:</span><span class="se">\n</span><span class="s2">Return code: </span><span class="si">{0}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">Error:</span><span class="se">\n</span><span class="si">{1}</span><span class="se">\n</span><span class="si">{2}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">built</span><span class="o">.</span><span class="n">returncode</span><span class="p">,</span> <span class="n">built</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">),</span><span class="n">built</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)))</span></div>
+            <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">BuildError</span><span class="p">(</span><span class="s2">&quot;Error encountered while compiling file:</span><span class="se">\n</span><span class="s2">Return code: </span><span class="si">{0}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">Error:</span><span class="se">\n</span><span class="si">{1}</span><span class="se">\n</span><span class="si">{2}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">built</span><span class="o">.</span><span class="n">returncode</span><span class="p">,</span> <span class="n">built</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">),</span><span class="n">built</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)))</span>
 
-<div class="viewcode-block" id="SSACSolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.ssa_c_solver.SSACSolver.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
             <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
         <span class="k">if</span> <span class="bp">self</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span> <span class="o">=</span> <span class="n">SSACSolver</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Unsupported keyword argument to </span><span class="si">{0}</span><span class="s1"> solver: </span><span class="si">{1}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">compiled</span><span class="p">:</span>
+        
+        <span class="n">unsupported_sbml_features</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s1">&#39;Rate Rules&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfRateRules</span><span class="p">),</span>
+                        <span class="s1">&#39;Assignment Rules&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfAssignmentRules</span><span class="p">),</span> 
+                        <span class="s1">&#39;Events&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfEvents</span><span class="p">),</span>
+                        <span class="s1">&#39;Function Definitions&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfFunctionDefinitions</span><span class="p">)</span>
+                        <span class="p">}</span>
+        <span class="n">detected_features</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">feature</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">unsupported_sbml_features</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">count</span><span class="p">:</span>
+                <span class="n">detected_features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feature</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">detected_features</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">ModelError</span><span class="p">(</span>
+                <span class="s1">&#39;Could not run Model.  SBML Feature: </span><span class="si">{}</span><span class="s1"> not supported by SSACSolver.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">detected_features</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__compiled</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">simulation_data</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">number_timesteps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="o">//</span><span class="n">increment</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>                    
+            <span class="n">number_timesteps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">t</span><span class="o">/</span><span class="n">increment</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
             <span class="c1"># Execute simulation.</span>
             <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_directory</span><span class="p">,</span> <span class="s1">&#39;UserSimulation&#39;</span><span class="p">),</span> <span class="s1">&#39;-trajectories&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">number_of_trajectories</span><span class="p">),</span> <span class="s1">&#39;-timesteps&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">number_timesteps</span><span class="p">),</span> <span class="s1">&#39;-end&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">)]</span>
             <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -273,11 +303,24 @@
                         <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">seed_int</span><span class="p">))</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s2">&quot;seed must be a positive integer&quot;</span><span class="p">)</span>
-                
-            <span class="n">simulation</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+
+            <span class="c1">#begin subprocess c simulation with timeout (default timeout=0 will not timeout)</span>
+            <span class="k">with</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">preexec_fn</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">setsid</span><span class="p">)</span> <span class="k">as</span> <span class="n">simulation</span><span class="p">:</span>
+                <span class="n">return_code</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">timeout</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+                    <span class="n">return_code</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+                <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">TimeoutExpired</span><span class="p">:</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">killpg</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">pid</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">)</span> <span class="c1">#send signal to the process group</span>
+                        <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+                        <span class="n">return_code</span> <span class="o">=</span> <span class="mi">33</span>
+ 
             <span class="c1"># Parse/return results.</span>
-            <span class="k">if</span> <span class="n">simulation</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">trajectory_base</span> <span class="o">=</span> <span class="n">parse_binary_output</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="p">,</span> <span class="n">number_timesteps</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">return_code</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">33</span><span class="p">]:</span>
+                <span class="n">trajectory_base</span> <span class="o">=</span> <span class="n">_parse_binary_output</span><span class="p">(</span><span class="n">stdout</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="p">,</span> <span class="n">number_timesteps</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">))</span>
                 <span class="c1"># Format results</span>
                 <span class="k">if</span> <span class="n">show_labels</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">simulation_data</span> <span class="o">=</span> <span class="p">[]</span>
@@ -290,21 +333,29 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">simulation_data</span> <span class="o">=</span> <span class="n">trajectory_base</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">ExecutionError</span><span class="p">(</span><span class="s2">&quot;Error encountered while running simulation C++ file:</span><span class="se">\n</span><span class="s2">Return code: </span><span class="si">{0}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">Error:</span><span class="se">\n</span><span class="si">{1}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">returncode</span><span class="p">,</span> <span class="n">simulation</span><span class="o">.</span><span class="n">stderr</span><span class="p">))</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation_data</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation_data</span><span class="p">,</span> <span class="n">return_code</span>
 
 </pre></div>
 
           </div>
+              <div class="related bottom">
+                &nbsp;
+  <nav id="rellinks">
+    <ul>
+    </ul>
+  </nav>
+              </div>
+          
         </div>
       </div>
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;Copyright (C) 2017-2019.
+      &copy;Copyright (C) 2017-2020.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
 

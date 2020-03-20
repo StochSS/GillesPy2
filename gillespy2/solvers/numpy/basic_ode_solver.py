@@ -1,5 +1,6 @@
 """GillesPy2 Solver for ODE solutions."""
 
+import signal
 from scipy.integrate import ode
 from scipy.integrate import odeint
 from collections import OrderedDict
@@ -12,9 +13,13 @@ class BasicODESolver(GillesPySolver):
     This Solver produces the deterministic continuous solution via ODE.
     """
     name = "BasicODESolver"
+    interrupted = False
+    rc = 0
     
     def __init__(self):
         name = "BasicODESolver"
+        interrupted = False
+        rc = 0
 
     @staticmethod
     def __f(t, y, curr_state, model, c_prop):
@@ -36,9 +41,9 @@ class BasicODESolver(GillesPySolver):
         for r_name, reaction in model.listOfReactions.items():
             propensity[r_name] = eval(c_prop[r_name], curr_state)
             for react, stoich in reaction.reactants.items():
-                state_change[str(react)] -= propensity[r_name] * stoich
+                state_change[react.name] -= propensity[r_name] * stoich
             for prod, stoich in reaction.products.items():
-                state_change[str(prod)] += propensity[r_name] * stoich
+                state_change[prod.name] += propensity[r_name] * stoich
         state_change = list(state_change.values())
         return state_change
 
@@ -67,6 +72,12 @@ class BasicODESolver(GillesPySolver):
         if number_of_trajectories > 1:
             log.warning("Generating duplicate trajectories for model with ODE Solver. Consider running with only 1 trajectory.")
 
+        
+        def timed_out(signum, frame):
+            self.rc = 33
+            self.interrupted = True
+
+        signal.signal(signal.SIGALRM, timed_out)
         start_state = [model.listOfSpecies[species].initial_value for species in model.listOfSpecies]
 
         # create mapping of species dictionary to array indices
@@ -79,7 +90,7 @@ class BasicODESolver(GillesPySolver):
         timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
         # create numpy matrix to mark all state data of time and species
-        trajectory_base = np.empty((number_of_trajectories, timeline.size, number_species + 1))
+        trajectory_base = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
 
         # copy time values to all trajectory row starts
         trajectory_base[:, :, 0] = timeline
@@ -108,6 +119,7 @@ class BasicODESolver(GillesPySolver):
         rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model, c_prop)
 
         while entry_count < timeline.size - 1:
+            if self.interrupted: break
             int_time = curr_time + increment
             entry_count += 1
             y0 = rhs.integrate(int_time)
@@ -126,4 +138,4 @@ class BasicODESolver(GillesPySolver):
         else:
             results = np.stack([result] * number_of_trajectories, axis=0)
 
-        return results
+        return results, self.rc
