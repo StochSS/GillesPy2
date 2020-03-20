@@ -169,6 +169,13 @@ Authors and history
 * [**W.R. Jackson** ](https://github.com/JustJackson)
 * [**Samuel Hodges**](https://github.com/hodgespodge)
 * [**Emma Weisgerber**](https://github.com/eweisger)
+* [**Adrien Coulier**](https://github.com/Aratz)
+* [**Mike Hucka**](https://github.com/mhucka)
+* [**Fredrik Wrede**](https://github.com/Wrede)
+* [**Prashant Singh**](https://github.com/prasi372)
+* [**Mason Kidwell**](https://github.com/makdl)
+* [**Jeese Reeve**](https://github.com/jdreeve)
+* [**Fin Carter**](https://github.com/Fin109)
 
 Acknowledgments
 ---------------
