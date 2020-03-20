@@ -1,6 +1,6 @@
 # CONTRIBUTING
 
-By contributing to GillesPy2 you agree to the code of conduct which can be reviewed here [Code of Conduct](/CODE_OF_CONDUCT.md). If after reading you are interested in contributing, please follow these guidelines:  
+By contributing to GillesPy2 you agree to the [Code of Conduct](/CODE_OF_CONDUCT.md) and that the contents of this project are distributed under the [GNU GPL v3](/LICENSE). Please review both of these documents. If after reading you are interested in contributing, please follow these guidelines:  
 
 ### 1. Making Changes:  
 a) Create a fork from this repository ('https://github.com/GillesPy2/GillesPy2')  
@@ -8,9 +8,10 @@ b) Create a new branch.
 c) Please use a meaningful name, and include the issue # if applicable.  
 d) For bug fixes, branch from 'master'  
 e) For new features, branch from 'develop'  
-e) Be sure to document your code  
-f) Create unit tests to cover changes.  Unit tests should be placed in the [test](/test) subdirectory.  
-g) Update [UML_CLASS_DIAGRAM.md](UML_CLASS_DIAGRAM.md) in the root directory, the [UML class diagram](.graphics/gillespy2-UML-class-diagram.png) in the [.graphics](.graphics) subdirectory, and the [UML class model](docs/getting_started/basic_usage/gillespy2-UML-class-model.pyns) in the [docs/getting_started/basic_usage/](docs/getting_started/basic_usage/) subdirectory to reflect your changes. These files were created using [Pynsource](https://pynsource.com/), an open-source UML tool for Python.
+e) Be sure to document your code
+f) If you are creating a new file prepend lines [634-648](/LICENSE#L634-L648) of the GNU GPL v3 to the beginning and file out the bracketed placeholder text. If you are editing an existing file, add the year and your name to the exiting copyright notice.
+g) Create unit tests to cover changes.  Unit tests should be placed in the [test](/test) subdirectory.  
+h) Update [UML_CLASS_DIAGRAM.md](UML_CLASS_DIAGRAM.md) in the root directory, the [UML class diagram](.graphics/gillespy2-UML-class-diagram.png) in the [.graphics](.graphics) subdirectory, and the [UML class model](docs/getting_started/basic_usage/gillespy2-UML-class-model.pyns) in the [docs/getting_started/basic_usage/](docs/getting_started/basic_usage/) subdirectory to reflect your changes. These files were created using [Pynsource](https://pynsource.com/), an open-source UML tool for Python.
   
 ### 2. Submitting a Pull Request:  
 a) If changes are bug/hotfix, make a pull request to 'master'.  
