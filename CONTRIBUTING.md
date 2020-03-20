@@ -9,7 +9,7 @@ c) Please use a meaningful name, and include the issue # if applicable.
 d) For bug fixes, branch from 'master'  
 e) For new features, branch from 'develop'  
 f) Be sure to document your code  
-g) If you are creating a new file prepend lines [634-648](/LICENSE#L634-L648) of the GNU GPL v3 to the beginning and file out the bracketed placeholder text. If you are editing an existing file, add the year and your name to the existing copyright notice.  
+g) If you are creating a new file, prepend the [COPYRIGHT](/COPYRIGHT) notice to the beginning of the file.  
 h) Create unit tests to cover changes. Unit tests should be placed in the [test](/test) subdirectory.  
 i) Update [UML_CLASS_DIAGRAM.md](UML_CLASS_DIAGRAM.md) in the root directory, the [UML class diagram](.graphics/gillespy2-UML-class-diagram.png) in the [.graphics](.graphics) subdirectory, and the [UML class model](docs/getting_started/basic_usage/gillespy2-UML-class-model.pyns) in the [docs/getting_started/basic_usage/](docs/getting_started/basic_usage/) subdirectory to reflect your changes. These files were created using [Pynsource](https://pynsource.com/), an open-source UML tool for Python.
   
