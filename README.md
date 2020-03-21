@@ -174,7 +174,7 @@ Authors and history
 * [**Fredrik Wrede**](https://github.com/Wrede)
 * [**Prashant Singh**](https://github.com/prasi372)
 * [**Mason Kidwell**](https://github.com/makdl)
-* [**Jeese Reeve**](https://github.com/jdreeve)
+* [**Jesse Reeve**](https://github.com/jdreeve)
 * [**Fin Carter**](https://github.com/Fin109)
 
 Acknowledgments
