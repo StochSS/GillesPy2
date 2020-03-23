@@ -173,6 +173,7 @@ Authors and history
 * [**Mike Hucka**](https://github.com/mhucka)
 * [**Fredrik Wrede**](https://github.com/Wrede)
 * [**Prashant Singh**](https://github.com/prasi372)
+* [**Bryan Rumsey**](https://github.com/BryanRumsey)  
 * [**Mason Kidwell**](https://github.com/makdl)
 * [**Jesse Reeve**](https://github.com/jdreeve)
 * [**Fin Carter**](https://github.com/Fin109)
