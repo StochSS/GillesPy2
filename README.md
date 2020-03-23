@@ -176,6 +176,7 @@ Authors and history
 * [**Mason Kidwell**](https://github.com/makdl)
 * [**Jesse Reeve**](https://github.com/jdreeve)
 * [**Fin Carter**](https://github.com/Fin109)
+* [**Bryan Rumsey**](https://github.com/BryanRumsey)
 
 Acknowledgments
 ---------------
