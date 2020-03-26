@@ -1,4 +1,7 @@
 import warnings
+import csv
+import os
+from datetime import datetime
 
 from collections import UserDict,UserList
 
@@ -20,7 +23,7 @@ def _plot_iterate(self, show_labels = True, included_species_list = []):
             if species not in included_species_list and included_species_list:
                 continue
 
-            line_color = 'C' + str(i%10)
+            line_color = common_rgb_values[(i - 1) % len(common_rgb_values)]
 
             if show_labels:
                 label = species
@@ -104,6 +107,43 @@ class Results(UserDict):
         if hasattr(self.__class__, "__missing__"):
             return self.__class__.__missing__(self, key)
         raise KeyError(key)
+
+    def to_csv(self, path=None, nametag=None, stamp=None):
+        """ outputs the Results to one or more .csv files in a new directory.
+
+             Attributes
+            ----------
+            nametag: allows the user to optionally "tag" the directory and included files. Defaults to the model name.
+            path: path to the location for the new directory and included files. Defaults to model location.
+            stamp: allows the user to optionally identify the directory (not included files). Defaults to timestamp.
+            """
+        if stamp is None:
+            now = datetime.now()
+            stamp=datetime.timestamp(now)
+        if nametag is None:
+            identifier = (self.model.name + " - " + self.solver_name)
+        else:
+            identifier = nametag
+        if isinstance(self.data,dict):  #if only one trajectory
+            if path is None:
+                directory = os.path.join(".",str(identifier)+str(stamp))
+            else:
+                directory = os.path.join(path,str(identifier)+str(stamp))
+            os.mkdir(directory)
+            filename = os.path.join(directory,identifier+".csv")
+            field_names = []
+            for species in self.data: #build the header
+                field_names.append(species)
+            with open(filename, 'w', newline = '') as csv_file:
+                csv_writer = csv.writer(csv_file)
+                csv_writer.writerow(field_names) #write the header
+                for n,time in enumerate(self.data['time']):#write all lines of the CSV file
+                    this_line=[]
+                    for species in self.data: #build one line of the CSV file
+                        this_line.append(self.data[species][n])
+                    csv_writer.writerow(this_line) #write one line of the CSV file
+
+
 
     def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None, style="default",
              show_legend=True, included_species_list=[],save_png=False,figsize = (18,10)):
@@ -216,6 +256,43 @@ class EnsembleResults(UserList):
 
     def __init__(self,data):
         self.data = data
+
+    def to_csv(self, path=None, nametag=None, stamp=None):
+        """ outputs the Results to one or more .csv files in a new directory.
+
+             Attributes
+            ----------
+            nametag: allows the user to optionally "tag" the directory and included files. Defaults to the model name.
+            path: the location for the new directory and included files. Defaults to model location.
+            stamp: Allows the user to optionally "tag" the directory (not included files). Default is timestamp.
+            """
+        if stamp is None:
+            now = datetime.now()
+            stamp=datetime.timestamp(now)
+        if nametag is None:
+            identifier = (self[0].model.name + " - " + self[0].solver_name)
+        else:
+            identifier = nametag
+        if path is None:
+            directory = os.path.join(".",str(identifier)+str(stamp))
+        else:
+            directory = os.path.join(path,str(identifier)+str(stamp))
+    #multiple trajectories
+        if isinstance(self.data,list):
+            os.mkdir(directory)
+            for i, trajectory in enumerate(self.data):#write each CSV file
+                filename = os.path.join(directory,str(identifier)+str(i)+".csv")
+                field_names = []
+                for species in trajectory: #build the header
+                    field_names.append(species)
+                with open(filename, 'w', newline = '') as csv_file:
+                    csv_writer = csv.writer(csv_file)
+                    csv_writer.writerow(field_names) #write the header
+                    for n,time in enumerate(trajectory['time']):#write all lines of the CSV file
+                        this_line=[]
+                        for species in trajectory: #build one line of the CSV file
+                            this_line.append(trajectory[species][n])
+                        csv_writer.writerow(this_line) #write one line of the CSV file
 
     def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", style="default", title = None,
              show_legend=True, multiple_graphs = False, included_species_list=[],save_png=False,figsize = (18,10)):

@@ -2,16 +2,16 @@
 <img src="https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/gillespy2-logo.png">
 </p>
 
-GillesPy2 is a Python package for stochastic simulation of biochemical systems.  It offers an object-oriented approach for creating mathematical models of biological systems, as well as a variety of methods for performing time simulation of those models.  The methods include the [Gillespie direct method (SSA)](https://en.wikipedia.org/wiki/Gillespie_algorithm), several variant stochastic simulation methods including [tau-leaping](https://en.wikipedia.org/wiki/Tau-leaping), and numerical integration of ODEs.  The solvers support a variety of user environments, with optimized code for C++, [Cython](https://cython.org), and [NumPy](https://numpy.org).  GillesPy2 also supports [SBML](https://en.wikipedia.org/wiki/SBML).
+GillesPy2 is a Python 3 package for stochastic simulation of biochemical systems.  It offers an object-oriented approach for creating mathematical models of biological systems, as well as a variety of methods for performing time simulation of those models.  The methods include the [Gillespie direct method (SSA)](https://en.wikipedia.org/wiki/Gillespie_algorithm), several variant stochastic simulation methods including [tau-leaping](https://en.wikipedia.org/wiki/Tau-leaping), and numerical integration of ODEs.  The solvers support a variety of user environments, with optimized code for C++, [Cython](https://cython.org), and [NumPy](https://numpy.org).  GillesPy2 also supports [SBML](https://en.wikipedia.org/wiki/SBML).
 
 <table><tr><td><b>
 <img width="20%" align="right" src="https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/stochss-logo.png">
 <a href="https://docs.google.com/forms/d/12tAH4f8CJ-3F-lK44Q9uQHFio_mGoK0oY829q5lD7i4/viewform">PLEASE REGISTER AS A USER</a>, so that we can prove GillesPy2 has many users when we seek funding to support development. GillesPy2 is part of the <a href="http://www.stochss.org">StochSS</a> project.
 </td></tr></table>
 
-[![PyPI](https://img.shields.io/pypi/v/gillespy2.svg?color=b44e48)](https://pypi.org/project/gillespy2)
-![PyPI - License](https://img.shields.io/pypi/l/gillespy2.svg?color=lightgray)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/gillespy2.svg?color=lightgreen)
+[![PyPI](https://img.shields.io/pypi/v/gillespy2.svg)](https://pypi.org/project/gillespy2)
+![PyPI - License](https://img.shields.io/pypi/l/gillespy2.svg?color=informational)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/gillespy2.svg)
 
 Table of contents
 -----------------
@@ -31,13 +31,10 @@ GillesPy2 can be installed on your computer using different methods, as describe
 
 ### _Using PyPI_
 
-On **Linux**, **macOS**, and **Windows** operating systems, you should be able to install GillesPy2 with [pip](https://pip.pypa.io/en/stable/installing/).  If you don't have the `pip` package or are uncertain, first run the following command in a terminal command line interpreter: 
-```
-sudo python3 -m ensurepip
-```
+On **Linux**, **macOS**, and **Windows** operating systems, you should be able to install GillesPy2 with `pip`. Please review the official pip [documentation](https://pip.pypa.io/en/stable/installing/) for installation instructions and additional information.
 
 Then, to install GillesPy2 from the Python package repository, run the following command:
-```
+```sh
 python3 -m pip install gillespy2 --user --upgrade
 ```
 
@@ -45,7 +42,7 @@ python3 -m pip install gillespy2 --user --upgrade
 
 As an alternative to getting it from PyPI, you can instruct `pip` to install GillesPy2 directly from the GitHub repository:
 ```sh
-python3 -m pip install git+https://github.com/GillesPy2/GillesPy2.git --user --upgrade
+python3 -m pip install https://github.com/GillesPy2/GillesPy2/archive/master.zip --user --upgrade
 ```
 
 As a final alternative, you can first use `git` to clone a copy of the GillesPy2 source tree from the GitHub repository to your local computer disk, and then install GillesPy2 using that copy:
@@ -64,7 +61,6 @@ GillesPy2 provides simple object-oriented abstractions for defining a model of a
 2. Invoke the model's `.run()` method.
 
 The `run()` method can be customized using keyword arguments to select different solvers, random seed, data return type and more.  For more detailed examples on how to use GillesPy2, please see the [Getting Started](https://github.com/GillesPy2/GillesPy2/tree/master/examples/Getting-Started.ipynb) Jupyter notebook contained in the [examples](https://github.com/GillesPy2/GillesPy2/tree/master/examples) subdirectory.
-
 
 ### _Simple example to illustrate the use of GillesPy2_
 
@@ -137,24 +133,28 @@ With a few additional Python matplotlib commands to create figure labels and suc
 <img width="500px" src="https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/dimerization-example-matplotlib.png">
 </p>
 
-
 Getting help
 ------------
 
-GillesPy2's [online document](https://gillespy2.github.io/GillesPy2/) provides more details about using the software.  If you find any problem with GillesPy2 or the documentation, please report it using [the GitHub issue tracker](https://github.com/GillesPy2/GillesPy2/issues) for this repository.  You can also contact Dr. [Brian Drawert](http://www.cs.unca.edu/~drawert) directly with questions and suggestions.
-
+GillesPy2's [online documentation](https://gillespy2.github.io/GillesPy2/) provides more details about using the software.  If you find any problem with GillesPy2 or the documentation, please report it using the [GitHub issue tracker](https://github.com/GillesPy2/GillesPy2/issues) for this repository.  You can also contact Dr. [Brian Drawert](http://www.cs.unca.edu/~drawert) directly with questions and suggestions.
 
 Contributing
 ------------
 
-We would be happy to receive your help and participation with enhancing GillesPy2!  Please follow the guidelines described in [CONTRIBUTING.md](https://github.com/GillesPy2/GillesPy2/tree/master/CONTRIBUTING.md).
+We would be happy to receive your help and participation with enhancing GillesPy2!  The [UML class diagram](UML_CLASS_DIAGRAM.md) and [Pynsource](https://pynsource.com/) [UML class model](docs/getting_started/basic_usage/gillespy2-UML-class-model.pyns) may help you familiarize yourself with the existing code. Please follow the guidelines described in [CONTRIBUTING.md](https://github.com/GillesPy2/GillesPy2/tree/master/CONTRIBUTING.md).
 
+New developments happen primarily in the [`develop`](https://github.com/GillesPy2/GillesPy2/commits/develop) branch.  New releases are put in the `master` branch.
+
+<p align="center">
+
+| Master Branch   | Develop Branch | Coverage |
+|:---------------:|:--------------:|:--------:|
+| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | ![Coverage](https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/coverage.svg?sanitize=true) |
 
 License
 -------
 
-GillesPy2 is licensed under the GNU General Public License version 3.  Please see the file [LICENSE](LICENSE) for more information.
-
+GillesPy2 is licensed under the GNU General Public License version 3.  Please see the file [LICENSE](https://github.com/GillesPy2/GillesPy2/blob/master/LICENSE) for more information.
 
 Authors and history
 ---------------------------
@@ -169,16 +169,15 @@ Authors and history
 * [**W.R. Jackson** ](https://github.com/JustJackson)
 * [**Samuel Hodges**](https://github.com/hodgespodge)
 * [**Emma Weisgerber**](https://github.com/eweisger)
-
-New developments happen primarily in the [`develop`](https://github.com/GillesPy2/GillesPy2/commits/develop) branch.  New releases are put in the `master` branch.
-
-<p align="center">
-
-| Master Branch   | Develop Branch | Coverage |
-|:---------------:|:--------------:|:--------:|
-| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | ![Coverage](https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/coverage.png) |
-
-
+* [**Adrien Coulier**](https://github.com/Aratz)
+* [**Mike Hucka**](https://github.com/mhucka)
+* [**Fredrik Wrede**](https://github.com/Wrede)
+* [**Prashant Singh**](https://github.com/prasi372)
+* [**Bryan Rumsey**](https://github.com/BryanRumsey)  
+* [**Mason Kidwell**](https://github.com/makdl)
+* [**Jesse Reeve**](https://github.com/jdreeve)
+* [**Fin Carter**](https://github.com/Fin109)
+* [**Bryan Rumsey**](https://github.com/BryanRumsey)
 
 Acknowledgments
 ---------------
@@ -192,10 +191,10 @@ GillesPy2 uses numerous open-source packages, without which it would have been e
 * [lxml](https://lxml.de) &ndash; an XML parsing library for Python
 * [MatplotLib](https://matplotlib.org/index.html) &ndash; Python plotting library
 * [Plotly](https://plot.ly/) &ndash; Graphing library for making interactive, publication-quality graphs
-* [Numpy](http://www.numpy.org/) &ndash; the fundamental package for scientific computing with Python
+* [Numpy](https://www.numpy.org/) &ndash; the fundamental package for scientific computing with Python
 * [Scipy](https://www.scipy.org/) &ndash; Python-based ecosystem of open-source software for mathematics, science, and engineering
 
-Finally, we are grateful for institutional resources made available by the [UNC Asheville](https://www.unca.edu), the [University of California at Santa Barbara](https://ucsb.edu), [Uppsala University](https://www.it.uu.se), and the [California Institute of Technology](https://www.caltech.edu).
+Finally, we are grateful for institutional resources made available by the [University of North Carolina at Asheville](https://www.unca.edu), the [University of California at Santa Barbara](https://ucsb.edu), [Uppsala University](https://www.it.uu.se), and the [California Institute of Technology](https://www.caltech.edu).
 
 <div align="center">
   <a href="https://www.nigms.nih.gov">

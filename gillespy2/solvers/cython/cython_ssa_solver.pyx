@@ -138,6 +138,9 @@ def convert_infix_prefix(equation):
                 
     
 class CythonSSASolver(GillesPySolver):
+    '''
+    This solver was deprecated in release version 1.3 of GillesPy2.
+    '''
     name = "CythonSSASolver"
     interrupted = False
     rc = 0

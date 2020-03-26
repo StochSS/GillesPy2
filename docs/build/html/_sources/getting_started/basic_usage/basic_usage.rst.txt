@@ -8,6 +8,7 @@ GillesPy2 provides simple object-oriented abstractions for defining a model of a
 
 The ``run()`` method can be customized using keyword arguments to select different solvers, random seed, data return type and more.
 
+For a graphic visualization of GillesPy2's structure, refer to UML_CLASS_DIAGRAM.md in the GillesPy2 root directory.
 
 Simple example of using GillesPy2
 *********************************

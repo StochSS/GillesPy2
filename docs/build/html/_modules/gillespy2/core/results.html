@@ -4,21 +4,22 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.core.results &#8212; GillesPy2 1.2.1 documentation</title>
+    <title>gillespy2.core.results &#8212; GillesPy2 1.3.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/gillespy2_alabaster_customizations.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
   <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
   
     <link rel="apple-touch-icon" href="../../../_static/img/gillespy2-logo.svg" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
@@ -81,17 +82,39 @@
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <h1>Source code for gillespy2.core.results</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
 
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">UserDict</span><span class="p">,</span><span class="n">UserList</span>
+
+<span class="c1"># List of 50 hex color values used for ploting graphs</span>
+<span class="n">common_rgb_values</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;#1f77b4&#39;</span><span class="p">,</span> <span class="s1">&#39;#ff7f0e&#39;</span><span class="p">,</span> <span class="s1">&#39;#2ca02c&#39;</span><span class="p">,</span> <span class="s1">&#39;#d62728&#39;</span><span class="p">,</span> <span class="s1">&#39;#9467bd&#39;</span><span class="p">,</span> <span class="s1">&#39;#8c564b&#39;</span><span class="p">,</span> <span class="s1">&#39;#e377c2&#39;</span><span class="p">,</span> <span class="s1">&#39;#7f7f7f&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;#bcbd22&#39;</span><span class="p">,</span> <span class="s1">&#39;#17becf&#39;</span><span class="p">,</span> <span class="s1">&#39;#ff0000&#39;</span><span class="p">,</span> <span class="s1">&#39;#00ff00&#39;</span><span class="p">,</span> <span class="s1">&#39;#0000ff&#39;</span><span class="p">,</span> <span class="s1">&#39;#ffff00&#39;</span><span class="p">,</span> <span class="s1">&#39;#00ffff&#39;</span><span class="p">,</span> <span class="s1">&#39;#ff00ff&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;#800000&#39;</span><span class="p">,</span> <span class="s1">&#39;#808000&#39;</span><span class="p">,</span> <span class="s1">&#39;#008000&#39;</span><span class="p">,</span> <span class="s1">&#39;#800080&#39;</span><span class="p">,</span> <span class="s1">&#39;#008080&#39;</span><span class="p">,</span> <span class="s1">&#39;#000080&#39;</span><span class="p">,</span> <span class="s1">&#39;#ff9999&#39;</span><span class="p">,</span> <span class="s1">&#39;#ffcc99&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;#ccff99&#39;</span><span class="p">,</span> <span class="s1">&#39;#cc99ff&#39;</span><span class="p">,</span> <span class="s1">&#39;#ffccff&#39;</span><span class="p">,</span> <span class="s1">&#39;#62666a&#39;</span><span class="p">,</span> <span class="s1">&#39;#8896bb&#39;</span><span class="p">,</span> <span class="s1">&#39;#77a096&#39;</span><span class="p">,</span> <span class="s1">&#39;#9d5a6c&#39;</span><span class="p">,</span> <span class="s1">&#39;#9d5a6c&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;#eabc75&#39;</span><span class="p">,</span> <span class="s1">&#39;#ff9600&#39;</span><span class="p">,</span> <span class="s1">&#39;#885300&#39;</span><span class="p">,</span> <span class="s1">&#39;#9172ad&#39;</span><span class="p">,</span> <span class="s1">&#39;#a1b9c4&#39;</span><span class="p">,</span> <span class="s1">&#39;#18749b&#39;</span><span class="p">,</span> <span class="s1">&#39;#dadecf&#39;</span><span class="p">,</span> <span class="s1">&#39;#c5b8a8&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;#000117&#39;</span><span class="p">,</span> <span class="s1">&#39;#13a8fe&#39;</span><span class="p">,</span> <span class="s1">&#39;#cf0060&#39;</span><span class="p">,</span> <span class="s1">&#39;#04354b&#39;</span><span class="p">,</span> <span class="s1">&#39;#0297a0&#39;</span><span class="p">,</span> <span class="s1">&#39;#037665&#39;</span><span class="p">,</span> <span class="s1">&#39;#eed284&#39;</span><span class="p">,</span> <span class="s1">&#39;#442244&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;#ffddee&#39;</span><span class="p">,</span> <span class="s1">&#39;#702afb&#39;</span><span class="p">]</span>
 
 <span class="k">def</span> <span class="nf">_plot_iterate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_labels</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">included_species_list</span> <span class="o">=</span> <span class="p">[]):</span>
     <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -102,7 +125,7 @@
             <span class="k">if</span> <span class="n">species</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">included_species_list</span> <span class="ow">and</span> <span class="n">included_species_list</span><span class="p">:</span>
                 <span class="k">continue</span>
 
-            <span class="n">line_color</span> <span class="o">=</span> <span class="s1">&#39;C&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">line_color</span> <span class="o">=</span> <span class="n">common_rgb_values</span><span class="p">[(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">common_rgb_values</span><span class="p">)]</span>
 
             <span class="k">if</span> <span class="n">show_labels</span><span class="p">:</span>
                 <span class="n">label</span> <span class="o">=</span> <span class="n">species</span>
@@ -111,23 +134,17 @@
 
             <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">species</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span><span class="n">color</span> <span class="o">=</span> <span class="n">line_color</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">_plotplotyl_iterate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_labels</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">trace_list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">line_dict</span><span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">included_species_list</span><span class="o">=</span> <span class="p">[]):</span>
-
-    <span class="c1"># List of 50 hex color values used for plotly graphs</span>
-    <span class="n">common_rgb_values</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;#1f77b4&#39;</span><span class="p">,</span> <span class="s1">&#39;#ff7f0e&#39;</span><span class="p">,</span> <span class="s1">&#39;#2ca02c&#39;</span><span class="p">,</span> <span class="s1">&#39;#d62728&#39;</span><span class="p">,</span> <span class="s1">&#39;#9467bd&#39;</span><span class="p">,</span> <span class="s1">&#39;#8c564b&#39;</span><span class="p">,</span> <span class="s1">&#39;#e377c2&#39;</span><span class="p">,</span> <span class="s1">&#39;#7f7f7f&#39;</span><span class="p">,</span>
-                         <span class="s1">&#39;#bcbd22&#39;</span><span class="p">,</span> <span class="s1">&#39;#17becf&#39;</span><span class="p">,</span><span class="s1">&#39;#ff0000&#39;</span><span class="p">,</span> <span class="s1">&#39;#00ff00&#39;</span><span class="p">,</span> <span class="s1">&#39;#0000ff&#39;</span><span class="p">,</span> <span class="s1">&#39;#ffff00&#39;</span><span class="p">,</span> <span class="s1">&#39;#00ffff&#39;</span><span class="p">,</span> <span class="s1">&#39;#ff00ff&#39;</span><span class="p">,</span>
-                         <span class="s1">&#39;#800000&#39;</span><span class="p">,</span> <span class="s1">&#39;#808000&#39;</span><span class="p">,</span><span class="s1">&#39;#008000&#39;</span><span class="p">,</span> <span class="s1">&#39;#800080&#39;</span><span class="p">,</span> <span class="s1">&#39;#008080&#39;</span><span class="p">,</span> <span class="s1">&#39;#000080&#39;</span><span class="p">,</span> <span class="s1">&#39;#ff9999&#39;</span><span class="p">,</span> <span class="s1">&#39;#ffcc99&#39;</span><span class="p">,</span>
-                         <span class="s1">&#39;#ccff99&#39;</span><span class="p">,</span> <span class="s1">&#39;#cc99ff&#39;</span><span class="p">,</span><span class="s1">&#39;#ffccff&#39;</span><span class="p">,</span> <span class="s1">&#39;#62666a&#39;</span><span class="p">,</span> <span class="s1">&#39;#8896bb&#39;</span><span class="p">,</span> <span class="s1">&#39;#77a096&#39;</span><span class="p">,</span> <span class="s1">&#39;#9d5a6c&#39;</span><span class="p">,</span> <span class="s1">&#39;#9d5a6c&#39;</span><span class="p">,</span>
-                         <span class="s1">&#39;#eabc75&#39;</span><span class="p">,</span> <span class="s1">&#39;#ff9600&#39;</span><span class="p">,</span><span class="s1">&#39;#885300&#39;</span><span class="p">,</span> <span class="s1">&#39;#9172ad&#39;</span><span class="p">,</span> <span class="s1">&#39;#a1b9c4&#39;</span><span class="p">,</span> <span class="s1">&#39;#18749b&#39;</span><span class="p">,</span> <span class="s1">&#39;#dadecf&#39;</span><span class="p">,</span> <span class="s1">&#39;#c5b8a8&#39;</span><span class="p">,</span>
-                         <span class="s1">&#39;#000117&#39;</span><span class="p">,</span> <span class="s1">&#39;#13a8fe&#39;</span><span class="p">,</span><span class="s1">&#39;#cf0060&#39;</span><span class="p">,</span> <span class="s1">&#39;#04354b&#39;</span><span class="p">,</span> <span class="s1">&#39;#0297a0&#39;</span><span class="p">,</span> <span class="s1">&#39;#037665&#39;</span><span class="p">,</span> <span class="s1">&#39;#eed284&#39;</span><span class="p">,</span> <span class="s1">&#39;#442244&#39;</span><span class="p">,</span>
-                         <span class="s1">&#39;#ffddee&#39;</span><span class="p">,</span> <span class="s1">&#39;#702afb&#39;</span><span class="p">]</span>
+<span class="k">def</span> <span class="nf">_plotplotly_iterate</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">show_labels</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">trace_list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">line_dict</span><span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">included_species_list</span><span class="o">=</span> <span class="p">[]):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Helper method for Results and Ensemble .plotplotly() method</span>
+<span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="k">if</span> <span class="n">trace_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">trace_list</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="kn">import</span> <span class="nn">plotly.graph_objs</span> <span class="k">as</span> <span class="nn">go</span>
 
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">species</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">species</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span>
 
             <span class="k">if</span> <span class="n">species</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">included_species_list</span> <span class="ow">and</span> <span class="n">included_species_list</span><span class="p">:</span>
@@ -142,8 +159,8 @@
             <span class="k">if</span> <span class="n">show_labels</span><span class="p">:</span>
                 <span class="n">trace_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                     <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
-                        <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
-                        <span class="n">y</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">species</span><span class="p">],</span>
+                        <span class="n">x</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+                        <span class="n">y</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">species</span><span class="p">],</span>
                         <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">,</span>
                         <span class="n">name</span><span class="o">=</span><span class="n">species</span><span class="p">,</span>
                         <span class="n">line</span> <span class="o">=</span> <span class="n">line_dict</span>
@@ -152,8 +169,8 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">trace_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                     <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
-                        <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
-                        <span class="n">y</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">species</span><span class="p">],</span>
+                        <span class="n">x</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+                        <span class="n">y</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">species</span><span class="p">],</span>
                         <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">,</span>
                         <span class="n">name</span><span class="o">=</span><span class="n">species</span><span class="p">,</span>
                         <span class="n">line</span><span class="o">=</span><span class="n">line_dict</span><span class="p">,</span>
@@ -172,11 +189,16 @@
 <span class="sd">            A list of Results that are created by solvers with multiple trajectories</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">,</span><span class="n">model</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span><span class="n">solver_name</span> <span class="o">=</span> <span class="s2">&quot;Undefined solver name&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">,</span><span class="n">model</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span><span class="n">solver_name</span> <span class="o">=</span> <span class="s2">&quot;Undefined solver name&quot;</span><span class="p">,</span> <span class="n">rc</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">solver_name</span> <span class="o">=</span> <span class="n">solver_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rc</span> <span class="o">=</span> <span class="n">rc</span>
+        
+        <span class="n">status_list</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;Success&#39;</span><span class="p">,</span> <span class="mi">33</span><span class="p">:</span> <span class="s1">&#39;Timed Out&#39;</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">status_list</span><span class="p">[</span><span class="n">rc</span><span class="p">]</span>
+
 
     <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">type</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span>
@@ -188,8 +210,45 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="fm">__missing__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
         <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
+<div class="viewcode-block" id="Results.to_csv"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.to_csv">[docs]</a>    <span class="k">def</span> <span class="nf">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nametag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stamp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; outputs the Results to one or more .csv files in a new directory.</span>
+
+<span class="sd">             Attributes</span>
+<span class="sd">            ----------</span>
+<span class="sd">            nametag: allows the user to optionally &quot;tag&quot; the directory and included files. Defaults to the model name.</span>
+<span class="sd">            path: path to the location for the new directory and included files. Defaults to model location.</span>
+<span class="sd">            stamp: allows the user to optionally identify the directory (not included files). Defaults to timestamp.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">stamp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+            <span class="n">stamp</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timestamp</span><span class="p">(</span><span class="n">now</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nametag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">identifier</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; - &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">identifier</span> <span class="o">=</span> <span class="n">nametag</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span><span class="nb">dict</span><span class="p">):</span>  <span class="c1">#if only one trajectory</span>
+            <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">stamp</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">stamp</span><span class="p">))</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span><span class="n">identifier</span><span class="o">+</span><span class="s2">&quot;.csv&quot;</span><span class="p">)</span>
+            <span class="n">field_names</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="c1">#build the header</span>
+                <span class="n">field_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">newline</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csv_file</span><span class="p">:</span>
+                <span class="n">csv_writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">csv_file</span><span class="p">)</span>
+                <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">field_names</span><span class="p">)</span> <span class="c1">#write the header</span>
+                <span class="k">for</span> <span class="n">n</span><span class="p">,</span><span class="n">time</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]):</span><span class="c1">#write all lines of the CSV file</span>
+                    <span class="n">this_line</span><span class="o">=</span><span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="c1">#build one line of the CSV file</span>
+                        <span class="n">this_line</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">species</span><span class="p">][</span><span class="n">n</span><span class="p">])</span>
+                    <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">this_line</span><span class="p">)</span> <span class="c1">#write one line of the CSV file</span></div>
+
+
+
 <div class="viewcode-block" id="Results.plot"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xaxis_label</span> <span class="o">=</span><span class="s2">&quot;Time (s)&quot;</span><span class="p">,</span> <span class="n">yaxis_label</span> <span class="o">=</span><span class="s2">&quot;Species Population&quot;</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span>
-             <span class="n">show_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">included_species_list</span><span class="o">=</span><span class="p">[],</span><span class="n">save_png</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+             <span class="n">show_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">included_species_list</span><span class="o">=</span><span class="p">[],</span><span class="n">save_png</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">18</span><span class="p">,</span><span class="mi">10</span><span class="p">)):</span>
         <span class="sd">&quot;&quot;&quot; Plots the Results using matplotlib.</span>
 
 <span class="sd">         Attributes</span>
@@ -204,6 +263,12 @@
 <span class="sd">            whether or not to display a legend which lists species</span>
 <span class="sd">        included_species_list : list</span>
 <span class="sd">            A list of strings describing which species to include. By default displays all species.</span>
+<span class="sd">        save_png : bool or str</span>
+<span class="sd">            Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file</span>
+<span class="sd">            is named after that string.</span>
+<span class="sd">        figsize : tuple</span>
+<span class="sd">            the size of the graph. A tuple of the form (width,height). Is (18,10) by default.</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
@@ -216,7 +281,7 @@
         <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">title</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; - &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_name</span><span class="p">)</span>
 
-        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="n">xaxis_label</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">yaxis_label</span><span class="p">)</span>
@@ -228,7 +293,10 @@
         <span class="k">if</span> <span class="n">show_legend</span><span class="p">:</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">save_png</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">save_png</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save_png</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">save_png</span><span class="p">:</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">title</span><span class="p">)</span></div>
 
 
@@ -262,7 +330,7 @@
         <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">title</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; - &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_name</span><span class="p">)</span>
 
-        <span class="n">trace_list</span> <span class="o">=</span> <span class="n">_plotplotyl_iterate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">included_species_list</span> <span class="o">=</span> <span class="n">included_species_list</span><span class="p">,</span><span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">trace_list</span> <span class="o">=</span> <span class="n">_plotplotly_iterate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">included_species_list</span> <span class="o">=</span> <span class="n">included_species_list</span><span class="p">,</span><span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="n">layout</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span>
             <span class="n">showlegend</span><span class="o">=</span><span class="n">show_legend</span><span class="p">,</span>
@@ -273,10 +341,11 @@
                 <span class="n">title</span><span class="o">=</span><span class="n">yaxis_label</span><span class="p">)</span>
         <span class="p">)</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">trace_list</span><span class="p">,</span><span class="n">layout</span><span class="o">=</span><span class="n">layout</span><span class="p">)</span>
-        <span class="n">iplot</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">return_plotly_figure</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">fig</span></div></div>
+            <span class="k">return</span> <span class="n">fig</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">iplot</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span></div></div>
 
 <div class="viewcode-block" id="EnsembleResults"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.EnsembleResults">[docs]</a><span class="k">class</span> <span class="nc">EnsembleResults</span><span class="p">(</span><span class="n">UserList</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; List of Results Dicts created by a gillespy2 solver with multiple trajectories, extends the UserList object.</span>
@@ -290,8 +359,45 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
 
+<div class="viewcode-block" id="EnsembleResults.to_csv"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.EnsembleResults.to_csv">[docs]</a>    <span class="k">def</span> <span class="nf">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nametag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stamp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; outputs the Results to one or more .csv files in a new directory.</span>
+
+<span class="sd">             Attributes</span>
+<span class="sd">            ----------</span>
+<span class="sd">            nametag: allows the user to optionally &quot;tag&quot; the directory and included files. Defaults to the model name.</span>
+<span class="sd">            path: the location for the new directory and included files. Defaults to model location.</span>
+<span class="sd">            stamp: Allows the user to optionally &quot;tag&quot; the directory (not included files). Default is timestamp.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">stamp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+            <span class="n">stamp</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timestamp</span><span class="p">(</span><span class="n">now</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nametag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">identifier</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; - &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">solver_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">identifier</span> <span class="o">=</span> <span class="n">nametag</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">stamp</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">stamp</span><span class="p">))</span>
+    <span class="c1">#multiple trajectories</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">trajectory</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">):</span><span class="c1">#write each CSV file</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;.csv&quot;</span><span class="p">)</span>
+                <span class="n">field_names</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">trajectory</span><span class="p">:</span> <span class="c1">#build the header</span>
+                    <span class="n">field_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">newline</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csv_file</span><span class="p">:</span>
+                    <span class="n">csv_writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">csv_file</span><span class="p">)</span>
+                    <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">field_names</span><span class="p">)</span> <span class="c1">#write the header</span>
+                    <span class="k">for</span> <span class="n">n</span><span class="p">,</span><span class="n">time</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trajectory</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]):</span><span class="c1">#write all lines of the CSV file</span>
+                        <span class="n">this_line</span><span class="o">=</span><span class="p">[]</span>
+                        <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">trajectory</span><span class="p">:</span> <span class="c1">#build one line of the CSV file</span>
+                            <span class="n">this_line</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trajectory</span><span class="p">[</span><span class="n">species</span><span class="p">][</span><span class="n">n</span><span class="p">])</span>
+                        <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">this_line</span><span class="p">)</span> <span class="c1">#write one line of the CSV file</span></div>
+
 <div class="viewcode-block" id="EnsembleResults.plot"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.EnsembleResults.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xaxis_label</span> <span class="o">=</span><span class="s2">&quot;Time (s)&quot;</span><span class="p">,</span> <span class="n">yaxis_label</span> <span class="o">=</span><span class="s2">&quot;Species Population&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-             <span class="n">show_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">multiple_graphs</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">included_species_list</span><span class="o">=</span><span class="p">[]):</span>
+             <span class="n">show_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">multiple_graphs</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">included_species_list</span><span class="o">=</span><span class="p">[],</span><span class="n">save_png</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">18</span><span class="p">,</span><span class="mi">10</span><span class="p">)):</span>
         <span class="sd">&quot;&quot;&quot; Plots the Results using matplotlib.</span>
 
 <span class="sd">        Attributes</span>
@@ -308,6 +414,12 @@
 <span class="sd">            if each trajectory should have its own graph or if they should overlap</span>
 <span class="sd">        included_species_list : list</span>
 <span class="sd">             A list of strings describing which species to include. By default displays all species.</span>
+<span class="sd">        save_png : bool or str</span>
+<span class="sd">            Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file</span>
+<span class="sd">            is named after that string.</span>
+<span class="sd">        figsize : tuple</span>
+<span class="sd">            the size of the graph. A tuple of the form (width,height). Is (18,10) by default.</span>
+
 
 <span class="sd">            &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -324,8 +436,13 @@
         <span class="k">if</span> <span class="n">multiple_graphs</span><span class="p">:</span>
 
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">result</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">results_list</span><span class="p">):</span>
-                <span class="n">result</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xaxis_label</span><span class="o">=</span><span class="n">xaxis_label</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="n">yaxis_label</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span>
-                                                 <span class="n">included_species_list</span><span class="o">=</span><span class="n">included_species_list</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">save_png</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="n">result</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xaxis_label</span><span class="o">=</span><span class="n">xaxis_label</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="n">yaxis_label</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span>
+                                                 <span class="n">included_species_list</span><span class="o">=</span><span class="n">included_species_list</span><span class="p">,</span><span class="n">save_png</span><span class="o">=</span><span class="n">save_png</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">result</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xaxis_label</span><span class="o">=</span><span class="n">xaxis_label</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="n">yaxis_label</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span><span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span>
+                                <span class="n">included_species_list</span><span class="o">=</span><span class="n">included_species_list</span><span class="p">,</span> <span class="n">save_png</span><span class="o">=</span><span class="n">save_png</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -334,7 +451,7 @@
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Invalid matplotlib style. Try using one of the following </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">available</span><span class="p">))</span>
                 <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;default&quot;</span><span class="p">)</span>
 
-            <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="n">xaxis_label</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">yaxis_label</span><span class="p">)</span>
@@ -348,7 +465,13 @@
 
             <span class="k">if</span> <span class="n">show_legend</span><span class="p">:</span>
                 <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">)</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">])</span></div>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">save_png</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save_png</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">save_png</span><span class="p">:</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">title</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EnsembleResults.plotplotly"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.EnsembleResults.plotplotly">[docs]</a>    <span class="k">def</span> <span class="nf">plotplotly</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xaxis_label</span> <span class="o">=</span> <span class="s2">&quot;Time (s)&quot;</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="s2">&quot;Species Population&quot;</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                    <span class="n">multiple_graphs</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">included_species_list</span><span class="o">=</span><span class="p">[],</span><span class="n">return_plotly_figure</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -396,10 +519,10 @@
 
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">results_list</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">trace_list</span> <span class="o">=</span> <span class="n">_plotplotyl_iterate</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">trace_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">included_species_list</span><span class="o">=</span> <span class="n">included_species_list</span><span class="p">,</span>
+                    <span class="n">trace_list</span> <span class="o">=</span> <span class="n">_plotplotly_iterate</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">trace_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">included_species_list</span><span class="o">=</span> <span class="n">included_species_list</span><span class="p">,</span>
                                                      <span class="n">show_labels</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">trace_list</span> <span class="o">=</span> <span class="n">_plotplotyl_iterate</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">trace_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">included_species_list</span><span class="o">=</span><span class="n">included_species_list</span><span class="p">)</span>
+                    <span class="n">trace_list</span> <span class="o">=</span> <span class="n">_plotplotly_iterate</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">trace_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">included_species_list</span><span class="o">=</span><span class="n">included_species_list</span><span class="p">)</span>
 
                 <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">trace_list</span><span class="p">)):</span>
                     <span class="k">if</span> <span class="n">i</span><span class="o">%</span><span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -411,16 +534,16 @@
                                      <span class="n">height</span><span class="o">=</span><span class="mi">400</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">results_list</span><span class="p">),</span>
                                      <span class="n">showlegend</span><span class="o">=</span><span class="n">show_legend</span><span class="p">,</span><span class="n">title</span> <span class="o">=</span><span class="n">title</span><span class="p">)</span>
 
-            <span class="n">iplot</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+            
 
         <span class="k">else</span><span class="p">:</span>
             <span class="n">trace_list</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">result</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">results_list</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">trace_list</span> <span class="o">=</span> <span class="n">_plotplotyl_iterate</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">trace_list</span><span class="o">=</span><span class="n">trace_list</span><span class="p">,</span><span class="n">included_species_list</span><span class="o">=</span> <span class="n">included_species_list</span><span class="p">,</span>
+                    <span class="n">trace_list</span> <span class="o">=</span> <span class="n">_plotplotly_iterate</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">trace_list</span><span class="o">=</span><span class="n">trace_list</span><span class="p">,</span><span class="n">included_species_list</span><span class="o">=</span> <span class="n">included_species_list</span><span class="p">,</span>
                                                      <span class="n">show_labels</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">trace_list</span> <span class="o">=</span> <span class="n">_plotplotyl_iterate</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">trace_list</span><span class="o">=</span><span class="n">trace_list</span><span class="p">,</span><span class="n">included_species_list</span><span class="o">=</span> <span class="n">included_species_list</span><span class="p">)</span>
+                    <span class="n">trace_list</span> <span class="o">=</span> <span class="n">_plotplotly_iterate</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">trace_list</span><span class="o">=</span><span class="n">trace_list</span><span class="p">,</span><span class="n">included_species_list</span><span class="o">=</span> <span class="n">included_species_list</span><span class="p">)</span>
 
             <span class="n">layout</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span>
                 <span class="n">showlegend</span><span class="o">=</span><span class="n">show_legend</span><span class="p">,</span>
@@ -433,10 +556,11 @@
 
             <span class="n">fig</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace_list</span>
             <span class="n">fig</span><span class="p">[</span><span class="s1">&#39;layout&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">layout</span>
-            <span class="n">iplot</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">return_plotly_figure</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">fig</span></div>
+            <span class="k">return</span> <span class="n">fig</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">iplot</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="EnsembleResults.average_ensemble"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.EnsembleResults.average_ensemble">[docs]</a>    <span class="k">def</span> <span class="nf">average_ensemble</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -620,13 +744,14 @@
                 <span class="n">title</span><span class="o">=</span><span class="n">yaxis_label</span><span class="p">)</span>
         <span class="p">)</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">trace_list</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">layout</span><span class="p">)</span>
-        <span class="n">iplot</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">return_plotly_figure</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">fig</span></div>
+            <span class="k">return</span> <span class="n">fig</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">iplot</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EnsembleResults.plot_std_dev_range"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.EnsembleResults.plot_std_dev_range">[docs]</a>    <span class="k">def</span> <span class="nf">plot_std_dev_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xaxis_label</span> <span class="o">=</span><span class="s2">&quot;Time (s)&quot;</span><span class="p">,</span> <span class="n">yaxis_label</span> <span class="o">=</span><span class="s2">&quot;Species Population&quot;</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                           <span class="n">style</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">included_species_list</span><span class="o">=</span><span class="p">[],</span><span class="n">ddof</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+                           <span class="n">style</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">included_species_list</span><span class="o">=</span><span class="p">[],</span><span class="n">ddof</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">save_png</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span><span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">18</span><span class="p">,</span><span class="mi">10</span><span class="p">)):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Plot a matplotlib graph depicting standard deviation and the mean graph of an ensemble_results object</span>
 
@@ -646,6 +771,11 @@
 <span class="sd">            Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents</span>
 <span class="sd">            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population</span>
 <span class="sd">            standard deviation where ddof is 0.</span>
+<span class="sd">        save_png : bool or str</span>
+<span class="sd">            Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file</span>
+<span class="sd">            is named after that string.</span>
+<span class="sd">        figsize : tuple</span>
+<span class="sd">            the size of the graph. A tuple of the form (width,height). Is (18,10) by default.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -660,7 +790,7 @@
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Invalid matplotlib style. Try using one of the following </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">available</span><span class="p">))</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;default&quot;</span><span class="p">)</span>
 
-        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">average_result</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span>
@@ -684,21 +814,36 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">yaxis_label</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">show_legend</span><span class="p">:</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">)</span></div></div>
+            <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">save_png</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save_png</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">save_png</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">title</span><span class="p">)</span></div></div>
+
+        
 </pre></div>
 
           </div>
+              <div class="related bottom">
+                &nbsp;
+  <nav id="rellinks">
+    <ul>
+    </ul>
+  </nav>
+              </div>
+          
         </div>
       </div>
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;Copyright (C) 2017-2019.
+      &copy;Copyright (C) 2017-2020.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
 

@@ -108,11 +108,6 @@ class SSACSolver(GillesPySolver):
             self.parameters = list(self.parameter_mappings.keys())
             self.reactions = list(self.model.listOfReactions.keys())
 
-            #Ordered list created for test - SSACSolver does not support SBML events currently.
-            self.events = list(self.model.listOfEvents.keys())
-            if len(self.events) > 0:
-                raise gillespyError.EventError("SSACSolver does not currently support SBML events.")
-
             if isinstance(output_directory, str):
                 output_directory = os.path.abspath(output_directory)
             
@@ -168,11 +163,28 @@ class SSACSolver(GillesPySolver):
 
     def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
             increment=0.05, seed=None, debug=False, profile=False, show_labels=True, **kwargs):
+
         if self is None or self.model is None:
             self = SSACSolver(model)
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
+        
+        unsupported_sbml_features = {
+                        'Rate Rules': len(model.listOfRateRules),
+                        'Assignment Rules': len(model.listOfAssignmentRules), 
+                        'Events': len(model.listOfEvents),
+                        'Function Definitions': len(model.listOfFunctionDefinitions)
+                        }
+        detected_features = []
+        for feature, count in unsupported_sbml_features.items():
+            if count:
+                detected_features.append(feature)
+
+        if len(detected_features):
+                raise gillespyError.ModelError(
+                'Could not run Model.  SBML Feature: {} not supported by SSACSolver.'.format(detected_features))
+
         if self.__compiled:
             self.simulation_data = None
             number_timesteps = int(round(t/increment + 1))
