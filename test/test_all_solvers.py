@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 
 import gillespy2
-from gillespy2.example_models import Example, Oregonator
+from example_models import Example, Oregonator
 from gillespy2.core.results import EnsembleResults, Results
 from gillespy2.solvers.cpp.ssa_c_solver import SSACSolver
 from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
@@ -35,14 +35,14 @@ class TestAllSolvers(unittest.TestCase):
         for solver in self.solvers:
             self.model.run(solver=solver())
 
-    def test_return_type(self):
+    #def test_return_type(self):
         for solver in self.solvers:
             self.assertTrue(isinstance(self.results[solver], np.ndarray))
             self.assertTrue(isinstance(self.results[solver][0], np.ndarray))
             self.assertTrue(isinstance(self.results[solver][0][0], np.ndarray))
             self.assertTrue(isinstance(self.results[solver][0][0][0], np.float))
 
-    def test_return_type_show_labels(self):
+    #def test_return_type_show_labels(self):
         for solver in self.solvers:
             self.assertTrue(isinstance(self.labeled_results[solver], Results))
             self.assertTrue(isinstance(self.labeled_results[solver]['Sp'], np.ndarray))
@@ -57,7 +57,7 @@ class TestAllSolvers(unittest.TestCase):
             self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0]['Sp'][0], np.float))
 
 
-    def test_random_seed(self):
+    #def test_random_seed(self):
         for solver in self.solvers:
             same_results = self.model.run(solver=solver, show_labels=False, seed=1)
             self.assertTrue(np.array_equal(same_results, self.results[solver]))
@@ -65,13 +65,13 @@ class TestAllSolvers(unittest.TestCase):
             diff_results = self.model.run(solver=solver, show_labels=False, seed=2)
             self.assertFalse(np.array_equal(diff_results, self.results[solver]))
     
-    def test_extraneous_args(self):
+    #def test_extraneous_args(self):
         for solver in self.solvers:
             with self.assertLogs(level='WARN'):
                 model = Example()
                 results = model.run(solver=solver, nonsense='ABC')
 
-    def test_timeout(self):
+    #def test_timeout(self):
         for solver in self.solvers:
             with self.assertLogs(level='WARN'):
                 model = Oregonator()

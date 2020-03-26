@@ -1,7 +1,7 @@
 import unittest
 import tempfile
 from gillespy2.core.gillespyError import DirectoryError
-from gillespy2.example_models import Example
+from example_models import Example
 from gillespy2.solvers.cpp.ssa_c_solver import SSACSolver
 
 

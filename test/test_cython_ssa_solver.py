@@ -1,5 +1,5 @@
 import unittest
-from gillespy2.example_models import Example
+from example_models import Example
 
 from gillespy2.solvers.cython import can_use_cython
 if can_use_cython:
