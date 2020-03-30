@@ -658,11 +658,11 @@ class Model(SortableObject):
             if isinstance(solver_results[0], (np.ndarray)):
                 return solver_results
 
-            if len(solver_results) is 1:
-                return Results(data=solver_results[0], model=self,
-                    solver_name=solver.name, rc=rc)
+#            if len(solver_results) is 1:
+#                return Results(data=solver_results[0], model=self,
+#                    solver_name=solver.name, rc=rc)
 
-            if len(solver_results) > 1:
+#            if len(solver_results) > 1:
                 results_list = []
                 for i in range(0,solver_args.get('number_of_trajectories')):
                     results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name,
