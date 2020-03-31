@@ -18,7 +18,6 @@ if __name__ == '__main__':
         sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 
-    import test_cython_ssa_solver
     import test_empty_model
     import test_model
     import test_ode_solver
@@ -32,7 +31,6 @@ if __name__ == '__main__':
     import test_results
 
     modules = [
-        test_cython_ssa_solver,
         test_empty_model,
         test_model,
         test_ode_solver,

@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from gillespy2.example_models import Example
+from example_models import Example
 from gillespy2.solvers.numpy.basic_tau_leaping_solver import BasicTauLeapingSolver
 
 
