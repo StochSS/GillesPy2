@@ -1,7 +1,8 @@
 import unittest
 from example_models import *
 from gillespy2.core.gillespyError import *
-from TestBattery import *
+from gillespy2.solvers.numpy import BasicODESolver
+#from TestBattery import *
 
 class TestExampleModels(unittest.TestCase):
 

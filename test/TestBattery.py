@@ -1,4 +1,7 @@
-from tqdm import tqdm
+try:
+    from tqdm import tqdm
+except ImportError:
+    raise ImportError('tqdm is required. Please install it.')
 import statistics
 from itertools import product
 from scipy import stats
