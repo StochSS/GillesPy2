@@ -8,4 +8,14 @@ install:
           - pip3 install cython
 script:
           python test/run_tests.py -m release
-
+deploy:
+  # API token stored in env var PYPI_PASSWORD on Travis CI
+  provider: pypi
+  distributions: sdist bdist_wheel
+  edge: true # opt in to dpl v2
+  user: __token__
+  on:
+    repo: GillesPy2/GillesPy2
+    branch: master
+    tags: true
+    

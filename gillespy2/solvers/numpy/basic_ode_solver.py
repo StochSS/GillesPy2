@@ -41,9 +41,9 @@ class BasicODESolver(GillesPySolver):
         for r_name, reaction in model.listOfReactions.items():
             propensity[r_name] = eval(c_prop[r_name], curr_state)
             for react, stoich in reaction.reactants.items():
-                state_change[str(react)] -= propensity[r_name] * stoich
+                state_change[react.name] -= propensity[r_name] * stoich
             for prod, stoich in reaction.products.items():
-                state_change[str(prod)] += propensity[r_name] * stoich
+                state_change[prod.name] += propensity[r_name] * stoich
         state_change = list(state_change.values())
         return state_change
 

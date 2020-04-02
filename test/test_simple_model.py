@@ -19,7 +19,7 @@ class SimpleHybridModel(Model):
         self.add_parameter([k1, k2])
 
         # Rate Rule
-        rate_rule = RateRule(B, "cos(t)")
+        rate_rule = RateRule(name='Brate', variable='B', formula="cos(t)")
         self.add_rate_rule(rate_rule)
 
         # Reactions
@@ -154,8 +154,8 @@ class TestSimpleModel(unittest.TestCase):
 
     def test_model_has_rate_rules(self):
         rate_rules = self.model.listOfRateRules
-        self.assertEqual(rate_rules['B'].species.name, 'B', msg='Has incorrect species')
-        self.assertEqual(rate_rules['B'].expression, 'cos(t)', msg='{0} has incorrect type'.format(rate_rules))
+        self.assertEqual(rate_rules['B'].variable, 'B', msg='Has incorrect species')
+        self.assertEqual(rate_rules['B'].formula, 'cos(t)', msg='{0} has incorrect type'.format(rate_rules))
 
     def test_get_reaction(self):
         reaction = self.model.get_reaction('r1')

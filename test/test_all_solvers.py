@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 
 import gillespy2
-from gillespy2.example_models import Example, Oregonator
+from example_models import Example, Oregonator
 from gillespy2.core.results import EnsembleResults, Results
 from gillespy2.solvers.cpp.ssa_c_solver import SSACSolver
 from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
@@ -10,18 +10,14 @@ from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver
 from gillespy2.solvers.numpy.basic_tau_leaping_solver import BasicTauLeapingSolver
 from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
 
-from gillespy2.solvers.cython import can_use_cython
-if can_use_cython:
-    from gillespy2.solvers.cython.cython_ssa_solver import CythonSSASolver
-
 
 class TestAllSolvers(unittest.TestCase):
 
     solvers = [SSACSolver, BasicODESolver, NumPySSASolver, BasicTauLeapingSolver, BasicTauHybridSolver]
-    if can_use_cython:
-        solvers.append(CythonSSASolver)
 
     model = Example()
+    for sp in model.listOfSpecies.values():
+        sp.mode = 'discrete'
     results = {}
     labeled_results = {}
     labeled_results_more_trajectories = {}
