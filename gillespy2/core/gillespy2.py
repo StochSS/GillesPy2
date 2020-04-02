@@ -625,9 +625,7 @@ class Model(SortableObject):
                     signal.setitimer(signal.ITIMER_PROF, display_interval, display_interval)
 
             if timeout > 0:
-
-                print(signal.SIGALRM)
-
+                
                 signal.signal(signal.SIGALRM, raise_time_out)
                 # Schedule the signal to be sent after ``time``.
                 signal.alarm(timeout)
