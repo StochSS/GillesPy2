@@ -612,9 +612,6 @@ class Model(SortableObject):
             solver-specific arguments to be passed to solver.run()
         """
 
-        if os.name == 'nt' and timeout > 0:
-            from gillespy2.core import log
-            log.warning('Timeouts are not currently supported in Windows.')
         @contextmanager
         def interruption_manager(timeout, display_interval):
 
@@ -628,6 +625,8 @@ class Model(SortableObject):
                     signal.setitimer(signal.ITIMER_PROF, display_interval, display_interval)
 
             if timeout > 0:
+
+                print(signal.SIGALRM)
 
                 signal.signal(signal.SIGALRM, raise_time_out)
                 # Schedule the signal to be sent after ``time``.
