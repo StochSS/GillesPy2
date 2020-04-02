@@ -1,4 +1,3 @@
-from tqdm import tqdm
 import statistics
 from itertools import product
 from scipy import stats
@@ -32,7 +31,7 @@ def timing_battery(number_of_samples, acceptable_deviation):
 
     timing_list = []
 
-    for model, solver in tqdm(product(model_list, solver_list)):
+    for model, solver in product(model_list, solver_list):
         median_list = []
         exterior_stats = []
         print("Testing Model : {} Solver : {}.".format(model.name, solver.name))
