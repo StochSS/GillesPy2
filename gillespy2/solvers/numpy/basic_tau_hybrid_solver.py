@@ -778,8 +778,7 @@ class BasicTauHybridSolver(GillesPySolver):
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
 
-        if timeout == 0:
-            timeout = None
+        if timeout <= 0: timeout = None
 
         sim_thread = threading.Thread(target=self.__run, args=(model,), kwargs={'t':t,
                                         'number_of_trajectories':number_of_trajectories,
