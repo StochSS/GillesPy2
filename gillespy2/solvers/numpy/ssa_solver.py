@@ -39,7 +39,7 @@ class NumPySSASolver(GillesPySolver):
             self = NumPySSASolver()
 
         self.stop_event = Event()
-        if timeout <= 0: timeout = None
+        if timeout is not None and timeout <= 0: timeout = None
 
         if len(kwargs) > 0:
             for key in kwargs:
