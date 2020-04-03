@@ -601,75 +601,40 @@ class Model(SortableObject):
             solver-specific arguments to be passed to solver.run()
         """
 
-        if os.name == 'nt' and timeout > 0:
-            from gillespy2.core import log
-            log.warning('Timeouts are not currently supported in Windows.')
-        @contextmanager
-        def time_out(time):
-            # Register a function to raise a TimeoutError on the signal.
-            signal.signal(signal.SIGALRM, raise_time_out)
-            # Schedule the signal to be sent after ``time``.
-            signal.alarm(time)
+        if solver is not None:
+            if ((isinstance(solver, type)
+                    and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
+                solver_results, rc = solver.run(model=self, t=self.tspan[-1],
+                            increment=self.tspan[-1] - self.tspan[-2], timeout=timeout, **solver_args)
+            else:
+                raise SimulationError(
+                    "argument 'solver' to run() must be a subclass of GillesPySolver")
+        else:
+            from gillespy2.solvers.auto import SSASolver
+            solver = SSASolver
+            solver_results, rc = SSASolver.run(model=self, t=self.tspan[-1],
+                                      increment=self.tspan[-1] - self.tspan[-2], **solver_args)
 
-            try:
-                yield
-            except TimeoutError:
-                print('GillesPy2 solver simulation exceeded timeout')
-                pass
-            finally:
-                # Unregister the signal so it won't be triggered
-                # if the time_out is not reached.
-                signal.signal(signal.SIGALRM, signal.SIG_IGN)
-
-        def raise_time_out(signum, frame):
+        if rc == 33:
             from gillespy2.core import log
-            import sys
-            def excepthook(type, value, traceback):
-                pass
-            sys.excepthook = excepthook
             log.warning('GillesPy2 simulation exceeded timeout.')
-            raise SimulationTimeoutError()
 
 
-        with time_out(timeout):
-            if solver is not None:
-                if ((isinstance(solver, type)
-                        and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
-                    if solver.name == 'SSACSolver':
-                        signal.signal(signal.SIGALRM, signal.SIG_IGN)
-                        solver_args['timeout'] = timeout
-                    solver_results, rc = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
-                else:
-                    raise SimulationError(
-                        "argument 'solver' to run() must be a subclass of GillesPySolver")
-            else:
-                from gillespy2.solvers.auto import SSASolver
-                solver = SSASolver
-                if solver.name == 'SSACSolver':
-                    signal.signal(signal.SIGALRM, signal.SIG_IGN)
-                    solver_args['timeout'] = timeout
-                solver_results, rc = SSASolver.run(model=self, t=self.tspan[-1],
-                                          increment=self.tspan[-1] - self.tspan[-2], **solver_args)
-           
-            if rc == 33:
-                from gillespy2.core import log
-                log.warning('GillesPy2 simulation exceeded timeout.')
+        if isinstance(solver_results[0], (np.ndarray)):
+            return solver_results
 
-            if isinstance(solver_results[0], (np.ndarray)):
-                return solver_results
+        if len(solver_results) == 1:
+            return Results(data=solver_results[0], model=self,
+                solver_name=solver.name, rc=rc)
 
-            if len(solver_results) is 1:
-                return Results(data=solver_results[0], model=self,
-                    solver_name=solver.name, rc=rc)
-
-            if len(solver_results) > 1:
-                results_list = []
-                for i in range(0,solver_args.get('number_of_trajectories')):
-                    results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name,
-                        rc=rc))
-                return EnsembleResults(results_list)
-            else:
-                raise ValueError("number_of_trajectories must be non-negative and non-zero")
+        if len(solver_results) > 1:
+            results_list = []
+            for i in range(0,solver_args.get('number_of_trajectories')):
+                results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name,
+                    rc=rc))
+            return EnsembleResults(results_list)
+        else:
+            raise ValueError("number_of_trajectories must be non-negative and non-zero")
 
 
 class Species(SortableObject):
