@@ -619,20 +619,19 @@ class Model(SortableObject):
             from gillespy2.core import log
             log.warning('GillesPy2 simulation exceeded timeout.')
 
-
-        if isinstance(solver_results[0], (np.ndarray)):
-            return solver_results
-
         if len(solver_results) == 1:
             return Results(data=solver_results[0], model=self,
                 solver_name=solver.name, rc=rc)
 
-        if len(solver_results) > 1:
+        elif len(solver_results) > 1:
             results_list = []
             for i in range(0,solver_args.get('number_of_trajectories')):
                 results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name,
                     rc=rc))
             return EnsembleResults(results_list)
+        elif isinstance(solver_results, (np.ndarray)):
+            return solver_results
+
         else:
             raise ValueError("number_of_trajectories must be non-negative and non-zero")
 

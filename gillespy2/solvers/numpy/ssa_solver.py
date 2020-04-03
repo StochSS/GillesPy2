@@ -8,12 +8,14 @@ import numpy as np
 class NumPySSASolver(GillesPySolver):
     name = "NumPySSASolver"
     rc = 0
-    stop_event = Event()
+    stop_event = None
     result = None
 
     def __init__(self):
         name = 'NumPySSASolver'
         rc = 0
+        stop_event = None
+        result = None
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05,
@@ -36,10 +38,11 @@ class NumPySSASolver(GillesPySolver):
         if not isinstance(self, NumPySSASolver):
             self = NumPySSASolver()
 
+        self.stop_event = Event()
+
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
-
         sim_thread = Thread(target=self.__run, args=(model,), kwargs={'t':t,
                                         'number_of_trajectories':number_of_trajectories,
                                         'increment':increment, 'seed':seed,
