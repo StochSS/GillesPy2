@@ -3,7 +3,7 @@ from collections import OrderedDict
 from scipy.integrate import ode, solve_ivp
 import heapq
 import numpy as np
-import signal
+import threading
 import gillespy2
 from gillespy2.solvers.numpy import Tau
 from gillespy2.core import GillesPySolver, log
@@ -46,12 +46,12 @@ class BasicTauHybridSolver(GillesPySolver):
     interchangeably or simultaneously.
     """
     name = "BasicTauHybridSolver"
-    interrupted = False
     rc = 0
+    result = None
+    stop_event = None
 
     def __init__(self):
         name = 'BasicTauHybridSolver'
-        interrupted = False
         rc = 0  
         
     def __toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec):
@@ -454,6 +454,7 @@ class BasicTauHybridSolver(GillesPySolver):
         curr_state['time'] = curr_time
 
         # Integrate until end or tau is reached
+        # TODO: Need a way to exit solve_ivp when timeout is triggered
         sol = solve_ivp(rhs, [curr_time, model.tspan[-1]], y0, 
             method=integrator, dense_output=True, 
             events=tau_event, **integrator_options)
@@ -724,7 +725,7 @@ class BasicTauHybridSolver(GillesPySolver):
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
             debug=False, profile=False, show_labels=True,
             tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
-            integrator_options={}, **kwargs):
+            integrator_options={}, timeout=None, **kwargs):
         """
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
         objects and will inherit those parameters which are passed with the model as the arguments this run function.
@@ -768,18 +769,37 @@ class BasicTauHybridSolver(GillesPySolver):
             Example use: {max_step : 0, rtol : .01}
         """
 
-        def timed_out(signum, frame):
-            self.interrupted = True
-            self.rc = 33
-
-        signal.signal(signal.SIGALRM, timed_out)
-
         if not isinstance(self, BasicTauHybridSolver):
             self = BasicTauHybridSolver()
+
+        self.stop_event = threading.Event()
 
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
+
+        if timeout is not None and timeout <= 0: timeout = None
+
+        sim_thread = threading.Thread(target=self.__run, args=(model,), kwargs={'t':t,
+                                        'number_of_trajectories':number_of_trajectories,
+                                        'increment':increment, 'seed':seed,
+                                        'debug':debug, 'profile':profile,'show_labels':show_labels,
+                                        'timeout':timeout, 'tau_tol':tau_tol,
+                                        'event_sensitivity':event_sensitivity,
+                                        'integrator':integrator,
+                                        'integrator_options':integrator_options})
+        sim_thread.start()
+        sim_thread.join(timeout=timeout)
+        self.stop_event.set()
+        while self.result is None: pass
+        return self.result, self.rc
+
+
+
+    def __run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
+            debug=False, profile=False, show_labels=True,
+            tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
+            integrator_options={}, **kwargs):
 
         if debug:
             print("t = ", t)
@@ -853,7 +873,10 @@ class BasicTauHybridSolver(GillesPySolver):
         # Main trajectory loop
         for trajectory_num in range(number_of_trajectories):
 
-            if self.interrupted: break
+            if self.stop_event.is_set():
+                print('exiting')
+                self.rc = 33
+                break
 
             trajectory = trajectory_base[trajectory_num] # NumPy array containing this simulation's results
             propensities = OrderedDict() # Propensities evaluated at current state
@@ -897,7 +920,9 @@ class BasicTauHybridSolver(GillesPySolver):
             # Each save step
             while curr_time < model.tspan[-1]:
 
-                if self.interrupted: break
+                if self.stop_event.is_set(): 
+                    self.rc = 33
+                    break
                 # Get current propensities
                 if not pure_ode:
                     for i, r in enumerate(model.listOfReactions):
@@ -962,5 +987,6 @@ class BasicTauHybridSolver(GillesPySolver):
                 print("Total Steps Taken: ", len(steps_taken))
                 print("Total Steps Rejected: ", steps_rejected)
 
+        self.result = simulation_data
         return simulation_data, self.rc
 

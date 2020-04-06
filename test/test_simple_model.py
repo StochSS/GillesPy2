@@ -154,7 +154,6 @@ class TestSimpleModel(unittest.TestCase):
 
     def test_model_has_rate_rules(self):
         rate_rules = self.model.listOfRateRules
-        print(rate_rules)
         self.assertEqual(rate_rules['B'].variable, 'B', msg='Has incorrect species')
         self.assertEqual(rate_rules['B'].formula, 'cos(t)', msg='{0} has incorrect type'.format(rate_rules))
 

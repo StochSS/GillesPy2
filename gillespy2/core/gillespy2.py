@@ -6,6 +6,7 @@ python.
 from __future__ import division
 import signal, os
 import numpy as np
+import uuid
 from contextlib import contextmanager
 from collections import OrderedDict
 from gillespy2.core.results import Results,EnsembleResults
@@ -601,75 +602,42 @@ class Model(SortableObject):
             solver-specific arguments to be passed to solver.run()
         """
 
-        if os.name == 'nt' and timeout > 0:
-            from gillespy2.core import log
-            log.warning('Timeouts are not currently supported in Windows.')
-        @contextmanager
-        def time_out(time):
-            # Register a function to raise a TimeoutError on the signal.
-            signal.signal(signal.SIGALRM, raise_time_out)
-            # Schedule the signal to be sent after ``time``.
-            signal.alarm(time)
+        if solver is not None:
+            if ((isinstance(solver, type)
+                    and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
+                solver_results, rc = solver.run(model=self, t=self.tspan[-1],
+                            increment=self.tspan[-1] - self.tspan[-2], timeout=timeout, **solver_args)
+            else:
+                raise SimulationError(
+                    "argument 'solver' to run() must be a subclass of GillesPySolver")
+        else:
+            from gillespy2.solvers.auto import SSASolver
+            solver = SSASolver
+            solver_results, rc = SSASolver.run(model=self, t=self.tspan[-1],
+                                      increment=self.tspan[-1] -
+                                      self.tspan[-2], timeout=timeout, **solver_args)
 
-            try:
-                yield
-            except TimeoutError:
-                print('GillesPy2 solver simulation exceeded timeout')
-                pass
-            finally:
-                # Unregister the signal so it won't be triggered
-                # if the time_out is not reached.
-                signal.signal(signal.SIGALRM, signal.SIG_IGN)
-
-        def raise_time_out(signum, frame):
+        if rc == 33:
             from gillespy2.core import log
-            import sys
-            def excepthook(type, value, traceback):
-                pass
-            sys.excepthook = excepthook
             log.warning('GillesPy2 simulation exceeded timeout.')
-            raise SimulationTimeoutError()
 
+        if isinstance(solver_results[0], (np.ndarray)):
+            return solver_results
+        if len(solver_results) == 1:
+            return Results(data=solver_results[0], model=self,
+                solver_name=solver.name, rc=rc)
 
-        with time_out(timeout):
-            if solver is not None:
-                if ((isinstance(solver, type)
-                        and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
-                    if solver.name == 'SSACSolver':
-                        signal.signal(signal.SIGALRM, signal.SIG_IGN)
-                        solver_args['timeout'] = timeout
-                    solver_results, rc = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
-                else:
-                    raise SimulationError(
-                        "argument 'solver' to run() must be a subclass of GillesPySolver")
-            else:
-                from gillespy2.solvers.auto import SSASolver
-                solver = SSASolver
-                if solver.name == 'SSACSolver':
-                    signal.signal(signal.SIGALRM, signal.SIG_IGN)
-                    solver_args['timeout'] = timeout
-                solver_results, rc = SSASolver.run(model=self, t=self.tspan[-1],
-                                          increment=self.tspan[-1] - self.tspan[-2], **solver_args)
-           
-            if rc == 33:
-                from gillespy2.core import log
-                log.warning('GillesPy2 simulation exceeded timeout.')
+        elif len(solver_results) > 1:
+            results_list = []
+            for i in range(0,solver_args.get('number_of_trajectories')):
+                results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name,
+                    rc=rc))
+            return EnsembleResults(results_list)
+        elif isinstance(solver_results, (np.ndarray)):
+            return solver_results
 
-            if isinstance(solver_results[0], (np.ndarray)):
-                return solver_results
-
-            if len(solver_results) is 1:
-                return Results(data=solver_results[0], model=self,
-                    solver_name=solver.name, rc=rc)
-
-            if len(solver_results) > 1:
-                results_list = []
-                for i in range(0,solver_args.get('number_of_trajectories')):
-                    results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name,
-                        rc=rc))
-                return EnsembleResults(results_list)
-            else:
-                raise ValueError("number_of_trajectories must be non-negative and non-zero")
+        else:
+            raise ValueError("number_of_trajectories must be non-negative and non-zero")
 
 
 class Species(SortableObject):
@@ -734,7 +702,8 @@ class Species(SortableObject):
         if mode == 'continuous':
             self.initial_value = np.float(initial_value)
         else:
-            if not isinstance(initial_value, int): raise ValueError('Discrete values must be of type int.')
+            if np.int(initial_value) != initial_value:
+                raise ValueError("'initial_value' for Species with mode='discrete' must be an integer value. Change to mode='continuous' to use floating point values.")
             self.initial_value = np.int(initial_value)
         if not allow_negative_populations:
             if self.initial_value < 0: raise ValueError('A species initial value must be \
@@ -932,7 +901,7 @@ class Reaction(SortableObject):
     Attributes
     ----------
     name : str
-        The name by which the reaction is called.
+        The name by which the reaction is called (optional).
     reactants : dict
         The reactants that are consumed in the reaction, with stoichiometry. An
         example would be {R1 : 1, R2 : 2} if the reaction consumes two of R1 and
@@ -968,7 +937,10 @@ class Reaction(SortableObject):
         """
 
         # Metadata
-        self.name = name
+        if name == "" or name is None:
+            self.name = 'rxn' + str(uuid.uuid4()).replace('-', '_')
+        else:
+            self.name = name
         self.annotation = ""
 
         # We might use this flag in the future to automatically generate
