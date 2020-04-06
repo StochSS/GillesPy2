@@ -6,6 +6,7 @@ python.
 from __future__ import division
 import signal, os
 import numpy as np
+import uuid
 from contextlib import contextmanager
 from collections import OrderedDict
 from gillespy2.core.results import Results,EnsembleResults
@@ -932,7 +933,7 @@ class Reaction(SortableObject):
     Attributes
     ----------
     name : str
-        The name by which the reaction is called.
+        The name by which the reaction is called (optional).
     reactants : dict
         The reactants that are consumed in the reaction, with stoichiometry. An
         example would be {R1 : 1, R2 : 2} if the reaction consumes two of R1 and
@@ -968,7 +969,10 @@ class Reaction(SortableObject):
         """
 
         # Metadata
-        self.name = name
+        if name == "" or name is None:
+            self.name = 'rxn' + str(uuid.uuid4()).replace('-', '_')
+        else:
+            self.name = name
         self.annotation = ""
 
         # We might use this flag in the future to automatically generate
