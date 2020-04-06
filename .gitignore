@@ -68,3 +68,4 @@ __pycache__
 .ipynb_checkpoints*
 .coverage
 htmlcov
+/build
