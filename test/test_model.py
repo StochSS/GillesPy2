@@ -35,11 +35,10 @@ class TestModel(unittest.TestCase):
         species1 = Species('A', initial_value=0)
         species2 = Species('B', initial_value=0)
         model.add_species([species1, species2])
-        # add a reaction that has no name
+        # add two reactions that has no name
         reaction1 = Reaction(reactants={species1: 1}, products={species2: 1}, rate=rate)
         reaction2 = Reaction(reactants={species2: 1}, products={species1: 1}, rate=rate)
         model.add_reaction([reaction1, reaction2])
-        model.run()
 
     def test_duplicate_reaction_name(self):
         model = Model()
