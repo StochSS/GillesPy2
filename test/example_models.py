@@ -259,7 +259,7 @@ class Tyson2StateOscillator(Model):
 
         # creation of X:
         rxn1 = Reaction(name='X production', reactants={}, products={X: 1},
-                        propensity_function='300.0 * 1.0 / (1.0 + (Y * Y / (300.0 * 300.0)))')
+                        propensity_function='300 * 1.0 / (1.0 + (Y * Y / (300 * 300)))')
 
         # degradadation of X:
         rxn2 = Reaction(name='X degradation', reactants={X: 1}, products={}, rate=kdx)

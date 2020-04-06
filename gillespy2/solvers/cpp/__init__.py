@@ -2,7 +2,7 @@ from gillespy2.solvers.cpp.ssa_c_solver import SSACSolver
 from gillespy2.core import log
 
 def check_cpp_support():
-    from gillespy2.example_models import Example
+    import example_models
     try:
         model = Example()
         results = model.run(solver=SSACSolver)

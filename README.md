@@ -147,9 +147,9 @@ New developments happen primarily in the [`develop`](https://github.com/GillesPy
 
 <p align="center">
 
-| Master Branch   | Develop Branch | Coverage |
-|:---------------:|:--------------:|:--------:|
-| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | ![Coverage](https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/coverage.svg?sanitize=true) |
+| Master Branch   | Develop Branch | Coverage | Maintainability |
+|:---------------:|:--------------:|:--------:|:---------------:|
+| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | ![Coverage](https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/coverage.svg?sanitize=true) | [![Maintainability](https://api.codeclimate.com/v1/badges/990ac9d778d681d32eea/maintainability)](https://codeclimate.com/github/GillesPy2/GillesPy2/maintainability) |
 
 License
 -------
@@ -173,8 +173,9 @@ Authors and history
 * [**Mike Hucka**](https://github.com/mhucka)
 * [**Fredrik Wrede**](https://github.com/Wrede)
 * [**Prashant Singh**](https://github.com/prasi372)
+* [**Bryan Rumsey**](https://github.com/BryanRumsey)  
 * [**Mason Kidwell**](https://github.com/makdl)
-* [**Jeese Reeve**](https://github.com/jdreeve)
+* [**Jesse Reeve**](https://github.com/jdreeve)
 * [**Fin Carter**](https://github.com/Fin109)
 
 Acknowledgments

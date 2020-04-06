@@ -2,10 +2,28 @@ os: linux
 dist: xenial
 language: python
 python: "3.6"
+before_script:
+    - "curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter"
+    - "chmod +x ./cc-test-reporter"
+    - "./cc-test-reporter before-build"
 install:
-          - pip3 install .
+          - pip3 install -r requirements.txt
           - pip3 install python-libsbml
           - pip3 install cython
+          - pip3 install coverage
 script:
-          python test/run_tests.py -m release
-
+    - "coverage run --source=gillespy2 --omit=gillespy2/solvers/stochkit/* test/run_tests.py -m develop"
+after_script:
+    - "coverage xml"
+    - "if [[ \"$TRAVIS_TEST_RESULT\" == 0 ]]; then ./cc-test-reporter after-build -t coverage.py --exit-code $TRAVIS_TEST_RESULT; fi"
+deploy:
+  # API token stored in env var PYPI_PASSWORD on Travis CI
+  provider: pypi
+  distributions: sdist bdist_wheel
+  edge: true # opt in to dpl v2
+  user: __token__
+  on:
+    repo: GillesPy2/GillesPy2
+    branch: master
+    tags: true
+    
