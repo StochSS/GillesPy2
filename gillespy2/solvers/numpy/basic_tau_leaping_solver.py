@@ -2,7 +2,7 @@
 
 
 import random, math, sys, warnings
-import signal
+from threading import Thread, Event
 import numpy as np
 from gillespy2.solvers.numpy import Tau
 from gillespy2.core import GillesPySolver, log
@@ -10,8 +10,9 @@ from gillespy2.core import GillesPySolver, log
 
 class BasicTauLeapingSolver(GillesPySolver):
     name = 'BasicTauLeapingSolver'
-    interrupted = False
     rc = 0
+    stop_event = None
+    result = None
     """
     A Basic Tau Leaping Solver for GillesPy2 models.  This solver uses an algorithm calculates
     multiple reactions in a single step over a given tau step size.  The change in propensities
@@ -22,8 +23,9 @@ class BasicTauLeapingSolver(GillesPySolver):
 
     def __init__(self, debug=False, profile=False):
         name = "BasicTauLeapingSolver"
-        interrupted = False
         rc = 0
+        stop_event = None
+        result = None
         self.debug = debug
         self.profile = profile
 
@@ -59,7 +61,8 @@ class BasicTauLeapingSolver(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
-            debug=False, profile=False, show_labels=True, tau_tol=0.03, **kwargs):
+                    debug=False, profile=False, show_labels=True, 
+                    timeout=None, tau_tol=0.03, **kwargs):
         """
         Function calling simulation of the model.
         This is typically called by the run function in GillesPy2 model objects
@@ -89,19 +92,31 @@ class BasicTauLeapingSolver(GillesPySolver):
                 show_labels : bool (True)
                     Use names of species as index of result object rather than position numbers.
                 """
-        def timed_out(signum, frame):
-            self.rc = 33
-            self.interrupted = True
-
-        signal.signal(signal.SIGALRM, timed_out)
-
 
         if not isinstance(self, BasicTauLeapingSolver):
             self = BasicTauLeapingSolver(debug=debug, profile=profile)
 
+        self.stop_event = Event()
+        if timeout is not None and timeout <= 0: timeout = None
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
+
+        sim_thread = Thread(target=self.__run, args=(model,), kwargs={'t':t,
+                                        'number_of_trajectories':number_of_trajectories,
+                                        'increment':increment, 'seed':seed,
+                                        'debug':debug, 'show_labels':show_labels,
+                                        'timeout':timeout, 'tau_tol':tau_tol})
+        sim_thread.start()
+        sim_thread.join(timeout=timeout)
+        self.stop_event.set()
+        while self.result is None: pass
+        return self.result, self.rc
+
+    def __run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
+                    debug=False, profile=False, show_labels=True, 
+                    timeout=None, tau_tol=0.03, **kwargs):
+
         if debug:
             print("t = ", t)
             print("increment = ", increment)
@@ -138,7 +153,9 @@ class BasicTauLeapingSolver(GillesPySolver):
         simulation_data = []
 
         for trajectory_num in range(number_of_trajectories):
-            if self.interrupted: break
+            if self.stop_event.is_set():
+                self.rc = 33
+                break
             start_state = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
             propensities = {}
             curr_state = {}
@@ -176,11 +193,15 @@ class BasicTauLeapingSolver(GillesPySolver):
             
             #Each save step
             while entry_count < timeline.size:
-                if self.interrupted: break
+                if self.stop_event.is_set():
+                    self.rc = 33
+                    break
                 
                 #Until save step reached
                 while curr_time < save_time:
-                    if self.interrupted: break
+                    if self.stop_event.is_set():
+                        self.rc = 33
+                        break
                     propensity_sum = 0
 
                     for i, r in enumerate(model.listOfReactions):
@@ -262,5 +283,5 @@ class BasicTauLeapingSolver(GillesPySolver):
                 print(steps_taken)
                 print("Total Steps Taken: ", len(steps_taken))
                 print("Total Steps Rejected: ", steps_rejected)
-
+        self.result = simulation_data
         return simulation_data, self.rc
