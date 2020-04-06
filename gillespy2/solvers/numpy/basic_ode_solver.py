@@ -1,6 +1,6 @@
 """GillesPy2 Solver for ODE solutions."""
 
-import signal
+from threading import Thread, Event
 from scipy.integrate import ode
 from scipy.integrate import odeint
 from collections import OrderedDict
@@ -13,13 +13,15 @@ class BasicODESolver(GillesPySolver):
     This Solver produces the deterministic continuous solution via ODE.
     """
     name = "BasicODESolver"
-    interrupted = False
     rc = 0
+    stop_event = None
+    result = None
     
     def __init__(self):
         name = "BasicODESolver"
-        interrupted = False
         rc = 0
+        stop_event = None
+        result = None
 
     @staticmethod
     def __f(t, y, curr_state, model, c_prop):
@@ -49,7 +51,8 @@ class BasicODESolver(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, 
-            show_labels=True, integrator='lsoda', integrator_options={}, **kwargs):
+            show_labels=True, integrator='lsoda', integrator_options={}, 
+            timeout=None, **kwargs):
         """
 
         :param model: gillespy2.model class object
@@ -66,18 +69,26 @@ class BasicODESolver(GillesPySolver):
         """
         if not isinstance(self, BasicODESolver):
             self = BasicODESolver()
+        self.stop_event = Event()
+        if timeout is not None and timeout <=0: timeout = None
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
         if number_of_trajectories > 1:
             log.warning("Generating duplicate trajectories for model with ODE Solver. Consider running with only 1 trajectory.")
+        sim_thread = Thread(target=self.__run, args=(model,), kwargs={'t':t,
+                                        'number_of_trajectories':number_of_trajectories,
+                                        'increment':increment, 'show_labels':show_labels, 
+                                        'timeout':timeout})
+        sim_thread.start()
+        sim_thread.join(timeout=timeout)
+        self.stop_event.set()
+        while self.result is None: pass
+        return self.result, self.rc
 
-        
-        def timed_out(signum, frame):
-            self.rc = 33
-            self.interrupted = True
+    def __run(self, model, t=20, number_of_trajectories=1, increment=0.05, timeout=None,
+            show_labels=True, integrator='lsoda', integrator_options={}, **kwargs):
 
-        signal.signal(signal.SIGALRM, timed_out)
         start_state = [model.listOfSpecies[species].initial_value for species in model.listOfSpecies]
 
         # create mapping of species dictionary to array indices
@@ -119,7 +130,9 @@ class BasicODESolver(GillesPySolver):
         rhs.set_initial_value(y0, curr_time).set_f_params(curr_state, model, c_prop)
 
         while entry_count < timeline.size - 1:
-            if self.interrupted: break
+            if self.stop_event.is_set():
+                self.rc = 33
+                break
             int_time = curr_time + increment
             entry_count += 1
             y0 = rhs.integrate(int_time)
@@ -137,5 +150,5 @@ class BasicODESolver(GillesPySolver):
             results = [results_as_dict] * number_of_trajectories
         else:
             results = np.stack([result] * number_of_trajectories, axis=0)
-
+        self.result = results
         return results, self.rc
