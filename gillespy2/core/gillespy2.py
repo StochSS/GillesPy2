@@ -614,7 +614,8 @@ class Model(SortableObject):
             from gillespy2.solvers.auto import SSASolver
             solver = SSASolver
             solver_results, rc = SSASolver.run(model=self, t=self.tspan[-1],
-                                      increment=self.tspan[-1] - self.tspan[-2], **solver_args)
+                                      increment=self.tspan[-1] -
+                                      self.tspan[-2], timeout=timeout, **solver_args)
 
         if rc == 33:
             from gillespy2.core import log
