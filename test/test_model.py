@@ -40,6 +40,15 @@ class TestModel(unittest.TestCase):
         reaction2 = Reaction(reactants={species2: 1}, products={species1: 1}, rate=rate)
         model.add_reaction([reaction1, reaction2])
 
+
+    def test_int_type_mismatch(self):
+        model = Model()
+        y1 = np.int64(5)
+        y2 = np.int32(5)
+        species1 = Species('A', initial_value=y1)
+        species2 = Species('B', initial_value=y2)
+        model.add_species([species1, species2])
+
     def test_duplicate_reaction_name(self):
         model = Model()
         rate = Parameter(name='rate', expression=0.5)

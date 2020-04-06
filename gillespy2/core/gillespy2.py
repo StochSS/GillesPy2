@@ -732,10 +732,11 @@ class Species(SortableObject):
         mode_list = ['continuous', 'dynamic', 'discrete']
         if self.mode not in mode_list:
             raise SpeciesError('Species mode must be either \'continuous\', \'dynamic\', or \'discrete\'.')
-        if mode == 'continuous':
+        if mode == 'continuous' or model == 'dynamic':
             self.initial_value = np.float(initial_value)
         else:
-            if not isinstance(initial_value, int): raise ValueError('Discrete values must be of type int.')
+            if int(initial_value) != initial_value:
+                raise ValueError("'initial_value' for Species with mode='discrete' must be an integer value.")
             self.initial_value = np.int(initial_value)
         if not allow_negative_populations:
             if self.initial_value < 0: raise ValueError('A species initial value must be \
