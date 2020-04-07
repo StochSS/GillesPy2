@@ -93,7 +93,7 @@ class BasicTauLeapingSolver(GillesPySolver):
                     Use names of species as index of result object rather than position numbers.
                 """
 
-        if not isinstance(self, BasicTauLeapingSolver):
+        if isinstance(self, type):
             self = BasicTauLeapingSolver(debug=debug, profile=profile)
 
         self.stop_event = Event()

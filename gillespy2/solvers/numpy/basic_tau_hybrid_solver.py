@@ -769,7 +769,7 @@ class BasicTauHybridSolver(GillesPySolver):
             Example use: {max_step : 0, rtol : .01}
         """
 
-        if not isinstance(self, BasicTauHybridSolver):
+        if isinstance(self, type):
             self = BasicTauHybridSolver()
 
         self.stop_event = threading.Event()
