@@ -371,14 +371,14 @@ class Model(SortableObject):
             for p in sorted(params):
                 self.add_parameter(p)
         else:
-            if isinstance(params, Parameter):
+            try:
                 problem = self.problem_with_name(params.name)
                 if problem is not None:
                     raise problem
                 self.listOfParameters[params.name] = params
                 self._listOfParameters[params.name]='P{}'.format(len(self._listOfParameters))
-            else:
-                raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(params))
+            except:
+                raise ParameterError("Error using {} as a Parameter.".format(params))
         return params
 
     def delete_parameter(self, obj):
