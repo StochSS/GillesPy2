@@ -35,7 +35,7 @@ class NumPySSASolver(GillesPySolver):
         """
 
 
-        if not isinstance(self, NumPySSASolver):
+        if isinstance(self, type):
             self = NumPySSASolver()
 
         self.stop_event = Event()
