@@ -67,7 +67,7 @@ class BasicODESolver(GillesPySolver):
         :param kwargs:
         :return:
         """
-        if not isinstance(self, BasicODESolver):
+        if isinstance(self, type):
             self = BasicODESolver()
         self.stop_event = Event()
         if timeout is not None and timeout <=0: timeout = None
