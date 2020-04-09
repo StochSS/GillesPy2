@@ -987,17 +987,15 @@ class Reaction(SortableObject):
         else:
             self.type = "customized"
 
-            def _customPropParser(self, propensity_function):
-
+            def __customPropParser():
                 # "pow" thing to be parsed
                 # mode "eval", for single expressions. Passing to eval() function
                 # will return result
                 # body attribute is a SINGLE node, ast.Call or ast.BinOp
                 pow_func = ast.parse("pow", mode="eval").body
-
                 # Each AST consists of operator, name, or constant.
                 # Ex, 5^4 is a binOp, consisting of node.constant: 5, node.op: ^, and node.constant: 4
-                class PowReplacement(ast.NodeTransformer):
+                class ExpressionParser(ast.NodeTransformer):
                     def visit_BinOp(self, node):
                         # set curr nodes left and right child to visit each node to the left
                         # and to the right, until out of precedence
@@ -1005,12 +1003,11 @@ class Reaction(SortableObject):
                         # of the ast.Call below
                         node.left = self.visit(node.left)
                         node.right = self.visit(node.right)
-
                         # if isinstance(node.op, (ast.BitXor,ast.pow)) and instance(
                         # Node.op checks nodes OPERATOR. If it is ^ or **, perform task
                         if isinstance(node.op, (ast.BitXor, ast.Pow)):
                             # ast.Call calls defined function, args include which nodes
-                            # are afected by function call
+                            # are effected by function call
                             call = ast.Call(func=pow_func,
                                             args=[node.left, node.right],
                                             keywords=[])
@@ -1020,28 +1017,37 @@ class Reaction(SortableObject):
                             call = ast.copy_location(call, node)
                             # Below returns changed node
                             return call
-                        # No modification to node, classes extending NodeTransformer
+                        # No modification to node, classes extending NodeTransformer methods
                         # Always return node or value
                         else:
                             return node
 
                     def visit_Name(self, node):
+                        #Visits Name nodes, if the name nodes "id" value is 'e', replace with numerical constant
                         if node.id == 'e':
-                            return ast.copy_location(ast.Constant(2.71828, ctx=node.ctx), node)
+                            nameToConstant = ast.copy_location(ast.Constant(2.71828, ctx=node.ctx), node)
+                            return nameToConstant
                         return node
-
+                #String to transform is set to propensity function
                 string = self.propensity_function
                 print('Before replace: ' + string)
+                #use string.replace('^','**'), to replace '^' with '**'
+                #Without this, precedence of operators does bad things
+                #I.e, 5^4+6*7/10+100 would result in pow(5, 4+6*7/10+100)
                 string = string.replace('^', '**')
                 print('After replace, before AST: ' + string)
+                #parse string into an AST
                 string = ast.parse(string, mode='eval')
+                #Shows ast in list form
                 print(ast.dump(string))
-                string = PowReplacement().visit(string)
+                #send AST through ExpressionParser, where expression parser transforms nodes
+                string = ExpressionParser().visit(string)
+                #use "astor"'s .to_source(ast) method to turn ast back into a string
                 string = astor.to_source(string)
                 print('After transformation: ' + string)
                 return string
 
-            self.propensity_function = _customPropParser(self,propensity_function)
+            self.propensity_function = __customPropParser()
 
     def __str__(self):
         print_string = self.name
