@@ -988,23 +988,11 @@ class Reaction(SortableObject):
             self.type = "customized"
 
             def __customPropParser():
-                # "pow" thing to be parsed
-                # mode "eval", for single expressions. Passing to eval() function
-                # will return result
-                # body attribute is a SINGLE node, ast.Call or ast.BinOp
                 pow_func = ast.parse("pow", mode="eval").body
-                # Each AST consists of operator, name, or constant.
-                # Ex, 5^4 is a binOp, consisting of node.constant: 5, node.op: ^, and node.constant: 4
                 class ExpressionParser(ast.NodeTransformer):
                     def visit_BinOp(self, node):
-                        # set curr nodes left and right child to visit each node to the left
-                        # and to the right, until out of precedence
-                        # used for setting left and right side of pow(a,b), in the "args"
-                        # of the ast.Call below
                         node.left = self.visit(node.left)
                         node.right = self.visit(node.right)
-                        # if isinstance(node.op, (ast.BitXor,ast.pow)) and instance(
-                        # Node.op checks nodes OPERATOR. If it is ^ or **, perform task
                         if isinstance(node.op, (ast.BitXor, ast.Pow)):
                             # ast.Call calls defined function, args include which nodes
                             # are effected by function call
@@ -1013,9 +1001,8 @@ class Reaction(SortableObject):
                                             keywords=[])
                             # Copy_location copies lineno and coloffset attributes
                             # from old node to new node. ast.copy_location(new_node,old_node)
-                            # good for replacing a node
                             call = ast.copy_location(call, node)
-                            # Below returns changed node
+                            # Return changed node
                             return call
                         # No modification to node, classes extending NodeTransformer methods
                         # Always return node or value
