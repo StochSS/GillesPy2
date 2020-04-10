@@ -658,7 +658,7 @@ class Model(SortableObject):
             if isinstance(solver_results[0], (np.ndarray)):
                 return solver_results
 
-            if len(solver_results) is 1:
+            if len(solver_results) == 1:
                 return Results(data=solver_results[0], model=self,
                     solver_name=solver.name, rc=rc)
 
@@ -1251,7 +1251,7 @@ class StochMLDocument():
         root = self.document
 
         # Try to set name from document
-        if model.name is "":
+        if model.name == "":
             name = root.find('Name')
             if name.text is None:
                 raise NameError("The Name cannot be none")

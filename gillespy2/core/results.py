@@ -18,7 +18,7 @@ def _plot_iterate(self, show_labels = True, included_species_list = []):
     import matplotlib.pyplot as plt
 
     for i,species in enumerate(self.data):
-        if species is not 'time':
+        if species != 'time':
 
             if species not in included_species_list and included_species_list:
                 continue
@@ -43,7 +43,7 @@ def _plotplotly_iterate(result, show_labels = True, trace_list = None, line_dict
     import plotly.graph_objs as go
 
     for i,species in enumerate(result.data):
-        if species is not 'time':
+        if species != 'time':
 
             if species not in included_species_list and included_species_list:
                 continue
@@ -480,13 +480,13 @@ class EnsembleResults(UserList):
         for i in range(0,number_of_trajectories): #Add every value of every Results Dict into one output Results
             results_dict = results_list[i]
             for species in results_dict:
-                if species is 'time':
+                if species == 'time':
                     continue
                 for k in range(0,len(output[species])):
                     output[species][k] += results_dict[species][k]
 
         for species in output:   #Divide for mean of every value in output Results
-            if species is 'time':
+            if species == 'time':
                 continue
             for i in range(0,len(output[species])):
                 output[species][i] /= number_of_trajectories
@@ -529,14 +529,14 @@ class EnsembleResults(UserList):
         for i in range(0,number_of_trajectories):
             results_dict = results_list[i]
             for species in results_dict:
-                if species is 'time':
+                if species == 'time':
                     continue
                 for k in range(0,len(output[species])):
                     output[species][k] += (results_dict[species][k] - average_list[species][k])\
                                           *(results_dict[species][k] - average_list[species][k])
 
         for species in output:   #Divide for mean of every value in output Results
-            if species is 'time':
+            if species == 'time':
                 continue
             for i in range(0,len(output[species])):
                 output[species][i] /= (number_of_trajectories - ddof)
@@ -584,7 +584,7 @@ class EnsembleResults(UserList):
 
         trace_list=[]
         for species in average_result:
-            if species is not 'time':
+            if species != 'time':
 
                 if species not in included_species_list and included_species_list:
                     continue
@@ -691,7 +691,7 @@ class EnsembleResults(UserList):
         plt.figure(figsize=figsize)
 
         for species in average_result:
-            if species is 'time':
+            if species == 'time':
                 continue
 
             if species not in included_species_list and included_species_list:
