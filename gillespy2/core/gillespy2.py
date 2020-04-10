@@ -629,50 +629,6 @@ class Model(SortableObject):
         if rc == 33:
             from gillespy2.core import log
             log.warning('GillesPy2 simulation exceeded timeout.')
-<<<<<<< HEAD
-            raise SimulationTimeoutError()
-
-
-        with time_out(timeout):
-            if solver is not None:
-                if ((isinstance(solver, type)
-                        and issubclass(solver, GillesPySolver))) or issubclass(type(solver), GillesPySolver):
-                    if solver.name == 'SSACSolver':
-                        signal.signal(signal.SIGALRM, signal.SIG_IGN)
-                        solver_args['timeout'] = timeout
-                    solver_results, rc = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2], **solver_args)
-                else:
-                    raise SimulationError(
-                        "argument 'solver' to run() must be a subclass of GillesPySolver")
-            else:
-                from gillespy2.solvers.auto import SSASolver
-                solver = SSASolver
-                if solver.name == 'SSACSolver':
-                    signal.signal(signal.SIGALRM, signal.SIG_IGN)
-                    solver_args['timeout'] = timeout
-                solver_results, rc = SSASolver.run(model=self, t=self.tspan[-1],
-                                          increment=self.tspan[-1] - self.tspan[-2], **solver_args)
-           
-            if rc == 33:
-                from gillespy2.core import log
-                log.warning('GillesPy2 simulation exceeded timeout.')
-
-            if isinstance(solver_results[0], (np.ndarray)):
-                return solver_results
-
-            if len(solver_results) == 1:
-                return Results(data=solver_results[0], model=self,
-                    solver_name=solver.name, rc=rc)
-
-            if len(solver_results) > 1:
-                results_list = []
-                for i in range(0,solver_args.get('number_of_trajectories')):
-                    results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name,
-                        rc=rc))
-                return EnsembleResults(results_list)
-            else:
-                raise ValueError("number_of_trajectories must be non-negative and non-zero")
-=======
 
         if hasattr(solver_results[0], 'shape'):
             return solver_results
@@ -691,7 +647,6 @@ class Model(SortableObject):
 
         else:
             raise ValueError("number_of_trajectories must be non-negative and non-zero")
->>>>>>> 2d0f2658cf21086297a452f37f30ac2f77568364
 
 
 class Species(SortableObject):
