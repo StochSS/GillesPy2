@@ -18,7 +18,7 @@ def _plot_iterate(self, show_labels = True, included_species_list = []):
     import matplotlib.pyplot as plt
 
     for i,species in enumerate(self.data):
-        if species is not 'time':
+        if species != 'time':
 
             if species not in included_species_list and included_species_list:
                 continue
