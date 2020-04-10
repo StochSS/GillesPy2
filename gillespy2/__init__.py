@@ -13,4 +13,4 @@ from .__version__ import __license__, __copyright__
 from gillespy2.core import *
 import gillespy2.sbml
 import gillespy2.solvers
-import gillespy2.example_models
+#import gillespy2.example_models

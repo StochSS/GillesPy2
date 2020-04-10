@@ -1,4 +1,4 @@
-import signal
+from threading import Thread, Event
 from gillespy2.core import GillesPySolver, Model, Reaction, log
 import random
 import math
@@ -7,16 +7,19 @@ import numpy as np
 
 class NumPySSASolver(GillesPySolver):
     name = "NumPySSASolver"
-    interrupted = False
     rc = 0
+    stop_event = None
+    result = None
 
     def __init__(self):
         name = 'NumPySSASolver'
-        interrupted = False
         rc = 0
+        stop_event = None
+        result = None
 
     @classmethod
-    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True, **kwargs):
+    def run(self, model, t=20, number_of_trajectories=1, increment=0.05,
+                        seed=None, debug=False, show_labels=True, timeout=None, **kwargs):
         """
         Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
         :param model: The model on which the solver will operate.
@@ -30,20 +33,31 @@ class NumPySSASolver(GillesPySolver):
         :param show_labels: Use names of species as index of result object rather than position numbers.
         :return: a list of each trajectory simulated.
         """
-        def timed_out(signum, frame):
-            self.rc = 33
-            self.interrupted = True
-
-        signal.signal(signal.SIGALRM, timed_out)
 
 
-
-        if not isinstance(self, NumPySSASolver):
+        if isinstance(self, type):
             self = NumPySSASolver()
+
+        self.stop_event = Event()
+        if timeout is not None and timeout <= 0: timeout = None
 
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
+        sim_thread = Thread(target=self.__run, args=(model,), kwargs={'t':t,
+                                        'number_of_trajectories':number_of_trajectories,
+                                        'increment':increment, 'seed':seed,
+                                        'debug':debug, 'show_labels':show_labels,
+                                        'timeout':timeout})
+        sim_thread.start()
+        sim_thread.join(timeout=timeout)
+        self.stop_event.set()
+        while self.result is None: pass
+        return self.result, self.rc
+
+    def __run(self, model, t=20, number_of_trajectories=1, increment=0.05,
+                    seed=None, debug=False, show_labels=True, timeout=None):
+
         random.seed(seed)
         # create mapping of species dictionary to array indices
         species_mappings = model.sanitized_species_names()
@@ -87,7 +101,9 @@ class NumPySSASolver(GillesPySolver):
         # begin simulating each trajectory
         simulation_data = []
         for trajectory_num in range(number_of_trajectories):
-            if self.interrupted: break
+            if self.stop_event.is_set():
+                self.rc = 33
+                break
             # copy initial state data
             trajectory = trajectory_base[trajectory_num]
             entry_count = 1
@@ -96,7 +112,9 @@ class NumPySSASolver(GillesPySolver):
             propensity_sums = np.zeros(number_reactions)
             # calculate initial propensity sums
             while entry_count < timeline.size:
-                if self.interrupted: break
+                if self.stop_event.is_set(): 
+                    self.rc = 33
+                    break
                 # determine next reaction
                 for i in range(number_reactions):
                     propensity_sums[i] = propensity_functions[i](current_state)
@@ -118,7 +136,9 @@ class NumPySSASolver(GillesPySolver):
                     print('current_time: ', current_time)
                 # determine time passed in this reaction
                 while entry_count < timeline.size and timeline[entry_count] <= current_time:
-                    if self.interrupted: break
+                    if self.stop_event.is_set(): 
+                        self.rc = 33
+                        break
                     trajectory[entry_count, 1:] = current_state
                     entry_count += 1
                 for potential_reaction in range(number_reactions):
@@ -146,4 +166,5 @@ class NumPySSASolver(GillesPySolver):
                 simulation_data.append(data)
             else:
                 simulation_data = trajectory_base
-        return simulation_data, self.rc
+        self.result = simulation_data
+        return self.result, self.rc

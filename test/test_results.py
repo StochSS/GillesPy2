@@ -4,10 +4,7 @@ import tempfile
 from gillespy2.core import Model, Species, Reaction, Parameter, Results, EnsembleResults
 
 class TestResults(unittest.TestCase):
-
-    #def name_of_test(self):
-        #Put test code here 
-        
+   
     def test_to_csv_single_result_no_data(self):
         result = Results(data=None)
         test_nametag = "test_nametag"

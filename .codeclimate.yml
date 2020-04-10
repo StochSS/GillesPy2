@@ -1,0 +1,44 @@
+---
+version: "2"
+plugins:
+  fixme:
+    enabled: true
+    config:
+      strings:
+      - FIXME
+      - BUG
+      - TODO
+  markdownlint:
+    enabled: false
+  pep8:
+    enabled: true
+  radon:
+    enabled: true
+checks:
+  argument-count:
+    enabled: false
+  complex-logic:
+    enabled: true
+  file-lines:
+    enabled: false
+  method-complexity:
+    enabled: true
+  method-count:
+    enabled: false
+  method-lines:
+    enabled: false
+  nested-control-flow:
+    enabled: false
+  return-statements:
+    enabled: true
+  similar-code:
+    enabled: false
+  identical-code:
+    enabled: false
+exclude_patterns:
+  - "**/docs/"
+  - "**/examples/"
+  - "**/test/"
+  - "**/*.ipynb/"
+  - "**/*.sh"
+  - "**/*.bat"

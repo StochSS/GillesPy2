@@ -6,6 +6,7 @@ python.
 from __future__ import division
 import signal, os
 import numpy as np
+import uuid
 from contextlib import contextmanager
 from collections import OrderedDict
 from gillespy2.core.results import Results,EnsembleResults
@@ -276,17 +277,18 @@ class Model(SortableObject):
             The species or list of species to be added to the model object.
         """
 
-        if isinstance(obj, Species):
-            problem = self.problem_with_name(obj.name)
-            if problem is not None:
-                raise problem
-            self.listOfSpecies[obj.name] = obj
-            self._listOfSpecies[obj.name] = 'S{}'.format(len(self._listOfSpecies))
-        elif isinstance(obj, list):
+        if isinstance(obj, list):
             for S in sorted(obj):
                 self.add_species(S)
         else:
-            raise ModelError("Unexpected parameter for add_species. Parameter must be Species or list of Species.")
+            try:
+                problem = self.problem_with_name(obj.name)
+                if problem is not None:
+                    raise problem
+                self.listOfSpecies[obj.name] = obj
+                self._listOfSpecies[obj.name] = 'S{}'.format(len(self._listOfSpecies))
+            except Exception as e:
+                raise ParameterError("Error using {} as a Species. Reason given: {}".format(obj, e))
         return obj
 
     def delete_species(self, obj):
@@ -370,14 +372,14 @@ class Model(SortableObject):
             for p in sorted(params):
                 self.add_parameter(p)
         else:
-            if isinstance(params, Parameter):
+            try:
                 problem = self.problem_with_name(params.name)
                 if problem is not None:
                     raise problem
                 self.listOfParameters[params.name] = params
                 self._listOfParameters[params.name]='P{}'.format(len(self._listOfParameters))
-            else:
-                raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(params))
+            except Exception as e:
+                raise ParameterError("Error using {} as a Parameter. Reason given: {}".format(params, e))
         return params
 
     def delete_parameter(self, obj):
@@ -454,20 +456,21 @@ class Model(SortableObject):
         if isinstance(reactions,list):
             for r in sorted(reactions):
                 self.add_reaction(r)
-        elif isinstance(reactions,Reaction):
-            reactions.verify()
-            self.validate_reactants_and_products(reactions)
-            if reactions.name in self.listOfReactions:
-                raise ModelError("Duplicate name of reaction: {0}".format(reactions.name))
-            self.listOfReactions[reactions.name] = reactions
-            # Build Sanitized reaction as well
-            sanitized_reaction = Reaction(name='R{}'.format(len(self._listOfReactions)))
-            sanitized_reaction.reactants={self._listOfSpecies[species.name]:reactions.reactants[species] for species in reactions.reactants}
-            sanitized_reaction.products={self._listOfSpecies[species.name]:reactions.products[species] for species in reactions.products}
-            sanitized_reaction.propensity_function = reactions.sanitized_propensity_function(self._listOfSpecies, self._listOfParameters)
-            self._listOfReactions[reactions.name] = sanitized_reaction
         else:
-            raise ModelError("Unexpected parameter for add_reaction. Parameter must be Reaction or list of Reactions.")
+            try:
+                reactions.verify()
+                self.validate_reactants_and_products(reactions)
+                if reactions.name in self.listOfReactions:
+                    raise ModelError("Duplicate name of reaction: {0}".format(reactions.name))
+                self.listOfReactions[reactions.name] = reactions
+                # Build Sanitized reaction as well
+                sanitized_reaction = Reaction(name='R{}'.format(len(self._listOfReactions)))
+                sanitized_reaction.reactants={self._listOfSpecies[species.name]:reactions.reactants[species] for species in reactions.reactants}
+                sanitized_reaction.products={self._listOfSpecies[species.name]:reactions.products[species] for species in reactions.products}
+                sanitized_reaction.propensity_function = reactions.sanitized_propensity_function(self._listOfSpecies, self._listOfParameters)
+                self._listOfReactions[reactions.name] = sanitized_reaction
+            except Exception as e:
+                raise ParameterError("Error using {} as a Reaction. Reason given: {}".format(reactions, e))
         return reactions
 
     def add_rate_rule(self, rate_rules):
@@ -484,17 +487,18 @@ class Model(SortableObject):
         if isinstance(rate_rules, list):
             for rr in sorted(rate_rules):
                 self.add_rate_rule(rr)
-        elif isinstance(rate_rules, RateRule):
-            if rate_rules.formula == '': raise ModelError('Invalid Rate Rule. Expression must be a non-empty string value')
-            if rate_rules.variable == None:
-                raise ModelError('A GillesPy2 Rate Rule must be associated with a valid variable')
-            self.listOfRateRules[rate_rules.variable] = rate_rules
-            sanitized_rate_rule = RateRule(name = 'RR{}'.format(len(self._listOfRateRules)))
-            sanitized_rate_rule.formula = rate_rules.sanitized_formula(self._listOfSpecies,
-                                                    self._listOfParameters)
-            self._listOfRateRules[rate_rules.variable] = sanitized_rate_rule
         else:
-            raise ParameterError("Add_rate_rule accepts a RateRule object or a List of RateRule Objects")
+            try:
+                if rate_rules.formula == '': raise ModelError('Invalid Rate Rule. Expression must be a non-empty string value')
+                if rate_rules.variable == None:
+                    raise ModelError('A GillesPy2 Rate Rule must be associated with a valid variable')
+                self.listOfRateRules[rate_rules.variable] = rate_rules
+                sanitized_rate_rule = RateRule(name = 'RR{}'.format(len(self._listOfRateRules)))
+                sanitized_rate_rule.formula = rate_rules.sanitized_formula(self._listOfSpecies,
+                                                        self._listOfParameters)
+                self._listOfRateRules[rate_rules.variable] = sanitized_rate_rule
+            except Exception as e:
+                raise ParameterError("Error using {} as a Rate Rule. Reason given: {}".format(rate_rules, e))
         return rate_rules
 
     def add_event(self, event):
@@ -511,20 +515,20 @@ class Model(SortableObject):
         if isinstance(event, list):
             for e in event:
                 self.add_event(e)
-        elif isinstance(event, Event):
-            if event.trigger is None or not isinstance(event.trigger, EventTrigger): 
-                raise ModelError(
-                'An Event must contain a valid trigger.')
-            for a in event.assignments:
-                if isinstance(a.variable, str):
-                    if a.variable in self.listOfSpecies:
-                        a.variable = self.listOfSpecies[a.variable]
-                    else:
-                        raise ModelError('{0} not a valid Species'.format(a.variable))
-            self.listOfEvents[event.name] = event
         else:
-            raise ParameterError("add_events accepts an Event object or a"
-            " List of Event Objects")
+            try:
+                if event.trigger is None or not hasattr(event.trigger, 'expression'): 
+                    raise ModelError(
+                    'An Event must contain a valid trigger.')
+                for a in event.assignments:
+                    if isinstance(a.variable, str):
+                        if a.variable in self.listOfSpecies:
+                            a.variable = self.listOfSpecies[a.variable]
+                        else:
+                            raise ModelError('{0} not a valid Species'.format(a.variable))
+                self.listOfEvents[event.name] = event
+            except Exception as e:
+                raise ParameterError("Error using {} as Event. Reason given: {}".format(event, e))
         return event
 
 
@@ -532,15 +536,22 @@ class Model(SortableObject):
         if isinstance(function_definitions, list):
             for fd in function_definitions:
                 self.add_function_definition(fd)
-        elif isinstance(function_definitions, FunctionDefinition):
-            self.listOfFunctionDefinitions[function_definitions.name] = function_definitions
+        else:
+            try:
+                self.listOfFunctionDefinitions[function_definitions.name] = function_definitions
+            except Exception as e:
+                raise ParameterError("Error using {} as a Function Definition. Reason given: ".format(function_definitions, e))
+                
 
     def add_assignment_rule(self, assignment_rules):
         if isinstance(assignment_rules, list):
             for ar in assignment_rules:
                 self.add_assignment_rule(ar)
-        elif isinstance(assignment_rules, AssignmentRule):
-            self.listOfAssignmentRules[assignment_rules.variable] = assignment_rules
+        else:
+            try:
+                self.listOfAssignmentRules[assignment_rules.variable] = assignment_rules
+            except Exception as e:
+                raise ParameterError("Error using {} as a Assignment Rule. Reason given: ".format(assignment_rules, e))
 
 
     def timespan(self, time_span):
@@ -601,33 +612,24 @@ class Model(SortableObject):
             solver-specific arguments to be passed to solver.run()
         """
 
-        if os.name == 'nt' and timeout > 0:
-            from gillespy2.core import log
-            log.warning('Timeouts are not currently supported in Windows.')
-        @contextmanager
-        def time_out(time):
-            # Register a function to raise a TimeoutError on the signal.
-            signal.signal(signal.SIGALRM, raise_time_out)
-            # Schedule the signal to be sent after ``time``.
-            signal.alarm(time)
-
+        if solver is not None:
             try:
-                yield
-            except TimeoutError:
-                print('GillesPy2 solver simulation exceeded timeout')
-                pass
-            finally:
-                # Unregister the signal so it won't be triggered
-                # if the time_out is not reached.
-                signal.signal(signal.SIGALRM, signal.SIG_IGN)
+                solver_results, rc = solver.run(model=self, t=self.tspan[-1],
+                            increment=self.tspan[-1] - self.tspan[-2], timeout=timeout, **solver_args)
+            except Exception as e:
+                raise SimulationError(
+                    "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e))
+        else:
+            from gillespy2.solvers.auto import SSASolver
+            solver = SSASolver
+            solver_results, rc = SSASolver.run(model=self, t=self.tspan[-1],
+                                      increment=self.tspan[-1] -
+                                      self.tspan[-2], timeout=timeout, **solver_args)
 
-        def raise_time_out(signum, frame):
+        if rc == 33:
             from gillespy2.core import log
-            import sys
-            def excepthook(type, value, traceback):
-                pass
-            sys.excepthook = excepthook
             log.warning('GillesPy2 simulation exceeded timeout.')
+<<<<<<< HEAD
             raise SimulationTimeoutError()
 
 
@@ -670,6 +672,26 @@ class Model(SortableObject):
                 return EnsembleResults(results_list)
             else:
                 raise ValueError("number_of_trajectories must be non-negative and non-zero")
+=======
+
+        if hasattr(solver_results[0], 'shape'):
+            return solver_results
+        if len(solver_results) == 1:
+            return Results(data=solver_results[0], model=self,
+                solver_name=solver.name, rc=rc)
+
+        elif len(solver_results) > 1:
+            results_list = []
+            for i in range(0,solver_args.get('number_of_trajectories')):
+                results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name,
+                    rc=rc))
+            return EnsembleResults(results_list)
+        elif hasattr(solver_results, 'shape'):
+            return solver_results
+
+        else:
+            raise ValueError("number_of_trajectories must be non-negative and non-zero")
+>>>>>>> 2d0f2658cf21086297a452f37f30ac2f77568364
 
 
 class Species(SortableObject):
@@ -734,7 +756,8 @@ class Species(SortableObject):
         if mode == 'continuous':
             self.initial_value = np.float(initial_value)
         else:
-            if not isinstance(initial_value, int): raise ValueError('Discrete values must be of type int.')
+            if np.int(initial_value) != initial_value:
+                raise ValueError("'initial_value' for Species with mode='discrete' must be an integer value. Change to mode='continuous' to use floating point values.")
             self.initial_value = np.int(initial_value)
         if not allow_negative_populations:
             if self.initial_value < 0: raise ValueError('A species initial value must be \
@@ -911,7 +934,10 @@ class RateRule(SortableObject):
         self.variable = variable
         self.name = name
     def __str__(self):
-        return self.name + ': Var: ' + self.variable + ': ' + self.formula
+        try:
+            return self.name + ': Var: ' + self.variable + ': ' + self.formula
+        except: 
+            return 'Rate Rule: {} contains an invalid variable or formula'.format(self.name)
     def sanitized_formula(self, species_mappings, parameter_mappings):
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
@@ -932,7 +958,7 @@ class Reaction(SortableObject):
     Attributes
     ----------
     name : str
-        The name by which the reaction is called.
+        The name by which the reaction is called (optional).
     reactants : dict
         The reactants that are consumed in the reaction, with stoichiometry. An
         example would be {R1 : 1, R2 : 2} if the reaction consumes two of R1 and
@@ -968,7 +994,10 @@ class Reaction(SortableObject):
         """
 
         # Metadata
-        self.name = name
+        if name == "" or name is None:
+            self.name = 'rxn' + str(uuid.uuid4()).replace('-', '_')
+        else:
+            self.name = name
         self.annotation = ""
 
         # We might use this flag in the future to automatically generate
@@ -1018,11 +1047,17 @@ class Reaction(SortableObject):
         if len(self.reactants):
             print_string += '\n\tReactants'
             for r, stoich in self.reactants.items():
-                print_string += '\n\t\t' + r.name + ': ' + str(stoich)
+                try:
+                    print_string += '\n\t\t' + r.name + ': ' + str(stoich)
+                except Exception as e:
+                    print_string += '\n\t\t' + r + ': ' + 'INVALID - ' + str(e)
         if len(self.products):
             print_string += '\n\tProducts'
             for p, stoich in self.products.items():
-                print_string += '\n\t\t' + p.name + ': ' + str(stoich)
+                try:
+                    print_string += '\n\t\t' + p.name + ': ' + str(stoich)
+                except Exception as e:
+                    print_string += '\n\t\t' + p + ': ' + 'INVALID - ' + str(e)
         print_string += '\n\tPropensity Function: ' + self.propensity_function
         return print_string
 
