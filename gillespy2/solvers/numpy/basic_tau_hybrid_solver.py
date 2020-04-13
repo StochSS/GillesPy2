@@ -779,7 +779,7 @@ class BasicTauHybridSolver(GillesPySolver):
 
         if timeout is not None and timeout <= 0: timeout = None
 
-        sim_thread = threading.Thread(target=self.__run, args=(model,), kwargs={'t':t,
+        sim_thread = threading.Thread(target=self.___run, args=(model,), kwargs={'t':t,
                                         'number_of_trajectories':number_of_trajectories,
                                         'increment':increment, 'seed':seed,
                                         'debug':debug, 'profile':profile,'show_labels':show_labels,
@@ -787,14 +787,32 @@ class BasicTauHybridSolver(GillesPySolver):
                                         'event_sensitivity':event_sensitivity,
                                         'integrator':integrator,
                                         'integrator_options':integrator_options})
-        sim_thread.start()
-        sim_thread.join(timeout=timeout)
-        self.stop_event.set()
-        while self.result is None: pass
+        try:
+            sim_thread.start()
+            sim_thread.join(timeout=timeout)
+            self.stop_event.set()
+            while self.result is None: pass
+        except:
+            pass
+        if hasattr(self,'has_raised_exception'):
+            raise self.has_raised_exception
         return self.result, self.rc
 
 
 
+    def ___run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
+            debug=False, profile=False, show_labels=True,
+            tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
+            integrator_options={}, **kwargs):
+            try:
+                self.__run(model,t,number_of_trajectories, increment, seed, debug,
+                           profile,show_labels, tau_tol, event_sensitivity, integrator,
+                           integrator_options, **kwargs)
+            except Exception as e:
+                self.has_raised_exception = e
+                self.result = []
+                return [], -1
+                
     def __run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
             debug=False, profile=False, show_labels=True,
             tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
