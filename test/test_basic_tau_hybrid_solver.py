@@ -39,6 +39,11 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         self.model.add_species([species2,species3])
         with self.assertRaises(ParameterError):
             self.model.add_rate_rule(rate_rule_dict)
+
+    def test_math_name_overlap(self):
+        gamma = gillespy2.Species('gamma',initial_value=2, mode='continuous')
+        self.model.add_species([gamma])
+        self.model.run(solver=BasicTauHybridSolver)
             
 
 if __name__ == '__main__':

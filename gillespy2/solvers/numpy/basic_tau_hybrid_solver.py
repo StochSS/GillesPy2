@@ -403,7 +403,6 @@ class BasicTauHybridSolver(GillesPySolver):
         rxn_count = OrderedDict()
         species_modified = OrderedDict()
         # Update stochastic reactions
-            
         for rxn in compiled_reactions:
             rxn_count[rxn] = 0
             while curr_state[rxn] > 0:
