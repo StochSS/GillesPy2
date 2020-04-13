@@ -211,19 +211,19 @@ class BasicTauHybridSolver(GillesPySolver):
         curr_state['time'] = t
         for item, index in y_map.items():
             if item in assignment_rules:
-                curr_state[item] = eval(assignment_rules[item].formula, {**curr_state, **eval_globals})
+                curr_state[item] = eval(assignment_rules[item].formula, {**eval_globals, **curr_state})
             else:
                 curr_state[item] = y[index]
         for rr in compiled_rate_rules:
             try:
-                state_change[y_map[rr]] += eval(compiled_rate_rules[rr], {**curr_state, **eval_globals})
+                state_change[y_map[rr]] += eval(compiled_rate_rules[rr], {**eval_globals, **curr_state})
             except ValueError:
                 pass
         for i, r in enumerate(compiled_reactions):
-            propensities[r] = eval(compiled_reactions[r],{**curr_state, **eval_globals})
+            propensities[r] = eval(compiled_reactions[r],{**eval_globals, **curr_state})
             state_change[y_map[r]] += propensities[r]
         for event in events:
-            triggered = eval(event.trigger.expression, {**curr_state, **eval_globals})
+            triggered = eval(event.trigger.expression, {**eval_globals, **curr_state})
             if triggered: state_change[y_map[event]] = 1
 
 
@@ -367,7 +367,7 @@ class BasicTauHybridSolver(GillesPySolver):
         else:
             curr_state['t'] = curr_time
             curr_state['time'] = curr_time
-            execution_time = curr_time + eval(event.delay,eval_globals, curr_state)
+            execution_time = curr_time + eval(event.delay, {**eval_globals,**curr_state})
             curr_state[event.name] = True
             heapq.heappush(delayed_events, (execution_time, event.name))
             if event.use_values_from_trigger_time:
@@ -385,14 +385,14 @@ class BasicTauHybridSolver(GillesPySolver):
         t0_delayed_events = {}
         for e in model.listOfEvents.values():
             if not e.trigger.value:
-                t0_firing = eval(e.trigger.expression, eval_globals, initial_state)
+                t0_firing = eval(e.trigger.expression, {**eval_globals,**initial_state})
                 if t0_firing:
                     if e.delay is None:
                         for a in e.assignments:
-                            initial_state[a.variable.name] = eval(a.expression, eval_globals, initial_state)
+                            initial_state[a.variable.name] = eval(a.expression,{**eval_globals, **initial_state})
                             species_modified_by_events.append(a.variable.name)
                     else:
-                        execution_time = eval(e.delay,eval_globals, initial_state)
+                        execution_time = eval(e.delay,{**eval_globals,**initial_state})
                         t0_delayed_events[e.name] = execution_time
         return t0_delayed_events, species_modified_by_events
 
@@ -604,7 +604,7 @@ class BasicTauHybridSolver(GillesPySolver):
                     assignment_state[species[s]] = sol.sol(time)[s]
             assignment_state['t'] = time
             for spec, ar in model.listOfAssignmentRules.items():
-                assignment_value = eval(ar.formula, eval_globals, assignment_state)
+                assignment_value = eval(ar.formula, {**eval_globals,**assignment_state})
                 assignment_state[spec] = assignment_value
                 trajectory[trajectory_index][species.index(spec)+1] = assignment_value
             num_saves += 1
@@ -618,7 +618,7 @@ class BasicTauHybridSolver(GillesPySolver):
         while event_cycle:
             event_cycle = False
             for i, e in enumerate(model.listOfEvents.values()):
-                triggered = eval(e.trigger.expression, eval_globals, curr_state)
+                triggered = eval(e.trigger.expression, {**eval_globals,**curr_state})
                 if triggered and not curr_state[e.name]:
                     curr_state[e.name] = True
                     self.__handle_event(e, curr_state, curr_time, 
@@ -706,7 +706,7 @@ class BasicTauHybridSolver(GillesPySolver):
         y0 = [0] * (len(species) + len(parameters) + len(compiled_reactions) + len(events))
         for i, spec in enumerate(species):
             if isinstance(curr_state[spec], str):
-                y0[i] = eval(curr_state[spec], eval_globals, curr_state)
+                y0[i] = eval(curr_state[spec], {**eval_globals, **curr_state})
             else:
                 y0[i] = curr_state[spec]
             y_map[spec] = i
@@ -927,7 +927,7 @@ class BasicTauHybridSolver(GillesPySolver):
                 if not pure_ode:
                     for i, r in enumerate(model.listOfReactions):
                         try:
-                            propensities[r] = eval(compiled_propensities[r], eval_globals, curr_state)
+                            propensities[r] = eval(compiled_propensities[r],{**eval_globals, **curr_state})
                         except Exception as e:
                             raise SimulationError('Error calculation propensity for {0}.\nReason: {1}'.format(r, e))
 
