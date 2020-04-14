@@ -1241,7 +1241,7 @@ class StochMLDocument():
         root = self.document
 
         # Try to set name from document
-        if model.name is "":
+        if model.name == "":
             name = root.find('Name')
             if name.text is None:
                 raise NameError("The Name cannot be none")
