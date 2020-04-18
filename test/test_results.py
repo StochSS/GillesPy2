@@ -5,6 +5,34 @@ from gillespy2.core import Model, Species, Reaction, Parameter, Results, Ensembl
 
 class TestResults(unittest.TestCase):
    
+    def test_pickle_stable_using_plot(self):
+        from unittest import mock
+        result = Results(data={'time':[0.],'foo':[1.]}, model=Model('test_model'))
+        import pickle
+        result_pickled = pickle.dumps(result)
+        result_unpickled = pickle.loads(result_pickled)
+        import matplotlib
+        with mock.patch('matplotlib.pyplot.plot') as mock_method:
+            result.plot(show_legend=False)
+        with mock.patch('matplotlib.pyplot.plot') as mock_method2: 
+           result_unpickled.plot(show_legend=False)
+        assert mock_method.call_args_list == mock_method2.call_args_list
+
+
+    def test_pickle_stable_using_plotly(self):
+        from unittest import mock
+        result = Results(data={'time':[0.],'foo':[1.]}, model=Model('test_model'))
+        import pickle
+        result_pickled = pickle.dumps(result)
+        result_unpickled = pickle.loads(result_pickled)
+        import plotly
+        with mock.patch('plotly.offline.init_notebook_mode') as mock_dummy:
+            with mock.patch('plotly.graph_objs.Scatter') as mock_method:
+                result_unpickled.plotplotly(return_plotly_figure=True)
+            with mock.patch('plotly.graph_objs.Scatter') as mock_method2:
+                result.plotplotly(return_plotly_figure=True)
+        assert mock_method.call_args_list == mock_method2.call_args_list
+
     def test_to_csv_single_result_no_data(self):
         result = Results(data=None)
         test_nametag = "test_nametag"
