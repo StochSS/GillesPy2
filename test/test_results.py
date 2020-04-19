@@ -4,34 +4,31 @@ import tempfile
 from gillespy2.core import Model, Species, Reaction, Parameter, Results, EnsembleResults
 
 class TestResults(unittest.TestCase):
-   
-    def test_pickle_stable_using_plot(self):
+
+    def test_pickle_stable_plot_iterate(self):
         from unittest import mock
+        from gillespy2.core.results import _plot_iterate
         result = Results(data={'time':[0.],'foo':[1.]}, model=Model('test_model'))
         import pickle
-        result_pickled = pickle.dumps(result)
-        result_unpickled = pickle.loads(result_pickled)
+        result_unpickled = pickle.loads(pickle.dumps(result))
         import matplotlib
-        with mock.patch('matplotlib.pyplot.plot') as mock_method:
-            result.plot(show_legend=False)
-        with mock.patch('matplotlib.pyplot.plot') as mock_method2: 
-           result_unpickled.plot(show_legend=False)
-        assert mock_method.call_args_list == mock_method2.call_args_list
+        with mock.patch('matplotlib.pyplot.plot') as mock_method_before_pickle:
+            _plot_iterate(result)
+        with mock.patch('matplotlib.pyplot.plot') as mock_method_after_pickle:
+            _plot_iterate(result_unpickled)
+        assert mock_method_before_pickle.call_args_list == mock_method_after_pickle.call_args_list
 
-
-    def test_pickle_stable_using_plotly(self):
+    def test_pickle_stable_plotplotly_iterate(self):
         from unittest import mock
+        from gillespy2.core.results import _plotplotly_iterate
         result = Results(data={'time':[0.],'foo':[1.]}, model=Model('test_model'))
         import pickle
-        result_pickled = pickle.dumps(result)
-        result_unpickled = pickle.loads(result_pickled)
-        import plotly
-        with mock.patch('plotly.offline.init_notebook_mode') as mock_dummy:
-            with mock.patch('plotly.graph_objs.Scatter') as mock_method:
-                result_unpickled.plotplotly(return_plotly_figure=True)
-            with mock.patch('plotly.graph_objs.Scatter') as mock_method2:
-                result.plotplotly(return_plotly_figure=True)
-        assert mock_method.call_args_list == mock_method2.call_args_list
+        result_unpickled = pickle.loads(pickle.dumps(result))
+        with mock.patch('plotly.graph_objs.Scatter') as mock_method_before_pickle:
+            _plotplotly_iterate(result)
+        with mock.patch('plotly.graph_objs.Scatter') as mock_method_after_pickle:
+            _plotplotly_iterate(result_unpickled)
+        assert mock_method_before_pickle.call_args_list == mock_method_after_pickle.call_args_list
 
     def test_to_csv_single_result_no_data(self):
         result = Results(data=None)
