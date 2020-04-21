@@ -1008,7 +1008,6 @@ class Reaction(SortableObject):
                         # Always return node or value
                         else:
                             return node
-
                     def visit_Name(self, node):
                         #Visits Name nodes, if the name nodes "id" value is 'e', replace with numerical constant
                         if node.id == 'e':
@@ -1016,12 +1015,61 @@ class Reaction(SortableObject):
                             return nameToConstant
                         return node
 
-                string = self.propensity_function
-                string = string.replace('^', '**')
-                string = ast.parse(string, mode='eval')
-                string = ExpressionParser().visit(string)
-                string = astor.to_source(string)
-                return string
+                expr = self.propensity_function
+                expr = expr.replace('^', '**')
+                expr = ast.parse(expr, mode='eval')
+                expr = ExpressionParser().visit(expr)
+
+                class to_string(ast.NodeVisitor):
+                    def __init__(self):
+                        self.string = ''
+                    def _string_changer(self, addition):
+                        self.string += addition
+                    def visit_BinOp(self, node):
+                        self._string_changer('(')
+                        self.visit(node.left)
+                        self.visit(node.op)
+                        self.visit(node.right)
+                        self._string_changer(')')
+                    def visit_Name(self, node):
+                        self._string_changer(node.id)
+                        self.generic_visit(node)
+                    def visit_Num(self, node):
+                        self._string_changer(str(node.n))
+                        self.generic_visit(node)
+                    def visit_Call(self, node):
+                        self._string_changer(node.func.id + '(')
+                        counter = 0
+                        for arg in node.args:
+                            self.visit(arg)
+                            if counter == 0:
+                                self._string_changer(',')
+                                counter += 1
+                        self._string_changer(')')
+                    def visit_Add(self, node):
+                        self._string_changer('+')
+                        self.generic_visit(node)
+                    def visit_Div(self, node):
+                        self._string_changer('/')
+                        self.generic_visit(node)
+                    def visit_Mult(self, node):
+                        self._string_changer('*')
+                        self.generic_visit(node)
+                    def visit_UnaryOp(self, node):
+                        self._string_changer('(')
+                        self.visit_Usub(node)
+                        self._string_changer(')')
+                    def visit_Sub(self, node):
+                        self._string_changer('-')
+                        self.generic_visit(node)
+                    def visit_Usub(self, node):
+                        self._string_changer('-')
+                        self.generic_visit(node)
+
+                newFunc = to_string()
+                newFunc.visit(expr)
+                print(newFunc.string)
+                return newFunc.string
 
             self.propensity_function = __customPropParser()
 
