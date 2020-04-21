@@ -119,8 +119,8 @@ EXPECTED_RESULTS_FILE = os.path.join(TEST_DIR, '{0}-results.csv'.format(CASE_NO)
 model, errors = gillespy2.import_SBML(TEST_FILE)
 
 # Create absolute and relative tolerance defaults
-atol = 1e-9
-rtol = 1e-6
+atol = 1e-12
+rtol = 1e-12
 
 # Retrieve simulation settings from file.
 start, duration, steps = [0]*3
@@ -129,8 +129,8 @@ with open(SETTINGS_FILE, 'r') as settings:
         if 'start' in line: start = float(line.split(': ')[1])
         elif 'duration' in line: duration = float(line.split(': ')[1])
         elif 'steps' in line: steps = int(line.split(': ')[1])
-        elif 'absolute' in line: atol = float(line.split(': ')[1])
-        elif 'relative' in line: rtol = float(line.split(': ')[1])
+        #elif 'absolute' in line: atol = float(line.split(': ')[1])
+        #elif 'relative' in line: rtol = float(line.split(': ')[1])
 
 #Force Continuous Species
 for species in model.listOfSpecies.values():

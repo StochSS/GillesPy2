@@ -69,7 +69,7 @@ class BasicODESolver(GillesPySolver):
         :param kwargs:
         :return:
         """
-        if not isinstance(self, BasicODESolver):
+        if isinstance(self, type):
             self = BasicODESolver()
         self.stop_event = Event()
         if timeout is not None and timeout <=0: timeout = None
@@ -78,15 +78,30 @@ class BasicODESolver(GillesPySolver):
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
         if number_of_trajectories > 1:
             log.warning("Generating duplicate trajectories for model with ODE Solver. Consider running with only 1 trajectory.")
-        sim_thread = Thread(target=self.__run, args=(model,), kwargs={'t':t,
+        sim_thread = Thread(target=self.___run, args=(model,), kwargs={'t':t,
                                         'number_of_trajectories':number_of_trajectories,
                                         'increment':increment, 'show_labels':show_labels, 
                                         'timeout':timeout})
-        sim_thread.start()
-        sim_thread.join(timeout=timeout)
-        self.stop_event.set()
-        while self.result is None: pass
+        try:
+            sim_thread.start()
+            sim_thread.join(timeout=timeout)
+            self.stop_event.set()
+            while self.result is None: pass
+        except:
+            pass
+        if hasattr(self, 'has_raised_exception'):
+            raise self.has_raised_exception
         return self.result, self.rc
+
+    def ___run(self, model, t=20, number_of_trajectories=1, increment=0.05, timeout=None,
+            show_labels=True, integrator='lsoda', integrator_options={}, **kwargs):
+        try:
+            self.__run(model, t, number_of_trajectories, increment, timeout,
+                        show_labels, integrator, integrator_options, **kwargs)
+        except Exception as e:
+            self.has_raised_exception = e
+            self.result = []
+            return [], -1
 
     def __run(self, model, t=20, number_of_trajectories=1, increment=0.05, timeout=None,
             show_labels=True, integrator='lsoda', integrator_options={}, **kwargs):

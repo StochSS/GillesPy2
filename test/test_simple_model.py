@@ -46,27 +46,27 @@ class TestSimpleModel(unittest.TestCase):
         A = Species(name='A', initial_value=0)
         with self.assertRaises(ModelError) as ex:
             self.model.add_species(A)
-        self.assertEqual(str(ex.exception), 'Name "{}" is unavailable. A species with that name exists.'.format(A.name))
+        self.assertIn('Name "{}" is unavailable. A species with that name exists.'.format(A.name), str(ex.exception))
 
     def test_addingMultipleSameSpecies_ThrowsError(self):
         A = Species(name='A', initial_value=0)
         B = Species(name='B', initial_value=0)
         with self.assertRaises(ModelError) as ex:
             self.model.add_species([A, B])
-        self.assertEqual(str(ex.exception), 'Name "{}" is unavailable. A species with that name exists.'.format(A.name))
+        self.assertIn('Name "{}" is unavailable. A species with that name exists.'.format(A.name), str(ex.exception))
 
     def test_addingSameParameter_ThrowsError(self):
         k1 = Parameter(name='k1', expression=0)
-        with self.assertRaises(ModelError) as ex:
+        with self.assertRaises(ParameterError) as ex:
             self.model.add_parameter(k1)
-        self.assertEqual(str(ex.exception), 'Name "{}" is unavailable. A parameter with that name exists.'.format(k1.name))
+        self.assertIn('Name "{}" is unavailable. A parameter with that name exists.'.format(k1.name), str(ex.exception))
 
     def test_addingMultipleSameParameter_ThrowsError(self):
         k1 = Parameter(name='k1', expression=0)
         k2 = Parameter(name='k2', expression=0)
-        with self.assertRaises(ModelError) as ex:
+        with self.assertRaises(ParameterError) as ex:
             self.model.add_parameter([k1, k2])
-        self.assertEqual(str(ex.exception), 'Name "{}" is unavailable. A parameter with that name exists.'.format(k1.name))
+        self.assertIn('Name "{}" is unavailable. A parameter with that name exists.'.format(k1.name), str(ex.exception))
 
     def test_delete_species(self):
         self.model.delete_species('A')

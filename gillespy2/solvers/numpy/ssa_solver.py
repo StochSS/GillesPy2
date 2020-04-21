@@ -35,7 +35,7 @@ class NumPySSASolver(GillesPySolver):
         """
 
 
-        if not isinstance(self, NumPySSASolver):
+        if isinstance(self, type):
             self = NumPySSASolver()
 
         self.stop_event = Event()
@@ -44,16 +44,31 @@ class NumPySSASolver(GillesPySolver):
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
-        sim_thread = Thread(target=self.__run, args=(model,), kwargs={'t':t,
+        sim_thread = Thread(target=self.___run, args=(model,), kwargs={'t':t,
                                         'number_of_trajectories':number_of_trajectories,
                                         'increment':increment, 'seed':seed,
                                         'debug':debug, 'show_labels':show_labels,
                                         'timeout':timeout})
-        sim_thread.start()
-        sim_thread.join(timeout=timeout)
-        self.stop_event.set()
-        while self.result is None: pass
+        try:
+            sim_thread.start()
+            sim_thread.join(timeout=timeout)
+            self.stop_event.set()
+            while self.result is None: pass
+        except:
+            pass
+        if hasattr(self, 'has_raised_exception'):
+            raise self.has_raised_exception
         return self.result, self.rc
+
+    def ___run(self, model, t=20, number_of_trajectories=1, increment=0.05,
+                    seed=None, debug=False, show_labels=True, timeout=None):
+        try:
+            self.__run(model, t, number_of_trajectories, increment, seed,
+                            debug, show_labels, timeout)
+        except Exception as e:
+            self.has_raised_exception = e
+            self.result = []
+            return [], -1
 
     def __run(self, model, t=20, number_of_trajectories=1, increment=0.05,
                     seed=None, debug=False, show_labels=True, timeout=None):
