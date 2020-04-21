@@ -5,7 +5,6 @@ python.
 """
 from __future__ import division
 import ast
-import astor
 import signal, os
 import numpy as np
 import uuid
