@@ -175,14 +175,14 @@ class BasicTauHybridSolver(GillesPySolver):
               model.listOfSpecies.items() if value.mode == 'dynamic'}
 
         for r, rxn in model.listOfReactions.items():
-                for reactant in rxn.reactants:
-                    if reactant.mode == 'dynamic':
-                        mn[reactant.name] -= (tau_step * propensities[r] * rxn.reactants[reactant])
-                        sd[reactant.name] += (tau_step * propensities[r] * rxn.reactants[reactant]**2)
-                for product in rxn.products:
-                    if product.mode == 'dynamic':
-                        mn[product.name] += (tau_step * propensities[r] * rxn.products[product])
-                        sd[product.name] += (tau_step * propensities[r] * rxn.products[product]**2)
+            for reactant in rxn.reactants:
+                if reactant.mode == 'dynamic':
+                    mn[reactant.name] -= (tau_step * propensities[r] * rxn.reactants[reactant])
+                    sd[reactant.name] += (tau_step * propensities[r] * rxn.reactants[reactant]**2)
+            for product in rxn.products:
+                if product.mode == 'dynamic':
+                    mn[product.name] += (tau_step * propensities[r] * rxn.products[product])
+                    sd[product.name] += (tau_step * propensities[r] * rxn.products[product]**2)
                 
         # Get coefficient of variance for each dynamic species
         for species in mn:
@@ -196,7 +196,6 @@ class BasicTauHybridSolver(GillesPySolver):
                 det_spec[species] = CV[species] < sref.switch_tol
             else:
                 det_spec[species] = mn[species] > sref.switch_min
-        
         return sd, CV
     
     @staticmethod
@@ -912,7 +911,6 @@ class BasicTauHybridSolver(GillesPySolver):
 
             # One-time compilations to reduce time spent with eval
             compiled_reactions, compiled_rate_rules, compiled_inactive_reactions, compiled_propensities = self.__compile_all(model)
-            
             all_compiled = OrderedDict()
             all_compiled['rxns'] = compiled_reactions
             all_compiled['inactive_rxns'] = compiled_inactive_reactions
@@ -954,16 +952,16 @@ class BasicTauHybridSolver(GillesPySolver):
                             model, propensities, curr_state, curr_time, save_times[0]]
                 tau_step = save_times[-1]-curr_time if pure_ode else Tau.select(*tau_args)
 
+                # Process switching if used
+                if not pure_stochastic and not pure_ode:
+                    switch_args = [model, propensities, curr_state, tau_step, det_spec]
+                    sd, CV = self.__calculate_statistics(*switch_args)
+
                 # Calculate sd and CV for hybrid switching and flag deterministic reactions
                 if pure_stochastic:
                     deterministic_reactions = frozenset() # Empty if non-det
                 else:
                     deterministic_reactions = self.__flag_det_reactions(model, det_spec, det_rxn, dependencies)
-
-                # Process switching if used
-                if not pure_stochastic and not pure_ode:
-                    switch_args = [model, propensities, curr_state, tau_step, det_spec]
-                    sd, CV = self.__calculate_statistics(*switch_args)
                 
                 if debug:
                     print('mean: {0}'.format(mu_i))
