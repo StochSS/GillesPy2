@@ -1022,7 +1022,7 @@ class Reaction(SortableObject):
                     def visit_Name(self, node):
                         #Visits Name nodes, if the name nodes "id" value is 'e', replace with numerical constant
                         if node.id == 'e':
-                            nameToConstant = ast.copy_location(ast.Constant(float(np.e), ctx=node.ctx), node)
+                            nameToConstant = ast.copy_location(ast.Num(float(np.e), ctx=node.ctx), node)
                             return nameToConstant
                         return node
 
@@ -1031,7 +1031,7 @@ class Reaction(SortableObject):
                 expr = ast.parse(expr, mode='eval')
                 expr = ExpressionParser().visit(expr)
 
-                class to_string(ast.NodeVisitor):
+                class ToString(ast.NodeVisitor):
                     def __init__(self):
                         self.string = ''
                     def _string_changer(self, addition):
@@ -1077,9 +1077,8 @@ class Reaction(SortableObject):
                         self._string_changer('-')
                         self.generic_visit(node)
 
-                newFunc = to_string()
+                newFunc = ToString()
                 newFunc.visit(expr)
-                print(newFunc.string)
                 return newFunc.string
 
             self.propensity_function = __customPropParser()
