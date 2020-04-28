@@ -7,8 +7,6 @@ from collections import OrderedDict
 import numpy as np
 from gillespy2.core import GillesPySolver, log
 
-import math
-eval_globals = math.__dict__
 
 class BasicODESolver(GillesPySolver):
     """
@@ -43,7 +41,7 @@ class BasicODESolver(GillesPySolver):
             state_change[species] = 0
         propensity = OrderedDict()
         for r_name, reaction in model.listOfReactions.items():
-            propensity[r_name] = eval(c_prop[r_name], {**curr_state, **eval_globals})
+            propensity[r_name] = eval(c_prop[r_name], curr_state)
             for react, stoich in reaction.reactants.items():
                 state_change[react.name] -= propensity[r_name] * stoich
             for prod, stoich in reaction.products.items():
