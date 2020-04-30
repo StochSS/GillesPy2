@@ -4,6 +4,7 @@ python.
 
 """
 from __future__ import division
+import ast
 import signal, os
 import numpy as np
 import uuid
@@ -996,6 +997,91 @@ class Reaction(SortableObject):
                 self.__create_mass_action()
         else:
             self.type = "customized"
+
+            def __customPropParser():
+                pow_func = ast.parse("pow", mode="eval").body
+                class ExpressionParser(ast.NodeTransformer):
+                    def visit_BinOp(self, node):
+                        node.left = self.visit(node.left)
+                        node.right = self.visit(node.right)
+                        if isinstance(node.op, (ast.BitXor, ast.Pow)):
+                            # ast.Call calls defined function, args include which nodes
+                            # are effected by function call
+                            call = ast.Call(func=pow_func,
+                                            args=[node.left, node.right],
+                                            keywords=[])
+                            # Copy_location copies lineno and coloffset attributes
+                            # from old node to new node. ast.copy_location(new_node,old_node)
+                            call = ast.copy_location(call, node)
+                            # Return changed node
+                            return call
+                        # No modification to node, classes extending NodeTransformer methods
+                        # Always return node or value
+                        else:
+                            return node
+                    def visit_Name(self, node):
+                        #Visits Name nodes, if the name nodes "id" value is 'e', replace with numerical constant
+                        if node.id == 'e':
+                            nameToConstant = ast.copy_location(ast.Num(float(np.e), ctx=node.ctx), node)
+                            return nameToConstant
+                        return node
+
+                expr = self.propensity_function
+                expr = expr.replace('^', '**')
+                expr = ast.parse(expr, mode='eval')
+                expr = ExpressionParser().visit(expr)
+
+                class ToString(ast.NodeVisitor):
+                    def __init__(self):
+                        self.string = ''
+                    def _string_changer(self, addition):
+                        self.string += addition
+                    def visit_BinOp(self, node):
+                        self._string_changer('(')
+                        self.visit(node.left)
+                        self.visit(node.op)
+                        self.visit(node.right)
+                        self._string_changer(')')
+                    def visit_Name(self, node):
+                        self._string_changer(node.id)
+                        self.generic_visit(node)
+                    def visit_Num(self, node):
+                        self._string_changer(str(node.n))
+                        self.generic_visit(node)
+                    def visit_Call(self, node):
+                        self._string_changer(node.func.id + '(')
+                        counter = 0
+                        for arg in node.args:
+                            self.visit(arg)
+                            if counter == 0:
+                                self._string_changer(',')
+                                counter += 1
+                        self._string_changer(')')
+                    def visit_Add(self, node):
+                        self._string_changer('+')
+                        self.generic_visit(node)
+                    def visit_Div(self, node):
+                        self._string_changer('/')
+                        self.generic_visit(node)
+                    def visit_Mult(self, node):
+                        self._string_changer('*')
+                        self.generic_visit(node)
+                    def visit_UnaryOp(self, node):
+                        self._string_changer('(')
+                        self.visit_Usub(node)
+                        self._string_changer(')')
+                    def visit_Sub(self, node):
+                        self._string_changer('-')
+                        self.generic_visit(node)
+                    def visit_Usub(self, node):
+                        self._string_changer('-')
+                        self.generic_visit(node)
+
+                newFunc = ToString()
+                newFunc.visit(expr)
+                return newFunc.string
+
+            self.propensity_function = __customPropParser()
 
     def __str__(self):
         print_string = self.name
