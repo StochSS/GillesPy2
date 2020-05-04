@@ -170,7 +170,7 @@ class VariableSSACSolver(GillesPySolver):
             variables={}, **kwargs):
 
         if self is None or self.model is None:
-            self = SSACSolver(model)
+            self = VariableSSACSolver(model)
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
