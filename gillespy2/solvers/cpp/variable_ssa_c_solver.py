@@ -166,7 +166,8 @@ class VariableSSACSolver(GillesPySolver):
             raise gillespyError.BuildError("Error encountered while compiling file:\nReturn code: {0}.\nError:\n{1}\n{2}\n".format(built.returncode, built.stdout.decode('utf-8'),built.stderr.decode('utf-8')))
 
     def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
-            increment=0.05, seed=None, debug=False, profile=False, show_labels=True, **kwargs):
+            increment=0.05, seed=None, debug=False, profile=False, show_labels=True, 
+            variables={}, **kwargs):
 
         if self is None or self.model is None:
             self = SSACSolver(model)
@@ -192,13 +193,28 @@ class VariableSSACSolver(GillesPySolver):
         if self.__compiled:
             populations = ''
             parameter_values = ''
+            # Update Species Initial Values
             for i in range(len(self.species)-1):
-                populations += '{} '.format(int(model.listOfSpecies[self.species[i]].initial_value))
-            populations += '{}'.format(int(model.listOfSpecies[self.species[-1]].initial_value))
+                if self.species[i] in variables:
+                    populations += '{} '.format(int(variables[self.species[i]]))
+                else:
+                    populations += '{} '.format(int(model.listOfSpecies[self.species[i]].initial_value))
+            if self.species[-1] in variables:
+                populations += '{}'.format(int(variables[self.species[i]]))
+            else:
+                populations += '{}'.format(int(model.listOfSpecies[self.species[-1]].initial_value))
+            # Update Parameter Values
             for i in range(len(self.parameters)-1):
-                if self.parameters[i] == 'vol': continue
-                parameter_values +='{} '.format(model.listOfParameters[self.parameters[i]].expression)
-            parameter_values += '{}'.format(model.listOfParameters[self.parameters[-1]].expression)
+                if self.parameters[i] in variables:
+                    parameter_values += '{} '.format(variables[self.parameters[i]])
+                else:
+                    if self.parameters[i] == 'vol': continue
+                    parameter_values +='{} '.format(model.listOfParameters[self.parameters[i]].expression)
+            if self.parameters[-1] in variables:
+                parameter_values += '{}'.format(variables[self.parameters[i]])
+            else:
+                if self.parameters[i] == 'vol': pass
+                parameter_values += '{}'.format(model.listOfParameters[self.parameters[-1]].expression)
             self.simulation_data = None
             number_timesteps = int(round(t/increment + 1))
             # Execute simulation.
