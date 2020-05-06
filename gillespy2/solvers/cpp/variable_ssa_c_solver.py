@@ -41,20 +41,14 @@ def _write_variables(outfile, model, reactions, species, parameters, parameter_m
             outfile.write('"{}", '.format(reactions[i]))
         outfile.write('"{}"'.format(reactions[-1]))
         outfile.write("};\n")
-    print('writing at top of file')
     for param in parameters:
-        print(param)
         if param != 'vol':
             outfile.write("double {0} = {1};\n".format(parameter_mappings[param], model.listOfParameters[param].value))
-    print('end top')
 
 def _update_parameters(outfile, model, parameters, parameter_mappings):
-    print('writing arg stream')
     for param in parameters:
-        print(param)
         if param != 'vol':
             outfile.write('       arg_stream >> {};\n'.format(parameter_mappings[param]))
-    print('end stream')
 
 def _write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
     for i in range(len(reactions)):
