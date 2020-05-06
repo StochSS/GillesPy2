@@ -20,7 +20,7 @@ def _copy_files(destination):
             shutil.copy(src_file, destination)
 
 
-def _write_variables(outfile, model, reactions, species, parameter_mappings):
+def _write_variables(outfile, model, reactions, species, parameters, parameter_mappings):
     outfile.write("double V = {};\n".format(model.volume))
     outfile.write("std :: string s_names[] = {");
     if len(species) > 0:
@@ -41,12 +41,20 @@ def _write_variables(outfile, model, reactions, species, parameter_mappings):
             outfile.write('"{}", '.format(reactions[i]))
         outfile.write('"{}"'.format(reactions[-1]))
         outfile.write("};\n")
-    for param in model.listOfParameters:
-        outfile.write("double {0} = {1};\n".format(parameter_mappings[param], model.listOfParameters[param].value))
+    print('writing at top of file')
+    for param in parameters:
+        print(param)
+        if param != 'vol':
+            outfile.write("double {0} = {1};\n".format(parameter_mappings[param], model.listOfParameters[param].value))
+    print('end top')
 
-def _update_parameters(outfile, model, parameter_mappings):
-    for param in model.listOfParameters:
-        outfile.write('       arg_stream >> {};\n'.format(parameter_mappings[param]))
+def _update_parameters(outfile, model, parameters, parameter_mappings):
+    print('writing arg stream')
+    for param in parameters:
+        print(param)
+        if param != 'vol':
+            outfile.write('       arg_stream >> {};\n'.format(parameter_mappings[param]))
+    print('end stream')
 
 def _write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
     for i in range(len(reactions)):
@@ -146,13 +154,13 @@ class VariableSSACSolver(GillesPySolver):
                     if line.startswith(template_keyword):
                         line = line[len(template_keyword):]
                         if line.startswith("VARIABLES"):
-                            _write_variables(outfile, self.model, self.reactions, self.species, self.parameter_mappings)
+                            _write_variables(outfile, self.model, self.reactions, self.species, self.parameters, self.parameter_mappings)
                         if line.startswith("PROPENSITY"):
                             _write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings, self.reactions)
                         if line.startswith("REACTIONS"):
                             _write_reactions(outfile, self.model, self.reactions, self.species)
                         if line.startswith("PARAMETER_UPDATES"):
-                            _update_parameters(outfile, self.model, self.parameter_mappings)
+                            _update_parameters(outfile, self.model, self.parameters, self.parameter_mappings)
                     else:
                         outfile.write(line)
 

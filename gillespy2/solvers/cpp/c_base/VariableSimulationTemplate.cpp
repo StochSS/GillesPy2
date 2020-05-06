@@ -45,6 +45,7 @@ int main(int argc, char* argv[]){
        break;
      case 'p':
 __DEFINE_PARAMETER_UPDATES__
+       break;
      case 's':
        arg_stream >> random_seed;
        seed_time = false;
