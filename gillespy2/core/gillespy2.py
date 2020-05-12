@@ -8,7 +8,7 @@ import signal, os
 import numpy as np
 from contextlib import contextmanager
 from collections import OrderedDict
-from gillespy2.core.results import Results,EnsembleResults
+from gillespy2.core.results import Trajectory,Results
 from gillespy2.core.events import *
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
@@ -584,10 +584,9 @@ class Model(SortableObject):
         Return
         ----------
 
-        If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is True and
-        number_of_trajectories is 1, returns a results object that inherits UserDict and supports plotting functions.
-        If show_labels is False and number_of_trajectories is greater than 1, returns an ensemble_results object that
-        inherits UserList and contains results objects and supports ensemble graphing.
+        If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is 
+        True,returns a Results object that inherits UserList and contains one or more Trajectory objects that 
+        inherit UserDict. Results object supports graphing and csv export.
 
         Attributes
         ----------
@@ -660,16 +659,16 @@ class Model(SortableObject):
 
             if len(solver_results) is 1:
                 results_list = []
-                results_list.append(Results(data=solver_results[0], model=self,
+                results_list.append(Trajectory(data=solver_results[0], model=self,
                     solver_name=solver.name, rc=rc))
-                return EnsembleResults(results_list)
+                return Results(results_list)
 
             if len(solver_results) > 1:
                 results_list = []
                 for i in range(0,solver_args.get('number_of_trajectories')):
-                    results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name,
+                    results_list.append(Trajectory(data=solver_results[i],model=self,solver_name=solver.name,
                         rc=rc))
-                return EnsembleResults(results_list)
+                return Results(results_list)
             else:
                 raise ValueError("number_of_trajectories must be non-negative and non-zero")
 

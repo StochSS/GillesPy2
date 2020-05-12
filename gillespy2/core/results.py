@@ -1,11 +1,9 @@
 import warnings
-import csv
-import os
 from datetime import datetime
 
 from collections import UserDict,UserList
 
-# List of 50 hex color values used for ploting graphs
+# List of 50 hex color values used for plotting graphs
 common_rgb_values = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
                          '#bcbd22', '#17becf', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff', '#ff00ff',
                          '#800000', '#808000', '#008000', '#800080', '#008080', '#000080', '#ff9999', '#ffcc99',
@@ -43,7 +41,7 @@ def _plotplotly_iterate(result, show_labels = True, trace_list = None, line_dict
     import plotly.graph_objs as go
 
     for i,species in enumerate(result.data):
-        if species is not 'time':
+        if species != 'time':
 
             if species not in included_species_list and included_species_list:
                 continue
@@ -78,13 +76,21 @@ def _plotplotly_iterate(result, show_labels = True, trace_list = None, line_dict
 
     return trace_list
 
-class Results(UserDict):
+class Trajectory(UserDict):
     """ Results Dict created by a gillespy2 solver with single trajectory, extends the UserDict object.
 
         Attributes
         ----------
-        data : UserList
-            A list of Results that are created by solvers with multiple trajectories
+        data : UserDict
+            A dictionary of trajectory points created by a solver
+        model : string
+            The name of the model used to create the trajectory
+        solver_name : string
+            The name of the solver used to create the trajectory
+        rc : int
+            The solver's status return code.
+        status : string
+            The solver status (e.g. 'Success', 'Timed Out')
         """
 
     def __init__(self,data,model = None,solver_name = "Undefined solver name", rc=0):
@@ -99,11 +105,34 @@ class Results(UserDict):
 
 
     def __getitem__(self, key):
-        if type(key) is type(1):
-            warnings.warn("Results is of type dictionary. Use results['species'] instead of results[0]['species'] ")
+        if type(key) is int:
+            warnings.warn("Trajectory is of type dictionary. Use trajectory['species'] instead of trajectory[0]['species'] ")
             return self
         if key in self.data:
             return self.data[key]
+        if hasattr(self.__class__, "__missing__"):
+            return self.__class__.__missing__(self, key)
+        raise KeyError(key)
+
+class Results(UserList):
+    """ List of Trajectory objects created by a gillespy2 solver, extends the UserList object.
+
+        Attributes
+        ----------
+        data : UserList
+            A list of Trajectory objects
+        """
+
+    def __init__(self,data):
+        self.data = data
+
+    def __getitem__(self, key):
+        if type(key) is str:
+            warnings.warn("Results is of type list. Use results[0]['species'] instead of results['species'] ")
+            return self.data[0][key]
+        if type(key) is int:
+            if key < len(self.data):
+                return self.data[key]
         if hasattr(self.__class__, "__missing__"):
             return self.__class__.__missing__(self, key)
         raise KeyError(key)
@@ -114,158 +143,12 @@ class Results(UserDict):
              Attributes
             ----------
             nametag: allows the user to optionally "tag" the directory and included files. Defaults to the model name.
-            path: path to the location for the new directory and included files. Defaults to model location.
-            stamp: allows the user to optionally identify the directory (not included files). Defaults to timestamp.
-            """
-        if stamp is None:
-            now = datetime.now()
-            stamp=datetime.timestamp(now)
-        if nametag is None:
-            identifier = (self.model.name + " - " + self.solver_name)
-        else:
-            identifier = nametag
-        if isinstance(self.data,dict):  #if only one trajectory
-            if path is None:
-                directory = os.path.join(".",str(identifier)+str(stamp))
-            else:
-                directory = os.path.join(path,str(identifier)+str(stamp))
-            os.mkdir(directory)
-            filename = os.path.join(directory,identifier+".csv")
-            field_names = []
-            for species in self.data: #build the header
-                field_names.append(species)
-            with open(filename, 'w', newline = '') as csv_file:
-                csv_writer = csv.writer(csv_file)
-                csv_writer.writerow(field_names) #write the header
-                for n,time in enumerate(self.data['time']):#write all lines of the CSV file
-                    this_line=[]
-                    for species in self.data: #build one line of the CSV file
-                        this_line.append(self.data[species][n])
-                    csv_writer.writerow(this_line) #write one line of the CSV file
-
-
-
-    def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None, style="default",
-             show_legend=True, included_species_list=[],save_png=False,figsize = (18,10)):
-        """ Plots the Results using matplotlib.
-
-         Attributes
-        ----------
-        xaxis_label : str
-            the label for the x-axis
-        yaxis_label : str
-            the label for the y-axis
-        title : str
-            the title of the graph
-        show_legend : bool
-            whether or not to display a legend which lists species
-        included_species_list : list
-            A list of strings describing which species to include. By default displays all species.
-        save_png : bool or str
-            Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file
-            is named after that string.
-        figsize : tuple
-            the size of the graph. A tuple of the form (width,height). Is (18,10) by default.
-
-        """
-        import matplotlib.pyplot as plt
-
-        try:
-            plt.style.use(style)
-        except:
-            warnings.warn("Invalid matplotlib style. Try using one of the following {}".format(plt.style.available))
-            plt.style.use("default")
-
-        if title is None:
-            title = (self.model.name + " - " + self.solver_name)
-
-        plt.figure(figsize=figsize)
-        plt.title(title,fontsize=18)
-        plt.xlabel(xaxis_label)
-        plt.ylabel(yaxis_label)
-
-        _plot_iterate(self, included_species_list=included_species_list)
-
-        plt.plot([0], [11])
-
-        if show_legend:
-            plt.legend(loc='best')
-
-        if isinstance(save_png, str):
-            plt.savefig(save_png)
-
-        elif save_png:
-            plt.savefig(title)
-
-
-    def plotplotly(self, xaxis_label = "Time (s)", yaxis_label="Species Population", title = None, show_legend=True,
-                   included_species_list=[], return_plotly_figure = False):
-        """ Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.
-
-         Attributes
-        ----------
-        xaxis_label : str
-            the label for the x-axis
-        yaxis_label : str
-            the label for the y-axis
-        title : str
-            the title of the graph
-        show_legend : bool
-            whether or not to display a legend which lists species
-        included_species_list : list
-            A list of strings describing which species to include. By default displays all species.
-        return_plotly_figure : bool
-            whether or not to return a figure dictionary of data(graph object traces) and layout options
-            which may be edited by the user.
-
-        """
-
-        from plotly.offline import init_notebook_mode, iplot
-        import plotly.graph_objs as go
-
-        init_notebook_mode(connected=True)
-
-        if title is None:
-            title = (self.model.name + " - " + self.solver_name)
-
-        trace_list = _plotplotly_iterate(self, included_species_list = included_species_list,show_labels=True)
-
-        layout = go.Layout(
-            showlegend=show_legend,
-            title= title,
-            xaxis=dict(
-                title=xaxis_label),
-            yaxis=dict(
-                title=yaxis_label)
-        )
-        fig = dict(data = trace_list,layout=layout)
-
-        if return_plotly_figure:
-            return fig
-        else:
-            iplot(fig)
-
-class EnsembleResults(UserList):
-    """ List of Results Dicts created by a gillespy2 solver with multiple trajectories, extends the UserList object.
-
-        Attributes
-        ----------
-        data : UserList
-            A list of Results
-        """
-
-    def __init__(self,data):
-        self.data = data
-
-    def to_csv(self, path=None, nametag=None, stamp=None):
-        """ outputs the Results to one or more .csv files in a new directory.
-
-             Attributes
-            ----------
-            nametag: allows the user to optionally "tag" the directory and included files. Defaults to the model name.
             path: the location for the new directory and included files. Defaults to model location.
             stamp: Allows the user to optionally "tag" the directory (not included files). Default is timestamp.
             """
+        import csv
+        import os
+
         if stamp is None:
             now = datetime.now()
             stamp=datetime.timestamp(now)
@@ -470,28 +353,30 @@ class EnsembleResults(UserList):
         results_list = self.data
         number_of_trajectories = len(results_list)
 
-        output = Results(data={},model=results_list[0].model,solver_name=results_list[0].solver_name)
+        output_trajectory = Trajectory(data={},model=results_list[0].model,solver_name=results_list[0].solver_name)
 
         for species in results_list[0]: #Initialize the output to be the same size as the inputs
-            output[species] = [0]*len(results_list[0][species])
+            output_trajectory[species] = [0]*len(results_list[0][species])
 
-        output['time'] = results_list[0]['time']
+        output_trajectory['time'] = results_list[0]['time']
 
         for i in range(0,number_of_trajectories): #Add every value of every Results Dict into one output Results
             results_dict = results_list[i]
             for species in results_dict:
-                if species is 'time':
+                if species == 'time':
                     continue
-                for k in range(0,len(output[species])):
-                    output[species][k] += results_dict[species][k]
+                for k in range(0,len(output_trajectory[species])):
+                    output_trajectory[species][k] += results_dict[species][k]
 
-        for species in output:   #Divide for mean of every value in output Results
-            if species is 'time':
+        for species in output_trajectory:   #Divide for mean of every value in output Results
+            if species == 'time':
                 continue
-            for i in range(0,len(output[species])):
-                output[species][i] /= number_of_trajectories
+            for i in range(0,len(output_trajectory[species])):
+                output_trajectory[species][i] /= number_of_trajectories
 
-        return output
+        output_results = Results(data=[output_trajectory])
+
+        return output_results
 
     def stddev_ensemble(self,ddof = 0):
         """
@@ -517,32 +402,33 @@ class EnsembleResults(UserList):
             warnings.warn("ddof must be less than the number of trajectories. Using ddof of 0")
             ddof = 0
 
-        average_list = self.average_ensemble()
+        average_list = self.average_ensemble().data[0]
 
-        output = Results(data={}, model=results_list[0].model, solver_name=results_list[0].solver_name)
+        output_trajectory = Trajectory(data={}, model=results_list[0].model, solver_name=results_list[0].solver_name)
 
         for species in results_list[0]: #Initialize the output to be the same size as the inputs
-            output[species] = [0]*len(results_list[0][species])
+            output_trajectory[species] = [0]*len(results_list[0][species])
 
-        output['time'] = results_list[0]['time']
+        output_trajectory['time'] = results_list[0]['time']
 
         for i in range(0,number_of_trajectories):
             results_dict = results_list[i]
             for species in results_dict:
-                if species is 'time':
+                if species == 'time':
                     continue
-                for k in range(0,len(output[species])):
-                    output[species][k] += (results_dict[species][k] - average_list[species][k])\
+                for k in range(0,len(output_trajectory['time'])):
+                    output_trajectory[species][k] += (results_dict[species][k] - average_list[species][k])\
                                           *(results_dict[species][k] - average_list[species][k])
 
-        for species in output:   #Divide for mean of every value in output Results
-            if species is 'time':
+        for species in output_trajectory:   #Divide for mean of every value in output Trajectory
+            if species == 'time':
                 continue
-            for i in range(0,len(output[species])):
-                output[species][i] /= (number_of_trajectories - ddof)
-                output[species][i] = sqrt(output[species][i])
+            for i in range(0,len(output_trajectory[species])):
+                output_trajectory[species][i] /= (number_of_trajectories - ddof)
+                output_trajectory[species][i] = sqrt(output_trajectory[species][i])
 
-        return output
+        output_results = Results(data=[output_trajectory]) #package the Trajectory in a Results object
+        return output_results
 
     def plotplotly_std_dev_range(self, xaxis_label = "Time (s)", yaxis_label="Species Population", title = None,
                                  show_legend=True, included_species_list = [],return_plotly_figure=False,ddof = 0):
@@ -571,8 +457,8 @@ class EnsembleResults(UserList):
 
         """
 
-        average_result = self.average_ensemble()
-        stddev_result = self.stddev_ensemble(ddof= ddof)
+        average_result = self.average_ensemble().data[0]
+        stddev_result = self.stddev_ensemble(ddof= ddof).data[0]
 
         from plotly.offline import init_notebook_mode, iplot
         import plotly.graph_objs as go
@@ -584,7 +470,7 @@ class EnsembleResults(UserList):
 
         trace_list=[]
         for species in average_result:
-            if species is not 'time':
+            if species != 'time':
 
                 if species not in included_species_list and included_species_list:
                     continue
@@ -677,8 +563,8 @@ class EnsembleResults(UserList):
 
         """
 
-        average_result = self.average_ensemble()
-        stddev_result = self.stddev_ensemble(ddof=ddof)
+        average_result = self.average_ensemble().data[0]
+        stddev_result = self.stddev_ensemble(ddof=ddof).data[0]
 
         import matplotlib.pyplot as plt
 
@@ -691,7 +577,7 @@ class EnsembleResults(UserList):
         plt.figure(figsize=figsize)
 
         for species in average_result:
-            if species is 'time':
+            if species == 'time':
                 continue
 
             if species not in included_species_list and included_species_list:
