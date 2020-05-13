@@ -192,11 +192,19 @@ class VariableSSACSolver(GillesPySolver):
                 raise gillespyError.ModelError(
                 'Could not run Model.  SBML Feature: {} not supported by SSACSolver.'.format(detected_features))
 
+        if not isinstance(variables, dict):
+            raise gillespyError.SimulationError(
+                'argument to variables must be a dictionary.')
+        for v in variables.keys():
+            if v not in self.species+self.parameters or v=='vol':
+                raise gillespyError.SimulationError('Argument to variable "{}" \
+is not a valid variable.  Variables must be model species or parameters.'.format(v))
+                
         if self.__compiled:
             populations = ''
             parameter_values = ''
             # Update Species Initial Values
-            for i in range(len(self.species)-1):
+            for i in range(len(self.species)):
                 if self.species[i] in variables:
                     populations += '{} '.format(int(variables[self.species[i]]))
                 else:
@@ -206,8 +214,9 @@ class VariableSSACSolver(GillesPySolver):
             else:
                 populations += '{}'.format(int(model.listOfSpecies[self.species[-1]].initial_value))
             # Update Parameter Values
-            for i in range(len(self.parameters)-1):
+            for i in range(len(self.parameters)):
                 if self.parameters[i] in variables:
+                    if self.parameters[i] == 'vol': continue
                     parameter_values += '{} '.format(variables[self.parameters[i]])
                 else:
                     if self.parameters[i] == 'vol': continue
