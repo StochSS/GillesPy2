@@ -106,11 +106,15 @@ class NumPySSASolver(GillesPySolver):
         trajectory_base[:, :, 0] = timeline
         # copy initial populations to base
         if resume != None:
+            tmpSpecies = {}
             #Set initial values of species to where last left off
             for i in species:
-                model.listOfSpecies[i].initial_value = resume[i][-1]
-        for i, s in enumerate(species):
-            trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
+                tmpSpecies[i] = resume[i][-1]
+            for i, s in enumerate(species):
+                trajectory_base[:, 0, i + 1] = tmpSpecies[s]
+        else:
+            for i, s in enumerate(species):
+                trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
             # create dictionary of all constant parameters for propensity evaluation
         parameters = {'V': model.volume}
         for paramName, param in model.listOfParameters.items():
@@ -215,8 +219,11 @@ class NumPySSASolver(GillesPySolver):
 
         #If simulation has been paused, or tstopped !=0
         if timeStopped != 0:
+            if timeStopped > simulation_data[0]['time'].size:
+                timeStopped = timeStopped-simulation_data[0]['time'][0]
             for i in simulation_data[0]:
                 simulation_data[0][i] = simulation_data[0][i][:int(timeStopped)]
+
         if resume != None:
             #If resuming, combine old pause with new data
             for i in simulation_data[0]:
