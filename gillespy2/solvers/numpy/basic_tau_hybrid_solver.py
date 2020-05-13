@@ -49,6 +49,8 @@ class BasicTauHybridSolver(GillesPySolver):
     rc = 0
     result = None
     stop_event = None
+    pause_event = None
+    resumeTest = False
 
     def __init__(self):
         name = 'BasicTauHybridSolver'
@@ -722,7 +724,7 @@ class BasicTauHybridSolver(GillesPySolver):
         return y0, y_map
 
     @classmethod
-    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
+    def run(self, model, t=20, resume = None, resumeTime = None, number_of_trajectories=1, increment=0.05, seed=None,
             debug=False, profile=False, show_labels=True,
             tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
             integrator_options={}, timeout=None, **kwargs):
@@ -769,17 +771,19 @@ class BasicTauHybridSolver(GillesPySolver):
             Example use: {max_step : 0, rtol : .01}
         """
 
+        if resumeTime != None:
+            print("resume time + 50 = "+ str(resumeTime+50))
         if isinstance(self, type):
             self = BasicTauHybridSolver()
 
         self.stop_event = threading.Event()
+        self.pause_event = threading.Event()
 
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
 
         if timeout is not None and timeout <= 0: timeout = None
-
         sim_thread = threading.Thread(target=self.__run, args=(model,), kwargs={'t':t,
                                         'number_of_trajectories':number_of_trajectories,
                                         'increment':increment, 'seed':seed,
@@ -787,11 +791,19 @@ class BasicTauHybridSolver(GillesPySolver):
                                         'timeout':timeout, 'tau_tol':tau_tol,
                                         'event_sensitivity':event_sensitivity,
                                         'integrator':integrator,
-                                        'integrator_options':integrator_options})
+                                        'integrator_options':integrator_options,'resume':resume,'resumeTime':resumeTime})
+
         sim_thread.start()
-        sim_thread.join(timeout=timeout)
-        self.stop_event.set()
-        while self.result is None: pass
+        try:
+            sim_thread.join(timeout=timeout)
+            self.stop_event.set()
+            while self.result is None: pass
+
+        except KeyboardInterrupt:
+            print('interrupted!')
+            self.pause_event.set()
+            while self.result is None: pass
+
         return self.result, self.rc
 
 
@@ -799,8 +811,9 @@ class BasicTauHybridSolver(GillesPySolver):
     def __run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
             debug=False, profile=False, show_labels=True,
             tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
-            integrator_options={}, **kwargs):
+            integrator_options={},resume = None, resumeTime = None, **kwargs):
 
+        resumeTest = False
         if debug:
             print("t = ", t)
             print("increment = ", increment)
@@ -808,6 +821,10 @@ class BasicTauHybridSolver(GillesPySolver):
         if len(model.listOfEvents):
             self.__set_recommended_ode_defaults(integrator_options)
         self.__set_seed(seed)
+
+        # for use with resume, determines how much excess data to cut off due to
+        # how species and time are initialized to 0
+        timeStopped = 0
 
         # create mapping of species dictionary to array indices
         species_mappings = model._listOfSpecies
@@ -822,7 +839,17 @@ class BasicTauHybridSolver(GillesPySolver):
         initial_state['t'] = 0
 
         # create numpy array for timeline
-        timeline = np.linspace(0, t, int(round(t / increment + 1)))
+        if resumeTime != None:
+            t = resumeTime
+            print("T = "+ str(t))
+            print("Last time before resume was: "+str(resume['time'][-1]))
+
+            #start where we last left off if resuming a simulation
+            timeline = np.linspace(resume['time'][-1], t, int(round(t-resume['time'][-1]+1)))
+            print("printing new resumeTimeline")
+            print(timeline)
+        else:
+            timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
         # create numpy matrix to mark all state data of time and species
         trajectory_base = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
@@ -834,10 +861,22 @@ class BasicTauHybridSolver(GillesPySolver):
 
         # copy initial populations to base
         spec_modes = ['continuous', 'dynamic', 'discrete']
-        for i, s in enumerate(species):
-            if model.listOfSpecies[s].mode not in spec_modes:
-                raise SpeciesError('Species mode can only be \'continuous\', \'dynamic\', or \'discrete\'.')
-            trajectory_base[:, 0, i+1] = initial_state[s]
+
+        if resume != None:
+            tmpSpecies = {}
+            for i in species:
+                tmpSpecies[i] = resume[i][-1]
+            print("Temp Species below")
+            print(tmpSpecies)
+            for i,s in enumerate(species):
+                if model.listOfSpecies[s].mode not in spec_modes:
+                    raise SpeciesError('Species mode can only be \'continuous\', \'dynamic\', or \'discrete\'.')
+                trajectory_base[:, 0, i+1] = tmpSpecies[s]
+        else:
+            for i, s in enumerate(species):
+                if model.listOfSpecies[s].mode not in spec_modes:
+                    raise SpeciesError('Species mode can only be \'continuous\', \'dynamic\', or \'discrete\'.')
+                trajectory_base[:, 0, i+1] = initial_state[s]
 
         # Create deterministic tracking data structures
         det_spec = {species:True for (species, value) in model.listOfSpecies.items() if value.mode == 'dynamic'}
@@ -877,6 +916,9 @@ class BasicTauHybridSolver(GillesPySolver):
                 print('exiting')
                 self.rc = 33
                 break
+            elif self.pause_event.is_set():
+                timeStopped = save_times[0]
+                break
 
             trajectory = trajectory_base[trajectory_num] # NumPy array containing this simulation's results
             propensities = OrderedDict() # Propensities evaluated at current state
@@ -900,8 +942,11 @@ class BasicTauHybridSolver(GillesPySolver):
             all_compiled['rxns'] = compiled_reactions
             all_compiled['inactive_rxns'] = compiled_inactive_reactions
             all_compiled['rules'] = compiled_rate_rules
-
-            save_times = np.copy(model.tspan)
+            if resume == None:
+                save_times = np.copy(model.tspan)
+            else:
+                model.tspan = save_times
+                print(model.tspan)
             delayed_events = []
             trigger_states = {}
 
@@ -919,9 +964,11 @@ class BasicTauHybridSolver(GillesPySolver):
 
             # Each save step
             while curr_time < model.tspan[-1]:
-
-                if self.stop_event.is_set(): 
+                if self.stop_event.is_set():
                     self.rc = 33
+                    break
+                elif self.pause_event.is_set():
+                    timeStopped = save_times[0]
                     break
                 # Get current propensities
                 if not pure_ode:
@@ -986,7 +1033,20 @@ class BasicTauHybridSolver(GillesPySolver):
                 print(steps_taken)
                 print("Total Steps Taken: ", len(steps_taken))
                 print("Total Steps Rejected: ", steps_rejected)
+                # If simulation has been paused, or tstopped !=0
 
+        print("Time stopped at : "+ str(timeStopped))
+        if timeStopped != 0:
+            if timeStopped > simulation_data[0]['time'].size:
+                timeStopped = timeStopped - simulation_data[0]['time'][0]
+            for i in simulation_data[0]:
+                simulation_data[0][i] = simulation_data[0][i][:int(timeStopped)]
+        if resume != None:
+            # If resuming, combine old pause with new data
+            for i in simulation_data[0]:
+                oldData = resume[i][:-1]
+                newData = simulation_data[0][i]
+                simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
         self.result = simulation_data
         return simulation_data, self.rc
 
