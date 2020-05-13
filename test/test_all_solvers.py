@@ -5,6 +5,7 @@ import gillespy2
 from example_models import Example, Oregonator
 from gillespy2.core.results import EnsembleResults, Results
 from gillespy2.solvers.cpp.ssa_c_solver import SSACSolver
+from gillespy2.solvers.cpp.variable_ssa_c_solver import VariableSSACSolver
 from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
 from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver
 from gillespy2.solvers.numpy.basic_tau_leaping_solver import BasicTauLeapingSolver
