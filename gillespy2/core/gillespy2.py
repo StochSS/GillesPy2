@@ -54,8 +54,7 @@ class SortableObject(object):
     """Base class for GillesPy2 objects that are sortable."""
 
     def __eq__(self, other):
-        return (isinstance(other, self.__class__)
-                and ordered(self) == ordered(other))
+                return str(self) == str(other)
 
     def __ne__(self, other):
         return not self.__eq__(other)
