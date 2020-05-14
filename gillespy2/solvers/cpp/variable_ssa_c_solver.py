@@ -49,6 +49,8 @@ def _update_parameters(outfile, model, parameters, parameter_mappings):
     for param in parameters:
         if param != 'vol':
             outfile.write('       arg_stream >> {};\n'.format(parameter_mappings[param]))
+        else:
+            outfile.write('       arg_stream >> V;\n')
 
 def _write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
     for i in range(len(reactions)):
@@ -196,7 +198,7 @@ class VariableSSACSolver(GillesPySolver):
             raise gillespyError.SimulationError(
                 'argument to variables must be a dictionary.')
         for v in variables.keys():
-            if v not in self.species+self.parameters or v=='vol':
+            if v not in self.species+self.parameters:
                 raise gillespyError.SimulationError('Argument to variable "{}" \
 is not a valid variable.  Variables must be model species or parameters.'.format(v))
                 
@@ -210,22 +212,25 @@ is not a valid variable.  Variables must be model species or parameters.'.format
                 else:
                     populations += '{} '.format(int(model.listOfSpecies[self.species[i]].initial_value))
             if self.species[-1] in variables:
-                populations += '{}'.format(int(variables[self.species[i]]))
+                populations += '{}'.format(int(variables[self.species[-1]]))
             else:
                 populations += '{}'.format(int(model.listOfSpecies[self.species[-1]].initial_value))
             # Update Parameter Values
             for i in range(len(self.parameters)-1):
                 if self.parameters[i] in variables:
-                    if self.parameters[i] == 'vol': continue
                     parameter_values += '{} '.format(variables[self.parameters[i]])
                 else:
-                    if self.parameters[i] == 'vol': continue
-                    parameter_values +='{} '.format(model.listOfParameters[self.parameters[i]].expression)
+                    if self.parameters[i] == 'vol':
+                        parameter_values +='{} '.format(model.volume)
+                    else:
+                        parameter_values +='{} '.format(model.listOfParameters[self.parameters[i]].expression)
             if self.parameters[-1] in variables:
-                parameter_values += '{}'.format(variables[self.parameters[i]])
+                parameter_values += '{}'.format(variables[self.parameters[-1]])
             else:
-                if self.parameters[i] == 'vol': parameter_values = parameter_values.rstrip()
-                parameter_values += '{}'.format(model.listOfParameters[self.parameters[-1]].expression)
+                if self.parameters[i] == 'vol':
+                    parameter_values += '{}'.format(model.volume)
+                else:
+                    parameter_values += '{}'.format(model.listOfParameters[self.parameters[-1]].expression)
             self.simulation_data = None
             number_timesteps = int(round(t/increment + 1))
             # Execute simulation.
