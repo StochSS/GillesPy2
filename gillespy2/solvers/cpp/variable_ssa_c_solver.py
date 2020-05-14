@@ -204,7 +204,7 @@ is not a valid variable.  Variables must be model species or parameters.'.format
             populations = ''
             parameter_values = ''
             # Update Species Initial Values
-            for i in range(len(self.species)):
+            for i in range(len(self.species)-1):
                 if self.species[i] in variables:
                     populations += '{} '.format(int(variables[self.species[i]]))
                 else:
@@ -214,7 +214,7 @@ is not a valid variable.  Variables must be model species or parameters.'.format
             else:
                 populations += '{}'.format(int(model.listOfSpecies[self.species[-1]].initial_value))
             # Update Parameter Values
-            for i in range(len(self.parameters)):
+            for i in range(len(self.parameters)-1):
                 if self.parameters[i] in variables:
                     if self.parameters[i] == 'vol': continue
                     parameter_values += '{} '.format(variables[self.parameters[i]])
@@ -224,7 +224,7 @@ is not a valid variable.  Variables must be model species or parameters.'.format
             if self.parameters[-1] in variables:
                 parameter_values += '{}'.format(variables[self.parameters[i]])
             else:
-                if self.parameters[i] == 'vol': pass
+                if self.parameters[i] == 'vol': parameter_values = parameter_values.rstrip()
                 parameter_values += '{}'.format(model.listOfParameters[self.parameters[-1]].expression)
             self.simulation_data = None
             number_timesteps = int(round(t/increment + 1))
