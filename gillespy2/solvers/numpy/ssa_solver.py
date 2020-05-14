@@ -61,7 +61,6 @@ class NumPySSASolver(GillesPySolver):
             sim_thread.join(timeout=timeout)
             self.stop_event.set()
             while self.result is None: pass
-
         except KeyboardInterrupt:
             print('interrupted!')
             self.pause_event.set()
