@@ -103,7 +103,6 @@ class Trajectory(UserDict):
         status_list = {0: 'Success', 33: 'Timed Out'}
         self.status = status_list[rc]
 
-
     def __getitem__(self, key):
         if type(key) is int:
             warnings.warn("Trajectory is of type dictionary. Use trajectory['species'] instead of trajectory[0]['species'] ")
@@ -125,6 +124,12 @@ class Results(UserList):
 
     def __init__(self,data):
         self.data = data
+
+    def __getattribute__(self,key):
+        results_methods = [method_name for method_name in dir(Results) if callable(getattr(Results, method_name))]
+        if key in results_methods or key is 'data':
+            return(UserList.__getattribute__(self,key))
+        else: return(getattr(Results.__getattribute__(self,key='data')[0],key))
 
     def __getitem__(self, key):
         if type(key) is str:
