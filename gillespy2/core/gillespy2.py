@@ -52,8 +52,15 @@ class SortableObject(object):
     """Base class for GillesPy2 objects that are sortable."""
 
     def __eq__(self, other):
+        self_attr_list = sorted(dir(self))
+        other_attr_list = sorted(dir(other))
+        same_attr_list = (len(self_attr_list) == len(other_attr_list)) #if different number of attributes, not the same
+        for i, item in enumerate(self_attr_list):
+            if same_attr_list is not False:
+                self_attribute = self.__getattribute__(self_attr_list[i])
+                same_attr_list = (self.__getattribute__(self_attr_list[i]) == other.__getattribute__(other_attr_list[i]))
         return (isinstance(other, self.__class__)
-                and ordered(self) == ordered(other))
+                and same_attr_list)
 
     def __ne__(self, other):
         return not self.__eq__(other)

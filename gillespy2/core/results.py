@@ -128,7 +128,8 @@ class Results(UserList):
 
     def __getitem__(self, key):
         if type(key) is str:
-            warnings.warn("Results is of type list. Use results[0]['species'] instead of results['species'] ")
+            if len(self.data)>1:
+                warnings.warn("Results is of type list. Use results[i]['species'] instead of results['species'] ")
             return self.data[0][key]
         if type(key) is int:
             if key < len(self.data):
@@ -136,6 +137,43 @@ class Results(UserList):
         if hasattr(self.__class__, "__missing__"):
             return self.__class__.__missing__(self, key)
         raise KeyError(key)
+
+    def __add__(self, other):
+        combined_data = Results(data=(self.data + other.data))
+        consistent_solver = combined_data._validate_solver()
+
+        if consistent_solver is False:
+            warnings.warn("Results objects contain Trajectory objects from multiple solvers.")
+
+        consistent_model = combined_data._validate_model()
+
+        #if consistent_model is False:
+            #exception
+
+        combined_data = self.data + other.data
+        return Results(data=combined_data)
+
+    def _validate_model(self, reference = None):
+        is_valid = True
+        if reference is not None:
+            reference_model = reference
+        else:
+            reference_model = self.data[0].model
+        for trajectory in self.data:
+            if trajectory.model != reference_model:
+                is_valid = False
+        return is_valid
+
+    def _validate_solver(self, reference = None):
+        is_valid = True
+        if reference is not None:
+            reference_solver = reference
+        else:
+            reference_solver = self.data[0].solver_name
+        for trajectory in self.data:
+            if trajectory.solver_name != reference_solver:
+                is_valid = False
+        return is_valid
 
     def to_csv(self, path=None, nametag=None, stamp=None):
         """ outputs the Results to one or more .csv files in a new directory.
@@ -177,12 +215,13 @@ class Results(UserList):
                             this_line.append(trajectory[species][n])
                         csv_writer.writerow(this_line) #write one line of the CSV file
 
-    def plot(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", style="default", title = None,
+    def plot(self, index = None, xaxis_label ="Time (s)", yaxis_label ="Species Population", style="default", title = None,
              show_legend=True, multiple_graphs = False, included_species_list=[],save_png=False,figsize = (18,10)):
         """ Plots the Results using matplotlib.
 
         Attributes
         ----------
+        index : if not none, the index of the Trajectory to be plotted
         xaxis_label : str
             the label for the x-axis
         yaxis_label : str
@@ -204,7 +243,10 @@ class Results(UserList):
 
             """
         import matplotlib.pyplot as plt
-        results_list = self.data
+        if index is not None:
+            results_list = self.data[index]
+        else:
+            results_list = self.data
 
         if title is None:
             if isinstance(self[0].model.name, str):
@@ -254,12 +296,13 @@ class Results(UserList):
             elif save_png:
                 plt.savefig(title)
 
-    def plotplotly(self, xaxis_label = "Time (s)", yaxis_label="Species Population", title = None, show_legend=True,
+    def plotplotly(self, index = None, xaxis_label = "Time (s)", yaxis_label="Species Population", title = None, show_legend=True,
                    multiple_graphs = False, included_species_list=[],return_plotly_figure=False):
         """ Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.
 
         Attributes
         ----------
+        index : if not none, the index of the Trajectory to be plotted
         xaxis_label : str
             the label for the x-axis
         yaxis_label : str
@@ -280,7 +323,10 @@ class Results(UserList):
 
         init_notebook_mode(connected=True)
 
-        results_list = self.data
+        if index is not None:
+            results_list = self.data[index]
+        else:
+            results_list = self.data
         number_of_trajectories =len(results_list)
 
         if title is None:
