@@ -29,6 +29,7 @@ if __name__ == '__main__':
     import test_all_solvers
     import test_sys_init
     import test_results
+    import test_propensity_parser
 
     modules = [
         test_empty_model,
@@ -41,7 +42,8 @@ if __name__ == '__main__':
         test_example_models,
         test_all_solvers,
         test_sys_init,
-        test_results
+        test_results,
+        test_propensity_parser
     ]
 
     for module in modules:

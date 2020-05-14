@@ -4,6 +4,7 @@ import random
 import math
 import numpy as np
 
+
 class NumPySSASolver(GillesPySolver):
     name = "NumPySSASolver"
     rc = 0
@@ -32,15 +33,12 @@ class NumPySSASolver(GillesPySolver):
         :param debug: Set to True to provide additional debug information about the
         simulation.
         :param show_labels: Use names of species as index of result object rather than position numbers.
-        :param resume: Result object of previous simulation, used to continue a paused simulation, or extend a finished one.
-        :param resumeTime: New end time for resumed result object.
         :return: a list of each trajectory simulated.
         """
 
 
         if isinstance(self, type):
             self = NumPySSASolver()
-
 
         self.stop_event = Event()
         self.pause_event = Event()
@@ -49,17 +47,15 @@ class NumPySSASolver(GillesPySolver):
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
-        sim_thread = Thread(target=self.__run, args=(model,), kwargs={'t':t,
+        sim_thread = Thread(target=self.___run, args=(model,), kwargs={'t':t,
                                         'number_of_trajectories':number_of_trajectories,
                                         'increment':increment, 'seed':seed,
                                         'debug':debug, 'show_labels':show_labels,'resume':resume,
                                         'resumeTime':resumeTime,'timeout':timeout})
 
 
-       # pause_thread = Thread(target=self.pause, daemon=True)
-        #pause_thread.start()
-        sim_thread.start()
         try:
+            sim_thread.start()
             sim_thread.join(timeout=timeout)
             self.stop_event.set()
             while self.result is None: pass
@@ -68,12 +64,14 @@ class NumPySSASolver(GillesPySolver):
             print('interrupted!')
             self.pause_event.set()
             while self.result is None: pass
+        if hasattr(self, 'has_raised_exception'):
+            raise self.has_raised_exception
 
         return self.result, self.rc
 
 
 
-    def __run(self, model, t=20, number_of_trajectories=1, increment=0.05,
+    def ___run(self, model, t=20, number_of_trajectories=1, increment=0.05,
                     seed=None, debug=False, show_labels=True, resume = None, resumeTime = None, timeout=None):
 
         if resume != None and resumeTime == None:
@@ -82,6 +80,17 @@ class NumPySSASolver(GillesPySolver):
             log.warning("resumeTime must be greater than previous simulations end time.")
         elif resume != None and resumeTime != None:
             t = resumeTime
+
+        try:
+            self.__run(model, t, number_of_trajectories, increment, seed,
+                            debug, show_labels, resume, resumeTime, timeout)
+        except Exception as e:
+            self.has_raised_exception = e
+            self.result = []
+            return [], -1
+
+    def __run(self, model, t=20, number_of_trajectories=1, increment=0.05,
+                    seed=None, debug=False, show_labels=True, resume = None, resumeTime = None, timeout=None):
 
         #for use with resume, determines how much excess data to cut off due to
         #how species and time are initialized to 0

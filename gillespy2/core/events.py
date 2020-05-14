@@ -135,7 +135,7 @@ class Event:
              'name must be a valid string')
         
         # Trigger
-        if isinstance(trigger, EventTrigger):
+        if hasattr(trigger, 'expression'):
             self.trigger = trigger
         else:
             raise EventError(
@@ -154,12 +154,12 @@ class Event:
         # Assignments
         if isinstance(assignments, list):
             for assign in assignments:
-                if isinstance(assign, EventAssignment):
+                if hasattr(assign, 'variable'):
                     self.assignments.append(assign)
                 else:
                     raise EventError('assignment list contains an item '
                         'is not an EventAssignment.')
-        elif isinstance(assignments, EventAssignment):
+        elif hasattr(assignments, 'variable'):
             self.assignments.append(assignments)
         else:
             raise EventError(
@@ -190,11 +190,11 @@ class Event:
             The event or list of events to be added to this event.
         """
 
-        if isinstance(assignment, EventAssignment):
+        if hasattr(assignment, 'variable'):
             self.assignments.append(assignment)
         elif isinstance(assignment, list):
             for assign in assignment:
-                if isinstance(assign, EventAssignment):
+                if hasattr(assign, 'variable'):
                     self.assignments.append(assign)
                 else:
                     raise EventError('add_assignment failed to add EventAssignment. '
