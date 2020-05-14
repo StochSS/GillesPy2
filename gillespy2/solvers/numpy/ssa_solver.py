@@ -240,5 +240,11 @@ class NumPySSASolver(GillesPySolver):
                 newData = simulation_data[0][i]
                 simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
 
+            if np.where(simulation_data[0]['time'] > timeStopped)[0].size > 0 and timeStopped != 0:
+                #Number to cut off to avoid simulation zeroing out
+                k = int(np.where(simulation_data[0]['time'] == timeStopped)[0])
+                for i in simulation_data[0]:
+                    simulation_data[0][i] = simulation_data[0][i][:k]
+
         self.result = simulation_data
         return self.result, self.rc
