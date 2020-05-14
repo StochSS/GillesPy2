@@ -33,6 +33,8 @@ class NumPySSASolver(GillesPySolver):
         :param debug: Set to True to provide additional debug information about the
         simulation.
         :param show_labels: Use names of species as index of result object rather than position numbers.
+        :param resume: Result of a previously run simulation, to be resumed
+        :param resumeTime: How much longer to run the previously ran simulation
         :return: a list of each trajectory simulated.
         """
 

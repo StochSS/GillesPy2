@@ -93,6 +93,10 @@ class BasicTauLeapingSolver(GillesPySolver):
                     Set to True to provide information about step size (tau) taken at each step.
                 show_labels : bool (True)
                     Use names of species as index of result object rather than position numbers.
+                resume : Result of previous simulation
+                    resultResult of a previously run simulation, to be resumed
+                resumeTime : int
+                    How much longer to run the previously ran simulation
                 """
 
         if isinstance(self, type):

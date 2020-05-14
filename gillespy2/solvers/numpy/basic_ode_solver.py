@@ -67,6 +67,8 @@ class BasicODESolver(GillesPySolver):
         :param integrator_options: a dictionary containing options to the scipy integrator. for a list of options, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.
             Example use: {max_step : 0, rtol : .01}
         :param kwargs:
+        :param resume: Result of a previously run simulation, to be resumed
+        :param resumeTime: How much longer to run the previously ran simulation
         :return:
         """
         if isinstance(self, type):
