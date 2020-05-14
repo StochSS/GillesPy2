@@ -146,14 +146,15 @@ class Results(UserList):
     def __add__(self, other):
         combined_data = Results(data=(self.data + other.data))
         consistent_solver = combined_data._validate_solver()
+        consistent_model = combined_data._validate_model()
 
         if consistent_solver is False:
             warnings.warn("Results objects contain Trajectory objects from multiple solvers.")
 
         consistent_model = combined_data._validate_model()
 
-        #if consistent_model is False:
-            #exception
+        if consistent_model is False:
+            raise Exception('Results objects contain Trajectory objects from multiple models.')
 
         combined_data = self.data + other.data
         return Results(data=combined_data)
