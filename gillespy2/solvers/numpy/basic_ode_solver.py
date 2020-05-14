@@ -16,11 +16,13 @@ class BasicODESolver(GillesPySolver):
     rc = 0
     stop_event = None
     result = None
+    pause_event = None
     
     def __init__(self):
         name = "BasicODESolver"
         rc = 0
         stop_event = None
+        pause_event = None
         result = None
 
     @staticmethod
@@ -52,7 +54,7 @@ class BasicODESolver(GillesPySolver):
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, 
             show_labels=True, integrator='lsoda', integrator_options={}, 
-            timeout=None, **kwargs):
+            timeout=None, resume = None, resumeTime = None, **kwargs):
         """
 
         :param model: gillespy2.model class object
@@ -70,6 +72,8 @@ class BasicODESolver(GillesPySolver):
         if isinstance(self, type):
             self = BasicODESolver()
         self.stop_event = Event()
+        self.pause_event = Event()
+
         if timeout is not None and timeout <=0: timeout = None
         if len(kwargs) > 0:
             for key in kwargs:
@@ -79,32 +83,43 @@ class BasicODESolver(GillesPySolver):
         sim_thread = Thread(target=self.___run, args=(model,), kwargs={'t':t,
                                         'number_of_trajectories':number_of_trajectories,
                                         'increment':increment, 'show_labels':show_labels, 
-                                        'timeout':timeout,
-                                        'integrator':integrator,
-                                        'integrator_options':integrator_options})
+                                        'timeout':timeout, 'resume':resume, 'resumeTime':resumeTime,
+                                        'integrator':integrator,'integrator_options':integrator_options})
         try:
             sim_thread.start()
             sim_thread.join(timeout=timeout)
             self.stop_event.set()
             while self.result is None: pass
         except:
-            pass
+            print('interrupted!')
+            self.pause_event.set()
+            while self.result is None: pass
         if hasattr(self, 'has_raised_exception'):
             raise self.has_raised_exception
         return self.result, self.rc
 
     def ___run(self, model, t=20, number_of_trajectories=1, increment=0.05, timeout=None,
-            show_labels=True, integrator='lsoda', integrator_options={}, **kwargs):
+            show_labels=True, integrator='lsoda', integrator_options={}, resume = None, resumeTime = None, **kwargs):
+
+        if resume != None and resumeTime == None:
+            log.warning("If resuming a simulation, must set a 'resumeTime' in the run() function")
+        if resumeTime != None and resumeTime<resume['time'][-1]:
+            log.warning("resumeTime must be greater than previous simulations end time.")
+        elif resume != None and resumeTime != None:
+            t = resumeTime
+
         try:
             self.__run(model, t, number_of_trajectories, increment, timeout,
-                        show_labels, integrator, integrator_options, **kwargs)
+                        show_labels, integrator, integrator_options, resume, resumeTime, **kwargs)
         except Exception as e:
             self.has_raised_exception = e
             self.result = []
             return [], -1
 
     def __run(self, model, t=20, number_of_trajectories=1, increment=0.05, timeout=None,
-            show_labels=True, integrator='lsoda', integrator_options={}, **kwargs):
+            show_labels=True, integrator='lsoda', integrator_options={}, resume = None, resumeTime = None, **kwargs):
+
+        timeStopped = 0
 
         start_state = [model.listOfSpecies[species].initial_value for species in model.listOfSpecies]
 
@@ -115,7 +130,11 @@ class BasicODESolver(GillesPySolver):
         number_species = len(species)
 
         # create numpy array for timeline
-        timeline = np.linspace(0, t, int(round(t / increment + 1)))
+        if resumeTime != None:
+            # start where we last left off if resuming a simulation
+            timeline = np.linspace(resume['time'][-1], t, int(round(t - resume['time'][-1] + 1)))
+        else:
+            timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
         # create numpy matrix to mark all state data of time and species
         trajectory_base = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
@@ -124,9 +143,16 @@ class BasicODESolver(GillesPySolver):
         trajectory_base[:, :, 0] = timeline
 
         # copy initial populations to base
-        for i, s in enumerate(species):
-            trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
-
+        if resume != None:
+            tmpSpecies = {}
+            # Set initial values of species to where last left off
+            for i in species:
+                tmpSpecies[i] = resume[i][-1]
+            for i, s in enumerate(species):
+                trajectory_base[:, 0, i + 1] = tmpSpecies[s]
+        else:
+            for i, s in enumerate(species):
+                trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
         # compile reaction propensity functions for eval
         c_prop = OrderedDict()
         for r_name, reaction in model.listOfReactions.items():
@@ -138,9 +164,15 @@ class BasicODESolver(GillesPySolver):
 
         y0 = [0] * len(model.listOfSpecies)
         curr_state = OrderedDict()
-        for i, s in enumerate(model.listOfSpecies.values()):
-            curr_state[s.name] = s.initial_value
-            y0[i] = s.initial_value
+        if resume != None:
+            for i,s in enumerate(tmpSpecies):
+                curr_state[s] = tmpSpecies[s]
+                y0[i] = tmpSpecies[s]
+        else:
+            for i, s in enumerate(model.listOfSpecies.values()):
+                curr_state[s.name] = s.initial_value
+                y0[i] = s.initial_value
+
         for p_name, param in model.listOfParameters.items():
             curr_state[p_name] = param.value
         rhs = ode(BasicODESolver.__f).set_integrator(integrator, **integrator_options)
@@ -150,6 +182,10 @@ class BasicODESolver(GillesPySolver):
             if self.stop_event.is_set():
                 self.rc = 33
                 break
+            if self.pause_event.is_set():
+                timeStopped = timeline[entry_count]
+                break
+
             int_time = curr_time + increment
             entry_count += 1
             y0 = rhs.integrate(int_time)
@@ -167,5 +203,28 @@ class BasicODESolver(GillesPySolver):
             results = [results_as_dict] * number_of_trajectories
         else:
             results = np.stack([result] * number_of_trajectories, axis=0)
+
+        if timeStopped != 0:
+            if timeStopped > results[0]['time'].size:
+                timeStopped = timeStopped - results[0]['time'][0]
+                print(timeStopped)
+            for i in results[0]:
+                results[0][i] = results[0][i][:int(timeStopped)]
+
+
+        if resume != None:
+            # If resuming, combine old pause with new data
+            for i in results[0]:
+
+                oldData = resume[i][:-1]
+                newData = results[0][i]
+                results[0][i] = np.concatenate((oldData, newData), axis=None)
+
+            if np.where(results[0]['time'] > timeStopped)[0].size > 0 and timeStopped != 0:
+                #Number to cut off to avoid simulation zeroing out
+                k = int(np.where(results[0]['time'] == timeStopped)[0])
+                for i in results[0]:
+                    results[0][i] = results[0][i][:k]
+
         self.result = results
         return results, self.rc
