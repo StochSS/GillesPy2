@@ -47,12 +47,6 @@ class TestVariableSSACSolver(unittest.TestCase):
         with self.assertRaises(SimulationError):
             results = model.run(solver=solver, variables={'foobar':0})
 
-    def test_vol_restricted(self):
-        model = Example()
-        solver = VariableSSACSolver(model)
-        with self.assertRaises(SimulationError):
-            results = model.run(solver=solver, variables={'vol':0})
-
     def test_run_example(self):
         model = Example()
         results = model.run(solver=VariableSSACSolver)
