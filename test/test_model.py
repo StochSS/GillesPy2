@@ -27,6 +27,17 @@ class TestModel(unittest.TestCase):
         model2.add_parameter(param1)
         assert model1 == model2
 
+    def test_model_reordered_equality(self):
+        model1 = Model()
+        model2 = Model()
+        param1 = Parameter('A', expression=0)
+        param2 = Parameter('B', expression=1)
+        model1.add_parameter(param1)
+        model1.add_parameter(param2)
+        model2.add_parameter(param2)
+        model2.add_parameter(param1)
+        assert model1 == model2
+
     def test_uniform_timespan(self):
         model = Model()
         model.timespan(np.linspace(0, 1, 100))
