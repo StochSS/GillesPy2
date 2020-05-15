@@ -14,7 +14,6 @@ common_rgb_values = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c
 
 def _plot_iterate(self, show_labels = True, included_species_list = []):
     import matplotlib.pyplot as plt
-
     for i,species in enumerate(self.data):
         if species != 'time':
 
@@ -129,7 +128,10 @@ class Results(UserList):
         results_methods = [method_name for method_name in dir(Results) if callable(getattr(Results, method_name))]
         if key in results_methods or key is 'data':
             return(UserList.__getattribute__(self,key))
-        else: return(getattr(Results.__getattribute__(self,key='data')[0],key))
+        else: 
+            if len(self.data)>1:
+                warnings.warn("Results is of type list. Use results[i]['species'] instead of results['species'] ")
+            return(getattr(Results.__getattribute__(self,key='data')[0],key))
 
     def __getitem__(self, key):
         if type(key) is str:
@@ -181,6 +183,18 @@ class Results(UserList):
                 is_valid = False
         return is_valid
 
+    def _validate_title(self):
+        if self._validate_model():
+            title_model = self.data[0].model.name
+        else:
+            title_model = 'Multiple Models'
+        if self._validate_solver():
+            title_solver = self.data[0].solver_name
+        else:
+            title_solver = 'Multiple Solvers'
+        title = (title_model + " - " + title_solver)
+        return title
+
     def to_csv(self, path=None, nametag=None, stamp=None):
         """ outputs the Results to one or more .csv files in a new directory.
 
@@ -197,7 +211,7 @@ class Results(UserList):
             now = datetime.now()
             stamp=datetime.timestamp(now)
         if nametag is None:
-            identifier = (self[0].model.name + " - " + self[0].solver_name)
+            identifier = self._validate_title()
         else:
             identifier = nametag
         if path is None:
@@ -250,19 +264,17 @@ class Results(UserList):
             """
         import matplotlib.pyplot as plt
         from collections import Iterable
+        results_list = []
         if isinstance(index,Iterable):
-            results_list = []
             for i in index:
-                results_list+=self.data[i]
+                results_list.append(self.data[i])
         elif isinstance(index,int):
-                results_list = self.data[index]
+                results_list.append(self.data[index])
         else:
             results_list = self.data
 
         if title is None:
-            if isinstance(self[0].model.name, str):
-                title = (self[0].model.name + " - " + self[0].solver_name)
-            else: title=''
+            title=self._validate_title()
 
         if len(results_list) < 2:
                 multiple_graphs = False
@@ -334,14 +346,20 @@ class Results(UserList):
 
         init_notebook_mode(connected=True)
 
-        if index is not None:
-            results_list = self.data[index]
+        from collections import Iterable
+        results_list = []
+        if isinstance(index,Iterable):
+            for i in index:
+                results_list.append(self.data[i])
+        elif isinstance(index,int):
+                results_list.append(self.data[index])
         else:
             results_list = self.data
+
         number_of_trajectories =len(results_list)
 
         if title is None:
-            title = (self[0].model.name + " - " + self[0].solver_name)
+            title=self._validate_title()
 
         fig = dict(data=[], layout=[])
 
@@ -523,7 +541,7 @@ class Results(UserList):
         init_notebook_mode(connected=True)
 
         if title is None:
-            title = (average_result.model.name + " - " + average_result.solver_name + " - Standard Deviation Range")
+            title = (self._validate_title() + " - Standard Deviation Range")
 
         trace_list=[]
         for species in average_result:
@@ -648,7 +666,7 @@ class Results(UserList):
             plt.plot(average_result['time'],average_result[species],label=species)
 
         if title is None:
-            title = (average_result.model.name + " - " + average_result.solver_name + " - Standard Deviation Range")
+            title = (self._validate_title() + " - Standard Deviation Range")
 
         plt.title(title, fontsize=18)
         plt.xlabel(xaxis_label)
