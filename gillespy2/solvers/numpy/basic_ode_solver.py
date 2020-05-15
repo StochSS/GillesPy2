@@ -54,7 +54,7 @@ class BasicODESolver(GillesPySolver):
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, 
             show_labels=True, integrator='lsoda', integrator_options={}, 
-            timeout=None, resume = None, resumeTime = None, **kwargs):
+            timeout=None, resume = None, **kwargs):
         """
 
         :param model: gillespy2.model class object
@@ -68,7 +68,6 @@ class BasicODESolver(GillesPySolver):
             Example use: {max_step : 0, rtol : .01}
         :param kwargs:
         :param resume: Result of a previously run simulation, to be resumed
-        :param resumeTime: How much longer to run the previously ran simulation
         :return:
         """
         if isinstance(self, type):
@@ -85,8 +84,8 @@ class BasicODESolver(GillesPySolver):
         sim_thread = Thread(target=self.___run, args=(model,), kwargs={'t':t,
                                         'number_of_trajectories':number_of_trajectories,
                                         'increment':increment, 'show_labels':show_labels, 
-                                        'timeout':timeout, 'resume':resume, 'resumeTime':resumeTime,
-                                        'integrator':integrator,'integrator_options':integrator_options})
+                                        'timeout':timeout, 'resume':resume,'integrator':integrator,
+                                                                       'integrator_options':integrator_options})
         try:
             sim_thread.start()
             sim_thread.join(timeout=timeout)
@@ -101,25 +100,22 @@ class BasicODESolver(GillesPySolver):
         return self.result, self.rc
 
     def ___run(self, model, t=20, number_of_trajectories=1, increment=0.05, timeout=None,
-            show_labels=True, integrator='lsoda', integrator_options={}, resume = None, resumeTime = None, **kwargs):
-
-        if resume != None and resumeTime == None:
-            log.warning("If resuming a simulation, must set a 'resumeTime' in the run() function")
-        if resumeTime != None and resumeTime<resume['time'][-1]:
-            log.warning("resumeTime must be greater than previous simulations end time.")
-        elif resume != None and resumeTime != None:
-            t = resumeTime
+            show_labels=True, integrator='lsoda', integrator_options={}, resume = None, **kwargs):
 
         try:
             self.__run(model, t, number_of_trajectories, increment, timeout,
-                        show_labels, integrator, integrator_options, resume, resumeTime, **kwargs)
+                        show_labels, integrator, integrator_options, resume, **kwargs)
         except Exception as e:
             self.has_raised_exception = e
             self.result = []
             return [], -1
 
     def __run(self, model, t=20, number_of_trajectories=1, increment=0.05, timeout=None,
-            show_labels=True, integrator='lsoda', integrator_options={}, resume = None, resumeTime = None, **kwargs):
+            show_labels=True, integrator='lsoda', integrator_options={}, resume = None, **kwargs):
+
+        if resume!= None and t < resume['time'][-1]:
+            log.warning("'t' must be greater than previous simulations end time, or set in the run() function as the "
+                        "simulations next end time")
 
         timeStopped = 0
 
@@ -132,7 +128,7 @@ class BasicODESolver(GillesPySolver):
         number_species = len(species)
 
         # create numpy array for timeline
-        if resumeTime != None:
+        if resume != None:
             # start where we last left off if resuming a simulation
             timeline = np.linspace(resume['time'][-1], t, int(round(t - resume['time'][-1] + 1)))
         else:
@@ -186,6 +182,7 @@ class BasicODESolver(GillesPySolver):
                 break
             if self.pause_event.is_set():
                 timeStopped = timeline[entry_count]
+                print('time stopped @ : '+ str(timeStopped))
                 break
 
             int_time = curr_time + increment
@@ -206,13 +203,13 @@ class BasicODESolver(GillesPySolver):
         else:
             results = np.stack([result] * number_of_trajectories, axis=0)
 
-        if timeStopped != 0:
-            if timeStopped > results[0]['time'].size:
-                timeStopped = timeStopped - results[0]['time'][0]
-                print(timeStopped)
-            for i in results[0]:
-                results[0][i] = results[0][i][:int(timeStopped)]
 
+        if timeStopped != 0 and timeStopped != results[0]['time'][-1]:
+            tester = np.where(results[0]['time'] > timeStopped)[0].size
+            index = np.where(results[0]['time'] == timeStopped)[0][0]
+            if tester > 0:
+                for i in results[0]:
+                    results[0][i] = results[0][i][:index]
 
         if resume != None:
             # If resuming, combine old pause with new data
@@ -222,11 +219,6 @@ class BasicODESolver(GillesPySolver):
                 newData = results[0][i]
                 results[0][i] = np.concatenate((oldData, newData), axis=None)
 
-            if np.where(results[0]['time'] > timeStopped)[0].size > 0 and timeStopped != 0:
-                #Number to cut off to avoid simulation zeroing out
-                k = int(np.where(results[0]['time'] == timeStopped)[0])
-                for i in results[0]:
-                    results[0][i] = results[0][i][:k]
 
         self.result = results
         return results, self.rc

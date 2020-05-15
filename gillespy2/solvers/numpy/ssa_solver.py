@@ -21,7 +21,7 @@ class NumPySSASolver(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05,
-                        seed=None, debug=False, show_labels=True, timeout=None, resume = None, resumeTime = None, **kwargs):
+                        seed=None, debug=False, show_labels=True, timeout=None, resume = None, **kwargs):
         """
         Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
         :param model: The model on which the solver will operate.
@@ -34,7 +34,6 @@ class NumPySSASolver(GillesPySolver):
         simulation.
         :param show_labels: Use names of species as index of result object rather than position numbers.
         :param resume: Result of a previously run simulation, to be resumed
-        :param resumeTime: How much longer to run the previously ran simulation
         :return: a list of each trajectory simulated.
         """
 
@@ -53,7 +52,7 @@ class NumPySSASolver(GillesPySolver):
                                         'number_of_trajectories':number_of_trajectories,
                                         'increment':increment, 'seed':seed,
                                         'debug':debug, 'show_labels':show_labels,'resume':resume,
-                                        'resumeTime':resumeTime,'timeout':timeout})
+                                        'timeout':timeout})
 
 
         try:
@@ -73,29 +72,27 @@ class NumPySSASolver(GillesPySolver):
 
 
     def ___run(self, model, t=20, number_of_trajectories=1, increment=0.05,
-                    seed=None, debug=False, show_labels=True, resume = None, resumeTime = None, timeout=None):
-
-        if resume != None and resumeTime == None:
-            log.warning("If resuming a simulation, must set a 'resumeTime' in the run() function")
-        if resumeTime != None and resumeTime<resume['time'][-1]:
-            log.warning("resumeTime must be greater than previous simulations end time.")
-        elif resume != None and resumeTime != None:
-            t = resumeTime
+                    seed=None, debug=False, show_labels=True, resume = None, timeout=None):
 
         try:
             self.__run(model, t, number_of_trajectories, increment, seed,
-                            debug, show_labels, resume, resumeTime, timeout)
+                            debug, show_labels, resume,timeout)
         except Exception as e:
             self.has_raised_exception = e
             self.result = []
             return [], -1
 
     def __run(self, model, t=20, number_of_trajectories=1, increment=0.05,
-                    seed=None, debug=False, show_labels=True, resume = None, resumeTime = None, timeout=None):
+                    seed=None, debug=False, show_labels=True, resume = None, timeout=None):
 
         #for use with resume, determines how much excess data to cut off due to
         #how species and time are initialized to 0
         timeStopped = 0
+
+        if resume!= None and t < resume['time'][-1]:
+            log.warning("'t' must be greater than previous simulations end time, or set in the run() function as the "
+                        "simulations next end time")
+
 
         random.seed(seed)
         # create mapping of species dictionary to array indices
@@ -104,7 +101,7 @@ class NumPySSASolver(GillesPySolver):
         parameter_mappings = model.sanitized_parameter_names()
         number_species = len(species)
         # create numpy array for timeline
-        if resumeTime != None:
+        if resume != None:
             #start where we last left off if resuming a simulation
             timeline = np.linspace(resume['time'][-1], t, int(round(t-resume['time'][-1]+1)))
         else:
@@ -157,6 +154,7 @@ class NumPySSASolver(GillesPySolver):
                 break
             elif self.pause_event.is_set():
                 timeStopped = timeline[entry_count]
+                print("Interrupted at : " + str(timeStopped))
                 break
             # copy initial state data
             trajectory = trajectory_base[trajectory_num]
@@ -171,6 +169,7 @@ class NumPySSASolver(GillesPySolver):
                     break
                 elif self.pause_event.is_set():
                     timeStopped = timeline[entry_count]
+                    print("Interrupted at : "+str(timeStopped))
                     break
                 # determine next reaction
                 for i in range(number_reactions):
@@ -198,6 +197,7 @@ class NumPySSASolver(GillesPySolver):
                         break
                     elif self.pause_event.is_set():
                         timeStopped = timeline[entry_count]
+                        print("Interrupted at : " + str(timeStopped))
                         break
                     trajectory[entry_count, 1:] = current_state
                     entry_count += 1
@@ -228,24 +228,23 @@ class NumPySSASolver(GillesPySolver):
                 simulation_data = trajectory_base
 
         #If simulation has been paused, or tstopped !=0
-        if timeStopped != 0:
-            if timeStopped > simulation_data[0]['time'].size:
-                timeStopped = timeStopped-simulation_data[0]['time'][0]
-            for i in simulation_data[0]:
-                simulation_data[0][i] = simulation_data[0][i][:int(timeStopped)]
+        if timeStopped != 0 and timeStopped != simulation_data[0]['time'][-1]:
+            tester = np.where(simulation_data[0]['time'] > timeStopped)[0].size
+            index = np.where(simulation_data[0]['time'] == timeStopped)[0][0]
+            if tester > 0:
+                for i in simulation_data[0]:
+                    simulation_data[0][i] = simulation_data[0][i][:index]
+
 
         if resume != None:
-            #If resuming, combine old pause with new data
+            #If resuming, combine old pause with new data, and delete any excess null data
             for i in simulation_data[0]:
                 oldData = resume[i][:-1]
                 newData = simulation_data[0][i]
                 simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
 
-            if np.where(simulation_data[0]['time'] > timeStopped)[0].size > 0 and timeStopped != 0:
-                #Number to cut off to avoid simulation zeroing out
-                k = int(np.where(simulation_data[0]['time'] == timeStopped)[0])
-                for i in simulation_data[0]:
-                    simulation_data[0][i] = simulation_data[0][i][:k]
 
+        print(simulation_data[0]['time'])
+        print(simulation_data[0]['D1'])
         self.result = simulation_data
         return self.result, self.rc

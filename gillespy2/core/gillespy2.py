@@ -588,7 +588,7 @@ class Model(SortableObject):
         self.listOfReactions.clear()
         self._listOfReactions.clear()
 
-    def run(self, solver=None, timeout=0, **solver_args):
+    def run(self, solver=None, timeout=0, t=None, **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -615,8 +615,13 @@ class Model(SortableObject):
 
         if solver is not None:
             try:
-                solver_results, rc = solver.run(model=self, t=self.tspan[-1],
-                            increment=self.tspan[-1] - self.tspan[-2], timeout=timeout, **solver_args)
+                if t != None:
+                    solver_results, rc = solver.run(model=self, t=t,
+                                                    increment=self.tspan[-1]-self.tspan[-2], timeout=timeout,
+                                                    **solver_args)
+                else:
+                    solver_results, rc = solver.run(model=self, t=self.tspan[-1],
+                                increment=self.tspan[-1] - self.tspan[-2], timeout=timeout, **solver_args)
             except Exception as e:
                 raise SimulationError(
                     "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e))
