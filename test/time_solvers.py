@@ -1,7 +1,10 @@
 import sys
 sys.path.insert(0,'..')
 
-from tqdm import trange
+try:
+    from tqdm import tqdm
+except ImportError:
+    raise ImportError('tqdm is required. Please install it.')
 from itertools import product
 from timeit import default_timer as timer
 import matplotlib.pyplot as plt
@@ -13,8 +16,6 @@ from gillespy2.solvers.python import *
 #BasicSSASolver
 from gillespy2.solvers.numpy import *
 #BasicODESolver, BasicRootSolver, BasicTauLeapingSolver, NumPySSASolver, TauLeapingSolver
-from gillespy2.solvers.cython import *
-#CythonSSASolver
 from gillespy2.solvers.cpp import *
 #SSACSolver
 from gillespy2.solvers.auto import *

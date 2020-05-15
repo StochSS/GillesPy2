@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import gillespy2
 from gillespy2.core.gillespyError import *
-from gillespy2.example_models import Example
+from example_models import Example
 from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
 
 
@@ -31,6 +31,15 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         rule = gillespy2.RateRule(formula='sin(t)')
         with self.assertRaises(ModelError):
             self.model.add_rate_rule(rule)
+
+    def test_math_name_overlap(self):
+        gamma = gillespy2.Species('gamma',initial_value=2, mode='continuous')
+        self.model.add_species([gamma])
+        k2 = gillespy2.Parameter(name='k2', expression=1)
+        self.model.add_parameter([k2])
+        gamma_react = gillespy2.Reaction(name='gamma_react', reactants={'gamma':1}, products={}, rate=k2)
+        self.model.add_reaction([gamma_react])
+        self.model.run(solver=BasicTauHybridSolver)
 
     def test_add_bad_expression_rate_rule_dict(self):
         species2 = gillespy2.Species('test_species2', initial_value=2, mode='continuous')

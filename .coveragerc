@@ -1,3 +1,5 @@
 [run]
-omit = */.local/lib/python3.6/site-packages/numpy/*
-	*/.local/lib/python3.6/site-packages/scipy/*
+omit =  */.local/lib/python3.*/site-packages/numpy/*
+	*/.local/lib/python3.*/site-packages/scipy/*
+	*/.local/lib/python3.*/site-packages/Cython/*
+	*/.local/lib/python3.*/site-packages/pyximport/*

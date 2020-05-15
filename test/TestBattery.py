@@ -1,12 +1,12 @@
-from tqdm import tqdm
-import click
+try:
+    from tqdm import tqdm
+except ImportError:
+    raise ImportError('tqdm is required. Please install it.')
 import statistics
 from itertools import product
 from scipy import stats
 from timeit import default_timer as timer
 import gillespy2
-from gillespy2.solvers.python import *
-# BasicSSASolver
 from gillespy2.solvers.numpy import *
 # BasicODESolver, BasicRootSolver, BasicTauLeapingSolver, NumPySSASolver, TauLeapingSolver
 from gillespy2.solvers.cython import *
@@ -17,23 +17,21 @@ from gillespy2.solvers.auto import *
 # SSASolver
 from gillespy2.solvers.stochkit import *
 # StochKitODESolver, StochKitSolver
-from gillespy2.example_models import *
+from example_models import *
 
 
-@click.command()
-@click.option('--gillespy2_home', default="/home/jackson/Research/GillesPy2/", help='Location of Gillespy2 Directory')
-@click.option('--number_of_samples', prompt='Sample Size', help='The Number of times that you want to run it.')
-@click.option('--stochkit_home', prompt='Location of Stochkit', help='The Number of times that ')
-@click.option('--acceptable deviation', prompt='Numeric Value of Statistical Variation', help='')
-@click.option('--output_file', prompt='Name of Output File', help='The name of the output file')
-def timing_battery(gillespy2_home, number_of_samples, stochkit_home, acceptable_deviation, output_file):
+def timing_battery(number_of_samples, acceptable_deviation):
+    gillespy2_home = ".."
+    stochkit_home = "../../Stochkit/StochKit"
+    output_file = "TestBattery_output.txt"
+
     solver_list = []
     key, value = None, None
     for key, value in globals().items():
         if isinstance(value, type) and issubclass(value, gillespy2.GillesPySolver) and value not in solver_list:
             solver_list.append(value)
 
-    model_list = [Example(), Trichloroethylene(), MichaelisMenten(), Schlogl()] #Updated
+    model_list = [Example(), Trichloroethylene(), MichaelisMenten(), Schlogl()] #Update
 
     timing_list = []
 

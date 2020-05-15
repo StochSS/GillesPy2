@@ -347,6 +347,8 @@ def __resolve_evals(gillespy_model, init_state):
 def convert(filename, model_name=None, gillespy_model=None):
 
     sbml_model, errors = __read_sbml_model(filename)
+    if sbml_model is None:
+        return None, errors
     if model_name is None:
         model_name = sbml_model.getName()
     if gillespy_model is None:
