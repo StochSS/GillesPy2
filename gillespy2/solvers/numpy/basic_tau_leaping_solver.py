@@ -208,6 +208,7 @@ class BasicTauLeapingSolver(GillesPySolver):
                 self.rc = 33
                 break
             elif self.pause_event.is_set():
+                print(timeStopped)
                 timeStopped = timeline[entry_count]
 
             start_state = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
@@ -255,6 +256,7 @@ class BasicTauLeapingSolver(GillesPySolver):
                     break
                 elif self.pause_event.is_set():
                     timeStopped = timeline[entry_count]
+                    print("Time stopped at : "+ str(timeStopped))
                     break
                 
                 #Until save step reached
@@ -264,6 +266,7 @@ class BasicTauLeapingSolver(GillesPySolver):
                         break
                     elif self.pause_event.is_set():
                         timeStopped = timeline[entry_count]
+                        print("Time stopped at : "+ str(timeStopped))
                         break
 
                     propensity_sum = 0
@@ -349,11 +352,13 @@ class BasicTauLeapingSolver(GillesPySolver):
                 print("Total Steps Rejected: ", steps_rejected)
 
         # If simulation has been paused, or tstopped !=0
-        if timeStopped != 0:
-            if timeStopped > simulation_data[0]['time'].size:
-                timeStopped = timeStopped - simulation_data[0]['time'][0]
-            for i in simulation_data[0]:
-                simulation_data[0][i] = simulation_data[0][i][:int(timeStopped)]
+
+        if timeStopped != 0 and timeStopped != simulation_data[0]['time'][-1]:
+            tester = np.where(simulation_data[0]['time'] > timeStopped)[0].size
+            index = np.where(simulation_data[0]['time'] == timeStopped)[0][0]
+            if tester > 0:
+                for i in simulation_data[0]:
+                    simulation_data[0][i] = simulation_data[0][i][:index]
 
         if resume != None:
             # If resuming, combine old pause with new data
@@ -361,12 +366,6 @@ class BasicTauLeapingSolver(GillesPySolver):
                 oldData = resume[i][:-1]
                 newData = simulation_data[0][i]
                 simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
-
-            if np.where(simulation_data[0]['time'] > timeStopped)[0].size > 0 and timeStopped != 0:
-                #Number to cut off to avoid simulation zeroing out
-                k = int(np.where(simulation_data[0]['time'] == timeStopped)[0])
-                for i in simulation_data[0]:
-                    simulation_data[0][i] = simulation_data[0][i][:k]
 
         self.result = simulation_data
         return simulation_data, self.rc
