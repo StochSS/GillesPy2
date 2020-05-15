@@ -54,15 +54,7 @@ class SortableObject(object):
     """Base class for GillesPy2 objects that are sortable."""
 
     def __eq__(self, other):
-        self_attr_list = sorted(dir(self))
-        other_attr_list = sorted(dir(other))
-        same_attr_list = (len(self_attr_list) == len(other_attr_list)) #if different number of attributes, not the same
-        for i, item in enumerate(self_attr_list):
-            if same_attr_list is not False:
-                self_attribute = self.__getattribute__(self_attr_list[i])
-                same_attr_list = (self.__getattribute__(self_attr_list[i]) == other.__getattribute__(other_attr_list[i]))
-        return (isinstance(other, self.__class__)
-                and same_attr_list)
+        return str(self) == str(other)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -197,27 +189,27 @@ class Model(SortableObject):
         print_string = self.name
         if len(self.listOfSpecies):
             print_string += decorate('Species')
-            for s in self.listOfSpecies.values():
+            for s in sorted(self.listOfSpecies.values()):
                 print_string += '\n' + str(s)
         if len(self.listOfParameters):
             print_string += decorate('Parameters')
-            for p in self.listOfParameters.values():
+            for p in sorted(self.listOfParameters.values()):
                 print_string += '\n' + str(p)
         if len(self.listOfReactions):
             print_string += decorate('Reactions')
-            for r in self.listOfReactions.values():
+            for r in sorted(self.listOfReactions.values()):
                 print_string += '\n' + str(r)
         if len(self.listOfEvents):
             print_string += decorate('Events')
-            for e in self.listOfEvents.values():
+            for e in sorted(self.listOfEvents.values()):
                 print_string += '\n' + str(e)
         if len(self.listOfAssignmentRules):
             print_string += decorate('Assignment Rules')
-            for ar in self.listOfAssignmentRules.values():
+            for ar in sorted(self.listOfAssignmentRules.values()):
                 print_string += '\n' + str(ar)
         if len(self.listOfRateRules):
             print_string += decorate('Rate Rules')
-            for rr in self.listOfRateRules.values():
+            for rr in sorted(self.listOfRateRules.values()):
                 print_string += '\n' + str(rr)
         return print_string
 
