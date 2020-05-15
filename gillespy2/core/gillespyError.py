@@ -52,3 +52,10 @@ class SimulationTimeoutError(SimulationError):
 
 class EventError(ModelError):
     pass
+
+#Results errors
+class ResultsError(Exception):
+    pass
+
+class ValidationError(ResultsError):
+    pass

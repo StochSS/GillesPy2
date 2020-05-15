@@ -1,5 +1,6 @@
 import warnings
 from datetime import datetime
+from gillespy2.core.gillespyError import *
 
 from collections import UserDict,UserList
 
@@ -134,6 +135,9 @@ class Results(UserList):
             return(getattr(Results.__getattribute__(self,key='data')[0],key))
 
     def __getitem__(self, key):
+        if isinstance(key,slice):
+            start, stop, step = key.indices(len(self))
+            return Results(data=[self.data[i] for i in range(start, stop, step)])
         if type(key) is str:
             if len(self.data)>1:
                 warnings.warn("Results is of type list. Use results[i]['species'] instead of results['species'] ")
@@ -156,7 +160,7 @@ class Results(UserList):
         consistent_model = combined_data._validate_model()
 
         if consistent_model is False:
-            raise Exception('Results objects contain Trajectory objects from multiple models.')
+            raise ValidationError('Results objects contain Trajectory objects from multiple models.')
 
         combined_data = self.data + other.data
         return Results(data=combined_data)
