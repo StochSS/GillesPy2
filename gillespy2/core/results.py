@@ -249,8 +249,13 @@ class Results(UserList):
 
             """
         import matplotlib.pyplot as plt
-        if index is not None:
-            results_list = self.data[index]
+        from collections import Iterable
+        if isinstance(index,Iterable):
+            results_list = []
+            for i in index:
+                results_list+=self.data[i]
+        elif isinstance(index,int):
+                results_list = self.data[index]
         else:
             results_list = self.data
 
