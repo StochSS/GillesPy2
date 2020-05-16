@@ -135,18 +135,12 @@ class Results(UserList):
             return(getattr(Results.__getattribute__(self,key='data')[0],key))
 
     def __getitem__(self, key):
-        if isinstance(key,slice):
-            start, stop, step = key.indices(len(self))
-            return Results(data=[self.data[i] for i in range(start, stop, step)])
         if type(key) is str:
             if len(self.data)>1:
                 warnings.warn("Results is of type list. Use results[i]['species'] instead of results['species'] ")
             return self.data[0][key]
-        if type(key) is int:
-            if key < len(self.data):
-                return self.data[key]
-        if hasattr(self.__class__, "__missing__"):
-            return self.__class__.__missing__(self, key)
+        else:
+            return(UserList.__getitem__(self,key))
         raise KeyError(key)
 
     def __add__(self, other):
