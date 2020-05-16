@@ -191,7 +191,7 @@ class TestSimpleModel(unittest.TestCase):
 
         # Check r1 name & propensity function is set
         self.assertEqual(reactions['r1'].name, 'r1', msg='Has incorrect expression')
-        self.assertEqual(reactions['r1'].propensity_function, 'k1*B', msg='Has incorrect expression')
+        self.assertEqual(reactions['r1'].propensity_function, '(k1*B)', msg='Has incorrect expression')
 
         # Check r1 reactants are set
         self.assertEqual(reactants_r1[species_A], 1, msg='Has incorrect number of reactants')
