@@ -8,7 +8,8 @@ class TestResults(unittest.TestCase):
     def test_pickle_stable_plot_iterate(self):
         from unittest import mock
         from gillespy2.core.results import _plot_iterate
-        result = Results(data={'time':[0.],'foo':[1.]}, model=Model('test_model'))
+        trajectory = Trajectory(data={'time':[0.],'foo':[1.]}, model=Model('test_model'))
+        result = Results(data=[trajectory])
         import pickle
         result_unpickled = pickle.loads(pickle.dumps(result))
         import matplotlib
@@ -42,7 +43,7 @@ class TestResults(unittest.TestCase):
             
     def test_to_csv_single_result_directory_exists(self):
         test_data = {'time':[0]}
-        result = Results(data=test_data)
+        result = Results(data=[test_data])
         test_nametag = "test_nametag"
         test_stamp = "test_stamp"
 
@@ -53,18 +54,18 @@ class TestResults(unittest.TestCase):
 
     def test_to_csv_single_result_file_exists(self):
         test_data = {'time':[0]}
-        result = Results(data=test_data)
+        result = Results(data=[test_data])
         test_nametag = "test_nametag"
         test_stamp = "test_stamp"
 
         with tempfile.TemporaryDirectory() as tempdir:
             result.to_csv(stamp = test_stamp, nametag = test_nametag, path=tempdir)
-            test_path = tempdir+"/"+test_nametag+test_stamp+"/"+test_nametag+".csv"
+            test_path = tempdir+"/"+test_nametag+test_stamp+"/"+test_nametag+"0.csv"
             assert os.path.isfile(test_path)
 
     def test_to_csv_single_result_no_stamp(self):
         test_data = {'time':[0]}
-        result = Results(data=test_data)
+        result = Results(data=[test_data])
         test_nametag = "test_nametag"
 
         with tempfile.TemporaryDirectory() as tempdir:
@@ -72,9 +73,9 @@ class TestResults(unittest.TestCase):
             assert len(os.listdir(tempdir)) is not 0
 
     def test_to_csv_single_result_no_nametag(self):
-        test_data = {'time':[0]}
         test_model = Model('test_model')
-        result = Results(data=test_data,model=test_model)
+        test_data = Trajectory(data={'time':[0]},model=test_model)
+        result = Results(data=[test_data])
         result.solver_name = 'test_solver'
         test_stamp = "test_stamp"
 
@@ -83,8 +84,8 @@ class TestResults(unittest.TestCase):
             assert len(os.listdir(tempdir)) is not 0
 
     def test_to_csv_single_result_no_path(self):
-        test_data = {'time':[0]}
-        result = Results(data=test_data)
+        test_data = Trajectory({'time':[0]},model=Model('test_model'),solver_name='test_solver_name')
+        result = Results(data=[test_data])
         test_nametag = "test_nametag"
         test_stamp = "test_stamp"
 

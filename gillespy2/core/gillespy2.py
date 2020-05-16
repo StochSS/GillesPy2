@@ -653,6 +653,9 @@ class Model(SortableObject):
                 from gillespy2.core import log
                 log.warning('GillesPy2 simulation exceeded timeout.')
 
+            if solver_results is None:
+                return solver_results
+
             if isinstance(solver_results[0], (np.ndarray)):
                 return solver_results
 

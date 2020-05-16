@@ -18,32 +18,32 @@ if __name__ == '__main__':
         sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 
-    import test_empty_model
-    import test_model
-    import test_ode_solver
-    import test_hybrid_solver
+##    import test_empty_model
+##    import test_model
+#    import test_ode_solver
+##    import test_hybrid_solver
     import test_simple_model
-    import test_ssa_c_solver
-    import test_SBML
-    import test_example_models
-    import test_all_solvers
-    import test_sys_init
-    import test_results
-    import test_propensity_parser
+#    import test_ssa_c_solver
+#    import test_SBML
+#    import test_example_models
+#    import test_all_solvers
+#    import test_sys_init
+#    import test_results
+#    import test_propensity_parser
 
     modules = [
-        test_empty_model,
-        test_model,
-        test_ode_solver,
-        test_hybrid_solver,
+##        test_empty_model,
+ #       test_model,
+ #       test_ode_solver,
+##        test_hybrid_solver,
         test_simple_model,
-        test_ssa_c_solver,
-        test_SBML,
-        test_example_models,
-        test_all_solvers,
-        test_sys_init,
-        test_results,
-        test_propensity_parser
+##        test_ssa_c_solver,
+ #       test_SBML,
+ #       test_example_models,
+##         test_all_solvers,
+##        test_sys_init,
+#        test_results,
+ #       test_propensity_parser
     ]
 
     for module in modules:

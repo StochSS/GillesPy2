@@ -127,15 +127,19 @@ class Results(UserList):
 
     def __getattribute__(self,key):
         results_methods = [method_name for method_name in dir(Results) if callable(getattr(Results, method_name))]
-        if key in results_methods or key is 'data':
-            return(UserList.__getattribute__(self,key))
+        if key in results_methods:
+            return UserList.__getattribute__(self,key)
+        if key == 'data':
+            return UserList.__getattribute__(self,'data')
         else: 
             if len(self.data)>1:
                 warnings.warn("Results is of type list. Use results[i]['species'] instead of results['species'] ")
             return(getattr(Results.__getattribute__(self,key='data')[0],key))
 
     def __getitem__(self, key):
-        if type(key) is str:
+        if key == 'data':
+            return UserList.__getitem__(self,key)
+        if type(key) is str and key != 'data':
             if len(self.data)>1:
                 warnings.warn("Results is of type list. Use results[i]['species'] instead of results['species'] ")
             return self.data[0][key]
