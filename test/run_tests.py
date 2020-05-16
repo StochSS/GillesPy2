@@ -19,10 +19,10 @@ if __name__ == '__main__':
 
 
 ##    import test_empty_model
-##    import test_model
+    import test_model
 #    import test_ode_solver
 ##    import test_hybrid_solver
-    import test_simple_model
+#    import test_simple_model
 #    import test_ssa_c_solver
 #    import test_SBML
 #    import test_example_models
@@ -33,10 +33,10 @@ if __name__ == '__main__':
 
     modules = [
 ##        test_empty_model,
- #       test_model,
+        test_model,
  #       test_ode_solver,
 ##        test_hybrid_solver,
-        test_simple_model,
+##        test_simple_model,
 ##        test_ssa_c_solver,
  #       test_SBML,
  #       test_example_models,
