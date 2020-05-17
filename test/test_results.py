@@ -1,7 +1,8 @@
 import unittest
 import os
 import tempfile
-from gillespy2.core import Model, Species, Reaction, Parameter, Results, Trajectory
+from gillespy2.core import Model, Species, Reaction, Parameter
+from gillespy2.core.results import Results, Trajectory
 
 class TestResults(unittest.TestCase):
 
@@ -9,26 +10,25 @@ class TestResults(unittest.TestCase):
         from unittest import mock
         from gillespy2.core.results import _plot_iterate
         trajectory = Trajectory(data={'time':[0.],'foo':[1.]}, model=Model('test_model'))
-        result = Results(data=[trajectory])
         import pickle
-        result_unpickled = pickle.loads(pickle.dumps(result))
+        trajectory_unpickled = pickle.loads(pickle.dumps(trajectory))
         import matplotlib
         with mock.patch('matplotlib.pyplot.plot') as mock_method_before_pickle:
-            _plot_iterate(result)
+            _plot_iterate(trajectory)
         with mock.patch('matplotlib.pyplot.plot') as mock_method_after_pickle:
-            _plot_iterate(result_unpickled)
+            _plot_iterate(trajectory_unpickled)
         assert mock_method_before_pickle.call_args_list == mock_method_after_pickle.call_args_list
 
     def test_pickle_stable_plotplotly_iterate(self):
         from unittest import mock
         from gillespy2.core.results import _plotplotly_iterate
-        result = Results(data={'time':[0.],'foo':[1.]}, model=Model('test_model'))
+        trajectory = Trajectory(data={'time':[0.],'foo':[1.]}, model=Model('test_model'))
         import pickle
-        result_unpickled = pickle.loads(pickle.dumps(result))
+        trajectory_unpickled = pickle.loads(pickle.dumps(trajectory))
         with mock.patch('plotly.graph_objs.Scatter') as mock_method_before_pickle:
-            _plotplotly_iterate(result)
+            _plotplotly_iterate(trajectory)
         with mock.patch('plotly.graph_objs.Scatter') as mock_method_after_pickle:
-            _plotplotly_iterate(result_unpickled)
+            _plotplotly_iterate(trajectory_unpickled)
         assert mock_method_before_pickle.call_args_list == mock_method_after_pickle.call_args_list
 
     def test_to_csv_single_result_no_data(self):

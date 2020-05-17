@@ -1,6 +1,7 @@
 import warnings
 from datetime import datetime
 from gillespy2.core.gillespyError import *
+import pickle
 
 from collections import UserDict,UserList
 
@@ -113,6 +114,7 @@ class Trajectory(UserDict):
             return self.__class__.__missing__(self, key)
         raise KeyError(key)
 
+
 class Results(UserList):
     """ List of Trajectory objects created by a gillespy2 solver, extends the UserList object.
 
@@ -126,15 +128,12 @@ class Results(UserList):
         self.data = data
 
     def __getattribute__(self,key):
-        results_methods = [method_name for method_name in dir(Results) if callable(getattr(Results, method_name))]
-        if key in results_methods:
-            return UserList.__getattribute__(self,key)
-        if key == 'data':
-            return UserList.__getattribute__(self,'data')
-        else: 
+        if key == 'model' or key == 'solver_name' or key == 'rc':
             if len(self.data)>1:
-                warnings.warn("Results is of type list. Use results[i]['species'] instead of results['species'] ")
+                warnings.warn("Results is of type list. Use results[i]['model'] instead of results['model'] ")
             return(getattr(Results.__getattribute__(self,key='data')[0],key))
+        else: 
+            return UserList.__getattribute__(self,key)
 
     def __getitem__(self, key):
         if key == 'data':
@@ -196,6 +195,10 @@ class Results(UserList):
             title_solver = 'Multiple Solvers'
         title = (title_model + " - " + title_solver)
         return title
+
+    def pickle_tester(self):
+        result_unpickled = pickle.loads(pickle.dumps(self))
+        return result_unpickled
 
     def to_csv(self, path=None, nametag=None, stamp=None):
         """ outputs the Results to one or more .csv files in a new directory.
