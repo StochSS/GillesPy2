@@ -31,9 +31,9 @@ def _plot_iterate(self, show_labels = True, included_species_list = []):
 
             plt.plot(self.data['time'], self.data[species], label=label,color = line_color)
 
-def _plotplotly_iterate(result, show_labels = True, trace_list = None, line_dict= None, included_species_list= []):
+def _plotplotly_iterate(trajectory, show_labels = True, trace_list = None, line_dict= None, included_species_list= []):
     '''
-    Helper method for Results and Ensemble .plotplotly() method
+    Helper method for Results .plotplotly() method
     '''
 
     if trace_list is None:
@@ -41,7 +41,7 @@ def _plotplotly_iterate(result, show_labels = True, trace_list = None, line_dict
 
     import plotly.graph_objs as go
 
-    for i,species in enumerate(result.data):
+    for i,species in enumerate(trajectory.data):
         if species != 'time':
 
             if species not in included_species_list and included_species_list:
@@ -56,8 +56,8 @@ def _plotplotly_iterate(result, show_labels = True, trace_list = None, line_dict
             if show_labels:
                 trace_list.append(
                     go.Scatter(
-                        x=result.data['time'],
-                        y=result.data[species],
+                        x=trajectory.data['time'],
+                        y=trajectory.data[species],
                         mode='lines',
                         name=species,
                         line = line_dict
@@ -66,8 +66,8 @@ def _plotplotly_iterate(result, show_labels = True, trace_list = None, line_dict
             else:
                 trace_list.append(
                     go.Scatter(
-                        x=result.data['time'],
-                        y=result.data[species],
+                        x=trajectory.data['time'],
+                        y=trajectory.data[species],
                         mode='lines',
                         name=species,
                         line=line_dict,
@@ -78,12 +78,12 @@ def _plotplotly_iterate(result, show_labels = True, trace_list = None, line_dict
     return trace_list
 
 class Trajectory(UserDict):
-    """ Results Dict created by a gillespy2 solver with single trajectory, extends the UserDict object.
+    """ Trajectory Dict created by a gillespy2 solver containing single trajectory, extends the UserDict object.
 
         Attributes
         ----------
         data : UserDict
-            A dictionary of trajectory points created by a solver
+            A dictionary of trajectory values created by a solver
         model : string
             The name of the model used to create the trajectory
         solver_name : string
@@ -140,7 +140,7 @@ class Results(UserList):
             return UserList.__getitem__(self,key)
         if type(key) is str and key != 'data':
             if len(self.data)>1:
-                warnings.warn("Results is of type list. Use results[i]['species'] instead of results['species'] ")
+                warnings.warn("Results is of type list. Use results[i]['model'] instead of results['model'] ")
             return self.data[0][key]
         else:
             return(UserList.__getitem__(self,key))
@@ -195,10 +195,6 @@ class Results(UserList):
             title_solver = 'Multiple Solvers'
         title = (title_model + " - " + title_solver)
         return title
-
-    def pickle_tester(self):
-        result_unpickled = pickle.loads(pickle.dumps(self))
-        return result_unpickled
 
     def to_csv(self, path=None, nametag=None, stamp=None):
         """ outputs the Results to one or more .csv files in a new directory.
@@ -269,25 +265,25 @@ class Results(UserList):
             """
         import matplotlib.pyplot as plt
         from collections import Iterable
-        results_list = []
+        trajectory_list = []
         if isinstance(index,Iterable):
             for i in index:
-                results_list.append(self.data[i])
+                trajectory_list.append(self.data[i])
         elif isinstance(index,int):
-                results_list.append(self.data[index])
+                trajectory_list.append(self.data[index])
         else:
-            results_list = self.data
+            trajectory_list = self.data
 
         if title is None:
             title=self._validate_title()
 
-        if len(results_list) < 2:
+        if len(trajectory_list) < 2:
                 multiple_graphs = False
 
         if multiple_graphs:
 
-            for i,result in enumerate(results_list):
-
+            for i,trajectory in enumerate(trajectory_list):
+                result = Results(data=[trajectory])
                 if isinstance(save_png, str):
                     result.plot(xaxis_label=xaxis_label, yaxis_label=yaxis_label, title=title + " " + str(i + 1), style=style,
                                                  included_species_list=included_species_list,save_png=save_png + str(i + 1),figsize=figsize)
@@ -307,12 +303,12 @@ class Results(UserList):
             plt.xlabel(xaxis_label)
             plt.ylabel(yaxis_label)
 
-            for i,result in enumerate(results_list):
+            for i,trajectory in enumerate(trajectory_list):
 
                 if i > 0:
-                    _plot_iterate(result, included_species_list=included_species_list,show_labels=False)
+                    _plot_iterate(trajectory, included_species_list=included_species_list,show_labels=False)
                 else:
-                    _plot_iterate(result, included_species_list=included_species_list)
+                    _plot_iterate(trajectory, included_species_list=included_species_list)
 
             if show_legend:
                 plt.legend(loc='best')
@@ -352,23 +348,23 @@ class Results(UserList):
         init_notebook_mode(connected=True)
 
         from collections import Iterable
-        results_list = []
+        trajectory_list = []
         if isinstance(index,Iterable):
             for i in index:
-                results_list.append(self.data[i])
+                trajectory_list.append(self.data[i])
         elif isinstance(index,int):
-                results_list.append(self.data[index])
+                trajectory_list.append(self.data[index])
         else:
-            results_list = self.data
+            trajectory_list = self.data
 
-        number_of_trajectories =len(results_list)
+        number_of_trajectories =len(trajectory_list)
 
         if title is None:
             title=self._validate_title()
 
         fig = dict(data=[], layout=[])
 
-        if len(results_list) < 2:
+        if len(trajectory_list) < 2:
             multiple_graphs = False
 
         if multiple_graphs:
@@ -378,12 +374,12 @@ class Results(UserList):
             fig = tools.make_subplots(print_grid=False,rows=int(number_of_trajectories/2) + int(number_of_trajectories%2),
                                       cols = 2)
 
-            for i, result in enumerate(results_list):
+            for i, trajectory in enumerate(trajectory_list):
                 if i > 0:
-                    trace_list = _plotplotly_iterate(result, trace_list=[], included_species_list= included_species_list,
+                    trace_list = _plotplotly_iterate(trajectory, trace_list=[], included_species_list= included_species_list,
                                                      show_labels=False)
                 else:
-                    trace_list = _plotplotly_iterate(result, trace_list=[], included_species_list=included_species_list)
+                    trace_list = _plotplotly_iterate(trajectory, trace_list=[], included_species_list=included_species_list)
 
                 for k in range(0,len(trace_list)):
                     if i%2 == 0:
@@ -392,19 +388,19 @@ class Results(UserList):
                         fig.append_trace(trace_list[k], int(i/2) + 1, 2)
 
                 fig['layout'].update(autosize=True,
-                                     height=400*len(results_list),
+                                     height=400*len(trajectory_list),
                                      showlegend=show_legend,title =title)
 
             
 
         else:
             trace_list = []
-            for i,result in enumerate(results_list):
+            for i,trajectory in enumerate(trajectory_list):
                 if i > 0:
-                    trace_list = _plotplotly_iterate(result, trace_list=trace_list,included_species_list= included_species_list,
+                    trace_list = _plotplotly_iterate(trajectory, trace_list=trace_list,included_species_list= included_species_list,
                                                      show_labels = False)
                 else:
-                    trace_list = _plotplotly_iterate(result, trace_list=trace_list,included_species_list= included_species_list)
+                    trace_list = _plotplotly_iterate(trajectory, trace_list=trace_list,included_species_list= included_species_list)
 
             layout = go.Layout(
                 showlegend=show_legend,
@@ -426,42 +422,42 @@ class Results(UserList):
 
     def average_ensemble(self):
         """
-                Generate a single Results dictionary that is made of the means of all trajectories' outputs
-                :return: the Results dictionary
+                Generate a single Results object with a Trajectory that is made of the means of all trajectories' outputs
+                :return: the Results object
                 """
 
-        results_list = self.data
-        number_of_trajectories = len(results_list)
+        trajectory_list = self.data
+        number_of_trajectories = len(trajectory_list)
 
-        output_trajectory = Trajectory(data={},model=results_list[0].model,solver_name=results_list[0].solver_name)
+        output_trajectory = Trajectory(data={},model=trajectory_list[0].model,solver_name=trajectory_list[0].solver_name)
 
-        for species in results_list[0]: #Initialize the output to be the same size as the inputs
-            output_trajectory[species] = [0]*len(results_list[0][species])
+        for species in trajectory_list[0]: #Initialize the output to be the same size as the inputs
+            output_trajectory[species] = [0]*len(trajectory_list[0][species])
 
-        output_trajectory['time'] = results_list[0]['time']
+        output_trajectory['time'] = trajectory_list[0]['time']
 
-        for i in range(0,number_of_trajectories): #Add every value of every Results Dict into one output Results
-            results_dict = results_list[i]
-            for species in results_dict:
+        for i in range(0,number_of_trajectories): #Add every value of every Trajectory Dict into one output Trajectory
+            trajectory_dict = trajectory_list[i]
+            for species in trajectory_dict:
                 if species == 'time':
                     continue
                 for k in range(0,len(output_trajectory[species])):
-                    output_trajectory[species][k] += results_dict[species][k]
+                    output_trajectory[species][k] += trajectory_dict[species][k]
 
-        for species in output_trajectory:   #Divide for mean of every value in output Results
+        for species in output_trajectory:   #Divide for mean of every value in output Trajectory
             if species == 'time':
                 continue
             for i in range(0,len(output_trajectory[species])):
                 output_trajectory[species][i] /= number_of_trajectories
 
-        output_results = Results(data=[output_trajectory])
+        output_results = Results(data=[output_trajectory]) #package output_trajectory in a Results object
 
         return output_results
 
     def stddev_ensemble(self,ddof = 0):
         """
-                Generate a single Results dictionary that is made of the sample standard deviations of all trajectories'
-                outputs.
+                Generate a single Results object with a Trajectory that is made of the sample standard deviations of all 
+                trajectories' outputs.
 
                   Attributes
                 ----------
@@ -470,13 +466,13 @@ class Results(UserList):
                     the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
                     standard deviation where ddof is 0.
 
-                :return: the Results dictionary
+                :return: the Results object
                 """
 
         from math import sqrt
 
-        results_list = self.data
-        number_of_trajectories = len(results_list)
+        trajectory_list = self.data
+        number_of_trajectories = len(trajectory_list)
 
         if ddof == number_of_trajectories:
             warnings.warn("ddof must be less than the number of trajectories. Using ddof of 0")
@@ -484,21 +480,21 @@ class Results(UserList):
 
         average_list = self.average_ensemble().data[0]
 
-        output_trajectory = Trajectory(data={}, model=results_list[0].model, solver_name=results_list[0].solver_name)
+        output_trajectory = Trajectory(data={}, model=trajectory_list[0].model, solver_name=trajectory_list[0].solver_name)
 
-        for species in results_list[0]: #Initialize the output to be the same size as the inputs
-            output_trajectory[species] = [0]*len(results_list[0][species])
+        for species in trajectory_list[0]: #Initialize the output to be the same size as the inputs
+            output_trajectory[species] = [0]*len(trajectory_list[0][species])
 
-        output_trajectory['time'] = results_list[0]['time']
+        output_trajectory['time'] = trajectory_list[0]['time']
 
         for i in range(0,number_of_trajectories):
-            results_dict = results_list[i]
-            for species in results_dict:
+            trajectory_dict = trajectory_list[i]
+            for species in trajectory_dict:
                 if species == 'time':
                     continue
                 for k in range(0,len(output_trajectory['time'])):
-                    output_trajectory[species][k] += (results_dict[species][k] - average_list[species][k])\
-                                          *(results_dict[species][k] - average_list[species][k])
+                    output_trajectory[species][k] += (trajectory_dict[species][k] - average_list[species][k])\
+                                          *(trajectory_dict[species][k] - average_list[species][k])
 
         for species in output_trajectory:   #Divide for mean of every value in output Trajectory
             if species == 'time':
@@ -507,13 +503,13 @@ class Results(UserList):
                 output_trajectory[species][i] /= (number_of_trajectories - ddof)
                 output_trajectory[species][i] = sqrt(output_trajectory[species][i])
 
-        output_results = Results(data=[output_trajectory]) #package the Trajectory in a Results object
+        output_results = Results(data=[output_trajectory]) #package output_trajectory in a Results object
         return output_results
 
     def plotplotly_std_dev_range(self, xaxis_label = "Time (s)", yaxis_label="Species Population", title = None,
                                  show_legend=True, included_species_list = [],return_plotly_figure=False,ddof = 0):
         """
-           Plot a plotly graph depicting standard deviation and the mean graph of an ensemble_results object
+           Plot a plotly graph depicting standard deviation and the mean graph of a results object
 
          Attributes
         ----------
@@ -537,8 +533,8 @@ class Results(UserList):
 
         """
 
-        average_result = self.average_ensemble().data[0]
-        stddev_result = self.stddev_ensemble(ddof= ddof).data[0]
+        average_trajectory = self.average_ensemble().data[0]
+        stddev_trajectory = self.stddev_ensemble(ddof= ddof).data[0]
 
         from plotly.offline import init_notebook_mode, iplot
         import plotly.graph_objs as go
@@ -549,20 +545,20 @@ class Results(UserList):
             title = (self._validate_title() + " - Standard Deviation Range")
 
         trace_list=[]
-        for species in average_result:
+        for species in average_trajectory:
             if species != 'time':
 
                 if species not in included_species_list and included_species_list:
                     continue
 
                 upper_bound = []
-                for i in range(0, len(average_result[species])):
-                    upper_bound.append(average_result[species][i] + stddev_result[species][i])
+                for i in range(0, len(average_trajectory[species])):
+                    upper_bound.append(average_trajectory[species][i] + stddev_trajectory[species][i])
 
                 trace_list.append(
                     go.Scatter(
                         name=species+ ' Upper Bound',
-                        x=average_result['time'],
+                        x=average_trajectory['time'],
                         y = upper_bound,
                         mode='lines',
                         marker=dict(color="#444"),
@@ -573,8 +569,8 @@ class Results(UserList):
                 )
                 trace_list.append(
                     go.Scatter(
-                        x=average_result['time'],
-                        y=average_result[species],
+                        x=average_trajectory['time'],
+                        y=average_trajectory[species],
                         name=species,
                         fillcolor='rgba(68, 68, 68, 0.2)',
                         fill='tonexty'
@@ -582,13 +578,13 @@ class Results(UserList):
                 )
 
                 lower_bound = []
-                for i in range(0, len(average_result[species])):
-                    lower_bound.append(average_result[species][i] - stddev_result[species][i])
+                for i in range(0, len(average_trajectory[species])):
+                    lower_bound.append(average_trajectory[species][i] - stddev_trajectory[species][i])
 
                 trace_list.append(
                     go.Scatter(
                         name=species + ' Lower Bound',
-                        x=average_result['time'],
+                        x=average_trajectory['time'],
                         y= lower_bound,
                         mode='lines',
                         marker=dict(color="#444"),
@@ -617,7 +613,7 @@ class Results(UserList):
     def plot_std_dev_range(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None,
                            style="default", show_legend=True, included_species_list=[],ddof=0,save_png = False,figsize = (18,10)):
         """
-            Plot a matplotlib graph depicting standard deviation and the mean graph of an ensemble_results object
+            Plot a matplotlib graph depicting standard deviation and the mean graph of a results object
 
          Attributes
         ----------
@@ -644,7 +640,7 @@ class Results(UserList):
         """
 
         average_result = self.average_ensemble().data[0]
-        stddev_result = self.stddev_ensemble(ddof=ddof).data[0]
+        stddev_trajectory = self.stddev_ensemble(ddof=ddof).data[0]
 
         import matplotlib.pyplot as plt
 
@@ -663,8 +659,8 @@ class Results(UserList):
             if species not in included_species_list and included_species_list:
                 continue
 
-            lowerBound = [a-b for a,b in zip(average_result[species], stddev_result[species])]
-            upperBound = [a+b for a,b in zip(average_result[species], stddev_result[species])]
+            lowerBound = [a-b for a,b in zip(average_result[species], stddev_trajectory[species])]
+            upperBound = [a+b for a,b in zip(average_result[species], stddev_trajectory[species])]
 
             plt.fill_between(average_result['time'], lowerBound, upperBound,color='whitesmoke')
             plt.plot(average_result['time'],lowerBound,upperBound,color='grey',linestyle='dashed')
