@@ -237,7 +237,7 @@ class Results(UserList):
                         csv_writer.writerow(this_line) #write one line of the CSV file
 
     def plot(self, index = None, xaxis_label ="Time (s)", yaxis_label ="Species Population", style="default", title = None,
-             show_legend=True, multiple_graphs = False, included_species_list=[],save_png=False,figsize = (18,10)):
+             show_legend=True, multiple_graphs = False, included_species_list=[],save_png=False,figsize = (18,10), **plot_args):
         """ Plots the Results using matplotlib.
 
         Attributes
@@ -302,6 +302,9 @@ class Results(UserList):
             plt.title(title, fontsize=18)
             plt.xlabel(xaxis_label)
             plt.ylabel(yaxis_label)
+            for key in plot_args:
+                code=("plt."+key+"('"+str(plot_args.get(key))+"')")
+                exec(code)
 
             for i,trajectory in enumerate(trajectory_list):
 
@@ -320,8 +323,7 @@ class Results(UserList):
             elif save_png:
                 plt.savefig(title)
 
-    def plotplotly(self, index = None, xaxis_label = "Time (s)", yaxis_label="Species Population", title = None, show_legend=True,
-                   multiple_graphs = False, included_species_list=[],return_plotly_figure=False):
+    def plotplotly(self, title=None, index = None, show_legend = True, xaxis_label = "Time (s)", yaxis_label="Species Population", multiple_graphs = False, included_species_list=[],return_plotly_figure=False, **plotly_args):
         """ Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.
 
         Attributes
@@ -344,6 +346,14 @@ class Results(UserList):
 
         from plotly.offline import init_notebook_mode, iplot
         import plotly.graph_objs as go
+
+        #Backwards compatibility with xaxis_label argument (which duplicates plotly's xaxis_title argument)
+        if plotly_args.get('xaxis_title') is not None:
+            xaxis_label = plotly_args.get('xaxis_title')
+            plotly_args.pop('xaxis_title')
+        if plotly_args.get('yaxis_title') is not None:
+            yaxis_label = plotly_args.get('yaxis_title')
+            plotly_args.pop('yaxis_title')
 
         init_notebook_mode(connected=True)
 
@@ -405,10 +415,9 @@ class Results(UserList):
             layout = go.Layout(
                 showlegend=show_legend,
                 title=title,
-                xaxis=dict(
-                    title=xaxis_label),
-                yaxis=dict(
-                    title=yaxis_label)
+                xaxis_title=xaxis_label,
+                yaxis_title=yaxis_label,
+                **plotly_args
             )
 
             fig['data'] = trace_list
@@ -507,7 +516,7 @@ class Results(UserList):
         return output_results
 
     def plotplotly_std_dev_range(self, xaxis_label = "Time (s)", yaxis_label="Species Population", title = None,
-                                 show_legend=True, included_species_list = [],return_plotly_figure=False,ddof = 0):
+                                 show_legend=True, included_species_list = [],return_plotly_figure=False,ddof = 0, **plotly_args):
         """
            Plot a plotly graph depicting standard deviation and the mean graph of a results object
 
@@ -532,6 +541,14 @@ class Results(UserList):
             standard deviation where ddof is 0.
 
         """
+
+        #Backwards compatibility with xaxis_label argument (which duplicates plotly's xaxis_title argument)
+        if plotly_args.get('xaxis_title') is not None:
+            xaxis_label = plotly_args.get('xaxis_title')
+            plotly_args.pop('xaxis_title')
+        if plotly_args.get('yaxis_title') is not None:
+            yaxis_label = plotly_args.get('yaxis_title')
+            plotly_args.pop('yaxis_title')
 
         average_trajectory = self.average_ensemble().data[0]
         stddev_trajectory = self.stddev_ensemble(ddof= ddof).data[0]
@@ -598,10 +615,9 @@ class Results(UserList):
         layout = go.Layout(
             showlegend=show_legend,
             title=title,
-            xaxis=dict(
-                title=xaxis_label),
-            yaxis=dict(
-                title=yaxis_label)
+            xaxis_title=xaxis_label,
+            yaxis_title=yaxis_label,
+            **plotly_args
         )
         fig = dict(data=trace_list, layout=layout)
 
@@ -610,8 +626,8 @@ class Results(UserList):
         else:
             iplot(fig)
 
-    def plot_std_dev_range(self, xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None,
-                           style="default", show_legend=True, included_species_list=[],ddof=0,save_png = False,figsize = (18,10)):
+    def plot_std_dev_range(self, xscale='linear',yscale='linear',xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None,
+                           style="default", show_legend=True, included_species_list=[],ddof=0,save_png = False,figsize = (18,10), **plot_args):
         """
             Plot a matplotlib graph depicting standard deviation and the mean graph of a results object
 
@@ -672,6 +688,12 @@ class Results(UserList):
         plt.title(title, fontsize=18)
         plt.xlabel(xaxis_label)
         plt.ylabel(yaxis_label)
+        plt.xscale(xscale)
+        plt.yscale(yscale)
+        for key in plot_args:
+            code=("plt."+key+"('"+str(plot_args.get(key))+"')")
+            exec(code)
+
         plt.plot([0], [11])
         if show_legend:
             plt.legend(loc='best')
