@@ -128,7 +128,7 @@ class Results(UserList):
         self.data = data
 
     def __getattribute__(self,key):
-        if key == 'model' or key == 'solver_name' or key == 'rc':
+        if key == 'model' or key == 'solver_name' or key == 'rc'or key == 'status':
             if len(self.data)>1:
                 warnings.warn("Results is of type list. Use results[i]['model'] instead of results['model'] ")
             return(getattr(Results.__getattribute__(self,key='data')[0],key))
