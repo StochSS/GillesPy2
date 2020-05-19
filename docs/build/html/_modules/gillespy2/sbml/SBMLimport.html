@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.sbml.SBMLimport &#8212; GillesPy2 1.3.0 documentation</title>
+    <title>gillespy2.sbml.SBMLimport &#8212; GillesPy2 1.4.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -449,6 +449,8 @@
 <div class="viewcode-block" id="convert"><a class="viewcode-back" href="../../../classes/gillespy2.sbml.html#gillespy2.sbml.SBMLimport.convert">[docs]</a><span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gillespy_model</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
     <span class="n">sbml_model</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">__read_sbml_model</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sbml_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">errors</span>
     <span class="k">if</span> <span class="n">model_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">model_name</span> <span class="o">=</span> <span class="n">sbml_model</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">gillespy_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
