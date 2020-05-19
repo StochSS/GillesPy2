@@ -1,51 +1,32 @@
 # PynSource Version 1.2
 {'type':'meta', 'info1':'Lorem ipsum dolor sit amet, consectetur adipiscing elit is latin. Comments are saved.'}
-{'type':'umlshape', 'id':'Model', 'x':209, 'y':473, 'width':227, 'height':576, 'attrs': 'reserved_names|units|volume|listOfRateRules|namespace|name|tspan|annotation|listOfReactions|listOfParameters|listOfSpecies|special_characters', 'meths': 'validate_reactants_and_products|get_all_parameters|add_rate_rule|delete_parameter|run|resolve_parameters|serialize|get_all_species|get_species|delete_all_parameters|get_all_reactions|sanitized_parameter_names|set_units|add_species|sanitized_species_names|add_parameter|delete_all_reactions|delete_species|timespan|update_namespace|delete_reaction|delete_all_species|set_parameter|get_reaction|__init__|get_parameter|add_reaction|problem_with_name'}
-{'type':'umlshape', 'id':'Species', 'x':16, 'y':212, 'width':192, 'height':134, 'attrs': 'mode|name|initial_value|allow_negative_populations', 'meths': '__str__|__init__'}
-{'type':'umlshape', 'id':'Parameter', 'x':339, 'y':247, 'width':108, 'height':134, 'attrs': 'name|expression|value', 'meths': '__init__|evaluate|set_expression'}
-{'type':'umlshape', 'id':'RateRule', 'x':239, 'y':251, 'width':80, 'height':108, 'attrs': 'expression|species|name', 'meths': '__init__'}
-{'type':'umlshape', 'id':'Reaction', 'x':475, 'y':240, 'width':213, 'height':277, 'attrs': 'name|annotation|massaction|marate|propensity_function|ode_propensity_function|reactants|products|type', 'meths': '__init__|verify|create_mass_action|setType|addReactant|addProduct|Annotate|sanitized_propensity_function'}
-{'type':'umlshape', 'id':'StochMLDocument', 'x':334, 'y':30, 'width':150, 'height':160, 'attrs': 'annotation|document', 'meths': 'reaction_to_element|to_string|__init__|species_to_element|to_model|parameter_to_element'}
-{'type':'umlshape', 'id':'object', 'x':292, 'y':390, 'width':58, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'umlshape', 'id':'eTree.Element', 'x':22, 'y':18, 'width':114, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'umlshape', 'id':'np.int', 'x':121, 'y':129, 'width':58, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'umlshape', 'id':'np.float', 'x':26, 'y':130, 'width':74, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'umlshape', 'id':'OrderedDict', 'x':165, 'y':395, 'width':98, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'umlshape', 'id':'ModelError', 'x':770, 'y':219, 'width':90, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'umlshape', 'id':'SpeciesError', 'x':948, 'y':245, 'width':106, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'umlshape', 'id':'ReactionError', 'x':920, 'y':186, 'width':114, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'umlshape', 'id':'ParameterError', 'x':951, 'y':290, 'width':122, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'umlshape', 'id':'SolverError', 'x':706, 'y':269, 'width':98, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'umlshape', 'id':'DirectoryError', 'x':543, 'y':129, 'width':122, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'umlshape', 'id':'BuildError', 'x':669, 'y':122, 'width':90, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'umlshape', 'id':'ExecutionError', 'x':549, 'y':171, 'width':122, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'umlshape', 'id':'SimulationError', 'x':809, 'y':148, 'width':130, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'umlshape', 'id':'StochMLImportError', 'x':564, 'y':60, 'width':154, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'umlshape', 'id':'InvalidStochMLError', 'x':813, 'y':96, 'width':162, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'umlshape', 'id':'InvalidModelError', 'x':809, 'y':52, 'width':146, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'umlshape', 'id':'Exception', 'x':724, 'y':17, 'width':82, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'umlshape', 'id':'GillesPySolver', 'x':334, 'y':1128, 'width':122, 'height':82, 'attrs': 'name', 'meths': 'run'}
-{'type':'umlshape', 'id':'Results', 'x':165, 'y':1150, 'width':87, 'height':147, 'attrs': 'model|solver_name|data', 'meths': 'plot|__init__|__getitem__|plotplotly'}
-{'type':'umlshape', 'id':'EnsembleResults', 'x':545, 'y':1143, 'width':178, 'height':160, 'attrs': 'data', 'meths': 'average_ensemble|__init__|plotplotly_std_dev_range|plotplotly|stddev_ensemble|plot_std_dev_range|plot'}
-{'type':'umlshape', 'id':'UserList', 'x':598, 'y':1047, 'width':74, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'umlshape', 'id':'UserDict', 'x':172, 'y':1066, 'width':74, 'height':26, 'attrs': '', 'meths': ''}
-{'type':'edge', 'id':'Model_to_object', 'source':'Model', 'target':'object', 'uml_edge_type': 'generalisation'}
-{'type':'edge', 'id':'Species_to_RateRule', 'source':'Species', 'target':'RateRule', 'uml_edge_type': 'composition'}
+{'type':'umlshape', 'id':'SortableObject', 'x':184, 'y':78, 'width':150, 'height':194, 'attrs': '_hash', 'meths': '__ne__|__ge__|__cmp__|__eq__|__gt__|__hash__|__lt__|__le__'}
+{'type':'umlshape', 'id':'Model', 'x':248, 'y':405, 'width':227, 'height':884, 'attrs': '_listOfAssignmentRules|_listOfFunctionDefinitions|reserved_names|_listOfRateRules|listOfParameters|listOfReactions|units|listOfEvents|annotation|namespace|name|_listOfSpecies|volume|special_characters|_listOfReactions|tspan|listOfSpecies|_listOfEvents|listOfFunctionDefinitions|listOfRateRules|_listOfParameters|listOfAssignmentRules', 'meths': '__str__|get_all_species|decorate|delete_all_species|get_all_parameters|run|update_namespace|add_event|delete_species|add_reaction|sanitized_species_names|get_parameter|delete_parameter|__init__|get_all_reactions|sanitized_parameter_names|add_assignment_rule|get_reaction|timespan|set_parameter|set_units|add_species|resolve_parameters|get_species|add_function_definition|delete_all_parameters|serialize|problem_with_name|validate_reactants_and_products|delete_reaction|add_parameter|delete_all_reactions|add_rate_rule'}
+{'type':'umlshape', 'id':'Species', 'x':47, 'y':473, 'width':192, 'height':209, 'attrs': 'boundary_condition|initial_value|name|mode|switch_min|switch_tol|constant|allow_negative_populations', 'meths': '__str__|__init__'}
+{'type':'umlshape', 'id':'Parameter', 'x':504, 'y':403, 'width':108, 'height':164, 'attrs': 'value|expression|name', 'meths': 'set_expression|evaluate|__str__|__init__'}
+{'type':'umlshape', 'id':'FunctionDefinition', 'x':5, 'y':277, 'width':190, 'height':119, 'attrs': 'function|name', 'meths': 'sanitized_function|__init__'}
+{'type':'umlshape', 'id':'AssignmentRule', 'x':635, 'y':456, 'width':150, 'height':149, 'attrs': 'variable|formula|name', 'meths': 'sanitized_formula|__str__|__init__'}
+{'type':'umlshape', 'id':'RateRule', 'x':351, 'y':237, 'width':129, 'height':149, 'attrs': 'variable|formula|name', 'meths': 'sanitized_formula|__str__|__init__'}
+{'type':'umlshape', 'id':'Reaction', 'x':489, 'y':672, 'width':259, 'height':227, 'attrs': 'name|ode_propensity_function|marate|products|reactants|propensity_function|type|massaction|annotation', 'meths': 'Annotate|__str__|sanitized_propensity_function|__customPropParser|setType|verify|addReactant|addProduct|__init__|__create_mass_action'}
+{'type':'umlshape', 'id':'ExpressionParser', 'x':535, 'y':281, 'width':170, 'height':79, 'attrs': '', 'meths': 'visit_Name|visit_BinOp'}
+{'type':'umlshape', 'id':'StochMLDocument', 'x':868, 'y':260, 'width':164, 'height':179, 'attrs': 'document|annotation', 'meths': '__reaction_to_element|__parameter_to_element|to_string|to_model|__species_to_element|__init__'}
+{'type':'umlshape', 'id':'ast.NodeVisitor', 'x':10, 'y':732, 'width':160, 'height':29, 'attrs': '', 'meths': ''}
+{'type':'umlshape', 'id':'ast.NodeTransformer', 'x':638, 'y':383, 'width':200, 'height':29, 'attrs': '', 'meths': ''}
+{'type':'umlshape', 'id':'eTree.Element', 'x':711, 'y':235, 'width':140, 'height':29, 'attrs': '', 'meths': ''}
+{'type':'umlshape', 'id':'OrderedDict', 'x':207, 'y':328, 'width':120, 'height':29, 'attrs': '', 'meths': ''}
+{'type':'umlshape', 'id':'Trajectory', 'x':413, 'y':1363, 'width':110, 'height':164, 'attrs': 'model|rc|solver_name|data|status', 'meths': '__getitem__|__init__'}
+{'type':'umlshape', 'id':'Results', 'x':201, 'y':1362, 'width':178, 'height':284, 'attrs': 'data', 'meths': '__add__|plot_std_dev_range|_validate_solver|__getitem__|average_ensemble|_validate_model|_validate_title|plotplotly_std_dev_range|plotplotly|plot|__init__|to_csv|__getattribute__|stddev_ensemble'}
+{'type':'umlshape', 'id':'UserDict', 'x':402, 'y':1295, 'width':90, 'height':29, 'attrs': '', 'meths': ''}
+{'type':'umlshape', 'id':'UserList', 'x':224, 'y':1295, 'width':90, 'height':29, 'attrs': '', 'meths': ''}
+{'type':'edge', 'id':'AssignmentRule_to_SortableObject', 'source':'AssignmentRule', 'target':'SortableObject', 'uml_edge_type': 'generalisation'}
+{'type':'edge', 'id':'Parameter_to_SortableObject', 'source':'Parameter', 'target':'SortableObject', 'uml_edge_type': 'generalisation'}
+{'type':'edge', 'id':'RateRule_to_SortableObject', 'source':'RateRule', 'target':'SortableObject', 'uml_edge_type': 'generalisation'}
+{'type':'edge', 'id':'FunctionDefinition_to_SortableObject', 'source':'FunctionDefinition', 'target':'SortableObject', 'uml_edge_type': 'generalisation'}
+{'type':'edge', 'id':'Model_to_SortableObject', 'source':'Model', 'target':'SortableObject', 'uml_edge_type': 'generalisation'}
+{'type':'edge', 'id':'ExpressionParser_to_ast.NodeTransformer', 'source':'ExpressionParser', 'target':'ast.NodeTransformer', 'uml_edge_type': 'generalisation'}
+{'type':'edge', 'id':'Species_to_SortableObject', 'source':'Species', 'target':'SortableObject', 'uml_edge_type': 'generalisation'}
+{'type':'edge', 'id':'Reaction_to_SortableObject', 'source':'Reaction', 'target':'SortableObject', 'uml_edge_type': 'generalisation'}
 {'type':'edge', 'id':'eTree.Element_to_StochMLDocument', 'source':'eTree.Element', 'target':'StochMLDocument', 'uml_edge_type': 'composition'}
-{'type':'edge', 'id':'np.int_to_Species', 'source':'np.int', 'target':'Species', 'uml_edge_type': 'composition'}
-{'type':'edge', 'id':'np.float_to_Species', 'source':'np.float', 'target':'Species', 'uml_edge_type': 'composition'}
 {'type':'edge', 'id':'OrderedDict_to_Model', 'source':'OrderedDict', 'target':'Model', 'uml_edge_type': 'composition'}
-{'type':'edge', 'id':'SpeciesError_to_ModelError', 'source':'SpeciesError', 'target':'ModelError', 'uml_edge_type': 'generalisation'}
-{'type':'edge', 'id':'BuildError_to_SolverError', 'source':'BuildError', 'target':'SolverError', 'uml_edge_type': 'generalisation'}
-{'type':'edge', 'id':'StochMLImportError_to_SimulationError', 'source':'StochMLImportError', 'target':'SimulationError', 'uml_edge_type': 'generalisation'}
-{'type':'edge', 'id':'InvalidModelError_to_SimulationError', 'source':'InvalidModelError', 'target':'SimulationError', 'uml_edge_type': 'generalisation'}
-{'type':'edge', 'id':'ExecutionError_to_SolverError', 'source':'ExecutionError', 'target':'SolverError', 'uml_edge_type': 'generalisation'}
-{'type':'edge', 'id':'SimulationError_to_Exception', 'source':'SimulationError', 'target':'Exception', 'uml_edge_type': 'generalisation'}
-{'type':'edge', 'id':'SolverError_to_Exception', 'source':'SolverError', 'target':'Exception', 'uml_edge_type': 'generalisation'}
-{'type':'edge', 'id':'ParameterError_to_ModelError', 'source':'ParameterError', 'target':'ModelError', 'uml_edge_type': 'generalisation'}
-{'type':'edge', 'id':'InvalidStochMLError_to_SimulationError', 'source':'InvalidStochMLError', 'target':'SimulationError', 'uml_edge_type': 'generalisation'}
-{'type':'edge', 'id':'DirectoryError_to_SolverError', 'source':'DirectoryError', 'target':'SolverError', 'uml_edge_type': 'generalisation'}
-{'type':'edge', 'id':'ReactionError_to_ModelError', 'source':'ReactionError', 'target':'ModelError', 'uml_edge_type': 'generalisation'}
-{'type':'edge', 'id':'ModelError_to_Exception', 'source':'ModelError', 'target':'Exception', 'uml_edge_type': 'generalisation'}
-{'type':'edge', 'id':'EnsembleResults_to_UserList', 'source':'EnsembleResults', 'target':'UserList', 'uml_edge_type': 'generalisation'}
-{'type':'edge', 'id':'Results_to_UserDict', 'source':'Results', 'target':'UserDict', 'uml_edge_type': 'generalisation'}
+{'type':'edge', 'id':'Trajectory_to_UserDict', 'source':'Trajectory', 'target':'UserDict', 'uml_edge_type': 'generalisation'}
+{'type':'edge', 'id':'Results_to_UserList', 'source':'Results', 'target':'UserList', 'uml_edge_type': 'generalisation'}

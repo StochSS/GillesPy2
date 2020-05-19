@@ -79,7 +79,9 @@ class BasicODESolver(GillesPySolver):
         sim_thread = Thread(target=self.___run, args=(model,), kwargs={'t':t,
                                         'number_of_trajectories':number_of_trajectories,
                                         'increment':increment, 'show_labels':show_labels, 
-                                        'timeout':timeout})
+                                        'timeout':timeout,
+                                        'integrator':integrator,
+                                        'integrator_options':integrator_options})
         try:
             sim_thread.start()
             sim_thread.join(timeout=timeout)
