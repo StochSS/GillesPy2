@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.solvers.numpy.basic_tau_leaping_solver &#8212; GillesPy2 1.4.0 documentation</title>
+    <title>gillespy2.solvers.numpy.tau_leaping_solver &#8212; GillesPy2 1.4.0 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -99,7 +99,7 @@
 
           <div class="body" role="main">
             
-  <h1>Source code for gillespy2.solvers.numpy.basic_tau_leaping_solver</h1><div class="highlight"><pre>
+  <h1>Source code for gillespy2.solvers.numpy.tau_leaping_solver</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Class and methods for Basic Tau Leaping Solver&quot;&quot;&quot;</span>
 
 
@@ -110,7 +110,7 @@
 <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">GillesPySolver</span><span class="p">,</span> <span class="n">log</span>
 
 
-<div class="viewcode-block" id="BasicTauLeapingSolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver">[docs]</a><span class="k">class</span> <span class="nc">BasicTauLeapingSolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
+<div class="viewcode-block" id="BasicTauLeapingSolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.tau_leaping_solver.BasicTauLeapingSolver">[docs]</a><span class="k">class</span> <span class="nc">BasicTauLeapingSolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;BasicTauLeapingSolver&#39;</span>
     <span class="n">rc</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">stop_event</span> <span class="o">=</span> <span class="kc">None</span>
@@ -161,7 +161,7 @@
 
         <span class="k">return</span> <span class="n">rxn_count</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span>
 
-<div class="viewcode-block" id="BasicTauLeapingSolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.basic_tau_leaping_solver.BasicTauLeapingSolver.run">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="BasicTauLeapingSolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.tau_leaping_solver.BasicTauLeapingSolver.run">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
                     <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tau_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>

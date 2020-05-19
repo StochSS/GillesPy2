@@ -10,18 +10,6 @@ Subpackages
    gillespy2.sbml
    gillespy2.solvers
 
-Submodules
-----------
-
-gillespy2.example\_models module
---------------------------------
-
-.. automodule:: gillespy2.example_models
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
 Module contents
 ---------------
 

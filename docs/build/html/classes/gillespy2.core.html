@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.core package &#8212; GillesPy2 1.3.0 documentation</title>
+    <title>gillespy2.core package &#8212; GillesPy2 1.4.0 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/gillespy2_alabaster_customizations.css" />
@@ -70,8 +70,6 @@
 <li class="toctree-l3"><a class="reference internal" href="gillespy2.solvers.html">gillespy2.solvers package</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.html#module-gillespy2.example_models">gillespy2.example_models module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.html#module-gillespy2">Module contents</a></li>
 </ul>
 </li>
@@ -505,20 +503,66 @@ object.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gillespy2.core.gillespy2.Model.delete_all_assignment_rules">
+<code class="sig-name descname">delete_all_assignment_rules</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_assignment_rules"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.delete_all_assignment_rules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears all assignment rules from model</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.gillespy2.Model.delete_all_events">
+<code class="sig-name descname">delete_all_events</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_events"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.delete_all_events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears models events</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.gillespy2.Model.delete_all_function_definitions">
+<code class="sig-name descname">delete_all_function_definitions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_function_definitions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.delete_all_function_definitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears all Function Definitions from a model</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="gillespy2.core.gillespy2.Model.delete_all_parameters">
 <code class="sig-name descname">delete_all_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.delete_all_parameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Deletes all parameters from model.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gillespy2.core.gillespy2.Model.delete_all_rate_rules">
+<code class="sig-name descname">delete_all_rate_rules</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_rate_rules"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.delete_all_rate_rules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears all of models Rate Rules</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="gillespy2.core.gillespy2.Model.delete_all_reactions">
 <code class="sig-name descname">delete_all_reactions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.delete_all_reactions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Clears all reactions in model</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="gillespy2.core.gillespy2.Model.delete_all_species">
 <code class="sig-name descname">delete_all_species</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.delete_all_species" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes all species from the model object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.gillespy2.Model.delete_assignment_rule">
+<code class="sig-name descname">delete_assignment_rule</code><span class="sig-paren">(</span><em class="sig-param">aname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_assignment_rule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.delete_assignment_rule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes an assignment rule from a model
+:param aname: Name of AssignmentRule object to be removed from model</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.gillespy2.Model.delete_event">
+<code class="sig-name descname">delete_event</code><span class="sig-paren">(</span><em class="sig-param">ename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.delete_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes specified Event from model
+:param ename: Name of Event to be removed</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.gillespy2.Model.delete_function_definition">
+<code class="sig-name descname">delete_function_definition</code><span class="sig-paren">(</span><em class="sig-param">fname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_function_definition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.delete_function_definition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes specified Function Definition from model
+:param fname: Name of Function Definition to be removed</p>
 </dd></dl>
 
 <dl class="method">
@@ -539,9 +583,21 @@ object.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gillespy2.core.gillespy2.Model.delete_rate_rule">
+<code class="sig-name descname">delete_rate_rule</code><span class="sig-paren">(</span><em class="sig-param">rname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_rate_rule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.delete_rate_rule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes specified Rate Rule from model
+:param rname: Name of Rate Rule to be removed</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="gillespy2.core.gillespy2.Model.delete_reaction">
 <code class="sig-name descname">delete_reaction</code><span class="sig-paren">(</span><em class="sig-param">obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_reaction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.delete_reaction" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obj</strong> – Name of Reaction to be removed</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt id="gillespy2.core.gillespy2.Model.delete_species">
@@ -561,6 +617,36 @@ object.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gillespy2.core.gillespy2.Model.get_all_assignment_rules">
+<code class="sig-name descname">get_all_assignment_rules</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_assignment_rules"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.get_all_assignment_rules" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dict of models Assignment Rules</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.gillespy2.Model.get_all_events">
+<code class="sig-name descname">get_all_events</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_events"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.get_all_events" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dict of all Event objects</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.gillespy2.Model.get_all_function_definitions">
+<code class="sig-name descname">get_all_function_definitions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_function_definitions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.get_all_function_definitions" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dict of models function definitions</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="gillespy2.core.gillespy2.Model.get_all_parameters">
 <code class="sig-name descname">get_all_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.get_all_parameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a dict of all parameters in the model, of the form:
@@ -568,15 +654,77 @@ object.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gillespy2.core.gillespy2.Model.get_all_rate_rules">
+<code class="sig-name descname">get_all_rate_rules</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_rate_rules"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.get_all_rate_rules" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dict of all Rate Rule objects</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="gillespy2.core.gillespy2.Model.get_all_reactions">
 <code class="sig-name descname">get_all_reactions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.get_all_reactions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dict of all Reaction objects</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt id="gillespy2.core.gillespy2.Model.get_all_species">
 <code class="sig-name descname">get_all_species</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.get_all_species" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a dict of all species in the model, of the form:
 {name : species object}</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.gillespy2.Model.get_assignment_rule">
+<code class="sig-name descname">get_assignment_rule</code><span class="sig-paren">(</span><em class="sig-param">aname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_assignment_rule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.get_assignment_rule" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>aname</strong> – Name of Assignment Rule to get</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Assignment Rule object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.gillespy2.Model.get_element">
+<code class="sig-name descname">get_element</code><span class="sig-paren">(</span><em class="sig-param">ename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.get_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>get element specified by name
+:param ename: name of element to search for
+:return:value of element, or ‘element not found’</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.gillespy2.Model.get_event">
+<code class="sig-name descname">get_event</code><span class="sig-paren">(</span><em class="sig-param">ename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.get_event" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ename</strong> – Name of Event to get</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Event object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.gillespy2.Model.get_function_definition">
+<code class="sig-name descname">get_function_definition</code><span class="sig-paren">(</span><em class="sig-param">fname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_function_definition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.get_function_definition" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fname</strong> – name of Function to get</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>FunctionDefinition object</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -597,9 +745,30 @@ object.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gillespy2.core.gillespy2.Model.get_rate_rule">
+<code class="sig-name descname">get_rate_rule</code><span class="sig-paren">(</span><em class="sig-param">rname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_rate_rule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.get_rate_rule" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rname</strong> – Name of Rate Rule to get</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>RateRule object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="gillespy2.core.gillespy2.Model.get_reaction">
 <code class="sig-name descname">get_reaction</code><span class="sig-paren">(</span><em class="sig-param">rname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_reaction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespy2.Model.get_reaction" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rname</strong> – name of reaction to return</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Reaction object</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt id="gillespy2.core.gillespy2.Model.get_species">
@@ -644,10 +813,9 @@ parameters to be set here.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul class="simple">
-<li><p><em>If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is True and</em></p></li>
-<li><p><em>number_of_trajectories is 1, returns a results object that inherits UserDict and supports plotting functions.</em></p></li>
-<li><p><em>If show_labels is False and number_of_trajectories is greater than 1, returns an ensemble_results object that</em></p></li>
-<li><p><em>inherits UserList and contains results objects and supports ensemble graphing.</em></p></li>
+<li><p><em>If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is</em></p></li>
+<li><p><em>True,returns a Results object that inherits UserList and contains one or more Trajectory objects that</em></p></li>
+<li><p><em>inherit UserDict. Results object supports graphing and csv export.</em></p></li>
 </ul>
 </p>
 </dd>
@@ -970,7 +1138,7 @@ value) in the namespace defined by the union of those dicts.</p>
 <dl class="attribute">
 <dt id="gillespy2.core.gillespy2.Reaction.name">
 <code class="sig-name descname">name</code><a class="headerlink" href="#gillespy2.core.gillespy2.Reaction.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>The name by which the reaction is called.</p>
+<dd><p>The name by which the reaction is called (optional).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>str</p>
@@ -1571,19 +1739,65 @@ object.</p>
 
 <dl class="method">
 <dt>
+<code class="sig-name descname">delete_all_assignment_rules</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_assignment_rules"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Clears all assignment rules from model</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">delete_all_events</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_events"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Clears models events</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">delete_all_function_definitions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_function_definitions"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Clears all Function Definitions from a model</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
 <code class="sig-name descname">delete_all_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_parameters"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Deletes all parameters from model.</p>
 </dd></dl>
 
 <dl class="method">
 <dt>
+<code class="sig-name descname">delete_all_rate_rules</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_rate_rules"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Clears all of models Rate Rules</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
 <code class="sig-name descname">delete_all_reactions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_reactions"><span class="viewcode-link">[source]</span></a></dt>
-<dd></dd></dl>
+<dd><p>Clears all reactions in model</p>
+</dd></dl>
 
 <dl class="method">
 <dt>
 <code class="sig-name descname">delete_all_species</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_species"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Removes all species from the model object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">delete_assignment_rule</code><span class="sig-paren">(</span><em class="sig-param">aname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_assignment_rule"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Removes an assignment rule from a model
+:param aname: Name of AssignmentRule object to be removed from model</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">delete_event</code><span class="sig-paren">(</span><em class="sig-param">ename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_event"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Removes specified Event from model
+:param ename: Name of Event to be removed</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">delete_function_definition</code><span class="sig-paren">(</span><em class="sig-param">fname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_function_definition"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Removes specified Function Definition from model
+:param fname: Name of Function Definition to be removed</p>
 </dd></dl>
 
 <dl class="method">
@@ -1605,8 +1819,20 @@ object.</p>
 
 <dl class="method">
 <dt>
+<code class="sig-name descname">delete_rate_rule</code><span class="sig-paren">(</span><em class="sig-param">rname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_rate_rule"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Removes specified Rate Rule from model
+:param rname: Name of Rate Rule to be removed</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
 <code class="sig-name descname">delete_reaction</code><span class="sig-paren">(</span><em class="sig-param">obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_reaction"><span class="viewcode-link">[source]</span></a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obj</strong> – Name of Reaction to be removed</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt>
@@ -1627,6 +1853,36 @@ object.</p>
 
 <dl class="method">
 <dt>
+<code class="sig-name descname">get_all_assignment_rules</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_assignment_rules"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dict of models Assignment Rules</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">get_all_events</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_events"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dict of all Event objects</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">get_all_function_definitions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_function_definitions"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dict of models function definitions</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
 <code class="sig-name descname">get_all_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_parameters"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Returns a dict of all parameters in the model, of the form:
 {name : parameter object}</p>
@@ -1634,14 +1890,76 @@ object.</p>
 
 <dl class="method">
 <dt>
+<code class="sig-name descname">get_all_rate_rules</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_rate_rules"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dict of all Rate Rule objects</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
 <code class="sig-name descname">get_all_reactions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_reactions"><span class="viewcode-link">[source]</span></a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dict of all Reaction objects</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt>
 <code class="sig-name descname">get_all_species</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_species"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Returns a dict of all species in the model, of the form:
 {name : species object}</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">get_assignment_rule</code><span class="sig-paren">(</span><em class="sig-param">aname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_assignment_rule"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>aname</strong> – Name of Assignment Rule to get</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Assignment Rule object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">get_element</code><span class="sig-paren">(</span><em class="sig-param">ename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_element"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>get element specified by name
+:param ename: name of element to search for
+:return:value of element, or ‘element not found’</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">get_event</code><span class="sig-paren">(</span><em class="sig-param">ename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_event"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ename</strong> – Name of Event to get</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Event object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">get_function_definition</code><span class="sig-paren">(</span><em class="sig-param">fname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_function_definition"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fname</strong> – name of Function to get</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>FunctionDefinition object</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -1663,8 +1981,29 @@ object.</p>
 
 <dl class="method">
 <dt>
+<code class="sig-name descname">get_rate_rule</code><span class="sig-paren">(</span><em class="sig-param">rname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_rate_rule"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rname</strong> – Name of Rate Rule to get</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>RateRule object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
 <code class="sig-name descname">get_reaction</code><span class="sig-paren">(</span><em class="sig-param">rname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_reaction"><span class="viewcode-link">[source]</span></a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rname</strong> – name of reaction to return</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Reaction object</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt>
@@ -1709,10 +2048,9 @@ parameters to be set here.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul class="simple">
-<li><p><em>If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is True and</em></p></li>
-<li><p><em>number_of_trajectories is 1, returns a results object that inherits UserDict and supports plotting functions.</em></p></li>
-<li><p><em>If show_labels is False and number_of_trajectories is greater than 1, returns an ensemble_results object that</em></p></li>
-<li><p><em>inherits UserList and contains results objects and supports ensemble graphing.</em></p></li>
+<li><p><em>If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is</em></p></li>
+<li><p><em>True,returns a Results object that inherits UserList and contains one or more Trajectory objects that</em></p></li>
+<li><p><em>inherit UserDict. Results object supports graphing and csv export.</em></p></li>
 </ul>
 </p>
 </dd>
@@ -2035,7 +2373,7 @@ value) in the namespace defined by the union of those dicts.</p>
 <dl class="attribute">
 <dt>
 <code class="sig-name descname">name</code></dt>
-<dd><p>The name by which the reaction is called.</p>
+<dd><p>The name by which the reaction is called (optional).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>str</p>
@@ -2493,6 +2831,12 @@ simulation. Use caution when importing SBML.</p>
 </dd></dl>
 
 <dl class="exception">
+<dt id="gillespy2.core.gillespyError.ResultsError">
+<em class="property">exception </em><code class="sig-prename descclassname">gillespy2.core.gillespyError.</code><code class="sig-name descname">ResultsError</code><a class="reference internal" href="../_modules/gillespy2/core/gillespyError.html#ResultsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespyError.ResultsError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="exception">
 <dt id="gillespy2.core.gillespyError.SimulationError">
 <em class="property">exception </em><code class="sig-prename descclassname">gillespy2.core.gillespyError.</code><code class="sig-name descname">SimulationError</code><a class="reference internal" href="../_modules/gillespy2/core/gillespyError.html#SimulationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespyError.SimulationError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
@@ -2520,6 +2864,12 @@ simulation. Use caution when importing SBML.</p>
 <dt id="gillespy2.core.gillespyError.StochMLImportError">
 <em class="property">exception </em><code class="sig-prename descclassname">gillespy2.core.gillespyError.</code><code class="sig-name descname">StochMLImportError</code><a class="reference internal" href="../_modules/gillespy2/core/gillespyError.html#StochMLImportError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespyError.StochMLImportError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#gillespy2.core.gillespyError.SimulationError" title="gillespy2.core.gillespyError.SimulationError"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.gillespyError.SimulationError</span></code></a></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="gillespy2.core.gillespyError.ValidationError">
+<em class="property">exception </em><code class="sig-prename descclassname">gillespy2.core.gillespyError.</code><code class="sig-name descname">ValidationError</code><a class="reference internal" href="../_modules/gillespy2/core/gillespyError.html#ValidationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.gillespyError.ValidationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#gillespy2.core.gillespyError.ResultsError" title="gillespy2.core.gillespyError.ResultsError"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.gillespyError.ResultsError</span></code></a></p>
 </dd></dl>
 
 </div>
@@ -2628,14 +2978,14 @@ simulation.</p>
 <div class="section" id="module-gillespy2.core.results">
 <span id="gillespy2-core-results-module"></span><h2>gillespy2.core.results module<a class="headerlink" href="#module-gillespy2.core.results" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="gillespy2.core.results.EnsembleResults">
-<em class="property">class </em><code class="sig-prename descclassname">gillespy2.core.results.</code><code class="sig-name descname">EnsembleResults</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#EnsembleResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.EnsembleResults" title="Permalink to this definition">¶</a></dt>
+<dt id="gillespy2.core.results.Results">
+<em class="property">class </em><code class="sig-prename descclassname">gillespy2.core.results.</code><code class="sig-name descname">Results</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.Results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">collections.UserList</span></code></p>
-<p>List of Results Dicts created by a gillespy2 solver with multiple trajectories, extends the UserList object.</p>
+<p>List of Trajectory objects created by a gillespy2 solver, extends the UserList object.</p>
 <dl class="attribute">
-<dt id="gillespy2.core.results.EnsembleResults.data">
-<code class="sig-name descname">data</code><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.data" title="Permalink to this definition">¶</a></dt>
-<dd><p>A list of Results</p>
+<dt id="gillespy2.core.results.Results.data">
+<code class="sig-name descname">data</code><a class="headerlink" href="#gillespy2.core.results.Results.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of Trajectory objects</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>UserList</p>
@@ -2644,19 +2994,29 @@ simulation.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gillespy2.core.results.EnsembleResults.average_ensemble">
-<code class="sig-name descname">average_ensemble</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#EnsembleResults.average_ensemble"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.average_ensemble" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate a single Results dictionary that is made of the means of all trajectories’ outputs
-:return: the Results dictionary</p>
+<dt id="gillespy2.core.results.Results.average_ensemble">
+<code class="sig-name descname">average_ensemble</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.average_ensemble"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.Results.average_ensemble" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a single Results object with a Trajectory that is made of the means of all trajectories’ outputs
+:return: the Results object</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gillespy2.core.results.EnsembleResults.plot">
-<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">style='default'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">multiple_graphs=False</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">save_png=False</em>, <em class="sig-param">figsize=(18</em>, <em class="sig-param">10)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#EnsembleResults.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.plot" title="Permalink to this definition">¶</a></dt>
+<dt id="gillespy2.core.results.Results.plot">
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">index=None</em>, <em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">style='default'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">multiple_graphs=False</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">save_png=False</em>, <em class="sig-param">figsize=(18</em>, <em class="sig-param">10)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.Results.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots the Results using matplotlib.</p>
 <dl class="attribute">
-<dt id="gillespy2.core.results.EnsembleResults.xaxis_label">
-<code class="sig-name descname">xaxis_label</code><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.xaxis_label" title="Permalink to this definition">¶</a></dt>
+<dt id="gillespy2.core.results.Results.index">
+<code class="sig-name descname">index</code><a class="headerlink" href="#gillespy2.core.results.Results.index" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>if not none, the index of the Trajectory to be plotted</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.core.results.Results.xaxis_label">
+<code class="sig-name descname">xaxis_label</code><a class="headerlink" href="#gillespy2.core.results.Results.xaxis_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>the label for the x-axis</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -2666,8 +3026,8 @@ simulation.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="gillespy2.core.results.EnsembleResults.yaxis_label">
-<code class="sig-name descname">yaxis_label</code><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.yaxis_label" title="Permalink to this definition">¶</a></dt>
+<dt id="gillespy2.core.results.Results.yaxis_label">
+<code class="sig-name descname">yaxis_label</code><a class="headerlink" href="#gillespy2.core.results.Results.yaxis_label" title="Permalink to this definition">¶</a></dt>
 <dd><p>the label for the y-axis
 style : str
 the matplotlib style to be used for the graph or graphs</p>
@@ -2679,8 +3039,8 @@ the matplotlib style to be used for the graph or graphs</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="gillespy2.core.results.EnsembleResults.title">
-<code class="sig-name descname">title</code><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.title" title="Permalink to this definition">¶</a></dt>
+<dt id="gillespy2.core.results.Results.title">
+<code class="sig-name descname">title</code><a class="headerlink" href="#gillespy2.core.results.Results.title" title="Permalink to this definition">¶</a></dt>
 <dd><p>the title of the graph</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -2690,8 +3050,8 @@ the matplotlib style to be used for the graph or graphs</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="gillespy2.core.results.EnsembleResults.multiple_graphs">
-<code class="sig-name descname">multiple_graphs</code><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.multiple_graphs" title="Permalink to this definition">¶</a></dt>
+<dt id="gillespy2.core.results.Results.multiple_graphs">
+<code class="sig-name descname">multiple_graphs</code><a class="headerlink" href="#gillespy2.core.results.Results.multiple_graphs" title="Permalink to this definition">¶</a></dt>
 <dd><p>if each trajectory should have its own graph or if they should overlap</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -2701,8 +3061,8 @@ the matplotlib style to be used for the graph or graphs</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="gillespy2.core.results.EnsembleResults.included_species_list">
-<code class="sig-name descname">included_species_list</code><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.included_species_list" title="Permalink to this definition">¶</a></dt>
+<dt id="gillespy2.core.results.Results.included_species_list">
+<code class="sig-name descname">included_species_list</code><a class="headerlink" href="#gillespy2.core.results.Results.included_species_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>A list of strings describing which species to include. By default displays all species.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -2712,8 +3072,8 @@ the matplotlib style to be used for the graph or graphs</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="gillespy2.core.results.EnsembleResults.save_png">
-<code class="sig-name descname">save_png</code><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.save_png" title="Permalink to this definition">¶</a></dt>
+<dt id="gillespy2.core.results.Results.save_png">
+<code class="sig-name descname">save_png</code><a class="headerlink" href="#gillespy2.core.results.Results.save_png" title="Permalink to this definition">¶</a></dt>
 <dd><p>Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file
 is named after that string.</p>
 <dl class="field-list simple">
@@ -2724,8 +3084,8 @@ is named after that string.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="gillespy2.core.results.EnsembleResults.figsize">
-<code class="sig-name descname">figsize</code><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.figsize" title="Permalink to this definition">¶</a></dt>
+<dt id="gillespy2.core.results.Results.figsize">
+<code class="sig-name descname">figsize</code><a class="headerlink" href="#gillespy2.core.results.Results.figsize" title="Permalink to this definition">¶</a></dt>
 <dd><p>the size of the graph. A tuple of the form (width,height). Is (18,10) by default.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -2737,11 +3097,11 @@ is named after that string.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gillespy2.core.results.EnsembleResults.plot_std_dev_range">
-<code class="sig-name descname">plot_std_dev_range</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">style='default'</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">ddof=0</em>, <em class="sig-param">save_png=False</em>, <em class="sig-param">figsize=(18</em>, <em class="sig-param">10)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#EnsembleResults.plot_std_dev_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.plot_std_dev_range" title="Permalink to this definition">¶</a></dt>
+<dt id="gillespy2.core.results.Results.plot_std_dev_range">
+<code class="sig-name descname">plot_std_dev_range</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">style='default'</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">ddof=0</em>, <em class="sig-param">save_png=False</em>, <em class="sig-param">figsize=(18</em>, <em class="sig-param">10)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.plot_std_dev_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.Results.plot_std_dev_range" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div><blockquote>
-<div><p>Plot a matplotlib graph depicting standard deviation and the mean graph of an ensemble_results object</p>
+<div><p>Plot a matplotlib graph depicting standard deviation and the mean graph of a results object</p>
 </div></blockquote>
 <p>Attributes</p>
 </div></blockquote>
@@ -2769,9 +3129,19 @@ is named after that string.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gillespy2.core.results.EnsembleResults.plotplotly">
-<code class="sig-name descname">plotplotly</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">multiple_graphs=False</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">return_plotly_figure=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#EnsembleResults.plotplotly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.plotplotly" title="Permalink to this definition">¶</a></dt>
+<dt id="gillespy2.core.results.Results.plotplotly">
+<code class="sig-name descname">plotplotly</code><span class="sig-paren">(</span><em class="sig-param">index=None</em>, <em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">multiple_graphs=False</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">return_plotly_figure=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.plotplotly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.Results.plotplotly" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.</p>
+<dl class="attribute">
+<dt>
+<code class="sig-name descname">index</code></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>if not none, the index of the Trajectory to be plotted</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="attribute">
 <dt>
 <code class="sig-name descname">xaxis_label</code></dt>
@@ -2828,8 +3198,8 @@ is named after that string.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="gillespy2.core.results.EnsembleResults.return_plotly_figure">
-<code class="sig-name descname">return_plotly_figure</code><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.return_plotly_figure" title="Permalink to this definition">¶</a></dt>
+<dt id="gillespy2.core.results.Results.return_plotly_figure">
+<code class="sig-name descname">return_plotly_figure</code><a class="headerlink" href="#gillespy2.core.results.Results.return_plotly_figure" title="Permalink to this definition">¶</a></dt>
 <dd><p>whether or not to return a figure dictionary of data(graph object traces) and layout options
 which may be edited by the user.</p>
 <dl class="field-list simple">
@@ -2842,11 +3212,11 @@ which may be edited by the user.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gillespy2.core.results.EnsembleResults.plotplotly_std_dev_range">
-<code class="sig-name descname">plotplotly_std_dev_range</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">return_plotly_figure=False</em>, <em class="sig-param">ddof=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#EnsembleResults.plotplotly_std_dev_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.plotplotly_std_dev_range" title="Permalink to this definition">¶</a></dt>
+<dt id="gillespy2.core.results.Results.plotplotly_std_dev_range">
+<code class="sig-name descname">plotplotly_std_dev_range</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">return_plotly_figure=False</em>, <em class="sig-param">ddof=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.plotplotly_std_dev_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.Results.plotplotly_std_dev_range" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div><blockquote>
-<div><p>Plot a plotly graph depicting standard deviation and the mean graph of an ensemble_results object</p>
+<div><p>Plot a plotly graph depicting standard deviation and the mean graph of a results object</p>
 </div></blockquote>
 <p>Attributes</p>
 </div></blockquote>
@@ -2872,10 +3242,10 @@ standard deviation where ddof is 0.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gillespy2.core.results.EnsembleResults.stddev_ensemble">
-<code class="sig-name descname">stddev_ensemble</code><span class="sig-paren">(</span><em class="sig-param">ddof=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#EnsembleResults.stddev_ensemble"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.stddev_ensemble" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate a single Results dictionary that is made of the sample standard deviations of all trajectories’
-outputs.</p>
+<dt id="gillespy2.core.results.Results.stddev_ensemble">
+<code class="sig-name descname">stddev_ensemble</code><span class="sig-paren">(</span><em class="sig-param">ddof=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.stddev_ensemble"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.Results.stddev_ensemble" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a single Results object with a Trajectory that is made of the sample standard deviations of all
+trajectories’ outputs.</p>
 <blockquote>
 <div><p>Attributes</p>
 </div></blockquote>
@@ -2887,87 +3257,7 @@ standard deviation where ddof is 0.</p>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>the Results dictionary</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="gillespy2.core.results.EnsembleResults.to_csv">
-<code class="sig-name descname">to_csv</code><span class="sig-paren">(</span><em class="sig-param">path=None</em>, <em class="sig-param">nametag=None</em>, <em class="sig-param">stamp=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#EnsembleResults.to_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.EnsembleResults.to_csv" title="Permalink to this definition">¶</a></dt>
-<dd><p>outputs the Results to one or more .csv files in a new directory.</p>
-<blockquote>
-<div><p>Attributes</p>
-</div></blockquote>
-<p>nametag: allows the user to optionally “tag” the directory and included files. Defaults to the model name.
-path: the location for the new directory and included files. Defaults to model location.
-stamp: Allows the user to optionally “tag” the directory (not included files). Default is timestamp.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="gillespy2.core.results.Results">
-<em class="property">class </em><code class="sig-prename descclassname">gillespy2.core.results.</code><code class="sig-name descname">Results</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">model=None</em>, <em class="sig-param">solver_name='Undefined solver name'</em>, <em class="sig-param">rc=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.Results" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">collections.UserDict</span></code></p>
-<p>Results Dict created by a gillespy2 solver with single trajectory, extends the UserDict object.</p>
-<dl class="attribute">
-<dt id="gillespy2.core.results.Results.data">
-<code class="sig-name descname">data</code><a class="headerlink" href="#gillespy2.core.results.Results.data" title="Permalink to this definition">¶</a></dt>
-<dd><p>A list of Results that are created by solvers with multiple trajectories</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>UserList</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="gillespy2.core.results.Results.plot">
-<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">style='default'</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">save_png=False</em>, <em class="sig-param">figsize=(18</em>, <em class="sig-param">10)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.Results.plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots the Results using matplotlib.</p>
-<blockquote>
-<div><p>Attributes</p>
-</div></blockquote>
-<dl class="simple">
-<dt>xaxis_label<span class="classifier">str</span></dt><dd><p>the label for the x-axis</p>
-</dd>
-<dt>yaxis_label<span class="classifier">str</span></dt><dd><p>the label for the y-axis</p>
-</dd>
-<dt>title<span class="classifier">str</span></dt><dd><p>the title of the graph</p>
-</dd>
-<dt>show_legend<span class="classifier">bool</span></dt><dd><p>whether or not to display a legend which lists species</p>
-</dd>
-<dt>included_species_list<span class="classifier">list</span></dt><dd><p>A list of strings describing which species to include. By default displays all species.</p>
-</dd>
-<dt>save_png<span class="classifier">bool or str</span></dt><dd><p>Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file
-is named after that string.</p>
-</dd>
-<dt>figsize<span class="classifier">tuple</span></dt><dd><p>the size of the graph. A tuple of the form (width,height). Is (18,10) by default.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="gillespy2.core.results.Results.plotplotly">
-<code class="sig-name descname">plotplotly</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">return_plotly_figure=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.plotplotly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.Results.plotplotly" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.</p>
-<blockquote>
-<div><p>Attributes</p>
-</div></blockquote>
-<dl class="simple">
-<dt>xaxis_label<span class="classifier">str</span></dt><dd><p>the label for the x-axis</p>
-</dd>
-<dt>yaxis_label<span class="classifier">str</span></dt><dd><p>the label for the y-axis</p>
-</dd>
-<dt>title<span class="classifier">str</span></dt><dd><p>the title of the graph</p>
-</dd>
-<dt>show_legend<span class="classifier">bool</span></dt><dd><p>whether or not to display a legend which lists species</p>
-</dd>
-<dt>included_species_list<span class="classifier">list</span></dt><dd><p>A list of strings describing which species to include. By default displays all species.</p>
-</dd>
-<dt>return_plotly_figure<span class="classifier">bool</span></dt><dd><p>whether or not to return a figure dictionary of data(graph object traces) and layout options
-which may be edited by the user.</p>
+<dd class="field-odd"><p>the Results object</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2980,8 +3270,70 @@ which may be edited by the user.</p>
 <div><p>Attributes</p>
 </div></blockquote>
 <p>nametag: allows the user to optionally “tag” the directory and included files. Defaults to the model name.
-path: path to the location for the new directory and included files. Defaults to model location.
-stamp: allows the user to optionally identify the directory (not included files). Defaults to timestamp.</p>
+path: the location for the new directory and included files. Defaults to model location.
+stamp: Allows the user to optionally “tag” the directory (not included files). Default is timestamp.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gillespy2.core.results.Trajectory">
+<em class="property">class </em><code class="sig-prename descclassname">gillespy2.core.results.</code><code class="sig-name descname">Trajectory</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">model=None</em>, <em class="sig-param">solver_name='Undefined solver name'</em>, <em class="sig-param">rc=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Trajectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.results.Trajectory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">collections.UserDict</span></code></p>
+<p>Trajectory Dict created by a gillespy2 solver containing single trajectory, extends the UserDict object.</p>
+<dl class="attribute">
+<dt id="gillespy2.core.results.Trajectory.data">
+<code class="sig-name descname">data</code><a class="headerlink" href="#gillespy2.core.results.Trajectory.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary of trajectory values created by a solver</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>UserDict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.core.results.Trajectory.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#gillespy2.core.results.Trajectory.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the model used to create the trajectory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.core.results.Trajectory.solver_name">
+<code class="sig-name descname">solver_name</code><a class="headerlink" href="#gillespy2.core.results.Trajectory.solver_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the solver used to create the trajectory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.core.results.Trajectory.rc">
+<code class="sig-name descname">rc</code><a class="headerlink" href="#gillespy2.core.results.Trajectory.rc" title="Permalink to this definition">¶</a></dt>
+<dd><p>The solver’s status return code.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.core.results.Trajectory.status">
+<code class="sig-name descname">status</code><a class="headerlink" href="#gillespy2.core.results.Trajectory.status" title="Permalink to this definition">¶</a></dt>
+<dd><p>The solver status (e.g. ‘Success’, ‘Timed Out’)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>string</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -3045,285 +3397,6 @@ variables.  This would correspond to a function in the form of x = f(V)</p>
 <dt id="gillespy2.core.DirectoryError">
 <em class="property">exception </em><code class="sig-prename descclassname">gillespy2.core.</code><code class="sig-name descname">DirectoryError</code><a class="reference internal" href="../_modules/gillespy2/core/gillespyError.html#DirectoryError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.DirectoryError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#gillespy2.core.gillespyError.SolverError" title="gillespy2.core.gillespyError.SolverError"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.gillespyError.SolverError</span></code></a></p>
-</dd></dl>
-
-<dl class="class">
-<dt id="gillespy2.core.EnsembleResults">
-<em class="property">class </em><code class="sig-prename descclassname">gillespy2.core.</code><code class="sig-name descname">EnsembleResults</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#EnsembleResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.EnsembleResults" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">collections.UserList</span></code></p>
-<p>List of Results Dicts created by a gillespy2 solver with multiple trajectories, extends the UserList object.</p>
-<dl class="attribute">
-<dt id="gillespy2.core.EnsembleResults.data">
-<code class="sig-name descname">data</code><a class="headerlink" href="#gillespy2.core.EnsembleResults.data" title="Permalink to this definition">¶</a></dt>
-<dd><p>A list of Results</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>UserList</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="gillespy2.core.EnsembleResults.average_ensemble">
-<code class="sig-name descname">average_ensemble</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#EnsembleResults.average_ensemble"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.EnsembleResults.average_ensemble" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate a single Results dictionary that is made of the means of all trajectories’ outputs
-:return: the Results dictionary</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gillespy2.core.EnsembleResults.plot">
-<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">style='default'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">multiple_graphs=False</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">save_png=False</em>, <em class="sig-param">figsize=(18</em>, <em class="sig-param">10)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#EnsembleResults.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.EnsembleResults.plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots the Results using matplotlib.</p>
-<dl class="attribute">
-<dt id="gillespy2.core.EnsembleResults.xaxis_label">
-<code class="sig-name descname">xaxis_label</code><a class="headerlink" href="#gillespy2.core.EnsembleResults.xaxis_label" title="Permalink to this definition">¶</a></dt>
-<dd><p>the label for the x-axis</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.core.EnsembleResults.yaxis_label">
-<code class="sig-name descname">yaxis_label</code><a class="headerlink" href="#gillespy2.core.EnsembleResults.yaxis_label" title="Permalink to this definition">¶</a></dt>
-<dd><p>the label for the y-axis
-style : str
-the matplotlib style to be used for the graph or graphs</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.core.EnsembleResults.title">
-<code class="sig-name descname">title</code><a class="headerlink" href="#gillespy2.core.EnsembleResults.title" title="Permalink to this definition">¶</a></dt>
-<dd><p>the title of the graph</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.core.EnsembleResults.multiple_graphs">
-<code class="sig-name descname">multiple_graphs</code><a class="headerlink" href="#gillespy2.core.EnsembleResults.multiple_graphs" title="Permalink to this definition">¶</a></dt>
-<dd><p>if each trajectory should have its own graph or if they should overlap</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>bool</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.core.EnsembleResults.included_species_list">
-<code class="sig-name descname">included_species_list</code><a class="headerlink" href="#gillespy2.core.EnsembleResults.included_species_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>A list of strings describing which species to include. By default displays all species.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.core.EnsembleResults.save_png">
-<code class="sig-name descname">save_png</code><a class="headerlink" href="#gillespy2.core.EnsembleResults.save_png" title="Permalink to this definition">¶</a></dt>
-<dd><p>Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file
-is named after that string.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>bool or str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.core.EnsembleResults.figsize">
-<code class="sig-name descname">figsize</code><a class="headerlink" href="#gillespy2.core.EnsembleResults.figsize" title="Permalink to this definition">¶</a></dt>
-<dd><p>the size of the graph. A tuple of the form (width,height). Is (18,10) by default.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>tuple</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="method">
-<dt id="gillespy2.core.EnsembleResults.plot_std_dev_range">
-<code class="sig-name descname">plot_std_dev_range</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">style='default'</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">ddof=0</em>, <em class="sig-param">save_png=False</em>, <em class="sig-param">figsize=(18</em>, <em class="sig-param">10)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#EnsembleResults.plot_std_dev_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.EnsembleResults.plot_std_dev_range" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><blockquote>
-<div><p>Plot a matplotlib graph depicting standard deviation and the mean graph of an ensemble_results object</p>
-</div></blockquote>
-<p>Attributes</p>
-</div></blockquote>
-<dl class="simple">
-<dt>xaxis_label<span class="classifier">str</span></dt><dd><p>the label for the x-axis</p>
-</dd>
-<dt>yaxis_label<span class="classifier">str</span></dt><dd><p>the label for the y-axis</p>
-</dd>
-<dt>title<span class="classifier">str</span></dt><dd><p>the title of the graph</p>
-</dd>
-<dt>show_legend<span class="classifier">bool</span></dt><dd><p>whether or not to display a legend which lists species</p>
-</dd>
-<dt>included_species_list<span class="classifier">list</span></dt><dd><p>A list of strings describing which species to include. By default displays all species.</p>
-</dd>
-<dt>ddof<span class="classifier">int</span></dt><dd><p>Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
-standard deviation where ddof is 0.</p>
-</dd>
-<dt>save_png<span class="classifier">bool or str</span></dt><dd><p>Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file
-is named after that string.</p>
-</dd>
-<dt>figsize<span class="classifier">tuple</span></dt><dd><p>the size of the graph. A tuple of the form (width,height). Is (18,10) by default.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="gillespy2.core.EnsembleResults.plotplotly">
-<code class="sig-name descname">plotplotly</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">multiple_graphs=False</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">return_plotly_figure=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#EnsembleResults.plotplotly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.EnsembleResults.plotplotly" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.</p>
-<dl class="attribute">
-<dt>
-<code class="sig-name descname">xaxis_label</code></dt>
-<dd><p>the label for the x-axis</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt>
-<code class="sig-name descname">yaxis_label</code></dt>
-<dd><p>the label for the y-axis</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt>
-<code class="sig-name descname">title</code></dt>
-<dd><p>the title of the graph</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt>
-<code class="sig-name descname">multiple_graphs</code></dt>
-<dd><p>if each trajectory should have its own graph or if they should overlap</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>bool</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt>
-<code class="sig-name descname">included_species_list</code></dt>
-<dd><p>A list of strings describing which species to include. By default displays all species.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.core.EnsembleResults.return_plotly_figure">
-<code class="sig-name descname">return_plotly_figure</code><a class="headerlink" href="#gillespy2.core.EnsembleResults.return_plotly_figure" title="Permalink to this definition">¶</a></dt>
-<dd><p>whether or not to return a figure dictionary of data(graph object traces) and layout options
-which may be edited by the user.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>bool</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="method">
-<dt id="gillespy2.core.EnsembleResults.plotplotly_std_dev_range">
-<code class="sig-name descname">plotplotly_std_dev_range</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">return_plotly_figure=False</em>, <em class="sig-param">ddof=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#EnsembleResults.plotplotly_std_dev_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.EnsembleResults.plotplotly_std_dev_range" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><blockquote>
-<div><p>Plot a plotly graph depicting standard deviation and the mean graph of an ensemble_results object</p>
-</div></blockquote>
-<p>Attributes</p>
-</div></blockquote>
-<dl class="simple">
-<dt>xaxis_label<span class="classifier">str</span></dt><dd><p>the label for the x-axis</p>
-</dd>
-<dt>yaxis_label<span class="classifier">str</span></dt><dd><p>the label for the y-axis</p>
-</dd>
-<dt>title<span class="classifier">str</span></dt><dd><p>the title of the graph</p>
-</dd>
-<dt>show_legend<span class="classifier">bool</span></dt><dd><p>whether or not to display a legend which lists species</p>
-</dd>
-<dt>included_species_list<span class="classifier">list</span></dt><dd><p>A list of strings describing which species to include. By default displays all species.</p>
-</dd>
-<dt>return_plotly_figure<span class="classifier">bool</span></dt><dd><p>whether or not to return a figure dictionary of data(graph object traces) and layout options
-which may be edited by the user.</p>
-</dd>
-<dt>ddof<span class="classifier">int</span></dt><dd><p>Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
-standard deviation where ddof is 0.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="gillespy2.core.EnsembleResults.stddev_ensemble">
-<code class="sig-name descname">stddev_ensemble</code><span class="sig-paren">(</span><em class="sig-param">ddof=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#EnsembleResults.stddev_ensemble"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.EnsembleResults.stddev_ensemble" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate a single Results dictionary that is made of the sample standard deviations of all trajectories’
-outputs.</p>
-<blockquote>
-<div><p>Attributes</p>
-</div></blockquote>
-<dl class="simple">
-<dt>ddof<span class="classifier">int</span></dt><dd><p>Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
-standard deviation where ddof is 0.</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>the Results dictionary</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="gillespy2.core.EnsembleResults.to_csv">
-<code class="sig-name descname">to_csv</code><span class="sig-paren">(</span><em class="sig-param">path=None</em>, <em class="sig-param">nametag=None</em>, <em class="sig-param">stamp=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#EnsembleResults.to_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.EnsembleResults.to_csv" title="Permalink to this definition">¶</a></dt>
-<dd><p>outputs the Results to one or more .csv files in a new directory.</p>
-<blockquote>
-<div><p>Attributes</p>
-</div></blockquote>
-<p>nametag: allows the user to optionally “tag” the directory and included files. Defaults to the model name.
-path: the location for the new directory and included files. Defaults to model location.
-stamp: Allows the user to optionally “tag” the directory (not included files). Default is timestamp.</p>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -3782,20 +3855,66 @@ object.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gillespy2.core.Model.delete_all_assignment_rules">
+<code class="sig-name descname">delete_all_assignment_rules</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_assignment_rules"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.delete_all_assignment_rules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears all assignment rules from model</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.Model.delete_all_events">
+<code class="sig-name descname">delete_all_events</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_events"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.delete_all_events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears models events</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.Model.delete_all_function_definitions">
+<code class="sig-name descname">delete_all_function_definitions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_function_definitions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.delete_all_function_definitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears all Function Definitions from a model</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="gillespy2.core.Model.delete_all_parameters">
 <code class="sig-name descname">delete_all_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.delete_all_parameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Deletes all parameters from model.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gillespy2.core.Model.delete_all_rate_rules">
+<code class="sig-name descname">delete_all_rate_rules</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_rate_rules"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.delete_all_rate_rules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears all of models Rate Rules</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="gillespy2.core.Model.delete_all_reactions">
 <code class="sig-name descname">delete_all_reactions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.delete_all_reactions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Clears all reactions in model</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="gillespy2.core.Model.delete_all_species">
 <code class="sig-name descname">delete_all_species</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_all_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.delete_all_species" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes all species from the model object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.Model.delete_assignment_rule">
+<code class="sig-name descname">delete_assignment_rule</code><span class="sig-paren">(</span><em class="sig-param">aname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_assignment_rule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.delete_assignment_rule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes an assignment rule from a model
+:param aname: Name of AssignmentRule object to be removed from model</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.Model.delete_event">
+<code class="sig-name descname">delete_event</code><span class="sig-paren">(</span><em class="sig-param">ename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.delete_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes specified Event from model
+:param ename: Name of Event to be removed</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.Model.delete_function_definition">
+<code class="sig-name descname">delete_function_definition</code><span class="sig-paren">(</span><em class="sig-param">fname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_function_definition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.delete_function_definition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes specified Function Definition from model
+:param fname: Name of Function Definition to be removed</p>
 </dd></dl>
 
 <dl class="method">
@@ -3816,9 +3935,21 @@ object.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gillespy2.core.Model.delete_rate_rule">
+<code class="sig-name descname">delete_rate_rule</code><span class="sig-paren">(</span><em class="sig-param">rname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_rate_rule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.delete_rate_rule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes specified Rate Rule from model
+:param rname: Name of Rate Rule to be removed</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="gillespy2.core.Model.delete_reaction">
 <code class="sig-name descname">delete_reaction</code><span class="sig-paren">(</span><em class="sig-param">obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.delete_reaction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.delete_reaction" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obj</strong> – Name of Reaction to be removed</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt id="gillespy2.core.Model.delete_species">
@@ -3838,6 +3969,36 @@ object.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gillespy2.core.Model.get_all_assignment_rules">
+<code class="sig-name descname">get_all_assignment_rules</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_assignment_rules"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.get_all_assignment_rules" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dict of models Assignment Rules</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.Model.get_all_events">
+<code class="sig-name descname">get_all_events</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_events"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.get_all_events" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dict of all Event objects</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.Model.get_all_function_definitions">
+<code class="sig-name descname">get_all_function_definitions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_function_definitions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.get_all_function_definitions" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dict of models function definitions</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="gillespy2.core.Model.get_all_parameters">
 <code class="sig-name descname">get_all_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.get_all_parameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a dict of all parameters in the model, of the form:
@@ -3845,15 +4006,77 @@ object.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gillespy2.core.Model.get_all_rate_rules">
+<code class="sig-name descname">get_all_rate_rules</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_rate_rules"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.get_all_rate_rules" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dict of all Rate Rule objects</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="gillespy2.core.Model.get_all_reactions">
 <code class="sig-name descname">get_all_reactions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.get_all_reactions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dict of all Reaction objects</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt id="gillespy2.core.Model.get_all_species">
 <code class="sig-name descname">get_all_species</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_all_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.get_all_species" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a dict of all species in the model, of the form:
 {name : species object}</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.Model.get_assignment_rule">
+<code class="sig-name descname">get_assignment_rule</code><span class="sig-paren">(</span><em class="sig-param">aname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_assignment_rule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.get_assignment_rule" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>aname</strong> – Name of Assignment Rule to get</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Assignment Rule object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.Model.get_element">
+<code class="sig-name descname">get_element</code><span class="sig-paren">(</span><em class="sig-param">ename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.get_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>get element specified by name
+:param ename: name of element to search for
+:return:value of element, or ‘element not found’</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.Model.get_event">
+<code class="sig-name descname">get_event</code><span class="sig-paren">(</span><em class="sig-param">ename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.get_event" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ename</strong> – Name of Event to get</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Event object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.Model.get_function_definition">
+<code class="sig-name descname">get_function_definition</code><span class="sig-paren">(</span><em class="sig-param">fname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_function_definition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.get_function_definition" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fname</strong> – name of Function to get</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>FunctionDefinition object</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -3874,9 +4097,30 @@ object.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gillespy2.core.Model.get_rate_rule">
+<code class="sig-name descname">get_rate_rule</code><span class="sig-paren">(</span><em class="sig-param">rname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_rate_rule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.get_rate_rule" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rname</strong> – Name of Rate Rule to get</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>RateRule object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="gillespy2.core.Model.get_reaction">
 <code class="sig-name descname">get_reaction</code><span class="sig-paren">(</span><em class="sig-param">rname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespy2.html#Model.get_reaction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Model.get_reaction" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rname</strong> – name of reaction to return</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Reaction object</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt id="gillespy2.core.Model.get_species">
@@ -3921,10 +4165,9 @@ parameters to be set here.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul class="simple">
-<li><p><em>If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is True and</em></p></li>
-<li><p><em>number_of_trajectories is 1, returns a results object that inherits UserDict and supports plotting functions.</em></p></li>
-<li><p><em>If show_labels is False and number_of_trajectories is greater than 1, returns an ensemble_results object that</em></p></li>
-<li><p><em>inherits UserList and contains results objects and supports ensemble graphing.</em></p></li>
+<li><p><em>If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is</em></p></li>
+<li><p><em>True,returns a Results object that inherits UserList and contains one or more Trajectory objects that</em></p></li>
+<li><p><em>inherit UserDict. Results object supports graphing and csv export.</em></p></li>
 </ul>
 </p>
 </dd>
@@ -4332,7 +4575,7 @@ value) in the namespace defined by the union of those dicts.</p>
 <dl class="attribute">
 <dt id="gillespy2.core.Reaction.name">
 <code class="sig-name descname">name</code><a class="headerlink" href="#gillespy2.core.Reaction.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>The name by which the reaction is called.</p>
+<dd><p>The name by which the reaction is called (optional).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>str</p>
@@ -4528,13 +4771,13 @@ Does nothing on sucesss, raises and error on failure.</p>
 
 <dl class="class">
 <dt id="gillespy2.core.Results">
-<em class="property">class </em><code class="sig-prename descclassname">gillespy2.core.</code><code class="sig-name descname">Results</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">model=None</em>, <em class="sig-param">solver_name='Undefined solver name'</em>, <em class="sig-param">rc=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Results" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">collections.UserDict</span></code></p>
-<p>Results Dict created by a gillespy2 solver with single trajectory, extends the UserDict object.</p>
+<em class="property">class </em><code class="sig-prename descclassname">gillespy2.core.</code><code class="sig-name descname">Results</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">collections.UserList</span></code></p>
+<p>List of Trajectory objects created by a gillespy2 solver, extends the UserList object.</p>
 <dl class="attribute">
 <dt id="gillespy2.core.Results.data">
 <code class="sig-name descname">data</code><a class="headerlink" href="#gillespy2.core.Results.data" title="Permalink to this definition">¶</a></dt>
-<dd><p>A list of Results that are created by solvers with multiple trajectories</p>
+<dd><p>A list of Trajectory objects</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>UserList</p>
@@ -4543,11 +4786,116 @@ Does nothing on sucesss, raises and error on failure.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gillespy2.core.Results.average_ensemble">
+<code class="sig-name descname">average_ensemble</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.average_ensemble"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Results.average_ensemble" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a single Results object with a Trajectory that is made of the means of all trajectories’ outputs
+:return: the Results object</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="gillespy2.core.Results.plot">
-<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">style='default'</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">save_png=False</em>, <em class="sig-param">figsize=(18</em>, <em class="sig-param">10)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Results.plot" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">index=None</em>, <em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">style='default'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">multiple_graphs=False</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">save_png=False</em>, <em class="sig-param">figsize=(18</em>, <em class="sig-param">10)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Results.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots the Results using matplotlib.</p>
-<blockquote>
-<div><p>Attributes</p>
+<dl class="attribute">
+<dt id="gillespy2.core.Results.index">
+<code class="sig-name descname">index</code><a class="headerlink" href="#gillespy2.core.Results.index" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>if not none, the index of the Trajectory to be plotted</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.core.Results.xaxis_label">
+<code class="sig-name descname">xaxis_label</code><a class="headerlink" href="#gillespy2.core.Results.xaxis_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>the label for the x-axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.core.Results.yaxis_label">
+<code class="sig-name descname">yaxis_label</code><a class="headerlink" href="#gillespy2.core.Results.yaxis_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>the label for the y-axis
+style : str
+the matplotlib style to be used for the graph or graphs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.core.Results.title">
+<code class="sig-name descname">title</code><a class="headerlink" href="#gillespy2.core.Results.title" title="Permalink to this definition">¶</a></dt>
+<dd><p>the title of the graph</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.core.Results.multiple_graphs">
+<code class="sig-name descname">multiple_graphs</code><a class="headerlink" href="#gillespy2.core.Results.multiple_graphs" title="Permalink to this definition">¶</a></dt>
+<dd><p>if each trajectory should have its own graph or if they should overlap</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.core.Results.included_species_list">
+<code class="sig-name descname">included_species_list</code><a class="headerlink" href="#gillespy2.core.Results.included_species_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of strings describing which species to include. By default displays all species.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.core.Results.save_png">
+<code class="sig-name descname">save_png</code><a class="headerlink" href="#gillespy2.core.Results.save_png" title="Permalink to this definition">¶</a></dt>
+<dd><p>Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file
+is named after that string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool or str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.core.Results.figsize">
+<code class="sig-name descname">figsize</code><a class="headerlink" href="#gillespy2.core.Results.figsize" title="Permalink to this definition">¶</a></dt>
+<dd><p>the size of the graph. A tuple of the form (width,height). Is (18,10) by default.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.Results.plot_std_dev_range">
+<code class="sig-name descname">plot_std_dev_range</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">style='default'</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">ddof=0</em>, <em class="sig-param">save_png=False</em>, <em class="sig-param">figsize=(18</em>, <em class="sig-param">10)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.plot_std_dev_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Results.plot_std_dev_range" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><blockquote>
+<div><p>Plot a matplotlib graph depicting standard deviation and the mean graph of a results object</p>
+</div></blockquote>
+<p>Attributes</p>
 </div></blockquote>
 <dl class="simple">
 <dt>xaxis_label<span class="classifier">str</span></dt><dd><p>the label for the x-axis</p>
@@ -4560,6 +4908,10 @@ Does nothing on sucesss, raises and error on failure.</p>
 </dd>
 <dt>included_species_list<span class="classifier">list</span></dt><dd><p>A list of strings describing which species to include. By default displays all species.</p>
 </dd>
+<dt>ddof<span class="classifier">int</span></dt><dd><p>Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
+standard deviation where ddof is 0.</p>
+</dd>
 <dt>save_png<span class="classifier">bool or str</span></dt><dd><p>Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file
 is named after that string.</p>
 </dd>
@@ -4570,10 +4922,95 @@ is named after that string.</p>
 
 <dl class="method">
 <dt id="gillespy2.core.Results.plotplotly">
-<code class="sig-name descname">plotplotly</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">return_plotly_figure=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.plotplotly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Results.plotplotly" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plotplotly</code><span class="sig-paren">(</span><em class="sig-param">index=None</em>, <em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">multiple_graphs=False</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">return_plotly_figure=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.plotplotly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Results.plotplotly" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.</p>
-<blockquote>
-<div><p>Attributes</p>
+<dl class="attribute">
+<dt>
+<code class="sig-name descname">index</code></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>if not none, the index of the Trajectory to be plotted</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="sig-name descname">xaxis_label</code></dt>
+<dd><p>the label for the x-axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="sig-name descname">yaxis_label</code></dt>
+<dd><p>the label for the y-axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="sig-name descname">title</code></dt>
+<dd><p>the title of the graph</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="sig-name descname">multiple_graphs</code></dt>
+<dd><p>if each trajectory should have its own graph or if they should overlap</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="sig-name descname">included_species_list</code></dt>
+<dd><p>A list of strings describing which species to include. By default displays all species.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.core.Results.return_plotly_figure">
+<code class="sig-name descname">return_plotly_figure</code><a class="headerlink" href="#gillespy2.core.Results.return_plotly_figure" title="Permalink to this definition">¶</a></dt>
+<dd><p>whether or not to return a figure dictionary of data(graph object traces) and layout options
+which may be edited by the user.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.Results.plotplotly_std_dev_range">
+<code class="sig-name descname">plotplotly_std_dev_range</code><span class="sig-paren">(</span><em class="sig-param">xaxis_label='Time (s)'</em>, <em class="sig-param">yaxis_label='Species Population'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">show_legend=True</em>, <em class="sig-param">included_species_list=[]</em>, <em class="sig-param">return_plotly_figure=False</em>, <em class="sig-param">ddof=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.plotplotly_std_dev_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Results.plotplotly_std_dev_range" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><blockquote>
+<div><p>Plot a plotly graph depicting standard deviation and the mean graph of a results object</p>
+</div></blockquote>
+<p>Attributes</p>
 </div></blockquote>
 <dl class="simple">
 <dt>xaxis_label<span class="classifier">str</span></dt><dd><p>the label for the x-axis</p>
@@ -4589,6 +5026,31 @@ is named after that string.</p>
 <dt>return_plotly_figure<span class="classifier">bool</span></dt><dd><p>whether or not to return a figure dictionary of data(graph object traces) and layout options
 which may be edited by the user.</p>
 </dd>
+<dt>ddof<span class="classifier">int</span></dt><dd><p>Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
+standard deviation where ddof is 0.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gillespy2.core.Results.stddev_ensemble">
+<code class="sig-name descname">stddev_ensemble</code><span class="sig-paren">(</span><em class="sig-param">ddof=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.stddev_ensemble"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Results.stddev_ensemble" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a single Results object with a Trajectory that is made of the sample standard deviations of all
+trajectories’ outputs.</p>
+<blockquote>
+<div><p>Attributes</p>
+</div></blockquote>
+<dl class="simple">
+<dt>ddof<span class="classifier">int</span></dt><dd><p>Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
+standard deviation where ddof is 0.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the Results object</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -4600,10 +5062,16 @@ which may be edited by the user.</p>
 <div><p>Attributes</p>
 </div></blockquote>
 <p>nametag: allows the user to optionally “tag” the directory and included files. Defaults to the model name.
-path: path to the location for the new directory and included files. Defaults to model location.
-stamp: allows the user to optionally identify the directory (not included files). Defaults to timestamp.</p>
+path: the location for the new directory and included files. Defaults to model location.
+stamp: Allows the user to optionally “tag” the directory (not included files). Default is timestamp.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="exception">
+<dt id="gillespy2.core.ResultsError">
+<em class="property">exception </em><code class="sig-prename descclassname">gillespy2.core.</code><code class="sig-name descname">ResultsError</code><a class="reference internal" href="../_modules/gillespy2/core/gillespyError.html#ResultsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.ResultsError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 </dd></dl>
 
 <dl class="exception">
@@ -4798,6 +5266,74 @@ file read from disk.</p>
 <dt id="gillespy2.core.StochMLImportError">
 <em class="property">exception </em><code class="sig-prename descclassname">gillespy2.core.</code><code class="sig-name descname">StochMLImportError</code><a class="reference internal" href="../_modules/gillespy2/core/gillespyError.html#StochMLImportError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.StochMLImportError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#gillespy2.core.gillespyError.SimulationError" title="gillespy2.core.gillespyError.SimulationError"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.gillespyError.SimulationError</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gillespy2.core.Trajectory">
+<em class="property">class </em><code class="sig-prename descclassname">gillespy2.core.</code><code class="sig-name descname">Trajectory</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">model=None</em>, <em class="sig-param">solver_name='Undefined solver name'</em>, <em class="sig-param">rc=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Trajectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.Trajectory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">collections.UserDict</span></code></p>
+<p>Trajectory Dict created by a gillespy2 solver containing single trajectory, extends the UserDict object.</p>
+<dl class="attribute">
+<dt id="gillespy2.core.Trajectory.data">
+<code class="sig-name descname">data</code><a class="headerlink" href="#gillespy2.core.Trajectory.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary of trajectory values created by a solver</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>UserDict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.core.Trajectory.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#gillespy2.core.Trajectory.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the model used to create the trajectory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.core.Trajectory.solver_name">
+<code class="sig-name descname">solver_name</code><a class="headerlink" href="#gillespy2.core.Trajectory.solver_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the solver used to create the trajectory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.core.Trajectory.rc">
+<code class="sig-name descname">rc</code><a class="headerlink" href="#gillespy2.core.Trajectory.rc" title="Permalink to this definition">¶</a></dt>
+<dd><p>The solver’s status return code.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gillespy2.core.Trajectory.status">
+<code class="sig-name descname">status</code><a class="headerlink" href="#gillespy2.core.Trajectory.status" title="Permalink to this definition">¶</a></dt>
+<dd><p>The solver status (e.g. ‘Success’, ‘Timed Out’)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>string</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="gillespy2.core.ValidationError">
+<em class="property">exception </em><code class="sig-prename descclassname">gillespy2.core.</code><code class="sig-name descname">ValidationError</code><a class="reference internal" href="../_modules/gillespy2/core/gillespyError.html#ValidationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gillespy2.core.ValidationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#gillespy2.core.gillespyError.ResultsError" title="gillespy2.core.gillespyError.ResultsError"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.gillespyError.ResultsError</span></code></a></p>
 </dd></dl>
 
 <dl class="function">

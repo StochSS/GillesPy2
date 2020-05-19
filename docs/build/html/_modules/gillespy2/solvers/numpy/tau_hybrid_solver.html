@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.solvers.numpy.basic_tau_hybrid_solver &#8212; GillesPy2 1.4.0 documentation</title>
+    <title>gillespy2.solvers.numpy.tau_hybrid_solver &#8212; GillesPy2 1.4.0 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -99,7 +99,7 @@
 
           <div class="body" role="main">
             
-  <h1>Source code for gillespy2.solvers.numpy.basic_tau_hybrid_solver</h1><div class="highlight"><pre>
+  <h1>Source code for gillespy2.solvers.numpy.tau_hybrid_solver</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">random</span><span class="o">,</span> <span class="nn">math</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="k">import</span> <span class="n">ode</span><span class="p">,</span> <span class="n">solve_ivp</span>
@@ -141,7 +141,7 @@
 <span class="n">eval_globals</span><span class="p">[</span><span class="s1">&#39;xor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">__xor</span>
 
 
-<div class="viewcode-block" id="BasicTauHybridSolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver">[docs]</a><span class="k">class</span> <span class="nc">BasicTauHybridSolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
+<div class="viewcode-block" id="BasicTauHybridSolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.tau_hybrid_solver.BasicTauHybridSolver">[docs]</a><span class="k">class</span> <span class="nc">BasicTauHybridSolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This Solver uses a root-finding interpretation of the direct SSA method,</span>
 <span class="sd">    along with ODE solvers to simulate ODE and Stochastic systems</span>
@@ -277,14 +277,14 @@
               <span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;dynamic&#39;</span><span class="p">}</span>
 
         <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">for</span> <span class="n">reactant</span> <span class="ow">in</span> <span class="n">rxn</span><span class="o">.</span><span class="n">reactants</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">reactant</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;dynamic&#39;</span><span class="p">:</span>
-                    <span class="n">mn</span><span class="p">[</span><span class="n">reactant</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">-=</span> <span class="p">(</span><span class="n">tau_step</span> <span class="o">*</span> <span class="n">propensities</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">*</span> <span class="n">rxn</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">reactant</span><span class="p">])</span>
-                    <span class="n">sd</span><span class="p">[</span><span class="n">reactant</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">tau_step</span> <span class="o">*</span> <span class="n">propensities</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">*</span> <span class="n">rxn</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">reactant</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">rxn</span><span class="o">.</span><span class="n">products</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">product</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;dynamic&#39;</span><span class="p">:</span>
-                    <span class="n">mn</span><span class="p">[</span><span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">tau_step</span> <span class="o">*</span> <span class="n">propensities</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">*</span> <span class="n">rxn</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">product</span><span class="p">])</span>
-                    <span class="n">sd</span><span class="p">[</span><span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">tau_step</span> <span class="o">*</span> <span class="n">propensities</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">*</span> <span class="n">rxn</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">product</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">reactant</span> <span class="ow">in</span> <span class="n">rxn</span><span class="o">.</span><span class="n">reactants</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">reactant</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;dynamic&#39;</span><span class="p">:</span>
+                        <span class="n">mn</span><span class="p">[</span><span class="n">reactant</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">-=</span> <span class="p">(</span><span class="n">tau_step</span> <span class="o">*</span> <span class="n">propensities</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">*</span> <span class="n">rxn</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">reactant</span><span class="p">])</span>
+                        <span class="n">sd</span><span class="p">[</span><span class="n">reactant</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">tau_step</span> <span class="o">*</span> <span class="n">propensities</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">*</span> <span class="n">rxn</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">reactant</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">rxn</span><span class="o">.</span><span class="n">products</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">product</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;dynamic&#39;</span><span class="p">:</span>
+                        <span class="n">mn</span><span class="p">[</span><span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">tau_step</span> <span class="o">*</span> <span class="n">propensities</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">*</span> <span class="n">rxn</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">product</span><span class="p">])</span>
+                        <span class="n">sd</span><span class="p">[</span><span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">tau_step</span> <span class="o">*</span> <span class="n">propensities</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">*</span> <span class="n">rxn</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">product</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
                 
         <span class="c1"># Get coefficient of variance for each dynamic species</span>
         <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">mn</span><span class="p">:</span>
@@ -298,6 +298,7 @@
                 <span class="n">det_spec</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="n">CV</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">sref</span><span class="o">.</span><span class="n">switch_tol</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">det_spec</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="n">mn</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">sref</span><span class="o">.</span><span class="n">switch_min</span>
+        
         <span class="k">return</span> <span class="n">sd</span><span class="p">,</span> <span class="n">CV</span>
     
     <span class="nd">@staticmethod</span>
@@ -821,7 +822,7 @@
             <span class="n">y_map</span><span class="p">[</span><span class="n">event</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">compiled_reactions</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">y0</span><span class="p">,</span> <span class="n">y_map</span>
 
-<div class="viewcode-block" id="BasicTauHybridSolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver.run">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="BasicTauHybridSolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.tau_hybrid_solver.BasicTauHybridSolver.run">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
             <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">tau_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">event_sensitivity</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="s1">&#39;LSODA&#39;</span><span class="p">,</span>
@@ -1013,6 +1014,7 @@
 
             <span class="c1"># One-time compilations to reduce time spent with eval</span>
             <span class="n">compiled_reactions</span><span class="p">,</span> <span class="n">compiled_rate_rules</span><span class="p">,</span> <span class="n">compiled_inactive_reactions</span><span class="p">,</span> <span class="n">compiled_propensities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__compile_all</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+            
             <span class="n">all_compiled</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
             <span class="n">all_compiled</span><span class="p">[</span><span class="s1">&#39;rxns&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compiled_reactions</span>
             <span class="n">all_compiled</span><span class="p">[</span><span class="s1">&#39;inactive_rxns&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compiled_inactive_reactions</span>
@@ -1054,16 +1056,16 @@
                             <span class="n">model</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">save_times</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
                 <span class="n">tau_step</span> <span class="o">=</span> <span class="n">save_times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">curr_time</span> <span class="k">if</span> <span class="n">pure_ode</span> <span class="k">else</span> <span class="n">Tau</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">*</span><span class="n">tau_args</span><span class="p">)</span>
 
-                <span class="c1"># Process switching if used</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">pure_stochastic</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pure_ode</span><span class="p">:</span>
-                    <span class="n">switch_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">model</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">tau_step</span><span class="p">,</span> <span class="n">det_spec</span><span class="p">]</span>
-                    <span class="n">sd</span><span class="p">,</span> <span class="n">CV</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__calculate_statistics</span><span class="p">(</span><span class="o">*</span><span class="n">switch_args</span><span class="p">)</span>
-
                 <span class="c1"># Calculate sd and CV for hybrid switching and flag deterministic reactions</span>
                 <span class="k">if</span> <span class="n">pure_stochastic</span><span class="p">:</span>
                     <span class="n">deterministic_reactions</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">()</span> <span class="c1"># Empty if non-det</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">deterministic_reactions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__flag_det_reactions</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">det_spec</span><span class="p">,</span> <span class="n">det_rxn</span><span class="p">,</span> <span class="n">dependencies</span><span class="p">)</span>
+
+                <span class="c1"># Process switching if used</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">pure_stochastic</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pure_ode</span><span class="p">:</span>
+                    <span class="n">switch_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">model</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">tau_step</span><span class="p">,</span> <span class="n">det_spec</span><span class="p">]</span>
+                    <span class="n">sd</span><span class="p">,</span> <span class="n">CV</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__calculate_statistics</span><span class="p">(</span><span class="o">*</span><span class="n">switch_args</span><span class="p">)</span>
                 
                 <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;mean: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mu_i</span><span class="p">))</span>
