@@ -604,72 +604,142 @@ class Model(SortableObject):
             raise InvalidModelError("StochKit only supports uniform timespans")
 
     def get_reaction(self, rname):
+        """
+
+        :param rname: name of reaction to return
+        :return: Reaction object
+        """
         return self.listOfReactions[rname]
 
     def get_all_reactions(self):
+        """
+        :return: dict of all Reaction objects
+        """
         return self.listOfReactions
 
     def delete_reaction(self, obj):
+        """
+        :param obj: Name of Reaction to be removed
+        """
         self.listOfReactions.pop(obj)
         self._listOfReactions.pop(obj)
 
     def delete_all_reactions(self):
+        """
+        Clears all reactions in model
+        """
         self.listOfReactions.clear()
         self._listOfReactions.clear()
 
     def get_event(self,ename):
+        """
+        :param ename: Name of Event to get
+        :return: Event object
+        """
         return self.listOfEvents[ename]
 
     def get_all_events(self):
+        """
+        :return: dict of all Event objects
+        """
         return self.listOfEvents
 
     def delete_event(self,ename):
+        """
+        Removes specified Event from model
+        :param ename: Name of Event to be removed
+        """
         self.listOfEvents.pop(ename)
         self._listOfEvents.pop(ename)
 
     def delete_all_events(self):
+        """
+        Clears models events
+        """
         self.listOfEvents.clear()
         self._listOfEvents.clear()
 
     def get_rate_rule(self,rname):
+        """
+        :param rname: Name of Rate Rule to get
+        :return: RateRule object
+        """
         return self.listOfRateRules[rname]
 
     def get_all_rate_rules(self):
+        """
+        :return: dict of all Rate Rule objects
+        """
         return self.listOfRateRules
 
     def delete_rate_rule(self,rname):
+        """
+        Removes specified Rate Rule from model
+        :param rname: Name of Rate Rule to be removed
+        """
         self.listOfRateRules.pop(rname)
         self._listOfRateRules.pop(rname)
 
     def delete_all_rate_rules(self):
+        """
+        Clears all of models Rate Rules
+        """
         self.listOfRateRules.clear()
         self._listOfRateRules.clear()
 
     def get_assignment_rule(self,aname):
+        """
+        :param aname: Name of Assignment Rule to get
+        :return: Assignment Rule object
+        """
         return self.listOfAssignmentRules[aname]
 
     def get_all_assignment_rules(self):
+        """
+        :return: dict of models Assignment Rules
+        """
         return self.listOfAssignmentRules
 
     def delete_assignment_rule(self,aname):
+        """
+        Removes an assignment rule from a model
+        :param aname: Name of AssignmentRule object to be removed from model
+        """
         self.listOfAssignmentRules.pop(aname)
         self._listOfAssignmentRules.pop(aname)
 
     def delete_all_assignment_rules(self):
+        """
+        Clears all assignment rules from model
+        """
         self.listOfAssignmentRules.clear()
         self._listOfAssignmentRules.clear()
 
     def get_function_definition(self,fname):
+        """
+        :param fname: name of Function to get
+        :return: FunctionDefinition object
+        """
         return self.listOfFunctionDefinitions[fname]
 
     def get_all_function_definitions(self):
+        """
+        :return: Dict of models function definitions
+        """
         return self.listOfFunctionDefinitions
 
     def delete_function_definition(self,fname):
+        """
+        Removes specified Function Definition from model
+        :param fname: Name of Function Definition to be removed
+        """
         self.listOfFunctionDefinitions.pop(fname)
         self._listOfFunctionDefinitions.pop(fname)
 
     def delete_all_function_definitions(self):
+        """
+        Clears all Function Definitions from a model
+        """
         self.listOfFunctionDefinitions.clear()
         self._listOfFunctionDefinitions.clear()
 
