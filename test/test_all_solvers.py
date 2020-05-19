@@ -3,7 +3,7 @@ import numpy as np
 
 import gillespy2
 from example_models import Example, Oregonator
-from gillespy2.core.results import EnsembleResults, Results
+from gillespy2.core.results import Results, Trajectory
 from gillespy2.solvers.cpp.ssa_c_solver import SSACSolver
 from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
 from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver
@@ -44,11 +44,10 @@ class TestAllSolvers(unittest.TestCase):
             self.assertTrue(isinstance(self.labeled_results[solver]['Sp'], np.ndarray))
             self.assertTrue(isinstance(self.labeled_results[solver]['Sp'][0], np.float))
 
-            with self.assertWarns(Warning):
-                self.assertTrue(isinstance(self.labeled_results[solver][0], Results))
+            self.assertTrue(isinstance(self.labeled_results[solver][0], Trajectory))
 
-            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver], EnsembleResults))
-            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0], Results))
+            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver], Results))
+            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0], Trajectory))
             self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0]['Sp'], np.ndarray))
             self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0]['Sp'][0], np.float))
 

@@ -6,6 +6,38 @@ import numpy as np
 
 class TestModel(unittest.TestCase):
 
+    def test_model_reflexivity(self):
+        model = Model()
+        assert model==model
+
+    def test_model_inequality(self):
+        model1 = Model()
+        model2 = Model()
+        param1 = Parameter('A', expression=0)
+        param2 = Parameter('B', expression=1)
+        model1.add_parameter(param1)
+        model2.add_parameter(param2)
+        assert model1 != model2
+
+    def test_model_equality(self):
+        model1 = Model()
+        model2 = Model()
+        param1 = Parameter('A', expression=0)
+        model1.add_parameter(param1)
+        model2.add_parameter(param1)
+        assert model1 == model2
+
+    def test_model_reordered_equality(self):
+        model1 = Model()
+        model2 = Model()
+        param1 = Parameter('A', expression=0)
+        param2 = Parameter('B', expression=1)
+        model1.add_parameter(param1)
+        model1.add_parameter(param2)
+        model2.add_parameter(param2)
+        model2.add_parameter(param1)
+        assert model1 == model2
+
     def test_uniform_timespan(self):
         model = Model()
         model.timespan(np.linspace(0, 1, 100))
@@ -41,13 +73,13 @@ class TestModel(unittest.TestCase):
         model.add_reaction([reaction1, reaction2])
 
 
-    def test_int_type_mismatch(self):
-        model = Model()
-        y1 = np.int64(5)
-        y2 = np.int32(5)
-        species1 = Species('A', initial_value=y1)
-        species2 = Species('B', initial_value=y2)
-        model.add_species([species1, species2])
+#    def test_int_type_mismatch(self):
+#        model = Model()
+#        y1 = np.int64(5)
+#        y2 = np.int32(5)
+#        species1 = Species('A', initial_value=y1)
+#        species2 = Species('B', initial_value=y2)
+#        model.add_species([species1, species2])
 
     def test_duplicate_reaction_name(self):
         model = Model()

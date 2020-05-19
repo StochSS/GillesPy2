@@ -10,7 +10,7 @@ import numpy as np
 import uuid
 from contextlib import contextmanager
 from collections import OrderedDict
-from gillespy2.core.results import Results,EnsembleResults
+from gillespy2.core.results import Trajectory,Results
 from gillespy2.core.events import *
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
@@ -54,8 +54,7 @@ class SortableObject(object):
     """Base class for GillesPy2 objects that are sortable."""
 
     def __eq__(self, other):
-        return (isinstance(other, self.__class__)
-                and ordered(self) == ordered(other))
+        return str(self)==str(other)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -190,27 +189,27 @@ class Model(SortableObject):
         print_string = self.name
         if len(self.listOfSpecies):
             print_string += decorate('Species')
-            for s in self.listOfSpecies.values():
+            for s in sorted(self.listOfSpecies.values()):
                 print_string += '\n' + str(s)
         if len(self.listOfParameters):
             print_string += decorate('Parameters')
-            for p in self.listOfParameters.values():
+            for p in sorted(self.listOfParameters.values()):
                 print_string += '\n' + str(p)
         if len(self.listOfReactions):
             print_string += decorate('Reactions')
-            for r in self.listOfReactions.values():
+            for r in sorted(self.listOfReactions.values()):
                 print_string += '\n' + str(r)
         if len(self.listOfEvents):
             print_string += decorate('Events')
-            for e in self.listOfEvents.values():
+            for e in sorted(self.listOfEvents.values()):
                 print_string += '\n' + str(e)
         if len(self.listOfAssignmentRules):
             print_string += decorate('Assignment Rules')
-            for ar in self.listOfAssignmentRules.values():
+            for ar in sorted(self.listOfAssignmentRules.values()):
                 print_string += '\n' + str(ar)
         if len(self.listOfRateRules):
             print_string += decorate('Rate Rules')
-            for rr in self.listOfRateRules.values():
+            for rr in sorted(self.listOfRateRules.values()):
                 print_string += '\n' + str(rr)
         return print_string
 
@@ -596,10 +595,9 @@ class Model(SortableObject):
         Return
         ----------
 
-        If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is True and
-        number_of_trajectories is 1, returns a results object that inherits UserDict and supports plotting functions.
-        If show_labels is False and number_of_trajectories is greater than 1, returns an ensemble_results object that
-        inherits UserList and contains results objects and supports ensemble graphing.
+        If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is 
+        True,returns a Results object that inherits UserList and contains one or more Trajectory objects that 
+        inherit UserDict. Results object supports graphing and csv export.
 
         Attributes
         ----------
@@ -633,18 +631,19 @@ class Model(SortableObject):
 
         if hasattr(solver_results[0], 'shape'):
             return solver_results
-        if len(solver_results) == 1:
-            return Results(data=solver_results[0], model=self,
-                solver_name=solver.name, rc=rc)
+        if len(solver_results) is 1:
+            results_list = []
+            results_list.append(Trajectory(data=solver_results[0], model=self,
+                solver_name=solver.name, rc=rc))
+            return Results(results_list)
 
-        elif len(solver_results) > 1:
+        if len(solver_results) > 1:
             results_list = []
             for i in range(0,solver_args.get('number_of_trajectories')):
-                results_list.append(Results(data=solver_results[i],model=self,solver_name=solver.name,
+                results_list.append(Trajectory(data=solver_results[i],model=self,solver_name=solver.name,
                     rc=rc))
-            return EnsembleResults(results_list)
-        elif hasattr(solver_results, 'shape'):
-            return solver_results
+            return Results(results_list)
+
 
         else:
             raise ValueError("number_of_trajectories must be non-negative and non-zero")
