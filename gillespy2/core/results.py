@@ -236,8 +236,8 @@ class Results(UserList):
                             this_line.append(trajectory[species][n])
                         csv_writer.writerow(this_line) #write one line of the CSV file
 
-    def plot(self, index = None, xaxis_label ="Time (s)", xscale='linear', yscale='linear', yaxis_label ="Species Population", style="default", title = None,
-             show_legend=True, multiple_graphs = False, included_species_list=[],save_png=False,figsize = (18,10)):
+    def plot(self, index = None, xaxis_label ="Time (s)", yaxis_label ="Species Population", style="default", title = None,
+             show_legend=True, multiple_graphs = False, included_species_list=[],save_png=False,figsize = (18,10), **plot_args):
         """ Plots the Results using matplotlib.
 
         Attributes
@@ -302,8 +302,9 @@ class Results(UserList):
             plt.title(title, fontsize=18)
             plt.xlabel(xaxis_label)
             plt.ylabel(yaxis_label)
-            plt.xscale(xscale)
-            plt.yscale(yscale)
+            for key in plot_args:
+                code=("plt."+key+"('"+str(plot_args.get(key))+"')")
+                exec(code)
 
             for i,trajectory in enumerate(trajectory_list):
 
@@ -626,7 +627,7 @@ class Results(UserList):
             iplot(fig)
 
     def plot_std_dev_range(self, xscale='linear',yscale='linear',xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None,
-                           style="default", show_legend=True, included_species_list=[],ddof=0,save_png = False,figsize = (18,10)):
+                           style="default", show_legend=True, included_species_list=[],ddof=0,save_png = False,figsize = (18,10), **plot_args):
         """
             Plot a matplotlib graph depicting standard deviation and the mean graph of a results object
 
@@ -689,6 +690,9 @@ class Results(UserList):
         plt.ylabel(yaxis_label)
         plt.xscale(xscale)
         plt.yscale(yscale)
+        for key in plot_args:
+            code=("plt."+key+"('"+str(plot_args.get(key))+"')")
+            exec(code)
 
         plt.plot([0], [11])
         if show_legend:
