@@ -489,14 +489,26 @@ class Model(SortableObject):
                 self.add_rate_rule(rr)
         else:
             try:
-                if rate_rules.formula == '': raise ModelError('Invalid Rate Rule. Expression must be a non-empty string value')
+                if len(self.listOfAssignmentRules) != 0:
+                    for i in self.listOfAssignmentRules.values():
+                        if rate_rules.variable == i.variable:
+                            raise ModelError("Duplicate variable in rate_rules AND assignment_rules: {0}".
+                                            format(rate_rules.variable))
+                for i in self.listOfRateRules.values():
+                    if rate_rules.variable == i.variable:
+                        raise ModelError("Duplicate variable in rate_rules: {0}".format(rate_rules.variable))
+                if rate_rules.name in self.listOfRateRules:
+                    raise ModelError("Duplicate name of rate_rule: {0}".format(rate_rules.name))
+                if rate_rules.formula == '':
+                    raise ModelError('Invalid Rate Rule. Expression must be a non-empty string value')
                 if rate_rules.variable == None:
                     raise ModelError('A GillesPy2 Rate Rule must be associated with a valid variable')
-                self.listOfRateRules[rate_rules.variable] = rate_rules
+
+                self.listOfRateRules[rate_rules.name] = rate_rules
                 sanitized_rate_rule = RateRule(name = 'RR{}'.format(len(self._listOfRateRules)))
                 sanitized_rate_rule.formula = rate_rules.sanitized_formula(self._listOfSpecies,
                                                         self._listOfParameters)
-                self._listOfRateRules[rate_rules.variable] = sanitized_rate_rule
+                self._listOfRateRules[rate_rules.name] = sanitized_rate_rule
             except Exception as e:
                 raise ParameterError("Error using {} as a Rate Rule. Reason given: {}".format(rate_rules, e))
         return rate_rules
@@ -549,7 +561,24 @@ class Model(SortableObject):
                 self.add_assignment_rule(ar)
         else:
             try:
-                self.listOfAssignmentRules[assignment_rules.variable] = assignment_rules
+                if len(self.listOfRateRules) != 0:
+                    for i in self.listOfRateRules.values():
+                        if assignment_rules.variable == i.variable:
+                            raise ModelError("Duplicate variable in rate_rules AND assignment_rules: {0}".
+                                             format(assignment_rules.variable))
+                for i in self.listOfAssignmentRules.values():
+                    if assignment_rules.variable == i.variable:
+                        raise ModelError("Duplicate variable in assignment_rules: {0}"
+                                         .format(assignment_rules.variable))
+                if assignment_rules.name in self.listOfAssignmentRules:
+                    raise ModelError("Duplicate name in assignment_rules: {0}".format(assignment_rules.name))
+                if assignment_rules.formula == '':
+                    raise ModelError('Invalid Assignment Rule. Expression must be a non-empty string value')
+                if assignment_rules.variable == None:
+                    raise ModelError('A GillesPy2 Rate Rule must be associated with a valid variable')
+
+
+                self.listOfAssignmentRules[assignment_rules.name] = assignment_rules
             except Exception as e:
                 raise ParameterError("Error using {} as a Assignment Rule. Reason given: ".format(assignment_rules, e))
 
@@ -574,18 +603,166 @@ class Model(SortableObject):
             raise InvalidModelError("StochKit only supports uniform timespans")
 
     def get_reaction(self, rname):
+        """
+
+        :param rname: name of reaction to return
+        :return: Reaction object
+        """
         return self.listOfReactions[rname]
 
     def get_all_reactions(self):
+        """
+        :return: dict of all Reaction objects
+        """
         return self.listOfReactions
 
     def delete_reaction(self, obj):
+        """
+        :param obj: Name of Reaction to be removed
+        """
         self.listOfReactions.pop(obj)
         self._listOfReactions.pop(obj)
 
     def delete_all_reactions(self):
+        """
+        Clears all reactions in model
+        """
         self.listOfReactions.clear()
         self._listOfReactions.clear()
+
+    def get_event(self,ename):
+        """
+        :param ename: Name of Event to get
+        :return: Event object
+        """
+        return self.listOfEvents[ename]
+
+    def get_all_events(self):
+        """
+        :return: dict of all Event objects
+        """
+        return self.listOfEvents
+
+    def delete_event(self,ename):
+        """
+        Removes specified Event from model
+        :param ename: Name of Event to be removed
+        """
+        self.listOfEvents.pop(ename)
+        self._listOfEvents.pop(ename)
+
+    def delete_all_events(self):
+        """
+        Clears models events
+        """
+        self.listOfEvents.clear()
+        self._listOfEvents.clear()
+
+    def get_rate_rule(self,rname):
+        """
+        :param rname: Name of Rate Rule to get
+        :return: RateRule object
+        """
+        return self.listOfRateRules[rname]
+
+    def get_all_rate_rules(self):
+        """
+        :return: dict of all Rate Rule objects
+        """
+        return self.listOfRateRules
+
+    def delete_rate_rule(self,rname):
+        """
+        Removes specified Rate Rule from model
+        :param rname: Name of Rate Rule to be removed
+        """
+        self.listOfRateRules.pop(rname)
+        self._listOfRateRules.pop(rname)
+
+    def delete_all_rate_rules(self):
+        """
+        Clears all of models Rate Rules
+        """
+        self.listOfRateRules.clear()
+        self._listOfRateRules.clear()
+
+    def get_assignment_rule(self,aname):
+        """
+        :param aname: Name of Assignment Rule to get
+        :return: Assignment Rule object
+        """
+        return self.listOfAssignmentRules[aname]
+
+    def get_all_assignment_rules(self):
+        """
+        :return: dict of models Assignment Rules
+        """
+        return self.listOfAssignmentRules
+
+    def delete_assignment_rule(self,aname):
+        """
+        Removes an assignment rule from a model
+        :param aname: Name of AssignmentRule object to be removed from model
+        """
+        self.listOfAssignmentRules.pop(aname)
+        self._listOfAssignmentRules.pop(aname)
+
+    def delete_all_assignment_rules(self):
+        """
+        Clears all assignment rules from model
+        """
+        self.listOfAssignmentRules.clear()
+        self._listOfAssignmentRules.clear()
+
+    def get_function_definition(self,fname):
+        """
+        :param fname: name of Function to get
+        :return: FunctionDefinition object
+        """
+        return self.listOfFunctionDefinitions[fname]
+
+    def get_all_function_definitions(self):
+        """
+        :return: Dict of models function definitions
+        """
+        return self.listOfFunctionDefinitions
+
+    def delete_function_definition(self,fname):
+        """
+        Removes specified Function Definition from model
+        :param fname: Name of Function Definition to be removed
+        """
+        self.listOfFunctionDefinitions.pop(fname)
+        self._listOfFunctionDefinitions.pop(fname)
+
+    def delete_all_function_definitions(self):
+        """
+        Clears all Function Definitions from a model
+        """
+        self.listOfFunctionDefinitions.clear()
+        self._listOfFunctionDefinitions.clear()
+
+    def get_element(self, ename):
+        """
+        get element specified by name
+        :param ename: name of element to search for
+        :return:value of element, or 'element not found'
+        """
+        if ename in self.listOfReactions:
+            return self.get_reaction(ename)
+        if ename in self.listOfSpecies:
+            return self.get_species(ename)
+        if ename in self.listOfParameters:
+            return self.get_parameter(ename)
+        if ename in self.listOfEvents:
+            return self.get_event(ename)
+        if ename in self.listOfRateRules:
+            return self.get_rate_rule(ename)
+        if ename in self.listOfAssignmentRules:
+            return self.get_assignment_rule(ename)
+        if ename in self.listOfFunctionDefinitions:
+            return self.get_function_definition(ename)
+        return 'Element not found!'
 
     def run(self, solver=None, timeout=0, **solver_args):
         """
