@@ -322,7 +322,7 @@ class Results(UserList):
             elif save_png:
                 plt.savefig(title)
 
-    def plotplotly(self, title=None, index = None, show_legend = True, xaxis_label = "Time (s)", yaxis_label="Species Population", multiple_graphs = False, included_species_list=[],return_plotly_figure=False, **plotly_args):
+    def plotplotly(self, title=None, index = None, show_legend = True, xaxis_label = "Time (s)", yaxis_label="Species Population", multiple_graphs = False, included_species_list=[],return_plotly_figure=False, **layout_args):
         """ Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.
 
         Attributes
@@ -341,18 +341,20 @@ class Results(UserList):
         return_plotly_figure : bool
             whether or not to return a figure dictionary of data(graph object traces) and layout options
             which may be edited by the user.
+        **layout_args: dict
+            Optional additional arguments to be passed to plotly's Layout constructor.
         """
 
         from plotly.offline import init_notebook_mode, iplot
         import plotly.graph_objs as go
 
         #Backwards compatibility with xaxis_label argument (which duplicates plotly's xaxis_title argument)
-        if plotly_args.get('xaxis_title') is not None:
-            xaxis_label = plotly_args.get('xaxis_title')
-            plotly_args.pop('xaxis_title')
-        if plotly_args.get('yaxis_title') is not None:
-            yaxis_label = plotly_args.get('yaxis_title')
-            plotly_args.pop('yaxis_title')
+        if layout_args.get('xaxis_title') is not None:
+            xaxis_label = layout_args.get('xaxis_title')
+            layout_args.pop('xaxis_title')
+        if layout_args.get('yaxis_title') is not None:
+            yaxis_label = layout_args.get('yaxis_title')
+            layout_args.pop('yaxis_title')
 
         init_notebook_mode(connected=True)
 
@@ -416,7 +418,7 @@ class Results(UserList):
                 title=title,
                 xaxis_title=xaxis_label,
                 yaxis_title=yaxis_label,
-                **plotly_args
+                **layout_args
             )
 
             fig['data'] = trace_list
@@ -515,7 +517,7 @@ class Results(UserList):
         return output_results
 
     def plotplotly_std_dev_range(self, xaxis_label = "Time (s)", yaxis_label="Species Population", title = None,
-                                 show_legend=True, included_species_list = [],return_plotly_figure=False,ddof = 0, **plotly_args):
+                                 show_legend=True, included_species_list = [],return_plotly_figure=False,ddof = 0, **layout_args):
         """
            Plot a plotly graph depicting standard deviation and the mean graph of a results object
 
@@ -538,16 +540,18 @@ class Results(UserList):
             Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
             the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
             standard deviation where ddof is 0.
+        **layout_args: dict
+            Optional additional arguments to be passed to plotly's Layout constructor.
 
         """
 
         #Backwards compatibility with xaxis_label argument (which duplicates plotly's xaxis_title argument)
-        if plotly_args.get('xaxis_title') is not None:
-            xaxis_label = plotly_args.get('xaxis_title')
-            plotly_args.pop('xaxis_title')
-        if plotly_args.get('yaxis_title') is not None:
-            yaxis_label = plotly_args.get('yaxis_title')
-            plotly_args.pop('yaxis_title')
+        if layout_args.get('xaxis_title') is not None:
+            xaxis_label = layout_args.get('xaxis_title')
+            layout_args.pop('xaxis_title')
+        if layout_args.get('yaxis_title') is not None:
+            yaxis_label = layout_args.get('yaxis_title')
+            layout_args.pop('yaxis_title')
 
         average_trajectory = self.average_ensemble().data[0]
         stddev_trajectory = self.stddev_ensemble(ddof= ddof).data[0]
@@ -616,7 +620,7 @@ class Results(UserList):
             title=title,
             xaxis_title=xaxis_label,
             yaxis_title=yaxis_label,
-            **plotly_args
+            **layout_args
         )
         fig = dict(data=trace_list, layout=layout)
 
