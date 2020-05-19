@@ -20,7 +20,7 @@ def _copy_files(destination):
             shutil.copy(src_file, destination)
 
 
-def _write_constants(outfile, model, reactions, species, parameter_mappings,resume = None):
+def _write_constants(outfile, model, reactions, species, parameter_mappings, resume=None):
     outfile.write("const double V = {};\n".format(model.volume))
     outfile.write("std :: string s_names[] = {");
     if len(species) > 0:
@@ -31,8 +31,15 @@ def _write_constants(outfile, model, reactions, species, parameter_mappings,resu
         outfile.write("};\nunsigned int populations[] = {")
         #Write initial populations.
         for i in range(len(species)-1):
-            outfile.write('{}, '.format(int(model.listOfSpecies[species[i]].initial_value)))
-        outfile.write('{}'.format(int(model.listOfSpecies[species[-1]].initial_value)))
+            #If resuming
+            if resume != None:
+                outfile.write('{}, '.format(int(resume[species[i]][-1])))
+            else:
+                outfile.write('{}, '.format(int(model.listOfSpecies[species[i]].initial_value)))
+        if resume != None:
+            outfile.write('{}, '.format(int(resume[species[-1]][-1])))
+        else:
+            outfile.write('{}'.format(int(model.listOfSpecies[species[-1]].initial_value)))
         outfile.write("};\n")
     if len(reactions) > 0:
         #Write reaction names
@@ -82,7 +89,6 @@ def _parse_binary_output(results_buffer, number_of_trajectories, number_timestep
                     if stopTest>=number_species:
                         if timeStopped == 0:
                             timeStopped = timestep
-                            print("time stopped @ ",timeStopped)
                 else:
                     stopTest = 0
             index += number_species
@@ -92,11 +98,13 @@ def _parse_binary_output(results_buffer, number_of_trajectories, number_timestep
 class SSACSolver(GillesPySolver):
     name = "SSACSolver"
     """TODO"""
-    def __init__(self, model=None, output_directory=None, delete_directory=True):
+
+    def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None):
         super(SSACSolver, self).__init__()
         self.__compiled = False
         self.delete_directory = False
         self.model = model
+        self.resume = resume
         if self.model is not None:
             # Create constant, ordered lists for reactions/species/
             self.species_mappings = self.model.sanitized_species_names()
@@ -141,7 +149,7 @@ class SSACSolver(GillesPySolver):
                     if line.startswith(template_keyword):
                         line = line[len(template_keyword):]
                         if line.startswith("CONSTANTS"):
-                            _write_constants(outfile, self.model, self.reactions, self.species, self.parameter_mappings)
+                            _write_constants(outfile, self.model, self.reactions, self.species, self.parameter_mappings,self.resume)
                         if line.startswith("PROPENSITY"):
                             _write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings, self.reactions)
                         if line.startswith("REACTIONS"):
@@ -159,10 +167,13 @@ class SSACSolver(GillesPySolver):
             raise gillespyError.BuildError("Error encountered while compiling file:\nReturn code: {0}.\nError:\n{1}\n{2}\n".format(built.returncode, built.stdout.decode('utf-8'),built.stderr.decode('utf-8')))
 
     def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
-            increment=0.05, seed=None, debug=False, profile=False, show_labels=True, **kwargs):
+            increment=0.05, seed=None, debug=False, profile=False, show_labels=True, resume=None, **kwargs):
+        if resume != None:
+            self = SSACSolver(model,resume = resume)
+        else:
+            if self is None or self.model is None:
+                self = SSACSolver(model)
 
-        if self is None or self.model is None:
-            self = SSACSolver(model)
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
@@ -214,18 +225,15 @@ class SSACSolver(GillesPySolver):
                     print('interrupt!')
                     os.killpg(simulation.pid, signal.SIGINT)  # send signal to the process group
                     stdout, stderr = simulation.communicate()
-                    return_code =
+                    return_code = 33
                 except subprocess.TimeoutExpired:
                         os.killpg(simulation.pid, signal.SIGINT) #send signal to the process group
                         stdout, stderr = simulation.communicate()
                         return_code = 33
  
             # Parse/return results.
-            if return_code in [0,33]:
+            if return_code in [0,22,33]:
                 trajectory_base, timeStopped = _parse_binary_output(stdout, number_of_trajectories, number_timesteps, len(self.species))
-                print("Look here, boy, we are in line 226, rc code is probably 22, we stopped at time @",timeStopped)
-                #If paused below
-                return_code = 22
                 # Format results
                 if show_labels:
                     self.simulation_data = []
@@ -233,13 +241,28 @@ class SSACSolver(GillesPySolver):
                         data = {'time': trajectory_base[trajectory, :, 0]}
                         for i in range(len(self.species)):
                             data[self.species[i]] = trajectory_base[trajectory, :, i+1]
-                            #print(trajectory_base[trajectory, :, i+1])
-                            #print(data[self.species[i]])
 
                         self.simulation_data.append(data)
                 else:
                     self.simulation_data = trajectory_base
             else:
-                raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:\nReturn code: {0}.\nError:\n{1}\n".format(simulation.returncode, simulation.stderr))
+                raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:"
+                                                   "\nReturn code: {0}.\nError:\n{1}\n".
+                                                   format(simulation.returncode, simulation.stderr))
+            #If simulation was paused/KeyboardInterrupt
+            if timeStopped!=0:
+                for i in self.simulation_data[0]:
+                    self.simulation_data[0][i] = self.simulation_data[0][i][:timeStopped]
+            if resume != None:
+                resumeTime = int(resume['time'][-1])
+                timeSpan = np.linspace(resumeTime,resumeTime+t,(resumeTime+t)-resumeTime+1)
+                self.simulation_data[0]['time'] = timeSpan
+
+            if resume != None:
+                for i in self.simulation_data[0]:
+                    oldData = resume[i][:-1]
+                    newData = self.simulation_data[0][i]
+                    self.simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
+
         return self.simulation_data, return_code
 
