@@ -20,7 +20,7 @@ def _copy_files(destination):
             shutil.copy(src_file, destination)
 
 
-def _write_constants(outfile, model, reactions, species, parameter_mappings):
+def _write_constants(outfile, model, reactions, species, parameter_mappings,resume = None):
     outfile.write("const double V = {};\n".format(model.volume))
     outfile.write("std :: string s_names[] = {");
     if len(species) > 0:
@@ -62,24 +62,12 @@ def _write_reactions(outfile, model, reactions, species):
             if change != 0:
                 outfile.write("model.reactions[{0}].species_change[{1}] = {2};\n".format(i, j, change))
 
-
-def _parse_output(results, number_of_trajectories, number_timesteps, number_species):
-    trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
-    for timestep in range(number_timesteps):
-        values = results[timestep].split(" ")
-        trajectory_base[:, timestep, 0] = float(values[0])
-        index = 1
-        for trajectory in range(number_of_trajectories):
-            for species in range(number_species):
-                trajectory_base[trajectory, timestep, 1 + species] = float(values[index+species])
-            index += number_species
-    return trajectory_base
-
-
 def _parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species):
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
     step_size = number_species * number_of_trajectories + 1 #1 for timestep
     data = np.frombuffer(results_buffer, dtype=np.float64)
+    timeStopped = 0
+    stopTest = 0
     assert(len(data) == (number_of_trajectories*number_timesteps*number_species + number_timesteps))
     for timestep in range(number_timesteps):
         index = step_size * timestep
@@ -88,8 +76,17 @@ def _parse_binary_output(results_buffer, number_of_trajectories, number_timestep
         for trajectory in range(number_of_trajectories):
             for species in range(number_species):
                 trajectory_base[trajectory, timestep, 1 + species] = data[index + species]
+
+                if data[index+species] == 0:
+                    stopTest += 1
+                    if stopTest>=number_species:
+                        if timeStopped == 0:
+                            timeStopped = timestep
+                            print("time stopped @ ",timeStopped)
+                else:
+                    stopTest = 0
             index += number_species
-    return trajectory_base
+    return trajectory_base, timeStopped
 
 
 class SSACSolver(GillesPySolver):
@@ -205,20 +202,30 @@ class SSACSolver(GillesPySolver):
             #begin subprocess c simulation with timeout (default timeout=0 will not timeout)
             with subprocess.Popen(args, stdout=subprocess.PIPE, preexec_fn=os.setsid) as simulation:
                 return_code = 0
+
+
                 try:
                     if timeout > 0:
                         stdout, stderr = simulation.communicate(timeout=timeout)
                     else:
                         stdout, stderr = simulation.communicate()
                     return_code = simulation.wait()
+                except KeyboardInterrupt:
+                    print('interrupt!')
+                    os.killpg(simulation.pid, signal.SIGINT)  # send signal to the process group
+                    stdout, stderr = simulation.communicate()
+                    return_code =
                 except subprocess.TimeoutExpired:
                         os.killpg(simulation.pid, signal.SIGINT) #send signal to the process group
                         stdout, stderr = simulation.communicate()
                         return_code = 33
  
             # Parse/return results.
-            if return_code in [0, 33]:
-                trajectory_base = _parse_binary_output(stdout, number_of_trajectories, number_timesteps, len(self.species))
+            if return_code in [0,33]:
+                trajectory_base, timeStopped = _parse_binary_output(stdout, number_of_trajectories, number_timesteps, len(self.species))
+                print("Look here, boy, we are in line 226, rc code is probably 22, we stopped at time @",timeStopped)
+                #If paused below
+                return_code = 22
                 # Format results
                 if show_labels:
                     self.simulation_data = []
@@ -226,6 +233,9 @@ class SSACSolver(GillesPySolver):
                         data = {'time': trajectory_base[trajectory, :, 0]}
                         for i in range(len(self.species)):
                             data[self.species[i]] = trajectory_base[trajectory, :, i+1]
+                            #print(trajectory_base[trajectory, :, i+1])
+                            #print(data[self.species[i]])
+
                         self.simulation_data.append(data)
                 else:
                     self.simulation_data = trajectory_base
