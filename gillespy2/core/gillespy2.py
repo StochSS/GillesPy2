@@ -731,6 +731,17 @@ non-negative unless allow_negative_populations=True')
         '''
         return print_string
 
+    def set_initial_value(self,num):
+        """
+        Setter method for initial_value of a population
+        :param num: Integer to set initial species population
+        :raises SpeciesError: If num is non-negative or a decimal number
+        """
+        if isinstance(num,float):
+            raise SpeciesError("A species population must be an integer")
+        if num < 0:
+            raise SpeciesError("A species population must be non-negative")
+        self.initial_value = num
 
 class Parameter(SortableObject):
     """
