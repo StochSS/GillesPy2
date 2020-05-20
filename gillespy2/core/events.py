@@ -1,6 +1,5 @@
 from collections import OrderedDict
 from gillespy2.core.gillespyError import *
-from gillespy2.core.gillespy2 import *
 
 class EventAssignment:
     """
@@ -30,7 +29,8 @@ class EventAssignment:
             self.expression = str(expression)
 
         
-        from gillespy2.core.gillespy2 import Species, Parameter
+        from gillespy2.core.Parameter import  Parameter
+        from gillespy2.core.Species import Species
         #TODO: ADD Compartment to valid variable types once implemented
         valid_variable_types = [Species, Parameter, str]
 
@@ -202,7 +202,7 @@ class Event:
                     'or list of EventAssignment objects.')
         else:
             raise ModelError("Unexpected parameter for add_assignment. Parameter must be EventAssignment or list of EventAssignments")
-        return obj
+        return assignment
 
 
 

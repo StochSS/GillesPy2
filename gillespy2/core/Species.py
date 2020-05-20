@@ -1,0 +1,85 @@
+from gillespy2.core.SortableObject import SortableObject
+from gillespy2.core.gillespyError import *
+import numpy as np
+
+class Species(SortableObject):
+    """
+    Chemical species. Can be added to Model object to interact with other
+    species or time.
+
+    Attributes
+    ----------
+    name : str
+        The name by which this species will be called in reactions and within
+        the model.
+    initial_value : int >= 0
+        Initial population of this species. If this is not provided as an int,
+        the type will be changed when it is added by numpy.int
+    constant: bool
+        If true, the value of the species cannot be changed.
+        (currently BasicTauHybridSolver only)
+    boundary_condition: bool
+        If true, species can be changed by events and rate rules, but not by
+        reactions. (currently BasicTauHybridOnly)
+    mode : str
+        ***FOR USE WITH BasicTauHybridSolver ONLY***
+        Sets the mode of representation of this species for the TauHybridSolver,
+        can be discrete, continuous, or dynamic.
+        mode='dynamic' - Default, allows a species to be represented as
+            either discrete or continuous
+        mode='continuous' - Species will only be represented as continuous
+        mode='discrete' - Species will only be represented as discrete
+    allow_negative_populations: bool
+        If true, population can be reduced below 0
+    switch_tol : float
+        ***FOR USE WITH BasicTauHybridSolver ONLY***
+        Tolerance level for considering a dynamic species deterministically,
+        value is compared to an estimated sd/mean population of a species after a
+        given time step. This value will be used if a switch_min is not
+        provided.  The default value is 0.03
+    switch_min : float
+        ***FOR USE WITH BasicTauHybridSolver ONLY***
+        Minimum population value at which species will be represented as
+        continuous. If a value is given, switch_min will be used instead of
+        switch_tol
+
+    """
+
+    def __init__(self, name="", initial_value=0, constant=False,
+                 boundary_condition=False, mode='dynamic',
+                 allow_negative_populations=False, switch_min=0,
+                 switch_tol=0.03):
+        # A species has a name (string) and an initial value (positive integer)
+        self.name = name
+        self.constant = constant
+        self.boundary_condition = boundary_condition
+        self.mode = mode
+        self.allow_negative_populations = allow_negative_populations
+        self.switch_min = switch_min
+        self.switch_tol = switch_tol
+
+        mode_list = ['continuous', 'dynamic', 'discrete']
+        if self.mode not in mode_list:
+            raise SpeciesError('Species mode must be either \'continuous\', \'dynamic\', or \'discrete\'.')
+        if mode == 'continuous':
+            self.initial_value = np.float(initial_value)
+        else:
+            if np.int(initial_value) != initial_value:
+                raise ValueError(
+                    "'initial_value' for Species with mode='discrete' must be an integer value. Change to mode='continuous' to use floating point values.")
+            self.initial_value = np.int(initial_value)
+        if not allow_negative_populations:
+            if self.initial_value < 0: raise ValueError('A species initial value must be \
+non-negative unless allow_negative_populations=True')
+
+    def __str__(self):
+        print_string = self.name
+        print_string += ': ' + str(self.initial_value)
+        '''
+        print_string += '\n\tInitial Value: ' + str(self.initial_value)
+        print_string += '\n\tConstant: ' + str(self.constant)
+        print_string += '\n\tBoundary Condition: ' + str(self.boundary_condition)
+        print_string += '\n\tMode: ' + self.mode
+        print_string += '\n\tAllow Negative Populations: ' + str(self.allow_negative_populations)
+        '''
+        return print_string
