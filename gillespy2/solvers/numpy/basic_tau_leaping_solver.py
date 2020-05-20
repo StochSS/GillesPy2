@@ -1,10 +1,11 @@
 """Class and methods for Basic Tau Leaping Solver"""
 
 
-import random, math, sys, warnings
+import random, math
 from threading import Thread, Event
 import numpy as np
-from gillespy2.solvers.numpy import Tau
+from gillespy2.solvers.utilities import Tau
+from gillespy2.solvers.utilities import solverutils as nputils
 from gillespy2.core import GillesPySolver, log
 
 
@@ -291,11 +292,13 @@ class BasicTauLeapingSolver(GillesPySolver):
                 
             # end of trajectory
             if show_labels:
-                for i in range(number_species):
-                    data[species[i]] = trajectory[:, i+1]
-                simulation_data.append(data)
+                data = {
+                    'time': timeline
+                }
+                simulation_data = nputils.numpyresults(data, species, number_species, trajectory, simulation_data)
             else:
                 simulation_data = trajectory_base
+
             if profile:
                 print(steps_taken)
                 print("Total Steps Taken: ", len(steps_taken))
