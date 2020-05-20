@@ -737,10 +737,11 @@ non-negative unless allow_negative_populations=True')
         :param num: Integer to set initial species population
         :raises SpeciesError: If num is non-negative or a decimal number
         """
-        if isinstance(num,float):
-            raise SpeciesError("A species population must be an integer")
-        if num < 0:
-            raise SpeciesError("A species population must be non-negative")
+        if isinstance(num,float) and self.mode != 'dynamic' or self.mode != 'continuous':
+            raise SpeciesError("Mode set to discrete, species must be an integer number.")
+        if num < 0 & self.allow_negative_populations == False:
+            raise SpeciesError("Species population must be non-negative, or allow_negative_populations "
+                               "must be set to True")
         self.initial_value = num
 
 class Parameter(SortableObject):
