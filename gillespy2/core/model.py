@@ -1,9 +1,9 @@
-from gillespy2.core.SortableObject import SortableObject
+from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.gillespyError import *
-from gillespy2.core.Reaction import *
-from gillespy2.core.RateRule import RateRule
+from gillespy2.core.reaction import *
+from gillespy2.core.raterule import RateRule
 from gillespy2.core.results import Trajectory,Results
-from gillespy2.core.Utilities import StochMLDocument
+from gillespy2.core.utilities import StochMLDocument
 from collections import OrderedDict
 import numpy as np
 

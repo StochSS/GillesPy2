@@ -1,4 +1,4 @@
-from gillespy2.core.SortableObject import SortableObject
+from gillespy2.core.sortableobject import SortableObject
 
 class RateRule(SortableObject):
     """
