@@ -28,26 +28,10 @@ gillespy2.solvers.numpy.basic\_tau\_hybrid\_solver module
    :undoc-members:
    :show-inheritance:
 
-gillespy2.solvers.numpy.basic\_tau\_hybrid\_v2 module
------------------------------------------------------
-
-.. automodule:: gillespy2.solvers.numpy.basic_tau_hybrid_v2
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 gillespy2.solvers.numpy.basic\_tau\_leaping\_solver module
 ----------------------------------------------------------
 
 .. automodule:: gillespy2.solvers.numpy.basic_tau_leaping_solver
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-gillespy2.solvers.numpy.just\_in\_cases module
-----------------------------------------------
-
-.. automodule:: gillespy2.solvers.numpy.just_in_cases
    :members:
    :undoc-members:
    :show-inheritance:
