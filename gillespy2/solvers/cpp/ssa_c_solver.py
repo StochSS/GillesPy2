@@ -1,5 +1,6 @@
 import gillespy2
 from gillespy2.core import Model, Reaction, gillespyError, GillesPySolver, log
+from gillespy2.solvers.utilities import solverutils as cs
 import signal, time #for solver timeout implementation
 import os #for getting directories for C++ files
 import shutil #for deleting/copying files
@@ -10,15 +11,6 @@ import numpy as np
 
 GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
 GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base')
-
-
-def _copy_files(destination):
-    src_files = os.listdir(GILLESPY_C_DIRECTORY)
-    for src_file in src_files:
-        src_file = os.path.join(GILLESPY_C_DIRECTORY, src_file)
-        if os.path.isfile(src_file):
-            shutil.copy(src_file, destination)
-
 
 def _write_constants(outfile, model, reactions, species, parameter_mappings):
     outfile.write("const double V = {};\n".format(model.volume))
@@ -43,54 +35,6 @@ def _write_constants(outfile, model, reactions, species, parameter_mappings):
         outfile.write("};\n")
     for param in model.listOfParameters:
         outfile.write("const double {0} = {1};\n".format(parameter_mappings[param], model.listOfParameters[param].value))
-
-
-def _write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
-    for i in range(len(reactions)):
-        # Write switch statement case for reaction
-        outfile.write("""
-        case {0}:
-            return {1};
-        """.format(i, model.listOfReactions[reactions[i]].sanitized_propensity_function(species_mappings, parameter_mappings)))
-
-
-def _write_reactions(outfile, model, reactions, species):
-    for i in range(len(reactions)):
-        reaction = model.listOfReactions[reactions[i]]
-        for j in range(len(species)):
-            change = (reaction.products.get(model.listOfSpecies[species[j]], 0)) - (reaction.reactants.get(model.listOfSpecies[species[j]], 0))
-            if change != 0:
-                outfile.write("model.reactions[{0}].species_change[{1}] = {2};\n".format(i, j, change))
-
-
-def _parse_output(results, number_of_trajectories, number_timesteps, number_species):
-    trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
-    for timestep in range(number_timesteps):
-        values = results[timestep].split(" ")
-        trajectory_base[:, timestep, 0] = float(values[0])
-        index = 1
-        for trajectory in range(number_of_trajectories):
-            for species in range(number_species):
-                trajectory_base[trajectory, timestep, 1 + species] = float(values[index+species])
-            index += number_species
-    return trajectory_base
-
-
-def _parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species):
-    trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
-    step_size = number_species * number_of_trajectories + 1 #1 for timestep
-    data = np.frombuffer(results_buffer, dtype=np.float64)
-    assert(len(data) == (number_of_trajectories*number_timesteps*number_species + number_timesteps))
-    for timestep in range(number_timesteps):
-        index = step_size * timestep
-        trajectory_base[:, timestep, 0] = data[index]
-        index += 1
-        for trajectory in range(number_of_trajectories):
-            for species in range(number_species):
-                trajectory_base[trajectory, timestep, 1 + species] = data[index + species]
-            index += number_species
-    return trajectory_base
-
 
 class SSACSolver(GillesPySolver):
     name = "SSACSolver"
@@ -125,7 +69,7 @@ class SSACSolver(GillesPySolver):
                 
             if not os.path.isdir(self.output_directory):
                 raise gillespyError.DirectoryError("Errors encountered while setting up directory for Solver C++ files.")
-            _copy_files(self.output_directory)
+            cs._copy_files(self.output_directory,GILLESPY_C_DIRECTORY)
             self.__write_template()
             self.__compile()
         
@@ -146,9 +90,9 @@ class SSACSolver(GillesPySolver):
                         if line.startswith("CONSTANTS"):
                             _write_constants(outfile, self.model, self.reactions, self.species, self.parameter_mappings)
                         if line.startswith("PROPENSITY"):
-                            _write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings, self.reactions)
+                            cs._write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings, self.reactions)
                         if line.startswith("REACTIONS"):
-                            _write_reactions(outfile, self.model, self.reactions, self.species)
+                            cs._write_reactions(outfile, self.model, self.reactions, self.species)
                     else:
                         outfile.write(line)
 
@@ -215,21 +159,9 @@ class SSACSolver(GillesPySolver):
                         os.killpg(simulation.pid, signal.SIGINT) #send signal to the process group
                         stdout, stderr = simulation.communicate()
                         return_code = 33
- 
-            # Parse/return results.
-            if return_code in [0, 33]:
-                trajectory_base = _parse_binary_output(stdout, number_of_trajectories, number_timesteps, len(self.species))
-                # Format results
-                if show_labels:
-                    self.simulation_data = []
-                    for trajectory in range(number_of_trajectories):
-                        data = {'time': trajectory_base[trajectory, :, 0]}
-                        for i in range(len(self.species)):
-                            data[self.species[i]] = trajectory_base[trajectory, :, i+1]
-                        self.simulation_data.append(data)
-                else:
-                    self.simulation_data = trajectory_base
-            else:
-                raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:\nReturn code: {0}.\nError:\n{1}\n".format(simulation.returncode, simulation.stderr))
+
+            self.simulation_data, return_code = cs.c_solver_results(return_code,stdout,
+                                                                 number_of_trajectories,number_timesteps,self,show_labels)
+
         return self.simulation_data, return_code
 

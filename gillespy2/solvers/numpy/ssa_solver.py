@@ -1,5 +1,6 @@
 from threading import Thread, Event
 from gillespy2.core import GillesPySolver, Model, Reaction, log
+from gillespy2.solvers.utilities import solverutils as nputils
 import random
 import math
 import numpy as np
@@ -172,14 +173,15 @@ class NumPySSASolver(GillesPySolver):
                             if debug:
                                 print('new propensity sum: ', propensity_sums[i])
                         break
+
             if show_labels:
                 data = {
                     'time': timeline
                 }
-                for i in range(number_species):
-                    data[species[i]] = trajectory[:, i+1]
-                simulation_data.append(data)
+                simulation_data = nputils.numpyresults(data, species, number_species, trajectory,simulation_data)
             else:
                 simulation_data = trajectory_base
+
+
         self.result = simulation_data
         return self.result, self.rc
