@@ -232,7 +232,7 @@ class SSACSolver(GillesPySolver):
                         return_code = 33
  
             # Parse/return results.
-            if return_code in [0,22,33]:
+            if return_code in [0, 33]:
                 trajectory_base, timeStopped = _parse_binary_output(stdout, number_of_trajectories, number_timesteps, len(self.species))
                 # Format results
                 if show_labels:

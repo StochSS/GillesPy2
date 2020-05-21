@@ -20,7 +20,7 @@ def _copy_files(destination):
             shutil.copy(src_file, destination)
 
 
-def _write_variables(outfile, model, reactions, species, parameters, parameter_mappings):
+def _write_variables(outfile, model, reactions, species, parameters, parameter_mappings, resume=None):
     outfile.write("double V = {};\n".format(model.volume))
     outfile.write("std :: string s_names[] = {");
     if len(species) > 0:
@@ -30,9 +30,16 @@ def _write_variables(outfile, model, reactions, species, parameters, parameter_m
         outfile.write('"{}"'.format(species[-1]))
         outfile.write("};\nunsigned int populations[] = {")
         #Write initial populations.
-        for i in range(len(species)-1):
-            outfile.write('{}, '.format(int(model.listOfSpecies[species[i]].initial_value)))
-        outfile.write('{}'.format(int(model.listOfSpecies[species[-1]].initial_value)))
+        for i in range(len(species) - 1):
+            # If resuming
+            if resume != None:
+                outfile.write('{}, '.format(int(resume[species[i]][-1])))
+            else:
+                outfile.write('{}, '.format(int(model.listOfSpecies[species[i]].initial_value)))
+        if resume != None:
+            outfile.write('{}, '.format(int(resume[species[-1]][-1])))
+        else:
+            outfile.write('{}'.format(int(model.listOfSpecies[species[-1]].initial_value)))
         outfile.write("};\n")
     if len(reactions) > 0:
         #Write reaction names
@@ -87,6 +94,8 @@ def _parse_binary_output(results_buffer, number_of_trajectories, number_timestep
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
     step_size = number_species * number_of_trajectories + 1 #1 for timestep
     data = np.frombuffer(results_buffer, dtype=np.float64)
+    timeStopped = 0
+    stopTest = 0
     assert(len(data) == (number_of_trajectories*number_timesteps*number_species + number_timesteps))
     for timestep in range(number_timesteps):
         index = step_size * timestep
@@ -95,17 +104,26 @@ def _parse_binary_output(results_buffer, number_of_trajectories, number_timestep
         for trajectory in range(number_of_trajectories):
             for species in range(number_species):
                 trajectory_base[trajectory, timestep, 1 + species] = data[index + species]
+
+                if data[index+species] == 0:
+                    stopTest += 1
+                    if stopTest>=number_species:
+                        if timeStopped == 0:
+                            timeStopped = timestep
+                else:
+                    stopTest = 0
             index += number_species
-    return trajectory_base
+    return trajectory_base, timeStopped
 
 
 class VariableSSACSolver(GillesPySolver):
     name = "VariableSSACSolver"
-    def __init__(self, model=None, output_directory=None, delete_directory=True):
+    def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None):
         super(VariableSSACSolver, self).__init__()
         self.__compiled = False
         self.delete_directory = False
         self.model = model
+        self.resume = resume
         if self.model is not None:
             # Create constant, ordered lists for reactions/species/
             self.species_mappings = self.model.sanitized_species_names()
@@ -150,9 +168,11 @@ class VariableSSACSolver(GillesPySolver):
                     if line.startswith(template_keyword):
                         line = line[len(template_keyword):]
                         if line.startswith("VARIABLES"):
-                            _write_variables(outfile, self.model, self.reactions, self.species, self.parameters, self.parameter_mappings)
+                            _write_variables(outfile, self.model, self.reactions, self.species, self.parameters,
+                                             self.parameter_mappings,self.resume)
                         if line.startswith("PROPENSITY"):
-                            _write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings, self.reactions)
+                            _write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings,
+                                              self.reactions)
                         if line.startswith("REACTIONS"):
                             _write_reactions(outfile, self.model, self.reactions, self.species)
                         if line.startswith("PARAMETER_UPDATES"):
@@ -162,19 +182,27 @@ class VariableSSACSolver(GillesPySolver):
 
     def __compile(self):
         # Use makefile.
-        cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulation'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulation'], stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+        built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'], stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
         if built.returncode == 0:
             self.__compiled = True
         else:
-            raise gillespyError.BuildError("Error encountered while compiling file:\nReturn code: {0}.\nError:\n{1}\n{2}\n".format(built.returncode, built.stdout.decode('utf-8'),built.stderr.decode('utf-8')))
+            raise gillespyError.BuildError("Error encountered while compiling file:\nReturn code: {0}."
+                                           "\nError:\n{1}\n{2}\n".format(built.returncode, built.stdout.decode
+            ('utf-8'),built.stderr.decode('utf-8')))
 
     def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
             increment=0.05, seed=None, debug=False, profile=False, show_labels=True, 
-            variables={}, **kwargs):
+            variables={}, resume=None, **kwargs):
 
-        if self is None or self.model is None:
-            self = VariableSSACSolver(model)
+        if resume != None:
+            self = VariableSSACSolver(model, resume=resume)
+        else:
+            if self is None or self.model is None:
+                self = VariableSSACSolver(model)
+
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
@@ -255,12 +283,18 @@ is not a valid variable.  Variables must be model species or parameters.'.format
             #begin subprocess c simulation with timeout (default timeout=0 will not timeout)
             with subprocess.Popen(args, stdout=subprocess.PIPE, preexec_fn=os.setsid) as simulation:
                 return_code = 0
+
                 try:
                     if timeout > 0:
                         stdout, stderr = simulation.communicate(timeout=timeout)
                     else:
                         stdout, stderr = simulation.communicate()
                     return_code = simulation.wait()
+                except KeyboardInterrupt:
+                    print('interrupt!')
+                    os.killpg(simulation.pid, signal.SIGINT)  # send signal to the process group
+                    stdout, stderr = simulation.communicate()
+                    return_code = 33
                 except subprocess.TimeoutExpired:
                         os.killpg(simulation.pid, signal.SIGINT) #send signal to the process group
                         stdout, stderr = simulation.communicate()
@@ -268,18 +302,37 @@ is not a valid variable.  Variables must be model species or parameters.'.format
  
             # Parse/return results.
             if return_code in [0, 33]:
-                trajectory_base = _parse_binary_output(stdout, number_of_trajectories, number_timesteps, len(self.species))
+                trajectory_base, timeStopped = _parse_binary_output(stdout, number_of_trajectories, number_timesteps,
+                                                                    len(self.species))
                 # Format results
                 if show_labels:
                     self.simulation_data = []
                     for trajectory in range(number_of_trajectories):
                         data = {'time': trajectory_base[trajectory, :, 0]}
                         for i in range(len(self.species)):
-                            data[self.species[i]] = trajectory_base[trajectory, :, i+1]
+                            data[self.species[i]] = trajectory_base[trajectory, :, i + 1]
+
                         self.simulation_data.append(data)
                 else:
                     self.simulation_data = trajectory_base
             else:
-                raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:\nReturn code: {0}.\nError:\n{1}\n".format(simulation.returncode, simulation.stderr))
+                raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:"
+                                                   "\nReturn code: {0}.\nError:\n{1}\n".
+                                                   format(simulation.returncode, simulation.stderr))
+            # If simulation was paused/KeyboardInterrupt
+            if timeStopped != 0:
+                for i in self.simulation_data[0]:
+                    self.simulation_data[0][i] = self.simulation_data[0][i][:timeStopped]
+            if resume != None:
+                resumeTime = int(resume['time'][-1])
+                timeSpan = np.linspace(resumeTime, resumeTime + t, (resumeTime + t) - resumeTime + 1)
+                self.simulation_data[0]['time'] = timeSpan
+
+            if resume != None:
+                for i in self.simulation_data[0]:
+                    oldData = resume[i][:-1]
+                    newData = self.simulation_data[0][i]
+                    self.simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
+
         return self.simulation_data, return_code
 
