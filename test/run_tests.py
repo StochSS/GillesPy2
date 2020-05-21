@@ -24,6 +24,7 @@ if __name__ == '__main__':
     import test_hybrid_solver
     import test_simple_model
     import test_ssa_c_solver
+    import test_variable_ssa_c_solver
     import test_SBML
     import test_example_models
     import test_all_solvers
@@ -38,6 +39,7 @@ if __name__ == '__main__':
         test_hybrid_solver,
         test_simple_model,
         test_ssa_c_solver,
+        test_variable_ssa_c_solver,
         test_SBML,
         test_example_models,
         test_all_solvers,
