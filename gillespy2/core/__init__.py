@@ -5,7 +5,6 @@ from gillespy2.core.species import Species
 from gillespy2.core.reaction import Reaction
 from gillespy2.core.parameter import Parameter
 from gillespy2.core.raterule import RateRule
-from gillespy2.core.utilities import *
 from gillespy2.core.functiondefinition import FunctionDefinition
 from gillespy2.core.assignmentrule import AssignmentRule
 from gillespy2.core.sortableobject import SortableObject

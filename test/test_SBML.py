@@ -1,11 +1,9 @@
 import unittest
 import tempfile
 import os
-from gillespy2.core import Model, import_SBML
-from gillespy2.sbml import SBMLimport
+from gillespy2.core.model import Model, import_SBML
 from gillespy2.core.gillespyError import *
 from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
-import numpy as np
 
 class TestSBML(unittest.TestCase):
 
