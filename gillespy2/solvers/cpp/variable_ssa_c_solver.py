@@ -76,7 +76,7 @@ class VariableSSACSolver(GillesPySolver):
                 
             if not os.path.isdir(self.output_directory):
                 raise gillespyError.DirectoryError("Errors encountered while setting up directory for Solver C++ files.")
-            cs._copy_files(self.output_directory)
+            cs._copy_files(self.output_directory,GILLESPY_C_DIRECTORY)
             self.__write_template()
             self.__compile()
         
