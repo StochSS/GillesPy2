@@ -5,7 +5,7 @@ import heapq
 import numpy as np
 import threading
 import gillespy2
-from gillespy2.solvers.numpy import Tau
+from gillespy2.solvers.utilities import Tau
 from gillespy2.core import GillesPySolver, log
 from gillespy2.core.gillespyError import *
 
