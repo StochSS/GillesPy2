@@ -215,7 +215,7 @@ class Results(UserList):
             now = datetime.now()
             stamp=datetime.timestamp(now)
         if nametag is None:
-            identifier = self._validate_title()
+            identifier = self._validate_title(show_title=True)
         else:
             identifier = nametag
         if path is None:
