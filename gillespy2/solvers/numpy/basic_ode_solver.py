@@ -92,7 +92,6 @@ class BasicODESolver(GillesPySolver):
             self.stop_event.set()
             while self.result is None: pass
         except:
-            print('interrupted!')
             self.pause_event.set()
             while self.result is None: pass
         if hasattr(self, 'has_raised_exception'):
@@ -100,7 +99,7 @@ class BasicODESolver(GillesPySolver):
         return self.result, self.rc
 
     def ___run(self, model, t=20, number_of_trajectories=1, increment=0.05, timeout=None,
-            show_labels=True, integrator='lsoda', integrator_options={}, resume = None, **kwargs):
+            show_labels=True, integrator='lsoda', integrator_options={}, resume=None, **kwargs):
 
         try:
             self.__run(model, t, number_of_trajectories, increment, timeout,
@@ -111,13 +110,20 @@ class BasicODESolver(GillesPySolver):
             return [], -1
 
     def __run(self, model, t=20, number_of_trajectories=1, increment=0.05, timeout=None,
-            show_labels=True, integrator='lsoda', integrator_options={}, resume = None, **kwargs):
-
-        if resume!= None and t < resume['time'][-1]:
-            log.warning("'t' must be greater than previous simulations end time, or set in the run() function as the "
-                        "simulations next end time")
+            show_labels=True, integrator='lsoda', integrator_options={}, resume=None, **kwargs):
 
         timeStopped = 0
+        if not (resume is None):
+            if show_labels == False:
+                if t < resume[0][-1][0]:
+                    log.warning(
+                        "'t' must be greater than previous simulations end time, or set in the run() function as the "
+                        "simulations next end time")
+            else:
+                if t < resume['time'][-1]:
+                    log.warning(
+                        "'t' must be greater than previous simulations end time, or set in the run() function as the "
+                        "simulations next end time")
 
         start_state = [model.listOfSpecies[species].initial_value for species in model.listOfSpecies]
 
@@ -127,10 +133,13 @@ class BasicODESolver(GillesPySolver):
         parameter_mappings = model.sanitized_parameter_names()
         number_species = len(species)
 
-        # create numpy array for timeline
-        if resume != None:
+        if not (resume is None):
             # start where we last left off if resuming a simulation
-            timeline = np.linspace(resume['time'][-1], t, int(round(t - resume['time'][-1] + 1)))
+            if show_labels == False:
+                lastT = resume[0][-1][0]
+            else:
+                lastT = resume['time'][-1]
+            timeline = np.linspace(lastT, t, int(round(t - lastT + 1)))
         else:
             timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
@@ -141,16 +150,21 @@ class BasicODESolver(GillesPySolver):
         trajectory_base[:, :, 0] = timeline
 
         # copy initial populations to base
-        if resume != None:
+        if not (resume is None):
             tmpSpecies = {}
             # Set initial values of species to where last left off
-            for i in species:
-                tmpSpecies[i] = resume[i][-1]
+            if show_labels == False:
+                for i, s in enumerate(species):
+                    tmpSpecies[s] = resume[0][-1][i + 1]
+            else:
+                for i in species:
+                    tmpSpecies[i] = resume[i][-1]
             for i, s in enumerate(species):
                 trajectory_base[:, 0, i + 1] = tmpSpecies[s]
         else:
             for i, s in enumerate(species):
                 trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
+
         # compile reaction propensity functions for eval
         c_prop = OrderedDict()
         for r_name, reaction in model.listOfReactions.items():
@@ -162,7 +176,8 @@ class BasicODESolver(GillesPySolver):
 
         y0 = [0] * len(model.listOfSpecies)
         curr_state = OrderedDict()
-        if resume != None:
+
+        if not (resume is None):
             for i,s in enumerate(tmpSpecies):
                 curr_state[s] = tmpSpecies[s]
                 y0[i] = tmpSpecies[s]
@@ -182,7 +197,6 @@ class BasicODESolver(GillesPySolver):
                 break
             if self.pause_event.is_set():
                 timeStopped = timeline[entry_count]
-                print('time stopped @ : '+ str(timeStopped))
                 break
 
             int_time = curr_time + increment
@@ -203,22 +217,29 @@ class BasicODESolver(GillesPySolver):
         else:
             results = np.stack([result] * number_of_trajectories, axis=0)
 
-
-        if timeStopped != 0 and timeStopped != results[0]['time'][-1]:
-            tester = np.where(results[0]['time'] > timeStopped)[0].size
-            index = np.where(results[0]['time'] == timeStopped)[0][0]
+        if show_labels == False and timeStopped != 0:
+            cutoff = np.where(results[0][:, 0] == timeStopped)
+            #Find where index is of timestopped. Ex, timestopped @50
+            #index of time 50 could be 4,0, 4th row, 0'th index
+            results = np.array([results[0][:int(cutoff[0])]])
+        elif timeStopped != 0 and show_labels != False:
+            if timeStopped != results[0]['time'][-1]:
+                tester = np.where(results[0]['time'] > timeStopped)[0].size
+                index = np.where(results[0]['time'] == timeStopped)[0][0]
             if tester > 0:
                 for i in results[0]:
                     results[0][i] = results[0][i][:index]
 
-        if resume != None:
-            # If resuming, combine old pause with new data
-            for i in results[0]:
-
-                oldData = resume[i][:-1]
-                newData = results[0][i]
-                results[0][i] = np.concatenate((oldData, newData), axis=None)
-
+        if not (resume is None):
+            # If resuming, combine old pause with new data, and delete any excess null data
+            if show_labels == False:
+                resume = np.array([resume[0][:-1]])
+                results = np.array(np.concatenate((resume, results), axis=1))
+            else:
+                for i in results[0]:
+                    oldData = resume[i][:-1]
+                    newData = results[0][i]
+                    results[0][i] = np.concatenate((oldData, newData), axis=None)
 
         self.result = results
         return results, self.rc

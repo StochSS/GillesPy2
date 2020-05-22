@@ -3,7 +3,7 @@ from gillespy2.core import GillesPySolver, Model, Reaction, log
 import random
 import math
 import numpy as np
-
+np.set_printoptions(suppress=True)
 
 class NumPySSASolver(GillesPySolver):
     name = "NumPySSASolver"
@@ -61,7 +61,6 @@ class NumPySSASolver(GillesPySolver):
             self.stop_event.set()
             while self.result is None: pass
         except KeyboardInterrupt:
-            print('interrupted!')
             self.pause_event.set()
             while self.result is None: pass
         if hasattr(self, 'has_raised_exception'):
@@ -89,9 +88,16 @@ class NumPySSASolver(GillesPySolver):
         #how species and time are initialized to 0
         timeStopped = 0
 
-        if resume!= None and t < resume['time'][-1]:
-            log.warning("'t' must be greater than previous simulations end time, or set in the run() function as the "
+        if not (resume is None):
+            if show_labels == False:
+                if t < resume[0][-1][0]:
+                    log.warning(
+                        "'t' must be greater than previous simulations end time, or set in the run() function as the "
                         "simulations next end time")
+            else:
+                if t < resume['time'][-1]:
+                    log.warning("'t' must be greater than previous simulations end time, or set in the run() function as the "
+                                "simulations next end time")
 
 
         random.seed(seed)
@@ -101,9 +107,13 @@ class NumPySSASolver(GillesPySolver):
         parameter_mappings = model.sanitized_parameter_names()
         number_species = len(species)
         # create numpy array for timeline
-        if resume != None:
+        if not (resume is None):
             #start where we last left off if resuming a simulation
-            timeline = np.linspace(resume['time'][-1], t, int(round(t-resume['time'][-1]+1)))
+            if show_labels == False:
+                lastT = resume[0][-1][0]
+            else:
+                lastT = resume['time'][-1]
+            timeline = np.linspace(lastT, t, int(round(t-lastT+1)))
         else:
             timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
@@ -112,11 +122,15 @@ class NumPySSASolver(GillesPySolver):
         # copy time values to all trajectory row starts
         trajectory_base[:, :, 0] = timeline
         # copy initial populations to base
-        if resume != None:
+        if not (resume is None):
             tmpSpecies = {}
             #Set initial values of species to where last left off
-            for i in species:
-                tmpSpecies[i] = resume[i][-1]
+            if show_labels == False:
+                for i,s in enumerate(species):
+                    tmpSpecies[s] = resume[0][-1][i+1]
+            else:
+                for i in species:
+                    tmpSpecies[i] = resume[i][-1]
             for i, s in enumerate(species):
                 trajectory_base[:, 0, i + 1] = tmpSpecies[s]
         else:
@@ -154,7 +168,6 @@ class NumPySSASolver(GillesPySolver):
                 break
             elif self.pause_event.is_set():
                 timeStopped = timeline[entry_count]
-                print("Interrupted at : " + str(timeStopped))
                 break
             # copy initial state data
             trajectory = trajectory_base[trajectory_num]
@@ -169,7 +182,6 @@ class NumPySSASolver(GillesPySolver):
                     break
                 elif self.pause_event.is_set():
                     timeStopped = timeline[entry_count]
-                    print("Interrupted at : "+str(timeStopped))
                     break
                 # determine next reaction
                 for i in range(number_reactions):
@@ -197,7 +209,6 @@ class NumPySSASolver(GillesPySolver):
                         break
                     elif self.pause_event.is_set():
                         timeStopped = timeline[entry_count]
-                        print("Interrupted at : " + str(timeStopped))
                         break
                     trajectory[entry_count, 1:] = current_state
                     entry_count += 1
@@ -228,23 +239,29 @@ class NumPySSASolver(GillesPySolver):
                 simulation_data = trajectory_base
 
         #If simulation has been paused, or tstopped !=0
-        if timeStopped != 0 and timeStopped != simulation_data[0]['time'][-1]:
-            tester = np.where(simulation_data[0]['time'] > timeStopped)[0].size
-            index = np.where(simulation_data[0]['time'] == timeStopped)[0][0]
+        if show_labels == False and timeStopped != 0:
+            cutoff = np.where(simulation_data[0][:, 0] == timeStopped)
+            # Find where index is of timestopped. Ex, timestopped @50
+            # index of time 50 could be 4,0, 4th row, 0'th index
+            simulation_data = np.array([simulation_data[0][:int(cutoff[0])]])
+        elif timeStopped != 0 and show_labels != False:
+            if timeStopped != simulation_data[0]['time'][-1]:
+                tester = np.where(simulation_data[0]['time'] > timeStopped)[0].size
+                index = np.where(simulation_data[0]['time'] == timeStopped)[0][0]
             if tester > 0:
                 for i in simulation_data[0]:
                     simulation_data[0][i] = simulation_data[0][i][:index]
 
-
-        if resume != None:
+        if not (resume is None):
             #If resuming, combine old pause with new data, and delete any excess null data
-            for i in simulation_data[0]:
-                oldData = resume[i][:-1]
-                newData = simulation_data[0][i]
-                simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
+            if show_labels == False:
+                resume = np.array([resume[0][:-1]])
+                simulation_data = np.array(np.concatenate((resume,simulation_data),axis=1))
+            else:
+                for i in simulation_data[0]:
+                    oldData = resume[i][:-1]
+                    newData = simulation_data[0][i]
+                    simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
 
-
-        print(simulation_data[0]['time'])
-        print(simulation_data[0]['D1'])
         self.result = simulation_data
         return self.result, self.rc

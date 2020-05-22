@@ -122,7 +122,6 @@ class BasicTauLeapingSolver(GillesPySolver):
             self.stop_event.set()
             while self.result is None: pass
         except KeyboardInterrupt:
-            print('interrupted!')
             self.pause_event.set()
             while self.result is None: pass
         if hasattr(self, 'has_raised_exception'):
@@ -133,16 +132,9 @@ class BasicTauLeapingSolver(GillesPySolver):
                     debug=False, profile=False, show_labels=True, 
                     timeout=None, resume=None, resumeTime=None, tau_tol=0.03, **kwargs):
 
-        if resume != None and resumeTime == None:
-            log.warning("If resuming a simulation, must set a 'resumeTime' in the run() function")
-        if resumeTime != None and resumeTime<resume['time'][-1]:
-            log.warning("resumeTime must be greater than previous simulations end time.")
-        elif resume != None and resumeTime != None:
-            t = resumeTime
-
         try:
             self.__run(model, t, number_of_trajectories, increment, seed,
-                        debug, profile, show_labels, timeout, resume,resumeTime, tau_tol, **kwargs)
+                        debug, profile, show_labels, timeout, resume,tau_tol, **kwargs)
         except Exception as e:
             self.has_raised_exception = e
             self.result = []
@@ -153,8 +145,20 @@ class BasicTauLeapingSolver(GillesPySolver):
                     debug=False, profile=False, show_labels=True, 
                     timeout=None, resume=None, resumeTime=None, tau_tol=0.03, **kwargs):
 
-        #For use if pausing a simulation, at what time simulation is stopped
+        # for use with resume, determines how much excess data to cut off due to
+        # how species and time are initialized to 0
         timeStopped = 0
+        if not (resume is None):
+            if show_labels == False:
+                if t < resume[0][-1][0]:
+                    log.warning(
+                        "'t' must be greater than previous simulations end time, or set in the run() function as the "
+                        "simulations next end time")
+            else:
+                if t < resume['time'][-1]:
+                    log.warning(
+                        "'t' must be greater than previous simulations end time, or set in the run() function as the "
+                        "simulations next end time")
 
         if debug:
             print("t = ", t)
@@ -175,10 +179,14 @@ class BasicTauLeapingSolver(GillesPySolver):
             else:
                 raise ModelError('seed must be a positive integer')
 
-        # create numpy array for timeline
-        if resumeTime != None:
+                # create numpy array for timeline
+        if not (resume is None):
             # start where we last left off if resuming a simulation
-            timeline = np.linspace(resume['time'][-1], t, int(round(t - resume['time'][-1] + 1)))
+            if show_labels == False:
+                lastT = resume[0][-1][0]
+            else:
+                lastT = resume['time'][-1]
+            timeline = np.linspace(lastT, t, int(round(t - lastT + 1)))
         else:
             timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
@@ -188,18 +196,20 @@ class BasicTauLeapingSolver(GillesPySolver):
         # copy time values to all trajectory row starts
         trajectory_base[:, :, 0] = timeline
         # copy initial populations to base
-
-        if resume != None:
+        if not (resume is None):
             tmpSpecies = {}
             # Set initial values of species to where last left off
-            for i in species:
-                tmpSpecies[i] = resume[i][-1]
+            if show_labels == False:
+                for i, s in enumerate(species):
+                    tmpSpecies[s] = resume[0][-1][i + 1]
+            else:
+                for i in species:
+                    tmpSpecies[i] = resume[i][-1]
             for i, s in enumerate(species):
                 trajectory_base[:, 0, i + 1] = tmpSpecies[s]
         else:
             for i, s in enumerate(species):
                 trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
-                # create dictionary of all constant parameters for propensity evaluation
 
         simulation_data = []
 
@@ -226,7 +236,7 @@ class BasicTauLeapingSolver(GillesPySolver):
 
             HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold = Tau.initialize(model, tau_tol)
             # initialize populations
-            if resume != None:
+            if not (resume is None):
                 for spec in model.listOfSpecies:
                     curr_state[spec] = tmpSpecies[spec]
             else:
@@ -256,7 +266,6 @@ class BasicTauLeapingSolver(GillesPySolver):
                     break
                 elif self.pause_event.is_set():
                     timeStopped = timeline[entry_count]
-                    print("Time stopped at : "+ str(timeStopped))
                     break
                 
                 #Until save step reached
@@ -266,7 +275,6 @@ class BasicTauLeapingSolver(GillesPySolver):
                         break
                     elif self.pause_event.is_set():
                         timeStopped = timeline[entry_count]
-                        print("Time stopped at : "+ str(timeStopped))
                         break
 
                     propensity_sum = 0
@@ -333,7 +341,6 @@ class BasicTauLeapingSolver(GillesPySolver):
 
                 # save step reached
                 for i in range(number_species):
-#                     print('appending {0} to species {1}'.format(curr_state[species[i]], species[i]))
                     trajectory[entry_count][i + 1] = curr_state[species[i]]
                 save_time += increment
                 timestep += 1
@@ -352,20 +359,29 @@ class BasicTauLeapingSolver(GillesPySolver):
                 print("Total Steps Rejected: ", steps_rejected)
 
         # If simulation has been paused, or tstopped !=0
-
-        if timeStopped != 0 and timeStopped != simulation_data[0]['time'][-1]:
-            tester = np.where(simulation_data[0]['time'] > timeStopped)[0].size
-            index = np.where(simulation_data[0]['time'] == timeStopped)[0][0]
+        if show_labels == False and timeStopped != 0:
+            cutoff = np.where(simulation_data[0][:, 0] == timeStopped)
+            #Find where index is of timestopped. Ex, timestopped @50
+            #index of time 50 could be 4,0, 4th row, 0'th index
+            simulation_data = np.array([simulation_data[0][:int(cutoff[0])]])
+        elif timeStopped != 0 and show_labels != False:
+            if timeStopped != simulation_data[0]['time'][-1]:
+                tester = np.where(simulation_data[0]['time'] > timeStopped)[0].size
+                index = np.where(simulation_data[0]['time'] == timeStopped)[0][0]
             if tester > 0:
                 for i in simulation_data[0]:
                     simulation_data[0][i] = simulation_data[0][i][:index]
 
-        if resume != None:
-            # If resuming, combine old pause with new data
-            for i in simulation_data[0]:
-                oldData = resume[i][:-1]
-                newData = simulation_data[0][i]
-                simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
+        if not (resume is None):
+            # If resuming, combine old pause with new data, and delete any excess null data
+            if show_labels == False:
+                resume = np.array([resume[0][:-1]])
+                simulation_data = np.array(np.concatenate((resume, simulation_data), axis=1))
+            else:
+                for i in simulation_data[0]:
+                    oldData = resume[i][:-1]
+                    newData = simulation_data[0][i]
+                    simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
 
         self.result = simulation_data
         return simulation_data, self.rc
