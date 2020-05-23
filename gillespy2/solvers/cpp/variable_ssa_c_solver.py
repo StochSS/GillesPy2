@@ -333,10 +333,12 @@ is not a valid variable.  Variables must be model species or parameters.'.format
                                                    format(simulation.returncode, simulation.stderr))
             # If simulation was paused/KeyboardInterrupt
             if show_labels == False and timeStopped != 0:
+
                 cutoff = np.where(self.simulation_data[0][:, 0] == timeStopped)
                 # Find where index is of timestopped. Ex, timestopped @50
                 # index of time 50 could be 4,0, 4th row, 0'th index
-                self.simulation_data = np.array([self.simulation_data[0][:int(cutoff[0])]])
+                if cutoff[0] != []:
+                    self.simulation_data = np.array([self.simulation_data[0][:int(cutoff[0])]])
             elif timeStopped != 0:
                 for i in self.simulation_data[0]:
                     self.simulation_data[0][i] = self.simulation_data[0][i][:timeStopped]
