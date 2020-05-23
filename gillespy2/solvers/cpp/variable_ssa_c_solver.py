@@ -41,11 +41,12 @@ def _write_variables(outfile, model, reactions, species, parameters, parameter_m
                 outfile.write('{}, '.format(int(model.listOfSpecies[species[i]].initial_value)))
         if not (resume is None):
             if isinstance(resume, np.ndarray):
-                outfile.write('{}, '.format(int(resume[0][-1][-1])))
+                outfile.write('{}'.format(int(resume[0][-1][-1])))
             else:
-                outfile.write('{}, '.format(int(resume[species[-1]][-1])))
+                outfile.write('{}'.format(int(resume[species[-1]][-1])))
         else:
             outfile.write('{}'.format(int(model.listOfSpecies[species[-1]].initial_value)))
+        outfile.write("};\n")
     if len(reactions) > 0:
         #Write reaction names
         outfile.write("std :: string r_names[] = {")

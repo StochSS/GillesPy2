@@ -41,9 +41,9 @@ def _write_constants(outfile, model, reactions, species, parameter_mappings, res
                 outfile.write('{}, '.format(int(model.listOfSpecies[species[i]].initial_value)))
         if not (resume is None):
             if isinstance(resume,np.ndarray):
-                outfile.write('{}, '.format(int(resume[0][-1][-1])))
+                outfile.write('{}'.format(int(resume[0][-1][-1])))
             else:
-                outfile.write('{}, '.format(int(resume[species[-1]][-1])))
+                outfile.write('{}'.format(int(resume[species[-1]][-1])))
         else:
             outfile.write('{}'.format(int(model.listOfSpecies[species[-1]].initial_value)))
         outfile.write("};\n")
