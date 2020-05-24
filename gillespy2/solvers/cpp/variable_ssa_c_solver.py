@@ -203,6 +203,17 @@ class VariableSSACSolver(GillesPySolver):
             increment=0.05, seed=None, debug=False, profile=False, show_labels=True, 
             variables={}, resume=None, **kwargs):
 
+        if not (resume is None):
+            if show_labels == False:
+                if t < resume[0][-1][0]:
+                    log.warning(
+                        "'t' must be greater than previous simulations end time, or set in the run() function as the "
+                        "simulations next end time")
+            else:
+                if t < resume['time'][-1]:
+                    log.warning("'t' must be greater than previous simulations end time, or set in the run() function as the "
+                                "simulations next end time")
+
         if resume != None:
             self = VariableSSACSolver(model, resume=resume)
         else:
@@ -234,7 +245,7 @@ class VariableSSACSolver(GillesPySolver):
         for v in variables.keys():
             if v not in self.species+self.parameters:
                 raise gillespyError.SimulationError('Argument to variable "{}" \
-is not a valid variable.  Variables must be model species or parameters.'.format(v))
+                is not a valid variable.  Variables must be model species or parameters.'.format(v))
                 
         if self.__compiled:
             populations = ''

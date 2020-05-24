@@ -176,6 +176,17 @@ class SSACSolver(GillesPySolver):
     def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
             increment=0.05, seed=None, debug=False, profile=False, show_labels=True, resume=None, **kwargs):
         if not (resume is None):
+            if show_labels == False:
+                if t < resume[0][-1][0]:
+                    log.warning(
+                        "'t' must be greater than previous simulations end time, or set in the run() function as the "
+                        "simulations next end time")
+            else:
+                if t < resume['time'][-1]:
+                    log.warning("'t' must be greater than previous simulations end time, or set in the run() function as the "
+                                "simulations next end time")
+
+        if not (resume is None):
             self = SSACSolver(model, resume=resume)
 
         else:
