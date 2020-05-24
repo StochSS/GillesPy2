@@ -776,6 +776,10 @@ class Model(SortableObject):
         True,returns a Results object that inherits UserList and contains one or more Trajectory objects that
         inherit UserDict. Results object supports graphing and csv export.
 
+        To pause a simulation and retrieve data before the simulation, keyboard interrupt the simulation by pressing
+        control+c or pressing stop on a jupyter notebook. To resume a simulation, pass your previously ran results
+        into the run method, and set t = to the time you wish the resuming simulation to end (run(resume=results, t=x)).
+
         Attributes
         ----------
         solver : gillespy.GillesPySolver
