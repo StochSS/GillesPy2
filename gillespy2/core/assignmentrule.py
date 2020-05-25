@@ -5,15 +5,17 @@ class AssignmentRule(SortableObject):
     An AssignmentRule is used to express equations that set the values of
     variables.  This would correspond to a function in the form of x = f(V)
 
-    Attributes
-    ----------
-    name : str
-        Name of the Rule
-    variable : str
-        Target Species/Parameter to be modified by rule
-    formula : str
-        String representation of formula to be evaluated
+    :param variable: Target Species/Parameter to be modified by rule
+    :type variable: str
+
+    :param name: Name of the rule
+    :type name: str
+
+    :param formula: String representation of formula to be evaluated
+    :type formula: str
+
     """
+
     def __init__(self, variable=None, formula=None, name=None):
         self.variable = variable
         self.formula = formula

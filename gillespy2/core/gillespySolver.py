@@ -7,25 +7,29 @@ class GillesPySolver:
     Abstract class for a solver. This is generally called from within a
     gillespy Model through the Model.run function. Returns simulation 
     trajectories.
-        
-    Attributes
-    ----------
-    model : gillespy.Model
-        The model on which the solver will operate.
-    t : float
-        The end time of the solver.
-    number_of_trajectories : int
-        The number of times to sample the chemical master equation. Each
-        trajectory will be returned at the end of the simulation.
-    increment : float
-        The time step of the solution.
-    seed : int
-        The random seed for the simulation. Defaults to None.
-    debug : bool (False)
-        Set to True to provide additional debug information about the     
-        simulation.
-    show_labels : bool (True)
-        Use names of species as index of result object rather than position numbers.
+
+    :param model: The model on which the solver will operate.
+    :type model: gillespy.Model
+    
+    :param t: The end time of the solver
+    :type t: int
+    
+    :param number_of_trajectories: The number of times to sample the chemical master equation. Each
+    trajectory will be returned at the end of the simulation.
+    :type number_of_trajectories: int
+
+    :param increment: The time step of the solution
+    :type increment: float
+   
+    :param seed: The random seed for the simulation. Defaults to None. 
+    :type seed: int
+    
+    :param debug: Set to True to provide additional debug information about the     
+    simulation.
+    :type debug: bool
+    
+    :param show_labels: Use names of species as index of result object rather than position numbers.
+    :type show_labels: bool
     """
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
             debug=False, profile=False, show_labels=False, **kwargs):

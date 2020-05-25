@@ -12,28 +12,6 @@ class Reaction(SortableObject):
     function needs to be evaluable (and result in a non-negative scalar
     value) in the namespace defined by the union of those dicts.
 
-    Attributes
-    ----------
-    name : str
-        The name by which the reaction is called (optional).
-    reactants : dict
-        The reactants that are consumed in the reaction, with stoichiometry. An
-        example would be {R1 : 1, R2 : 2} if the reaction consumes two of R1 and
-        one of R2, where R1 and R2 are Species objects.
-    products : dict
-        The species that are created by the reaction event, with stoichiometry.
-        Same format as reactants.
-    propensity_function : str
-        The custom propensity fcn for the reaction. Must be evaluable in the
-        namespace of the reaction using C operations.
-    massaction : bool
-        The switch to use a mass-action reaction. If set to True, a rate value
-        is required.
-    rate : float
-        The rate of the mass-action reaction. Take care to note the units...
-    annotation : str
-        An optional note about the reaction.
-
     Notes
     ----------
     For a species that is NOT consumed in the reaction but is part of a mass
@@ -41,6 +19,32 @@ class Reaction(SortableObject):
 
     Mass-action reactions must also have a rate term added. Note that the input
     rate represents the mass-action constant rate independent of volume.
+    __________
+
+    :param name: The name by which the reaction is called (optional).
+    :type name: str
+
+    :param reactants: The reactants that are consumed in the reaction, with stoichiometry. An
+    example would be {R1 : 1, R2 : 2} if the reaction consumes two of R1 and
+    one of R2, where R1 and R2 are Species objects.
+    :type reactants: dict
+
+    :param products: The species that are created by the reaction event, with stoichiometry.
+    Same format as reactants.
+    :type products: dict
+
+    :param propensity_function: The custom propensity fcn for the reaction. Must be evaluable in the
+    namespace of the reaction using C operations.
+    :type propensity_function: str
+
+    :param massaction: The switch to use a mass-action reaction. If set to True, a rate value is required.
+    :type massaction: bool
+
+    :param rate: The rate of the mass-action reaction. Take care to note the units...
+    :type rate: float
+
+    :param annotation: An optional note about the reaction
+    :type annotation: str
     """
 
     def __init__(self, name="", reactants={}, products={},
@@ -100,6 +104,11 @@ class Reaction(SortableObject):
             self.type = "customized"
 
             def __customPropParser():
+                """
+                If custom propensity function is set, this AST parses the propensity function, to ensure
+                that operators such as ^ or ** will be recognized as exponentiation for the various solvers
+                :return: parsed propensity function
+                """
                 pow_func = ast.parse("pow", mode="eval").body
                 class ExpressionParser(ast.NodeTransformer):
                     def visit_BinOp(self, node):
@@ -262,11 +271,8 @@ class Reaction(SortableObject):
     def setType(self, rxntype):
         """
         Sets reaction type to either "mass-action" or "customized"
-
-        Attributes
-        ----------
-        rxntype : str
-            Either "mass-action" or "customized"
+        :param rxntype: Either "mass-action" or "customized"
+        :type rxntype: str
         """
         if rxntype.lower() not in {'mass-action', 'customized'}:
             raise ReactionError("Invalid reaction type.")
@@ -277,13 +283,11 @@ class Reaction(SortableObject):
     def addReactant(self, S, stoichiometry):
         """
         Adds a reactant to the reaction (species that is consumed)
+        :param S: Reactant to add to this reaction
+        :type S: gillespy.Species
 
-        Attributes
-        ----------
-        S : gillespy.Species
-            Reactant to add to this reaction.
-        stoichiometry : int
-            The stoichiometry of the given reactant.
+        :param stoichiometry: The stoichiometry of the given reactant
+        :type stoichiometry: int
         """
         if stoichiometry <= 0:
             raise ReactionError("Reaction Stoichiometry must be a \
@@ -293,24 +297,19 @@ class Reaction(SortableObject):
     def addProduct(self, S, stoichiometry):
         """
         Adds a product to the reaction (species that is created)
+        :param S: Product to add to this reaction
+        :type S: gillespy.Species
 
-        Attributes
-        ----------
-        S : gillespy.Species
-            Product to add to this reaction.
-        stoichiometry : int
-            The stoichiometry of the given product.
+        :param stoichiometry: The stoichiometry of the given product.
+        :type stoichiometry: int
         """
         self.products[S.name] = stoichiometry
 
     def Annotate(self, annotation):
         """
         Adds a note to the reaction
-
-        Attributes
-        ----------
-        annotation : str
-            An optional note about the reaction.
+        :param annotation: An optional note about the reaction.
+        :type annotation: str
         """
         self.annotation = annotation
 

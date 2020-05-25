@@ -5,14 +5,14 @@ class RateRule(SortableObject):
     A RateRule is used to express equations that determine the rates of change
     of variables. This would correspond to a function in the form of dx/dt=f(W)
 
-    Attributes
-    ----------
-    name : str
-        Name of Rule
-    variable : str
-        Target Species/Parameter to be modified by rule
-    formula : str
-        String representation of formula to be evaluated
+    :param name: Name of the RateRule
+    :type name: str
+
+    :param variable: Target Species/Parameter to be modified by rule
+    :type variable: str
+
+    :param formula: String representation of formula to be evaluated
+    :type formula: str
     """
     def __init__(self, variable=None, formula='', name=None):
         self.formula = formula

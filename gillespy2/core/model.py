@@ -28,14 +28,14 @@ def import_SBML(filename, name=None, gillespy_model=None):
     in terms of concentrations may not be converted for population
     simulation. Use caution when importing SBML.
 
-    Attributes
-    ----------
-    filename : str
-        Path to the SBML file for conversion.
-    name : str
-        Name of the resulting model.
-    gillespy_model : gillespy.Model
-        If desired, the SBML model may be added to an existing GillesPy model.
+    :param filename: Path to the SBML file for conversion.
+    :type filename: str
+
+    :param name: Name of the resulting model
+    :type name: str
+
+    :param gillespy_model: If desired, the SBML model may be added to an existing GillesPy model
+    :type gillespy_model: gillespy.Model
     """
 
     try:
@@ -44,13 +44,6 @@ def import_SBML(filename, name=None, gillespy_model=None):
         raise ImportError('SBML conversion not imported successfully')
 
     return convert(filename, model_name=name, gillespy_model=gillespy_model)
-
-
-
-
-
-
-
 
 
 class Model(SortableObject):
@@ -62,24 +55,27 @@ class Model(SortableObject):
     Representation of a well mixed biochemical model. Contains reactions,
     parameters, species.
 
+    :param name: The name of the model, or an annotation describing it.
+    :type name: str
+    
+    :param population: The type of model being described. A discrete stochastic model is a
+    population model (True), a deterministic model is a concentration model
+    (False). Automatic conversion from population to concentration models
+    may be used, by setting the volume parameter.
     Attributes
-    ----------
-    name : str
-        The name of the model, or an annotation describing it.
-    population : bool
-        The type of model being described. A discrete stochastic model is a
-        population model (True), a deterministic model is a concentration model
-        (False). Automatic conversion from population to concentration models
-        may be used, by setting the volume parameter.
-    volume : float
-        The volume of the system matters when converting to from population to
-        concentration form. This will also set a parameter "vol" for use in
-        custom (i.e. non-mass-action) propensity functions.
-    tspan : numpy ndarray
-        The timepoints at which the model should be simulated. If None, a
-        default timespan is added. May be set later, see Model.timespan
-    annotation : str (optional)
-        Optional further description of model
+    :type population: bool
+
+    :param volume: The volume of the system matters when converting to from population to
+    concentration form. This will also set a parameter "vol" for use in
+    custom (i.e. non-mass-action) propensity functions.  
+    :type volume: float   
+    
+    :param tspan: The timepoints at which the model should be simulated. If None, a
+    default timespan is added. May be set later, see Model.timespan
+    :type tspan: numpy ndarray
+    
+    :param annotation: Option further description of model
+    :type annotation: str
     """
 
     def __init__(self, name="", population=True, volume=1.0, tspan=None, annotation="model"):
@@ -211,10 +207,8 @@ class Model(SortableObject):
         """
         Returns a species object by name.
 
-        Attributes
-        ----------
-        s_name : str
-            Name of the species object to be returned.
+        :param s_name: Name of the species object to be returned:
+        :type s_name: str
         """
         return self.listOfSpecies[s_name]
 
@@ -229,10 +223,8 @@ class Model(SortableObject):
         """
         Adds a species, or list of species to the model.
 
-        Attributes
-        ----------
-        obj : Species, or list of Species
-            The species or list of species to be added to the model object.
+        :param obj: The species or list of species to be added to the model object
+        :type obj: Species, or list of species
         """
 
         if isinstance(obj, list):
@@ -253,10 +245,8 @@ class Model(SortableObject):
         """
         Removes a species object by name.
 
-        Attributes
-        ----------
-        obj : str
-            Name of the species object to be removed.
+        :param obj: Name of the species object to be removed
+        :type obj: str
         """
         self.listOfSpecies.pop(obj)
         self._listOfSpecies.pop(obj)
@@ -272,10 +262,8 @@ class Model(SortableObject):
         """
         Sets the units of the model to either "population" or "concentration"
 
-        Attributes
-        ----------
-        units : str
-            Either "population" or "concentration"
+        :param units: Either "population" or "concentration"
+        :type units: str
         """
         if units.lower() == 'concentration' or units.lower() == 'population':
             self.units = units.lower()
@@ -299,10 +287,8 @@ class Model(SortableObject):
         """
         Returns a parameter object by name.
 
-        Attributes
-        ----------
-        p_name : str
-            Name of the parameter object to be returned.
+        :param p_name: Name of the parameter object to be returned
+        :type p_name: str
         """
         try:
             return self.listOfParameters[p_name]
@@ -318,13 +304,10 @@ class Model(SortableObject):
 
     def add_parameter(self, params):
         """
-
         Adds a parameter, or list of parameters to the model.
 
-        Attributes
-        ----------
-        obj : Parameter, or list of Parameters
-            The parameter or list of parameters to be added to the model object.
+        :param obj:  The parameter or list of parameters to be added to the model object.
+        :type obj: Parameter, or list of parameters
         """
         if isinstance(params, list):
             for p in sorted(params):
@@ -344,10 +327,8 @@ class Model(SortableObject):
         """
         Removes a parameter object by name.
 
-        Attributes
-        ----------
-        obj : str
-            Name of the parameter object to be removed.
+        :param obj: Name of the parameter object to be removed
+        :type obj: str
         """
         self.listOfParameters.pop(obj)
         self._listOfParameters.pop(obj)
@@ -356,13 +337,12 @@ class Model(SortableObject):
         """
         Set the value of an existing paramter "pname" to "expression".
 
-        Attributes
-        ----------
-        p_name : str
-            Name of the parameter whose value will be set.
-        expression : str
-            *String* that may be executed in C, describing the value of the
-            parameter. May reference other parameters by name. (e.g. "k1*4")
+        :param p_name: Name of the parameter whose value will be set.
+        :type p_name: str
+
+        :param expression: String that may be executed in C, describing the value of the
+        parameter. May reference other parameters by name. (e.g. "k1*4")
+        :type expression: str
         """
 
         p = self.listOfParameters[p_name]
@@ -406,11 +386,9 @@ class Model(SortableObject):
         """
         Adds a reaction, or list of reactions to the model.
 
-        Attributes
-        ----------
-        obj : Reaction, or list of Reactions
-            The reaction or list of reaction objects to be added to the model
-            object.
+        :param obj: The reaction or list of reaction objects to be added to the model
+        object.
+        :type obj: Reaction, or list of Reactions
         """
 
         # TODO, make sure that you cannot overwrite an existing reaction
@@ -439,15 +417,11 @@ class Model(SortableObject):
 
     def add_rate_rule(self, rate_rules):
         """
-                Adds a rate rule, or list of rate rules to the model.
+        Adds a rate rule, or list of rate rules to the model.
 
-                Attributes
-                ----------
-                obj : RateRule, or list of RateRules
-                    The rate rule or list of rate rule objects to be added to the model
-                    object.
-                """
-
+        :param obj: The rate rule or list of rate rule objects to be added to the model object.
+        :type obj: RateRule, or list of RateRules
+        """
         if isinstance(rate_rules, list):
             for rr in sorted(rate_rules):
                 self.add_rate_rule(rr)
@@ -479,14 +453,10 @@ class Model(SortableObject):
 
     def add_event(self, event):
         """
-                Adds an event, or list of events to the model.
-
-                Attributes
-                ----------
-                event : Event, or list of Events
-                    The event or list of event objects to be added to the model
-                    object.
-                """
+        Adds an event, or list of events to the model.
+        :param event: The event or list of event objects to be added to the model object.
+        :type event: Event, or list of Events
+        """
 
         if isinstance(event, list):
             for e in event:
@@ -508,6 +478,12 @@ class Model(SortableObject):
         return event
 
     def add_function_definition(self, function_definitions):
+        """
+        Add FunctionDefinition or list of FunctionDefinitions
+        :param function_definitions: The FunctionDefinition, or list of FunctionDefinitions to be added to the model
+        object.
+        :type function_definitions: FunctionDefinition or list of FunctionDefinitions.
+        """
         if isinstance(function_definitions, list):
             for fd in function_definitions:
                 self.add_function_definition(fd)
@@ -519,6 +495,11 @@ class Model(SortableObject):
                     "Error using {} as a Function Definition. Reason given: ".format(function_definitions, e))
 
     def add_assignment_rule(self, assignment_rules):
+        """
+        Add AssignmentRule or list of AssignmentRules to the model object.
+        :param assignment_rules: The AssignmentRule or list of AssignmentRules to be added to the model object.
+        :type assignment_rules: AssignmentRule or list of AssignmentRules
+        """
         if isinstance(assignment_rules, list):
             for ar in assignment_rules:
                 self.add_assignment_rule(ar)
@@ -549,9 +530,9 @@ class Model(SortableObject):
         Set the time span of simulation. StochKit does not support non-uniform
         timespans.
 
-        tspan : numpy ndarray
-            Evenly-spaced list of times at which to sample the species
-            populations during the simulation.
+        :param tspan: Evenly-spaced list of times at which to sample the species
+        populations during the simulation.
+        :type tspan: numpy ndarray
         """
 
         items = np.diff(time_span)
@@ -565,7 +546,6 @@ class Model(SortableObject):
 
     def get_reaction(self, rname):
         """
-
         :param rname: name of reaction to return
         :return: Reaction object
         """
@@ -730,25 +710,20 @@ class Model(SortableObject):
         Function calling simulation of the model. There are a number of
         parameters to be set here.
 
-        Return
-        ----------
+        :param solver: The solver by which to simulate the model. This solver object may
+        be initialized separately to specify an algorithm. Optional,
+        defaults to ssa solver.
+        :type solver; gillespy.GillesPySolver
 
-        If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is
+        :param timeout: Allows a time_out value in seconds to be sent to a signal handler, restricting simulation run-time
+        :type timeout: int
+
+        :param solver_args: Solver-specific arguments to be passed to solver.run()
+
+        :return  If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is
         True,returns a Results object that inherits UserList and contains one or more Trajectory objects that
         inherit UserDict. Results object supports graphing and csv export.
-
-        Attributes
-        ----------
-        solver : gillespy.GillesPySolver
-            The solver by which to simulate the model. This solver object may
-            be initialized separately to specify an algorithm. Optional,
-            defaults to ssa solver.
-        timeout : int
-            Allows a time_out value in seconds to be sent to a signal handler, restricting simulation run-time
-        solver_args :
-            solver-specific arguments to be passed to solver.run()
         """
-
         if solver is not None:
             try:
                 solver_results, rc = solver.run(model=self, t=self.tspan[-1],
