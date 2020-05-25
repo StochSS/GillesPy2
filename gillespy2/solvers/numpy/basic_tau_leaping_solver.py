@@ -69,31 +69,33 @@ class BasicTauLeapingSolver(GillesPySolver):
         This is typically called by the run function in GillesPy2 model objects
         and will inherit those parameters which are passed with the model
         as the arguments this run function.
+        :param model: Model to be simulated
+        :type model: GillesPy2.Model
 
-                Attributes
-                ----------
+        :param t: The end time of the solver.
+        :type t: int
 
-                model : GillesPy2.Model
-                    GillesPy2 model object to simulate
-                t : int
-                    Simulation run time
-                number_of_trajectories : int
-                    The number of times to sample the chemical master equation. Each
-                    trajectory will be returned at the end of the simulation.
-                    Optional, defaults to 1.
-                increment : float
-                    Save point increment for recording data
-                seed : int
-                    The random seed for the simulation. Optional, defaults to None.
-                debug : bool (False)
-                    Set to True to provide additional debug information about the
-                    simulation.
-                profile : bool (Fasle)
-                    Set to True to provide information about step size (tau) taken at each step.
-                show_labels : bool (True)
-                    Use names of species as index of result object rather than position numbers.
-                """
+        :param number_of_trajectories: The number of times to sample the chemical master equation. Each
+        trajectory will be returned at the end of the simulation.
+        Optional, defaults to 1.
+        :type number_of_trajectories: int
 
+        :param increment: The time step of the solution.
+        :type increment: float
+
+        :param seed: The random seed for the simulation. Defaults to None.
+        :type seed: int
+        :param debug: Set to True to provide additional debug information about the
+        simulation.
+        :type debug: bool
+
+        :param profile: Set to True to provide information about step size(tau) taken at each step.
+        :type profile: bool
+
+        :param show_labels: Use names of species as index of result object rather than position numbers.
+        :return: a list of each trajectory simulated.
+        :type show_labels: bool
+        """
         if isinstance(self, type):
             self = BasicTauLeapingSolver(debug=debug, profile=profile)
 

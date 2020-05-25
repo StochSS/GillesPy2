@@ -106,6 +106,21 @@ class BasicODESolver(GillesPySolver):
     def __run(self, model, t=20, number_of_trajectories=1, increment=0.05, timeout=None,
             show_labels=True, integrator='lsoda', integrator_options={}, **kwargs):
 
+        """
+        Run simulation using scipy's ODE class.
+
+        :param model: The model on which the solver will operate.
+        :param t: The end time of the solver.
+        :param number_of_trajectories: The number of times to sample the chemical master equation. Each
+        trajectory will be returned at the end of the simulation.
+        :param increment: The time step of the solution.
+        :param seed: The random seed for the simulation. Defaults to None.
+        :param debug: Set to True to provide additional debug information about the
+        simulation.
+        :param show_labels: Use names of species as index of result object rather than position numbers.
+        :return: a list of each trajectory simulated.
+        """
+
         start_state = [model.listOfSpecies[species].initial_value for species in model.listOfSpecies]
 
         # create mapping of species dictionary to array indices
