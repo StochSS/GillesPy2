@@ -206,15 +206,16 @@ class VariableSSACSolver(GillesPySolver):
         if not (resume is None):
             if show_labels == False:
                 if t < resume[0][-1][0]:
-                    log.warning(
-                        "'t' must be greater than previous simulations end time, or set in the run() function as the "
+                    raise gillespyError.ExecutionError(
+                        "'t' must be greater than previous simulations end time, or set in the run() method as the "
                         "simulations next end time")
             else:
                 if t < resume['time'][-1]:
-                    log.warning("'t' must be greater than previous simulations end time, or set in the run() function as the "
-                                "simulations next end time")
+                    raise gillespyError.ExecutionError(
+                        "'t' must be greater than previous simulations end time, or set in the run() method as the "
+                        "simulations next end time")
 
-        if resume != None:
+        if not (resume is None):
             self = VariableSSACSolver(model, resume=resume)
         else:
             if self is None or self.model is None:

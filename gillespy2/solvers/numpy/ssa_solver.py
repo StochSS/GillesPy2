@@ -1,5 +1,5 @@
 from threading import Thread, Event
-from gillespy2.core import GillesPySolver, Model, Reaction, log
+from gillespy2.core import GillesPySolver, Model, Reaction, log, gillespyError
 import random
 import math
 import numpy as np
@@ -91,14 +91,14 @@ class NumPySSASolver(GillesPySolver):
         if not (resume is None):
             if show_labels == False:
                 if t < resume[0][-1][0]:
-                    log.warning(
-                        "'t' must be greater than previous simulations end time, or set in the run() function as the "
+                    raise gillespyError.ExecutionError(
+                        "'t' must be greater than previous simulations end time, or set in the run() method as the "
                         "simulations next end time")
             else:
                 if t < resume['time'][-1]:
-                    log.warning("'t' must be greater than previous simulations end time, or set in the run() function as the "
-                                "simulations next end time")
-
+                    raise gillespyError.ExecutionError(
+                        "'t' must be greater than previous simulations end time, or set in the run() method as the "
+                        "simulations next end time")
 
         random.seed(seed)
         # create mapping of species dictionary to array indices
