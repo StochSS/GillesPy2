@@ -655,8 +655,8 @@ class BasicTauHybridSolver(GillesPySolver):
             compiled_reactions[r] = compile(model.listOfReactions[r].propensity_function, '<string>',
                                             'eval')
         compiled_rate_rules = OrderedDict()
-        for i, rr in enumerate(model.listOfRateRules):
-            compiled_rate_rules[rr] = compile(model.listOfRateRules[rr].formula, '<string>', 'eval')
+        for i, rr in enumerate(model.listOfRateRules.values()):
+            compiled_rate_rules[rr.variable] = compile(rr.formula, '<string>', 'eval')
             
         compiled_inactive_reactions = OrderedDict()
 
