@@ -32,6 +32,15 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         with self.assertRaises(ModelError):
             self.model.add_rate_rule(rule)
 
+    def test_add_assignment_rule(self):
+        species = gillespy2.Species('test_species4', initial_value=1, mode='continuous')
+        rule = gillespy2.AssignmentRule(name='ar1', variable=species.name, formula='2')
+        self.model.add_species([species])
+        self.model.add_assignment_rule([rule])
+        results = self.model.run(solver=BasicTauHybridSolver)
+        self.assertEquals(results[species.name][0], 2) 
+        self.assertEquals(results[species.name][-1], 2) 
+
     def test_math_name_overlap(self):
         gamma = gillespy2.Species('gamma',initial_value=2, mode='continuous')
         self.model.add_species([gamma])
