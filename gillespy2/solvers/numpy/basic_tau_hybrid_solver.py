@@ -601,7 +601,7 @@ class BasicTauHybridSolver(GillesPySolver):
                     # Copy ODE state for assignments
                     assignment_state[species[s]] = sol.sol(time)[s]
             assignment_state['t'] = time
-            for name, ar in model.listOfAssignmentRules.items():
+            for ar in model.listOfAssignmentRules.values():
                 assignment_value = eval(ar.formula, {**eval_globals,**assignment_state})
                 assignment_state[ar.variable] = assignment_value
                 trajectory[trajectory_index][species.index(ar.variable)+1] = assignment_value
