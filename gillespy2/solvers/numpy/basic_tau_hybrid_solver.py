@@ -210,7 +210,7 @@ class BasicTauHybridSolver(GillesPySolver):
         curr_state['time'] = t
         for item, index in y_map.items():
             if item in assignment_rules:
-                curr_state[item] = eval(assignment_rules[item].formula, {**eval_globals, **curr_state})
+                curr_state[assignment_rules[item].variable] = eval(assignment_rules[item].formula, {**eval_globals, **curr_state})
             else:
                 curr_state[item] = y[index]
         for rr in compiled_rate_rules:
@@ -601,10 +601,10 @@ class BasicTauHybridSolver(GillesPySolver):
                     # Copy ODE state for assignments
                     assignment_state[species[s]] = sol.sol(time)[s]
             assignment_state['t'] = time
-            for spec, ar in model.listOfAssignmentRules.items():
+            for name, ar in model.listOfAssignmentRules.items():
                 assignment_value = eval(ar.formula, {**eval_globals,**assignment_state})
-                assignment_state[spec] = assignment_value
-                trajectory[trajectory_index][species.index(spec)+1] = assignment_value
+                assignment_state[ar.variable] = assignment_value
+                trajectory[trajectory_index][species.index(ar.variable)+1] = assignment_value
             num_saves += 1
         save_times = save_times[num_saves:] # remove completed save times
 
