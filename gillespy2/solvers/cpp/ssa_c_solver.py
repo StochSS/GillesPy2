@@ -171,20 +171,25 @@ class SSACSolver(GillesPySolver):
         if built.returncode == 0:
             self.__compiled = True
         else:
-            raise gillespyError.BuildError("Error encountered while compiling file:\nReturn code: {0}.\nError:\n{1}\n{2}\n".format(built.returncode, built.stdout.decode('utf-8'),built.stderr.decode('utf-8')))
+            raise gillespyError.BuildError("Error encountered while compiling file:\nReturn code: "
+                                           "{0}.\nError:\n{1}\n{2}\n".format(built.returncode,
+                                                                             built.stdout.decode('utf-8'),
+                                                                             built.stderr.decode('utf-8')))
 
     def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
             increment=0.05, seed=None, debug=False, profile=False, show_labels=True, resume=None, **kwargs):
+
         if not (resume is None):
             if show_labels == False:
                 if t < resume[0][-1][0]:
-                    log.warning(
-                        "'t' must be greater than previous simulations end time, or set in the run() function as the "
+                    raise gillespyError.ExecutionError(
+                        "'t' must be greater than previous simulations end time, or set in the run() method as the "
                         "simulations next end time")
             else:
                 if t < resume['time'][-1]:
-                    log.warning("'t' must be greater than previous simulations end time, or set in the run() function as the "
-                                "simulations next end time")
+                    raise gillespyError.ExecutionError(
+                        "'t' must be greater than previous simulations end time, or set in the run() method as the "
+                        "simulations next end time")
 
         if not (resume is None):
             self = SSACSolver(model, resume=resume)
@@ -232,7 +237,7 @@ class SSACSolver(GillesPySolver):
                         args.append('-seed')
                         args.append(str(seed_int))
                     else:
-                        raise ModelError("seed must be a positive integer")
+                        raise gillespyError.ModelError("seed must be a positive integer")
 
             #begin subprocess c simulation with timeout (default timeout=0 will not timeout)
             with subprocess.Popen(args, stdout=subprocess.PIPE, preexec_fn=os.setsid) as simulation:
