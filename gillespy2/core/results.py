@@ -273,7 +273,6 @@ class Results(UserList):
                 trajectory_list.append(self.data[index])
         else:
             trajectory_list = self.data
-
         if title is None:
             title=self._validate_title()
 
@@ -312,8 +311,7 @@ class Results(UserList):
 
             if show_legend:
                 plt.legend(loc='best')
-            plt.plot([0], [11])
-
+            plt.plot()
             if isinstance(save_png, str):
                 plt.savefig(save_png)
 
