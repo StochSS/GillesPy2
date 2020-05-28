@@ -798,8 +798,14 @@ class Model(SortableObject):
         else:
             if len(self.get_all_assignment_rules()) > 0 or len(self.get_all_rate_rules()) > 0 \
                     or len(self.get_all_function_definitions()) > 0 or len(self.get_all_events()) > 0:
-                        from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
-                        solver = BasicTauHybridSolver
+                        from gillespy2.solvers.numpy import can_use_numpy
+                        if can_use_numpy:
+                            from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
+                            solver = BasicTauHybridSolver
+                        else:
+                            raise ModelError('BasicTauHybridSolver is the only solver currently that supports '
+                                             'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
+                                             'Please install Numpy.')
             else:
                 from gillespy2.solvers.auto import SSASolver
                 solver = SSASolver
