@@ -124,6 +124,34 @@ class Event:
     def __init__(self, name="", delay = None, assignments = [], priority="0", 
         trigger = None, use_values_from_trigger_time = False):
 
+        def __eq__(self, other):
+        return str(self)==str(other)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __gt__(self, other):
+        return not self.__le__(other)
+
+    def __ge__(self, other):
+        return not self.__lt__(other)
+
+    def __lt__(self, other):
+        if hasattr(self, 'id') and hasattr(other, 'id'):
+            return self.id.lower() < other.id.lower()
+        elif hasattr(self, 'name') and hasattr(other, 'name'):
+            return self.name.lower() < other.name.lower()
+        else:
+            return repr(self) < repr(other)
+
+    def __le__(self, other):
+        if hasattr(self, 'id') and hasattr(other, 'id'):
+            return self.id.lower() <= other.id.lower()
+        elif hasattr(self, 'name') and hasattr(other, 'name'):
+            return self.name.lower() <= other.name.lower()
+        else:
+            return repr(self) <= repr(other)
+
         # Events can contain any number of assignments
         self.assignments = []
 
