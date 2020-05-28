@@ -286,5 +286,16 @@ class TestModel(unittest.TestCase):
         self.assertEqual(model.listOfReactions['r3'].ode_propensity_function, 'rate*A*B')
         self.assertEqual(model.listOfReactions['r4'].ode_propensity_function, 't')
 
+
+    def test_species_setter(self):
+        sp1 = Species('A',initial_value=10)
+        sp1.set_initial_value(5)
+        self.assertEqual(sp1.initial_value,5)
+        with self.assertRaises(SpeciesError):
+            sp1.set_initial_value(-1)
+        sp2 = Species('B',initial_value=5,mode='discrete')
+        with self.assertRaises(SpeciesError):
+            sp2.set_initial_value(.5)
+
 if __name__ == '__main__':
     unittest.main()
