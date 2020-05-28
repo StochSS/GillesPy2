@@ -790,17 +790,22 @@ class Model(SortableObject):
 
         if solver is not None:
             try:
-                solver_results, rc = solver.run(model=self, t=self.tspan[-1],
-                            increment=self.tspan[-1] - self.tspan[-2], timeout=timeout, **solver_args)
+                solver_results, rc = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2],
+                                                timeout=timeout, **solver_args)
             except Exception as e:
                 raise SimulationError(
                     "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e))
         else:
-            from gillespy2.solvers.auto import SSASolver
-            solver = SSASolver
-            solver_results, rc = SSASolver.run(model=self, t=self.tspan[-1],
-                                      increment=self.tspan[-1] -
-                                      self.tspan[-2], timeout=timeout, **solver_args)
+            if len(self.get_all_assignment_rules()) > 0 or len(self.get_all_rate_rules()) > 0 \
+                    or len(self.get_all_function_definitions()) > 0 or len(self.get_all_events()) > 0:
+                        from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
+                        solver = BasicTauHybridSolver
+            else:
+                from gillespy2.solvers.auto import SSASolver
+                solver = SSASolver
+
+            solver_results, rc = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2],
+                                            timeout=timeout, **solver_args)
 
         if rc == 33:
             from gillespy2.core import log
@@ -808,19 +813,18 @@ class Model(SortableObject):
 
         if hasattr(solver_results[0], 'shape'):
             return solver_results
+
         if len(solver_results) is 1:
-            results_list = []
-            results_list.append(Trajectory(data=solver_results[0], model=self,
-                solver_name=solver.name, rc=rc))
+            results_list = [Trajectory(data=solver_results[0], model=self,
+                                       solver_name=solver.name, rc=rc)]
             return Results(results_list)
 
         if len(solver_results) > 1:
             results_list = []
             for i in range(0,solver_args.get('number_of_trajectories')):
-                results_list.append(Trajectory(data=solver_results[i],model=self,solver_name=solver.name,
-                    rc=rc))
+                results_list.append(Trajectory(data=solver_results[i], model=self, solver_name=solver.name,
+                    rc = rc))
             return Results(results_list)
-
 
         else:
             raise ValueError("number_of_trajectories must be non-negative and non-zero")
