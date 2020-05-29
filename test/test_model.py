@@ -236,6 +236,17 @@ class TestModel(unittest.TestCase):
         with self.assertRaises(ParameterError):
             model.add_parameter(parameter)
         
+    def test_add_event(self):
+        from gillespy2.core.events import Event, EventTrigger, EventAssignment
+        model = Model()
+        model.add_species(Species(name="A", initial_value=1, mode="discrete"))
+        model.add_species(Species(name="B", initial_value=2, mode="discrete"))
+        e1t = EventTrigger(expression="t>1")
+        e1a1 = EventAssignment(variable="A", expression="3")
+        e1a2 = EventAssignment(variable="B", expression="4")
+        test_event=Event(name="e1", trigger=e1t, assignments=[e1a1, e1a2])
+        model.add_event(test_event)
+        passed_test = str(model)
 
     def test_run_nonsolver(self):
         model = Model()
