@@ -706,7 +706,7 @@ class Results(UserList):
 
         plt.title(title, fontsize=18)
         plt.xlabel(xaxis_label)
-        plt.ylabel(yaxis_label)`
+        plt.ylabel(yaxis_label)
         plt.xscale(xscale)
         plt.yscale(yscale)
 
