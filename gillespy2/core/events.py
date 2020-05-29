@@ -120,11 +120,7 @@ class Event:
         TODO: MORE INFO
     use_values_from_trigger_time: boolean
     """
-
-    def __init__(self, name="", delay = None, assignments = [], priority="0", 
-        trigger = None, use_values_from_trigger_time = False):
-
-        def __eq__(self, other):
+    def __eq__(self, other):
         return str(self)==str(other)
 
     def __ne__(self, other):
@@ -137,20 +133,24 @@ class Event:
         return not self.__lt__(other)
 
     def __lt__(self, other):
-        if hasattr(self, 'id') and hasattr(other, 'id'):
-            return self.id.lower() < other.id.lower()
-        elif hasattr(self, 'name') and hasattr(other, 'name'):
-            return self.name.lower() < other.name.lower()
-        else:
-            return repr(self) < repr(other)
+        return str(self) < str(other)
 
     def __le__(self, other):
-        if hasattr(self, 'id') and hasattr(other, 'id'):
-            return self.id.lower() <= other.id.lower()
-        elif hasattr(self, 'name') and hasattr(other, 'name'):
-            return self.name.lower() <= other.name.lower()
+        return str(self) <= str(other)
+
+    def __hash__(self):
+        if hasattr(self, '_hash'):
+            return self._hash
+        if hasattr(self, 'id'):
+            self._hash = hash(self.id)
+        elif hasattr(self, 'name'):
+            self._hash = hash(self.name)
         else:
-            return repr(self) <= repr(other)
+            self._hash = hash(self)
+        return self._hash
+
+    def __init__(self, name="", delay = None, assignments = [], priority="0", 
+        trigger = None, use_values_from_trigger_time = False):
 
         # Events can contain any number of assignments
         self.assignments = []
@@ -199,6 +199,7 @@ class Event:
         else:
             raise EventError(
                 'use_values_from_trigger_time requires bool')
+
     def __str__(self):
         print_string = self.name
         print_string += '\n\tTrigger: ' + str(self.trigger)

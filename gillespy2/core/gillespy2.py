@@ -66,28 +66,13 @@ class SortableObject(object):
         return not self.__lt__(other)
 
     def __lt__(self, other):
-        if hasattr(self, 'id') and hasattr(other, 'id'):
-            return self.id.lower() < other.id.lower()
-        elif hasattr(self, 'name') and hasattr(other, 'name'):
-            return self.name.lower() < other.name.lower()
-        else:
-            return repr(self) < repr(other)
+        return str(self) < str(other)
 
     def __le__(self, other):
-        if hasattr(self, 'id') and hasattr(other, 'id'):
-            return self.id.lower() <= other.id.lower()
-        elif hasattr(self, 'name') and hasattr(other, 'name'):
-            return self.name.lower() <= other.name.lower()
-        else:
-            return repr(self) <= repr(other)
+        return str(self) <= str(other)
 
     def __cmp__(self, other):
-        if hasattr(self, 'id') and hasattr(other, 'id'):
-            return cmp(self.id.lower(), other.id.lower())
-        elif hasattr(self, 'name') and hasattr(other, 'name'):
-            return cmp(self.name.lower(), other.name.lower())
-        else:
-            return cmp(repr(self), repr(other))
+        return cmp(str(self), str(other))
 
     def __hash__(self):
         if hasattr(self, '_hash'):
