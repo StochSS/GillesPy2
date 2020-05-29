@@ -6,6 +6,60 @@ from gillespy2.core.results import Results, Trajectory
 
 class TestResults(unittest.TestCase):
 
+    def test_xscale_plot(self):
+        from unittest import mock
+        trajectory = Trajectory(data={'time':[0.],'foo':[1.]}, model=Model('test_model'))
+        results = Results(data=[trajectory])
+        with mock.patch('matplotlib.pyplot.xscale') as mock_xscale:
+            results.plot(xscale='log')
+        mock_xscale.assert_called_with('log')
+
+    def test_yscale_plot(self):
+        from unittest import mock
+        trajectory = Trajectory(data={'time':[0.],'foo':[1.]}, model=Model('test_model'))
+        results = Results(data=[trajectory])
+        with mock.patch('matplotlib.pyplot.yscale') as mock_yscale:
+            results.plot(yscale='log')
+        mock_yscale.assert_called_with('log')
+
+    def test_xscale_plot_std_dev_range(self):
+        from unittest import mock
+        trajectory = Trajectory(data={'time':[0.],'foo':[1.]}, model=Model('test_model'))
+        results = Results(data=[trajectory])
+        with mock.patch('matplotlib.pyplot.xscale') as mock_xscale:
+            results.plot_std_dev_range(xscale='log')
+        mock_xscale.assert_called_with('log')
+
+    def test_yscale_plot_std_dev_range(self):
+        from unittest import mock
+        trajectory = Trajectory(data={'time':[0.],'foo':[1.]}, model=Model('test_model'))
+        results = Results(data=[trajectory])
+        with mock.patch('matplotlib.pyplot.yscale') as mock_yscale:
+            results.plot(yscale='log')
+        mock_yscale.assert_called_with('log')
+
+    def test_plotly_layout_args(self):
+        from unittest import mock
+        trajectory = Trajectory(data={'time':[0.],'foo':[1.]}, model=Model('test_model'))
+        results = Results(data=[trajectory])
+        with mock.patch('plotly.offline.init_notebook_mode') as mock_notebook:
+            with mock.patch('plotly.graph_objs.Scatter') as mock_scatter:
+                with mock.patch('plotly.graph_objs.Layout') as mock_layout:
+                    results.plotplotly(return_plotly_figure=True,xscale='log')
+        mock_layout.assert_called_with(showlegend=True, title='', xaxis_title='Time ', xscale='log', yaxis_title='Species Population')
+
+    def test_plotly_std_dev_range_layout_args(self):
+        from unittest import mock
+        from unittest.mock import MagicMock
+        trajectory = Trajectory(data={'time':[0.],'foo':[1.]}, model=Model('test_model'))
+        results = Results(data=[trajectory])
+        _plotly_iterate=MagicMock()
+        with mock.patch('plotly.offline.init_notebook_mode') as mock_notebook:
+            with mock.patch('plotly.graph_objs.Scatter') as mock_scatter:
+                with mock.patch('plotly.graph_objs.Layout') as mock_layout:
+                    results.plotplotly_std_dev_range(return_plotly_figure=True,xscale='log')
+        mock_layout.assert_called_with(showlegend=True, title='Standard Deviation Range', xaxis_title='Time ', xscale='log', yaxis_title='Species Population') 
+
     def test_pickle_stable_plot_iterate(self):
         from unittest import mock
         from gillespy2.core.results import _plot_iterate
@@ -75,6 +129,14 @@ class TestResults(unittest.TestCase):
     def test_to_csv_single_result_no_nametag(self):
         test_model = Model('test_model')
         test_data = Trajectory(data={'time':[0]},model=test_model)
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            result.to_csv(nametag=test_nametag, path=tempdir)
+            assert len(os.listdir(tempdir)) is not 0
+
+    def test_to_csv_single_result_no_nametag(self):
+        test_model = Model('test_model')
+        test_data = Trajectory(data={'time':[0]},model=test_model)
         result = Results(data=[test_data])
         result.solver_name = 'test_solver'
         test_stamp = "test_stamp"
@@ -89,11 +151,3 @@ class TestResults(unittest.TestCase):
         test_nametag = "test_nametag"
         test_stamp = "test_stamp"
 
-        with tempfile.TemporaryDirectory() as tempdir:
-            os.chdir(tempdir)
-            result.to_csv(stamp=test_stamp, nametag=test_nametag)
-            assert len(os.listdir(tempdir)) is not 0
-
-
-if __name__ == '__main__':
-    unittest.main()
