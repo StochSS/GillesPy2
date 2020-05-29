@@ -276,7 +276,6 @@ class Model(SortableObject):
         obj : Species, or list of Species
             The species or list of species to be added to the model object.
         """
-
         if isinstance(obj, list):
             for S in sorted(obj):
                 self.add_species(S)
