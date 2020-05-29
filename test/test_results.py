@@ -42,9 +42,10 @@ class TestResults(unittest.TestCase):
         from unittest import mock
         trajectory = Trajectory(data={'time':[0.],'foo':[1.]}, model=Model('test_model'))
         results = Results(data=[trajectory])
-        with mock.patch('plotly.graph_objs.Scatter') as mock_scatter:
-            with mock.patch('plotly.graph_objs.Layout') as mock_layout:
-                results.plotplotly(return_plotly_figure=True,xscale='log')
+        with mock.patch('plotly.offline.init_notebook_mode') as mock_notebook:
+            with mock.patch('plotly.graph_objs.Scatter') as mock_scatter:
+                with mock.patch('plotly.graph_objs.Layout') as mock_layout:
+                    results.plotplotly(return_plotly_figure=True,xscale='log')
         mock_layout.assert_called_with(showlegend=True, title='', xaxis_title='Time ', xscale='log', yaxis_title='Species Population')
 
     def test_plotly_std_dev_range_layout_args(self):
@@ -53,9 +54,10 @@ class TestResults(unittest.TestCase):
         trajectory = Trajectory(data={'time':[0.],'foo':[1.]}, model=Model('test_model'))
         results = Results(data=[trajectory])
         _plotly_iterate=MagicMock()
-        with mock.patch('plotly.graph_objs.Layout') as mock_layout:
+        with mock.patch('plotly.offline.init_notebook_mode') as mock_notebook:
             with mock.patch('plotly.graph_objs.Scatter') as mock_scatter:
-                results.plotplotly_std_dev_range(return_plotly_figure=True,xscale='log')
+                with mock.patch('plotly.graph_objs.Layout') as mock_layout:
+                    results.plotplotly_std_dev_range(return_plotly_figure=True,xscale='log')
         mock_layout.assert_called_with(showlegend=True, title='Standard Deviation Range', xaxis_title='Time ', xscale='log', yaxis_title='Species Population') 
 
     def test_pickle_stable_plot_iterate(self):
