@@ -184,7 +184,10 @@ class Results(UserList):
                 is_valid = False
         return is_valid
 
-    def _validate_title(self):
+    def _validate_title(self,show_title):
+        if not show_title:
+            title = ''
+            return title
         if self._validate_model():
             title_model = self.data[0].model.name
         else:
@@ -212,7 +215,7 @@ class Results(UserList):
             now = datetime.now()
             stamp=datetime.timestamp(now)
         if nametag is None:
-            identifier = self._validate_title()
+            identifier = self._validate_title(show_title=True)
         else:
             identifier = nametag
         if path is None:
@@ -236,8 +239,9 @@ class Results(UserList):
                             this_line.append(trajectory[species][n])
                         csv_writer.writerow(this_line) #write one line of the CSV file
 
-    def plot(self, index = None, xaxis_label ="Time (s)", xscale='linear', yscale='linear', yaxis_label ="Species Population", style="default", title = None,
-             show_legend=True, multiple_graphs = False, included_species_list=[],save_png=False,figsize = (18,10)):
+    def plot(self, index=None, xaxis_label="Time ", xscale='linear', yscale='linear', yaxis_label="Species Population", style="default", title=None,
+             show_title=False, show_legend=True, multiple_graphs=False, included_species_list=[], save_png=False,
+             figsize = (18,10)):
         """ Plots the Results using matplotlib.
 
         Attributes
@@ -274,8 +278,9 @@ class Results(UserList):
         else:
             trajectory_list = self.data
 
+
         if title is None:
-            title=self._validate_title()
+            title = self._validate_title(show_title)
 
         if len(trajectory_list) < 2:
                 multiple_graphs = False
@@ -322,7 +327,9 @@ class Results(UserList):
             elif save_png:
                 plt.savefig(title)
 
-    def plotplotly(self, title=None, index = None, show_legend = True, xaxis_label = "Time (s)", yaxis_label="Species Population", multiple_graphs = False, included_species_list=[],return_plotly_figure=False, **layout_args):
+    def plotplotly(self, index=None, xaxis_label="Time ", yaxis_label="Species Population", title=None,
+                   show_title=False, show_legend=True, multiple_graphs=False, included_species_list=[],
+                   return_plotly_figure=False,  **layout_args):
         """ Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.
 
         Attributes
@@ -370,8 +377,9 @@ class Results(UserList):
 
         number_of_trajectories =len(trajectory_list)
 
+
         if title is None:
-            title=self._validate_title()
+            title = self._validate_title(show_title)
 
         fig = dict(data=[], layout=[])
 
@@ -516,8 +524,9 @@ class Results(UserList):
         output_results = Results(data=[output_trajectory]) #package output_trajectory in a Results object
         return output_results
 
-    def plotplotly_std_dev_range(self, xaxis_label = "Time (s)", yaxis_label="Species Population", title = None,
-                                 show_legend=True, included_species_list = [],return_plotly_figure=False,ddof = 0, **layout_args):
+    def plotplotly_std_dev_range(self, xaxis_label="Time ", yaxis_label="Species Population", title=None,
+                                 show_title = False, show_legend=True, included_species_list=[],
+                                 return_plotly_figure=False, ddof=0, **layout_args):
         """
            Plot a plotly graph depicting standard deviation and the mean graph of a results object
 
@@ -561,8 +570,11 @@ class Results(UserList):
 
         init_notebook_mode(connected=True)
 
-        if title is None:
-            title = (self._validate_title() + " - Standard Deviation Range")
+        if not show_title:
+            title = 'Standard Deviation Range'
+        else:
+            if title is None:
+                title = (self._validate_title(show_title) + " - Standard Deviation Range")
 
         trace_list=[]
         for species in average_trajectory:
@@ -629,8 +641,9 @@ class Results(UserList):
         else:
             iplot(fig)
 
-    def plot_std_dev_range(self, xscale='linear',yscale='linear',xaxis_label ="Time (s)", yaxis_label ="Species Population", title = None,
-                           style="default", show_legend=True, included_species_list=[],ddof=0,save_png = False,figsize = (18,10)):
+    def plot_std_dev_range(self, xscale='linear',yscale='linear', xaxis_label ="Time ", yaxis_label ="Species Population", title=None,
+                           show_title=False, style="default", show_legend=True, included_species_list=[], ddof=0,
+                           save_png=False, figsize=(18,10)):
         """
             Plot a matplotlib graph depicting standard deviation and the mean graph of a results object
 
@@ -685,12 +698,15 @@ class Results(UserList):
             plt.plot(average_result['time'],lowerBound,upperBound,color='grey',linestyle='dashed')
             plt.plot(average_result['time'],average_result[species],label=species)
 
-        if title is None:
-            title = (self._validate_title() + " - Standard Deviation Range")
+        if not show_title:
+            title = 'Standard Deviation Range'
+        else:
+            if title is None:
+                title = (self._validate_title(show_title) + " - Standard Deviation Range")
 
         plt.title(title, fontsize=18)
         plt.xlabel(xaxis_label)
-        plt.ylabel(yaxis_label)
+        plt.ylabel(yaxis_label)`
         plt.xscale(xscale)
         plt.yscale(yscale)
 
