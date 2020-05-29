@@ -120,6 +120,34 @@ class Event:
         TODO: MORE INFO
     use_values_from_trigger_time: boolean
     """
+    def __eq__(self, other):
+        return str(self)==str(other)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __gt__(self, other):
+        return not self.__le__(other)
+
+    def __ge__(self, other):
+        return not self.__lt__(other)
+
+    def __lt__(self, other):
+        return str(self) < str(other)
+
+    def __le__(self, other):
+        return str(self) <= str(other)
+
+    def __hash__(self):
+        if hasattr(self, '_hash'):
+            return self._hash
+        if hasattr(self, 'id'):
+            self._hash = hash(self.id)
+        elif hasattr(self, 'name'):
+            self._hash = hash(self.name)
+        else:
+            self._hash = hash(self)
+        return self._hash
 
     def __init__(self, name="", delay = None, assignments = [], priority="0", 
         trigger = None, use_values_from_trigger_time = False):
@@ -171,6 +199,7 @@ class Event:
         else:
             raise EventError(
                 'use_values_from_trigger_time requires bool')
+
     def __str__(self):
         print_string = self.name
         print_string += '\n\tTrigger: ' + str(self.trigger)

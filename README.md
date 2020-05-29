@@ -147,9 +147,9 @@ New developments happen primarily in the [`develop`](https://github.com/GillesPy
 
 <p align="center">
 
-| Master Branch   | Develop Branch | Coverage | Maintainability |
+| Master Branch   | Develop Branch | Test Coverage | Maintainability |
 |:---------------:|:--------------:|:--------:|:---------------:|
-| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | ![Coverage](https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/coverage.svg?sanitize=true) | [![Maintainability](https://api.codeclimate.com/v1/badges/990ac9d778d681d32eea/maintainability)](https://codeclimate.com/github/GillesPy2/GillesPy2/maintainability) |
+| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Test Coverage](https://api.codeclimate.com/v1/badges/990ac9d778d681d32eea/test_coverage)](https://codeclimate.com/github/GillesPy2/GillesPy2/test_coverage) | [![Maintainability](https://api.codeclimate.com/v1/badges/990ac9d778d681d32eea/maintainability)](https://codeclimate.com/github/GillesPy2/GillesPy2/maintainability) |
 
 License
 -------
