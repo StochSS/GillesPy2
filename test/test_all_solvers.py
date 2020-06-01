@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 
 import gillespy2
-from example_models import Example, Oregonator
+from example_models import Example, Oregonator, MichaelisMenten
 from gillespy2.core.results import Results, Trajectory
 from gillespy2.solvers.cpp.ssa_c_solver import SSACSolver
 from gillespy2.solvers.cpp.variable_ssa_c_solver import VariableSSACSolver
@@ -78,8 +78,8 @@ class TestAllSolvers(unittest.TestCase):
     def test_timeout_multiple_trajectories(self):
         for solver in self.solvers:
             with self.assertLogs(level='WARN'):
-                model = Oregonator()
-                model.timespan(np.linspace(0, 10, 101))
+                model = MichaelisMenten()
+                model.timespan(np.linspace(0, 20, 101))
                 results = model.run(solver=solver,timeout=1,number_of_trajectories=1000)
 
 
