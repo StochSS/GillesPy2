@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import subprocess
 
-from example_models import MichaelisMenten
+from example_models import MichaelisMenten, Oregonator
 from gillespy2.core.results import Results, Trajectory
 from gillespy2.solvers.cpp.ssa_c_solver import SSACSolver
 from gillespy2.solvers.cpp.variable_ssa_c_solver import VariableSSACSolver
@@ -10,6 +10,11 @@ from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
 from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver
 from gillespy2.solvers.numpy.basic_tau_leaping_solver import BasicTauLeapingSolver
 from gillespy2.core import gillespyError
+import subprocess
+import signal
+import time
+import os
+
 
 class TestPauseResume(unittest.TestCase):
     solvers = [SSACSolver, VariableSSACSolver, BasicODESolver,
@@ -44,3 +49,29 @@ class TestPauseResume(unittest.TestCase):
                 self.results[solver] = model.run(solver=solver, show_labels=False, resume=self.results[solver], t=1)
                 self.labeled_results = model.run(solver=solver, show_labels=True, resume=self.labeled_results[solver],
                                                  t=1)
+
+    def test_pause(self):
+        args = [['python3', 'pause_modelLeap.py'], ['python3', 'pause_modelODE.py'],
+                ['python3', 'pause_modelSSA.py']]
+        for arg in args:
+            p = subprocess.Popen(arg, preexec_fn=os.setsid, stdout=subprocess.PIPE,cwd=os.getcwd()+'/pause_models')
+            time.sleep(2)
+            os.kill(p.pid, signal.SIGINT)
+            out, err = p.communicate()
+            #End time for Oregonator is 5. If indexing into a numpy array using the form:
+            #results[0][-1][0] (where .run(show_labels=False), this index being the last time in the index
+            #One would get an output of "5.0" before converting it to an int. Hence, assert time != 5.0 rather than 5.
+            self.assertFalse(out.decode('utf-8').rstrip() == '5.0')
+
+        solvers = [VariableSSACSolver,SSACSolver]
+        #For the C solvers, timeouts behave identical to a keyboard interrupt, and would return the same data, if
+        #one was to KeyBoardInterrupt, at the same time a timeout ended. This is because timeouts in C solvers
+        #and KeyBoardInterrupt send the same signal to the subprocess, the only difference is KeyBoardInterrupt is
+        #manual, whereas timeout is a set variable
+        for solver in solvers:
+            model = Oregonator()
+            results = model.run(solver=solver,timeout=1,show_labels=False)
+            self.assertFalse(results[0][-1][0] == '5.0')
+
+
+

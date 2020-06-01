@@ -5,7 +5,7 @@ from scipy.integrate import ode
 from scipy.integrate import odeint
 from collections import OrderedDict
 import numpy as np
-from gillespy2.core import GillesPySolver, log
+from gillespy2.core import GillesPySolver, log, gillespyError
 
 
 class BasicODESolver(GillesPySolver):
@@ -116,13 +116,13 @@ class BasicODESolver(GillesPySolver):
         if not (resume is None):
             if show_labels == False:
                 if t < resume[0][-1][0]:
-                    log.warning(
-                        "'t' must be greater than previous simulations end time, or set in the run() function as the "
+                    raise gillespyError.ExecutionError(
+                        "'t' must be greater than previous simulations end time, or set in the run() method as the "
                         "simulations next end time")
             else:
                 if t < resume['time'][-1]:
-                    log.warning(
-                        "'t' must be greater than previous simulations end time, or set in the run() function as the "
+                    raise gillespyError.ExecutionError(
+                        "'t' must be greater than previous simulations end time, or set in the run() method as the "
                         "simulations next end time")
 
         start_state = [model.listOfSpecies[species].initial_value for species in model.listOfSpecies]
@@ -137,9 +137,11 @@ class BasicODESolver(GillesPySolver):
             # start where we last left off if resuming a simulation
             if show_labels == False:
                 lastT = resume[0][-1][0]
+                step = lastT - resume[0][-2][0]
             else:
                 lastT = resume['time'][-1]
-            timeline = np.linspace(lastT, t, int(round(t - lastT + 1)))
+                step = lastT - resume['time'][-2]
+            timeline = np.arange(lastT, t+step, step)
         else:
             timeline = np.linspace(0, t, int(round(t / increment + 1)))
 

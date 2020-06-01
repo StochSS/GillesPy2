@@ -111,9 +111,11 @@ class NumPySSASolver(GillesPySolver):
             #start where we last left off if resuming a simulation
             if show_labels == False:
                 lastT = resume[0][-1][0]
+                step = lastT - resume[0][-2][0]
             else:
                 lastT = resume['time'][-1]
-            timeline = np.linspace(lastT, t, int(round(t-lastT+1)))
+                step = lastT-resume['time'][-2]
+            timeline = np.arange(lastT, t+step, step)
         else:
             timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
@@ -168,6 +170,7 @@ class NumPySSASolver(GillesPySolver):
                 break
             elif self.pause_event.is_set():
                 timeStopped = timeline[entry_count]
+                print(timeStopped)
                 break
             # copy initial state data
             trajectory = trajectory_base[trajectory_num]
@@ -182,6 +185,7 @@ class NumPySSASolver(GillesPySolver):
                     break
                 elif self.pause_event.is_set():
                     timeStopped = timeline[entry_count]
+                    print(timeStopped)
                     break
                 # determine next reaction
                 for i in range(number_reactions):
@@ -209,6 +213,7 @@ class NumPySSASolver(GillesPySolver):
                         break
                     elif self.pause_event.is_set():
                         timeStopped = timeline[entry_count]
+                        print(timeStopped)
                         break
                     trajectory[entry_count, 1:] = current_state
                     entry_count += 1

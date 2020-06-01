@@ -75,14 +75,17 @@ def _write_reactions(outfile, model, reactions, species):
             if change != 0:
                 outfile.write("model.reactions[{0}].species_change[{1}] = {2};\n".format(i, j, change))
 
-def _parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species):
+def _parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species,pause=False):
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
     step_size = number_species * number_of_trajectories + 1 #1 for timestep
     data = np.frombuffer(results_buffer, dtype=np.float64)
-    timeStopped = 0
-    stopTest = 0
-
-    assert(len(data) == (number_of_trajectories*number_timesteps*number_species + number_timesteps))
+    #Timestopped is added to the end of the data, when a simulation completes or is paused
+    if pause:
+        timeStopped = data[-1]
+        timeStopped = round(timeStopped,2)
+    else:
+        timeStopped = 0
+    assert(len(data) == (number_of_trajectories*number_timesteps*number_species + number_timesteps)+1)
     for timestep in range(number_timesteps):
         index = step_size * timestep
         trajectory_base[:, timestep, 0] = data[index]
@@ -90,15 +93,8 @@ def _parse_binary_output(results_buffer, number_of_trajectories, number_timestep
         for trajectory in range(number_of_trajectories):
             for species in range(number_species):
                 trajectory_base[trajectory, timestep, 1 + species] = data[index + species]
-
-                if data[index+species] == 0:
-                    stopTest += 1
-                    if stopTest>=number_species:
-                        if timeStopped == 0:
-                            timeStopped = timestep
-                else:
-                    stopTest = 0
             index += number_species
+
     return trajectory_base, timeStopped
 
 
@@ -140,7 +136,6 @@ class SSACSolver(GillesPySolver):
             _copy_files(self.output_directory)
             self.__write_template()
             self.__compile()
-        
     def __del__(self):
         if self.delete_directory and os.path.isdir(self.output_directory):
             shutil.rmtree(self.output_directory)
@@ -178,6 +173,7 @@ class SSACSolver(GillesPySolver):
 
     def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
             increment=0.05, seed=None, debug=False, profile=False, show_labels=True, resume=None, **kwargs):
+        pause = False
 
         if not (resume is None):
             if show_labels == False:
@@ -221,9 +217,10 @@ class SSACSolver(GillesPySolver):
             self.simulation_data = None
             if not (resume is None):
                 if show_labels == False:
-                    t = abs(t-int(resume[0][-1][0]))
+                    t = abs(t-resume[0][-1][0])
                 else:
-                    t = abs(t - int(resume['time'][-1]))
+                    t = abs(t - resume['time'][-1])
+
             number_timesteps = int(round(t/increment + 1))
             # Execute simulation.
             args = [os.path.join(self.output_directory, 'UserSimulation'), '-trajectories', str(number_of_trajectories), '-timesteps', str(number_timesteps), '-end', str(t)]
@@ -242,8 +239,6 @@ class SSACSolver(GillesPySolver):
             #begin subprocess c simulation with timeout (default timeout=0 will not timeout)
             with subprocess.Popen(args, stdout=subprocess.PIPE, preexec_fn=os.setsid) as simulation:
                 return_code = 0
-
-
                 try:
                     if timeout > 0:
                         stdout, stderr = simulation.communicate(timeout=timeout)
@@ -253,15 +248,21 @@ class SSACSolver(GillesPySolver):
                 except KeyboardInterrupt:
                     os.killpg(simulation.pid, signal.SIGINT)  # send signal to the process group
                     stdout, stderr = simulation.communicate()
+                    pause = True
                     return_code = 33
                 except subprocess.TimeoutExpired:
                         os.killpg(simulation.pid, signal.SIGINT) #send signal to the process group
                         stdout, stderr = simulation.communicate()
+                        pause = True
                         return_code = 33
- 
+
             # Parse/return results.
             if return_code in [0, 33]:
-                trajectory_base, timeStopped = _parse_binary_output(stdout, number_of_trajectories, number_timesteps, len(self.species))
+                trajectory_base, timeStopped = _parse_binary_output(stdout, number_of_trajectories, number_timesteps,
+                                                                    len(self.species),pause=pause)
+                if self.model.tspan[2]-self.model.tspan[1] == 1:
+                    timeStopped = int(timeStopped)
+
                 # Format results
                 if show_labels:
                     self.simulation_data = []
@@ -280,23 +281,30 @@ class SSACSolver(GillesPySolver):
             #If simulation was paused/KeyboardInterrupt
             if show_labels == False and timeStopped != 0:
                 cutoff = np.where(self.simulation_data[0][:, 0] == timeStopped)
+
                 # Find where index is of timestopped. Ex, timestopped @50
                 # index of time 50 could be 4,0, 4th row, 0'th index
-                self.simulation_data = np.array([self.simulation_data[0][:int(cutoff[0])]])
+                if cutoff[0].size != 0:
+                    self.simulation_data = np.array([self.simulation_data[0][:int(cutoff[0])]])
             elif timeStopped!=0:
-                for i in self.simulation_data[0]:
-                    self.simulation_data[0][i] = self.simulation_data[0][i][:timeStopped]
+                cutoff = np.where(self.simulation_data[0]['time']==timeStopped)
+                if cutoff[0].size != 0:
+                    for i in self.simulation_data[0]:
+                        self.simulation_data[0][i] = self.simulation_data[0][i][:int(cutoff[0])]
 
             if not (resume is None):
                 if show_labels==False:
-                    resumeTime = int(resume[0][-1][0])
+                    resumeTime = float(resume[0][-1][0])
+                    step = resumeTime - resume[0][-2][0]
                 else:
-                    resumeTime = int(resume['time'][-1])
+                    resumeTime = float(resume['time'][-1])
+                    step = resumeTime - resume['time'][-2]
 
                 if timeStopped == 0:
-                    timeSpan = np.linspace(resumeTime,t+resumeTime,num=t+1)
+                    timeSpan = np.arange(resumeTime,t+resumeTime+step,step)
                 else:
-                    timeSpan = np.linspace(resumeTime+1,timeStopped+resumeTime,num=timeStopped)
+                    timeSpan = np.arange(resumeTime+step,timeStopped+resumeTime+step,step)
+
 
                 if show_labels==False:
                     self.simulation_data[0][:,0] = timeSpan
@@ -306,13 +314,15 @@ class SSACSolver(GillesPySolver):
             if not (resume is None):
                 # If resuming, combine old pause with new data, and delete any excess null data
                 if show_labels == False:
-                    resume = np.array([resume[0][:-1]])
+                    resume = np.array([resume[0]])
                     self.simulation_data = np.array(np.concatenate((resume, self.simulation_data), axis=1))
                 else:
                     for i in self.simulation_data[0]:
-                        oldData = resume[i][:-1]
+                        oldData = resume[i]
                         newData = self.simulation_data[0][i]
                         self.simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
+                    if len(self.simulation_data[0]['time']) != len(self.simulation_data[0][i]):
+                        self.simulation_data[0]['time'] = self.simulation_data[0]['time'][:-1]
 
         return self.simulation_data, return_code
 

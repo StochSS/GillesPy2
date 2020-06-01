@@ -6,6 +6,7 @@ from threading import Thread, Event
 import numpy as np
 from gillespy2.solvers.numpy import Tau
 from gillespy2.core import GillesPySolver, log
+from gillespy2.core.gillespyError import ExecutionError
 
 
 class BasicTauLeapingSolver(GillesPySolver):
@@ -151,13 +152,13 @@ class BasicTauLeapingSolver(GillesPySolver):
         if not (resume is None):
             if show_labels == False:
                 if t < resume[0][-1][0]:
-                    log.warning(
-                        "'t' must be greater than previous simulations end time, or set in the run() function as the "
+                    raise ExecutionError(
+                        "'t' must be greater than previous simulations end time, or set in the run() method as the "
                         "simulations next end time")
             else:
                 if t < resume['time'][-1]:
-                    log.warning(
-                        "'t' must be greater than previous simulations end time, or set in the run() function as the "
+                    raise ExecutionError(
+                        "'t' must be greater than previous simulations end time, or set in the run() method as the "
                         "simulations next end time")
 
         if debug:
@@ -184,9 +185,11 @@ class BasicTauLeapingSolver(GillesPySolver):
             # start where we last left off if resuming a simulation
             if show_labels == False:
                 lastT = resume[0][-1][0]
+                step = lastT - resume[0][-2][0]
             else:
                 lastT = resume['time'][-1]
-            timeline = np.linspace(lastT, t, int(round(t - lastT + 1)))
+                step = lastT - resume['time'][-2]
+            timeline = np.arange(lastT, t+step, step)
         else:
             timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
@@ -218,7 +221,6 @@ class BasicTauLeapingSolver(GillesPySolver):
                 self.rc = 33
                 break
             elif self.pause_event.is_set():
-                print(timeStopped)
                 timeStopped = timeline[entry_count]
 
             start_state = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
@@ -361,8 +363,8 @@ class BasicTauLeapingSolver(GillesPySolver):
         # If simulation has been paused, or tstopped !=0
         if show_labels == False and timeStopped != 0:
             cutoff = np.where(simulation_data[0][:, 0] == timeStopped)
-            #Find where index is of timestopped. Ex, timestopped @50
-            #index of time 50 could be 4,0, 4th row, 0'th index
+            # Find where index is of timestopped. Ex, timestopped @50
+            # index of time 50 could be 4,0, 4th row, 0'th index
             simulation_data = np.array([simulation_data[0][:int(cutoff[0])]])
         elif timeStopped != 0 and show_labels != False:
             if timeStopped != simulation_data[0]['time'][-1]:

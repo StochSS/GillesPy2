@@ -779,7 +779,7 @@ class Model(SortableObject):
         To pause a simulation and retrieve data before the simulation, keyboard interrupt the simulation by pressing
         control+c or pressing stop on a jupyter notebook. To resume a simulation, pass your previously ran results
         into the run method, and set t = to the time you wish the resuming simulation to end (run(resume=results, t=x)).
-        Pause/Resume is only supported for SINGLE TRAJECTORY simulations.
+        Pause/Resume is only supported for SINGLE TRAJECTORY simulations. T MUST BE SET OR UNEXPECTED BEHAVIOR MAY OCCUR.
 
         Attributes
         ----------
