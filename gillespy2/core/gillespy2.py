@@ -10,7 +10,7 @@ import numpy as np
 import uuid
 from contextlib import contextmanager
 from collections import OrderedDict
-from gillespy2.core.results import Trajectory,Results
+from gillespy2.core.results import Trajectory, Results
 from gillespy2.core.events import *
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
@@ -24,7 +24,9 @@ except:
     import xml.etree.ElementTree as eTree
     import xml.dom.minidom
     import re
+
     no_pretty_print = True
+
 
 def import_SBML(filename, name=None, gillespy_model=None):
     """
@@ -54,7 +56,7 @@ class SortableObject(object):
     """Base class for GillesPy2 objects that are sortable."""
 
     def __eq__(self, other):
-        return str(self)==str(other)
+        return str(self) == str(other)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -169,8 +171,10 @@ class Model(SortableObject):
 
     def __str__(self):
         divider = '\n**********\n'
+
         def decorate(header):
             return '\n' + divider + header + divider
+
         print_string = self.name
         if len(self.listOfSpecies):
             print_string += decorate('Species')
@@ -223,7 +227,9 @@ class Model(SortableObject):
 
     def problem_with_name(self, name):
         if name in Model.reserved_names:
-            return ModelError('Name "{}" is unavailable. It is reserved for internal GillesPy use. Reserved Names: ({}).'.format(name, Model.reserved_names))
+            return ModelError(
+                'Name "{}" is unavailable. It is reserved for internal GillesPy use. Reserved Names: ({}).'.format(name,
+                                                                                                                   Model.reserved_names))
         if name in self.listOfSpecies:
             return ModelError('Name "{}" is unavailable. A species with that name exists.'.format(name))
         if name in self.listOfParameters:
@@ -232,7 +238,9 @@ class Model(SortableObject):
             return ModelError('Name "{}" is unavailable. Names must not be numeric strings.'.format(name))
         for special_character in Model.special_characters:
             if special_character in name:
-                return ModelError('Name "{}" is unavailable. Names must not contain special characters: {}.'.format(name, Model.special_characters))
+                return ModelError(
+                    'Name "{}" is unavailable. Names must not contain special characters: {}.'.format(name,
+                                                                                                      Model.special_characters))
 
     def get_species(self, s_name):
         """
@@ -352,7 +360,7 @@ class Model(SortableObject):
         obj : Parameter, or list of Parameters
             The parameter or list of parameters to be added to the model object.
         """
-        if isinstance(params,list):
+        if isinstance(params, list):
             for p in sorted(params):
                 self.add_parameter(p)
         else:
@@ -361,7 +369,7 @@ class Model(SortableObject):
                 if problem is not None:
                     raise problem
                 self.listOfParameters[params.name] = params
-                self._listOfParameters[params.name]='P{}'.format(len(self._listOfParameters))
+                self._listOfParameters[params.name] = 'P{}'.format(len(self._listOfParameters))
             except Exception as e:
                 raise ParameterError("Error using {} as a Parameter. Reason given: {}".format(params, e))
         return params
@@ -412,18 +420,21 @@ class Model(SortableObject):
         self._listOfParameters.clear()
 
     def validate_reactants_and_products(self, reactions):
-            for reactant in reactions.reactants.keys():
-                if isinstance(reactant, str):
-                    if reactant not in self.listOfSpecies.keys():
-                        raise ModelError('reactant: {0} for reaction {1} -- not found in model.listOfSpecies'.format(reactant, reactions.name))
-                    reactions.reactants[self.listOfSpecies[reactant]] = reactions.reactants[reactant]
-                    del reactions.reactants[reactant]
-            for product in reactions.products.keys():
-                if isinstance(product, str):
-                    if product not in self.listOfSpecies.keys():
-                        raise ModelError('product: {0} for reaction {1} -- not found in model.listOfSpecies'.format(product, reactions.name))
-                    reactions.products[self.listOfSpecies[product]] = reactions.products[product]
-                    del reactions.products[product]
+        for reactant in reactions.reactants.keys():
+            if isinstance(reactant, str):
+                if reactant not in self.listOfSpecies.keys():
+                    raise ModelError(
+                        'reactant: {0} for reaction {1} -- not found in model.listOfSpecies'.format(reactant,
+                                                                                                    reactions.name))
+                reactions.reactants[self.listOfSpecies[reactant]] = reactions.reactants[reactant]
+                del reactions.reactants[reactant]
+        for product in reactions.products.keys():
+            if isinstance(product, str):
+                if product not in self.listOfSpecies.keys():
+                    raise ModelError('product: {0} for reaction {1} -- not found in model.listOfSpecies'.format(product,
+                                                                                                                reactions.name))
+                reactions.products[self.listOfSpecies[product]] = reactions.products[product]
+                del reactions.products[product]
 
     def add_reaction(self, reactions):
         """
@@ -437,7 +448,7 @@ class Model(SortableObject):
         """
 
         # TODO, make sure that you cannot overwrite an existing reaction
-        if isinstance(reactions,list):
+        if isinstance(reactions, list):
             for r in sorted(reactions):
                 self.add_reaction(r)
         else:
@@ -449,9 +460,12 @@ class Model(SortableObject):
                 self.listOfReactions[reactions.name] = reactions
                 # Build Sanitized reaction as well
                 sanitized_reaction = Reaction(name='R{}'.format(len(self._listOfReactions)))
-                sanitized_reaction.reactants={self._listOfSpecies[species.name]:reactions.reactants[species] for species in reactions.reactants}
-                sanitized_reaction.products={self._listOfSpecies[species.name]:reactions.products[species] for species in reactions.products}
-                sanitized_reaction.propensity_function = reactions.sanitized_propensity_function(self._listOfSpecies, self._listOfParameters)
+                sanitized_reaction.reactants = {self._listOfSpecies[species.name]: reactions.reactants[species] for
+                                                species in reactions.reactants}
+                sanitized_reaction.products = {self._listOfSpecies[species.name]: reactions.products[species] for
+                                               species in reactions.products}
+                sanitized_reaction.propensity_function = reactions.sanitized_propensity_function(self._listOfSpecies,
+                                                                                                 self._listOfParameters)
                 self._listOfReactions[reactions.name] = sanitized_reaction
             except Exception as e:
                 raise ParameterError("Error using {} as a Reaction. Reason given: {}".format(reactions, e))
@@ -477,7 +491,7 @@ class Model(SortableObject):
                     for i in self.listOfAssignmentRules.values():
                         if rate_rules.variable == i.variable:
                             raise ModelError("Duplicate variable in rate_rules AND assignment_rules: {0}".
-                                            format(rate_rules.variable))
+                                             format(rate_rules.variable))
                 for i in self.listOfRateRules.values():
                     if rate_rules.variable == i.variable:
                         raise ModelError("Duplicate variable in rate_rules: {0}".format(rate_rules.variable))
@@ -489,9 +503,9 @@ class Model(SortableObject):
                     raise ModelError('A GillesPy2 Rate Rule must be associated with a valid variable')
 
                 self.listOfRateRules[rate_rules.name] = rate_rules
-                sanitized_rate_rule = RateRule(name = 'RR{}'.format(len(self._listOfRateRules)))
+                sanitized_rate_rule = RateRule(name='RR{}'.format(len(self._listOfRateRules)))
                 sanitized_rate_rule.formula = rate_rules.sanitized_formula(self._listOfSpecies,
-                                                        self._listOfParameters)
+                                                                           self._listOfParameters)
                 self._listOfRateRules[rate_rules.name] = sanitized_rate_rule
             except Exception as e:
                 raise ParameterError("Error using {} as a Rate Rule. Reason given: {}".format(rate_rules, e))
@@ -513,9 +527,9 @@ class Model(SortableObject):
                 self.add_event(e)
         else:
             try:
-                if event.trigger is None or not hasattr(event.trigger, 'expression'): 
+                if event.trigger is None or not hasattr(event.trigger, 'expression'):
                     raise ModelError(
-                    'An Event must contain a valid trigger.')
+                        'An Event must contain a valid trigger.')
                 for a in event.assignments:
                     if isinstance(a.variable, str):
                         if a.variable in self.listOfSpecies:
@@ -527,7 +541,6 @@ class Model(SortableObject):
                 raise ParameterError("Error using {} as Event. Reason given: {}".format(event, e))
         return event
 
-
     def add_function_definition(self, function_definitions):
         if isinstance(function_definitions, list):
             for fd in function_definitions:
@@ -536,8 +549,8 @@ class Model(SortableObject):
             try:
                 self.listOfFunctionDefinitions[function_definitions.name] = function_definitions
             except Exception as e:
-                raise ParameterError("Error using {} as a Function Definition. Reason given: ".format(function_definitions, e))
-                
+                raise ParameterError(
+                    "Error using {} as a Function Definition. Reason given: ".format(function_definitions, e))
 
     def add_assignment_rule(self, assignment_rules):
         if isinstance(assignment_rules, list):
@@ -561,11 +574,9 @@ class Model(SortableObject):
                 if assignment_rules.variable == None:
                     raise ModelError('A GillesPy2 Rate Rule must be associated with a valid variable')
 
-
                 self.listOfAssignmentRules[assignment_rules.name] = assignment_rules
             except Exception as e:
                 raise ParameterError("Error using {} as a Assignment Rule. Reason given: ".format(assignment_rules, e))
-
 
     def timespan(self, time_span):
         """
@@ -614,7 +625,7 @@ class Model(SortableObject):
         self.listOfReactions.clear()
         self._listOfReactions.clear()
 
-    def get_event(self,ename):
+    def get_event(self, ename):
         """
         :param ename: Name of Event to get
         :return: Event object
@@ -627,7 +638,7 @@ class Model(SortableObject):
         """
         return self.listOfEvents
 
-    def delete_event(self,ename):
+    def delete_event(self, ename):
         """
         Removes specified Event from model
         :param ename: Name of Event to be removed
@@ -642,7 +653,7 @@ class Model(SortableObject):
         self.listOfEvents.clear()
         self._listOfEvents.clear()
 
-    def get_rate_rule(self,rname):
+    def get_rate_rule(self, rname):
         """
         :param rname: Name of Rate Rule to get
         :return: RateRule object
@@ -655,7 +666,7 @@ class Model(SortableObject):
         """
         return self.listOfRateRules
 
-    def delete_rate_rule(self,rname):
+    def delete_rate_rule(self, rname):
         """
         Removes specified Rate Rule from model
         :param rname: Name of Rate Rule to be removed
@@ -670,7 +681,7 @@ class Model(SortableObject):
         self.listOfRateRules.clear()
         self._listOfRateRules.clear()
 
-    def get_assignment_rule(self,aname):
+    def get_assignment_rule(self, aname):
         """
         :param aname: Name of Assignment Rule to get
         :return: Assignment Rule object
@@ -683,7 +694,7 @@ class Model(SortableObject):
         """
         return self.listOfAssignmentRules
 
-    def delete_assignment_rule(self,aname):
+    def delete_assignment_rule(self, aname):
         """
         Removes an assignment rule from a model
         :param aname: Name of AssignmentRule object to be removed from model
@@ -698,7 +709,7 @@ class Model(SortableObject):
         self.listOfAssignmentRules.clear()
         self._listOfAssignmentRules.clear()
 
-    def get_function_definition(self,fname):
+    def get_function_definition(self, fname):
         """
         :param fname: name of Function to get
         :return: FunctionDefinition object
@@ -711,7 +722,7 @@ class Model(SortableObject):
         """
         return self.listOfFunctionDefinitions
 
-    def delete_function_definition(self,fname):
+    def delete_function_definition(self, fname):
         """
         Removes specified Function Definition from model
         :param fname: Name of Function Definition to be removed
@@ -780,16 +791,28 @@ class Model(SortableObject):
                 raise SimulationError(
                     "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e))
         else:
+            from gillespy2.solvers.numpy import can_use_numpy
+            hybrid_check = False
+
             if len(self.get_all_assignment_rules()) > 0 or len(self.get_all_rate_rules()) > 0 \
                     or len(self.get_all_function_definitions()) > 0 or len(self.get_all_events()) > 0:
-                        from gillespy2.solvers.numpy import can_use_numpy
-                        if can_use_numpy:
-                            from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
-                            solver = BasicTauHybridSolver
-                        else:
-                            raise ModelError('BasicTauHybridSolver is the only solver currently that supports '
-                                             'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
-                                             'Please install Numpy.')
+                hybrid_check = True
+
+            if len(self.get_all_species()) > 0 and hybrid_check == False:
+                for i in self.get_all_species():
+                    tempMode = self.get_species(i).mode
+                    if tempMode == 'continuous' or tempMode == 'dynamic':
+                        hybrid_check = True
+                        break
+
+            if can_use_numpy and hybrid_check == True:
+                from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
+                solver = BasicTauHybridSolver
+
+            elif not can_use_numpy:
+                raise ModelError('BasicTauHybridSolver is the only solver currently that supports '
+                                 'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
+                                 'Please install Numpy.')
             else:
                 from gillespy2.solvers.auto import SSASolver
                 solver = SSASolver
@@ -811,9 +834,9 @@ class Model(SortableObject):
 
         if len(solver_results) > 1:
             results_list = []
-            for i in range(0,solver_args.get('number_of_trajectories')):
+            for i in range(0, solver_args.get('number_of_trajectories')):
                 results_list.append(Trajectory(data=solver_results[i], model=self, solver_name=solver.name,
-                    rc = rc))
+                                               rc=rc))
             return Results(results_list)
 
         else:
@@ -864,9 +887,9 @@ class Species(SortableObject):
     """
 
     def __init__(self, name="", initial_value=0, constant=False,
-                    boundary_condition=False, mode='dynamic',
-                    allow_negative_populations=False, switch_min=0,
-                    switch_tol=0.03):
+                 boundary_condition=False, mode='discrete',
+                 allow_negative_populations=False, switch_min=0,
+                 switch_tol=0.03):
         # A species has a name (string) and an initial value (positive integer)
         self.name = name
         self.constant = constant
@@ -883,7 +906,8 @@ class Species(SortableObject):
             self.initial_value = np.float(initial_value)
         else:
             if np.int(initial_value) != initial_value:
-                raise ValueError("'initial_value' for Species with mode='discrete' must be an integer value. Change to mode='continuous' to use floating point values.")
+                raise ValueError(
+                    "'initial_value' for Species with mode='discrete' must be an integer value. Change to mode='continuous' to use floating point values.")
             self.initial_value = np.int(initial_value)
         if not allow_negative_populations:
             if self.initial_value < 0: raise ValueError('A species initial value must be \
@@ -901,7 +925,7 @@ non-negative unless allow_negative_populations=True')
         '''
         return print_string
 
-    def set_initial_value(self,num):
+    def set_initial_value(self, num):
         """
         Setter method for initial_value of a population
         :param num: Integer to set initial species population
@@ -909,12 +933,13 @@ non-negative unless allow_negative_populations=True')
         """
         print(num)
         print(self.mode)
-        if isinstance(num,float) and (self.mode != 'dynamic' or self.mode != 'continuous'):
+        if isinstance(num, float) and (self.mode != 'dynamic' or self.mode != 'continuous'):
             raise SpeciesError("Mode set to discrete, species must be an integer number.")
         if num < 0 and self.allow_negative_populations == False:
             raise SpeciesError("Species population must be non-negative, or allow_negative_populations "
                                "must be set to True")
         self.initial_value = num
+
 
 class Parameter(SortableObject):
     """
@@ -1006,7 +1031,6 @@ class FunctionDefinition(SortableObject):
         String names of Variables to be used as arguments to function.
     """
 
-
     def __init__(self, name="", function=None, args=[]):
 
         import math
@@ -1017,14 +1041,17 @@ class FunctionDefinition(SortableObject):
         self.function = eval('lambda ' + args + ': ' + function, eval_globals)
         if self.function is None:
             raise TypeError
+
     def sanitized_function(self, species_mappings, parameter_mappings):
-        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
+                       reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
         sanitized_function = self.function
         for id, name in enumerate(names):
-            sanitized_function = sanitized_function.replace(name, "{"+str(id)+"}")
+            sanitized_function = sanitized_function.replace(name, "{" + str(id) + "}")
         return sanitized_function.format(*replacements)
+
 
 class AssignmentRule(SortableObject):
     """
@@ -1040,20 +1067,25 @@ class AssignmentRule(SortableObject):
     formula : str
         String representation of formula to be evaluated
     """
+
     def __init__(self, variable=None, formula=None, name=None):
         self.variable = variable
         self.formula = formula
         self.name = name
+
     def __str__(self):
         return self.variable + ': ' + self.formula
+
     def sanitized_formula(self, species_mappings, parameter_mappings):
-        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
+                       reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
         sanitized_formula = self.formula
         for id, name in enumerate(names):
-            sanitized_formula = sanitized_formula.replace(name, "{"+str(id)+"}")
+            sanitized_formula = sanitized_formula.replace(name, "{" + str(id) + "}")
         return sanitized_formula.format(*replacements)
+
 
 class RateRule(SortableObject):
     """
@@ -1069,22 +1101,26 @@ class RateRule(SortableObject):
     formula : str
         String representation of formula to be evaluated
     """
+
     def __init__(self, variable=None, formula='', name=None):
         self.formula = formula
         self.variable = variable
         self.name = name
+
     def __str__(self):
         try:
             return self.name + ': Var: ' + self.variable + ': ' + self.formula
-        except: 
+        except:
             return 'Rate Rule: {} contains an invalid variable or formula'.format(self.name)
+
     def sanitized_formula(self, species_mappings, parameter_mappings):
-        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
+                       reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
         sanitized_formula = self.formula
         for id, name in enumerate(names):
-            sanitized_formula = sanitized_formula.replace(name, "{"+str(id)+"}")
+            sanitized_formula = sanitized_formula.replace(name, "{" + str(id) + "}")
         return sanitized_formula.format(*replacements)
 
 
@@ -1184,6 +1220,7 @@ class Reaction(SortableObject):
 
             def __customPropParser():
                 pow_func = ast.parse("pow", mode="eval").body
+
                 class ExpressionParser(ast.NodeTransformer):
                     def visit_BinOp(self, node):
                         node.left = self.visit(node.left)
@@ -1203,8 +1240,9 @@ class Reaction(SortableObject):
                         # Always return node or value
                         else:
                             return node
+
                     def visit_Name(self, node):
-                        #Visits Name nodes, if the name nodes "id" value is 'e', replace with numerical constant
+                        # Visits Name nodes, if the name nodes "id" value is 'e', replace with numerical constant
                         if node.id == 'e':
                             nameToConstant = ast.copy_location(ast.Num(float(np.e), ctx=node.ctx), node)
                             return nameToConstant
@@ -1218,20 +1256,25 @@ class Reaction(SortableObject):
                 class ToString(ast.NodeVisitor):
                     def __init__(self):
                         self.string = ''
+
                     def _string_changer(self, addition):
                         self.string += addition
+
                     def visit_BinOp(self, node):
                         self._string_changer('(')
                         self.visit(node.left)
                         self.visit(node.op)
                         self.visit(node.right)
                         self._string_changer(')')
+
                     def visit_Name(self, node):
                         self._string_changer(node.id)
                         self.generic_visit(node)
+
                     def visit_Num(self, node):
                         self._string_changer(str(node.n))
                         self.generic_visit(node)
+
                     def visit_Call(self, node):
                         self._string_changer(node.func.id + '(')
                         counter = 0
@@ -1241,22 +1284,28 @@ class Reaction(SortableObject):
                                 self._string_changer(',')
                                 counter += 1
                         self._string_changer(')')
+
                     def visit_Add(self, node):
                         self._string_changer('+')
                         self.generic_visit(node)
+
                     def visit_Div(self, node):
                         self._string_changer('/')
                         self.generic_visit(node)
+
                     def visit_Mult(self, node):
                         self._string_changer('*')
                         self.generic_visit(node)
+
                     def visit_UnaryOp(self, node):
                         self._string_changer('(')
                         self.visit_Usub(node)
                         self._string_changer(')')
+
                     def visit_Sub(self, node):
                         self._string_changer('-')
                         self.generic_visit(node)
+
                     def visit_Usub(self, node):
                         self._string_changer('-')
                         self.generic_visit(node)
@@ -1290,7 +1339,7 @@ class Reaction(SortableObject):
         """ Check if the reaction is properly formatted.
         Does nothing on sucesss, raises and error on failure."""
         if self.marate is None and self.propensity_function is None:
-             raise ReactionError("You must specify either a mass-action rate or a propensity function")
+            raise ReactionError("You must specify either a mass-action rate or a propensity function")
         if len(self.reactants) == 0 and len(self.products) == 0:
             raise ReactionError("You must have a non-zero number of reactants or products.")
 
@@ -1398,12 +1447,13 @@ class Reaction(SortableObject):
         self.annotation = annotation
 
     def sanitized_propensity_function(self, species_mappings, parameter_mappings):
-        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
+                       reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
         sanitized_propensity = self.propensity_function
         for id, name in enumerate(names):
-            sanitized_propensity = sanitized_propensity.replace(name, "{"+str(id)+"}")
+            sanitized_propensity = sanitized_propensity.replace(name, "{" + str(id) + "}")
         return sanitized_propensity.format(*replacements)
 
 
