@@ -1,6 +1,10 @@
 from gillespy2.core import Model, Species, Reaction, Parameter
 import numpy as np
+from gillespy2.solvers.numpy import NumPySSASolver
 from gillespy2.solvers.numpy import BasicTauLeapingSolver
+from gillespy2.solvers.numpy import BasicODESolver
+import sys
+np.set_printoptions(suppress=True)
 
 class Oregonator(Model):
 
@@ -46,13 +50,19 @@ class Oregonator(Model):
                              products={B: 1, F: 1},
                              rate=k5)
         self.add_reaction([reaction1, reaction2, reaction3, reaction4, reaction5])
-
-        # Set timespan of model
-        self.timespan(np.linspace(0, 5, 501))
-
+        if sys.argv[1]!='BasicODESolver':
+            self.timespan(np.linspace(0, 5, 501))
+        else:
+            self.timespan(np.linspace(0, 5, 500001))
 
 model = Oregonator()
-
-results = model.run(solver=BasicTauLeapingSolver,show_labels=False)
+if sys.argv[1] == 'NumPySSASolver':
+    results = model.run(solver=NumPySSASolver, show_labels=False)
+elif sys.argv[1] == 'BasicTauLeapingSolver':
+    results = model.run(solver=BasicTauLeapingSolver, show_labels=False)
+else:
+    results = model.run(solver=BasicODESolver, show_labels=False)
 
 print(results[0][-1][0])
+
+
