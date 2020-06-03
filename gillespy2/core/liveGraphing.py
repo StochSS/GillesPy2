@@ -119,12 +119,17 @@ class LiveDisplayer():
                 plt.figure(figsize=(18, 10))
                 plt.xlim(right=self.timeline_len)
                 plt.title(self.trajectory_header())
+
                 for i in range(self.number_species):
                     line_color = common_rgb_values()[(i) % len(common_rgb_values())]
 
                     plt.plot(trajectory_base[0][:, 0][:entry_count].tolist(),
                              trajectory_base[0][:, i + 1][:entry_count].tolist(), color=line_color,
                              label=self.species[i])
+
+                    plt.plot([entry_count - 1, curr_time], [trajectory_base[0][:, i + 1][entry_count - 1],
+                                                            curr_state[self.species[i]]], linewidth=3,
+                             color=line_color)
 
                 plt.legend(loc='upper right')
                 plt.show()
