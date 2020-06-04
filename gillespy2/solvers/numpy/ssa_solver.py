@@ -19,7 +19,7 @@ class NumPySSASolver(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05,
-                        seed=None, debug=False, show_labels=True, timeout=None, **kwargs):
+                        seed=None, debug=False, show_labels=True, display_interval = 0, display_type =None,timeout=None, **kwargs):
         """
         Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
         :param model: The model on which the solver will operate.
@@ -44,14 +44,46 @@ class NumPySSASolver(GillesPySolver):
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
-        sim_thread = Thread(target=self.___run, args=(model,), kwargs={'t':t,
+
+        # create numpy array for timeline
+        timeline = np.linspace(0, t, int(round(t / increment + 1)))
+
+        species = list(model._listOfSpecies.keys())
+        number_species = len(species)
+
+        # create numpy matrix to mark all state data of time and species
+        trajectory_base = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
+
+        # copy time values to all trajectory row starts
+        trajectory_base[:, :, 0] = timeline
+
+        # curr_time and curr_state are list of len 1 so that __run receives reference
+        curr_time = [0]  # Current Simulation Time
+        curr_state = [None]
+        live_grapher = [None]
+
+        sim_thread = Thread(target=self.___run, args=(model,curr_state,curr_time, timeline, trajectory_base,live_grapher,), kwargs={'t':t,
                                         'number_of_trajectories':number_of_trajectories,
                                         'increment':increment, 'seed':seed,
                                         'debug':debug, 'show_labels':show_labels,
                                         'timeout':timeout})
         try:
             sim_thread.start()
+
+            from gillespy2.core.liveGraphing import valid_graph_params
+            if valid_graph_params(display_type, display_interval):
+                import gillespy2.core.liveGraphing
+                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(display_type, display_interval, model,
+                                                                            timeline.size, number_of_trajectories)
+                display_timer = gillespy2.core.liveGraphing.RepeatTimer(display_interval, live_grapher[0].display,
+                                                                        args=(curr_state, curr_time, trajectory_base,))
+                display_timer.start()
+
             sim_thread.join(timeout=timeout)
+
+            if live_grapher[0] is not None:
+                display_timer.cancel()
+
             self.stop_event.set()
             while self.result is None: pass
         except:
@@ -60,17 +92,17 @@ class NumPySSASolver(GillesPySolver):
             raise self.has_raised_exception
         return self.result, self.rc
 
-    def ___run(self, model, t=20, number_of_trajectories=1, increment=0.05,
+    def ___run(self, model,curr_state,curr_time, timeline, trajectory_base, live_grapher, t=20, number_of_trajectories=1, increment=0.05,
                     seed=None, debug=False, show_labels=True, timeout=None):
         try:
-            self.__run(model, t, number_of_trajectories, increment, seed,
+            self.__run(model,curr_state,curr_time, timeline, trajectory_base, live_grapher, t, number_of_trajectories, increment, seed,
                             debug, show_labels, timeout)
         except Exception as e:
             self.has_raised_exception = e
             self.result = []
             return [], -1
 
-    def __run(self, model, t=20, number_of_trajectories=1, increment=0.05,
+    def __run(self, model,curr_state,curr_time, timeline, trajectory_base, live_grapher, t=20, number_of_trajectories=1, increment=0.05,
                     seed=None, debug=False, show_labels=True, timeout=None):
 
         random.seed(seed)
@@ -79,16 +111,6 @@ class NumPySSASolver(GillesPySolver):
         species = list(species_mappings.keys())
         parameter_mappings = model.sanitized_parameter_names()
         number_species = len(species)
-
-        # create numpy array for timeline
-        timeline = np.linspace(0, t, int(round(t / increment + 1)))
-
-        # create numpy matrix to mark all state data of time and species
-        trajectory_base = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
-
-        # copy time values to all trajectory row starts
-        trajectory_base[:, :, 0] = timeline
-        # copy initial populations to base
 
         for i, s in enumerate(species):
             trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
@@ -119,11 +141,16 @@ class NumPySSASolver(GillesPySolver):
             if self.stop_event.is_set():
                 self.rc = 33
                 break
+
+            # For multi trajectories, live_grapher needs to be informed of trajectory increment
+            if live_grapher[0] is not None:
+                live_grapher[0].increment_trajectory(trajectory_num)
+
             # copy initial state data
             trajectory = trajectory_base[trajectory_num]
             entry_count = 1
-            curr_time = 0
-            curr_state = np.copy(trajectory[0, 1:])
+            curr_time[0] = 0
+            curr_state[0] = np.copy(trajectory[0, 1:])
             propensity_sums = np.zeros(number_reactions)
             # calculate initial propensity sums
             while entry_count < timeline.size:
@@ -132,7 +159,7 @@ class NumPySSASolver(GillesPySolver):
                     break
                 # determine next reaction
                 for i in range(number_reactions):
-                    propensity_sums[i] = propensity_functions[i](curr_state)
+                    propensity_sums[i] = propensity_functions[i](curr_state[0])
                     if debug:
                         print('propensity: ', propensity_sums[i])
                 propensity_sum = np.sum(propensity_sums)
@@ -140,35 +167,35 @@ class NumPySSASolver(GillesPySolver):
                     print('propensity_sum: ', propensity_sum)
                 # if no more reactions, quit
                 if propensity_sum <= 0:
-                    trajectory[entry_count:, 1:] = curr_state
+                    trajectory[entry_count:, 1:] = curr_state[0]
                     break
                 cumulative_sum = random.uniform(0, propensity_sum)
-                curr_time += -math.log(random.random()) / propensity_sum
+                curr_time[0] += -math.log(random.random()) / propensity_sum
                 if debug:
                     print('cumulative sum: ', cumulative_sum)
                     print('entry count: ', entry_count)
                     print('timeline.size: ', timeline.size)
-                    print('curr_time: ', curr_time)
+                    print('curr_time: ', curr_time[0])
                 # determine time passed in this reaction
-                while entry_count < timeline.size and timeline[entry_count] <= curr_time:
+                while entry_count < timeline.size and timeline[entry_count] <= curr_time[0]:
                     if self.stop_event.is_set(): 
                         self.rc = 33
                         break
-                    trajectory[entry_count, 1:] = curr_state
+                    trajectory[entry_count, 1:] = curr_state[0]
                     entry_count += 1
                 for potential_reaction in range(number_reactions):
                     cumulative_sum -= propensity_sums[potential_reaction]
                     if debug:
                         print('if <=0, fire: ', cumulative_sum)
                     if cumulative_sum <= 0:
-                        curr_state += species_changes[potential_reaction]
+                        curr_state[0] += species_changes[potential_reaction]
                         if debug:
-                            print('current state: ', curr_state)
+                            print('current state: ', curr_state[0])
                             print('species_changes: ', species_changes)
                             print('updating: ', potential_reaction)
                         # recompute propensities as needed
                         for i in range(number_reactions):
-                            propensity_sums[i] = propensity_functions[i](curr_state)
+                            propensity_sums[i] = propensity_functions[i](curr_state[0])
                             if debug:
                                 print('new propensity sum: ', propensity_sums[i])
                         break
