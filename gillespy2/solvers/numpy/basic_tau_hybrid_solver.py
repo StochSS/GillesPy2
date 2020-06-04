@@ -787,11 +787,7 @@ class BasicTauHybridSolver(GillesPySolver):
             self.__set_recommended_ode_defaults(integrator_options)
         self.__set_seed(seed)
 
-        # create mapping of species dictionary to array indices
-        # species_mappings = model._listOfSpecies
         species = list( model._listOfSpecies.keys())
-        # parameter_mappings = model._listOfParameters
-        # parameters = list(parameter_mappings.keys())
         number_species = len(species)
 
         initial_state = OrderedDict()
@@ -916,14 +912,15 @@ class BasicTauHybridSolver(GillesPySolver):
         # Main trajectory loop
         for trajectory_num in range(number_of_trajectories):
 
-            #For multi trajectories, live_grapher needs to be informed of trajectory increment
-            if live_grapher[0] is not None:
-                live_grapher[0].increment_trajectory(trajectory_num)
 
             if self.stop_event.is_set():
                 print('exiting')
                 self.rc = 33
                 break
+
+            # For multi trajectories, live_grapher needs to be informed of trajectory increment
+            if live_grapher[0] is not None:
+                live_grapher[0].increment_trajectory(trajectory_num)
 
             trajectory = trajectory_base[trajectory_num] # NumPy array containing this simulation's results
             propensities = OrderedDict() # Propensities evaluated at current state
