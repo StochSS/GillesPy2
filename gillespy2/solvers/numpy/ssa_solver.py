@@ -150,6 +150,8 @@ class NumPySSASolver(GillesPySolver):
             trajectory = trajectory_base[trajectory_num]
             entry_count = 1
             curr_time[0] = 0
+
+            #TODO For live graping to work, curr_state[0] needs to be a dictionary not a list
             curr_state[0] = np.copy(trajectory[0, 1:])
             propensity_sums = np.zeros(number_reactions)
             # calculate initial propensity sums
