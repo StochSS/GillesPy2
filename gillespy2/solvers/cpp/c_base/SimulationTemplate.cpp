@@ -4,6 +4,7 @@
 #include <sstream>
 #include <time.h>
 #include <math.h>
+#include <unistd.h>
 #include "model.h"
 #include "ssa.h"
 using namespace Gillespy;
@@ -68,7 +69,7 @@ __DEFINE_REACTIONS_
  }
 
  if(seed_time){
-   random_seed = time(NULL);
+   random_seed = time(NULL) * ( getpid() + 541 ) * 29;
  }
   IPropensityFunction *propFun = new PropensityFunction();
   Simulation simulation(&model, number_trajectories, number_timesteps, end_time, propFun, random_seed);
