@@ -77,10 +77,10 @@ class TestAllSolvers(unittest.TestCase):
 
     def test_timeout_multiple_trajectories(self):
         for solver in self.solvers:
-            with self.assertLogs(level='WARN'):
-                model = MichaelisMenten()
-                model.timespan(np.linspace(0, 20, 101))
-                results = model.run(solver=solver,timeout=1,number_of_trajectories=1000)
+ 
+            model = MichaelisMenten()
+            model.timespan(np.linspace(0, 20, 101))
+            results = model.run(solver=solver,timeout=1,number_of_trajectories=1000)
 
 
 if __name__ == '__main__':
