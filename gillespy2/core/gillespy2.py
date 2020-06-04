@@ -811,7 +811,7 @@ class Model(SortableObject):
 
         if len(solver_results) > 1:
             results_list = []
-            for i in range(0,solver_args.get('number_of_trajectories')):
+            for i in range(0, len(solver_results)):
                 results_list.append(Trajectory(data=solver_results[i], model=self, solver_name=solver.name,
                     rc = rc))
             return Results(results_list)
