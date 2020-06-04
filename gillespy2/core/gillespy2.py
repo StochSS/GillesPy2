@@ -804,7 +804,7 @@ class Model(SortableObject):
         if hasattr(solver_results[0], 'shape'):
             return solver_results
 
-        if len(solver_results) is 1:
+        if len(solver_results) == 1:
             results_list = [Trajectory(data=solver_results[0], model=self,
                                        solver_name=solver.name, rc=rc)]
             return Results(results_list)
