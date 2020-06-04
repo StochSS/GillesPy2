@@ -10,7 +10,7 @@ class NumPySSASolver(GillesPySolver):
     rc = 0
     stop_event = None
     result = None
-
+    count = 0
     def __init__(self):
         name = 'NumPySSASolver'
         rc = 0
@@ -124,7 +124,7 @@ class NumPySSASolver(GillesPySolver):
                 species_changes[i][j] = model.listOfReactions[reaction].products.get(model.listOfSpecies[spec], 0) - model.listOfReactions[reaction].reactants.get(model.listOfSpecies[spec], 0)
                 if debug:
                     print('species_changes: {0},i={1}, j={2}... {3}'.format(species, i, j, species_changes[i][j]))
-            propensity_functions[reaction] = eval('lambda S:' + model.listOfReactions[reaction].sanitized_propensity_function(species_mappings, parameter_mappings), parameters)
+            propensity_functions[reaction] = [eval('lambda S:' + model.listOfReactions[reaction].sanitized_propensity_function(species_mappings, parameter_mappings), parameters),i]
         if debug:
             print('propensity_functions', propensity_functions)
         # begin simulating each trajectory
@@ -141,12 +141,12 @@ class NumPySSASolver(GillesPySolver):
             propensity_sums = np.zeros(number_reactions)
             # calculate initial propensity sums
             while entry_count < timeline.size:
-                if self.stop_event.is_set(): 
+                if self.stop_event.is_set():
                     self.rc = 33
                     break
                 # determine next reaction
                 for i in range(number_reactions):
-                    propensity_sums[i] = propensity_functions[reactions[i]](current_state)
+                    propensity_sums[i] = propensity_functions[reactions[i]][0](current_state)
                     if debug:
                         print('propensity: ', propensity_sums[i])
                 propensity_sum = np.sum(propensity_sums)
@@ -165,7 +165,7 @@ class NumPySSASolver(GillesPySolver):
                     print('current_time: ', current_time)
                 # determine time passed in this reaction
                 while entry_count < timeline.size and timeline[entry_count] <= current_time:
-                    if self.stop_event.is_set(): 
+                    if self.stop_event.is_set():
                         self.rc = 33
                         break
                     trajectory[entry_count, 1:] = current_state
@@ -183,7 +183,8 @@ class NumPySSASolver(GillesPySolver):
                             print('updating: ', potential_reaction)
                         # recompute propensities as needed
                         for i in dependent_rxns[reacName]['dependencies']:
-                            propensity_sums[potential_reaction] = propensity_functions[i](current_state)
+                            propensity_sums[propensity_functions[i][1]] = propensity_functions[i][0](current_state)
+                            self.count+=1
                             if debug:
                                 print('new propensity sum: ', propensity_sums[i])
                         break
@@ -196,5 +197,6 @@ class NumPySSASolver(GillesPySolver):
                 simulation_data.append(data)
             else:
                 simulation_data = trajectory_base
+        print(self.count)
         self.result = simulation_data
         return self.result, self.rc
