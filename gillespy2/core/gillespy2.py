@@ -759,6 +759,51 @@ class Model(SortableObject):
             return self.get_function_definition(ename)
         return 'Element not found!'
 
+
+    def get_best_solver(self, variable=False):
+        """
+        Finds best solver for the users simulation. Currently, AssignmentRules, RateRules, FunctionDefinitions,
+        Events, and Species with a dynamic, or continuous population must use the BasicTauHybridSolver.
+        :param variable: If True, and the model contains no AssignmentRules, RateRules, FunctionDefinitions, Events,
+        or Species with a dynamic or continuous population, the solver will choose the VariableSSACSolver
+        :type variable: bool
+        :return: gillespy2.gillespySolver
+        """
+        from gillespy2.solvers.numpy import can_use_numpy
+        hybrid_check = False
+
+        if len(self.get_all_assignment_rules()) or len(self.get_all_rate_rules())  \
+                or len(self.get_all_function_definitions()) or len(self.get_all_events()):
+            hybrid_check = True
+
+        if len(self.get_all_species()) and hybrid_check == False:
+            for i in self.get_all_species():
+                tempMode = self.get_species(i).mode
+                if tempMode == 'dynamic' or 'continuous':
+                    hybrid_check = True
+                    break
+
+        if can_use_numpy and hybrid_check:
+            from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
+            if variable == True:
+                raise ModelError('BasicTauHybridSolver is the only solver currently that supports '
+                                 'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
+                                 'variable must be set to False.')
+            return BasicTauHybridSolver
+
+        elif not can_use_numpy and hybrid_check:
+            raise ModelError('BasicTauHybridSolver is the only solver currently that supports '
+                             'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
+                             'Please install Numpy.')
+
+        else:
+            if variable:
+                from gillespy2.solvers.cpp.variable_ssa_c_solver import VariableSSACSolver
+                return VariableSSACSolver
+            from gillespy2.solvers.auto import SSASolver
+            return SSASolver
+
+
     def run(self, solver=None, timeout=0, **solver_args):
         """
         Function calling simulation of the model. There are a number of
@@ -791,35 +836,9 @@ class Model(SortableObject):
                 raise SimulationError(
                     "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e))
         else:
-            from gillespy2.solvers.numpy import can_use_numpy
-            hybrid_check = False
-
-            if len(self.get_all_assignment_rules()) > 0 or len(self.get_all_rate_rules()) > 0 \
-                    or len(self.get_all_function_definitions()) > 0 or len(self.get_all_events()) > 0:
-                hybrid_check = True
-
-            if len(self.get_all_species()) > 0 and hybrid_check == False:
-                for i in self.get_all_species():
-                    tempMode = self.get_species(i).mode
-                    if tempMode == 'continuous' or tempMode == 'dynamic':
-                        hybrid_check = True
-                        break
-
-            if can_use_numpy and hybrid_check == True:
-                from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
-                solver = BasicTauHybridSolver
-
-            elif not can_use_numpy:
-                raise ModelError('BasicTauHybridSolver is the only solver currently that supports '
-                                 'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
-                                 'Please install Numpy.')
-            else:
-                from gillespy2.solvers.auto import SSASolver
-                solver = SSASolver
-
+            solver = self.get_best_solver()
             solver_results, rc = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2],
                                             timeout=timeout, **solver_args)
-
         if rc == 33:
             from gillespy2.core import log
             log.warning('GillesPy2 simulation exceeded timeout.')
@@ -866,7 +885,7 @@ class Species(SortableObject):
         ***FOR USE WITH BasicTauHybridSolver ONLY***
         Sets the mode of representation of this species for the TauHybridSolver,
         can be discrete, continuous, or dynamic.
-        mode='dynamic' - Default, allows a species to be represented as
+        mode='dynamic' - Allows a species to be represented as
             either discrete or continuous
         mode='continuous' - Species will only be represented as continuous
         mode='discrete' - Species will only be represented as discrete
@@ -887,7 +906,7 @@ class Species(SortableObject):
     """
 
     def __init__(self, name="", initial_value=0, constant=False,
-                 boundary_condition=False, mode='discrete',
+                 boundary_condition=False, mode=None,
                  allow_negative_populations=False, switch_min=0,
                  switch_tol=0.03):
         # A species has a name (string) and an initial value (positive integer)
@@ -899,9 +918,11 @@ class Species(SortableObject):
         self.switch_min = switch_min
         self.switch_tol = switch_tol
 
-        mode_list = ['continuous', 'dynamic', 'discrete']
+        mode_list = ['continuous', 'dynamic', 'discrete',None]
+
         if self.mode not in mode_list:
-            raise SpeciesError('Species mode must be either \'continuous\', \'dynamic\', or \'discrete\'.')
+            raise SpeciesError('Species mode must be either \'continuous\', \'dynamic\', \'discrete\', or '
+                               '\'unspecified(default to dynamic for BasicTauHybridSolver)\'.')
         if mode == 'continuous':
             self.initial_value = np.float(initial_value)
         else:
