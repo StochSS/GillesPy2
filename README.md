@@ -12,7 +12,9 @@ GillesPy2 is a Python 3 package for stochastic simulation of biochemical systems
 ![PyPI - License](https://img.shields.io/pypi/l/gillespy2.svg?color=informational)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/gillespy2.svg)
 [![PyPI](https://img.shields.io/pypi/v/gillespy2.svg)](https://pypi.org/project/gillespy2)
-![Conda (channel only)](https://img.shields.io/conda/vn/conda-forge/gillespy2)
+[![Conda (channel only)](https://img.shields.io/conda/vn/conda-forge/gillespy2)](https://anaconda.org/conda-forge/gillespy2)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/GillesPy2?color=informational&label=pypi%20downloads)
+![Conda](https://img.shields.io/conda/dn/conda-forge/GillesPy2?color=informational&label=conda-forge%20downloads)
 
 Table of contents
 -----------------
