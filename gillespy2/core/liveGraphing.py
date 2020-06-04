@@ -20,7 +20,8 @@ def valid_graph_params(display_type,display_interval):
         if display_type in display_types():
 
             if display_type == "graph" and display_interval < 1:
-                log.warning("Got display_interval = \"{0}\". Consider using a longer interval when displaying graphs")
+                log.warning("Got display_interval = \"{0}\". Consider using a longer interval when displaying graphs"
+                            .format(display_interval))
 
             return True
 
