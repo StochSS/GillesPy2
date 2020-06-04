@@ -779,7 +779,7 @@ class Model(SortableObject):
         if len(self.get_all_species()) and hybrid_check == False:
             for i in self.get_all_species():
                 tempMode = self.get_species(i).mode
-                if tempMode == 'dynamic' or 'continuous':
+                if tempMode == 'dynamic' or tempMode == 'continuous':
                     hybrid_check = True
                     break
 
