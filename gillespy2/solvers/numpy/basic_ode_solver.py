@@ -55,7 +55,7 @@ class BasicODESolver(GillesPySolver):
         :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'show_labels', 'integrator', 'integrator_options'
-                'timeout', '**kwargs')
+                'timeout')
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, 

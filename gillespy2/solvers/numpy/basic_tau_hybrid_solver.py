@@ -725,7 +725,7 @@ class BasicTauHybridSolver(GillesPySolver):
         :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile', 'show_labels',
-                'tau_tol', 'event_sensitivity', 'integrator', 'integrator_options', 'timeout', '**kwargs')
+                'tau_tol', 'event_sensitivity', 'integrator', 'integrator_options', 'timeout')
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
             debug=False, profile=False, show_labels=True,

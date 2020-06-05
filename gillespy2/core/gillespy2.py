@@ -760,12 +760,13 @@ class Model(SortableObject):
         return 'Element not found!'
 
 
-    def get_best_solver(self, variable=False):
+    def get_best_solver(self, precompile=True):
         """
         Finds best solver for the users simulation. Currently, AssignmentRules, RateRules, FunctionDefinitions,
         Events, and Species with a dynamic, or continuous population must use the BasicTauHybridSolver.
         :param variable: If True, and the model contains no AssignmentRules, RateRules, FunctionDefinitions, Events,
-        or Species with a dynamic or continuous population, the solver will choose the VariableSSACSolver
+        or Species with a dynamic or continuous population, the get_best_solver will choose the VariableSSACSolver, else
+        it will choose SSACSolver
         :type variable: bool
         :return: gillespy2.gillespySolver
         """
@@ -782,22 +783,16 @@ class Model(SortableObject):
                 if tempMode == 'dynamic' or tempMode == 'continuous':
                     hybrid_check = True
                     break
-
         if can_use_numpy and hybrid_check:
             from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
-            if variable == True:
-                raise ModelError('BasicTauHybridSolver is the only solver currently that supports '
-                                 'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
-                                 'variable must be set to False.')
             return BasicTauHybridSolver
 
         elif not can_use_numpy and hybrid_check:
             raise ModelError('BasicTauHybridSolver is the only solver currently that supports '
                              'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
                              'Please install Numpy.')
-
         else:
-            if variable:
+            if precompile:
                 from gillespy2.solvers.cpp.variable_ssa_c_solver import VariableSSACSolver
                 return VariableSSACSolver
             from gillespy2.solvers.auto import SSASolver
