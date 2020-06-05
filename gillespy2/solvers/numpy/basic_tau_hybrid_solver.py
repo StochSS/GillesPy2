@@ -720,6 +720,13 @@ class BasicTauHybridSolver(GillesPySolver):
         return y0, y_map
 
     @classmethod
+    def get_solver_settings(self):
+        """
+        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        """
+        return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile', 'show_labels',
+                'tau_tol', 'event_sensitivity', 'integrator', 'integrator_options', 'timeout')
+    @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
             debug=False, profile=False, show_labels=True,
             tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
@@ -849,10 +856,14 @@ class BasicTauHybridSolver(GillesPySolver):
         t0_delayed_events, species_modified_by_events = self.__check_t0_events(model, initial_state)
 
         # copy initial populations to base
-        spec_modes = ['continuous', 'dynamic', 'discrete']
+        spec_modes = ['continuous', 'dynamic', 'discrete', None]
         for i, s in enumerate(species):
+            if model.listOfSpecies[s].mode is None:
+                model.listOfSpecies[s].mode = 'dynamic'
+
             if model.listOfSpecies[s].mode not in spec_modes:
-                raise SpeciesError('Species mode can only be \'continuous\', \'dynamic\', or \'discrete\'.')
+                raise SpeciesError('Species mode can only be \'continuous\', \'dynamic\',\'discrete\', or '
+                                   '\'unspecified(default to dynamic)\'.')
             trajectory_base[:, 0, i+1] = initial_state[s]
 
         # Create deterministic tracking data structures

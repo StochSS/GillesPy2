@@ -60,6 +60,13 @@ class BasicTauLeapingSolver(GillesPySolver):
         return rxn_count, curr_state, curr_time
 
     @classmethod
+    def get_solver_settings(self):
+        """
+        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        """
+        return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile', 'show_labels',
+                'timeout', 'tau_tol')
+    @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
                     debug=False, profile=False, show_labels=True, 
                     timeout=None, tau_tol=0.03, **kwargs):
