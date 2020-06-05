@@ -180,8 +180,8 @@ class SSACSolver(GillesPySolver):
 
     def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
             increment=0.05, seed=None, debug=False, profile=False, show_labels=True, resume=None, **kwargs):
-        pause = False
 
+        pause = False
         if not (resume is None):
             if show_labels == False:
                 if t < resume[0][-1][0]:

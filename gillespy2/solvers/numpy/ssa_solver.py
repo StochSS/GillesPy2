@@ -191,7 +191,6 @@ class NumPySSASolver(GillesPySolver):
                     break
                 elif self.pause_event.is_set():
                     timeStopped = timeline[entry_count]
-                    print(timeStopped)
                     break
                 # determine next reaction
                 for i in range(number_reactions):
@@ -219,7 +218,6 @@ class NumPySSASolver(GillesPySolver):
                         break
                     elif self.pause_event.is_set():
                         timeStopped = timeline[entry_count]
-                        print(timeStopped)
                         break
                     trajectory[entry_count, 1:] = current_state
                     entry_count += 1
