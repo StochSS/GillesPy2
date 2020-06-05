@@ -794,7 +794,8 @@ class Model(SortableObject):
             from gillespy2.solvers.auto import SSASolver
             return SSASolver
 
-    def run(self, solver=None, timeout=0, t=None, **solver_args):
+
+    def run(self, solver=None, timeout=0, **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -802,14 +803,9 @@ class Model(SortableObject):
         Return
         ----------
 
-        If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is
-        True,returns a Results object that inherits UserList and contains one or more Trajectory objects that
+        If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is 
+        True,returns a Results object that inherits UserList and contains one or more Trajectory objects that 
         inherit UserDict. Results object supports graphing and csv export.
-
-        To pause a simulation and retrieve data before the simulation, keyboard interrupt the simulation by pressing
-        control+c or pressing stop on a jupyter notebook. To resume a simulation, pass your previously ran results
-        into the run method, and set t = to the time you wish the resuming simulation to end (run(resume=results, t=x)).
-        Pause/Resume is only supported for SINGLE TRAJECTORY simulations. T MUST BE SET OR UNEXPECTED BEHAVIOR MAY OCCUR.
 
         Attributes
         ----------
@@ -913,7 +909,7 @@ class Species(SortableObject):
         self.switch_min = switch_min
         self.switch_tol = switch_tol
 
-        mode_list = ['continuous', 'dynamic', 'discrete', None]
+        mode_list = ['continuous', 'dynamic', 'discrete',None]
 
         if self.mode not in mode_list:
             raise SpeciesError('Species mode must be either \'continuous\', \'dynamic\', \'discrete\', or '
@@ -947,6 +943,8 @@ non-negative unless allow_negative_populations=True')
         :param num: Integer to set initial species population
         :raises SpeciesError: If num is non-negative or a decimal number
         """
+        print(num)
+        print(self.mode)
         if isinstance(num, float) and (self.mode != 'dynamic' or self.mode != 'continuous'):
             raise SpeciesError("Mode set to discrete, species must be an integer number.")
         if num < 0 and self.allow_negative_populations == False:

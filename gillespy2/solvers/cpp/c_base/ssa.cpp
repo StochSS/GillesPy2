@@ -41,14 +41,14 @@ namespace Gillespy{
 	}
 	//Set up current state from initial state
 	memcpy(current_state, trajectory[0], state_size);
-	simulation->current_time = 0;
+	double current_time = 0;
 	unsigned int entry_count = 1;
 	//calculate initial propensities
 	for(unsigned int reaction_number = 0; reaction_number < ((simulation -> model) -> number_reactions); reaction_number++){
 	  propensity_values[reaction_number] = (simulation -> propensity_function) -> evaluate(reaction_number, current_state);
 	}
 	double propensity_sum;
-	while(simulation->current_time < (simulation -> end_time)){
+	while(current_time < (simulation -> end_time)){
       if(interrupted){
         break ;
       }
@@ -69,16 +69,16 @@ namespace Gillespy{
 	  
 	  //Reaction will fire, determine which one
 	  double cumulative_sum = rng() * propensity_sum/rng.max();
-	  simulation->current_time += -log(rng() * 1.0 / rng.max()) / propensity_sum;
+	  current_time += -log(rng() * 1.0 / rng.max()) / propensity_sum;
 	  //Copy current state to passed timesteps
-	  while(entry_count < simulation -> number_timesteps && (simulation -> timeline[entry_count]) <= simulation->current_time){
+	  while(entry_count < simulation -> number_timesteps && (simulation -> timeline[entry_count]) <= current_time){
         if(interrupted){
             break ;
         }
 	    memcpy(trajectory[entry_count], current_state, state_size);
 	    entry_count++;
 	  }
-
+	  
 	  for(unsigned int potential_reaction = 0; potential_reaction < ((simulation -> model) -> number_reactions); potential_reaction++){
 	    cumulative_sum -= propensity_values[potential_reaction];
 	    //This reaction fired
