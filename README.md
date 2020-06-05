@@ -9,9 +9,12 @@ GillesPy2 is a Python 3 package for stochastic simulation of biochemical systems
 <a href="https://docs.google.com/forms/d/12tAH4f8CJ-3F-lK44Q9uQHFio_mGoK0oY829q5lD7i4/viewform">PLEASE REGISTER AS A USER</a>, so that we can prove GillesPy2 has many users when we seek funding to support development. GillesPy2 is part of the <a href="http://www.stochss.org">StochSS</a> project.
 </td></tr></table>
 
-[![PyPI](https://img.shields.io/pypi/v/gillespy2.svg)](https://pypi.org/project/gillespy2)
 ![PyPI - License](https://img.shields.io/pypi/l/gillespy2.svg?color=informational)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/gillespy2.svg)
+[![PyPI](https://img.shields.io/pypi/v/gillespy2.svg)](https://pypi.org/project/gillespy2)
+[![Conda (channel only)](https://img.shields.io/conda/vn/conda-forge/gillespy2)](https://anaconda.org/conda-forge/gillespy2)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/GillesPy2?color=informational&label=pypi%20downloads)
+![Conda](https://img.shields.io/conda/dn/conda-forge/GillesPy2?color=informational&label=conda-forge%20downloads)
 
 Table of contents
 -----------------
@@ -147,9 +150,9 @@ New developments happen primarily in the [`develop`](https://github.com/GillesPy
 
 <p align="center">
 
-| Master Branch   | Develop Branch | Coverage | Maintainability |
+| Master Branch   | Develop Branch | Test Coverage | Maintainability |
 |:---------------:|:--------------:|:--------:|:---------------:|
-| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | ![Coverage](https://raw.githubusercontent.com/GillesPy2/GillesPy2/develop/.graphics/coverage.svg?sanitize=true) | [![Maintainability](https://api.codeclimate.com/v1/badges/990ac9d778d681d32eea/maintainability)](https://codeclimate.com/github/GillesPy2/GillesPy2/maintainability) |
+| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Test Coverage](https://api.codeclimate.com/v1/badges/990ac9d778d681d32eea/test_coverage)](https://codeclimate.com/github/GillesPy2/GillesPy2/test_coverage) | [![Maintainability](https://api.codeclimate.com/v1/badges/990ac9d778d681d32eea/maintainability)](https://codeclimate.com/github/GillesPy2/GillesPy2/maintainability) |
 
 License
 -------

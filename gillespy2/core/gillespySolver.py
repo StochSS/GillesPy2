@@ -37,3 +37,7 @@ class GillesPySolver:
         Call out and run the solver. Collect the results.
         """
         raise SimulationError("This abstract solver class cannot be used directly.")
+
+    def get_solver_settings(self):
+
+        raise SimulationError("This abstract solver class cannot be used directly")

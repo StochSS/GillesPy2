@@ -236,6 +236,17 @@ class TestModel(unittest.TestCase):
         with self.assertRaises(ParameterError):
             model.add_parameter(parameter)
         
+    def test_add_event(self):
+        from gillespy2.core.events import Event, EventTrigger, EventAssignment
+        model = Model()
+        model.add_species(Species(name="A", initial_value=1, mode="discrete"))
+        model.add_species(Species(name="B", initial_value=2, mode="discrete"))
+        e1t = EventTrigger(expression="t>1")
+        e1a1 = EventAssignment(variable="A", expression="3")
+        e1a2 = EventAssignment(variable="B", expression="4")
+        test_event=Event(name="e1", trigger=e1t, assignments=[e1a1, e1a2])
+        model.add_event(test_event)
+        passed_test = str(model)
 
     def test_run_nonsolver(self):
         model = Model()
@@ -285,6 +296,17 @@ class TestModel(unittest.TestCase):
         self.assertEqual(model.listOfReactions['r2'].ode_propensity_function, 'rate*A*A')
         self.assertEqual(model.listOfReactions['r3'].ode_propensity_function, 'rate*A*B')
         self.assertEqual(model.listOfReactions['r4'].ode_propensity_function, 't')
+
+
+    def test_species_setter(self):
+        sp1 = Species('A',initial_value=10)
+        sp1.set_initial_value(5)
+        self.assertEqual(sp1.initial_value,5)
+        with self.assertRaises(SpeciesError):
+            sp1.set_initial_value(-1)
+        sp2 = Species('B',initial_value=5,mode='discrete')
+        with self.assertRaises(SpeciesError):
+            sp2.set_initial_value(.5)
 
 if __name__ == '__main__':
     unittest.main()

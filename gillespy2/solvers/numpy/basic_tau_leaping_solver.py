@@ -7,12 +7,14 @@ import numpy as np
 from gillespy2.solvers.utilities import Tau
 from gillespy2.solvers.utilities import solverutils as nputils
 from gillespy2.core import GillesPySolver, log
+from gillespy2.core.gillespyError import ExecutionError
 
 
 class BasicTauLeapingSolver(GillesPySolver):
     name = 'BasicTauLeapingSolver'
     rc = 0
     stop_event = None
+    pause_event = None
     result = None
     """
     A Basic Tau Leaping Solver for GillesPy2 models.  This solver uses an algorithm calculates
@@ -26,6 +28,7 @@ class BasicTauLeapingSolver(GillesPySolver):
         name = "BasicTauLeapingSolver"
         rc = 0
         stop_event = None
+        pause_event = None
         result = None
         self.debug = debug
         self.profile = profile
@@ -61,45 +64,56 @@ class BasicTauLeapingSolver(GillesPySolver):
         return rxn_count, curr_state, curr_time
 
     @classmethod
+    def get_solver_settings(self):
+        """
+        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        """
+        return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile', 'show_labels',
+                'timeout', 'tau_tol')
+    @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
                     debug=False, profile=False, show_labels=True, 
-                    timeout=None, tau_tol=0.03, **kwargs):
+                    timeout=None, resume=None, resumeTime=None, tau_tol=0.03, **kwargs):
         """
         Function calling simulation of the model.
         This is typically called by the run function in GillesPy2 model objects
         and will inherit those parameters which are passed with the model
         as the arguments this run function.
-        :param model: Model to be simulated
-        :type model: GillesPy2.Model
 
-        :param t: The end time of the solver.
-        :type t: int
+                Attributes
+                ----------
 
-        :param number_of_trajectories: The number of times to sample the chemical master equation. Each
-        trajectory will be returned at the end of the simulation.
-        Optional, defaults to 1.
-        :type number_of_trajectories: int
+                model : GillesPy2.Model
+                    GillesPy2 model object to simulate
+                t : int
+                    Simulation run time
+                number_of_trajectories : int
+                    The number of times to sample the chemical master equation. Each
+                    trajectory will be returned at the end of the simulation.
+                    Optional, defaults to 1.
+                increment : float
+                    Save point increment for recording data
+                seed : int
+                    The random seed for the simulation. Optional, defaults to None.
+                debug : bool (False)
+                    Set to True to provide additional debug information about the
+                    simulation.
+                profile : bool (Fasle)
+                    Set to True to provide information about step size (tau) taken at each step.
+                show_labels : bool (True)
+                    Use names of species as index of result object rather than position numbers.
+                resume : Result of previous simulation
+                    resultResult of a previously run simulation, to be resumed
+                resumeTime : int
+                    How much longer to run the previously ran simulation
+                """
 
-        :param increment: The time step of the solution.
-        :type increment: float
-
-        :param seed: The random seed for the simulation. Defaults to None.
-        :type seed: int
-        :param debug: Set to True to provide additional debug information about the
-        simulation.
-        :type debug: bool
-
-        :param profile: Set to True to provide information about step size(tau) taken at each step.
-        :type profile: bool
-
-        :param show_labels: Use names of species as index of result object rather than position numbers.
-        :return: a list of each trajectory simulated.
-        :type show_labels: bool
-        """
         if isinstance(self, type):
             self = BasicTauLeapingSolver(debug=debug, profile=profile)
 
         self.stop_event = Event()
+        self.pause_event = Event()
+
         if timeout is not None and timeout <= 0: timeout = None
         if len(kwargs) > 0:
             for key in kwargs:
@@ -109,24 +123,27 @@ class BasicTauLeapingSolver(GillesPySolver):
                                         'number_of_trajectories':number_of_trajectories,
                                         'increment':increment, 'seed':seed,
                                         'debug':debug, 'show_labels':show_labels,
+                                        'resume':resume, 'resumeTime':resumeTime,
                                         'timeout':timeout, 'tau_tol':tau_tol})
         try:
             sim_thread.start()
             sim_thread.join(timeout=timeout)
             self.stop_event.set()
             while self.result is None: pass
-        except:
-            pass
+        except KeyboardInterrupt:
+            self.pause_event.set()
+            while self.result is None: pass
         if hasattr(self, 'has_raised_exception'):
             raise self.has_raised_exception
         return self.result, self.rc
 
     def ___run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
                     debug=False, profile=False, show_labels=True, 
-                    timeout=None, tau_tol=0.03, **kwargs):
+                    timeout=None, resume=None, resumeTime=None, tau_tol=0.03, **kwargs):
+
         try:
             self.__run(model, t, number_of_trajectories, increment, seed,
-                        debug, profile, show_labels, timeout, tau_tol, **kwargs)
+                        debug, profile, show_labels, timeout, resume,tau_tol, **kwargs)
         except Exception as e:
             self.has_raised_exception = e
             self.result = []
@@ -135,7 +152,22 @@ class BasicTauLeapingSolver(GillesPySolver):
 
     def __run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
                     debug=False, profile=False, show_labels=True, 
-                    timeout=None, tau_tol=0.03, **kwargs):
+                    timeout=None, resume=None, resumeTime=None, tau_tol=0.03, **kwargs):
+
+        # for use with resume, determines how much excess data to cut off due to
+        # how species and time are initialized to 0
+        timeStopped = 0
+        if not (resume is None):
+            if show_labels == False:
+                if t < resume[0][-1][0]:
+                    raise ExecutionError(
+                        "'t' must be greater than previous simulations end time, or set in the run() method as the "
+                        "simulations next end time")
+            else:
+                if t < resume['time'][-1]:
+                    raise ExecutionError(
+                        "'t' must be greater than previous simulations end time, or set in the run() method as the "
+                        "simulations next end time")
 
         if debug:
             print("t = ", t)
@@ -156,8 +188,18 @@ class BasicTauLeapingSolver(GillesPySolver):
             else:
                 raise ModelError('seed must be a positive integer')
 
-        # create numpy array for timeline
-        timeline = np.linspace(0, t, int(round(t / increment + 1)))
+                # create numpy array for timeline
+        if not (resume is None):
+            # start where we last left off if resuming a simulation
+            if show_labels == False:
+                lastT = resume[0][-1][0]
+                step = lastT - resume[0][-2][0]
+            else:
+                lastT = resume['time'][-1]
+                step = lastT - resume['time'][-2]
+            timeline = np.arange(lastT, t+step, step)
+        else:
+            timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
         # create numpy matrix to mark all state data of time and species
         trajectory_base = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
@@ -165,10 +207,20 @@ class BasicTauLeapingSolver(GillesPySolver):
         # copy time values to all trajectory row starts
         trajectory_base[:, :, 0] = timeline
         # copy initial populations to base
-
-        for i, s in enumerate(species):
-            trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
-            # create dictionary of all constant parameters for propensity evaluation
+        if not (resume is None):
+            tmpSpecies = {}
+            # Set initial values of species to where last left off
+            if show_labels == False:
+                for i, s in enumerate(species):
+                    tmpSpecies[s] = resume[0][-1][i + 1]
+            else:
+                for i in species:
+                    tmpSpecies[i] = resume[i][-1]
+            for i, s in enumerate(species):
+                trajectory_base[:, 0, i + 1] = tmpSpecies[s]
+        else:
+            for i, s in enumerate(species):
+                trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
 
         simulation_data = []
 
@@ -176,6 +228,9 @@ class BasicTauLeapingSolver(GillesPySolver):
             if self.stop_event.is_set():
                 self.rc = 33
                 break
+            elif self.pause_event.is_set():
+                timeStopped = timeline[entry_count]
+
             start_state = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
             propensities = {}
             curr_state = {}
@@ -190,10 +245,13 @@ class BasicTauLeapingSolver(GillesPySolver):
 
 
             HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold = Tau.initialize(model, tau_tol)
-
-            for spec in model.listOfSpecies:
-                # initialize populations
-                curr_state[spec] = model.listOfSpecies[spec].initial_value
+            # initialize populations
+            if not (resume is None):
+                for spec in model.listOfSpecies:
+                    curr_state[spec] = tmpSpecies[spec]
+            else:
+                for spec in model.listOfSpecies:
+                    curr_state[spec] = model.listOfSpecies[spec].initial_value
 
             for param in model.listOfParameters:
                 curr_state[param] = model.listOfParameters[param].value
@@ -216,12 +274,19 @@ class BasicTauLeapingSolver(GillesPySolver):
                 if self.stop_event.is_set():
                     self.rc = 33
                     break
-                
+                elif self.pause_event.is_set():
+                    timeStopped = timeline[entry_count]
+                    break
+
                 #Until save step reached
                 while curr_time < save_time:
                     if self.stop_event.is_set():
                         self.rc = 33
                         break
+                    elif self.pause_event.is_set():
+                        timeStopped = timeline[entry_count]
+                        break
+
                     propensity_sum = 0
 
                     for i, r in enumerate(model.listOfReactions):
@@ -286,7 +351,6 @@ class BasicTauLeapingSolver(GillesPySolver):
 
                 # save step reached
                 for i in range(number_species):
-#                     print('appending {0} to species {1}'.format(curr_state[species[i]], species[i]))
                     trajectory[entry_count][i + 1] = curr_state[species[i]]
                 save_time += increment
                 timestep += 1
@@ -294,16 +358,40 @@ class BasicTauLeapingSolver(GillesPySolver):
                 
             # end of trajectory
             if show_labels:
-                data = {
-                    'time': timeline
-                }
-                simulation_data = nputils.numpyresults(data, species, number_species, trajectory, simulation_data)
+                for i in range(number_species):
+                    data[species[i]] = trajectory[:, i+1]
+                simulation_data.append(data)
             else:
                 simulation_data = trajectory_base
-
             if profile:
                 print(steps_taken)
                 print("Total Steps Taken: ", len(steps_taken))
                 print("Total Steps Rejected: ", steps_rejected)
+
+        # If simulation has been paused, or tstopped !=0
+        if show_labels == False and timeStopped != 0:
+            cutoff = np.where(simulation_data[0][:, 0] == timeStopped)
+            # Find where index is of timestopped. Ex, timestopped @50
+            # index of time 50 could be 4,0, 4th row, 0'th index
+            simulation_data = np.array([simulation_data[0][:int(cutoff[0])]])
+        elif timeStopped != 0 and show_labels != False:
+            if timeStopped != simulation_data[0]['time'][-1]:
+                tester = np.where(simulation_data[0]['time'] > timeStopped)[0].size
+                index = np.where(simulation_data[0]['time'] == timeStopped)[0][0]
+            if tester > 0:
+                for i in simulation_data[0]:
+                    simulation_data[0][i] = simulation_data[0][i][:index]
+
+        if not (resume is None):
+            # If resuming, combine old pause with new data, and delete any excess null data
+            if show_labels == False:
+                resume = np.array([resume[0][:-1]])
+                simulation_data = np.array(np.concatenate((resume, simulation_data), axis=1))
+            else:
+                for i in simulation_data[0]:
+                    oldData = resume[i][:-1]
+                    newData = simulation_data[0][i]
+                    simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
+
         self.result = simulation_data
         return simulation_data, self.rc

@@ -210,7 +210,7 @@ class BasicTauHybridSolver(GillesPySolver):
         curr_state['time'] = t
         for item, index in y_map.items():
             if item in assignment_rules:
-                curr_state[item] = eval(assignment_rules[item].formula, {**eval_globals, **curr_state})
+                curr_state[assignment_rules[item].variable] = eval(assignment_rules[item].formula, {**eval_globals, **curr_state})
             else:
                 curr_state[item] = y[index]
         for rr in compiled_rate_rules:
@@ -601,10 +601,10 @@ class BasicTauHybridSolver(GillesPySolver):
                     # Copy ODE state for assignments
                     assignment_state[species[s]] = sol.sol(time)[s]
             assignment_state['t'] = time
-            for spec, ar in model.listOfAssignmentRules.items():
+            for ar in model.listOfAssignmentRules.values():
                 assignment_value = eval(ar.formula, {**eval_globals,**assignment_state})
-                assignment_state[spec] = assignment_value
-                trajectory[trajectory_index][species.index(spec)+1] = assignment_value
+                assignment_state[ar.variable] = assignment_value
+                trajectory[trajectory_index][species.index(ar.variable)+1] = assignment_value
             num_saves += 1
         save_times = save_times[num_saves:] # remove completed save times
 
@@ -655,8 +655,8 @@ class BasicTauHybridSolver(GillesPySolver):
             compiled_reactions[r] = compile(model.listOfReactions[r].propensity_function, '<string>',
                                             'eval')
         compiled_rate_rules = OrderedDict()
-        for i, rr in enumerate(model.listOfRateRules):
-            compiled_rate_rules[rr] = compile(model.listOfRateRules[rr].formula, '<string>', 'eval')
+        for i, rr in enumerate(model.listOfRateRules.values()):
+            compiled_rate_rules[rr.variable] = compile(rr.formula, '<string>', 'eval')
             
         compiled_inactive_reactions = OrderedDict()
 
@@ -719,6 +719,13 @@ class BasicTauHybridSolver(GillesPySolver):
             y_map[event] = i+len(species)+len(parameters)+len(compiled_reactions)
         return y0, y_map
 
+    @classmethod
+    def get_solver_settings(self):
+        """
+        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        """
+        return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile', 'show_labels',
+                'tau_tol', 'event_sensitivity', 'integrator', 'integrator_options', 'timeout')
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
             debug=False, profile=False, show_labels=True,
@@ -849,10 +856,14 @@ class BasicTauHybridSolver(GillesPySolver):
         t0_delayed_events, species_modified_by_events = self.__check_t0_events(model, initial_state)
 
         # copy initial populations to base
-        spec_modes = ['continuous', 'dynamic', 'discrete']
+        spec_modes = ['continuous', 'dynamic', 'discrete', None]
         for i, s in enumerate(species):
+            if model.listOfSpecies[s].mode is None:
+                model.listOfSpecies[s].mode = 'dynamic'
+
             if model.listOfSpecies[s].mode not in spec_modes:
-                raise SpeciesError('Species mode can only be \'continuous\', \'dynamic\', or \'discrete\'.')
+                raise SpeciesError('Species mode can only be \'continuous\', \'dynamic\',\'discrete\', or '
+                                   '\'unspecified(default to dynamic)\'.')
             trajectory_base[:, 0, i+1] = initial_state[s]
 
         # Create deterministic tracking data structures
