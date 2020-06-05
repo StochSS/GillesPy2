@@ -10,7 +10,7 @@ import numpy as np
 import uuid
 from contextlib import contextmanager
 from collections import OrderedDict
-from gillespy2.core.results import Trajectory, Results
+from gillespy2.core.results import Trajectory,Results
 from gillespy2.core.events import *
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
@@ -24,9 +24,7 @@ except:
     import xml.etree.ElementTree as eTree
     import xml.dom.minidom
     import re
-
     no_pretty_print = True
-
 
 def import_SBML(filename, name=None, gillespy_model=None):
     """
@@ -171,10 +169,8 @@ class Model(SortableObject):
 
     def __str__(self):
         divider = '\n**********\n'
-
         def decorate(header):
             return '\n' + divider + header + divider
-
         print_string = self.name
         if len(self.listOfSpecies):
             print_string += decorate('Species')
@@ -841,14 +837,14 @@ class Model(SortableObject):
         if hasattr(solver_results[0], 'shape'):
             return solver_results
 
-        if len(solver_results) is 1:
+        if len(solver_results) == 1:
             results_list = [Trajectory(data=solver_results[0], model=self,
                                        solver_name=solver.name, rc=rc)]
             return Results(results_list)
 
         if len(solver_results) > 1:
             results_list = []
-            for i in range(0, solver_args.get('number_of_trajectories')):
+            for i in range(0, len(solver_results)):
                 results_list.append(Trajectory(data=solver_results[i], model=self, solver_name=solver.name,
                                                rc=rc))
             return Results(results_list)
@@ -1046,6 +1042,7 @@ class FunctionDefinition(SortableObject):
     variables : list
         String names of Variables to be used as arguments to function.
     """
+
 
     def __init__(self, name="", function=None, args=[]):
 
@@ -1258,7 +1255,7 @@ class Reaction(SortableObject):
                             return node
 
                     def visit_Name(self, node):
-                        # Visits Name nodes, if the name nodes "id" value is 'e', replace with numerical constant
+                        #Visits Name nodes, if the name nodes "id" value is 'e', replace with numerical constant
                         if node.id == 'e':
                             nameToConstant = ast.copy_location(ast.Num(float(np.e), ctx=node.ctx), node)
                             return nameToConstant
@@ -1272,25 +1269,20 @@ class Reaction(SortableObject):
                 class ToString(ast.NodeVisitor):
                     def __init__(self):
                         self.string = ''
-
                     def _string_changer(self, addition):
                         self.string += addition
-
                     def visit_BinOp(self, node):
                         self._string_changer('(')
                         self.visit(node.left)
                         self.visit(node.op)
                         self.visit(node.right)
                         self._string_changer(')')
-
                     def visit_Name(self, node):
                         self._string_changer(node.id)
                         self.generic_visit(node)
-
                     def visit_Num(self, node):
                         self._string_changer(str(node.n))
                         self.generic_visit(node)
-
                     def visit_Call(self, node):
                         self._string_changer(node.func.id + '(')
                         counter = 0
@@ -1300,28 +1292,22 @@ class Reaction(SortableObject):
                                 self._string_changer(',')
                                 counter += 1
                         self._string_changer(')')
-
                     def visit_Add(self, node):
                         self._string_changer('+')
                         self.generic_visit(node)
-
                     def visit_Div(self, node):
                         self._string_changer('/')
                         self.generic_visit(node)
-
                     def visit_Mult(self, node):
                         self._string_changer('*')
                         self.generic_visit(node)
-
                     def visit_UnaryOp(self, node):
                         self._string_changer('(')
                         self.visit_Usub(node)
                         self._string_changer(')')
-
                     def visit_Sub(self, node):
                         self._string_changer('-')
                         self.generic_visit(node)
-
                     def visit_Usub(self, node):
                         self._string_changer('-')
                         self.generic_visit(node)
