@@ -818,18 +818,17 @@ class Model(SortableObject):
         solver_args :
             solver-specific arguments to be passed to solver.run()
         """
-
-        if solver is not None:
-            try:
-                solver_results, rc = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2],
-                                                timeout=timeout, **solver_args)
-            except Exception as e:
-                raise SimulationError(
-                    "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e))
-        else:
+        if t is None:
+            t = self.tspan[-1]
+        if solver is None:
             solver = self.get_best_solver()
-            solver_results, rc = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2],
+        try:
+            solver_results, rc = solver.run(model=self, t=t, increment=self.tspan[-1] - self.tspan[-2],
                                             timeout=timeout, **solver_args)
+        except Exception as e:
+            raise SimulationError(
+                "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e))
+
         if rc == 33:
             from gillespy2.core import log
             log.warning('GillesPy2 simulation exceeded timeout.')
