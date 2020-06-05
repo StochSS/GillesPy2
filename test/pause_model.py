@@ -1,9 +1,10 @@
+import sys
+sys.path.append('..')
 from gillespy2.core import Model, Species, Reaction, Parameter
 import numpy as np
 from gillespy2.solvers.numpy import NumPySSASolver
 from gillespy2.solvers.numpy import BasicTauLeapingSolver
 from gillespy2.solvers.numpy import BasicODESolver
-import sys
 np.set_printoptions(suppress=True)
 
 class Oregonator(Model):
