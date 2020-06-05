@@ -19,6 +19,12 @@ class NumPySSASolver(GillesPySolver):
         result = None
         pause_event = None
 
+    def get_solver_settings(self):
+        """
+        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        """
+        return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'show_labels', 'timeout')
+
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05,
                         seed=None, debug=False, show_labels=True, timeout=None, resume = None, **kwargs):
