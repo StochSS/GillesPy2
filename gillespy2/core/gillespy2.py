@@ -764,10 +764,10 @@ class Model(SortableObject):
         """
         Finds best solver for the users simulation. Currently, AssignmentRules, RateRules, FunctionDefinitions,
         Events, and Species with a dynamic, or continuous population must use the BasicTauHybridSolver.
-        :param variable: If True, and the model contains no AssignmentRules, RateRules, FunctionDefinitions, Events,
+        :param precompile: If True, and the model contains no AssignmentRules, RateRules, FunctionDefinitions, Events,
         or Species with a dynamic or continuous population, the get_best_solver will choose the VariableSSACSolver, else
         it will choose SSACSolver
-        :type variable: bool
+        :type precompile: bool
         :return: gillespy2.gillespySolver
         """
         from gillespy2.solvers.numpy import can_use_numpy
