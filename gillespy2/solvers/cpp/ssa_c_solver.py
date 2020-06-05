@@ -20,7 +20,7 @@ def _copy_files(destination):
             shutil.copy(src_file, destination)
 
 
-def _write_constants(outfile, model, reactions, species, parameter_mappings):
+def _write_constants(outfile, model, reactions, species, parameter_mappings, resume=None):
     outfile.write("const double V = {};\n".format(model.volume))
     outfile.write("std :: string s_names[] = {");
     if len(species) > 0:
@@ -31,8 +31,21 @@ def _write_constants(outfile, model, reactions, species, parameter_mappings):
         outfile.write("};\nunsigned int populations[] = {")
         #Write initial populations.
         for i in range(len(species)-1):
-            outfile.write('{}, '.format(int(model.listOfSpecies[species[i]].initial_value)))
-        outfile.write('{}'.format(int(model.listOfSpecies[species[-1]].initial_value)))
+            #If resuming
+            if not (resume is None):
+                if isinstance(resume,np.ndarray):
+                    outfile.write('{}, '.format(int(resume[0][-1][i+1])))
+                else:
+                    outfile.write('{}, '.format(int(resume[species[i]][-1])))
+            else:
+                outfile.write('{}, '.format(int(model.listOfSpecies[species[i]].initial_value)))
+        if not (resume is None):
+            if isinstance(resume,np.ndarray):
+                outfile.write('{}'.format(int(resume[0][-1][-1])))
+            else:
+                outfile.write('{}'.format(int(resume[species[-1]][-1])))
+        else:
+            outfile.write('{}'.format(int(model.listOfSpecies[species[-1]].initial_value)))
         outfile.write("};\n")
     if len(reactions) > 0:
         #Write reaction names
@@ -62,25 +75,17 @@ def _write_reactions(outfile, model, reactions, species):
             if change != 0:
                 outfile.write("model.reactions[{0}].species_change[{1}] = {2};\n".format(i, j, change))
 
-
-def _parse_output(results, number_of_trajectories, number_timesteps, number_species):
-    trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
-    for timestep in range(number_timesteps):
-        values = results[timestep].split(" ")
-        trajectory_base[:, timestep, 0] = float(values[0])
-        index = 1
-        for trajectory in range(number_of_trajectories):
-            for species in range(number_species):
-                trajectory_base[trajectory, timestep, 1 + species] = float(values[index+species])
-            index += number_species
-    return trajectory_base
-
-
-def _parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species):
+def _parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species,pause=False):
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
     step_size = number_species * number_of_trajectories + 1 #1 for timestep
     data = np.frombuffer(results_buffer, dtype=np.float64)
-    assert(len(data) == (number_of_trajectories*number_timesteps*number_species + number_timesteps))
+    #Timestopped is added to the end of the data, when a simulation completes or is paused
+    if pause:
+        timeStopped = data[-1]
+        timeStopped = round(timeStopped,2)
+    else:
+        timeStopped = 0
+    assert(len(data) == (number_of_trajectories*number_timesteps*number_species + number_timesteps)+1)
     for timestep in range(number_timesteps):
         index = step_size * timestep
         trajectory_base[:, timestep, 0] = data[index]
@@ -89,17 +94,20 @@ def _parse_binary_output(results_buffer, number_of_trajectories, number_timestep
             for species in range(number_species):
                 trajectory_base[trajectory, timestep, 1 + species] = data[index + species]
             index += number_species
-    return trajectory_base
+
+    return trajectory_base, timeStopped
 
 
 class SSACSolver(GillesPySolver):
     name = "SSACSolver"
     """TODO"""
-    def __init__(self, model=None, output_directory=None, delete_directory=True):
+
+    def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None):
         super(SSACSolver, self).__init__()
         self.__compiled = False
         self.delete_directory = False
         self.model = model
+        self.resume = resume
         if self.model is not None:
             # Create constant, ordered lists for reactions/species/
             self.species_mappings = self.model.sanitized_species_names()
@@ -128,7 +136,6 @@ class SSACSolver(GillesPySolver):
             _copy_files(self.output_directory)
             self.__write_template()
             self.__compile()
-        
     def __del__(self):
         if self.delete_directory and os.path.isdir(self.output_directory):
             shutil.rmtree(self.output_directory)
@@ -144,7 +151,7 @@ class SSACSolver(GillesPySolver):
                     if line.startswith(template_keyword):
                         line = line[len(template_keyword):]
                         if line.startswith("CONSTANTS"):
-                            _write_constants(outfile, self.model, self.reactions, self.species, self.parameter_mappings)
+                            _write_constants(outfile, self.model, self.reactions, self.species, self.parameter_mappings,self.resume)
                         if line.startswith("PROPENSITY"):
                             _write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings, self.reactions)
                         if line.startswith("REACTIONS"):
@@ -159,7 +166,10 @@ class SSACSolver(GillesPySolver):
         if built.returncode == 0:
             self.__compiled = True
         else:
-            raise gillespyError.BuildError("Error encountered while compiling file:\nReturn code: {0}.\nError:\n{1}\n{2}\n".format(built.returncode, built.stdout.decode('utf-8'),built.stderr.decode('utf-8')))
+            raise gillespyError.BuildError("Error encountered while compiling file:\nReturn code: "
+                                           "{0}.\nError:\n{1}\n{2}\n".format(built.returncode,
+                                                                             built.stdout.decode('utf-8'),
+                                                                             built.stderr.decode('utf-8')))
 
     def get_solver_settings(self):
         """
@@ -169,10 +179,28 @@ class SSACSolver(GillesPySolver):
                 'show_labels')
 
     def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
-            increment=0.05, seed=None, debug=False, profile=False, show_labels=True, **kwargs):
+            increment=0.05, seed=None, debug=False, profile=False, show_labels=True, resume=None, **kwargs):
 
-        if self is None or self.model is None:
-            self = SSACSolver(model)
+        pause = False
+        if not (resume is None):
+            if show_labels == False:
+                if t < resume[0][-1][0]:
+                    raise gillespyError.ExecutionError(
+                        "'t' must be greater than previous simulations end time, or set in the run() method as the "
+                        "simulations next end time")
+            else:
+                if t < resume['time'][-1]:
+                    raise gillespyError.ExecutionError(
+                        "'t' must be greater than previous simulations end time, or set in the run() method as the "
+                        "simulations next end time")
+
+        if not (resume is None):
+            self = SSACSolver(model, resume=resume)
+
+        else:
+            if self is None or self.model is None:
+                self = SSACSolver(model)
+
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
@@ -194,6 +222,12 @@ class SSACSolver(GillesPySolver):
 
         if self.__compiled:
             self.simulation_data = None
+            if not (resume is None):
+                if show_labels == False:
+                    t = abs(t-resume[0][-1][0])
+                else:
+                    t = abs(t - resume['time'][-1])
+
             number_timesteps = int(round(t/increment + 1))
             # Execute simulation.
             args = [os.path.join(self.output_directory, 'UserSimulation'), '-trajectories', str(number_of_trajectories), '-timesteps', str(number_timesteps), '-end', str(t)]
@@ -207,7 +241,7 @@ class SSACSolver(GillesPySolver):
                         args.append('-seed')
                         args.append(str(seed_int))
                     else:
-                        raise ModelError("seed must be a positive integer")
+                        raise gillespyError.ModelError("seed must be a positive integer")
 
             #begin subprocess c simulation with timeout (default timeout=0 will not timeout)
             with subprocess.Popen(args, stdout=subprocess.PIPE, preexec_fn=os.setsid) as simulation:
@@ -218,14 +252,24 @@ class SSACSolver(GillesPySolver):
                     else:
                         stdout, stderr = simulation.communicate()
                     return_code = simulation.wait()
+                except KeyboardInterrupt:
+                    os.killpg(simulation.pid, signal.SIGINT)  # send signal to the process group
+                    stdout, stderr = simulation.communicate()
+                    pause = True
+                    return_code = 33
                 except subprocess.TimeoutExpired:
                         os.killpg(simulation.pid, signal.SIGINT) #send signal to the process group
                         stdout, stderr = simulation.communicate()
+                        pause = True
                         return_code = 33
- 
+
             # Parse/return results.
             if return_code in [0, 33]:
-                trajectory_base = _parse_binary_output(stdout, number_of_trajectories, number_timesteps, len(self.species))
+                trajectory_base, timeStopped = _parse_binary_output(stdout, number_of_trajectories, number_timesteps,
+                                                                    len(self.species),pause=pause)
+                if self.model.tspan[2]-self.model.tspan[1] == 1:
+                    timeStopped = int(timeStopped)
+
                 # Format results
                 if show_labels:
                     self.simulation_data = []
@@ -233,10 +277,59 @@ class SSACSolver(GillesPySolver):
                         data = {'time': trajectory_base[trajectory, :, 0]}
                         for i in range(len(self.species)):
                             data[self.species[i]] = trajectory_base[trajectory, :, i+1]
+
                         self.simulation_data.append(data)
                 else:
                     self.simulation_data = trajectory_base
             else:
-                raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:\nReturn code: {0}.\nError:\n{1}\n".format(simulation.returncode, simulation.stderr))
+                raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:"
+                                                   "\nReturn code: {0}.\nError:\n{1}\n".
+                                                   format(simulation.returncode, simulation.stderr))
+            #If simulation was paused/KeyboardInterrupt
+            if show_labels == False and timeStopped != 0:
+                cutoff = np.where(self.simulation_data[0][:, 0] == timeStopped)
+
+                # Find where index is of timestopped. Ex, timestopped @50
+                # index of time 50 could be 4,0, 4th row, 0'th index
+                if cutoff[0].size != 0:
+                    self.simulation_data = np.array([self.simulation_data[0][:int(cutoff[0])]])
+            elif timeStopped!=0:
+                cutoff = np.where(self.simulation_data[0]['time']==timeStopped)
+                if cutoff[0].size != 0:
+                    for i in self.simulation_data[0]:
+                        self.simulation_data[0][i] = self.simulation_data[0][i][:int(cutoff[0])]
+
+            if not (resume is None):
+                if show_labels==False:
+                    resumeTime = float(resume[0][-1][0])
+                    step = resumeTime - resume[0][-2][0]
+                else:
+                    resumeTime = float(resume['time'][-1])
+                    step = resumeTime - resume['time'][-2]
+
+                if timeStopped == 0:
+                    timeSpan = np.arange(resumeTime,t+resumeTime+step,step)
+                else:
+                    timeSpan = np.arange(resumeTime+step,timeStopped+resumeTime+step,step)
+
+
+                if show_labels==False:
+                    self.simulation_data[0][:,0] = timeSpan
+                else:
+                    self.simulation_data[0]['time'] = timeSpan
+
+            if not (resume is None):
+                # If resuming, combine old pause with new data, and delete any excess null data
+                if show_labels == False:
+                    resume = np.array([resume[0]])
+                    self.simulation_data = np.array(np.concatenate((resume, self.simulation_data), axis=1))
+                else:
+                    for i in self.simulation_data[0]:
+                        oldData = resume[i]
+                        newData = self.simulation_data[0][i]
+                        self.simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
+                    if len(self.simulation_data[0]['time']) != len(self.simulation_data[0][i]):
+                        self.simulation_data[0]['time'] = self.simulation_data[0]['time'][:-1]
+
         return self.simulation_data, return_code
 
