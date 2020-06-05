@@ -45,14 +45,13 @@ namespace Gillespy{
     Model* model;
     double* timeline;
     double end_time;
-    double current_time;
     int random_seed;
     unsigned int number_timesteps;
     unsigned int number_trajectories;
     unsigned int* trajectories_1D;
     unsigned int*** trajectories;
     IPropensityFunction *propensity_function;
-    Simulation(Model* model, unsigned int number_trajectories, unsigned int number_timesteps, double end_time, IPropensityFunction* propensity_function, int random_seed, double current_time);
+    Simulation(Model* model, unsigned int number_trajectories, unsigned int number_timesteps, double end_time, IPropensityFunction* propensity_function, int random_seed);
     ~Simulation();
     friend std :: ostream& operator<<(std :: ostream& os, const Simulation& simulation);
     void output_results_buffer(std :: ostream& os);
