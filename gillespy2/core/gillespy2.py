@@ -15,6 +15,7 @@ from gillespy2.core.events import *
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
 
+
 try:
     import lxml.etree as eTree
 
@@ -795,7 +796,7 @@ class Model(SortableObject):
             return SSASolver
 
 
-    def run(self, solver=None, timeout=0, **solver_args):
+    def run(self, solver=None, timeout=0, show_labels=True, **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -818,6 +819,9 @@ class Model(SortableObject):
         solver_args :
             solver-specific arguments to be passed to solver.run()
         """
+        if not show_labels:
+            from gillespy2.core import log
+            log.warning('show_labels = False is deprecated. Future releases of GillesPy2 may not support this feature.')
 
         if solver is not None:
             try:
@@ -837,16 +841,13 @@ class Model(SortableObject):
         if hasattr(solver_results[0], 'shape'):
             return solver_results
 
-        if len(solver_results) == 1:
-            results_list = [Trajectory(data=solver_results[0], model=self,
-                                       solver_name=solver.name, rc=rc)]
-            return Results(results_list)
-
-        if len(solver_results) > 1:
+        if len(solver_results) > 0:
             results_list = []
             for i in range(0, len(solver_results)):
-                results_list.append(Trajectory(data=solver_results[i], model=self, solver_name=solver.name,
-                                               rc=rc))
+                temp = Trajectory(data=solver_results[i], model=self, solver_name=solver.name, rc=rc)
+                if not show_labels:
+                    temp = temp.to_array()
+                results_list.append(temp)
             return Results(results_list)
 
         else:

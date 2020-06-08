@@ -100,7 +100,7 @@ class Trajectory(UserDict):
         self.model = model
         self.solver_name = solver_name
         self.rc = rc
-        
+
         status_list = {0: 'Success', 33: 'Timed Out'}
         self.status = status_list[rc]
 
@@ -114,6 +114,15 @@ class Trajectory(UserDict):
             return self.__class__.__missing__(self, key)
         raise KeyError(key)
 
+    def to_array(self):
+        import numpy as np
+        size1 = len(self.data['time'])
+        size2 = len(self.data)
+        newArray = np.zeros((size1, size2))
+
+        for i, key in enumerate(self.data):
+            newArray[:, i] = self.data[key]
+        return newArray
 
 class Results(UserList):
     """ List of Trajectory objects created by a gillespy2 solver, extends the UserList object.

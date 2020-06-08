@@ -64,12 +64,10 @@ class BasicTauLeapingSolver(GillesPySolver):
         """
         :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
         """
-        return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile', 'show_labels',
-                'timeout', 'tau_tol')
+        return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile', 'timeout', 'tau_tol')
     @classmethod
-    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
-                    debug=False, profile=False, show_labels=True, 
-                    timeout=None, tau_tol=0.03, **kwargs):
+    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False,
+            timeout=None, tau_tol=0.03, **kwargs):
         """
         Function calling simulation of the model.
         This is typically called by the run function in GillesPy2 model objects
@@ -96,8 +94,6 @@ class BasicTauLeapingSolver(GillesPySolver):
                     simulation.
                 profile : bool (Fasle)
                     Set to True to provide information about step size (tau) taken at each step.
-                show_labels : bool (True)
-                    Use names of species as index of result object rather than position numbers.
                 """
 
         if isinstance(self, type):
@@ -110,15 +106,16 @@ class BasicTauLeapingSolver(GillesPySolver):
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
 
         sim_thread = Thread(target=self.___run, args=(model,), kwargs={'t':t,
-                                        'number_of_trajectories':number_of_trajectories,
-                                        'increment':increment, 'seed':seed,
-                                        'debug':debug, 'show_labels':show_labels,
-                                        'timeout':timeout, 'tau_tol':tau_tol})
+                                                                       'number_of_trajectories':number_of_trajectories,
+                                                                       'increment':increment, 'seed':seed,
+                                                                       'debug':debug, 'timeout':timeout,
+                                                                       'tau_tol':tau_tol})
         try:
             sim_thread.start()
             sim_thread.join(timeout=timeout)
             self.stop_event.set()
             while self.result is None: pass
+
         except:
             pass
         if hasattr(self, 'has_raised_exception'):
@@ -126,11 +123,10 @@ class BasicTauLeapingSolver(GillesPySolver):
         return self.result, self.rc
 
     def ___run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
-                    debug=False, profile=False, show_labels=True, 
-                    timeout=None, tau_tol=0.03, **kwargs):
+               debug=False, profile=False, timeout=None, tau_tol=0.03, **kwargs):
         try:
             self.__run(model, t, number_of_trajectories, increment, seed,
-                        debug, profile, show_labels, timeout, tau_tol, **kwargs)
+                        debug, profile, timeout, tau_tol, **kwargs)
         except Exception as e:
             self.has_raised_exception = e
             self.result = []
@@ -138,8 +134,7 @@ class BasicTauLeapingSolver(GillesPySolver):
 
 
     def __run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
-                    debug=False, profile=False, show_labels=True, 
-                    timeout=None, tau_tol=0.03, **kwargs):
+                    debug=False, profile=False, timeout=None, tau_tol=0.03, **kwargs):
 
         if debug:
             print("t = ", t)
@@ -297,12 +292,10 @@ class BasicTauLeapingSolver(GillesPySolver):
                 entry_count += 1
                 
             # end of trajectory
-            if show_labels:
-                for i in range(number_species):
-                    data[species[i]] = trajectory[:, i+1]
-                simulation_data.append(data)
-            else:
-                simulation_data = trajectory_base
+            for i in range(number_species):
+                data[species[i]] = trajectory[:, i+1]
+            simulation_data.append(data)
+
             if profile:
                 print(steps_taken)
                 print("Total Steps Taken: ", len(steps_taken))
