@@ -845,10 +845,12 @@ class Model(SortableObject):
             results_list = []
             for i in range(0, len(solver_results)):
                 temp = Trajectory(data=solver_results[i], model=self, solver_name=solver.name, rc=rc)
-                if not show_labels:
-                    temp = temp.to_array()
                 results_list.append(temp)
-            return Results(results_list)
+
+            results = Results(results_list)
+            if show_labels == False:
+                results = results.to_array()
+            return results
 
         else:
             raise ValueError("number_of_trajectories must be non-negative and non-zero")

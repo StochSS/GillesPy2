@@ -114,16 +114,6 @@ class Trajectory(UserDict):
             return self.__class__.__missing__(self, key)
         raise KeyError(key)
 
-    def to_array(self):
-        import numpy as np
-        size1 = len(self.data['time'])
-        size2 = len(self.data)
-        newArray = np.zeros((size1, size2))
-
-        for i, key in enumerate(self.data):
-            newArray[:, i] = self.data[key]
-        return newArray
-
 class Results(UserList):
     """ List of Trajectory objects created by a gillespy2 solver, extends the UserList object.
 
@@ -207,6 +197,19 @@ class Results(UserList):
             title_solver = 'Multiple Solvers'
         title = (title_model + " - " + title_solver)
         return title
+
+    def to_array(self):
+        import numpy as np
+        results = []
+        size1 = len(self.data[0]['time'])
+        size2 = len(self.data[0])
+        newArray = np.zeros((size1, size2))
+
+        for trajectory in range(0,len(self.data)):
+            for i, key in enumerate(self.data[trajectory]):
+                newArray[:, i] = self.data[trajectory][key]
+            results.append(newArray)
+        return results
 
     def to_csv(self, path=None, nametag=None, stamp=None):
         """ outputs the Results to one or more .csv files in a new directory.
