@@ -768,7 +768,6 @@ class Model(SortableObject):
         """
         from gillespy2.solvers.numpy import can_use_numpy
         hybrid_check = False
-
         if len(self.get_all_assignment_rules()) or len(self.get_all_rate_rules())  \
                 or len(self.get_all_function_definitions()) or len(self.get_all_events()):
             hybrid_check = True
