@@ -59,7 +59,6 @@ class NumPySSASolver(GillesPySolver):
                                                                        'debug':debug, 'resume':resume,
                                                                        'timeout':timeout})
 
-
         try:
             sim_thread.start()
             sim_thread.join(timeout=timeout)
