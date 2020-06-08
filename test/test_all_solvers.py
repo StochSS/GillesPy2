@@ -34,8 +34,7 @@ class TestAllSolvers(unittest.TestCase):
 
     def test_to_array(self):
         for solver in self.solvers:
-            print(self.labeled_results[solver].to_array(),type(self.labeled_results[solver].to_array()[0]))
-            self.assertTrue(isinstance(self.labeled_results[solver].to_array(), np.ndarray))
+            self.assertTrue(isinstance(self.labeled_results[solver].to_array()[0], np.ndarray))
 
     def test_return_type_show_labels(self):
         for solver in self.solvers:
