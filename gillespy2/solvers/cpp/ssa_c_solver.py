@@ -7,10 +7,24 @@ import subprocess #For calling make and executing c solver
 import inspect #for finding the Gillespy2 module path
 import tempfile #for temporary directories
 import numpy as np
+import math
 
 GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
 GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base')
 
+#If we have some timeline like (0,0.0000141,0.0002383...) (tiny decimal steps) use this to find nearest index #
+#to pause a simulation
+def find_time(array,value):
+    """
+    Finds the index of the closest value in the array parameter, to the value parameter
+    :param array: results['time'] array, input to find index of closest 'value' parameter
+    :type array: numpy.ndarray
+    :param value: Value in which to find the closest values index in the array parameter.
+    :type value: float
+    :return: Integer index, the index of the closest value to 'value' parameter.
+    """
+    index = np.searchsorted(array, value, side="left")
+    return index
 
 def _copy_files(destination):
     src_files = os.listdir(GILLESPY_C_DIRECTORY)
@@ -82,7 +96,6 @@ def _parse_binary_output(results_buffer, number_of_trajectories, number_timestep
     #Timestopped is added to the end of the data, when a simulation completes or is paused
     if pause:
         timeStopped = data[-1]
-        timeStopped = round(timeStopped,2)
     else:
         timeStopped = 0
     assert(len(data) == (number_of_trajectories*number_timesteps*number_species + number_timesteps)+1)
@@ -284,10 +297,14 @@ class SSACSolver(GillesPySolver):
                                                    format(simulation.returncode, simulation.stderr))
                 # If simulation was paused/KeyboardInterrupt
             if timeStopped != 0:
-                cutoff = np.where(self.simulation_data[0]['time'] == timeStopped)
-                if cutoff[0].size != 0:
-                    for i in self.simulation_data[0]:
-                        self.simulation_data[0][i] = self.simulation_data[0][i][:int(cutoff[0])]
+                cutoff = find_time(self.simulation_data[0]['time'],timeStopped)
+                if cutoff == 0 or cutoff == 1:
+                    log.warning('You have paused the simulation too early, and no points have been calculated past'
+                                ' initial values. A graphic display will not produce expected results.')
+                else:
+                    cutoff -= 1
+                for i in self.simulation_data[0]:
+                    self.simulation_data[0][i] = self.simulation_data[0][i][:cutoff]
 
             if resume is not None:
                 resumeTime = float(resume['time'][-1])

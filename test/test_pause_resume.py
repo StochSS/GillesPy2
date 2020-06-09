@@ -4,6 +4,7 @@ import subprocess
 
 from example_models import MichaelisMenten, Oregonator
 from gillespy2.core.results import Results, Trajectory
+from gillespy2.core import Species
 from gillespy2.solvers.cpp.ssa_c_solver import SSACSolver
 from gillespy2.solvers.cpp.variable_ssa_c_solver import VariableSSACSolver
 from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
@@ -23,30 +24,35 @@ class TestPauseResume(unittest.TestCase):
     model = MichaelisMenten()
     for sp in model.listOfSpecies.values():
         sp.mode = 'discrete'
-    results = {}
     labeled_results = {}
     labeled_results_more_trajectories = {}
 
 
     for solver in solvers:
-        results[solver] = model.run(solver=solver, show_labels=False)
         labeled_results[solver] = model.run(solver=solver, show_labels=True)
-
-    def test_resume(self):
+    def test_altered_model_failure(self):
         model = MichaelisMenten()
         for solver in self.solvers:
-            self.results[solver] = model.run(solver=solver, show_labels=False, resume=self.results[solver], t=150)
+            tmpResults = model.run(solver=solver)
+            with self.assertRaises(gillespyError.SimulationError):
+                sp1 = Species('sp2',initial_value=5)
+                model.add_species(sp1)
+                tmpResults = model.run(solver=solver,resume=tmpResults,t=150)
+            model.delete_species('sp2')
+
+
+    def test_resume(self):
+        model = self.model
+        for solver in self.solvers:
             self.labeled_results[solver] = model.run(solver=solver, show_labels=True,
                                                      resume=self.labeled_results[solver], t=150)
         for solver in self.solvers:
-            self.assertEqual(int(self.results[solver][0][-1][0]),150)
             self.assertEqual(int(self.labeled_results[solver][0]['time'][-1]),150)
 
     def test_time_fail(self):
-        model = MichaelisMenten()
+        model = self.model
         for solver in self.solvers:
             with self.assertRaises((gillespyError.ExecutionError, gillespyError.SimulationError)):
-                self.results[solver] = model.run(solver=solver, show_labels=False, resume=self.results[solver], t=1)
                 self.labeled_results = model.run(solver=solver, show_labels=True, resume=self.labeled_results[solver],
                                                  t=1)
 
@@ -70,8 +76,8 @@ class TestPauseResume(unittest.TestCase):
         #manual, whereas timeout is a set variable
         for solver in solvers:
             model = Oregonator()
-            results = model.run(solver=solver,timeout=1,show_labels=False)
-            self.assertFalse(results[0][-1][0] == '5.0')
+            results = model.run(solver=solver,timeout=1)
+            self.assertFalse(results.to_array()[0][-1][0] == '5.0')
 
 
 
