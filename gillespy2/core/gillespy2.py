@@ -946,8 +946,6 @@ non-negative unless allow_negative_populations=True')
         :param num: Integer to set initial species population
         :raises SpeciesError: If num is non-negative or a decimal number
         """
-        print(num)
-        print(self.mode)
         if isinstance(num, float) and (self.mode != 'dynamic' or self.mode != 'continuous'):
             raise SpeciesError("Mode set to discrete, species must be an integer number.")
         if num < 0 and self.allow_negative_populations == False:
