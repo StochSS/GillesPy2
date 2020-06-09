@@ -1,5 +1,6 @@
 from threading import Thread, Event
 from gillespy2.core import GillesPySolver, Model, Reaction, log
+import gillespy2.solvers.utilities.numpyutilities as utilities
 import random
 import math
 import numpy as np
@@ -80,7 +81,7 @@ class NumPySSASolver(GillesPySolver):
         parameter_mappings = model.sanitized_parameter_names()
         number_species = len(species)
         #Create mapping of reactions, and which reactions depend on their reactants/products
-        dependent_rxns = {}
+
         # create numpy array for timeline
         timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
@@ -98,25 +99,19 @@ class NumPySSASolver(GillesPySolver):
         for paramName, param in model.listOfParameters.items():
             parameters[parameter_mappings[paramName]] = param.value
 
-        # create mapping of reaction dictionary to array indices
+        #create mapping of reaction dictionary to array indices
         reactions = list(model.listOfReactions.keys())
 
-        for i in reactions:
-            for j in reactions:
-                if i not in dependent_rxns:
-                    dependent_rxns[i] = {'dependencies': []}
-                if i == j:
-                    continue
-                if any(elem in list(model.listOfReactions[i].reactants.keys()) for elem in
-                       list(model.listOfReactions[j].reactants.keys())) \
-                        or any(elem in list(model.listOfReactions[i].products.keys()) for elem in
-                               list(model.listOfReactions[j].reactants.keys())):
-                    dependent_rxns[i]['dependencies'].append(j)
+        #Create mapping of reactions, and which reactions depend on their reactants/products
+        dependent_rxns = utilities.dependency_grapher(model, reactions)
+        print(dependent_rxns)
 
         number_reactions = len(reactions)
         propensity_functions = {}
+
         # create an array mapping reactions to species modified
         species_changes = np.zeros((number_reactions, number_species))
+
         # pre-evaluate propensity equations from strings:
         for i, reaction in enumerate(reactions):
             # replace all references to species with array indices
