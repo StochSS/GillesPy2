@@ -15,6 +15,7 @@ from gillespy2.core.events import *
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
 
+
 try:
     import lxml.etree as eTree
 
@@ -795,7 +796,7 @@ class Model(SortableObject):
             return SSASolver
 
 
-    def run(self, solver=None, timeout=0, **solver_args):
+    def run(self, solver=None, timeout=0, show_labels=True, **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -818,6 +819,9 @@ class Model(SortableObject):
         solver_args :
             solver-specific arguments to be passed to solver.run()
         """
+        if not show_labels:
+            from gillespy2.core import log
+            log.warning('show_labels = False is deprecated. Future releases of GillesPy2 may not support this feature.')
 
         if solver is not None:
             try:
@@ -837,17 +841,16 @@ class Model(SortableObject):
         if hasattr(solver_results[0], 'shape'):
             return solver_results
 
-        if len(solver_results) == 1:
-            results_list = [Trajectory(data=solver_results[0], model=self,
-                                       solver_name=solver.name, rc=rc)]
-            return Results(results_list)
-
-        if len(solver_results) > 1:
+        if len(solver_results) > 0:
             results_list = []
             for i in range(0, len(solver_results)):
-                results_list.append(Trajectory(data=solver_results[i], model=self, solver_name=solver.name,
-                                               rc=rc))
-            return Results(results_list)
+                temp = Trajectory(data=solver_results[i], model=self, solver_name=solver.name, rc=rc)
+                results_list.append(temp)
+
+            results = Results(results_list)
+            if show_labels == False:
+                results = results.to_array()
+            return results
 
         else:
             raise ValueError("number_of_trajectories must be non-negative and non-zero")
@@ -943,8 +946,6 @@ non-negative unless allow_negative_populations=True')
         :param num: Integer to set initial species population
         :raises SpeciesError: If num is non-negative or a decimal number
         """
-        print(num)
-        print(self.mode)
         if isinstance(num, float) and (self.mode != 'dynamic' or self.mode != 'continuous'):
             raise SpeciesError("Mode set to discrete, species must be an integer number.")
         if num < 0 and self.allow_negative_populations == False:

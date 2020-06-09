@@ -173,15 +173,14 @@ class VariableSSACSolver(GillesPySolver):
         """
         :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
         """
-        return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile',
-                'show_labels', 'variables')
+        return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile', 'variables')
 
     def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
-            increment=0.05, seed=None, debug=False, profile=False, show_labels=True, 
-            variables={}, **kwargs):
+            increment=0.05, seed=None, debug=False, profile=False, variables={}, **kwargs):
 
         if self is None or self.model is None:
             self = VariableSSACSolver(model)
+
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
@@ -275,18 +274,20 @@ is not a valid variable.  Variables must be model species or parameters.'.format
  
             # Parse/return results.
             if return_code in [0, 33]:
-                trajectory_base = _parse_binary_output(stdout, number_of_trajectories, number_timesteps, len(self.species))
+                trajectory_base = _parse_binary_output(stdout, number_of_trajectories, number_timesteps,
+                                                       len(self.species))
+
                 # Format results
-                if show_labels:
-                    self.simulation_data = []
-                    for trajectory in range(number_of_trajectories):
-                        data = {'time': trajectory_base[trajectory, :, 0]}
-                        for i in range(len(self.species)):
-                            data[self.species[i]] = trajectory_base[trajectory, :, i+1]
-                        self.simulation_data.append(data)
-                else:
-                    self.simulation_data = trajectory_base
+                self.simulation_data = []
+                for trajectory in range(number_of_trajectories):
+                    data = {'time': trajectory_base[trajectory, :, 0]}
+                    for i in range(len(self.species)):
+                        data[self.species[i]] = trajectory_base[trajectory, :, i+1]
+                    self.simulation_data.append(data)
+
             else:
-                raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:\nReturn code: {0}.\nError:\n{1}\n".format(simulation.returncode, simulation.stderr))
+                raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:"
+                                                   "\nReturn code: {0}.\nError:\n{1}\n".format(simulation.returncode,
+                                                                                               simulation.stderr))
         return self.simulation_data, return_code
 
