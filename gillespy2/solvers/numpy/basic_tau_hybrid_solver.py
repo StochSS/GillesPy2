@@ -724,12 +724,11 @@ class BasicTauHybridSolver(GillesPySolver):
         """
         :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
         """
-        return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile', 'show_labels',
-                'tau_tol', 'event_sensitivity', 'integrator', 'integrator_options', 'timeout')
+        return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile', 'tau_tol',
+                'event_sensitivity', 'integrator', 'integrator_options', 'timeout')
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
-            debug=False, profile=False, show_labels=True,
-            tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
+            debug=False, profile=False, tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
             integrator_options={}, timeout=None, **kwargs):
         """
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
@@ -755,8 +754,6 @@ class BasicTauHybridSolver(GillesPySolver):
             simulation.
         profile : bool (Fasle)
             Set to True to provide information about step size (tau) taken at each step.
-        show_labels: bool (True)
-            If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]
         tau_tol: float
             Tolerance level for Tau leaping algorithm.  Larger tolerance values will
             result in larger tau steps. Default value is 0.03.
@@ -788,7 +785,7 @@ class BasicTauHybridSolver(GillesPySolver):
         sim_thread = threading.Thread(target=self.___run, args=(model,), kwargs={'t':t,
                                         'number_of_trajectories':number_of_trajectories,
                                         'increment':increment, 'seed':seed,
-                                        'debug':debug, 'profile':profile,'show_labels':show_labels,
+                                        'debug':debug, 'profile':profile,
                                         'timeout':timeout, 'tau_tol':tau_tol,
                                         'event_sensitivity':event_sensitivity,
                                         'integrator':integrator,
@@ -807,20 +804,18 @@ class BasicTauHybridSolver(GillesPySolver):
 
 
     def ___run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
-            debug=False, profile=False, show_labels=True,
-            tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
-            integrator_options={}, **kwargs):
+            debug=False, profile=False, tau_tol=0.03, event_sensitivity=100, integrator='LSODA', integrator_options={},
+               **kwargs):
             try:
-                self.__run(model,t,number_of_trajectories, increment, seed, debug,
-                           profile,show_labels, tau_tol, event_sensitivity, integrator,
-                           integrator_options, **kwargs)
+                self.__run(model, t, number_of_trajectories, increment, seed, debug,
+                           profile, tau_tol, event_sensitivity, integrator, integrator_options, **kwargs)
             except Exception as e:
                 self.has_raised_exception = e
                 self.result = []
                 return [], -1
                 
     def __run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
-            debug=False, profile=False, show_labels=True,
+            debug=False, profile=False,
             tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
             integrator_options={}, **kwargs):
 
@@ -911,8 +906,8 @@ class BasicTauHybridSolver(GillesPySolver):
             curr_time = 0 # Current Simulation Time
             end_time = model.tspan[-1] # End of Simulation time
             entry_pos = 1
-            data = OrderedDict() # Dictionary for show_labels results
-            data['time'] = timeline # All time entries for show_labels results
+            data = OrderedDict() # Dictionary for results
+            data['time'] = timeline # All time entries
             save_times = timeline
             
 
@@ -1000,18 +995,10 @@ class BasicTauHybridSolver(GillesPySolver):
                     event_sensitivity, tau_step, pure_ode, debug)
 
             # End of trajectory, format results
-            if show_labels:
-                data = {'time':timeline}
-                for i in range(number_species):
-                    data[species[i]] = trajectory[:, i+1]
-                simulation_data.append(data)
-            else:
-                simulation_data = trajectory_base
-
-            if profile:
-                print(steps_taken)
-                print("Total Steps Taken: ", len(steps_taken))
-                print("Total Steps Rejected: ", steps_rejected)
+            data = {'time':timeline}
+            for i in range(number_species):
+                data[species[i]] = trajectory[:, i+1]
+            simulation_data.append(data)
 
         self.result = simulation_data
         return simulation_data, self.rc

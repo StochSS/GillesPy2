@@ -41,7 +41,7 @@ namespace Gillespy{
   }
 
 
-  Simulation :: Simulation(Model* model, unsigned int number_trajectories, unsigned int number_timesteps, double end_time, IPropensityFunction* propensity_function, int random_seed,double current_time) : model(model), end_time(end_time), random_seed(random_seed), number_timesteps(number_timesteps), number_trajectories(number_trajectories), propensity_function(propensity_function){
+  Simulation :: Simulation(Model* model, unsigned int number_trajectories, unsigned int number_timesteps, double end_time, IPropensityFunction* propensity_function, int random_seed) : model(model), end_time(end_time), random_seed(random_seed), number_timesteps(number_timesteps), number_trajectories(number_trajectories), propensity_function(propensity_function){
     timeline = new double[number_timesteps];
     double timestep_size = end_time/(number_timesteps-1);
     for(unsigned int i = 0; i < number_timesteps; i++){
@@ -98,11 +98,6 @@ namespace Gillespy{
 	  }
 	}
       }
-    }
-    temp = current_time;
-	temp_byte = reinterpret_cast<unsigned char*>(&temp);
-    for (unsigned int byte_i=0; byte_i < sizeof(double); byte_i++){
-        os << temp_byte[byte_i];
     }
   }
 }

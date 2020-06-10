@@ -32,7 +32,7 @@ class GillesPySolver:
     :type show_labels: bool
     """
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
-            debug=False, profile=False, show_labels=False, **kwargs):
+            debug=False, profile=False, show_labels=None, **kwargs):
         """ 
         Call out and run the solver. Collect the results.
         """

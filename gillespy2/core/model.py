@@ -10,7 +10,6 @@ from gillespy2.core.gillespyError import StochMLImportError, InvalidStochMLError
 from collections import OrderedDict
 import numpy as np
 
-
 try:
     import lxml.etree as eTree
 
@@ -780,8 +779,8 @@ class Model(SortableObject):
             from gillespy2.solvers.auto import SSASolver
             return SSASolver
 
-    def run(self, solver=None, timeout=0, t=None, **solver_args):
-         """
+    def run(self, solver=None, timeout=0, t=None, show_labels=True **solver_args):
+        """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
 
@@ -802,17 +801,21 @@ class Model(SortableObject):
         inherit UserDict. Results object supports graphing and csv export.
         """
 
-        if t is None:
-            t = self.tspan[-1]
-        if solver is None:
-            solver = self.get_best_solver()
-        try:
-            solver_results, rc = solver.run(model=self, t=t, increment=self.tspan[-1] - self.tspan[-2],
-                                            timeout=timeout, **solver_args)
-        except Exception as e:
-            raise SimulationError(
-                "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e))
+        if not show_labels:
+            from gillespy2.core import log
+            log.warning('show_labels = False is deprecated. Future releases of GillesPy2 may not support this feature.')
 
+        if solver is not None:
+            try:
+                solver_results, rc = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2],
+                                                timeout=timeout, **solver_args)
+            except Exception as e:
+                raise SimulationError(
+                    "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e))
+        else:
+            solver = self.get_best_solver()
+            solver_results, rc = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2],
+                                            timeout=timeout, **solver_args)
         if rc == 33:
             from gillespy2.core import log
             log.warning('GillesPy2 simulation exceeded timeout.')
@@ -820,17 +823,24 @@ class Model(SortableObject):
         if hasattr(solver_results[0], 'shape'):
             return solver_results
 
-        if len(solver_results) == 1:
-            results_list = [Trajectory(data=solver_results[0], model=self,
-                                       solver_name=solver.name, rc=rc)]
-            return Results(results_list)
-
-        if len(solver_results) > 1:
+        if len(solver_results) > 0:
             results_list = []
             for i in range(0, len(solver_results)):
-                results_list.append(Trajectory(data=solver_results[i], model=self, solver_name=solver.name,
-                                               rc=rc))
-            return Results(results_list)
+                temp = Trajectory(data=solver_results[i], model=self, solver_name=solver.name, rc=rc)
+                results_list.append(temp)
+
+            results = Results(results_list)
+            if show_labels == False:
+                results = results.to_array()
+            return results
+        if len(solver_results) > 0:
+                temp = Trajectory(data=solver_results[i], model=self, solver_name=solver.name, rc=rc)
+                results_list.append(temp)
+
+            results = Results(results_list)
+            if show_labels == False:
+                results = results.to_array()
+            return results
 
         else:
             raise ValueError("number_of_trajectories must be non-negative and non-zero")
@@ -892,7 +902,7 @@ class Species(SortableObject):
         self.switch_min = switch_min
         self.switch_tol = switch_tol
 
-        mode_list = ['continuous', 'dynamic', 'discrete', None]
+        mode_list = ['continuous', 'dynamic', 'discrete',None]
 
         if self.mode not in mode_list:
             raise SpeciesError('Species mode must be either \'continuous\', \'dynamic\', \'discrete\', or '
