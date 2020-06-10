@@ -7,15 +7,15 @@ class Parameter(SortableObject):
     as a value (scalar). If given an expression, it should be
     understood as evaluable in the namespace of a parent Model.
 
-    :param name: The name by which this parameter is called or referenced in reactions.
-    :type name: str
-
-    :param expression: String for a function calculating parameter values. Should be evaluable
-    in namespace of Model.
-    :type expression: str
-
-    :param value: Value of a parameter if it is not dependent on other Model entities.
-    :type value: float
+    Attributes
+    ----------
+    name : str
+        The name by which this parameter is called or referenced in reactions.
+    expression : str
+        String for a function calculating parameter values. Should be evaluable
+        in namespace of Model.
+    value : float
+        Value of a parameter if it is not dependent on other Model entities.
     """
 
     def __init__(self, name="", expression=None, value=None):
@@ -47,9 +47,11 @@ class Parameter(SortableObject):
         Evaluate the expression and return the (scalar) value in the given
         namespace.
 
-        :param namespace: The namespace in which to test evaluation of the parameter, if it
-        involves other parameters, etc.
-        :type namespace: dict
+        Attributes
+        ----------
+        namespace : dict (optional)
+            The namespace in which to test evaluation of the parameter, if it
+            involves other parameters, etc.
         """
         try:
             self.value = (float(eval(self.expression, namespace)))

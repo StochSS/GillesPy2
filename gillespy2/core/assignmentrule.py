@@ -5,28 +5,30 @@ class AssignmentRule(SortableObject):
     An AssignmentRule is used to express equations that set the values of
     variables.  This would correspond to a function in the form of x = f(V)
 
-    :param variable: Target Species/Parameter to be modified by rule
-    :type variable: str
-
-    :param name: Name of the rule
-    :type name: str
-
-    :param formula: String representation of formula to be evaluated
-    :type formula: str
-
+    Attributes
+    ----------
+    name : str
+        Name of the Rule
+    variable : str
+        Target Species/Parameter to be modified by rule
+    formula : str
+        String representation of formula to be evaluated
     """
 
     def __init__(self, variable=None, formula=None, name=None):
         self.variable = variable
         self.formula = formula
         self.name = name
+
     def __str__(self):
         return self.variable + ': ' + self.formula
+
     def sanitized_formula(self, species_mappings, parameter_mappings):
-        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
+                       reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
         sanitized_formula = self.formula
         for id, name in enumerate(names):
-            sanitized_formula = sanitized_formula.replace(name, "{"+str(id)+"}")
+            sanitized_formula = sanitized_formula.replace(name, "{" + str(id) + "}")
         return sanitized_formula.format(*replacements)

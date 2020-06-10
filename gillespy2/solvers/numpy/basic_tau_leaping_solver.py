@@ -5,6 +5,7 @@ import random, math
 from threading import Thread, Event
 import numpy as np
 from gillespy2.solvers.utilities import Tau
+import gillespy2.solvers.utilities.solverutils as utilities
 from gillespy2.solvers.utilities import solverutils as nputils
 from gillespy2.core import GillesPySolver, log
 from gillespy2.core.gillespyError import ExecutionError, ModelError
@@ -345,6 +346,7 @@ class BasicTauLeapingSolver(GillesPySolver):
                 print("Total Steps Rejected: ", steps_rejected)
 
         # If simulation has been paused, or tstopped !=0
+        simulation_data = utilities.numpyresume(timeStopped,simulation_data,)
         if timeStopped != 0:
             if timeStopped != simulation_data[0]['time'][-1]:
                 tester = np.where(simulation_data[0]['time'] > timeStopped)[0].size
@@ -361,4 +363,4 @@ class BasicTauLeapingSolver(GillesPySolver):
                 simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
 
         self.result = simulation_data
-        return simulation_data, self.rc
+        return self.simulation_data, self.rc
