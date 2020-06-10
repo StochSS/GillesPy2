@@ -10,6 +10,11 @@ from gillespy2.core.gillespyError import StochMLImportError, InvalidStochMLError
 from collections import OrderedDict
 import numpy as np
 
+from gillespy2.core.results import Trajectory,Results
+from gillespy2.core.events import *
+from gillespy2.core.gillespySolver import GillesPySolver
+from gillespy2.core.gillespyError import *
+
 try:
     import lxml.etree as eTree
 
@@ -753,7 +758,6 @@ class Model(SortableObject):
         """
         from gillespy2.solvers.numpy import can_use_numpy
         hybrid_check = False
-
         if len(self.get_all_assignment_rules()) or len(self.get_all_rate_rules())  \
                 or len(self.get_all_function_definitions()) or len(self.get_all_events()):
             hybrid_check = True
@@ -779,7 +783,7 @@ class Model(SortableObject):
             from gillespy2.solvers.auto import SSASolver
             return SSASolver
 
-    def run(self, solver=None, timeout=0, t=None, show_labels=True **solver_args):
+    def run(self, solver=None, timeout=0, t=None, show_labels=True, **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -787,7 +791,7 @@ class Model(SortableObject):
         :param solver: The solver by which to simulate the model. This solver object may
         be initialized separately to specify an algorithm. Optional,
         defaults to ssa solver.
-        :type solver; gillespy.GillesPySolver
+        :type solver: gillespy.GillesPySolver
 
         :param timeout: Allows a time_out value in seconds to be sent to a signal handler, restricting simulation run-time
         :type timeout: int
@@ -799,23 +803,28 @@ class Model(SortableObject):
         :return  If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is
         True,returns a Results object that inherits UserList and contains one or more Trajectory objects that
         inherit UserDict. Results object supports graphing and csv export.
+
+        To pause a simulation and retrieve data before the simulation, keyboard interrupt the simulation by pressing
+        control+c or pressing stop on a jupyter notebook. To resume a simulation, pass your previously ran results
+        into the run method, and set t = to the time you wish the resuming simulation to end (run(resume=results, t=x)).
+        Pause/Resume is only supported for SINGLE TRAJECTORY simulations. T MUST BE SET OR UNEXPECTED BEHAVIOR MAY OCCUR.
         """
 
         if not show_labels:
             from gillespy2.core import log
             log.warning('show_labels = False is deprecated. Future releases of GillesPy2 may not support this feature.')
 
-        if solver is not None:
-            try:
-                solver_results, rc = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2],
-                                                timeout=timeout, **solver_args)
-            except Exception as e:
-                raise SimulationError(
-                    "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e))
-        else:
+        if t is None:
+            t = self.tspan[-1]
+        if solver is None:
             solver = self.get_best_solver()
-            solver_results, rc = solver.run(model=self, t=self.tspan[-1], increment=self.tspan[-1] - self.tspan[-2],
+        try:
+            solver_results, rc = solver.run(model=self, t=t, increment=self.tspan[-1] - self.tspan[-2],
                                             timeout=timeout, **solver_args)
+        except Exception as e:
+            raise SimulationError(
+                "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e))
+
         if rc == 33:
             from gillespy2.core import log
             log.warning('GillesPy2 simulation exceeded timeout.')
@@ -833,7 +842,10 @@ class Model(SortableObject):
             if show_labels == False:
                 results = results.to_array()
             return results
+
         if len(solver_results) > 0:
+            results_list = []
+            for i in range(0, len(solver_results)):
                 temp = Trajectory(data=solver_results[i], model=self, solver_name=solver.name, rc=rc)
                 results_list.append(temp)
 
@@ -902,7 +914,7 @@ class Species(SortableObject):
         self.switch_min = switch_min
         self.switch_tol = switch_tol
 
-        mode_list = ['continuous', 'dynamic', 'discrete',None]
+        mode_list = ['continuous', 'dynamic', 'discrete', None]
 
         if self.mode not in mode_list:
             raise SpeciesError('Species mode must be either \'continuous\', \'dynamic\', \'discrete\', or '
