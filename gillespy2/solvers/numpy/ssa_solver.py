@@ -22,11 +22,11 @@ class NumPySSASolver(GillesPySolver):
         """
         :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
         """
-        return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'show_labels', 'timeout')
+        return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'timeout')
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05,
-                        seed=None, debug=False, show_labels=True, timeout=None, **kwargs):
+                        seed=None, debug=False, timeout=None, **kwargs):
         """
         Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
         :param model: The model on which the solver will operate.
@@ -37,7 +37,6 @@ class NumPySSASolver(GillesPySolver):
         :param seed: The random seed for the simulation. Defaults to None.
         :param debug: Set to True to provide additional debug information about the
         simulation.
-        :param show_labels: Use names of species as index of result object rather than position numbers.
         :return: a list of each trajectory simulated.
         """
 
@@ -54,8 +53,7 @@ class NumPySSASolver(GillesPySolver):
         sim_thread = Thread(target=self.___run, args=(model,), kwargs={'t':t,
                                         'number_of_trajectories':number_of_trajectories,
                                         'increment':increment, 'seed':seed,
-                                        'debug':debug, 'show_labels':show_labels,
-                                        'timeout':timeout})
+                                        'debug':debug, 'timeout':timeout})
         try:
             sim_thread.start()
             sim_thread.join(timeout=timeout)
@@ -68,17 +66,16 @@ class NumPySSASolver(GillesPySolver):
         return self.result, self.rc
 
     def ___run(self, model, t=20, number_of_trajectories=1, increment=0.05,
-                    seed=None, debug=False, show_labels=True, timeout=None):
+                    seed=None, debug=False, timeout=None):
         try:
-            self.__run(model, t, number_of_trajectories, increment, seed,
-                            debug, show_labels, timeout)
+            self.__run(model, t, number_of_trajectories, increment, seed, debug, timeout)
         except Exception as e:
             self.has_raised_exception = e
             self.result = []
             return [], -1
 
     def __run(self, model, t=20, number_of_trajectories=1, increment=0.05,
-                    seed=None, debug=False, show_labels=True, timeout=None):
+                    seed=None, debug=False, timeout=None):
 
         random.seed(seed)
         # create mapping of species dictionary to array indices
@@ -189,15 +186,13 @@ class NumPySSASolver(GillesPySolver):
                             if debug:
                                 print('new propensity sum: ', propensity_sums[i])
                         break
-            if show_labels:
-                data = {
-                    'time': timeline
-                }
-                for i in range(number_species):
-                    data[species[i]] = trajectory[:, i+1]
-                simulation_data.append(data)
-            else:
-                simulation_data = trajectory_base
+            #Append labels to trajectory base
+            data = {
+                'time': timeline
+            }
+            for i in range(number_species):
+                data[species[i]] = trajectory[:, i+1]
+            simulation_data.append(data)
         print(self.count)
         self.result = simulation_data
         return self.result, self.rc

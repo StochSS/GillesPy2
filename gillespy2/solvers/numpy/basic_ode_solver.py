@@ -54,12 +54,10 @@ class BasicODESolver(GillesPySolver):
         """
         :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
         """
-        return ('model', 't', 'number_of_trajectories', 'increment', 'show_labels', 'integrator', 'integrator_options'
-                'timeout')
+        return ('model', 't', 'number_of_trajectories', 'increment', 'integrator', 'integrator_options' 'timeout')
 
     @classmethod
-    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, 
-            show_labels=True, integrator='lsoda', integrator_options={}, 
+    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, integrator='lsoda', integrator_options={},
             timeout=None, **kwargs):
         """
 
@@ -68,7 +66,6 @@ class BasicODESolver(GillesPySolver):
         :param number_of_trajectories: Should be 1.
             This is deterministic and will always have same results
         :param increment: time step increment for plotting
-        :param show_labels: If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]
         :param integrator: integrator to be used form scipy.integrate.ode. Options include 'vode', 'zvode', 'lsoda', 'dopri5', and 'dop835'.  For more details, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html
         :param integrator_options: a dictionary containing options to the scipy integrator. for a list of options, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.
             Example use: {max_step : 0, rtol : .01}
@@ -86,9 +83,7 @@ class BasicODESolver(GillesPySolver):
             log.warning("Generating duplicate trajectories for model with ODE Solver. Consider running with only 1 trajectory.")
         sim_thread = Thread(target=self.___run, args=(model,), kwargs={'t':t,
                                         'number_of_trajectories':number_of_trajectories,
-                                        'increment':increment, 'show_labels':show_labels, 
-                                        'timeout':timeout,
-                                        'integrator':integrator,
+                                        'increment':increment, 'timeout':timeout, 'integrator':integrator,
                                         'integrator_options':integrator_options})
         try:
             sim_thread.start()
@@ -101,18 +96,17 @@ class BasicODESolver(GillesPySolver):
             raise self.has_raised_exception
         return self.result, self.rc
 
-    def ___run(self, model, t=20, number_of_trajectories=1, increment=0.05, timeout=None,
-            show_labels=True, integrator='lsoda', integrator_options={}, **kwargs):
+    def ___run(self, model, t=20, number_of_trajectories=1, increment=0.05, timeout=None, integrator='lsoda',
+               integrator_options={}, **kwargs):
         try:
-            self.__run(model, t, number_of_trajectories, increment, timeout,
-                        show_labels, integrator, integrator_options, **kwargs)
+            self.__run(model, t, number_of_trajectories, increment, timeout, integrator, integrator_options, **kwargs)
         except Exception as e:
             self.has_raised_exception = e
             self.result = []
             return [], -1
 
-    def __run(self, model, t=20, number_of_trajectories=1, increment=0.05, timeout=None,
-            show_labels=True, integrator='lsoda', integrator_options={}, **kwargs):
+    def __run(self, model, t=20, number_of_trajectories=1, increment=0.05, timeout=None, integrator='lsoda',
+              integrator_options={}, **kwargs):
 
         start_state = [model.listOfSpecies[species].initial_value for species in model.listOfSpecies]
 
@@ -166,14 +160,13 @@ class BasicODESolver(GillesPySolver):
                 curr_state[spec] = y0[i]
                 result[entry_count][i+1] = curr_state[spec]
 
-        if show_labels:
-            results_as_dict = {
-                'time': timeline
-            }
-            for i, species in enumerate(model.listOfSpecies):
-                results_as_dict[species] = result[:, i+1]
-            results = [results_as_dict] * number_of_trajectories
-        else:
-            results = np.stack([result] * number_of_trajectories, axis=0)
+        #Turn trajectory into dictionary indexed by species/time
+        results_as_dict = {
+            'time': timeline
+        }
+        for i, species in enumerate(model.listOfSpecies):
+            results_as_dict[species] = result[:, i+1]
+        results = [results_as_dict] * number_of_trajectories
+
         self.result = results
         return results, self.rc
