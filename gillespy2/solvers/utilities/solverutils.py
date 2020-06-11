@@ -139,7 +139,33 @@ def c_solver_resume(timeStopped, simulation_data, t, resume=None):
 NUMPY SOLVER UTILITIES BELOW
 
 """
-def numpyresume(timeStopped, simulation_data, resume=None):
+def numpy_initialization(model):
+    species_mappings = model.sanitized_species_names()
+    species = list(species_mappings.keys())
+    parameter_mappings = model.sanitized_parameter_names()
+    number_species = len(species)
+    return species_mappings, species, parameter_mappings, number_species
+
+def numpy_trajectory_base_initialization(model, number_of_trajectories, timeline, species, resume = None):
+    trajectory_base = np.zeros((number_of_trajectories, timeline.size, len(species) + 1))
+
+    # copy time values to all trajectory row starts
+    trajectory_base[:, :, 0] = timeline
+    tmpSpecies = {}
+    # copy initial populations to base
+    if resume is not None:
+        # Set initial values of species to where last left off
+        for i in species:
+            tmpSpecies[i] = resume[i][-1]
+        for i, s in enumerate(species):
+            trajectory_base[:, 0, i + 1] = tmpSpecies[s]
+    else:
+        for i, s in enumerate(species):
+            trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
+
+    return trajectory_base, tmpSpecies
+
+def numpy_resume(timeStopped, simulation_data, resume=None):
     """
     Helper function for when resuming a simulation in a numpy based solver
     :param timeStopped: The time in which the simulation was stopped.

@@ -143,10 +143,7 @@ class BasicODESolver(GillesPySolver):
         start_state = [model.listOfSpecies[species].initial_value for species in model.listOfSpecies]
 
         # create mapping of species dictionary to array indices
-        species_mappings = model.sanitized_species_names()
-        species = list(species_mappings.keys())
-        parameter_mappings = model.sanitized_parameter_names()
-        number_species = len(species)
+        species_mappings, species, parameter_mappings, number_species = nputils.numpy_initialization(model)
 
         if resume is not None:
             # start where we last left off if resuming a simulation
@@ -157,22 +154,8 @@ class BasicODESolver(GillesPySolver):
             timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
         # create numpy matrix to mark all state data of time and species
-        trajectory_base = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
-
-        # copy time values to all trajectory row starts
-        trajectory_base[:, :, 0] = timeline
-
-        # copy initial populations to base
-        if resume is not None:
-            tmpSpecies = {}
-            # Set initial values of species to where last left off
-            for i in species:
-                tmpSpecies[i] = resume[i][-1]
-            for i, s in enumerate(species):
-                trajectory_base[:, 0, i + 1] = tmpSpecies[s]
-        else:
-            for i, s in enumerate(species):
-                trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
+        trajectory_base, tmpSpecies = nputils.numpy_trajectory_base_initialization(model, number_of_trajectories,
+                                                                                   timeline, species, resume=resume)
 
         # compile reaction propensity functions for eval
         c_prop = OrderedDict()
@@ -224,7 +207,7 @@ class BasicODESolver(GillesPySolver):
         results = [results_as_dict] * number_of_trajectories
 
         if timeStopped != 0:
-            results = nputils.numpyresume(timeStopped, results, resume=resume)
+            results = nputils.numpy_resume(timeStopped, results, resume=resume)
 
 
         self.result = results

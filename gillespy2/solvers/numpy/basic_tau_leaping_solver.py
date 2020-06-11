@@ -159,11 +159,7 @@ class BasicTauLeapingSolver(GillesPySolver):
             print("t = ", t)
             print("increment = ", increment)
 
-            
-        species_mappings = model.sanitized_species_names()
-        species = list(species_mappings.keys())
-        parameter_mappings = model.sanitized_parameter_names()
-        number_species = len(species)
+        species_mappings, species, parameter_mappings, number_species = nputils.numpy_initialization(model)
 
         if seed is not None:
             if not isinstance(seed, int):
@@ -184,21 +180,8 @@ class BasicTauLeapingSolver(GillesPySolver):
             timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
         # create numpy matrix to mark all state data of time and species
-        trajectory_base = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
-
-        # copy time values to all trajectory row starts
-        trajectory_base[:, :, 0] = timeline
-        # copy initial populations to base
-        if resume is not None:
-            tmpSpecies = {}
-            # Set initial values of species to where last left off
-            for i in species:
-                tmpSpecies[i] = resume[i][-1]
-            for i, s in enumerate(species):
-                trajectory_base[:, 0, i + 1] = tmpSpecies[s]
-        else:
-            for i, s in enumerate(species):
-                trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
+        trajectory_base, tmpSpecies = nputils.numpy_trajectory_base_initialization(model, number_of_trajectories,
+                                                                                   timeline, species, resume=resume)
 
         simulation_data = []
         for trajectory_num in range(number_of_trajectories):
@@ -345,7 +328,7 @@ class BasicTauLeapingSolver(GillesPySolver):
 
         # If simulation has been paused, or tstopped !=0
         if timeStopped != 0:
-            simulation_data = nputils.numpyresume(timeStopped, simulation_data, resume=resume)
+            simulation_data = nputils.numpy_resume(timeStopped, simulation_data, resume=resume)
 
 
         self.result = simulation_data
