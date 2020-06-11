@@ -89,9 +89,13 @@ class LiveDisplayer():
 
         curr_state = curr_state[0]
 
-        #happens in __f function in hybrid solver
-        if curr_state['time'] > curr_time:
-            curr_time = curr_state['time']
+        #necessary for __f function in hybrid solver
+        if 't' in curr_state:
+            if curr_state['t'] > curr_time:
+                curr_time = curr_state['t']
+        elif 'time' in curr_state:
+            if curr_state['time'] > curr_time:
+                curr_time = curr_state['time']
 
         try:
             if self.display_type == "text":
