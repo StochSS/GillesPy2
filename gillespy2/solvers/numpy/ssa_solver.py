@@ -150,9 +150,12 @@ class NumPySSASolver(GillesPySolver):
             trajectory = trajectory_base[trajectory_num]
             entry_count = 1
             curr_time[0] = 0
+            curr_state[0] = {}
 
-            #TODO For live graping to work, curr_state[0] needs to be a dictionary not a list
-            curr_state[0] = np.copy(trajectory[0, 1:])
+            for spec in model.listOfSpecies:
+                # initialize populations
+                curr_state[0][spec] = model.listOfSpecies[spec].initial_value
+
             propensity_sums = np.zeros(number_reactions)
             # calculate initial propensity sums
             while entry_count < timeline.size:
@@ -161,7 +164,8 @@ class NumPySSASolver(GillesPySolver):
                     break
                 # determine next reaction
                 for i in range(number_reactions):
-                    propensity_sums[i] = propensity_functions[i](curr_state[0])
+
+                    propensity_sums[i] = propensity_functions[i](list(curr_state[0].values()))
                     if debug:
                         print('propensity: ', propensity_sums[i])
                 propensity_sum = np.sum(propensity_sums)
@@ -169,8 +173,9 @@ class NumPySSASolver(GillesPySolver):
                     print('propensity_sum: ', propensity_sum)
                 # if no more reactions, quit
                 if propensity_sum <= 0:
-                    trajectory[entry_count:, 1:] = curr_state[0]
+                    trajectory[entry_count:, 1:] = list(curr_state[0].values())
                     break
+
                 cumulative_sum = random.uniform(0, propensity_sum)
                 curr_time[0] += -math.log(random.random()) / propensity_sum
                 if debug:
@@ -183,21 +188,26 @@ class NumPySSASolver(GillesPySolver):
                     if self.stop_event.is_set(): 
                         self.rc = 33
                         break
-                    trajectory[entry_count, 1:] = curr_state[0]
+
+                    trajectory[entry_count, 1:] = list(curr_state[0].values())
                     entry_count += 1
                 for potential_reaction in range(number_reactions):
                     cumulative_sum -= propensity_sums[potential_reaction]
                     if debug:
                         print('if <=0, fire: ', cumulative_sum)
                     if cumulative_sum <= 0:
-                        curr_state[0] += species_changes[potential_reaction]
+
+                        for i,spec in enumerate(model.listOfSpecies):
+                            curr_state[0][spec] += species_changes[potential_reaction][i]
+
                         if debug:
                             print('current state: ', curr_state[0])
                             print('species_changes: ', species_changes)
                             print('updating: ', potential_reaction)
                         # recompute propensities as needed
+
                         for i in range(number_reactions):
-                            propensity_sums[i] = propensity_functions[i](curr_state[0])
+                            propensity_sums[i] = propensity_functions[i](list(curr_state[0].values()))
                             if debug:
                                 print('new propensity sum: ', propensity_sums[i])
                         break
