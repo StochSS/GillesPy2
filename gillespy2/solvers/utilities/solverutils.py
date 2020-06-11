@@ -3,8 +3,6 @@ import shutil #for deleting/copying files
 import numpy as np
 from gillespy2.core import log
 
-
-
 """
 This file contains various functions used in the ssa_c_solver, variable_ssa_c_solver, and numpy solvers.
 

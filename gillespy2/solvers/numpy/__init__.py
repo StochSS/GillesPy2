@@ -5,7 +5,7 @@ _handler.setFormatter(_formatter)
 log = logging.getLogger()
 log.setLevel(logging.WARN)
 log.addHandler(_handler)
-import sys
+
 try:
     import numpy as np
     can_use_numpy = True
@@ -14,10 +14,6 @@ try:
     from gillespy2.solvers.numpy.basic_tau_leaping_solver import BasicTauLeapingSolver
     from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
     log.debug("Successful Import of NumPy solvers.")
-    print(sys.path)
-    print(sys.modules)
-
-
 except Exception as e:
     log.warn(" Unable to use NumPy: {0}. The performance of this package can be significantly increased if you install NumPy.".format(e))
     can_use_numpy = False

@@ -61,7 +61,7 @@ def _write_variables(outfile, model, reactions, species, parameters, parameter_m
         if param != 'vol':
             outfile.write("double {0} = {1};\n".format(parameter_mappings[param], model.listOfParameters[param].value))
 
-def _update_parameters(outfile, parameters, parameter_mappings):
+def _update_parameters(outfile, model, parameters, parameter_mappings):
     for param in parameters:
         if param != 'vol':
             outfile.write('       arg_stream >> {};\n'.format(parameter_mappings[param]))
