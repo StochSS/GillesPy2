@@ -774,6 +774,20 @@ class BasicTauHybridSolver(GillesPySolver):
         if isinstance(self, type):
             self = BasicTauHybridSolver()
 
+        if timeout > 0:
+            for i, s in enumerate(list(model._listOfSpecies.keys())):
+                # Solve_ivp doesn't return any results until it's finished solving so timing out early only slows the solver.
+                 if model.listOfSpecies[s].mode is 'continuous':
+                    timeout = 0
+                    log.warning('timeouts not supported by continuous species.')
+                    break
+                 elif model.listOfSpecies[s].mode is 'dynamic':
+                    log.warning('timeouts not fully supported by dynamic species. If timeout is triggered during'
+                                ' integration, total solve time could be longer than expected.')
+                    break
+
+
+
         self.stop_event = threading.Event()
 
         if len(kwargs) > 0:
