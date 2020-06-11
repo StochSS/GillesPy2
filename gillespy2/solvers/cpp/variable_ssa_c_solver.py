@@ -1,6 +1,6 @@
 import gillespy2
 from gillespy2.core import Model, Reaction, gillespyError, GillesPySolver, log
-from gillespy2.solvers.utilities import solverutils as cs
+from gillespy2.solvers.utilities import solverutils as cutils
 import signal, time #for solver timeout implementation
 import os #for getting directories for C++ files
 import shutil #for deleting/copying files
@@ -13,6 +13,17 @@ GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
 GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base')
 
 def _write_variables(outfile, model, reactions, species, parameters, parameter_mappings, resume=None):
+    """
+    This function writes the models constants to a user simulation file
+    :param outfile: CPP file, used for simulating a model
+    :param model: The model that is being simulated
+    :param reactions: List of names of a models reactions
+    :param species: List of sanitized species names
+    :param parameter_mappings: List of sanitized parameter names
+    :param resume: If resuming a simulation from a previous one, resume is the results object from the prior simulation.
+    Else, it is defaulted to None.
+   """
+
     outfile.write("double V = {};\n".format(model.volume))
     outfile.write("std :: string s_names[] = {");
     if len(species) > 0:
@@ -50,7 +61,7 @@ def _write_variables(outfile, model, reactions, species, parameters, parameter_m
         if param != 'vol':
             outfile.write("double {0} = {1};\n".format(parameter_mappings[param], model.listOfParameters[param].value))
 
-def _update_parameters(outfile, model, parameters, parameter_mappings):
+def _update_parameters(outfile, parameters, parameter_mappings):
     for param in parameters:
         if param != 'vol':
             outfile.write('       arg_stream >> {};\n'.format(parameter_mappings[param]))
@@ -90,7 +101,7 @@ class VariableSSACSolver(GillesPySolver):
                 
             if not os.path.isdir(self.output_directory):
                 raise gillespyError.DirectoryError("Errors encountered while setting up directory for Solver C++ files.")
-            cs._copy_files(self.output_directory,GILLESPY_C_DIRECTORY)
+            cutils._copy_files(self.output_directory, GILLESPY_C_DIRECTORY)
             self.__write_template()
             self.__compile()
         
@@ -112,9 +123,9 @@ class VariableSSACSolver(GillesPySolver):
                             _write_variables(outfile, self.model, self.reactions, self.species, self.parameters,
                                              self.parameter_mappings,self.resume)
                         if line.startswith("PROPENSITY"):
-                            cs._write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings, self.reactions)
+                            cutils._write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings, self.reactions)
                         if line.startswith("REACTIONS"):
-                           cs._write_reactions(outfile, self.model, self.reactions, self.species)
+                           cutils._write_reactions(outfile, self.model, self.reactions, self.species)
                         if line.startswith("PARAMETER_UPDATES"):
                             _update_parameters(outfile, self.model, self.parameters, self.parameter_mappings)
                     else:
@@ -263,9 +274,9 @@ class VariableSSACSolver(GillesPySolver):
 
             # Parse/return results.
             if return_code in [0, 33]:
-                trajectory_base, timeStopped = cs._parse_binary_output(stdout, number_of_trajectories,
-                                                                       number_timesteps,
-                                                                       len(model.listOfSpecies), pause=pause)
+                trajectory_base, timeStopped = cutils._parse_binary_output(stdout, number_of_trajectories,
+                                                                           number_timesteps,
+                                                                           len(model.listOfSpecies), pause=pause)
                 if model.tspan[2] - model.tspan[1] == 1:
                     timeStopped = int(timeStopped)
 
@@ -283,7 +294,7 @@ class VariableSSACSolver(GillesPySolver):
                                                    format(simulation.returncode, simulation.stderr))
 
             if resume is not None or timeStopped != 0:
-                self.simulation_data = cs.c_solver_resume(timeStopped, self.simulation_data, t, resume=resume)
+                self.simulation_data = cutils.c_solver_resume(timeStopped, self.simulation_data, t, resume=resume)
 
         return self.simulation_data, return_code
 

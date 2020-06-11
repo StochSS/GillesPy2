@@ -6,7 +6,7 @@ from scipy.integrate import odeint
 from collections import OrderedDict
 import numpy as np
 from gillespy2.core import GillesPySolver, log, gillespyError
-
+from gillespy2.solvers.utilities import solverutils as nputils
 
 class BasicODESolver(GillesPySolver):
     """
@@ -224,19 +224,8 @@ class BasicODESolver(GillesPySolver):
         results = [results_as_dict] * number_of_trajectories
 
         if timeStopped != 0:
-            if timeStopped != results[0]['time'][-1]:
-                tester = np.where(results[0]['time'] > timeStopped)[0].size
-                index = np.where(results[0]['time'] == timeStopped)[0][0]
-            if tester > 0:
-                for i in results[0]:
-                    results[0][i] = results[0][i][:index]
+            results = nputils.numpyresume(timeStopped, results, resume=resume)
 
-        if resume is not None:
-            # If resuming, combine old pause with new data, and delete any excess null data
-            for i in results[0]:
-                oldData = resume[i][:-1]
-                newData = results[0][i]
-                results[0][i] = np.concatenate((oldData, newData), axis=None)
 
         self.result = results
         return results, self.rc

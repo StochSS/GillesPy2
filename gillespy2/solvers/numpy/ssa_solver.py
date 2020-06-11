@@ -232,19 +232,7 @@ class NumPySSASolver(GillesPySolver):
 
         #If simulation has been paused, or tstopped !=0
         if timeStopped != 0:
-            if timeStopped != simulation_data[0]['time'][-1]:
-                tester = np.where(simulation_data[0]['time'] > timeStopped)[0].size
-                index = np.where(simulation_data[0]['time'] == timeStopped)[0][0]
-            if tester > 0:
-                for i in simulation_data[0]:
-                    simulation_data[0][i] = simulation_data[0][i][:index]
-
-        if resume is not None:
-        #If resuming, combine old pause with new data, and delete any excess null data
-            for i in simulation_data[0]:
-                oldData = resume[i][:-1]
-                newData = simulation_data[0][i]
-                simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
+            simulation_data = nputils.numpyresume(timeStopped, simulation_data, resume=resume)
 
         self.result = simulation_data
         return self.result, self.rc
