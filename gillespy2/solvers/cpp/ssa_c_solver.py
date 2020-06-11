@@ -181,10 +181,14 @@ class SSACSolver(GillesPySolver):
                 built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'], stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE)
         else:
-            cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulation'],
+            try:
+                cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulation'],
                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'],
-                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'],
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            except KeyboardInterrupt:
+                log.warning("Solver has been interrupted during compile time, unexpected behavior may occur.")
+
         if built.returncode == 0:
             self.__compiled = True
         else:
