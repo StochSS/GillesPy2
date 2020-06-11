@@ -163,17 +163,20 @@ class NumPySSASolver(GillesPySolver):
                     self.rc = 33
                     break
                 # determine next reaction
-                for i in range(number_reactions):
 
-                    propensity_sums[i] = propensity_functions[i](list(curr_state[0].values()))
+                species_states = list(curr_state[0].values())
+
+                for i in range(number_reactions):
+                    propensity_sums[i] = propensity_functions[i](species_states)
                     if debug:
                         print('propensity: ', propensity_sums[i])
+
                 propensity_sum = np.sum(propensity_sums)
                 if debug:
                     print('propensity_sum: ', propensity_sum)
                 # if no more reactions, quit
                 if propensity_sum <= 0:
-                    trajectory[entry_count:, 1:] = list(curr_state[0].values())
+                    trajectory[entry_count:, 1:] = list(species_states)
                     break
 
                 cumulative_sum = random.uniform(0, propensity_sum)
@@ -184,13 +187,16 @@ class NumPySSASolver(GillesPySolver):
                     print('timeline.size: ', timeline.size)
                     print('curr_time: ', curr_time[0])
                 # determine time passed in this reaction
+
                 while entry_count < timeline.size and timeline[entry_count] <= curr_time[0]:
                     if self.stop_event.is_set(): 
                         self.rc = 33
                         break
 
-                    trajectory[entry_count, 1:] = list(curr_state[0].values())
+                    trajectory[entry_count, 1:] = species_states
+
                     entry_count += 1
+
                 for potential_reaction in range(number_reactions):
                     cumulative_sum -= propensity_sums[potential_reaction]
                     if debug:
@@ -206,8 +212,9 @@ class NumPySSASolver(GillesPySolver):
                             print('updating: ', potential_reaction)
                         # recompute propensities as needed
 
+                        species_states = list(curr_state[0].values())
                         for i in range(number_reactions):
-                            propensity_sums[i] = propensity_functions[i](list(curr_state[0].values()))
+                            propensity_sums[i] = propensity_functions[i](species_states)
                             if debug:
                                 print('new propensity sum: ', propensity_sums[i])
                         break
