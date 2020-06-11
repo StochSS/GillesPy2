@@ -91,7 +91,12 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         results = model.run()
         self.assertEqual(results[0].solver_name,'BasicTauHybridSolver')
 
-
+    def test_ensure_continuous_dynamic_timeout_warning(self):
+        model = Example()
+        species1 = gillespy2.Species('test_species1', initial_value=1, mode='dynamic')
+        model.add_species(species1)
+        with self.assertLogs(level='WARN'):
+            results = model.run(timeout=1)
 
 if __name__ == '__main__':
     unittest.main()
