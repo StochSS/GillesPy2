@@ -205,6 +205,7 @@ class BasicTauHybridSolver(GillesPySolver):
         Evaluate the propensities for the reactions and the RHS of the Reactions and RateRules.
         Also evaluates boolean value of event triggers.
         """
+
         state_change = [0] * len(y_map)
         curr_state['t'] = t
         curr_state['time'] = t
@@ -830,6 +831,14 @@ class BasicTauHybridSolver(GillesPySolver):
             from gillespy2.core.liveGraphing import valid_graph_params
             if valid_graph_params(display_type, display_interval):
                 import gillespy2.core.liveGraphing
+
+                if display_type == "graph":
+                    for i, s in enumerate(list(model._listOfSpecies.keys())):
+
+                        if model.listOfSpecies[s].mode is 'continuous':
+                            log.warning('display_type = \"graph\" not recommended with continuous species. Try display_type = \"text\" or \"progress\".')
+                            break
+
                 live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(display_type, display_interval, model,
                                                                             timeline.size, number_of_trajectories)
                 display_timer = gillespy2.core.liveGraphing.RepeatTimer(display_interval, live_grapher[0].display,

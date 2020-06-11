@@ -86,7 +86,12 @@ class LiveDisplayer():
         from math import floor
 
         curr_time = curr_time[0]
+
         curr_state = curr_state[0]
+
+        #happens in __f function in hybrid solver
+        if curr_state['time'] > curr_time:
+            curr_time = curr_state['time']
 
         try:
             if self.display_type == "text":
