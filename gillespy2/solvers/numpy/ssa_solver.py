@@ -66,7 +66,6 @@ class NumPySSASolver(GillesPySolver):
             timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
         species = list(model._listOfSpecies.keys())
-        number_species = len(species)
 
         trajectory_base, tmpSpecies = nputils.numpy_trajectory_base_initialization(model, number_of_trajectories,
                                                                                    timeline, species, resume=resume)
@@ -136,12 +135,8 @@ class NumPySSASolver(GillesPySolver):
                     "simulations next end time")
 
         random.seed(seed)
-        # create mapping of species dictionary to array indices
+
         species_mappings, species, parameter_mappings, number_species = nputils.numpy_initialization(model)
-
-        # create numpy array for timeline
-
-
 
         # create dictionary of all constant parameters for propensity evaluation
         parameters = {'V': model.volume}

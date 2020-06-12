@@ -126,30 +126,14 @@ class BasicTauLeapingSolver(GillesPySolver):
         else:
             timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
-        species = list(model._listOfSpecies.keys())
-        number_species = len(species)
-
-        # create numpy matrix to mark all state data of time and species
-        trajectory_base, tmpSpecies = nputils.numpy_trajectory_base_initialization(model, number_of_trajectories,
-                                                                                   timeline, species, resume=resume)
-
-        # copy time values to all trajectory row starts
-        trajectory_base[:, :, 0] = timeline
         species = list( model._listOfSpecies.keys())
-        number_species = len(species)
-
-        # create numpy matrix to mark all state data of time and species
-        trajectory_base = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
-
-        # copy time values to all trajectory row starts
-        trajectory_base[:, :, 0] = timeline
 
         # curr_time and curr_state are list of len 1 so that __run receives reference
         curr_time = [0]  # Current Simulation Time
         curr_state = [None]
         live_grapher = [None]
 
-        sim_thread = Thread(target=self.___run, args=(model, curr_state,curr_time, timeline, trajectory_base,live_grapher,), kwargs={'t':t,
+        sim_thread = Thread(target=self.___run, args=(model, curr_state,curr_time, timeline, live_grapher,), kwargs={'t':t,
                                         'number_of_trajectories':number_of_trajectories,
                                         'increment':increment, 'seed':seed,
                                         'debug':debug, 'resume':resume, 'timeout':timeout, 'tau_tol':tau_tol})
@@ -162,7 +146,7 @@ class BasicTauLeapingSolver(GillesPySolver):
                 live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(display_type, display_interval, model,
                                                                             timeline.size, number_of_trajectories)
                 display_timer = gillespy2.core.liveGraphing.RepeatTimer(display_interval, live_grapher[0].display,
-                                                                        args=(curr_state, curr_time, trajectory_base,))
+                                                                        args=(curr_state, curr_time,))
                 display_timer.start()
 
             sim_thread.join(timeout=timeout)
@@ -179,12 +163,12 @@ class BasicTauLeapingSolver(GillesPySolver):
             raise self.has_raised_exception
         return self.result, self.rc
 
-    def ___run(self, model, curr_state,curr_time, timeline, trajectory_base, live_grapher, t=20,
+    def ___run(self, model, curr_state,curr_time, timeline,live_grapher, t=20,
                number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, show_labels=True,
                     timeout=None, resume=None, tau_tol=0.03, **kwargs):
 
         try:
-            self.__run(model, curr_state,curr_time, timeline, trajectory_base, live_grapher, t, number_of_trajectories, increment, seed,
+            self.__run(model, curr_state,curr_time, timeline, live_grapher, t, number_of_trajectories, increment, seed,
                         debug, profile,timeout,resume, tau_tol, **kwargs)
 
         except Exception as e:
@@ -193,7 +177,7 @@ class BasicTauLeapingSolver(GillesPySolver):
             return [], -1
 
 
-    def __run(self, model, curr_state,curr_time, timeline, trajectory_base, live_grapher, t=20,
+    def __run(self, model, curr_state,curr_time, timeline, live_grapher, t=20,
               number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, timeout=None,
               resume=None, tau_tol=0.03, **kwargs):
 
@@ -213,6 +197,9 @@ class BasicTauLeapingSolver(GillesPySolver):
 
         species_mappings, species, parameter_mappings, number_species = nputils.numpy_initialization(model)
 
+        # create numpy matrix to mark all state data of time and species
+        trajectory_base, tmpSpecies = nputils.numpy_trajectory_base_initialization(model, number_of_trajectories,
+                                                                                   timeline, species, resume=resume)
         if seed is not None:
             if not isinstance(seed, int):
                 seed = int(seed)
