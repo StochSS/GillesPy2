@@ -73,6 +73,21 @@ class NumPySSASolver(GillesPySolver):
         # copy time values to all trajectory row starts
         trajectory_base[:, :, 0] = timeline
 
+        # for i, s in enumerate(species):
+        #     trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
+
+        # copy initial populations to base
+        if resume is not None:
+            tmpSpecies = {}
+            #Set initial values of species to where last left off
+            for i in species:
+                tmpSpecies[i] = resume[i][-1]
+            for i, s in enumerate(species):
+                trajectory_base[:, 0, i + 1] = tmpSpecies[s]
+        else:
+            for i, s in enumerate(species):
+                trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
+
         # curr_time and curr_state are list of len 1 so that __run receives reference
         curr_time = [0]  # Current Simulation Time
         curr_state = [None]
@@ -91,7 +106,7 @@ class NumPySSASolver(GillesPySolver):
             if valid_graph_params(display_type, display_interval):
                 import gillespy2.core.liveGraphing
                 live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(display_type, display_interval, model,
-                                                                            timeline.size, number_of_trajectories)
+                                                                            timeline, number_of_trajectories)
                 display_timer = gillespy2.core.liveGraphing.RepeatTimer(display_interval, live_grapher[0].display,
                                                                         args=(curr_state, curr_time, trajectory_base,))
                 display_timer.start()
@@ -145,21 +160,20 @@ class NumPySSASolver(GillesPySolver):
         parameter_mappings = model.sanitized_parameter_names()
         number_species = len(species)
 
-        for i, s in enumerate(species):
-            trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
-        # create numpy array for timeline
-
-        # copy initial populations to base
-        if resume is not None:
-            tmpSpecies = {}
-            #Set initial values of species to where last left off
-            for i in species:
-                tmpSpecies[i] = resume[i][-1]
-            for i, s in enumerate(species):
-                trajectory_base[:, 0, i + 1] = tmpSpecies[s]
-        else:
-            for i, s in enumerate(species):
-                trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
+        # for i, s in enumerate(species):
+        #     trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
+        #
+        # # copy initial populations to base
+        # if resume is not None:
+        #     tmpSpecies = {}
+        #     #Set initial values of species to where last left off
+        #     for i in species:
+        #         tmpSpecies[i] = resume[i][-1]
+        #     for i, s in enumerate(species):
+        #         trajectory_base[:, 0, i + 1] = tmpSpecies[s]
+        # else:
+        #     for i, s in enumerate(species):
+        #         trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
 
 
 
