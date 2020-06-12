@@ -824,11 +824,15 @@ class BasicTauHybridSolver(GillesPySolver):
         trajectory_base[:, :, 0] = timeline
 
         # copy initial populations to base
-        spec_modes = ['continuous', 'dynamic', 'discrete']
+        spec_modes = ['continuous', 'dynamic', 'discrete', None]
         for i, s in enumerate(species):
+            if model.listOfSpecies[s].mode is None:
+                model.listOfSpecies[s].mode = 'dynamic'
+
             if model.listOfSpecies[s].mode not in spec_modes:
-                raise SpeciesError('Species mode can only be \'continuous\', \'dynamic\', or \'discrete\'.')
-            trajectory_base[:, 0, i+1] = initial_state[s]
+                raise SpeciesError('Species mode can only be \'continuous\', \'dynamic\',\'discrete\', or '
+                                   '\'unspecified(default to dynamic)\'.')
+            trajectory_base[:, 0, i + 1] = initial_state[s]
 
         #curr_time and curr_state are list of len 1 so that __run receives reference
         curr_time = [0]  # Current Simulation Time
@@ -904,17 +908,6 @@ class BasicTauHybridSolver(GillesPySolver):
         number_species = len(species)
 
         t0_delayed_events, species_modified_by_events = self.__check_t0_events(model, initial_state)
-
-        # copy initial populations to base
-        spec_modes = ['continuous', 'dynamic', 'discrete', None]
-        for i, s in enumerate(species):
-            if model.listOfSpecies[s].mode is None:
-                model.listOfSpecies[s].mode = 'dynamic'
-
-            if model.listOfSpecies[s].mode not in spec_modes:
-                raise SpeciesError('Species mode can only be \'continuous\', \'dynamic\',\'discrete\', or '
-                                   '\'unspecified(default to dynamic)\'.')
-            trajectory_base[:, 0, i+1] = initial_state[s]
 
         # Create deterministic tracking data structures
         det_spec = {species:True for (species, value) in model.listOfSpecies.items() if value.mode == 'dynamic'}
