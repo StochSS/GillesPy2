@@ -20,7 +20,7 @@ def valid_graph_params(display_type,display_interval):
         if display_type in display_types():
 
             if display_type == "graph" and display_interval < 1:
-                log.warning("Got display_interval = \"{0}\". Consider using a longer interval when displaying graphs"
+                log.warning("Got display_interval = \"{0}\". Consider using an interval >= 1 when displaying graphs"
                             .format(display_interval))
 
             return True
@@ -86,7 +86,6 @@ class LiveDisplayer():
         from math import floor
 
         curr_time = curr_time[0]
-
         curr_state = curr_state[0]
 
         #necessary for __f function in hybrid solver
@@ -118,6 +117,11 @@ class LiveDisplayer():
                 print("progress =", round((curr_time / self.timeline_len) * 100, 2), "%\n")
 
             elif self.display_type == "graph":
+
+                if self.display_interval < 1:
+                    log.warning(
+                        "Got display_interval = \"{0}\". Consider using an interval >= 1 when displaying graphs"
+                        .format(self.display_interval))
 
                 import matplotlib.pyplot as plt
                 from gillespy2.core.results import common_rgb_values
