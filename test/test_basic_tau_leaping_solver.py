@@ -1,14 +1,14 @@
 import unittest
 import numpy as np
 from example_models import Example
-from gillespy2.solvers.numpy.basic_tau_leaping_solver import BasicTauLeapingSolver
-from gillespy2.core.results import results
+from gillespy2 import TauLeapingSolver
+from gillespy2.core import results
 
 class TestBasicTauLeapingSolver(unittest.TestCase):
 
     model = Example()
-    results = model.run(solver=BasicTauLeapingSolver, show_labels=False,number_of_trajectories=1)
-    labels_results = model.run(solver=BasicTauLeapingSolver, show_labels=True,number_of_trajectories=1)
+    results = model.run(solver=TauLeapingSolver, show_labels=False,number_of_trajectories=1)
+    labels_results = model.run(solver=TauLeapingSolver, show_labels=True,number_of_trajectories=1)
 
     def test_return_type(self):
         assert(isinstance(self.results, np.ndarray))

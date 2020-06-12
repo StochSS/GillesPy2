@@ -58,7 +58,7 @@ if sys.version_info[0] < 3:
 import os, csv
 import numpy as np
 import gillespy2
-from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
+from gillespy2 import ODESolver
 
 help = \
 '''This script is an application wrapper for interfacing GillesPy2's ODE solver
@@ -126,7 +126,7 @@ with open(SETTINGS_FILE, 'r') as settings:
         elif 'steps' in line: steps = int(line.split(': ')[1])
 
 # Run simulation and store results
-solver = BasicODESolver()
+solver = ODESolver()
 model.tspan = np.linspace(start, duration, steps+1)
 results = model.run(solver=solver, show_labels=False)
 

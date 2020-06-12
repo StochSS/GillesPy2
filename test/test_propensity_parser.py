@@ -17,7 +17,6 @@ r9 = Reaction(name='r9', propensity_function="-5*-x^2")
 r10 = Reaction(name='r10', propensity_function="-5*-x**2")
 
 
-
 class TestPropensityFunctions(unittest.TestCase):
     def test_propensity_functions(self):
         self.assertEqual(r1.propensity_function,"(((5*pow(x,2))+(2.718281828459045*b))+6)",msg="Has incorrect expression")

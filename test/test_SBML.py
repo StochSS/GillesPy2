@@ -5,6 +5,7 @@ from gillespy2.core.model import Model, import_SBML
 from gillespy2.core.gillespyError import *
 from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
 
+
 class TestSBML(unittest.TestCase):
 
     def test_sbml_conversion(self):
@@ -27,6 +28,7 @@ class TestSBML(unittest.TestCase):
         sbml_model, errors = import_SBML(tmp.name)
         os.remove(tmp.name)
         sbml_results = sbml_model.run(solver=BasicODESolver)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -5,11 +5,11 @@ import subprocess
 from example_models import MichaelisMenten, Oregonator
 from gillespy2.core.results import Results, Trajectory
 from gillespy2.core import Species
-from gillespy2.solvers.cpp.ssa_c_solver import SSACSolver
-from gillespy2.solvers.cpp.variable_ssa_c_solver import VariableSSACSolver
-from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
-from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver
-from gillespy2.solvers.numpy.basic_tau_leaping_solver import BasicTauLeapingSolver
+from gillespy2 import SSACSolver
+from gillespy2 import VariableSSACSolver
+from gillespy2 import ODESolver
+from gillespy2 import NumPySSASolver
+from gillespy2 import TauLeapingSolver
 from gillespy2.core import gillespyError
 import subprocess
 import signal
@@ -18,8 +18,8 @@ import os
 
 
 class TestPauseResume(unittest.TestCase):
-    solvers = [SSACSolver, VariableSSACSolver, BasicODESolver,
-               NumPySSASolver, BasicTauLeapingSolver]
+    solvers = [SSACSolver, VariableSSACSolver, ODESolver,
+               NumPySSASolver, TauLeapingSolver]
 
     model = MichaelisMenten()
     for sp in model.listOfSpecies.values():
@@ -57,8 +57,8 @@ class TestPauseResume(unittest.TestCase):
                                                  t=1)
 
     def test_pause(self):
-        args = [['python3', 'pause_model.py', 'NumPySSASolver'], ['python3', 'pause_model.py', 'BasicTauLeapingSolver'],
-                ['python3', 'pause_model.py', 'BasicODESolver']]
+        args = [['python3', 'pause_model.py', 'NumPySSASolver'], ['python3', 'pause_model.py', 'TauLeapingSolver'],
+                ['python3', 'pause_model.py', 'ODESolver']]
         for arg in args:
             p = subprocess.Popen(arg, preexec_fn=os.setsid, stdout=subprocess.PIPE)
             time.sleep(2)
