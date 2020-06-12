@@ -411,15 +411,15 @@ class Results(UserList):
                 else:
                     trace_list = _plotplotly_iterate(trajectory, trace_list=[], included_species_list=included_species_list)
 
-                for k in range(0,len(trace_list)):
-                    if i%2 == 0:
+                for k in range(0, len(trace_list)):
+                    if i % 2 == 0:
                         fig.append_trace(trace_list[k], int(i/2) + 1, 1)
                     else:
                         fig.append_trace(trace_list[k], int(i/2) + 1, 2)
 
                 fig['layout'].update(autosize=True,
                                      height=400*len(trajectory_list),
-                                     showlegend=show_legend,title =title)
+                                     showlegend=show_legend, title=title)
 
             
 
@@ -575,7 +575,6 @@ class Results(UserList):
 
         average_trajectory = self.average_ensemble().data[0]
         stddev_trajectory = self.stddev_ensemble(ddof= ddof).data[0]
-
         from plotly.offline import init_notebook_mode, iplot
         import plotly.graph_objs as go
 
@@ -587,7 +586,7 @@ class Results(UserList):
             if title is None:
                 title = (self._validate_title(show_title) + " - Standard Deviation Range")
 
-        trace_list=[]
+        trace_list = []
         for species in average_trajectory:
             if species != 'time':
 
@@ -643,6 +642,7 @@ class Results(UserList):
             title=title,
             xaxis_title=xaxis_label,
             yaxis_title=yaxis_label,
+            legend={'traceorder': 'normal'},
             **layout_args
         )
         fig = dict(data=trace_list, layout=layout)
