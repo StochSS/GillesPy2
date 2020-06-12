@@ -5,7 +5,7 @@ from scipy.integrate import ode
 from scipy.integrate import odeint
 from collections import OrderedDict
 import numpy as np
-from gillespy2.core import GillesPySolver, log
+from gillespy2.core import GillesPySolver, log, gillespyError
 
 
 class BasicODESolver(GillesPySolver):
@@ -16,11 +16,13 @@ class BasicODESolver(GillesPySolver):
     rc = 0
     stop_event = None
     result = None
-    
+    pause_event = None
+
     def __init__(self):
         name = "BasicODESolver"
         rc = 0
         stop_event = None
+        pause_event = None
         result = None
 
     @staticmethod
@@ -50,9 +52,16 @@ class BasicODESolver(GillesPySolver):
         return state_change
 
     @classmethod
+    def get_solver_settings(self):
+        """
+        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        """
+        return ('model', 't', 'number_of_trajectories', 'increment', 'integrator', 'integrator_options', 'timeout')
+
+    @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05,
             show_labels=True, integrator='lsoda', integrator_options={}, display_interval = 0, display_type =None,
-            timeout=None, **kwargs):
+            timeout=None, resume=None,**kwargs):
         """
 
         :param model: gillespy2.model class object
@@ -60,16 +69,18 @@ class BasicODESolver(GillesPySolver):
         :param number_of_trajectories: Should be 1.
             This is deterministic and will always have same results
         :param increment: time step increment for plotting
-        :param show_labels: If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]
         :param integrator: integrator to be used form scipy.integrate.ode. Options include 'vode', 'zvode', 'lsoda', 'dopri5', and 'dop835'.  For more details, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html
         :param integrator_options: a dictionary containing options to the scipy integrator. for a list of options, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.
             Example use: {max_step : 0, rtol : .01}
         :param kwargs:
+        :param resume: Result of a previously run simulation, to be resumed
         :return:
         """
         if isinstance(self, type):
             self = BasicODESolver()
         self.stop_event = Event()
+        self.pause_event = Event()
+
         if timeout is not None and timeout <=0: timeout = None
         if len(kwargs) > 0:
             for key in kwargs:
@@ -77,8 +88,13 @@ class BasicODESolver(GillesPySolver):
         if number_of_trajectories > 1:
             log.warning("Generating duplicate trajectories for model with ODE Solver. Consider running with only 1 trajectory.")
 
-        # create numpy array for timeline
-        timeline = np.linspace(0, t, int(round(t / increment + 1)))
+        if resume is not None:
+            # start where we last left off if resuming a simulation
+            lastT = resume['time'][-1]
+            step = lastT - resume['time'][-2]
+            timeline = np.arange(lastT, t+step, step)
+        else:
+            timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
         species = list(model._listOfSpecies.keys())
         number_species = len(species)
@@ -96,10 +112,8 @@ class BasicODESolver(GillesPySolver):
 
         sim_thread = Thread(target=self.___run, args=(model,curr_state,curr_time, timeline, trajectory_base,live_grapher,), kwargs={'t':t,
                                         'number_of_trajectories':number_of_trajectories,
-                                        'increment':increment, 'show_labels':show_labels, 
-                                        'timeout':timeout,
-                                        'integrator':integrator,
-                                        'integrator_options':integrator_options})
+                                        'increment':increment, 'timeout':timeout, 'resume':resume,
+                                        'integrator':integrator, 'integrator_options':integrator_options})
         try:
             sim_thread.start()
 
@@ -120,23 +134,33 @@ class BasicODESolver(GillesPySolver):
             self.stop_event.set()
             while self.result is None: pass
         except:
-            pass
+            self.pause_event.set()
+            while self.result is None: pass
         if hasattr(self, 'has_raised_exception'):
             raise self.has_raised_exception
         return self.result, self.rc
 
-    def ___run(self, model, curr_state,curr_time, timeline, trajectory_base, live_grapher, t=20, number_of_trajectories=1, increment=0.05, timeout=None,
-            show_labels=True, integrator='lsoda', integrator_options={}, **kwargs):
+    def ___run(self, model, curr_state,curr_time, timeline, trajectory_base, live_grapher, t=20, number_of_trajectories=1,
+               increment=0.05, timeout=None, show_labels=True, integrator='lsoda', integrator_options={}, resume=None, **kwargs):
         try:
             self.__run(model,curr_state,curr_time, timeline, trajectory_base, live_grapher, t, number_of_trajectories, increment, timeout,
-                        show_labels, integrator, integrator_options, **kwargs)
+                        show_labels, integrator, integrator_options, resume,**kwargs)
         except Exception as e:
             self.has_raised_exception = e
             self.result = []
             return [], -1
 
     def __run(self, model, curr_state,curr_time, timeline, trajectory_base, live_grapher, t=20, number_of_trajectories=1, increment=0.05, timeout=None,
-            show_labels=True, integrator='lsoda', integrator_options={}, **kwargs):
+            show_labels=True, integrator='lsoda', integrator_options={}, resume=None, **kwargs):
+
+        timeStopped = 0
+        if resume is not None:
+            if resume[0].model != model:
+                raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
+            if t < resume['time'][-1]:
+                raise gillespyError.ExecutionError(
+                    "'t' must be greater than previous simulations end time, or set in the run() method as the "
+                    "simulations next end time")
 
         start_state = [model.listOfSpecies[species].initial_value for species in model.listOfSpecies]
 
@@ -146,9 +170,18 @@ class BasicODESolver(GillesPySolver):
         parameter_mappings = model.sanitized_parameter_names()
         number_species = len(species)
 
+
         # copy initial populations to base
-        for i, s in enumerate(species):
-            trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
+        if resume is not None:
+            tmpSpecies = {}
+            # Set initial values of species to where last left off
+            for i in species:
+                tmpSpecies[i] = resume[i][-1]
+            for i, s in enumerate(species):
+                trajectory_base[:, 0, i + 1] = tmpSpecies[s]
+        else:
+            for i, s in enumerate(species):
+                trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
 
         # compile reaction propensity functions for eval
         c_prop = OrderedDict()
@@ -160,10 +193,20 @@ class BasicODESolver(GillesPySolver):
         entry_count = 0
 
         y0 = [0] * len(model.listOfSpecies)
+
         curr_state[0] = OrderedDict()
-        for i, s in enumerate(model.listOfSpecies.values()):
-            curr_state[0][s.name] = s.initial_value
-            y0[i] = s.initial_value
+
+        if resume is not None:
+            for i,s in enumerate(tmpSpecies):
+                curr_state[0][s] = tmpSpecies[s]
+                y0[i] = tmpSpecies[s]
+        else:
+            for i, s in enumerate(model.listOfSpecies.values()):
+                curr_state[0][s.name] = s.initial_value
+                y0[i] = s.initial_value
+
+
+
         for p_name, param in model.listOfParameters.items():
             curr_state[0][p_name] = param.value
         rhs = ode(BasicODESolver.__f).set_integrator(integrator, **integrator_options)
@@ -173,6 +216,10 @@ class BasicODESolver(GillesPySolver):
             if self.stop_event.is_set():
                 self.rc = 33
                 break
+            if self.pause_event.is_set():
+                timeStopped = timeline[entry_count]
+                break
+
             int_time = curr_time[0] + increment
             entry_count += 1
             y0 = rhs.integrate(int_time)
@@ -181,14 +228,27 @@ class BasicODESolver(GillesPySolver):
                 curr_state[0][spec] = y0[i]
                 result[entry_count][i+1] = curr_state[0][spec]
 
-        if show_labels:
-            results_as_dict = {
-                'time': timeline
-            }
-            for i, species in enumerate(model.listOfSpecies):
-                results_as_dict[species] = result[:, i+1]
-            results = [results_as_dict] * number_of_trajectories
-        else:
-            results = np.stack([result] * number_of_trajectories, axis=0)
+        results_as_dict = {
+            'time': timeline
+        }
+        for i, species in enumerate(model.listOfSpecies):
+            results_as_dict[species] = result[:, i+1]
+        results = [results_as_dict] * number_of_trajectories
+
+        if timeStopped != 0:
+            if timeStopped != results[0]['time'][-1]:
+                tester = np.where(results[0]['time'] > timeStopped)[0].size
+                index = np.where(results[0]['time'] == timeStopped)[0][0]
+            if tester > 0:
+                for i in results[0]:
+                    results[0][i] = results[0][i][:index]
+
+        if resume is not None:
+            # If resuming, combine old pause with new data, and delete any excess null data
+            for i in results[0]:
+                oldData = resume[i][:-1]
+                newData = results[0][i]
+                results[0][i] = np.concatenate((oldData, newData), axis=None)
+
         self.result = results
         return results, self.rc

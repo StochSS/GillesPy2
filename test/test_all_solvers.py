@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 
 import gillespy2
-from example_models import Example, Oregonator, MichaelisMenten
+from example_models import Example, Oregonator
 from gillespy2.core.results import Results, Trajectory
 from gillespy2.solvers.cpp.ssa_c_solver import SSACSolver
 from gillespy2.solvers.cpp.variable_ssa_c_solver import VariableSSACSolver
@@ -25,20 +25,16 @@ class TestAllSolvers(unittest.TestCase):
     labeled_results_more_trajectories = {}
 
     for solver in solvers:
-        results[solver] = model.run(solver=solver, show_labels=False, seed=1)
-        labeled_results[solver] = model.run(solver=solver, show_labels=True,number_of_trajectories=1)
-        labeled_results_more_trajectories[solver] = model.run(solver=solver, show_labels=True,number_of_trajectories=2)
+        labeled_results[solver] = model.run(solver=solver, number_of_trajectories=1,seed=1)
+        labeled_results_more_trajectories[solver] = model.run(solver=solver, number_of_trajectories=2)
 
     def test_instantiated(self):
         for solver in self.solvers:
             self.model.run(solver=solver())
 
-    def test_return_type(self):
+    def test_to_array(self):
         for solver in self.solvers:
-            self.assertTrue(isinstance(self.results[solver], np.ndarray))
-            self.assertTrue(isinstance(self.results[solver][0], np.ndarray))
-            self.assertTrue(isinstance(self.results[solver][0][0], np.ndarray))
-            self.assertTrue(isinstance(self.results[solver][0][0][0], np.float))
+            self.assertTrue(isinstance(self.labeled_results[solver].to_array()[0], np.ndarray))
 
     def test_return_type_show_labels(self):
         for solver in self.solvers:
@@ -56,11 +52,12 @@ class TestAllSolvers(unittest.TestCase):
 
     def test_random_seed(self):
         for solver in self.solvers:
-            same_results = self.model.run(solver=solver, show_labels=False, seed=1)
-            self.assertTrue(np.array_equal(same_results, self.results[solver]))
+            same_results = self.model.run(solver=solver, seed=1)
+            compare_results = self.model.run(solver=solver,seed=1)
+            self.assertTrue(np.array_equal(same_results.to_array(), compare_results.to_array()))
             if solver.name == 'BasicODESolver': continue
-            diff_results = self.model.run(solver=solver, show_labels=False, seed=2)
-            self.assertFalse(np.array_equal(diff_results, self.results[solver]))
+            diff_results = self.model.run(solver=solver, seed=2)
+            self.assertFalse(np.array_equal(diff_results.to_array(),same_results.to_array()))
     
     def test_extraneous_args(self):
         for solver in self.solvers:
@@ -74,14 +71,6 @@ class TestAllSolvers(unittest.TestCase):
                 model = Oregonator()
                 model.timespan(np.linspace(0, 1000000, 101))
                 results = model.run(solver=solver, timeout=1)
-
-    def test_timeout_multiple_trajectories(self):
-        for solver in self.solvers:
- 
-            model = MichaelisMenten()
-            model.timespan(np.linspace(0, 20, 101))
-            results = model.run(solver=solver,timeout=1,number_of_trajectories=1000)
-
 
 if __name__ == '__main__':
     unittest.main()

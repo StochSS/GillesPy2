@@ -721,9 +721,15 @@ class BasicTauHybridSolver(GillesPySolver):
         return y0, y_map
 
     @classmethod
+    def get_solver_settings(self):
+        """
+        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        """
+        return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile', 'tau_tol',
+                'event_sensitivity', 'integrator', 'integrator_options', 'timeout')
+    @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
-            debug=False, profile=False, show_labels=True,
-            tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
+            debug=False, profile=False, tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
             integrator_options={}, display_interval = 0, display_type =None, timeout=None, **kwargs):
         """
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
@@ -749,8 +755,6 @@ class BasicTauHybridSolver(GillesPySolver):
             simulation.
         profile : bool (Fasle)
             Set to True to provide information about step size (tau) taken at each step.
-        show_labels: bool (True)
-            If true, simulation returns a list of trajectories, where each list entry is a dictionary containing key value pairs of species : trajectory.  If false, returns a numpy array with shape [traj_no, time, species]
         tau_tol: float
             Tolerance level for Tau leaping algorithm.  Larger tolerance values will
             result in larger tau steps. Default value is 0.03.
@@ -770,6 +774,20 @@ class BasicTauHybridSolver(GillesPySolver):
 
         if isinstance(self, type):
             self = BasicTauHybridSolver()
+
+        if timeout > 0:
+            for i, s in enumerate(list(model._listOfSpecies.keys())):
+                # Solve_ivp doesn't return any results until it's finished solving so timing out early only slows the solver.
+                 if model.listOfSpecies[s].mode is 'continuous':
+                    timeout = 0
+                    log.warning('timeouts not supported by continuous species.')
+                    break
+                 elif model.listOfSpecies[s].mode is 'dynamic':
+                    log.warning('timeouts not fully supported by dynamic species. If timeout is triggered during'
+                                ' integration, total solve time could be longer than expected.')
+                    break
+
+
 
         self.stop_event = threading.Event()
 
@@ -820,7 +838,7 @@ class BasicTauHybridSolver(GillesPySolver):
         sim_thread = threading.Thread(target=self.___run, args=(model, curr_state,curr_time, timeline, trajectory_base, initial_state,live_grapher,), kwargs={'t':t,
                                         'number_of_trajectories':number_of_trajectories,
                                         'increment':increment, 'seed':seed,
-                                        'debug':debug, 'profile':profile,'show_labels':show_labels,
+                                        'debug':debug, 'profile':profile,
                                         'timeout':timeout, 'tau_tol':tau_tol,
                                         'event_sensitivity':event_sensitivity,
                                         'integrator':integrator,
@@ -860,13 +878,13 @@ class BasicTauHybridSolver(GillesPySolver):
 
 
 
-    def ___run(self, model, curr_state,curr_time, timeline, trajectory_base, initial_state,live_grapher,t=20, number_of_trajectories=1, increment=0.05, seed=None,
-            debug=False, profile=False, show_labels=True,
-            tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
+    def ___run(self, model, curr_state,curr_time, timeline, trajectory_base, initial_state,live_grapher,t=20,
+               number_of_trajectories=1, increment=0.05, seed=None,
+            debug=False, profile=False, tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
             integrator_options={}, **kwargs):
             try:
                 self.__run(model, curr_state,curr_time, timeline, trajectory_base, initial_state,live_grapher,t,number_of_trajectories, increment, seed, debug,
-                           profile,show_labels, tau_tol, event_sensitivity, integrator,
+                           profile, tau_tol, event_sensitivity, integrator,
                            integrator_options, **kwargs)
             except Exception as e:
                 self.has_raised_exception = e
@@ -874,7 +892,7 @@ class BasicTauHybridSolver(GillesPySolver):
                 return [], -1
                 
     def __run(self, model, curr_state,curr_time, timeline, trajectory_base, initial_state,live_grapher, t=20, number_of_trajectories=1, increment=0.05, seed=None,
-            debug=False, profile=False, show_labels=True,
+            debug=False, profile=False,
             tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
             integrator_options={}, **kwargs):
 
@@ -886,6 +904,17 @@ class BasicTauHybridSolver(GillesPySolver):
         number_species = len(species)
 
         t0_delayed_events, species_modified_by_events = self.__check_t0_events(model, initial_state)
+
+        # copy initial populations to base
+        spec_modes = ['continuous', 'dynamic', 'discrete', None]
+        for i, s in enumerate(species):
+            if model.listOfSpecies[s].mode is None:
+                model.listOfSpecies[s].mode = 'dynamic'
+
+            if model.listOfSpecies[s].mode not in spec_modes:
+                raise SpeciesError('Species mode can only be \'continuous\', \'dynamic\',\'discrete\', or '
+                                   '\'unspecified(default to dynamic)\'.')
+            trajectory_base[:, 0, i+1] = initial_state[s]
 
         # Create deterministic tracking data structures
         det_spec = {species:True for (species, value) in model.listOfSpecies.items() if value.mode == 'dynamic'}
@@ -939,8 +968,8 @@ class BasicTauHybridSolver(GillesPySolver):
 
             end_time = model.tspan[-1] # End of Simulation time
             entry_pos = 1
-            data = OrderedDict() # Dictionary for show_labels results
-            data['time'] = timeline # All time entries for show_labels results
+            data = OrderedDict() # Dictionary for results
+            data['time'] = timeline # All time entries
             save_times = timeline
             
 
@@ -1028,18 +1057,10 @@ class BasicTauHybridSolver(GillesPySolver):
                     event_sensitivity, tau_step, pure_ode, debug)
 
             # End of trajectory, format results
-            if show_labels:
-                data = {'time':timeline}
-                for i in range(number_species):
-                    data[species[i]] = trajectory[:, i+1]
-                simulation_data.append(data)
-            else:
-                simulation_data = trajectory_base
-
-            if profile:
-                print(steps_taken)
-                print("Total Steps Taken: ", len(steps_taken))
-                print("Total Steps Rejected: ", steps_rejected)
+            data = {'time':timeline}
+            for i in range(number_species):
+                data[species[i]] = trajectory[:, i+1]
+            simulation_data.append(data)
 
         self.result = simulation_data
         return simulation_data, self.rc
