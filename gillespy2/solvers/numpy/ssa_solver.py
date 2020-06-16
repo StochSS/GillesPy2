@@ -144,8 +144,6 @@ class NumPySSASolver(GillesPySolver):
 
         #Create mapping of reactions, and which reactions depend on their reactants/products
         dependent_rxns = utilities.dependency_grapher(model, reactions)
-        print(dependent_rxns)
-
         number_reactions = len(reactions)
         propensity_functions = {}
 

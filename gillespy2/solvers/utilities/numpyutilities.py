@@ -19,6 +19,10 @@ def species_parse(model,custom_prop_fun):
 def dependency_grapher(model,reactions):
     dependent_rxns = {}
     for i in reactions:
+        cust_spec = []
+        if model.listOfReactions[i].type == 'customized':
+            cust_spec = (species_parse(model, model.listOfReactions[i].propensity_function))
+
         for j in reactions:
 
             if i not in dependent_rxns:
@@ -30,13 +34,6 @@ def dependency_grapher(model,reactions):
 
             reactantsI = list(model.listOfReactions[i].reactants.keys())
             reactantsJ = list(model.listOfReactions[j].reactants.keys())
-            productsI = list(model.listOfReactions[i].products.keys())
-
-            if model.listOfReactions[i].type == 'customized':
-                reactantsI.extend(species_parse(model,model.listOfReactions[i].propensity_function))
-
-            if model.listOfReactions[j].type == 'customized':
-                reactantsJ.extend(species_parse(model,model.listOfReactions[j].propensity_function))
 
             if j not in dependent_rxns[i]['dependencies']:
                 if any(elem in reactantsI for elem in reactantsJ):
@@ -48,4 +45,13 @@ def dependency_grapher(model,reactions):
                 if any(elem in list(model.listOfReactions[i].products.keys()) for elem in
                        list(model.listOfReactions[j].reactants.keys())):
                     dependent_rxns[j]['dependencies'].append(i)
+
+            if cust_spec:
+                if any(elem in cust_spec for elem in list(model.listOfReactions[j].reactants)) or any\
+                            (elem in cust_spec for elem in list(model.listOfReactions[j].products)):
+                    dependent_rxns[i]['dependencies'].append(j)
+
     return dependent_rxns
+
+
+
