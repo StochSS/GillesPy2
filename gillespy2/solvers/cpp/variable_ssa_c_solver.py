@@ -1,5 +1,6 @@
 import gillespy2
 from gillespy2.core import Model, Reaction, gillespyError, GillesPySolver, log
+from gillespy2.solvers.utilities.utilities import species_parse
 import signal, time #for solver timeout implementation
 import os #for getting directories for C++ files
 import shutil #for deleting/copying files
@@ -87,12 +88,33 @@ def _write_propensity(outfile, model, species_mappings, parameter_mappings, reac
 
 
 def _write_reactions(outfile, model, reactions, species):
+    customrxns = {}
     for i in range(len(reactions)):
         reaction = model.listOfReactions[reactions[i]]
+        if reaction.type == 'customized':
+            customrxns[i] = species_parse(model, reaction.propensity_function)
         for j in range(len(species)):
-            change = (reaction.products.get(model.listOfSpecies[species[j]], 0)) - (reaction.reactants.get(model.listOfSpecies[species[j]], 0))
+            change = (reaction.products.get(model.listOfSpecies[species[j]], 0)) - (
+                reaction.reactants.get(model.listOfSpecies[species[j]], 0))
             if change != 0:
                 outfile.write("model.reactions[{0}].species_change[{1}] = {2};\n".format(i, j, change))
+
+    for i in customrxns.keys():
+        for j in range(len(reactions)):
+            if i == j:
+                continue
+            if any(elem in customrxns[i] for elem in list(model.listOfReactions[reactions[j]].reactants)) or \
+                    any(elem in customrxns[i] for elem in list(model.listOfReactions[reactions[j]].products)):
+                outfile.write("model.reactions[{0}].affected_reactions.push_back({1});\n".format(i, j))
+
+    effectedrxns = []
+    for i in customrxns.keys():
+        for j in range(len(reactions)):
+            if i == j:
+                continue
+            if any(elem in customrxns[i] for elem in list(model.listOfReactions[reactions[j]].reactants)) or \
+                    any(elem in customrxns[i] for elem in list(model.listOfReactions[reactions[j]].products)):
+                outfile.write("model.reactions[{0}].affected_reactions.push_back({1});\n".format(i, j))
 
 
 def _parse_output(results, number_of_trajectories, number_timesteps, number_species):
