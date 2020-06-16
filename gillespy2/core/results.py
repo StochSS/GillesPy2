@@ -594,18 +594,21 @@ class Results(UserList):
                     continue
 
                 upper_bound = []
+                lower_bound = []
                 for i in range(0, len(average_trajectory[species])):
                     upper_bound.append(average_trajectory[species][i] + stddev_trajectory[species][i])
+                    lower_bound.append(average_trajectory[species][i] - stddev_trajectory[species][i])
 
+                # Append upper_bound list to trace_list
                 trace_list.append(
                     go.Scatter(
                         name=species+ ' Upper Bound',
                         x=average_trajectory['time'],
-                        y = upper_bound,
+                        y=upper_bound,
                         mode='lines',
                         marker=dict(color="#444"),
                         line=dict(width=1,dash='dot'),
-                        legendgroup="Standard Deviation",
+                        legendgroup=str(average_trajectory[species]),
                         showlegend=False
                     )
                 )
@@ -615,14 +618,12 @@ class Results(UserList):
                         y=average_trajectory[species],
                         name=species,
                         fillcolor='rgba(68, 68, 68, 0.2)',
-                        fill='tonexty'
+                        fill='tonexty',
+                        legendgroup=str(average_trajectory[species]),
                     )
                 )
 
-                lower_bound = []
-                for i in range(0, len(average_trajectory[species])):
-                    lower_bound.append(average_trajectory[species][i] - stddev_trajectory[species][i])
-
+                # Append lower_bound list to trace_list
                 trace_list.append(
                     go.Scatter(
                         name=species + ' Lower Bound',
@@ -633,10 +634,12 @@ class Results(UserList):
                         line=dict(width=1,dash='dot'),
                         fillcolor='rgba(68, 68, 68, 0.2)',
                         fill='tonexty',
-                        legendgroup="Standard Deviation",
+                        legendgroup=str(average_trajectory[species]),
                         showlegend=False
                     )
                 )
+
+
         layout = go.Layout(
             showlegend=show_legend,
             title=title,
