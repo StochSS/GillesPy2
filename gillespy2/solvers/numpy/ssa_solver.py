@@ -1,6 +1,6 @@
 from threading import Thread, Event
 from gillespy2.core import GillesPySolver, Model, Reaction, log
-import gillespy2.solvers.utilities.numpyutilities as utilities
+import gillespy2.solvers.utilities.utilities as utilities
 from gillespy2.core import GillesPySolver, Model, Reaction, log, gillespyError
 import random
 import math
@@ -13,7 +13,6 @@ class NumPySSASolver(GillesPySolver):
     stop_event = None
     result = None
     pause_event = None
-    count = 0
 
     def __init__(self):
         name = 'NumPySSASolver'
@@ -95,7 +94,6 @@ class NumPySSASolver(GillesPySolver):
         timeStopped = 0
 
         if resume is not None:
-            print(resume[0].model == model)
             if resume[0].model != model:
                 raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
             if t < resume['time'][-1]:
@@ -227,7 +225,6 @@ class NumPySSASolver(GillesPySolver):
                         # recompute propensities as needed
                         for i in dependent_rxns[reacName]['dependencies']:
                             propensity_sums[propensity_functions[i][1]] = propensity_functions[i][0](current_state)
-                            self.count+=1
                             if debug:
                                 print('new propensity sum: ', propensity_sums[i])
                         break
@@ -254,6 +251,5 @@ class NumPySSASolver(GillesPySolver):
                 newData = simulation_data[0][i]
                 simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
 
-        print(self.count)
         self.result = simulation_data
         return self.result, self.rc

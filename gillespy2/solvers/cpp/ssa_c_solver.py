@@ -1,5 +1,6 @@
 import gillespy2
 from gillespy2.core import Model, Reaction, gillespyError, GillesPySolver, log
+from gillespy2.solvers.utilities.utilities import species_parse
 import signal, time #for solver timeout implementation
 import os #for getting directories for C++ files
 import shutil #for deleting/copying files
@@ -7,8 +8,6 @@ import subprocess #For calling make and executing c solver
 import inspect #for finding the Gillespy2 module path
 import tempfile #for temporary directories
 import numpy as np
-from gillespy2.solvers.utilities.numpyutilities import species_parse
-import math
 
 GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
 GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base')
