@@ -7,10 +7,24 @@ import subprocess #For calling make and executing c solver
 import inspect #for finding the Gillespy2 module path
 import tempfile #for temporary directories
 import numpy as np
+import math
 
 GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
 GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base')
 
+#If we have some timeline like (0,0.0000141,0.0002383...) (tiny decimal steps) use this to find nearest index #
+#to pause a simulation
+def find_time(array,value):
+    """
+    Finds the index of the closest value in the array parameter, to the value parameter
+    :param array: results['time'] array, input to find index of closest 'value' parameter
+    :type array: numpy.ndarray
+    :param value: Value in which to find the closest values index in the array parameter.
+    :type value: float
+    :return: Integer index, the index of the closest value to 'value' parameter.
+    """
+    index = np.searchsorted(array, value, side="left")
+    return index
 
 def _copy_files(destination):
     src_files = os.listdir(GILLESPY_C_DIRECTORY)
@@ -82,7 +96,6 @@ def _parse_binary_output(results_buffer, number_of_trajectories, number_timestep
     #Timestopped is added to the end of the data, when a simulation completes or is paused
     if pause:
         timeStopped = data[-1]
-        timeStopped = round(timeStopped,2)
     else:
         timeStopped = 0
     assert(len(data) == (number_of_trajectories*number_timesteps*number_species + number_timesteps)+1)
@@ -161,8 +174,21 @@ class SSACSolver(GillesPySolver):
 
     def __compile(self):
         # Use makefile.
-        cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulation'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if self.resume:
+            if self.resume[0].model != self.model:
+                raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
+            else:
+                built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'], stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
+        else:
+            try:
+                cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulation'],
+                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'],
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            except KeyboardInterrupt:
+                log.warning("Solver has been interrupted during compile time, unexpected behavior may occur.")
+
         if built.returncode == 0:
             self.__compiled = True
         else:
@@ -175,26 +201,19 @@ class SSACSolver(GillesPySolver):
         """
         :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
         """
-        return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile',
-                'show_labels')
+        return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
     def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
-            increment=0.05, seed=None, debug=False, profile=False, show_labels=True, resume=None, **kwargs):
+            increment=0.05, seed=None, debug=False, profile=False, resume=None, **kwargs):
 
         pause = False
-        if not (resume is None):
-            if show_labels == False:
-                if t < resume[0][-1][0]:
-                    raise gillespyError.ExecutionError(
-                        "'t' must be greater than previous simulations end time, or set in the run() method as the "
-                        "simulations next end time")
-            else:
-                if t < resume['time'][-1]:
-                    raise gillespyError.ExecutionError(
-                        "'t' must be greater than previous simulations end time, or set in the run() method as the "
-                        "simulations next end time")
+        if resume is not None:
+            if t < resume['time'][-1]:
+                raise gillespyError.ExecutionError(
+                    "'t' must be greater than previous simulations end time, or set in the run() method as the "
+                    "simulations next end time")
 
-        if not (resume is None):
+        if resume is not None:
             self = SSACSolver(model, resume=resume)
 
         else:
@@ -222,11 +241,8 @@ class SSACSolver(GillesPySolver):
 
         if self.__compiled:
             self.simulation_data = None
-            if not (resume is None):
-                if show_labels == False:
-                    t = abs(t-resume[0][-1][0])
-                else:
-                    t = abs(t - resume['time'][-1])
+            if resume is not None:
+                t = abs(t - resume['time'][-1])
 
             number_timesteps = int(round(t/increment + 1))
             # Execute simulation.
@@ -265,71 +281,52 @@ class SSACSolver(GillesPySolver):
 
             # Parse/return results.
             if return_code in [0, 33]:
-                trajectory_base, timeStopped = _parse_binary_output(stdout, number_of_trajectories, number_timesteps,
-                                                                    len(self.species),pause=pause)
-                if self.model.tspan[2]-self.model.tspan[1] == 1:
+                trajectory_base, timeStopped = _parse_binary_output(stdout, number_of_trajectories,
+                                                                    number_timesteps,
+                                                                    len(self.species), pause=pause)
+                if self.model.tspan[2] - self.model.tspan[1] == 1:
                     timeStopped = int(timeStopped)
 
                 # Format results
-                if show_labels:
-                    self.simulation_data = []
-                    for trajectory in range(number_of_trajectories):
-                        data = {'time': trajectory_base[trajectory, :, 0]}
-                        for i in range(len(self.species)):
-                            data[self.species[i]] = trajectory_base[trajectory, :, i+1]
+                self.simulation_data = []
+                for trajectory in range(number_of_trajectories):
+                    data = {'time': trajectory_base[trajectory, :, 0]}
+                    for i in range(len(self.species)):
+                        data[self.species[i]] = trajectory_base[trajectory, :, i + 1]
 
-                        self.simulation_data.append(data)
-                else:
-                    self.simulation_data = trajectory_base
+                    self.simulation_data.append(data)
             else:
                 raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:"
                                                    "\nReturn code: {0}.\nError:\n{1}\n".
                                                    format(simulation.returncode, simulation.stderr))
-            #If simulation was paused/KeyboardInterrupt
-            if show_labels == False and timeStopped != 0:
-                cutoff = np.where(self.simulation_data[0][:, 0] == timeStopped)
-
-                # Find where index is of timestopped. Ex, timestopped @50
-                # index of time 50 could be 4,0, 4th row, 0'th index
-                if cutoff[0].size != 0:
-                    self.simulation_data = np.array([self.simulation_data[0][:int(cutoff[0])]])
-            elif timeStopped!=0:
-                cutoff = np.where(self.simulation_data[0]['time']==timeStopped)
-                if cutoff[0].size != 0:
-                    for i in self.simulation_data[0]:
-                        self.simulation_data[0][i] = self.simulation_data[0][i][:int(cutoff[0])]
-
-            if not (resume is None):
-                if show_labels==False:
-                    resumeTime = float(resume[0][-1][0])
-                    step = resumeTime - resume[0][-2][0]
+                # If simulation was paused/KeyboardInterrupt
+            if timeStopped != 0:
+                cutoff = find_time(self.simulation_data[0]['time'],timeStopped)
+                if cutoff == 0 or cutoff == 1:
+                    log.warning('You have paused the simulation too early, and no points have been calculated past'
+                                ' initial values. A graphic display will not produce expected results.')
                 else:
-                    resumeTime = float(resume['time'][-1])
-                    step = resumeTime - resume['time'][-2]
+                    cutoff -= 1
+                for i in self.simulation_data[0]:
+                    self.simulation_data[0][i] = self.simulation_data[0][i][:cutoff]
 
+            if resume is not None:
+                resumeTime = float(resume['time'][-1])
+                step = resumeTime - resume['time'][-2]
                 if timeStopped == 0:
-                    timeSpan = np.arange(resumeTime,t+resumeTime+step,step)
+                    timeSpan = np.arange(resumeTime, t + resumeTime + step, step)
                 else:
-                    timeSpan = np.arange(resumeTime+step,timeStopped+resumeTime+step,step)
+                    timeSpan = np.arange(resumeTime + step, timeStopped + resumeTime + step, step)
+                self.simulation_data[0]['time'] = timeSpan
 
-
-                if show_labels==False:
-                    self.simulation_data[0][:,0] = timeSpan
-                else:
-                    self.simulation_data[0]['time'] = timeSpan
-
-            if not (resume is None):
+            if resume is not None:
                 # If resuming, combine old pause with new data, and delete any excess null data
-                if show_labels == False:
-                    resume = np.array([resume[0]])
-                    self.simulation_data = np.array(np.concatenate((resume, self.simulation_data), axis=1))
-                else:
-                    for i in self.simulation_data[0]:
-                        oldData = resume[i]
-                        newData = self.simulation_data[0][i]
-                        self.simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
-                    if len(self.simulation_data[0]['time']) != len(self.simulation_data[0][i]):
-                        self.simulation_data[0]['time'] = self.simulation_data[0]['time'][:-1]
+                for i in self.simulation_data[0]:
+                    oldData = resume[i]
+                    newData = self.simulation_data[0][i]
+                    self.simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
+                if len(self.simulation_data[0]['time']) != len(self.simulation_data[0][i]):
+                    self.simulation_data[0]['time'] = self.simulation_data[0]['time'][:-1]
 
         return self.simulation_data, return_code
 

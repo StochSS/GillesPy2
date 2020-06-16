@@ -100,7 +100,7 @@ class Trajectory(UserDict):
         self.model = model
         self.solver_name = solver_name
         self.rc = rc
-        
+
         status_list = {0: 'Success', 33: 'Timed Out'}
         self.status = status_list[rc]
 
@@ -113,7 +113,6 @@ class Trajectory(UserDict):
         if hasattr(self.__class__, "__missing__"):
             return self.__class__.__missing__(self, key)
         raise KeyError(key)
-
 
 class Results(UserList):
     """ List of Trajectory objects created by a gillespy2 solver, extends the UserList object.
@@ -198,6 +197,19 @@ class Results(UserList):
             title_solver = 'Multiple Solvers'
         title = (title_model + " - " + title_solver)
         return title
+
+    def to_array(self):
+        import numpy as np
+        results = []
+        size1 = len(self.data[0]['time'])
+        size2 = len(self.data[0])
+        newArray = np.zeros((size1, size2))
+
+        for trajectory in range(0,len(self.data)):
+            for i, key in enumerate(self.data[trajectory]):
+                newArray[:, i] = self.data[trajectory][key]
+            results.append(newArray)
+        return results
 
     def to_csv(self, path=None, nametag=None, stamp=None):
         """ outputs the Results to one or more .csv files in a new directory.
@@ -399,15 +411,15 @@ class Results(UserList):
                 else:
                     trace_list = _plotplotly_iterate(trajectory, trace_list=[], included_species_list=included_species_list)
 
-                for k in range(0,len(trace_list)):
-                    if i%2 == 0:
+                for k in range(0, len(trace_list)):
+                    if i % 2 == 0:
                         fig.append_trace(trace_list[k], int(i/2) + 1, 1)
                     else:
                         fig.append_trace(trace_list[k], int(i/2) + 1, 2)
 
                 fig['layout'].update(autosize=True,
                                      height=400*len(trajectory_list),
-                                     showlegend=show_legend,title =title)
+                                     showlegend=show_legend, title=title)
 
             
 
@@ -563,7 +575,6 @@ class Results(UserList):
 
         average_trajectory = self.average_ensemble().data[0]
         stddev_trajectory = self.stddev_ensemble(ddof= ddof).data[0]
-
         from plotly.offline import init_notebook_mode, iplot
         import plotly.graph_objs as go
 
@@ -575,7 +586,7 @@ class Results(UserList):
             if title is None:
                 title = (self._validate_title(show_title) + " - Standard Deviation Range")
 
-        trace_list=[]
+        trace_list = []
         for species in average_trajectory:
             if species != 'time':
 
@@ -583,18 +594,21 @@ class Results(UserList):
                     continue
 
                 upper_bound = []
+                lower_bound = []
                 for i in range(0, len(average_trajectory[species])):
                     upper_bound.append(average_trajectory[species][i] + stddev_trajectory[species][i])
+                    lower_bound.append(average_trajectory[species][i] - stddev_trajectory[species][i])
 
+                # Append upper_bound list to trace_list
                 trace_list.append(
                     go.Scatter(
                         name=species+ ' Upper Bound',
                         x=average_trajectory['time'],
-                        y = upper_bound,
+                        y=upper_bound,
                         mode='lines',
                         marker=dict(color="#444"),
                         line=dict(width=1,dash='dot'),
-                        legendgroup="Standard Deviation",
+                        legendgroup=str(average_trajectory[species]),
                         showlegend=False
                     )
                 )
@@ -604,14 +618,12 @@ class Results(UserList):
                         y=average_trajectory[species],
                         name=species,
                         fillcolor='rgba(68, 68, 68, 0.2)',
-                        fill='tonexty'
+                        fill='tonexty',
+                        legendgroup=str(average_trajectory[species]),
                     )
                 )
 
-                lower_bound = []
-                for i in range(0, len(average_trajectory[species])):
-                    lower_bound.append(average_trajectory[species][i] - stddev_trajectory[species][i])
-
+                # Append lower_bound list to trace_list
                 trace_list.append(
                     go.Scatter(
                         name=species + ' Lower Bound',
@@ -622,15 +634,18 @@ class Results(UserList):
                         line=dict(width=1,dash='dot'),
                         fillcolor='rgba(68, 68, 68, 0.2)',
                         fill='tonexty',
-                        legendgroup="Standard Deviation",
+                        legendgroup=str(average_trajectory[species]),
                         showlegend=False
                     )
                 )
+
+
         layout = go.Layout(
             showlegend=show_legend,
             title=title,
             xaxis_title=xaxis_label,
             yaxis_title=yaxis_label,
+            legend={'traceorder': 'normal'},
             **layout_args
         )
         fig = dict(data=trace_list, layout=layout)
