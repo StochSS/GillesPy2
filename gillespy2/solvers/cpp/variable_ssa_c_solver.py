@@ -12,6 +12,18 @@ GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
 GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base')
 
 
+def find_time(array,value):
+    """
+    Finds the index of the closest value in the array parameter, to the value parameter
+    :param array: results['time'] array, input to find index of closest 'value' parameter
+    :type array: numpy.ndarray
+    :param value: Value in which to find the closest values index in the array parameter.
+    :type value: float
+    :return: Integer index, the index of the closest value to 'value' parameter.
+    """
+    index = np.searchsorted(array, value, side="left")
+    return index
+
 def _copy_files(destination):
     src_files = os.listdir(GILLESPY_C_DIRECTORY)
     for src_file in src_files:
@@ -20,7 +32,7 @@ def _copy_files(destination):
             shutil.copy(src_file, destination)
 
 
-def _write_variables(outfile, model, reactions, species, parameters, parameter_mappings):
+def _write_variables(outfile, model, reactions, species, parameters, parameter_mappings, resume=None):
     outfile.write("double V = {};\n".format(model.volume))
     outfile.write("std :: string s_names[] = {");
     if len(species) > 0:
@@ -30,9 +42,22 @@ def _write_variables(outfile, model, reactions, species, parameters, parameter_m
         outfile.write('"{}"'.format(species[-1]))
         outfile.write("};\nunsigned int populations[] = {")
         #Write initial populations.
-        for i in range(len(species)-1):
-            outfile.write('{}, '.format(int(model.listOfSpecies[species[i]].initial_value)))
-        outfile.write('{}'.format(int(model.listOfSpecies[species[-1]].initial_value)))
+        for i in range(len(species) - 1):
+            # If resuming
+            if not (resume is None):
+                if isinstance(resume, np.ndarray):
+                    outfile.write('{}, '.format(int(resume[0][-1][i + 1])))
+                else:
+                    outfile.write('{}, '.format(int(resume[species[i]][-1])))
+            else:
+                outfile.write('{}, '.format(int(model.listOfSpecies[species[i]].initial_value)))
+        if not (resume is None):
+            if isinstance(resume, np.ndarray):
+                outfile.write('{}'.format(int(resume[0][-1][-1])))
+            else:
+                outfile.write('{}'.format(int(resume[species[-1]][-1])))
+        else:
+            outfile.write('{}'.format(int(model.listOfSpecies[species[-1]].initial_value)))
         outfile.write("};\n")
     if len(reactions) > 0:
         #Write reaction names
@@ -83,11 +108,16 @@ def _parse_output(results, number_of_trajectories, number_timesteps, number_spec
     return trajectory_base
 
 
-def _parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species):
+def _parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species,pause=False):
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
     step_size = number_species * number_of_trajectories + 1 #1 for timestep
     data = np.frombuffer(results_buffer, dtype=np.float64)
-    assert(len(data) == (number_of_trajectories*number_timesteps*number_species + number_timesteps))
+    #Timestopped is added to the end of the data, when a simulation completes or is paused
+    if pause:
+        timeStopped = data[-1]
+    else:
+        timeStopped = 0
+    assert(len(data) == (number_of_trajectories*number_timesteps*number_species + number_timesteps)+1)
     for timestep in range(number_timesteps):
         index = step_size * timestep
         trajectory_base[:, timestep, 0] = data[index]
@@ -96,16 +126,17 @@ def _parse_binary_output(results_buffer, number_of_trajectories, number_timestep
             for species in range(number_species):
                 trajectory_base[trajectory, timestep, 1 + species] = data[index + species]
             index += number_species
-    return trajectory_base
+    return trajectory_base, timeStopped
 
 
 class VariableSSACSolver(GillesPySolver):
     name = "VariableSSACSolver"
-    def __init__(self, model=None, output_directory=None, delete_directory=True):
+    def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None):
         super(VariableSSACSolver, self).__init__()
         self.__compiled = False
         self.delete_directory = False
         self.model = model
+        self.resume = resume
         if self.model is not None:
             # Create constant, ordered lists for reactions/species/
             self.species_mappings = self.model.sanitized_species_names()
@@ -150,9 +181,11 @@ class VariableSSACSolver(GillesPySolver):
                     if line.startswith(template_keyword):
                         line = line[len(template_keyword):]
                         if line.startswith("VARIABLES"):
-                            _write_variables(outfile, self.model, self.reactions, self.species, self.parameters, self.parameter_mappings)
+                            _write_variables(outfile, self.model, self.reactions, self.species, self.parameters,
+                                             self.parameter_mappings,self.resume)
                         if line.startswith("PROPENSITY"):
-                            _write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings, self.reactions)
+                            _write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings,
+                                              self.reactions)
                         if line.startswith("REACTIONS"):
                             _write_reactions(outfile, self.model, self.reactions, self.species)
                         if line.startswith("PARAMETER_UPDATES"):
@@ -162,12 +195,27 @@ class VariableSSACSolver(GillesPySolver):
 
     def __compile(self):
         # Use makefile.
-        cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulation'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if self.resume:
+            if self.resume[0].model != self.model:
+                raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
+            else:
+                built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'], stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
+        else:
+            try:
+                cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulation'],
+                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'],
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            except KeyboardInterrupt:
+                log.warning("Solver has been interrupted during compile time, unexpected behavior may occur.")
+
         if built.returncode == 0:
             self.__compiled = True
         else:
-            raise gillespyError.BuildError("Error encountered while compiling file:\nReturn code: {0}.\nError:\n{1}\n{2}\n".format(built.returncode, built.stdout.decode('utf-8'),built.stderr.decode('utf-8')))
+            raise gillespyError.BuildError("Error encountered while compiling file:\nReturn code: {0}."
+                                           "\nError:\n{1}\n{2}\n".format(built.returncode, built.stdout.decode
+            ('utf-8'),built.stderr.decode('utf-8')))
 
     def get_solver_settings(self):
         """
@@ -176,10 +224,19 @@ class VariableSSACSolver(GillesPySolver):
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile', 'variables')
 
     def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
-            increment=0.05, seed=None, debug=False, profile=False, variables={}, **kwargs):
+            increment=0.05, seed=None, debug=False, profile=False, variables={}, resume=None, **kwargs):
+        pause = False
+        if resume is not None:
+            if t < resume['time'][-1]:
+                raise gillespyError.ExecutionError(
+                    "'t' must be greater than previous simulations end time, or set in the run() method as the "
+                    "simulations next end time")
 
-        if self is None or self.model is None:
-            self = VariableSSACSolver(model)
+        if resume is not None:
+            self = VariableSSACSolver(model, resume=resume)
+        else:
+            if self is None or self.model is None:
+                self = VariableSSACSolver(model)
 
         if len(kwargs) > 0:
             for key in kwargs:
@@ -206,7 +263,7 @@ class VariableSSACSolver(GillesPySolver):
         for v in variables.keys():
             if v not in self.species+self.parameters:
                 raise gillespyError.SimulationError('Argument to variable "{}" \
-is not a valid variable.  Variables must be model species or parameters.'.format(v))
+                is not a valid variable.  Variables must be model species or parameters.'.format(v))
                 
         if self.__compiled:
             populations = ''
@@ -238,6 +295,10 @@ is not a valid variable.  Variables must be model species or parameters.'.format
                 else:
                     parameter_values += '{}'.format(model.listOfParameters[self.parameters[-1]].expression)
             self.simulation_data = None
+
+            if resume is not None:
+                t = abs(t - int(resume['time'][-1]))
+
             number_timesteps = int(round(t/increment + 1))
             # Execute simulation.
             args = [os.path.join(self.output_directory, 'UserSimulation'), 
@@ -260,34 +321,70 @@ is not a valid variable.  Variables must be model species or parameters.'.format
 
             #begin subprocess c simulation with timeout (default timeout=0 will not timeout)
             with subprocess.Popen(args, stdout=subprocess.PIPE, preexec_fn=os.setsid) as simulation:
-                return_code = 0
                 try:
                     if timeout > 0:
                         stdout, stderr = simulation.communicate(timeout=timeout)
                     else:
                         stdout, stderr = simulation.communicate()
                     return_code = simulation.wait()
+                except KeyboardInterrupt:
+                    os.killpg(simulation.pid, signal.SIGINT)  # send signal to the process group
+                    stdout, stderr = simulation.communicate()
+                    pause = True
+                    return_code = 33
                 except subprocess.TimeoutExpired:
                         os.killpg(simulation.pid, signal.SIGINT) #send signal to the process group
                         stdout, stderr = simulation.communicate()
+                        pause = True
                         return_code = 33
  
             # Parse/return results.
             if return_code in [0, 33]:
-                trajectory_base = _parse_binary_output(stdout, number_of_trajectories, number_timesteps,
-                                                       len(self.species))
+                trajectory_base, timeStopped = _parse_binary_output(stdout, number_of_trajectories, number_timesteps,
+                                                                    len(self.species),pause=pause)
+                if self.model.tspan[2]-self.model.tspan[1] == 1:
+                    timeStopped = int(timeStopped)
 
                 # Format results
                 self.simulation_data = []
                 for trajectory in range(number_of_trajectories):
                     data = {'time': trajectory_base[trajectory, :, 0]}
                     for i in range(len(self.species)):
-                        data[self.species[i]] = trajectory_base[trajectory, :, i+1]
-                    self.simulation_data.append(data)
+                        data[self.species[i]] = trajectory_base[trajectory, :, i + 1]
 
+                    self.simulation_data.append(data)
             else:
                 raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:"
-                                                   "\nReturn code: {0}.\nError:\n{1}\n".format(simulation.returncode,
-                                                                                               simulation.stderr))
+                                                   "\nReturn code: {0}.\nError:\n{1}\n".
+                                                   format(simulation.returncode, simulation.stderr))
+            # If simulation was paused/KeyboardInterrupt
+            if timeStopped != 0:
+                cutoff = find_time(self.simulation_data[0]['time'], timeStopped)
+                if cutoff == 0 or cutoff == 1:
+                    log.warning('You have paused the simulation too early, and no points have been calculated past'
+                                ' initial values. A graphic display will not produce expected results.')
+                else:
+                    cutoff -= 1
+                for i in self.simulation_data[0]:
+                        self.simulation_data[0][i] = self.simulation_data[0][i][:cutoff]
+
+            if resume is not None:
+                resumeTime = float(resume['time'][-1])
+                step = resumeTime - resume['time'][-2]
+                if timeStopped == 0:
+                    timeSpan = np.arange(resumeTime, t + resumeTime + step, step)
+                else:
+                    timeSpan = np.arange(resumeTime + step, timeStopped + resumeTime + step, step)
+                self.simulation_data[0]['time'] = timeSpan
+
+            if resume is not None:
+                # If resuming, combine old pause with new data, and delete any excess null data
+                for i in self.simulation_data[0]:
+                    oldData = resume[i]
+                    newData = self.simulation_data[0][i]
+                    self.simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
+                if len(self.simulation_data[0]['time']) != len(self.simulation_data[0][i]):
+                    self.simulation_data[0]['time'] = self.simulation_data[0]['time'][:-1]
+
         return self.simulation_data, return_code
 
