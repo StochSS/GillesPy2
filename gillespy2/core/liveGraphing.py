@@ -84,7 +84,7 @@ class LiveDisplayer():
         from IPython.display import clear_output
         from math import floor
 
-        curr_time = curr_time[0]
+        curr_time = curr_time[0] + self.timeline[0]
         curr_state = curr_state[0]
 
         #necessary for __f function in hybrid solver
