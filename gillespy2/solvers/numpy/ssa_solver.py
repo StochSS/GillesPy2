@@ -73,9 +73,6 @@ class NumPySSASolver(GillesPySolver):
         # copy time values to all trajectory row starts
         trajectory_base[:, :, 0] = timeline
 
-        # for i, s in enumerate(species):
-        #     trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
-
         # copy initial populations to base
         if resume is not None:
             tmpSpecies = {}
@@ -218,7 +215,7 @@ class NumPySSASolver(GillesPySolver):
             # copy initial state data
             trajectory = trajectory_base[trajectory_num]
             entry_count = 1
-            curr_time[0] = 0
+            curr_time[0] = timeline[0]
             curr_state[0] = {}
 
             for spec in model.listOfSpecies:
