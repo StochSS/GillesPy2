@@ -157,23 +157,6 @@ class NumPySSASolver(GillesPySolver):
         parameter_mappings = model.sanitized_parameter_names()
         number_species = len(species)
 
-        # for i, s in enumerate(species):
-        #     trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
-        #
-        # # copy initial populations to base
-        # if resume is not None:
-        #     tmpSpecies = {}
-        #     #Set initial values of species to where last left off
-        #     for i in species:
-        #         tmpSpecies[i] = resume[i][-1]
-        #     for i, s in enumerate(species):
-        #         trajectory_base[:, 0, i + 1] = tmpSpecies[s]
-        # else:
-        #     for i, s in enumerate(species):
-        #         trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
-
-
-
             # create dictionary of all constant parameters for propensity evaluation
         parameters = {'V': model.volume}
         for paramName, param in model.listOfParameters.items():
@@ -215,7 +198,7 @@ class NumPySSASolver(GillesPySolver):
             # copy initial state data
             trajectory = trajectory_base[trajectory_num]
             entry_count = 1
-            curr_time[0] = timeline[0]
+            curr_time[0] = 0
             curr_state[0] = {}
 
             for spec in model.listOfSpecies:
@@ -257,7 +240,7 @@ class NumPySSASolver(GillesPySolver):
                     print('curr_time: ', curr_time[0])
                 # determine time passed in this reaction
 
-                while entry_count < timeline.size and timeline[entry_count] <= curr_time[0]:
+                while entry_count < timeline.size and timeline[entry_count] <= curr_time[0] + timeline[0]:
                     if self.stop_event.is_set(): 
                         self.rc = 33
                         break
