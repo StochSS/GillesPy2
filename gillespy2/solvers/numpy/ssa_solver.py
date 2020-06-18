@@ -1,4 +1,6 @@
 from threading import Thread, Event
+from gillespy2.core import GillesPySolver, Model, Reaction, log
+import gillespy2.solvers.utilities.utilities as utilities
 from gillespy2.core import GillesPySolver, Model, Reaction, log, gillespyError
 import random
 import math
@@ -142,7 +144,6 @@ class NumPySSASolver(GillesPySolver):
         timeStopped = 0
 
         if resume is not None:
-            print(resume[0].model == model)
             if resume[0].model != model:
                 raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
             if t < resume['time'][-1]:
@@ -162,12 +163,17 @@ class NumPySSASolver(GillesPySolver):
         for paramName, param in model.listOfParameters.items():
             parameters[parameter_mappings[paramName]] = param.value
 
-        # create mapping of reaction dictionary to array indices
+        #create mapping of reaction dictionary to array indices
         reactions = list(model.listOfReactions.keys())
+
+        #Create mapping of reactions, and which reactions depend on their reactants/products
+        dependent_rxns = utilities.dependency_grapher(model, reactions)
         number_reactions = len(reactions)
-        propensity_functions = []
+        propensity_functions = {}
+
         # create an array mapping reactions to species modified
         species_changes = np.zeros((number_reactions, number_species))
+
         # pre-evaluate propensity equations from strings:
         for i, reaction in enumerate(reactions):
             # replace all references to species with array indices
@@ -176,9 +182,7 @@ class NumPySSASolver(GillesPySolver):
                                         - model.listOfReactions[reaction].reactants.get(model.listOfSpecies[spec], 0)
                 if debug:
                     print('species_changes: {0},i={1}, j={2}... {3}'.format(species, i, j, species_changes[i][j]))
-            propensity_functions.append(eval('lambda S:' +
-                                             model.listOfReactions[reaction].sanitized_propensity_function(
-                                                 species_mappings, parameter_mappings), parameters))
+            propensity_functions[reaction] = [eval('lambda S:' + model.listOfReactions[reaction].sanitized_propensity_function(species_mappings, parameter_mappings), parameters),i]
         if debug:
             print('propensity_functions', propensity_functions)
         # begin simulating each trajectory
@@ -219,7 +223,10 @@ class NumPySSASolver(GillesPySolver):
                 species_states = list(curr_state[0].values())
 
                 for i in range(number_reactions):
-                    propensity_sums[i] = propensity_functions[i](species_states)
+                    # propensity_sums[i] = propensity_functions[i](species_states)
+                    # propensity_sums[i] = propensity_functions[reactions[i]][0](curr_state)
+                    propensity_sums[i] = propensity_functions[reactions[i]][0](species_states)
+
                     if debug:
                         print('propensity: ', propensity_sums[i])
 
@@ -241,7 +248,7 @@ class NumPySSASolver(GillesPySolver):
                 # determine time passed in this reaction
 
                 while entry_count < timeline.size and timeline[entry_count] <= curr_time[0] + timeline[0]:
-                    if self.stop_event.is_set(): 
+                    if self.stop_event.is_set():
                         self.rc = 33
                         break
                     elif self.pause_event.is_set():
@@ -257,19 +264,37 @@ class NumPySSASolver(GillesPySolver):
                     if debug:
                         print('if <=0, fire: ', cumulative_sum)
                     if cumulative_sum <= 0:
+                        #########################
+                        # for i,spec in enumerate(model.listOfSpecies):
+                        #     curr_state[0][spec] += species_changes[potential_reaction][i]
+                        #
+                        # curr_state += species_changes[potential_reaction]
+                        # reacName = reactions[potential_reaction]
 
                         for i,spec in enumerate(model.listOfSpecies):
                             curr_state[0][spec] += species_changes[potential_reaction][i]
 
+                        reacName = reactions[potential_reaction]
+
+                        #########################
                         if debug:
                             print('current state: ', curr_state[0])
                             print('species_changes: ', species_changes)
                             print('updating: ', potential_reaction)
                         # recompute propensities as needed
+                        #############################################
+                        # species_states = list(curr_state[0].values())
+                        # for i in range(number_reactions):
+                        #     propensity_sums[i] = propensity_functions[i](species_states)
+                        #
+                        # for i in dependent_rxns[reacName]['dependencies']:
+                        #     propensity_sums[propensity_functions[i][1]] = propensity_functions[i][0](curr_state)
 
                         species_states = list(curr_state[0].values())
-                        for i in range(number_reactions):
-                            propensity_sums[i] = propensity_functions[i](species_states)
+                        for i in dependent_rxns[reacName]['dependencies']:
+                            propensity_sums[propensity_functions[i][1]] = propensity_functions[i][0](species_states)
+
+                        #     #############################################################
                             if debug:
                                 print('new propensity sum: ', propensity_sums[i])
                         break
