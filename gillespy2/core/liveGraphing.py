@@ -22,30 +22,30 @@ def valid_graph_params(display_type,display_interval):
             if display_type == "graph" and display_interval < 1:
                 log.warning("Got display_interval = \"{0}\". Consider using an interval >= 1 when displaying graphs"
                             .format(display_interval))
-
             return True
 
         #display_type will default to progress if "None"
         elif display_type == None:
             return True
 
-
         else:
             log.warning(
                 'Got display_type = \"{0}\". Display_type should be \"graph\", \"text\", or \"progress\"'.format(
                     display_type))
-
             return False
 
 class LiveDisplayer():
 
-    def __init__(self,display_type = None,display_interval = 0,model = None,timeline_len=None,number_of_trajectories=1):
+    def __init__(self,display_type = None,display_interval = 0,model = None,timeline=None,number_of_trajectories=1):
 
         self.display_type = display_type
         self.display_interval = display_interval
         self.model = model
-        self.timeline_len = timeline_len
+        self.timeline = timeline
+        self.timeline_len = timeline.size
+        self.x_shift = int(timeline[0])
         self.number_of_trajectories = number_of_trajectories
+
 
         species_mappings = model._listOfSpecies
         self.species = list(species_mappings.keys())
@@ -68,7 +68,6 @@ class LiveDisplayer():
     def print_text_header(self):
 
         self.header_printed = True
-
         if self.number_of_trajectories > 1:
             print(self.trajectory_header())
 
@@ -114,7 +113,7 @@ class LiveDisplayer():
                 if self.number_of_trajectories > 1:
                     print(self.trajectory_header())
 
-                print("progress =", round((curr_time / self.timeline_len) * 100, 2), "%\n")
+                print("progress =", round((curr_time / (self.timeline_len + self.x_shift)) * 100, 2), "%\n")
 
             elif self.display_type == "graph":
 
@@ -126,12 +125,13 @@ class LiveDisplayer():
                 import matplotlib.pyplot as plt
                 from gillespy2.core.results import common_rgb_values
 
-                entry_count = floor(curr_time)
+                entry_count = floor(curr_time) - self.x_shift
 
                 clear_output(wait=True)
 
                 plt.figure(figsize=(18, 10))
-                plt.xlim(right=self.timeline_len)
+                plt.xlim(right=self.timeline[-1])
+                plt.xlim(left=self.timeline[0])
                 plt.title(self.trajectory_header())
 
                 for i in range(self.number_species):
@@ -141,7 +141,7 @@ class LiveDisplayer():
                              trajectory_base[0][:, i + 1][:entry_count].tolist(), color=line_color,
                              label=self.species[i])
 
-                    plt.plot([entry_count - 1, curr_time], [trajectory_base[0][:, i + 1][entry_count - 1],
+                    plt.plot([entry_count - 1, curr_time - self.timeline[0]], [trajectory_base[0][:, i + 1][entry_count - 1],
                                                             curr_state[self.species[i]]], linewidth=3,
                              color=line_color)
 
