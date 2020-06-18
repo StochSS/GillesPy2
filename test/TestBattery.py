@@ -8,15 +8,6 @@ from scipy import stats
 from timeit import default_timer as timer
 import gillespy2
 from gillespy2.solvers.numpy import *
-# BasicODESolver, BasicRootSolver, BasicTauLeapingSolver, NumPySSASolver, TauLeapingSolver
-from gillespy2.solvers.cython import *
-# CythonSSASolver
-from gillespy2.solvers.cpp import *
-# SSACSolver
-from gillespy2.solvers.auto import *
-# SSASolver
-from gillespy2.solvers.stochkit import *
-# StochKitODESolver, StochKitSolver
 from example_models import *
 
 

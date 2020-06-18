@@ -1,7 +1,8 @@
 import os
 import gillespy2
+from gillespy2.solvers.utilities.mathmlutils import eval_globals
 import numpy as np
-import math
+
 try:
     import libsbml
 except ImportError:
@@ -10,18 +11,7 @@ except ImportError:
 
 init_state = {'INF': np.inf, 'NaN': np.nan}
 postponed_evals = {}
-eval_globals = math.__dict__.copy()
-def piecewise(*args):
-    args = list(args)
-    sol = None
-    if len(args) % 2: args.append(True)
-    for i, arg in enumerate(args):
-        if not i % 2: continue
-        if arg:
-            sol = args[i-1]
-            break
-    return sol
-eval_globals['piecewise'] = piecewise
+
 
 def __read_sbml_model(filename):
 
@@ -45,6 +35,7 @@ def __read_sbml_model(filename):
 
 def __get_math(math):
     math_str = libsbml.formulaToL3String(math)
+    if math_str is None: return None
     replacements = {
         'ln': 'log',
         '^': '**',
@@ -119,7 +110,6 @@ def __get_compartments(sbml_model, gillespy_model):
         compartment = sbml_model.getCompartment(i)
         name = compartment.getId()
         value = compartment.getSize()
-
         gillespy_parameter = gillespy2.Parameter(name=name, expression=value)
         init_state[name] = value
         gillespy_model.add_parameter([gillespy_parameter])
@@ -300,9 +290,10 @@ def __get_events(sbml_model, gillespy_model):
                                                         mode='continuous', allow_negative_populations=True)
                 gillespy_model.delete_parameter(a.getVariable())
                 gillespy_model.add_species([gillespy_species])
-
-            gillespy_assignment = gillespy2.EventAssignment(a.getVariable(),
-                __get_math(a.getMath()))
+            math_str = __get_math(a.getMath())
+            if math_str is None:
+                continue
+            gillespy_assignment = gillespy2.EventAssignment(a.getVariable(),math_str)
             gillespy_assignments.append(gillespy_assignment)
         gillespy_event = gillespy2.Event(
             name=event.getId(), trigger=gillespy_trigger,

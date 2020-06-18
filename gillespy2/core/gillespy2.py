@@ -1191,7 +1191,6 @@ class Reaction(SortableObject):
         else:
             self.name = name
         self.annotation = ""
-
         # We might use this flag in the future to automatically generate
         # the propensity function if set to True.
         if propensity_function is not None:
@@ -1702,7 +1701,7 @@ class StochMLDocument():
                     try:
                         reaction.marate = model.listOfParameters[ratename]
                     except KeyError as k:
-                        # No paramter name is given. This is a valid use case
+                        # No parameter name is given. This is a valid use case
                         # in StochKit. We generate a name for the paramter,
                         # and create a new parameter instance. The parameter's
                         # value should now be found in 'ratename'.

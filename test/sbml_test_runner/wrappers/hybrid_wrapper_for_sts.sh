@@ -52,7 +52,7 @@ fi
 # =============================================================================
 
 import sys
-sys.path.append('/home/smatthe2/GillesPy2')
+sys.path.append('/home/fin/PycharmProjects/GillesPy2/')
 if sys.version_info[0] < 3:
     raise Exception("This wrapper needs Python version 3")
 

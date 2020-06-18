@@ -8,35 +8,7 @@ import gillespy2
 from gillespy2.solvers.numpy import Tau
 from gillespy2.core import GillesPySolver, log
 from gillespy2.core.gillespyError import *
-
-eval_globals = math.__dict__
-
-def __piecewise(*args):
-    '''
-    Eval entry for piecewise functions
-    '''
-    args = list(args)
-    sol = None
-    if len(args) % 2: args.append(True)
-    for i, arg in enumerate(args):
-        if not i % 2: continue
-        if arg:
-            sol = args[i-1]
-            break
-    return sol
-def __xor(*args):
-    '''
-    Eval entry for MathML xor function
-    '''
-    from operator import ixor
-    from functools import reduce
-    args = list(args)
-    return reduce(ixor, args)
-
-eval_globals['false'] = False
-eval_globals['true'] = True
-eval_globals['piecewise'] = __piecewise
-eval_globals['xor'] = __xor
+from gillespy2.solvers.utilities.mathmlutils import eval_globals
 
 
 class BasicTauHybridSolver(GillesPySolver):
@@ -206,8 +178,9 @@ class BasicTauHybridSolver(GillesPySolver):
         Also evaluates boolean value of event triggers.
         """
         state_change = [0] * len(y_map)
-        curr_state['t'] = t
+        #curr_state['t'] = t
         curr_state['time'] = t
+
         for item, index in y_map.items():
             if item in assignment_rules:
                 curr_state[assignment_rules[item].variable] = eval(assignment_rules[item].formula, {**eval_globals, **curr_state})
@@ -325,6 +298,7 @@ class BasicTauHybridSolver(GillesPySolver):
         # Set time to next action
         curr_time = min(sim_end, next_tau, next_event_trigger,
                         next_delayed_event)
+
         return next_step[curr_time], curr_time
 
     def __process_queued_events(self, model, event_queue, trigger_states,
@@ -349,9 +323,9 @@ class BasicTauHybridSolver(GillesPySolver):
             for a in fired_event.assignments:
                 # Get assignment value
                 assign_value = eval(a.expression, eval_globals, assignment_state)
-                # Update state of assignment variable
+                # Update state of assignment
+                print('yogibear', assignment_state['t'])
                 curr_state[a.variable.name] = assign_value
-
         return events_processed
 
     def __handle_event(self, event, curr_state, curr_time, event_queue, 
@@ -786,8 +760,6 @@ class BasicTauHybridSolver(GillesPySolver):
                                 ' integration, total solve time could be longer than expected.')
                     break
 
-
-
         self.stop_event = threading.Event()
 
         if len(kwargs) > 0:
@@ -910,7 +882,6 @@ class BasicTauHybridSolver(GillesPySolver):
         for trajectory_num in range(number_of_trajectories):
 
             if self.stop_event.is_set():
-                print('exiting')
                 self.rc = 33
                 break
 
