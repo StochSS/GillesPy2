@@ -862,7 +862,7 @@ class BasicTauHybridSolver(GillesPySolver):
                             break
 
                 live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(display_type, display_interval, model,
-                                                                            timeline.size, number_of_trajectories)
+                                                                            timeline, number_of_trajectories)
                 display_timer = gillespy2.core.liveGraphing.RepeatTimer(display_interval, live_grapher[0].display,
                                                                         args=(curr_state, curr_time, trajectory_base,))
                 display_timer.start()
