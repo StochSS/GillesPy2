@@ -158,7 +158,7 @@ class NumPySSASolver(GillesPySolver):
         parameter_mappings = model.sanitized_parameter_names()
         number_species = len(species)
 
-            # create dictionary of all constant parameters for propensity evaluation
+        # create dictionary of all constant parameters for propensity evaluation
         parameters = {'V': model.volume}
         for paramName, param in model.listOfParameters.items():
             parameters[parameter_mappings[paramName]] = param.value
@@ -212,6 +212,7 @@ class NumPySSASolver(GillesPySolver):
             propensity_sums = np.zeros(number_reactions)
             # calculate initial propensity sums
             while entry_count < timeline.size:
+
                 if self.stop_event.is_set():
                     self.rc = 33
                     break
@@ -223,8 +224,6 @@ class NumPySSASolver(GillesPySolver):
                 species_states = list(curr_state[0].values())
 
                 for i in range(number_reactions):
-                    # propensity_sums[i] = propensity_functions[i](species_states)
-                    # propensity_sums[i] = propensity_functions[reactions[i]][0](curr_state)
                     propensity_sums[i] = propensity_functions[reactions[i]][0](species_states)
 
                     if debug:
@@ -264,37 +263,21 @@ class NumPySSASolver(GillesPySolver):
                     if debug:
                         print('if <=0, fire: ', cumulative_sum)
                     if cumulative_sum <= 0:
-                        #########################
-                        # for i,spec in enumerate(model.listOfSpecies):
-                        #     curr_state[0][spec] += species_changes[potential_reaction][i]
-                        #
-                        # curr_state += species_changes[potential_reaction]
-                        # reacName = reactions[potential_reaction]
-
                         for i,spec in enumerate(model.listOfSpecies):
                             curr_state[0][spec] += species_changes[potential_reaction][i]
 
                         reacName = reactions[potential_reaction]
 
-                        #########################
+
                         if debug:
                             print('current state: ', curr_state[0])
                             print('species_changes: ', species_changes)
                             print('updating: ', potential_reaction)
-                        # recompute propensities as needed
-                        #############################################
-                        # species_states = list(curr_state[0].values())
-                        # for i in range(number_reactions):
-                        #     propensity_sums[i] = propensity_functions[i](species_states)
-                        #
-                        # for i in dependent_rxns[reacName]['dependencies']:
-                        #     propensity_sums[propensity_functions[i][1]] = propensity_functions[i][0](curr_state)
 
                         species_states = list(curr_state[0].values())
                         for i in dependent_rxns[reacName]['dependencies']:
                             propensity_sums[propensity_functions[i][1]] = propensity_functions[i][0](species_states)
 
-                        #     #############################################################
                             if debug:
                                 print('new propensity sum: ', propensity_sums[i])
                         break
