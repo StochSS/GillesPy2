@@ -850,15 +850,10 @@ class BasicTauHybridSolver(GillesPySolver):
         try:
             sim_thread.start()
 
-            from gillespy2.core.liveGraphing import valid_graph_params
-
-            print(live_output_options)
-
-            valid_graph_params(live_output_options)
-
-            print(live_output_options)
             if live_output:
+
                 import gillespy2.core.liveGraphing
+                gillespy2.core.liveGraphing.valid_graph_params(live_output_options)
 
                 if live_output_options['type'] == "graph":
                     for i, s in enumerate(list(model._listOfSpecies.keys())):
@@ -945,6 +940,7 @@ class BasicTauHybridSolver(GillesPySolver):
                 [dependencies[reaction].add(reactant.name) for reactant in model.listOfReactions[reaction].reactants]
                 [dependencies[reaction].add(product.name) for product in model.listOfReactions[reaction].products]
 
+        print("here3")
 
         # Main trajectory loop
         for trajectory_num in range(number_of_trajectories):

@@ -25,14 +25,18 @@ def valid_graph_params(live_output_options):
                     .format(live_output_options['interval']))
 
     if 'clear_output' not in live_output_options:
-        live_output_options['clear_output'] = None
+
+        if live_output_options['type'] == "graph" or live_output_options['type'] == "progress":
+            live_output_options['clear_output'] = True
+        else:
+            live_output_options['clear_output'] = False
 
 class LiveDisplayer():
 
     def __init__(self,model = None,timeline=None,number_of_trajectories=1,live_output_options = {} ):
 
         self.display_type = live_output_options['type']
-        self.display_interval = live_output_options['display_interval']
+        self.display_interval = live_output_options['interval']
         self.model = model
         self.timeline = timeline
         self.timeline_len = timeline.size
@@ -85,11 +89,13 @@ class LiveDisplayer():
                 curr_time = curr_state['time']
 
         try:
+            if self.clear_output:
+                    clear_output(wait=True)
+
             if self.display_type == "text":
 
                 #text defaults to not clearing
-                if self.clear_output is not None and self.clear_output:
-                    clear_output(wait=True)
+
 
                 if not self.header_printed:
                     self.print_text_header()
@@ -102,9 +108,9 @@ class LiveDisplayer():
 
             elif self.display_type == "progress":
 
-                #progress defaults to clearing
-                if self.clear_output is None or self.clear_output:
-                    clear_output(wait=True)
+                # #progress defaults to clearing
+                # if self.clear_output:
+                #     clear_output(wait=True)
 
                 if self.number_of_trajectories > 1:
                     print(self.trajectory_header())
@@ -124,8 +130,8 @@ class LiveDisplayer():
 
                 entry_count = floor(curr_time) - self.x_shift
 
-                if self.clear_output is None or self.clear_output:
-                    clear_output(wait=True)
+                # if self.clear_output:
+                #     clear_output(wait=True)
 
                 plt.figure(figsize=(18, 10))
                 plt.xlim(right=self.timeline[-1])
