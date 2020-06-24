@@ -62,13 +62,23 @@ class NumPySSASolver(GillesPySolver):
                                                                        'timeout':timeout})
 
         try:
+            time = 0
             sim_thread.start()
-            sim_thread.join(timeout=timeout)
-            self.stop_event.set()
+            if timeout is not None:
+                while sim_thread.is_alive():
+                    sim_thread.join(.1)
+                    time += .1
+                    if time >= timeout:
+                        break
+            else:
+                while sim_thread.is_alive():
+                    sim_thread.join(.1)
+            self.pause_event.set()
             while self.result is None: pass
         except KeyboardInterrupt:
             self.pause_event.set()
             while self.result is None: pass
+
         if hasattr(self, 'has_raised_exception'):
             raise self.has_raised_exception
 

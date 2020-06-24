@@ -91,15 +91,26 @@ class BasicODESolver(GillesPySolver):
                                         'increment':increment, 'timeout':timeout, 'resume':resume,
                                         'integrator':integrator, 'integrator_options':integrator_options})
         try:
+            time = 0
             sim_thread.start()
-            sim_thread.join(timeout=timeout)
-            self.stop_event.set()
-            while self.result is None: pass
-        except:
+            if timeout is not None:
+                while sim_thread.is_alive():
+                    sim_thread.join(.1)
+                    time += .1
+                    if time >= timeout:
+                        break
+            else:
+                while sim_thread.is_alive():
+                    sim_thread.join(.1)
             self.pause_event.set()
             while self.result is None: pass
+        except KeyboardInterrupt:
+            self.pause_event.set()
+            while self.result is None: pass
+
         if hasattr(self, 'has_raised_exception'):
             raise self.has_raised_exception
+
         return self.result, self.rc
 
     def ___run(self, model, t=20, number_of_trajectories=1, increment=0.05, timeout=None,
