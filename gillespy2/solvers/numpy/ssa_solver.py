@@ -29,8 +29,7 @@ class NumPySSASolver(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05,
-                        seed=None, debug=False, show_labels=True, display_interval = 0,
-            display_type =None,timeout=None, resume=None,**kwargs):
+                        seed=None, debug=False, show_labels=True, live_output = False,live_output_options = {},timeout=None, resume=None,**kwargs):
         """
         Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
         :param model: The model on which the solver will operate.
@@ -101,12 +100,21 @@ class NumPySSASolver(GillesPySolver):
         try:
             sim_thread.start()
 
-            from gillespy2.core.liveGraphing import valid_graph_params
-            if valid_graph_params(display_type, display_interval):
+            if live_output:
+
                 import gillespy2.core.liveGraphing
-                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(display_type, display_interval, model,
-                                                                            timeline, number_of_trajectories)
-                display_timer = gillespy2.core.liveGraphing.RepeatTimer(display_interval, live_grapher[0].display,
+                gillespy2.core.liveGraphing.valid_graph_params(live_output_options)
+
+                if live_output_options['type'] == "graph":
+                    for i, s in enumerate(list(model._listOfSpecies.keys())):
+
+                        if model.listOfSpecies[s].mode is 'continuous':
+                            log.warning('display "\type\" = \"graph\" not recommended with continuous species. Try display \"type\" = \"text\" or \"progress\".')
+                            break
+
+                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer( model,
+                                                                            timeline, number_of_trajectories,live_output_options)
+                display_timer = gillespy2.core.liveGraphing.RepeatTimer(live_output_options['interval'], live_grapher[0].display,
                                                                         args=(curr_state, curr_time, trajectory_base,))
                 display_timer.start()
 
