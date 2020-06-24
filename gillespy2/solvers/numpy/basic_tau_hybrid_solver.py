@@ -940,8 +940,6 @@ class BasicTauHybridSolver(GillesPySolver):
                 [dependencies[reaction].add(reactant.name) for reactant in model.listOfReactions[reaction].reactants]
                 [dependencies[reaction].add(product.name) for product in model.listOfReactions[reaction].products]
 
-        print("here3")
-
         # Main trajectory loop
         for trajectory_num in range(number_of_trajectories):
 
