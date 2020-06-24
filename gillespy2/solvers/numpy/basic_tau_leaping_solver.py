@@ -97,11 +97,18 @@ class BasicTauLeapingSolver(GillesPySolver):
                 debug : bool (False)
                     Set to True to provide additional debug information about the
                     simulation.
-                profile : bool (Fasle)
+                profile : bool (False)
                     Set to True to provide information about step size (tau) taken at each step.
-
                 resume : Result of previous simulation
                     resultResult of a previously run simulation, to be resumed
+                live_output : bool (False)
+                    set to True to display simulation progress during simulation
+                live_output_options : dictionary
+                    contains options for live_output. By default {"type":"progress","interval":1}.
+                    "type" can be "progress", "text", or "graph". 'clear_output' may be set to specify if display
+                    should be refreshed with each interval ('clear_output':False)-- useful if errors
+                    are being cleared.
+
                 """
 
         if isinstance(self, type):

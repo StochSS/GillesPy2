@@ -2,6 +2,9 @@ from gillespy2.core import log
 
 import threading
 class RepeatTimer(threading.Timer):
+    """
+    Threading timer which repeatedly calls the given function instead of simply ending
+    """
     def run(self):
         while not self.finished.wait(self.interval):
             self.function(*self.args, **self.kwargs)
@@ -32,6 +35,9 @@ def valid_graph_params(live_output_options):
             live_output_options['clear_output'] = False
 
 class LiveDisplayer():
+    """
+    holds information required for displaying information when live_output = True
+    """
 
     def __init__(self,model = None,timeline=None,number_of_trajectories=1,live_output_options = {} ):
 
@@ -94,9 +100,6 @@ class LiveDisplayer():
 
             if self.display_type == "text":
 
-                #text defaults to not clearing
-
-
                 if not self.header_printed:
                     self.print_text_header()
 
@@ -108,10 +111,6 @@ class LiveDisplayer():
 
             elif self.display_type == "progress":
 
-                # #progress defaults to clearing
-                # if self.clear_output:
-                #     clear_output(wait=True)
-
                 if self.number_of_trajectories > 1:
                     print(self.trajectory_header())
 
@@ -119,7 +118,6 @@ class LiveDisplayer():
 
             elif self.display_type == "graph":
 
-                #graph defaults to clearing
                 if self.display_interval < 1:
                     log.warning(
                         "Got display_interval = \"{0}\". Consider using an interval >= 1 when displaying graphs"

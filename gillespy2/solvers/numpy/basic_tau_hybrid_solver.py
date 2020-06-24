@@ -770,6 +770,14 @@ class BasicTauHybridSolver(GillesPySolver):
             rtol=1e-9 and atol=1e-12.  for a list of options,
             see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html.
             Example use: {max_step : 0, rtol : .01}
+        live_output : bool (False)
+                    set to True to display simulation progress during simulation
+        live_output_options : dictionary
+            contains options for live_output. By default {"type":"progress","interval":1}.
+            "type" can be "progress", "text", or "graph". 'clear_output' may be set to specify if display
+            should be refreshed with each interval ('clear_output':False)-- useful if errors
+            are being cleared.
+
         """
 
         if isinstance(self, type):

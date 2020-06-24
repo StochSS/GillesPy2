@@ -74,6 +74,10 @@ class BasicODESolver(GillesPySolver):
             Example use: {max_step : 0, rtol : .01}
         :param kwargs:
         :param resume: Result of a previously run simulation, to be resumed
+        :param live_output : set to True to display simulation progress during simulation
+        :param live_output_options : dictionary contains options for live_output. By default {"type":"progress","interval":1}.
+        "type" can be "progress", "text", or "graph". 'clear_output' may be set to specify if display should be
+        refreshed with each interval ('clear_output':False)-- useful if errors
         :return:
         """
         if isinstance(self, type):
