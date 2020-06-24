@@ -730,7 +730,7 @@ class BasicTauHybridSolver(GillesPySolver):
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
             debug=False, profile=False, tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
-            integrator_options={}, display_interval = 0, display_type =None, timeout=None, **kwargs):
+            integrator_options={}, live_output = False,live_output_options = {}, timeout=None, **kwargs):
         """
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
         objects and will inherit those parameters which are passed with the model as the arguments this run function.
@@ -851,19 +851,25 @@ class BasicTauHybridSolver(GillesPySolver):
             sim_thread.start()
 
             from gillespy2.core.liveGraphing import valid_graph_params
-            if valid_graph_params(display_type, display_interval):
+
+            print(live_output_options)
+
+            valid_graph_params(live_output_options)
+
+            print(live_output_options)
+            if live_output:
                 import gillespy2.core.liveGraphing
 
-                if display_type == "graph":
+                if live_output_options['type'] == "graph":
                     for i, s in enumerate(list(model._listOfSpecies.keys())):
 
                         if model.listOfSpecies[s].mode is 'continuous':
-                            log.warning('display_type = \"graph\" not recommended with continuous species. Try display_type = \"text\" or \"progress\".')
+                            log.warning('display "\type\" = \"graph\" not recommended with continuous species. Try display \"type\" = \"text\" or \"progress\".')
                             break
 
-                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(display_type, display_interval, model,
-                                                                            timeline, number_of_trajectories)
-                display_timer = gillespy2.core.liveGraphing.RepeatTimer(display_interval, live_grapher[0].display,
+                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer( model,
+                                                                            timeline, number_of_trajectories,live_output_options)
+                display_timer = gillespy2.core.liveGraphing.RepeatTimer(live_output_options['interval'], live_grapher[0].display,
                                                                         args=(curr_state, curr_time, trajectory_base,))
                 display_timer.start()
 

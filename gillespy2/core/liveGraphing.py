@@ -9,43 +9,36 @@ class RepeatTimer(threading.Timer):
 def display_types():
     return ["graph","text","progress"]
 
-def valid_graph_params(display_type,display_interval):
+def valid_graph_params(live_output_options):
+    if 'interval' not in live_output_options:
+        live_output_options['interval'] = 1
+        log.warning("Undefined display \"interval\". Defaulting to 1")
+    elif live_output_options['interval'] < 0:
+        log.warning("Got display \"interval\" < 0. Defaulting to 1")
 
-    if display_interval < 0:
-        log.warning("Got display_interval = \"{0}\". Must use display_interval > 0".format(display_interval))
-        return False
+    if 'type' not in live_output_options or live_output_options['type'] not in display_types():
+        live_output_options['type'] = 'progress'
+        log.warning("Undefined display \"type\". Defaulting to \"progress\"")
 
-    elif display_interval > 0:
+    if live_output_options['type'] == "graph" and live_output_options['interval'] < 1:
+        log.warning("Got display \"interval\" = \"{0}\". Consider using an interval >= 1 when displaying graphs"
+                    .format(live_output_options['interval']))
 
-        if display_type in display_types():
-
-            if display_type == "graph" and display_interval < 1:
-                log.warning("Got display_interval = \"{0}\". Consider using an interval >= 1 when displaying graphs"
-                            .format(display_interval))
-            return True
-
-        #display_type will default to progress if "None"
-        elif display_type == None:
-            return True
-
-        else:
-            log.warning(
-                'Got display_type = \"{0}\". Display_type should be \"graph\", \"text\", or \"progress\"'.format(
-                    display_type))
-            return False
+    if 'clear_output' not in live_output_options:
+        live_output_options['clear_output'] = None
 
 class LiveDisplayer():
 
-    def __init__(self,display_type = None,display_interval = 0,model = None,timeline=None,number_of_trajectories=1):
+    def __init__(self,model = None,timeline=None,number_of_trajectories=1,live_output_options = {} ):
 
-        self.display_type = display_type
-        self.display_interval = display_interval
+        self.display_type = live_output_options['type']
+        self.display_interval = live_output_options['display_interval']
         self.model = model
         self.timeline = timeline
         self.timeline_len = timeline.size
         self.x_shift = int(timeline[0])
         self.number_of_trajectories = number_of_trajectories
-
+        self.clear_output = live_output_options['clear_output']
 
         species_mappings = model._listOfSpecies
         self.species = list(species_mappings.keys())
@@ -53,10 +46,6 @@ class LiveDisplayer():
         self.number_species = len(self.species)
         self.current_trajectory = 1
         self.header_printed = False
-
-        if display_type is None:
-                self.display_type = "progress"
-                log.warning('Unspecified display_type. Displaying progress.')
 
     def trajectory_header(self):
         return "Trajectory ("+ str(self.current_trajectory)+ "/"+ str(self.number_of_trajectories)+ ")"
@@ -98,6 +87,10 @@ class LiveDisplayer():
         try:
             if self.display_type == "text":
 
+                #text defaults to not clearing
+                if self.clear_output is not None and self.clear_output:
+                    clear_output(wait=True)
+
                 if not self.header_printed:
                     self.print_text_header()
 
@@ -109,7 +102,10 @@ class LiveDisplayer():
 
             elif self.display_type == "progress":
 
-                clear_output(wait=True)
+                #progress defaults to clearing
+                if self.clear_output is None or self.clear_output:
+                    clear_output(wait=True)
+
                 if self.number_of_trajectories > 1:
                     print(self.trajectory_header())
 
@@ -117,6 +113,7 @@ class LiveDisplayer():
 
             elif self.display_type == "graph":
 
+                #graph defaults to clearing
                 if self.display_interval < 1:
                     log.warning(
                         "Got display_interval = \"{0}\". Consider using an interval >= 1 when displaying graphs"
@@ -127,7 +124,8 @@ class LiveDisplayer():
 
                 entry_count = floor(curr_time) - self.x_shift
 
-                clear_output(wait=True)
+                if self.clear_output is None or self.clear_output:
+                    clear_output(wait=True)
 
                 plt.figure(figsize=(18, 10))
                 plt.xlim(right=self.timeline[-1])
