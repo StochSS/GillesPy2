@@ -528,10 +528,7 @@ class Model(SortableObject):
                         'An Event must contain a valid trigger.')
                 for a in event.assignments:
                     if isinstance(a.variable, str):
-                        if a.variable in self.listOfSpecies:
-                            a.variable = self.listOfSpecies[a.variable]
-                        else:
-                            raise ModelError('{0} not a valid Species'.format(a.variable))
+                        a.variable = self.get_element(a.variable)
                 self.listOfEvents[event.name] = event
             except Exception as e:
                 raise ParameterError("Error using {} as Event. Reason given: {}".format(event, e))

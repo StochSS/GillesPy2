@@ -477,6 +477,7 @@ class BasicTauHybridSolver(GillesPySolver):
         next_step, curr_time = self.__get_next_step(event_times, reaction_times,
                                                 delayed_events,
                                                 model.tspan[-1], next_tau)
+        curr_state['t'] = curr_time
 
 
         # Update states of all species based on changes made to species through

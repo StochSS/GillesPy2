@@ -206,7 +206,10 @@ class Event:
         if len(self.assignments):
             print_string += '\n\tAssignments:'
             for a in self.assignments:
-                print_string += '\n\t\t' + a.variable.name + ': ' + a.expression
+                if isinstance(a.variable, str):
+                    print_string += '\n\t\t' + a.variable + ': ' + a.expression
+                else:
+                    print_string += '\n\t\t' + a.variable.name + ': ' + a.expression
         return print_string
 
     def add_assignment(self, assignment):
