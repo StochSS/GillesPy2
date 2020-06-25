@@ -730,7 +730,7 @@ class BasicTauHybridSolver(GillesPySolver):
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
             debug=False, profile=False, tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
-            integrator_options={}, live_output = False,live_output_options = {}, timeout=None, **kwargs):
+            integrator_options={}, live_output = None,live_output_options = {}, timeout=None, **kwargs):
         """
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
         objects and will inherit those parameters which are passed with the model as the arguments this run function.
@@ -770,13 +770,13 @@ class BasicTauHybridSolver(GillesPySolver):
             rtol=1e-9 and atol=1e-12.  for a list of options,
             see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html.
             Example use: {max_step : 0, rtol : .01}
-        live_output : bool (False)
-                    set to True to display simulation progress during simulation
+        live_output : str
+                    The type of output to be displayed by solver. Can be "progress", "text", or "graph".
         live_output_options : dictionary
-            contains options for live_output. By default {"type":"progress","interval":1}.
-            "type" can be "progress", "text", or "graph". 'clear_output' may be set to specify if display
-            should be refreshed with each interval ('clear_output':False)-- useful if errors
-            are being cleared.
+            contains options for live_output. By default {"interval":1}.
+            "interval" specifies seconds between displaying.
+            "clear_output" specifies if display should be refreshed with each display
+
 
         """
 
@@ -858,7 +858,8 @@ class BasicTauHybridSolver(GillesPySolver):
         try:
             sim_thread.start()
 
-            if live_output:
+            if live_output is not None:
+                live_output_options['type'] = live_output
 
                 import gillespy2.core.liveGraphing
                 gillespy2.core.liveGraphing.valid_graph_params(live_output_options)

@@ -29,7 +29,7 @@ class NumPySSASolver(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05,
-                        seed=None, debug=False, show_labels=True, live_output = False,live_output_options = {},timeout=None, resume=None,**kwargs):
+                        seed=None, debug=False, show_labels=True, live_output = None,live_output_options = {},timeout=None, resume=None,**kwargs):
         """
         Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
         :param model: The model on which the solver will operate.
@@ -41,10 +41,10 @@ class NumPySSASolver(GillesPySolver):
         :param debug: Set to True to provide additional debug information about the
         simulation.
         :param resume: Result of a previously run simulation, to be resumed
-        :param live_output : set to True to display simulation progress during simulation
-        :param live_output_options : dictionary contains options for live_output. By default {"type":"progress","interval":1}.
-        "type" can be "progress", "text", or "graph". 'clear_output' may be set to specify if display should be
-        refreshed with each interval ('clear_output':False)-- useful if errors
+        :param live_output : str The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+        :param live_output_options : dictionary contains options for live_output. By default {"interval":1}.
+                    "interval" specifies seconds between displaying.
+                    "clear_output" specifies if display should be refreshed with each display
         :return: a list of each trajectory simulated.
         """
 
@@ -104,9 +104,10 @@ class NumPySSASolver(GillesPySolver):
         try:
             sim_thread.start()
 
-            if live_output:
+            if live_output is not None:
 
                 import gillespy2.core.liveGraphing
+                live_output_options['type'] = live_output
                 gillespy2.core.liveGraphing.valid_graph_params(live_output_options)
 
                 if live_output_options['type'] == "graph":

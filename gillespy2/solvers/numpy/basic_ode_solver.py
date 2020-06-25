@@ -60,7 +60,7 @@ class BasicODESolver(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05,
-            show_labels=True, integrator='lsoda', integrator_options={}, live_output = False,live_output_options = {},
+            show_labels=True, integrator='lsoda', integrator_options={}, live_output = None,live_output_options = {},
             timeout=None, resume=None,**kwargs):
         """
 
@@ -74,10 +74,10 @@ class BasicODESolver(GillesPySolver):
             Example use: {max_step : 0, rtol : .01}
         :param kwargs:
         :param resume: Result of a previously run simulation, to be resumed
-        :param live_output : set to True to display simulation progress during simulation
-        :param live_output_options : dictionary contains options for live_output. By default {"type":"progress","interval":1}.
-        "type" can be "progress", "text", or "graph". 'clear_output' may be set to specify if display should be
-        refreshed with each interval ('clear_output':False)-- useful if errors
+        :param live_output : str The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+        :param live_output_options : dictionary contains options for live_output. By default {"interval":1}.
+                    "interval" specifies seconds between displaying.
+                    "clear_output" specifies if display should be refreshed with each display
         :return:
         """
         if isinstance(self, type):
@@ -121,9 +121,11 @@ class BasicODESolver(GillesPySolver):
         try:
             sim_thread.start()
 
-            if live_output:
+            if live_output is not None:
 
                 import gillespy2.core.liveGraphing
+                live_output_options['type'] = live_output
+
                 gillespy2.core.liveGraphing.valid_graph_params(live_output_options)
 
                 if live_output_options['type'] == "graph":

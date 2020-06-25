@@ -70,7 +70,7 @@ class BasicTauLeapingSolver(GillesPySolver):
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile','timeout', 'tau_tol')
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
-                    debug=False, profile=False,  live_output = False,live_output_options = {},
+                    debug=False, profile=False,  live_output = None,live_output_options = {},
                     timeout=None, resume=None, tau_tol=0.03, **kwargs):
 
         """
@@ -101,13 +101,12 @@ class BasicTauLeapingSolver(GillesPySolver):
                     Set to True to provide information about step size (tau) taken at each step.
                 resume : Result of previous simulation
                     resultResult of a previously run simulation, to be resumed
-                live_output : bool (False)
-                    set to True to display simulation progress during simulation
+                live_output : str
+                    The type of output to be displayed by solver. Can be "progress", "text", or "graph".
                 live_output_options : dictionary
-                    contains options for live_output. By default {"type":"progress","interval":1}.
-                    "type" can be "progress", "text", or "graph". 'clear_output' may be set to specify if display
-                    should be refreshed with each interval ('clear_output':False)-- useful if errors
-                    are being cleared.
+                    contains options for live_output. By default {"interval":1}.
+                    "interval" specifies seconds between displaying.
+                    "clear_output" specifies if display should be refreshed with each display
 
                 """
 
@@ -161,9 +160,10 @@ class BasicTauLeapingSolver(GillesPySolver):
         try:
             sim_thread.start()
 
-            if live_output:
+            if live_output is not None:
 
                 import gillespy2.core.liveGraphing
+                live_output_options['type'] = live_output
                 gillespy2.core.liveGraphing.valid_graph_params(live_output_options)
 
                 if live_output_options['type'] == "graph":
