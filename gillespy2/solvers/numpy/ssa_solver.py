@@ -92,7 +92,6 @@ class NumPySSASolver(GillesPySolver):
         timeStopped = 0
 
         if resume is not None:
-            print(resume[0].model == model)
             if resume[0].model != model:
                 raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
             if t < resume['time'][-1]:
