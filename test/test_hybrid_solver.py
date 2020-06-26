@@ -52,7 +52,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         results = model.run()
         self.assertEqual(results[0].solver_name,'BasicTauHybridSolver')
 
-    def test_add_event(self):
+    def test_add_continuous_species_dependent_event(self):
         model = Example()
         model.listOfSpecies['Sp'].mode = 'continuous'
         eventTrig = gillespy2.EventTrigger(expression='Sp <= 90', initial_value=True, )
@@ -64,6 +64,42 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         results = model.run()
         self.assertEqual(results['Sp'][-1], 1000)
 
+    def test_add_stochastic_species_dependent_event(self):
+        model = Example()
+        model.listOfSpecies['Sp'].mode = 'discrete'
+        eventTrig = gillespy2.EventTrigger(expression='Sp <= 90', initial_value=True, )
+        event1 = gillespy2.Event(name='event1', trigger=eventTrig)
+        ea1 = gillespy2.EventAssignment(variable='Sp', expression='1000')
+        ea2 = gillespy2.EventAssignment(variable='k1', expression='0')
+        event1.add_assignment([ea1, ea2])
+        model.add_event(event1)
+        results = model.run()
+        self.assertEqual(results['Sp'][-1], 1000)
+        
+    def test_add_continuous_time_dependent_event(self):
+        model = Example()
+        model.listOfSpecies['Sp'].mode = 'continuous'
+        eventTrig = gillespy2.EventTrigger(expression='t >= 10', initial_value=True, )
+        event1 = gillespy2.Event(name='event1', trigger=eventTrig)
+        ea1 = gillespy2.EventAssignment(variable='Sp', expression='1000')
+        ea2 = gillespy2.EventAssignment(variable='k1', expression='0')
+        event1.add_assignment([ea1, ea2])
+        model.add_event(event1)
+        results = model.run()
+        self.assertEqual(results['Sp'][-1], 1000)
+        
+    def test_add_stochastic_time_dependent_event(self):
+        model = Example()
+        model.listOfSpecies['Sp'].mode = 'discrete'
+        eventTrig = gillespy2.EventTrigger(expression='t >= 10', initial_value=True, )
+        event1 = gillespy2.Event(name='event1', trigger=eventTrig)
+        ea1 = gillespy2.EventAssignment(variable='Sp', expression='1000')
+        ea2 = gillespy2.EventAssignment(variable='k1', expression='0')
+        event1.add_assignment([ea1, ea2])
+        model.add_event(event1)
+        results = model.run()
+        self.assertEqual(results['Sp'][-1], 1000)
+        
     def test_add_param_event(self):
         class EventTestModel(gillespy2.Model):
             def __init__(self):
