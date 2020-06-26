@@ -609,7 +609,6 @@ class BasicTauHybridSolver(GillesPySolver):
             num_saves += 1
         save_times = save_times[num_saves:] # remove completed save times
 
-        events_processed = self.__process_queued_events(model, event_queue, trigger_states, curr_state)
         
         # Finally, perform a final check on events after all non-ODE assignment
         # changes have been carried out on model.
@@ -623,6 +622,8 @@ class BasicTauHybridSolver(GillesPySolver):
                     self.__handle_event(e, curr_state, curr_time, 
                                     event_queue, trigger_states, delayed_events)
                     event_cycle = True
+
+        events_processed = self.__process_queued_events(model, event_queue, trigger_states, curr_state)
 
         return sol, curr_state, curr_time, save_times
     
