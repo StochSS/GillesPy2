@@ -1,7 +1,6 @@
 import gillespy2
-from gillespy2.core import Model, Reaction, gillespyError, GillesPySolver, log
+from gillespy2.core import gillespyError, GillesPySolver, log
 from gillespy2.solvers.utilities import solverutils as cutils
-from gillespy2.solvers.utilities.utilities import species_parse
 import signal, time #for solver timeout implementation
 import os #for getting directories for C++ files
 import shutil #for deleting/copying files
@@ -12,6 +11,7 @@ import numpy as np
 
 GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
 GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base')
+
 
 def _write_constants(outfile, model, reactions, species, parameter_mappings, resume):
     """
@@ -26,25 +26,25 @@ def _write_constants(outfile, model, reactions, species, parameter_mappings, res
     """
 
     outfile.write("const double V = {};\n".format(model.volume))
-    outfile.write("std :: string s_names[] = {");
+    outfile.write("std :: string s_names[] = {")
     if len(species) > 0:
-        #Write model species names.
+        # Write model species names.
         for i in range(len(species)-1):
             outfile.write('"{}", '.format(species[i]))
         outfile.write('"{}"'.format(species[-1]))
         outfile.write("};\nunsigned int populations[] = {")
-        #Write initial populations.
+        # Write initial populations.
         for i in range(len(species)-1):
-            #If resuming
+            # If resuming
             if not (resume is None):
-                if isinstance(resume,np.ndarray):
+                if isinstance(resume, np.ndarray):
                     outfile.write('{}, '.format(int(resume[0][-1][i+1])))
                 else:
                     outfile.write('{}, '.format(int(resume[species[i]][-1])))
             else:
                 outfile.write('{}, '.format(int(model.listOfSpecies[species[i]].initial_value)))
         if not (resume is None):
-            if isinstance(resume,np.ndarray):
+            if isinstance(resume, np.ndarray):
                 outfile.write('{}'.format(int(resume[0][-1][-1])))
             else:
                 outfile.write('{}'.format(int(resume[species[-1]][-1])))
@@ -52,64 +52,16 @@ def _write_constants(outfile, model, reactions, species, parameter_mappings, res
             outfile.write('{}'.format(int(model.listOfSpecies[species[-1]].initial_value)))
         outfile.write("};\n")
     if len(reactions) > 0:
-        #Write reaction names
+        # Write reaction names
         outfile.write("std :: string r_names[] = {")
         for i in range(len(reactions)-1):
             outfile.write('"{}", '.format(reactions[i]))
         outfile.write('"{}"'.format(reactions[-1]))
         outfile.write("};\n")
     for param in model.listOfParameters:
-        outfile.write("const double {0} = {1};\n".format(parameter_mappings[param], model.listOfParameters[param].value))
+        outfile.write("const double {0} = {1};\n".format(parameter_mappings[param], model.listOfParameters[param].value)
 
-
-def _write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
-    for i in range(len(reactions)):
-        # Write switch statement case for reaction
-        outfile.write("""
-        case {0}:
-            return {1};
-        """.format(i, model.listOfReactions[reactions[i]].sanitized_propensity_function(species_mappings, parameter_mappings)))
-
-
-def _write_reactions(outfile, model, reactions, species):
-    customrxns = {}
-    for i in range(len(reactions)):
-        reaction = model.listOfReactions[reactions[i]]
-        if reaction.type == 'customized':
-            customrxns[i] = species_parse(model, reaction.propensity_function)
-        for j in range(len(species)):
-            change = (reaction.products.get(model.listOfSpecies[species[j]], 0)) - (reaction.reactants.get(model.listOfSpecies[species[j]], 0))
-            if change != 0:
-                outfile.write("model.reactions[{0}].species_change[{1}] = {2};\n".format(i, j, change))
-
-    for i in customrxns.keys():
-        for j in range(len(reactions)):
-            if i == j:
-                continue
-            if any(elem in customrxns[i] for elem in list(model.listOfReactions[reactions[j]].reactants)) or \
-                    any(elem in customrxns[i] for elem in list(model.listOfReactions[reactions[j]].products)):
-                outfile.write("model.reactions[{0}].affected_reactions.push_back({1});\n".format(i, j))
-
-def _parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species,pause=False):
-    trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
-    step_size = number_species * number_of_trajectories + 1 #1 for timestep
-    data = np.frombuffer(results_buffer, dtype=np.float64)
-    #Timestopped is added to the end of the data, when a simulation completes or is paused
-    if pause:
-        timeStopped = data[-1]
-    else:
-        timeStopped = 0
-    assert(len(data) == (number_of_trajectories*number_timesteps*number_species + number_timesteps)+1)
-    for timestep in range(number_timesteps):
-        index = step_size * timestep
-        trajectory_base[:, timestep, 0] = data[index]
-        index += 1
-        for trajectory in range(number_of_trajectories):
-            for species in range(number_species):
-                trajectory_base[trajectory, timestep, 1 + species] = data[index + species]
-            index += number_species
-
-    return trajectory_base, timeStopped
+                      )
 
 
 class SSACSolver(GillesPySolver):
@@ -146,10 +98,12 @@ class SSACSolver(GillesPySolver):
                 self.output_directory = self.temporary_directory.name
                 
             if not os.path.isdir(self.output_directory):
-                raise gillespyError.DirectoryError("Errors encountered while setting up directory for Solver C++ files.")
-            cutils._copy_files(self.output_directory,GILLESPY_C_DIRECTORY)
+                raise gillespyError.DirectoryError("Errors encountered while setting up directory for Solver C++ files."
+                                                   )
+            cutils._copy_files(self.output_directory, GILLESPY_C_DIRECTORY)
             self.__write_template()
             self.__compile()
+
     def __del__(self):
         if self.delete_directory and os.path.isdir(self.output_directory):
             shutil.rmtree(self.output_directory)
@@ -165,9 +119,11 @@ class SSACSolver(GillesPySolver):
                     if line.startswith(template_keyword):
                         line = line[len(template_keyword):]
                         if line.startswith("CONSTANTS"):
-                            _write_constants(outfile, self.model, self.reactions, self.species, self.parameter_mappings,self.resume)
+                            _write_constants(outfile, self.model, self.reactions, self.species, self.parameter_mappings
+                                             ,self.resume)
                         if line.startswith("PROPENSITY"):
-                            cutils._write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings, self.reactions)
+                            cutils._write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings
+                                                     , self.reactions)
                         if line.startswith("REACTIONS"):
                             cutils._write_reactions(outfile, self.model, self.reactions, self.species)
                     else:
@@ -184,9 +140,9 @@ class SSACSolver(GillesPySolver):
         else:
             try:
                 cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulation'],
-                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'],
-                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             except KeyboardInterrupt:
                 log.warning("Solver has been interrupted during compile time, unexpected behavior may occur.")
 
@@ -237,8 +193,8 @@ class SSACSolver(GillesPySolver):
                 detected_features.append(feature)
 
         if len(detected_features):
-                raise gillespyError.ModelError(
-                'Could not run Model.  SBML Feature: {} not supported by SSACSolver.'.format(detected_features))
+            raise gillespyError.ModelError('Could not run Model.  SBML Feature: {} not supported by SSACSolver.'
+                                           .format(detected_features))
 
         if self.__compiled:
             self.simulation_data = None
@@ -247,7 +203,8 @@ class SSACSolver(GillesPySolver):
 
             number_timesteps = int(round(t/increment + 1))
             # Execute simulation.
-            args = [os.path.join(self.output_directory, 'UserSimulation'), '-trajectories', str(number_of_trajectories), '-timesteps', str(number_timesteps), '-end', str(t)]
+            args = [os.path.join(self.output_directory, 'UserSimulation'), '-trajectories', str(number_of_trajectories),
+                    '-timesteps', str(number_timesteps), '-end', str(t)]
             if seed is not None:
                 if isinstance(seed, int):
                     args.append('-seed')
@@ -260,7 +217,7 @@ class SSACSolver(GillesPySolver):
                     else:
                         raise gillespyError.ModelError("seed must be a positive integer")
 
-            #begin subprocess c simulation with timeout (default timeout=0 will not timeout)
+            # begin subprocess c simulation with timeout (default timeout=0 will not timeout)
             with subprocess.Popen(args, stdout=subprocess.PIPE, preexec_fn=os.setsid) as simulation:
                 return_code = 0
                 try:
@@ -275,7 +232,7 @@ class SSACSolver(GillesPySolver):
                     pause = True
                     return_code = 33
                 except subprocess.TimeoutExpired:
-                        os.killpg(simulation.pid, signal.SIGINT) #send signal to the process group
+                        os.killpg(simulation.pid, signal.SIGINT)  # send signal to the process group
                         stdout, stderr = simulation.communicate()
                         pause = True
                         return_code = 33
@@ -283,8 +240,8 @@ class SSACSolver(GillesPySolver):
             # Parse/return results.
             if return_code in [0, 33]:
                 trajectory_base, timeStopped = cutils._parse_binary_output(stdout, number_of_trajectories,
-                                                                    number_timesteps,
-                                                                    len(model.listOfSpecies), pause=pause)
+                                                                           number_timesteps, len(model.listOfSpecies),
+                                                                           pause=pause)
                 if model.tspan[2] - model.tspan[1] == 1:
                     timeStopped = int(timeStopped)
 

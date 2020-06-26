@@ -1,5 +1,5 @@
 import unittest
-from gillespy2.solvers.utilities.utilities import dependency_grapher
+from gillespy2.solvers.utilities.solverutils import dependency_grapher
 from gillespy2.core import Reaction
 
 r1 = Reaction(name='r1', propensity_function="5*x^2+e*b+6")

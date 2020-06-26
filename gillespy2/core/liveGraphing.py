@@ -1,6 +1,7 @@
+import threading
 from gillespy2.core import log
 
-import threading
+
 class RepeatTimer(threading.Timer):
     """
     Threading timer which repeatedly calls the given function instead of simply ending
@@ -9,8 +10,10 @@ class RepeatTimer(threading.Timer):
         while not self.finished.wait(self.interval):
             self.function(*self.args, **self.kwargs)
 
+
 def display_types():
-    return ["graph","text","progress"]
+    return ["graph", "text", "progress"]
+
 
 def valid_graph_params(live_output_options):
     if 'interval' not in live_output_options:
@@ -34,13 +37,13 @@ def valid_graph_params(live_output_options):
         else:
             live_output_options['clear_output'] = False
 
+
 class LiveDisplayer():
     """
     holds information required for displaying information when live_output = True
     """
 
-    def __init__(self,model = None,timeline=None,number_of_trajectories=1,live_output_options = {} ):
-
+    def __init__(self, model=None, timeline=None, number_of_trajectories=1, live_output_options={}):
         self.display_type = live_output_options['type']
         self.display_interval = live_output_options['interval']
         self.model = model
@@ -49,18 +52,16 @@ class LiveDisplayer():
         self.x_shift = int(timeline[0])
         self.number_of_trajectories = number_of_trajectories
         self.clear_output = live_output_options['clear_output']
-
         species_mappings = model._listOfSpecies
         self.species = list(species_mappings.keys())
-
         self.number_species = len(self.species)
         self.current_trajectory = 1
         self.header_printed = False
 
     def trajectory_header(self):
-        return "Trajectory ("+ str(self.current_trajectory)+ "/"+ str(self.number_of_trajectories)+ ")"
+        return "Trajectory (" + str(self.current_trajectory) + "/" + str(self.number_of_trajectories) + ")"
 
-    def increment_trajectory(self,trajectory_num):
+    def increment_trajectory(self, trajectory_num):
         self.current_trajectory = trajectory_num + 1
         self.header_printed = False
 
@@ -86,7 +87,7 @@ class LiveDisplayer():
         curr_time = curr_time[0] + self.timeline[0]
         curr_state = curr_state[0]
 
-        #necessary for __f function in hybrid solver
+        # necessary for __f function in hybrid solver
         if 't' in curr_state:
             if curr_state['t'] > curr_time:
                 curr_time = curr_state['t']
@@ -96,7 +97,7 @@ class LiveDisplayer():
 
         try:
             if self.clear_output:
-                    clear_output(wait=True)
+                clear_output(wait=True)
 
             if self.display_type == "text":
 
@@ -128,8 +129,8 @@ class LiveDisplayer():
 
                 entry_count = floor(curr_time) - self.x_shift
 
-                # if self.clear_output:
-                #     clear_output(wait=True)
+                if self.clear_output:
+                     clear_output(wait=True)
 
                 plt.figure(figsize=(18, 10))
                 plt.xlim(right=self.timeline[-1])
@@ -137,17 +138,19 @@ class LiveDisplayer():
                 plt.title(self.trajectory_header())
 
                 for i in range(self.number_species):
-                    line_color = common_rgb_values()[(i) % len(common_rgb_values())]
+                    line_color = common_rgb_values()[i % len(common_rgb_values())]
 
                     plt.plot(trajectory_base[0][:, 0][:entry_count].tolist(),
                              trajectory_base[0][:, i + 1][:entry_count].tolist(), color=line_color,
                              label=self.species[i])
 
-                    plt.plot([entry_count - 1, curr_time - self.timeline[0]], [trajectory_base[0][:, i + 1][entry_count - 1],
-                                                            curr_state[self.species[i]]], linewidth=3,
-                             color=line_color)
+                    plt.plot([entry_count - 1, curr_time - self.timeline[0]], [trajectory_base[0][:, i + 1]
+                                                                               [entry_count - 1],
+                                                                               curr_state[self.species[i]]], linewidth=3
+                             , color=line_color)
 
                 plt.legend(loc='upper right')
                 plt.show()
         except:
+            print("EXCEPT!")
             log.warning("exception in liveGraphing.display. Variables may not have initialized properly before display was called.")

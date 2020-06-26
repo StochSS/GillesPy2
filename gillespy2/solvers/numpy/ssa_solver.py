@@ -1,11 +1,11 @@
 from threading import Thread, Event
-from gillespy2.core import GillesPySolver, Model, Reaction, log, gillespyError
-import gillespy2.solvers.utilities.utilities as utilities
+from gillespy2.core import GillesPySolver, log, gillespyError
 from gillespy2.solvers.utilities import solverutils as nputils
 import random
 import math
 import numpy as np
 np.set_printoptions(suppress=True)
+
 
 class NumPySSASolver(GillesPySolver):
     name = "NumPySSASolver"
@@ -28,8 +28,8 @@ class NumPySSASolver(GillesPySolver):
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'timeout')
 
     @classmethod
-    def run(self, model, t=20, number_of_trajectories=1, increment=0.05,
-                        seed=None, debug=False, show_labels=True, live_output = None,live_output_options = {},timeout=None, resume=None,**kwargs):
+    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True,
+            live_output=None, live_output_options={}, timeout=None, resume=None, **kwargs):
         """
         Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
         :param model: The model on which the solver will operate.
@@ -48,13 +48,14 @@ class NumPySSASolver(GillesPySolver):
         :return: a list of each trajectory simulated.
         """
 
-
         if isinstance(self, type):
             self = NumPySSASolver()
 
         self.stop_event = Event()
         self.pause_event = Event()
-        if timeout is not None and timeout <= 0: timeout = None
+
+        if timeout is not None and timeout <= 0:
+            timeout = None
 
         if len(kwargs) > 0:
             for key in kwargs:
@@ -79,65 +80,71 @@ class NumPySSASolver(GillesPySolver):
         curr_state = [None]
         live_grapher = [None]
 
-        sim_thread = Thread(target=self.___run, args=(model,curr_state,curr_time, timeline, trajectory_base,live_grapher,), kwargs={'t':t,
-                                        'number_of_trajectories':number_of_trajectories,
-                                        'increment':increment, 'seed':seed,
-                                        'debug':debug, 'show_labels':show_labels,
-                                        'timeout':timeout,'resume':resume,})
-
+        sim_thread = Thread(target=self.___run, args=(model, curr_state, curr_time, timeline, trajectory_base,
+                                                      live_grapher,), kwargs={'t': t, 'number_of_trajectories':
+                                                                              number_of_trajectories,
+                                                                              'increment': increment,
+                                                                              'seed': seed, 'debug': debug,
+                                                                              'show_labels': show_labels,
+                                                                              'timeout': timeout,
+                                                                              'resume': resume, })
         try:
             sim_thread.start()
-
             if live_output is not None:
-
                 import gillespy2.core.liveGraphing
                 live_output_options['type'] = live_output
                 gillespy2.core.liveGraphing.valid_graph_params(live_output_options)
-
                 if live_output_options['type'] == "graph":
                     for i, s in enumerate(list(model._listOfSpecies.keys())):
 
                         if model.listOfSpecies[s].mode is 'continuous':
-                            log.warning('display "\type\" = \"graph\" not recommended with continuous species. Try display \"type\" = \"text\" or \"progress\".')
+                            log.warning('display "\type\" = \"graph\" not recommended with continuous species. '
+                                        'Try display \"type\" = \"text\" or \"progress\".')
                             break
 
-                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer( model,
-                                                                            timeline, number_of_trajectories,live_output_options)
-                display_timer = gillespy2.core.liveGraphing.RepeatTimer(live_output_options['interval'], live_grapher[0].display,
-                                                                        args=(curr_state, curr_time, trajectory_base,))
+                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(model, timeline, number_of_trajectories,
+                                                                            live_output_options)
+                display_timer = gillespy2.core.liveGraphing.RepeatTimer(live_output_options['interval'],
+                                                                        live_grapher[0].display, args=(curr_state,
+                                                                                                       curr_time,
+                                                                                                       trajectory_base,)
+                                                                        )
                 display_timer.start()
-
             sim_thread.join(timeout=timeout)
-
             if live_grapher[0] is not None:
                 display_timer.cancel()
-
             self.stop_event.set()
-            while self.result is None: pass
+            while self.result is None:
+                pass
         except KeyboardInterrupt:
+            if live_output:
+                display_timer.cancel()
             self.pause_event.set()
-            while self.result is None: pass
+            while self.result is None:
+                pass
         if hasattr(self, 'has_raised_exception'):
             raise self.has_raised_exception
 
         return self.result, self.rc
 
-    def ___run(self, model,curr_state,curr_time, timeline, trajectory_base, live_grapher, t=20, number_of_trajectories=1, increment=0.05,
-                    seed=None, debug=False, show_labels=True,resume = None, timeout=None):
+    def ___run(self, model, curr_state, curr_time, timeline, trajectory_base, live_grapher, t=20,
+               number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True, resume=None,
+               timeout=None):
 
         try:
-            self.__run(model,curr_state,curr_time, timeline, trajectory_base, live_grapher, t, number_of_trajectories, increment, seed,
-                            debug, show_labels, resume,timeout)
+            self.__run(model, curr_state, curr_time, timeline, trajectory_base, live_grapher, t, number_of_trajectories,
+                       increment, seed, debug, show_labels, resume, timeout)
         except Exception as e:
             self.has_raised_exception = e
             self.result = []
             return [], -1
 
-    def __run(self, model,curr_state,curr_time, timeline, trajectory_base, live_grapher, t=20, number_of_trajectories=1, increment=0.05,
-                    seed=None, debug=False, show_labels=True,resume=None,  timeout=None):
+    def __run(self, model, curr_state, curr_time, timeline, trajectory_base, live_grapher, t=20,
+              number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True,
+              resume=None,  timeout=None):
 
-        #for use with resume, determines how much excess data to cut off due to
-        #how species and time are initialized to 0
+        # for use with resume, determines how much excess data to cut off due to
+        # how species and time are initialized to 0
         timeStopped = 0
 
         if resume is not None:
@@ -160,8 +167,8 @@ class NumPySSASolver(GillesPySolver):
         # create mapping of reaction dictionary to array indices
         reactions = list(model.listOfReactions.keys())
 
-        #Create mapping of reactions, and which reactions depend on their reactants/products
-        dependent_rxns = utilities.dependency_grapher(model, reactions)
+        # create mapping of reactions, and which reactions depend on their reactants/products
+        dependent_rxns = nputils.dependency_grapher(model, reactions)
         number_reactions = len(reactions)
         propensity_functions = {}
 
@@ -176,9 +183,12 @@ class NumPySSASolver(GillesPySolver):
                                         - model.listOfReactions[reaction].reactants.get(model.listOfSpecies[spec], 0)
                 if debug:
                     print('species_changes: {0},i={1}, j={2}... {3}'.format(species, i, j, species_changes[i][j]))
-            propensity_functions[reaction] = [eval('lambda S:' + model.listOfReactions[reaction].sanitized_propensity_function(species_mappings, parameter_mappings), parameters),i]
+            propensity_functions[reaction] = [eval('lambda S:' + model.listOfReactions[reaction].
+                                                   sanitized_propensity_function(species_mappings, parameter_mappings),
+                                                   parameters), i]
         if debug:
             print('propensity_functions', propensity_functions)
+
         # begin simulating each trajectory
         simulation_data = []
         for trajectory_num in range(number_of_trajectories):
@@ -282,7 +292,7 @@ class NumPySSASolver(GillesPySolver):
                 data[species[i]] = trajectory[:, i+1]
             simulation_data.append(data)
 
-        #If simulation has been paused, or tstopped !=0
+        # If simulation has been paused, or tstopped !=0
         if timeStopped != 0:
             simulation_data = nputils.numpy_resume(timeStopped, simulation_data, resume=resume)
 

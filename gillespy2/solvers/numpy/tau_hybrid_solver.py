@@ -637,8 +637,10 @@ class TauHybridSolver(GillesPySolver):
                 raise ModelError('seed must be a positive integer')
 
     def __set_recommended_ode_defaults(self, integrator_options):
-        '''Set some ODE solver defaults.  These values are chosen based on the
-        precision required to successfully complete the SBML Test suite. '''
+        '''
+        Set some ODE solver defaults.  These values are chosen based on the
+        precision required to successfully complete the SBML Test suite.
+        '''
 
         if 'rtol' not in integrator_options:
             integrator_options['rtol'] = 1e-9
@@ -730,7 +732,7 @@ class TauHybridSolver(GillesPySolver):
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, 
             debug=False, profile=False, tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
-            integrator_options={}, display_interval = 0, display_type =None, timeout=None, **kwargs):
+            integrator_options={}, live_output = None,live_output_options = {}, timeout=None, **kwargs):
         """
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
         objects and will inherit those parameters which are passed with the model as the arguments this run function.
@@ -770,6 +772,14 @@ class TauHybridSolver(GillesPySolver):
             rtol=1e-9 and atol=1e-12.  for a list of options,
             see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html.
             Example use: {max_step : 0, rtol : .01}
+        live_output : str
+                    The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+        live_output_options : dictionary
+            contains options for live_output. By default {"interval":1}.
+            "interval" specifies seconds between displaying.
+            "clear_output" specifies if display should be refreshed with each display
+
+
         """
 
         if isinstance(self, type):
@@ -850,20 +860,22 @@ class TauHybridSolver(GillesPySolver):
         try:
             sim_thread.start()
 
-            from gillespy2.core.liveGraphing import valid_graph_params
-            if valid_graph_params(display_type, display_interval):
-                import gillespy2.core.liveGraphing
+            if live_output is not None:
+                live_output_options['type'] = live_output
 
-                if display_type == "graph":
+                import gillespy2.core.liveGraphing
+                gillespy2.core.liveGraphing.valid_graph_params(live_output_options)
+
+                if live_output_options['type'] == "graph":
                     for i, s in enumerate(list(model._listOfSpecies.keys())):
 
                         if model.listOfSpecies[s].mode is 'continuous':
-                            log.warning('display_type = \"graph\" not recommended with continuous species. Try display_type = \"text\" or \"progress\".')
+                            log.warning('display "\type\" = \"graph\" not recommended with continuous species. Try display \"type\" = \"text\" or \"progress\".')
                             break
 
-                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(display_type, display_interval, model,
-                                                                            timeline.size, number_of_trajectories)
-                display_timer = gillespy2.core.liveGraphing.RepeatTimer(display_interval, live_grapher[0].display,
+                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer( model,
+                                                                            timeline, number_of_trajectories,live_output_options)
+                display_timer = gillespy2.core.liveGraphing.RepeatTimer(live_output_options['interval'], live_grapher[0].display,
                                                                         args=(curr_state, curr_time, trajectory_base,))
                 display_timer.start()
 
@@ -938,7 +950,6 @@ class TauHybridSolver(GillesPySolver):
                 dependencies[reaction] = set()
                 [dependencies[reaction].add(reactant.name) for reactant in model.listOfReactions[reaction].reactants]
                 [dependencies[reaction].add(product.name) for product in model.listOfReactions[reaction].products]
-
 
         # Main trajectory loop
         for trajectory_num in range(number_of_trajectories):

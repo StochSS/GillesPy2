@@ -1,7 +1,10 @@
-import os #for getting directories for C++ files
-import shutil #for deleting/copying files
+import os  # for getting directories for C++ files
+import shutil  # for deleting/copying files
+import ast  # for dependency graphing
+
 import numpy as np
-from gillespy2.core import log
+from gillespy2.core import log, Species
+
 
 """
 This file contains various functions used in the ssa_c_solver, variable_ssa_c_solver, and numpy solvers.
@@ -9,7 +12,9 @@ This file contains various functions used in the ssa_c_solver, variable_ssa_c_so
 
 C SOLVER FUNCTIONS BELOW
 """
-def find_time(array,value):
+
+
+def find_time(array, value):
     """
     Finds the index of the closest value in the array parameter, to the value parameter
     :param array: results['time'] array, input to find index of closest 'value' parameter
@@ -21,12 +26,14 @@ def find_time(array,value):
     index = np.searchsorted(array, value, side="left")
     return index
 
-def _copy_files(destination,GILLESPY_C_DIRECTORY):
+
+def _copy_files(destination, GILLESPY_C_DIRECTORY):
     src_files = os.listdir(GILLESPY_C_DIRECTORY)
     for src_file in src_files:
         src_file = os.path.join(GILLESPY_C_DIRECTORY, src_file)
         if os.path.isfile(src_file):
             shutil.copy(src_file, destination)
+
 
 def _write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
     """
@@ -43,23 +50,31 @@ def _write_propensity(outfile, model, species_mappings, parameter_mappings, reac
         outfile.write("""
         case {0}:
             return {1};
-        """.format(i, model.listOfReactions[reactions[i]].sanitized_propensity_function(species_mappings, parameter_mappings)))
+        """.format(i, model.listOfReactions[reactions[i]].sanitized_propensity_function(species_mappings,
+                                                                                        parameter_mappings)))
 
 
 def _write_reactions(outfile, model, reactions, species):
-    """
-    This function writes a models reactions to a cpp user simulation template, for the SSACSolvers.
-    :param outfile: Filename of the cpp user simulation
-    :param model: Model used to access species, reactions.
-    :param reactions: List of names of a models reactions
-    :param species: List of sanitized species names
-    """
+    customrxns = {}
     for i in range(len(reactions)):
         reaction = model.listOfReactions[reactions[i]]
+        if reaction.type == 'customized':
+            customrxns[i] = species_parse(model, reaction.propensity_function)
         for j in range(len(species)):
-            change = (reaction.products.get(model.listOfSpecies[species[j]], 0)) - (reaction.reactants.get(model.listOfSpecies[species[j]], 0))
+            change = (reaction.products.get(model.listOfSpecies[species[j]], 0)) - (reaction.reactants.get
+                                                                                    (model.listOfSpecies[species[j]], 0)
+                                                                                    )
             if change != 0:
                 outfile.write("model.reactions[{0}].species_change[{1}] = {2};\n".format(i, j, change))
+
+    for i in customrxns.keys():
+        for j in range(len(reactions)):
+            if i == j:
+                continue
+            if any(elem in customrxns[i] for elem in list(model.listOfReactions[reactions[j]].reactants)) or \
+                    any(elem in customrxns[i] for elem in list(model.listOfReactions[reactions[j]].products)):
+                outfile.write("model.reactions[{0}].affected_reactions.push_back({1});\n".format(i, j))
+
 
 def _parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species,pause=False):
     """
@@ -70,13 +85,15 @@ def _parse_binary_output(results_buffer, number_of_trajectories, number_timestep
     :param number_timesteps: How many steps for a given simulation
     :type number_timesteps: int
     :param number_species: Total number of species in a model
-    :param pause: Whether or not a model was paused, set to true when simulation was sent a KeyBoardInterrupt or timeout.
-    :return: Trajectories for a simulation, and time that simulation was stopped, if sent a keyboardinterrupt or timeout.
+    :param pause: Whether or not a model was paused, set to true when simulation was sent a KeyBoardInterrupt or
+    timeout.
+    :return: Trajectories for a simulation, and time that simulation was stopped, if sent a keyboardinterrupt or
+    timeout.
     """
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
-    step_size = number_species * number_of_trajectories + 1 #1 for timestep
+    step_size = number_species * number_of_trajectories + 1  #1 for timestep
     data = np.frombuffer(results_buffer, dtype=np.float64)
-    #Timestopped is added to the end of the data, when a simulation completes or is paused
+    # Timestopped is added to the end of the data, when a simulation completes or is paused
     if pause:
         timeStopped = data[-1]
     else:
@@ -91,6 +108,7 @@ def _parse_binary_output(results_buffer, number_of_trajectories, number_timestep
                 trajectory_base[trajectory, timestep, 1 + species] = data[index + species]
             index += number_species
     return trajectory_base, timeStopped
+
 
 def c_solver_resume(timeStopped, simulation_data, t, resume=None):
     """
@@ -132,13 +150,16 @@ def c_solver_resume(timeStopped, simulation_data, t, resume=None):
             oldData = resume[i]
             newData = simulation_data[0][i]
             simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
-        if len(simulation_data[0]['time']) != len(simulation_data[0][i]):
-            simulation_data[0]['time'] = simulation_data[0]['time'][:-1]
+            if len(simulation_data[0]['time']) != len(simulation_data[0][i]):
+                simulation_data[0]['time'] = simulation_data[0]['time'][:-1]
     return simulation_data
-"""
-NUMPY SOLVER UTILITIES BELOW
+
 
 """
+NUMPY SOLVER UTILITIES BELOW
+"""
+
+
 def numpy_initialization(model):
     species_mappings = model.sanitized_species_names()
     species = list(species_mappings.keys())
@@ -146,7 +167,8 @@ def numpy_initialization(model):
     number_species = len(species)
     return species_mappings, species, parameter_mappings, number_species
 
-def numpy_trajectory_base_initialization(model, number_of_trajectories, timeline, species, resume = None):
+
+def numpy_trajectory_base_initialization(model, number_of_trajectories, timeline, species, resume=None):
     trajectory_base = np.zeros((number_of_trajectories, timeline.size, len(species) + 1))
 
     # copy time values to all trajectory row starts
@@ -164,6 +186,7 @@ def numpy_trajectory_base_initialization(model, number_of_trajectories, timeline
             trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
 
     return trajectory_base, tmpSpecies
+
 
 def numpy_resume(timeStopped, simulation_data, resume=None):
     """
@@ -189,3 +212,76 @@ def numpy_resume(timeStopped, simulation_data, resume=None):
             simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
 
     return simulation_data
+
+
+"""
+Below are two functions used for creating dependency graphs in the C solvers, and Numpy Solvers.
+"""
+
+
+def species_parse(model, custom_prop_fun):
+    """
+    This function uses Pythons AST module to parse custom propensity function, looking for Species in a model
+    :param model: Model to be checked for species
+    :param custom_prop_fun: The custom propensity function to be parsed
+    :return: List of species objects that are found in a custom propensity function
+    """
+    parsed_species = []
+
+    class SpeciesParser(ast.NodeTransformer):
+        def visit_Name(self, node):
+            if isinstance(model.get_element(node.id), Species):
+                parsed_species.append(model.get_element(node.id))
+
+    expr = custom_prop_fun
+    expr = ast.parse(expr, mode='eval')
+    expr = SpeciesParser().visit(expr)
+    return parsed_species
+
+
+def dependency_grapher(model, reactions):
+    """
+    This function returns a dependency graph for a models reactions in the form of a
+    dictionary containing {species name: {'dependencies'}:[list of reaction names]}.
+    :param model: Model to used to create a reaction dependency graph
+    :param reactions: list(model.listOfReactions)
+    :return: Dependency graph dictionary
+    """
+    dependent_rxns = {}
+    for i in reactions:
+        cust_spec = []
+        if model.listOfReactions[i].type == 'customized':
+            cust_spec = (species_parse(model, model.listOfReactions[i].propensity_function))
+
+        for j in reactions:
+
+            if i not in dependent_rxns:
+                dependent_rxns[i] = {'dependencies': []}
+            if j not in dependent_rxns:
+                dependent_rxns[j] = {'dependencies': []}
+            if i == j:
+                continue
+
+            reactantsI = list(model.listOfReactions[i].reactants.keys())
+            reactantsJ = list(model.listOfReactions[j].reactants.keys())
+
+            if j not in dependent_rxns[i]['dependencies']:
+                if any(elem in reactantsI for elem in reactantsJ):
+                    if i not in dependent_rxns[j]['dependencies']:
+                        dependent_rxns[j]['dependencies'].append(i)
+                    dependent_rxns[i]['dependencies'].append(j)
+
+            if i not in dependent_rxns[j]['dependencies']:
+                if any(elem in list(model.listOfReactions[i].products.keys()) for elem in
+                       list(model.listOfReactions[j].reactants.keys())):
+                    dependent_rxns[j]['dependencies'].append(i)
+
+            if cust_spec:
+                if any(elem in cust_spec for elem in list(model.listOfReactions[j].reactants)) or any \
+                            (elem in cust_spec for elem in list(model.listOfReactions[j].products)):
+                    dependent_rxns[i]['dependencies'].append(j)
+
+    return dependent_rxns
+
+
+
