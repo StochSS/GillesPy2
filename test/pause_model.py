@@ -1,3 +1,5 @@
+import sys
+sys.path.append('..')
 from gillespy2.core import Model, Species, Reaction, Parameter
 import numpy as np
 from gillespy2 import NumPySSASolver

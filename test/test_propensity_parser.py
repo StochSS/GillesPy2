@@ -1,4 +1,5 @@
 import unittest
+from gillespy2.solvers.utilities.utilities import dependency_grapher
 from gillespy2.core import Reaction
 
 r1 = Reaction(name='r1', propensity_function="5*x^2+e*b+6")
@@ -33,3 +34,17 @@ class TestPropensityFunctions(unittest.TestCase):
 
         self.assertEqual(r9.propensity_function,"((-5)*(-pow(x,2)))",msg="Has incorrect expression")
         self.assertEqual(r10.propensity_function,"((-5)*(-pow(x,2)))",msg="Has incorrect expression")
+
+    def test_dependency_graphing(self):
+        from example_models import ToggleSwitch, MichaelisMenten
+        model = ToggleSwitch()
+        dependencies = dependency_grapher(model,list(model.listOfReactions.keys()))
+        correct_graph = {'cu': {'dependencies': ['cv', 'dv']}, 'cv': {'dependencies': ['cu', 'du']},
+                         'du': {'dependencies': ['cu']}, 'dv': {'dependencies': ['cv']}}
+        self.assertEqual(correct_graph,dependencies)
+
+        model = MichaelisMenten()
+        dependencies = dependency_grapher(model, list(model.listOfReactions.keys()))
+        correct_graph = {'r1': {'dependencies': ['r2', 'r3']}, 'r2': {'dependencies': ['r1', 'r3']},
+                         'r3': {'dependencies': ['r1', 'r2']}}
+        self.assertEqual(correct_graph,dependencies)

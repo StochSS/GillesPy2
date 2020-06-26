@@ -1,5 +1,6 @@
 from threading import Thread, Event
 from gillespy2.core import GillesPySolver, Model, Reaction, log, gillespyError
+import gillespy2.solvers.utilities.utilities as utilities
 from gillespy2.solvers.utilities import solverutils as nputils
 import random
 import math
@@ -28,8 +29,7 @@ class NumPySSASolver(GillesPySolver):
 
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05,
-                        seed=None, debug=False, show_labels=True, display_interval = 0,
-            display_type =None,timeout=None, resume=None,**kwargs):
+                        seed=None, debug=False, show_labels=True, live_output = None,live_output_options = {},timeout=None, resume=None,**kwargs):
         """
         Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
         :param model: The model on which the solver will operate.
@@ -41,6 +41,10 @@ class NumPySSASolver(GillesPySolver):
         :param debug: Set to True to provide additional debug information about the
         simulation.
         :param resume: Result of a previously run simulation, to be resumed
+        :param live_output : str The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+        :param live_output_options : dictionary contains options for live_output. By default {"interval":1}.
+                    "interval" specifies seconds between displaying.
+                    "clear_output" specifies if display should be refreshed with each display
         :return: a list of each trajectory simulated.
         """
 
@@ -84,12 +88,22 @@ class NumPySSASolver(GillesPySolver):
         try:
             sim_thread.start()
 
-            from gillespy2.core.liveGraphing import valid_graph_params
-            if valid_graph_params(display_type, display_interval):
+            if live_output is not None:
+
                 import gillespy2.core.liveGraphing
-                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(display_type, display_interval, model,
-                                                                            timeline.size, number_of_trajectories)
-                display_timer = gillespy2.core.liveGraphing.RepeatTimer(display_interval, live_grapher[0].display,
+                live_output_options['type'] = live_output
+                gillespy2.core.liveGraphing.valid_graph_params(live_output_options)
+
+                if live_output_options['type'] == "graph":
+                    for i, s in enumerate(list(model._listOfSpecies.keys())):
+
+                        if model.listOfSpecies[s].mode is 'continuous':
+                            log.warning('display "\type\" = \"graph\" not recommended with continuous species. Try display \"type\" = \"text\" or \"progress\".')
+                            break
+
+                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer( model,
+                                                                            timeline, number_of_trajectories,live_output_options)
+                display_timer = gillespy2.core.liveGraphing.RepeatTimer(live_output_options['interval'], live_grapher[0].display,
                                                                         args=(curr_state, curr_time, trajectory_base,))
                 display_timer.start()
 
@@ -145,10 +159,15 @@ class NumPySSASolver(GillesPySolver):
 
         # create mapping of reaction dictionary to array indices
         reactions = list(model.listOfReactions.keys())
+
+        #Create mapping of reactions, and which reactions depend on their reactants/products
+        dependent_rxns = utilities.dependency_grapher(model, reactions)
         number_reactions = len(reactions)
-        propensity_functions = []
+        propensity_functions = {}
+
         # create an array mapping reactions to species modified
         species_changes = np.zeros((number_reactions, number_species))
+
         # pre-evaluate propensity equations from strings:
         for i, reaction in enumerate(reactions):
             # replace all references to species with array indices
@@ -157,9 +176,7 @@ class NumPySSASolver(GillesPySolver):
                                         - model.listOfReactions[reaction].reactants.get(model.listOfSpecies[spec], 0)
                 if debug:
                     print('species_changes: {0},i={1}, j={2}... {3}'.format(species, i, j, species_changes[i][j]))
-            propensity_functions.append(eval('lambda S:' +
-                                             model.listOfReactions[reaction].sanitized_propensity_function(
-                                                 species_mappings, parameter_mappings), parameters))
+            propensity_functions[reaction] = [eval('lambda S:' + model.listOfReactions[reaction].sanitized_propensity_function(species_mappings, parameter_mappings), parameters),i]
         if debug:
             print('propensity_functions', propensity_functions)
         # begin simulating each trajectory
@@ -200,7 +217,8 @@ class NumPySSASolver(GillesPySolver):
                 species_states = list(curr_state[0].values())
 
                 for i in range(number_reactions):
-                    propensity_sums[i] = propensity_functions[i](species_states)
+                    propensity_sums[i] = propensity_functions[reactions[i]][0](species_states)
+
                     if debug:
                         print('propensity: ', propensity_sums[i])
 
@@ -221,7 +239,7 @@ class NumPySSASolver(GillesPySolver):
                     print('curr_time: ', curr_time[0])
                 # determine time passed in this reaction
 
-                while entry_count < timeline.size and timeline[entry_count] <= curr_time[0]:
+                while entry_count < timeline.size and timeline[entry_count] <= curr_time[0] + timeline[0]:
                     if self.stop_event.is_set():
                         self.rc = 33
                         break
@@ -242,15 +260,18 @@ class NumPySSASolver(GillesPySolver):
                         for i,spec in enumerate(model.listOfSpecies):
                             curr_state[0][spec] += species_changes[potential_reaction][i]
 
+                        reacName = reactions[potential_reaction]
+
+
                         if debug:
                             print('current state: ', curr_state[0])
                             print('species_changes: ', species_changes)
                             print('updating: ', potential_reaction)
-                        # recompute propensities as needed
 
                         species_states = list(curr_state[0].values())
-                        for i in range(number_reactions):
-                            propensity_sums[i] = propensity_functions[i](species_states)
+                        for i in dependent_rxns[reacName]['dependencies']:
+                            propensity_sums[propensity_functions[i][1]] = propensity_functions[i][0](species_states)
+
                             if debug:
                                 print('new propensity sum: ', propensity_sums[i])
                         break
