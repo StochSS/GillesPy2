@@ -234,7 +234,6 @@ class Event:
                     'or list of EventAssignment objects.')
         else:
             raise ModelError("Unexpected parameter for add_assignment. Parameter must be EventAssignment or list of EventAssignments")
-        return obj
 
 
 
