@@ -267,8 +267,8 @@ class VariableSSACSolver(GillesPySolver):
                     else:
                         raise gillespyError.ModelError("seed must be a positive integer")
 
-            #begin subprocess c simulation with timeout (default timeout=0 will not timeout)
-            with subprocess.Popen(args, stdout=subprocess.PIPE, preexec_fn=os.setsid) as simulation:
+            # begin subprocess c simulation with timeout (default timeout=0 will not timeout)
+            with subprocess.Popen(args, stdout=subprocess.PIPE, start_new_session=True) as simulation:
                 try:
                     if timeout > 0:
                         stdout, stderr = simulation.communicate(timeout=timeout)
