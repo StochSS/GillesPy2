@@ -206,7 +206,10 @@ class Event:
         if len(self.assignments):
             print_string += '\n\tAssignments:'
             for a in self.assignments:
-                print_string += '\n\t\t' + a.variable.name + ': ' + a.expression
+                if isinstance(a.variable, str):
+                    print_string += '\n\t\t' + a.variable + ': ' + a.expression
+                else:
+                    print_string += '\n\t\t' + a.variable.name + ': ' + a.expression
         return print_string
 
     def add_assignment(self, assignment):
@@ -231,7 +234,6 @@ class Event:
                     'or list of EventAssignment objects.')
         else:
             raise ModelError("Unexpected parameter for add_assignment. Parameter must be EventAssignment or list of EventAssignments")
-        return obj
 
 
 
