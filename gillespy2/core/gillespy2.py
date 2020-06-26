@@ -416,7 +416,7 @@ class Model(SortableObject):
         self._listOfParameters.clear()
 
     def validate_reactants_and_products(self, reactions):
-        for reactant in reactions.reactants.keys():
+        for reactant in list(reactions.reactants.keys()):
             if isinstance(reactant, str):
                 if reactant not in self.listOfSpecies.keys():
                     raise ModelError(
@@ -424,7 +424,7 @@ class Model(SortableObject):
                                                                                                     reactions.name))
                 reactions.reactants[self.listOfSpecies[reactant]] = reactions.reactants[reactant]
                 del reactions.reactants[reactant]
-        for product in reactions.products.keys():
+        for product in list(reactions.products.keys()):
             if isinstance(product, str):
                 if product not in self.listOfSpecies.keys():
                     raise ModelError('product: {0} for reaction {1} -- not found in model.listOfSpecies'.format(product,
