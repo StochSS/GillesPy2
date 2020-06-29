@@ -416,7 +416,7 @@ class Model(SortableObject):
         self._listOfParameters.clear()
 
     def validate_reactants_and_products(self, reactions):
-        for reactant in reactions.reactants.keys():
+        for reactant in list(reactions.reactants.keys()):
             if isinstance(reactant, str):
                 if reactant not in self.listOfSpecies.keys():
                     raise ModelError(
@@ -424,7 +424,7 @@ class Model(SortableObject):
                                                                                                     reactions.name))
                 reactions.reactants[self.listOfSpecies[reactant]] = reactions.reactants[reactant]
                 del reactions.reactants[reactant]
-        for product in reactions.products.keys():
+        for product in list(reactions.products.keys()):
             if isinstance(product, str):
                 if product not in self.listOfSpecies.keys():
                     raise ModelError('product: {0} for reaction {1} -- not found in model.listOfSpecies'.format(product,
@@ -528,10 +528,7 @@ class Model(SortableObject):
                         'An Event must contain a valid trigger.')
                 for a in event.assignments:
                     if isinstance(a.variable, str):
-                        if a.variable in self.listOfSpecies:
-                            a.variable = self.listOfSpecies[a.variable]
-                        else:
-                            raise ModelError('{0} not a valid Species'.format(a.variable))
+                        a.variable = self.get_element(a.variable)
                 self.listOfEvents[event.name] = event
             except Exception as e:
                 raise ParameterError("Error using {} as Event. Reason given: {}".format(event, e))
