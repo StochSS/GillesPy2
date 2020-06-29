@@ -1,7 +1,6 @@
 import os  # for getting directories for C++ files
 import shutil  # for deleting/copying files
 import ast  # for dependency graphing
-
 import numpy as np
 from gillespy2.core import log, Species
 
@@ -76,7 +75,7 @@ def _write_reactions(outfile, model, reactions, species):
                 outfile.write("model.reactions[{0}].affected_reactions.push_back({1});\n".format(i, j))
 
 
-def _parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species,pause=False):
+def _parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species, pause=False):
     """
     This function reads binary output from a CPP simulation
     :param results_buffer: stdout of the CPP simulation ran

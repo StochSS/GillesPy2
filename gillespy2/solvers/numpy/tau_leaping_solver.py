@@ -189,14 +189,13 @@ class TauLeapingSolver(GillesPySolver):
                timeout=None, resume=None, tau_tol=0.03, **kwargs):
 
         try:
-            self.__run(model, curr_state,curr_time, timeline, trajectory_base, live_grapher, t, number_of_trajectories, increment, seed,
-                        debug, profile,timeout,resume, tau_tol, **kwargs)
+            self.__run(model, curr_state, curr_time, timeline, trajectory_base, live_grapher, t, number_of_trajectories,
+                       increment, seed, debug, profile, timeout, resume, tau_tol, **kwargs)
 
         except Exception as e:
             self.has_raised_exception = e
             self.result = []
             return [], -1
-
 
     def __run(self, model, curr_state, curr_time, timeline, trajectory_base, live_grapher, t=20,
               number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, timeout=None,
@@ -303,7 +302,7 @@ class TauLeapingSolver(GillesPySolver):
                         propensity_sum += propensities[r]
 
                     tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
-                            model, propensities, curr_state[0], curr_time[0], save_time]
+                                model, propensities, curr_state[0], curr_time[0], save_time]
 
                     tau_step = Tau.select(*tau_args)
 
@@ -375,7 +374,6 @@ class TauLeapingSolver(GillesPySolver):
         # If simulation has been paused, or tstopped !=0
         if timeStopped != 0:
             simulation_data = nputils.numpy_resume(timeStopped, simulation_data, resume=resume)
-
 
         self.result = simulation_data
         return self.result, self.rc
