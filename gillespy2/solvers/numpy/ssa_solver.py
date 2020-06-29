@@ -131,6 +131,8 @@ class NumPySSASolver(GillesPySolver):
             self.stop_event.set()
             while self.result is None: pass
         except KeyboardInterrupt:
+            if live_grapher[0] is not None:
+                display_timer.cancel()
             self.pause_event.set()
             while self.result is None: pass
         if hasattr(self, 'has_raised_exception'):
