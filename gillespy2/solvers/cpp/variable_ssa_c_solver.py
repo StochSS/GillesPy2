@@ -28,12 +28,12 @@ def _write_variables(outfile, model, reactions, species, parameters, parameter_m
     outfile.write("double V = {};\n".format(model.volume))
     outfile.write("std :: string s_names[] = {");
     if len(species) > 0:
-        #Write model species names.
+        # Write model species names.
         for i in range(len(species)-1):
             outfile.write('"{}", '.format(species[i]))
         outfile.write('"{}"'.format(species[-1]))
         outfile.write("};\nunsigned int populations[] = {")
-        #Write initial populations.
+        # Write initial populations.
         for i in range(len(species) - 1):
             # If resuming
             if not (resume is None):
@@ -52,7 +52,7 @@ def _write_variables(outfile, model, reactions, species, parameters, parameter_m
             outfile.write('{}'.format(int(model.listOfSpecies[species[-1]].initial_value)))
         outfile.write("};\n")
     if len(reactions) > 0:
-        #Write reaction names
+        # Write reaction names
         outfile.write("std :: string r_names[] = {")
         for i in range(len(reactions)-1):
             outfile.write('"{}", '.format(reactions[i]))

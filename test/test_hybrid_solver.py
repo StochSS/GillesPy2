@@ -54,11 +54,41 @@ class TestBasicTauHybridSolver(unittest.TestCase):
 
     def test_add_event(self):
         model = Example()
-        eventTrig = gillespy2.EventTrigger(expression='Sp+1', initial_value=True, )
+        model.listOfSpecies['Sp'].mode = 'continuous'
+        eventTrig = gillespy2.EventTrigger(expression='Sp <= 90', initial_value=True, )
         event1 = gillespy2.Event(name='event1', trigger=eventTrig)
+        ea1 = gillespy2.EventAssignment(variable='Sp', expression='1000')
+        ea2 = gillespy2.EventAssignment(variable='k1', expression='0')
+        event1.add_assignment([ea1, ea2])
         model.add_event(event1)
         results = model.run()
         self.assertEqual(results[0].solver_name,'TauHybridSolver')
+        self.assertEqual(results['Sp'][-1], 1000)
+
+    def test_add_param_event(self):
+        class EventTestModel(gillespy2.Model):
+            def __init__(self):
+                gillespy2.Model.__init__(self, name='Event Test Model')
+                self.add_species([gillespy2.Species(name='S', initial_value=0)])
+                self.add_parameter(gillespy2.Parameter(name='event_tracker',
+                                                        expression=99))
+                self.add_parameter(gillespy2.Parameter(name='event_tracker2',
+                                                        expression=0))
+                self.add_reaction(gillespy2.Reaction(name='r1', products={'S':1},
+                                                    rate=self.listOfParameters['event_tracker2']))
+                eventTrig1 = gillespy2.EventTrigger(expression='t>=2')
+                event1 = gillespy2.Event(name='event1', trigger=eventTrig1)
+                event1.add_assignment(gillespy2.EventAssignment(
+                                        variable='event_tracker', expression='t'))
+                eventTrig2 = gillespy2.EventTrigger(expression='t >= event_tracker + 2')
+                event2 = gillespy2.Event(name='event2', trigger=eventTrig2)
+                event2.add_assignment(gillespy2.EventAssignment(
+                                        variable='event_tracker2', expression='t'))
+                self.add_event([event1, event2])
+
+        model = EventTestModel()
+        results = model.run()
+        self.assertGreater(results['S'][-1], 0)
 
     def test_math_name_overlap(self):
         model = Example()
@@ -79,14 +109,14 @@ class TestBasicTauHybridSolver(unittest.TestCase):
 
     def test_ensure_hybrid_dynamic_species(self):
         model = Example()
-        species1 = gillespy2.Species('test_species1',initial_value=1,mode='dynamic')
+        species1 = gillespy2.Species('test_species1', initial_value=1,mode='dynamic')
         model.add_species(species1)
         results = model.run()
         self.assertEqual(results[0].solver_name, 'TauHybridSolver')
 
     def test_ensure_hybrid_continuous_species(self):
         model = Example()
-        species1 = gillespy2.Species('test_species1',initial_value=1,mode='continuous')
+        species1 = gillespy2.Species('test_species1', initial_value=1,mode='continuous')
         model.add_species(species1)
         results = model.run()
         self.assertEqual(results[0].solver_name, 'TauHybridSolver')

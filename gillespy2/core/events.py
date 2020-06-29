@@ -151,8 +151,8 @@ class Event:
             self._hash = hash(self)
         return self._hash
 
-    def __init__(self, name="", delay = None, assignments = [], priority="0",
-        trigger = None, use_values_from_trigger_time = False):
+    def __init__(self, name="", delay=None, assignments=[], priority="0", trigger=None,
+                 use_values_from_trigger_time=False):
 
         # Events can contain any number of assignments
         self.assignments = []
@@ -208,7 +208,10 @@ class Event:
         if len(self.assignments):
             print_string += '\n\tAssignments:'
             for a in self.assignments:
-                print_string += '\n\t\t' + a.variable.name + ': ' + a.expression
+                if isinstance(a.variable, str):
+                    print_string += '\n\t\t' + a.variable + ': ' + a.expression
+                else:
+                    print_string += '\n\t\t' + a.variable.name + ': ' + a.expression
         return print_string
 
     def add_assignment(self, assignment):
