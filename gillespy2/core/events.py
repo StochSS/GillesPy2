@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from gillespy2.core.gillespyError import *
 
+
 class EventAssignment:
     """
     An EventAssignment describes a change to be performed to the current model
@@ -42,6 +43,7 @@ class EventAssignment:
             raise EventError(
                              'GillesPy2 Event Assignment expression requires a '
                              'valid string expression')
+
     def __str__(self):
         return self.variable.name + ': ' + self.expression
 
@@ -84,13 +86,15 @@ class EventTrigger:
     def __str__(self):
         return self.expression
     def sanitized_expression(self, species_mappings, parameter_mappings):
-        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
+                       reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
         sanitized_expression = self.expression
         for id, name in enumerate(names):
             sanitized_expression = sanitized_expression.replace(name, "{"+str(id)+"}")
         return sanitized_expression.format(*replacements)
+
 
 class Event:
 
@@ -123,7 +127,7 @@ class Event:
     :type use_values_from_trigger_time: bool
     """
     def __eq__(self, other):
-        return str(self)==str(other)
+        return str(self) == str(other)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -187,8 +191,7 @@ class Event:
                 if hasattr(assign, 'variable'):
                     self.assignments.append(assign)
                 else:
-                    raise EventError('assignment list contains an item '
-                        'is not an EventAssignment.')
+                    raise EventError('assignment list contains an item is not an EventAssignment.')
         elif hasattr(assignments, 'variable'):
             self.assignments.append(assignments)
         else:
@@ -217,7 +220,6 @@ class Event:
     def add_assignment(self, assignment):
         """
         Adds an eventAssignment or a list of eventAssignments.
-
         :param assignment: EventAssignment or a list of EventAssignments
         The event or list of events to be added to this event.
         :type assignment: EventAssignment or list of EventAssignments
@@ -229,11 +231,11 @@ class Event:
                 if hasattr(assign, 'variable'):
                     self.assignments.append(assign)
                 else:
-                    raise EventError('add_assignment failed to add EventAssignment. '
-                    'Assignment to be added must be of type EventAssignment '
-                    'or list of EventAssignment objects.')
+                    raise EventError('add_assignment failed to add EventAssignment. Assignment to be added must be of '
+                                     'type EventAssignment or list of EventAssignment objects.')
         else:
-            raise ModelError("Unexpected parameter for add_assignment. Parameter must be EventAssignment or list of EventAssignments")
+            raise ModelError("Unexpected parameter for add_assignment. Parameter must be EventAssignment or list of "
+                             "EventAssignments")
         return assignment
 
 

@@ -1,18 +1,11 @@
-from gillespy2.core.sortableobject import SortableObject
-from gillespy2.core.gillespyError import *
 from gillespy2.core.reaction import *
 from gillespy2.core.raterule import RateRule
-from gillespy2.core.results import Trajectory, Results
 from gillespy2.core.parameter import Parameter
 from gillespy2.core.species import Species
 from gillespy2.core.reaction import Reaction
-from gillespy2.core.gillespyError import StochMLImportError, InvalidStochMLError
-from collections import OrderedDict
 import numpy as np
-
 from gillespy2.core.results import Trajectory,Results
 from gillespy2.core.events import *
-from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import *
 
 try:
@@ -25,6 +18,7 @@ except:
     import xml.dom.minidom
     import re
     no_pretty_print = True
+
 
 def import_SBML(filename, name=None, gillespy_model=None):
     """
@@ -48,6 +42,7 @@ def import_SBML(filename, name=None, gillespy_model=None):
         raise ImportError('SBML conversion not imported successfully')
 
     return convert(filename, model_name=name, gillespy_model=gillespy_model)
+
 
 class Model(SortableObject):
     # reserved names for model species/parameter names, volume, and operators.
@@ -309,8 +304,8 @@ class Model(SortableObject):
         """
         Adds a parameter, or list of parameters to the model.
 
-        :param obj:  The parameter or list of parameters to be added to the model object.
-        :type obj: Parameter, or list of parameters
+        :param params:  The parameter or list of parameters to be added to the model object.
+        :type params: Parameter, or list of parameters
         """
         if isinstance(params, list):
             for p in sorted(params):
@@ -338,7 +333,7 @@ class Model(SortableObject):
 
     def set_parameter(self, p_name, expression):
         """
-        Set the value of an existing paramter "pname" to "expression".
+        Set the value of an existing parameter "pname" to "expression".
 
         :param p_name: Name of the parameter whose value will be set.
         :type p_name: str
@@ -355,7 +350,8 @@ class Model(SortableObject):
     def resolve_parameters(self):
         """ Internal function:
         attempt to resolve all parameter expressions to scalar floats.
-        This methods must be called before exporting the model. """
+        This methods must be called before exporting the model.
+        """
         self.update_namespace()
         for param in self.listOfParameters:
             try:
@@ -389,9 +385,9 @@ class Model(SortableObject):
         """
         Adds a reaction, or list of reactions to the model.
 
-        :param obj: The reaction or list of reaction objects to be added to the model
+        :param reactions: The reaction or list of reaction objects to be added to the model
         object.
-        :type obj: Reaction, or list of Reactions
+        :type reactions: Reaction, or list of Reactions
         """
 
         # TODO, make sure that you cannot overwrite an existing reaction
@@ -422,8 +418,8 @@ class Model(SortableObject):
         """
         Adds a rate rule, or list of rate rules to the model.
 
-        :param obj: The rate rule or list of rate rule objects to be added to the model object.
-        :type obj: RateRule, or list of RateRules
+        :param rate_rules: The rate rule or list of rate rule objects to be added to the model object.
+        :type rate_rules: RateRule, or list of RateRules
         """
         if isinstance(rate_rules, list):
             for rr in sorted(rate_rules):
@@ -530,9 +526,9 @@ class Model(SortableObject):
         Set the time span of simulation. StochKit does not support non-uniform
         timespans.
 
-        :param tspan: Evenly-spaced list of times at which to sample the species
+        :param time_span: Evenly-spaced list of times at which to sample the species
         populations during the simulation.
-        :type tspan: numpy ndarray
+        :type time_span: numpy ndarray
         """
 
         items = np.diff(time_span)

@@ -1,7 +1,7 @@
 import unittest
 import os
 import tempfile
-from gillespy2.core import Model, Species, Reaction, Parameter
+from gillespy2.core import Model
 from gillespy2.core.results import Results, Trajectory
 
 class TestResults(unittest.TestCase):

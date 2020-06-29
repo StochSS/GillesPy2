@@ -17,7 +17,6 @@ if __name__ == '__main__':
         print('Running tests in develop mode. Appending repository directory to system path.')
         sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-
     import test_empty_model
     import test_model
     import test_ode_solver

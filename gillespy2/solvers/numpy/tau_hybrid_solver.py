@@ -478,6 +478,7 @@ class TauHybridSolver(GillesPySolver):
         next_step, curr_time = self.__get_next_step(event_times, reaction_times,
                                                     delayed_events,
                                                     model.tspan[-1], next_tau)
+        curr_state['t'] = curr_time
 
         # Update states of all species based on changes made to species through
         # ODE processes.  This will update all species whose mode is set to
@@ -799,11 +800,11 @@ class TauHybridSolver(GillesPySolver):
             for i, s in enumerate(list(model._listOfSpecies.keys())):
                 # Solve_ivp doesn't return any results until it's finished solving so timing out early only slows
                 # the solver.
-                if model.listOfSpecies[s].mode is 'continuous':
+                if model.listOfSpecies[s].mode == 'continuous':
                     timeout = 0
                     log.warning('timeouts not supported by continuous species.')
                     break
-                elif model.listOfSpecies[s].mode is 'dynamic':
+                elif model.listOfSpecies[s].mode == 'dynamic':
                     log.warning('timeouts not fully supported by dynamic species. If timeout is triggered during'
                                 ' integration, total solve time could be longer than expected.')
                     break
@@ -880,9 +881,9 @@ class TauHybridSolver(GillesPySolver):
                 if live_output_options['type'] == "graph":
                     for i, s in enumerate(list(model._listOfSpecies.keys())):
 
-                        if model.listOfSpecies[s].mode is 'continuous':
-                            log.warning(
-                                'display "\type\" = \"graph\" not recommended with continuous species. Try display \"type\" = \"text\" or \"progress\".')
+                        if model.listOfSpecies[s].mode == 'continuous':
+                            log.warning('display "\type\" = \"graph\" not recommended with continuous species. '
+                                        'Try display \"type\" = \"text\" or \"progress\".')
                             break
 
                 live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(model,

@@ -7,8 +7,8 @@ from gillespy2.core import results
 class TestBasicTauLeapingSolver(unittest.TestCase):
 
     model = Example()
-    results = model.run(solver=TauLeapingSolver, show_labels=False,number_of_trajectories=1)
-    labels_results = model.run(solver=TauLeapingSolver, show_labels=True,number_of_trajectories=1)
+    results = model.run(solver=TauLeapingSolver, show_labels=False, number_of_trajectories=1)
+    labels_results = model.run(solver=TauLeapingSolver, show_labels=True, number_of_trajectories=1)
 
     def test_return_type(self):
         assert(isinstance(self.results, np.ndarray))

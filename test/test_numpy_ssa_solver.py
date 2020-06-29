@@ -1,5 +1,4 @@
 import unittest
-import numpy as np
 from example_models import Example
 from gillespy2 import NumPySSASolver
 

@@ -14,8 +14,7 @@ from gillespy2 import TauHybridSolver
 
 class TestAllSolvers(unittest.TestCase):
 
-    solvers = [SSACSolver, VariableSSACSolver, ODESolver,
-                NumPySSASolver, TauLeapingSolver, TauHybridSolver]
+    solvers = [SSACSolver, VariableSSACSolver, ODESolver, NumPySSASolver, TauLeapingSolver, TauHybridSolver]
 
     model = Example()
     for sp in model.listOfSpecies.values():
