@@ -39,11 +39,12 @@ class LiveDisplayer():
     holds information required for displaying information when live_output = True
     """
 
-    def __init__(self,model = None,timeline=None,number_of_trajectories=1,live_output_options = {} ):
+    def __init__(self,model = None,timeline=None,number_of_trajectories=1,live_output_options = {},resume=False):
 
         self.display_type = live_output_options['type']
         self.display_interval = live_output_options['interval']
         self.model = model
+        self.resume = resume
         self.timeline = timeline
         self.timeline_len = timeline.size
         self.x_shift = int(timeline[0])
@@ -82,8 +83,7 @@ class LiveDisplayer():
 
         from IPython.display import clear_output
         from math import floor
-
-        curr_time = curr_time[0] + self.timeline[0]
+        curr_time = curr_time[0]
         curr_state = curr_state[0]
 
         #necessary for __f function in hybrid solver
@@ -113,8 +113,11 @@ class LiveDisplayer():
 
                 if self.number_of_trajectories > 1:
                     print(self.trajectory_header())
-
-                print("progress =", round((curr_time / (self.timeline_len + self.x_shift)) * 100, 2), "%\n")
+                if self.resume is True:
+                    print("progress =", round(((curr_time-self.x_shift)/(self.timeline_len))*100, 2), "%\n"
+                          )
+                else:
+                    print("progress =", round((curr_time / (self.timeline_len + self.x_shift)) * 100, 2), "%\n")
 
             elif self.display_type == "graph":
 

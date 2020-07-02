@@ -91,7 +91,10 @@ class NumPySSASolver(GillesPySolver):
                 trajectory_base[:, 0, i + 1] = model.listOfSpecies[s].initial_value
 
         # curr_time and curr_state are list of len 1 so that __run receives reference
-        curr_time = [0]  # Current Simulation Time
+        if resume is not None:
+            curr_time = [resume['time'][-1]]
+        else:
+            curr_time = [0]
         curr_state = [None]
         live_grapher = [None]
 
@@ -116,9 +119,12 @@ class NumPySSASolver(GillesPySolver):
                         if model.listOfSpecies[s].mode is 'continuous':
                             log.warning('display "\type\" = \"graph\" not recommended with continuous species. Try display \"type\" = \"text\" or \"progress\".')
                             break
-
+                if resume is not None:
+                    resumeTest = True  # If resuming, relay this information to live_grapher
+                else:
+                    resumeTest = False
                 live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer( model,
-                                                                            timeline, number_of_trajectories,live_output_options)
+                                                                            timeline, number_of_trajectories,live_output_options,resume = resumeTest)
                 display_timer = gillespy2.core.liveGraphing.RepeatTimer(live_output_options['interval'], live_grapher[0].display,
                                                                         args=(curr_state, curr_time, trajectory_base,))
                 display_timer.start()
@@ -217,12 +223,13 @@ class NumPySSASolver(GillesPySolver):
             # copy initial state data
             trajectory = trajectory_base[trajectory_num]
             entry_count = 1
-            curr_time[0] = 0
             curr_state[0] = {}
 
             for spec in model.listOfSpecies:
-                # initialize populations
-                curr_state[0][spec] = model.listOfSpecies[spec].initial_value
+                if resume is not None:
+                    curr_state[0][spec] = resume[spec][-1]
+                else:
+                    curr_state[0][spec] = model.listOfSpecies[spec].initial_value
 
             propensity_sums = np.zeros(number_reactions)
             # calculate initial propensity sums
@@ -261,16 +268,14 @@ class NumPySSASolver(GillesPySolver):
                     print('curr_time: ', curr_time[0])
                 # determine time passed in this reaction
 
-                while entry_count < timeline.size and timeline[entry_count] <= curr_time[0] + timeline[0]:
+                while entry_count < timeline.size and timeline[entry_count] <= curr_time[0]:
                     if self.stop_event.is_set():
                         self.rc = 33
                         break
                     elif self.pause_event.is_set():
                         timeStopped = timeline[entry_count]
                         break
-
                     trajectory[entry_count, 1:] = species_states
-
                     entry_count += 1
 
                 for potential_reaction in range(number_reactions):
@@ -278,12 +283,10 @@ class NumPySSASolver(GillesPySolver):
                     if debug:
                         print('if <=0, fire: ', cumulative_sum)
                     if cumulative_sum <= 0:
-                        for i,spec in enumerate(model.listOfSpecies):
+                        for i, spec in enumerate(model.listOfSpecies):
                             curr_state[0][spec] += species_changes[potential_reaction][i]
 
                         reacName = reactions[potential_reaction]
-
-
                         if debug:
                             print('current state: ', curr_state[0])
                             print('species_changes: ', species_changes)

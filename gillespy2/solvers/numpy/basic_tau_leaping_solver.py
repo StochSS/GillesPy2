@@ -149,7 +149,11 @@ class BasicTauLeapingSolver(GillesPySolver):
         trajectory_base[:, :, 0] = timeline
 
         # curr_time and curr_state are list of len 1 so that __run receives reference
-        curr_time = [0]  # Current Simulation Time
+        if resume is not None:
+            curr_time = [resume['time'][-1]]
+        else:
+            curr_time = [0]
+
         curr_state = [None]
         live_grapher = [None]
 
@@ -170,11 +174,14 @@ class BasicTauLeapingSolver(GillesPySolver):
                     for i, s in enumerate(list(model._listOfSpecies.keys())):
 
                         if model.listOfSpecies[s].mode is 'continuous':
-                            log.warning('display "\type\" = \"graph\" not recommended with continuous species. Try display \"type\" = \"text\" or \"progress\".')
+                            log.warning('display "\type\" = \"graph\" not recommended with continuous species. '
+                                        'Try display \"type\" = \"text\" or \"progress\".')
                             break
-
-                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer( model,
-                                                                            timeline, number_of_trajectories,live_output_options)
+                if resume is not None:
+                    resumeTest = True  # If resuming, relay this information to live_grapher
+                else:
+                    resumeTest = False
+                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(model,timeline, number_of_trajectories,live_output_options,resume=resumeTest)
                 display_timer = gillespy2.core.liveGraphing.RepeatTimer(live_output_options['interval'], live_grapher[0].display,
                                                                         args=(curr_state, curr_time, trajectory_base,))
                 display_timer.start()
@@ -271,9 +278,12 @@ class BasicTauLeapingSolver(GillesPySolver):
             start_state = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
             propensities = {}
             curr_state[0] = {}
-            curr_time[0] = 0
+            if resume is not None:
+                save_time = curr_time[0]
+            else:
+                save_time = 0
+
             curr_state[0]['vol'] = model.volume
-            save_time = 0
             data = { 'time': timeline}
             steps_taken = []
             steps_rejected = 0
