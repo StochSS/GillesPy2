@@ -131,13 +131,6 @@ class BasicODESolver(GillesPySolver):
 
                 gillespy2.core.liveGraphing.valid_graph_params(live_output_options)
 
-                if live_output_options['type'] == "graph":
-                    for i, s in enumerate(list(model._listOfSpecies.keys())):
-
-                        if model.listOfSpecies[s].mode is 'continuous':
-                            log.warning(
-                                'display "\type\" = \"graph\" not recommended with continuous species. Try display \"type\" = \"text\" or \"progress\".')
-                            break
                 if resume is not None:
                     resumeTest = True  # If resuming, relay this information to live_grapher
                 else:

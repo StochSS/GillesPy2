@@ -868,7 +868,7 @@ class BasicTauHybridSolver(GillesPySolver):
                     for i, s in enumerate(list(model._listOfSpecies.keys())):
 
                         if model.listOfSpecies[s].mode is 'continuous':
-                            log.warning('display "\type\" = \"graph\" not recommended with continuous species. Try display \"type\" = \"text\" or \"progress\".')
+                            log.warning('display \"type\" = \"graph\" not recommended with continuous species. Try display \"type\" = \"text\" or \"progress\".')
                             break
 
                 live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer( model,
