@@ -70,7 +70,9 @@ class BasicTauLeapingSolver(GillesPySolver):
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile','timeout', 'tau_tol')
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
-                    debug=False, profile=False, timeout=None, resume=None, tau_tol=0.03, **kwargs):
+                    debug=False, profile=False,  live_output = None,live_output_options = {},
+                    timeout=None, resume=None, tau_tol=0.03, **kwargs):
+
         """
         Function calling simulation of the model.
         This is typically called by the run function in GillesPy2 model objects
@@ -95,11 +97,17 @@ class BasicTauLeapingSolver(GillesPySolver):
                 debug : bool (False)
                     Set to True to provide additional debug information about the
                     simulation.
-                profile : bool (Fasle)
+                profile : bool (False)
                     Set to True to provide information about step size (tau) taken at each step.
-
                 resume : Result of previous simulation
                     resultResult of a previously run simulation, to be resumed
+                live_output : str
+                    The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+                live_output_options : dictionary
+                    contains options for live_output. By default {"interval":1}.
+                    "interval" specifies seconds between displaying.
+                    "clear_output" specifies if display should be refreshed with each display
+
                 """
 
         if isinstance(self, type):
@@ -113,36 +121,99 @@ class BasicTauLeapingSolver(GillesPySolver):
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
 
-        sim_thread = Thread(target=self.___run, args=(model,), kwargs={'t':t,
+
+        # create numpy array for timeline
+        if resume is not None:
+            # start where we last left off if resuming a simulatio
+            lastT = resume['time'][-1]
+            step = lastT - resume['time'][-2]
+            timeline = np.arange(lastT, t+step, step)
+        else:
+            timeline = np.linspace(0, t, int(round(t / increment + 1)))
+
+        species = list(model._listOfSpecies.keys())
+        number_species = len(species)
+
+        # create numpy matrix to mark all state data of time and species
+        trajectory_base = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
+
+        # copy time values to all trajectory row starts
+        trajectory_base[:, :, 0] = timeline
+        species = list( model._listOfSpecies.keys())
+        number_species = len(species)
+
+        # create numpy matrix to mark all state data of time and species
+        trajectory_base = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
+
+        # copy time values to all trajectory row starts
+        trajectory_base[:, :, 0] = timeline
+
+        # curr_time and curr_state are list of len 1 so that __run receives reference
+        if resume is not None:
+            curr_time = [resume['time'][-1]]
+        else:
+            curr_time = [0]
+
+        curr_state = [None]
+        live_grapher = [None]
+
+        sim_thread = Thread(target=self.___run, args=(model, curr_state,curr_time, timeline, trajectory_base,live_grapher,), kwargs={'t':t,
                                         'number_of_trajectories':number_of_trajectories,
                                         'increment':increment, 'seed':seed,
                                         'debug':debug, 'resume':resume, 'timeout':timeout, 'tau_tol':tau_tol})
         try:
             sim_thread.start()
+
+            if live_output is not None:
+
+                import gillespy2.core.liveGraphing
+                live_output_options['type'] = live_output
+                gillespy2.core.liveGraphing.valid_graph_params(live_output_options)
+
+                if resume is not None:
+                    resumeTest = True  # If resuming, relay this information to live_grapher
+                else:
+                    resumeTest = False
+                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(model,timeline, number_of_trajectories,live_output_options,resume=resumeTest)
+                display_timer = gillespy2.core.liveGraphing.RepeatTimer(live_output_options['interval'], live_grapher[0].display,
+                                                                        args=(curr_state, curr_time, trajectory_base,))
+                display_timer.start()
+
             sim_thread.join(timeout=timeout)
+
+            if live_grapher[0] is not None:
+                display_timer.cancel()
+
             self.stop_event.set()
-            while self.result is None: pass
+            while self.result is None:
+                pass
         except KeyboardInterrupt:
+            if live_grapher[0] is not None:
+                display_timer.cancel()
             self.pause_event.set()
-            while self.result is None: pass
+            while self.result is None:
+                pass
         if hasattr(self, 'has_raised_exception'):
             raise self.has_raised_exception
         return self.result, self.rc
 
-    def ___run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
-                    debug=False, profile=False, timeout=None, resume=None, tau_tol=0.03, **kwargs):
+    def ___run(self, model, curr_state,curr_time, timeline, trajectory_base, live_grapher, t=20,
+               number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, show_labels=True,
+                    timeout=None, resume=None, tau_tol=0.03, **kwargs):
 
         try:
-            self.__run(model, t, number_of_trajectories, increment, seed, debug, profile, timeout, resume,
-                       tau_tol, **kwargs)
+            self.__run(model, curr_state,curr_time, timeline, trajectory_base, live_grapher, t, number_of_trajectories, increment, seed,
+                        debug, profile,timeout,resume, tau_tol, **kwargs)
+
         except Exception as e:
             self.has_raised_exception = e
             self.result = []
             return [], -1
 
 
-    def __run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
-                    debug=False, profile=False,timeout=None, resume=None, tau_tol=0.03, **kwargs):
+    def __run(self, model, curr_state,curr_time, timeline, trajectory_base, live_grapher, t=20,
+              number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, timeout=None,
+              resume=None, tau_tol=0.03, **kwargs):
 
         # for use with resume, determines how much excess data to cut off due to
         # how species and time are initialized to 0
@@ -157,7 +228,6 @@ class BasicTauLeapingSolver(GillesPySolver):
         if debug:
             print("t = ", t)
             print("increment = ", increment)
-
             
         species_mappings = model.sanitized_species_names()
         species = list(species_mappings.keys())
@@ -173,20 +243,6 @@ class BasicTauLeapingSolver(GillesPySolver):
             else:
                 raise ModelError('seed must be a positive integer')
 
-                # create numpy array for timeline
-        if resume is not None:
-            # start where we last left off if resuming a simulatio
-            lastT = resume['time'][-1]
-            step = lastT - resume['time'][-2]
-            timeline = np.arange(lastT, t+step, step)
-        else:
-            timeline = np.linspace(0, t, int(round(t / increment + 1)))
-
-        # create numpy matrix to mark all state data of time and species
-        trajectory_base = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
-
-        # copy time values to all trajectory row starts
-        trajectory_base[:, :, 0] = timeline
         # copy initial populations to base
         if resume is not None:
             tmpSpecies = {}
@@ -207,13 +263,20 @@ class BasicTauLeapingSolver(GillesPySolver):
                 break
             elif self.pause_event.is_set():
                 timeStopped = timeline[entry_count]
+            # For multi trajectories, live_grapher needs to be informed of trajectory increment
+            if live_grapher[0] is not None:
+                live_grapher[0].increment_trajectory(trajectory_num)
+
 
             start_state = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
             propensities = {}
-            curr_state = {}
-            curr_time = 0
-            curr_state['vol'] = model.volume
-            save_time = 0
+            curr_state[0] = {}
+            if resume is not None:
+                save_time = curr_time[0]
+            else:
+                save_time = 0
+
+            curr_state[0]['vol'] = model.volume
             data = { 'time': timeline}
             steps_taken = []
             steps_rejected = 0
@@ -225,13 +288,13 @@ class BasicTauLeapingSolver(GillesPySolver):
             # initialize populations
             if not (resume is None):
                 for spec in model.listOfSpecies:
-                    curr_state[spec] = tmpSpecies[spec]
+                    curr_state[0][spec] = tmpSpecies[spec]
             else:
                 for spec in model.listOfSpecies:
-                    curr_state[spec] = model.listOfSpecies[spec].initial_value
+                    curr_state[0][spec] = model.listOfSpecies[spec].initial_value
 
             for param in model.listOfParameters:
-                curr_state[param] = model.listOfParameters[param].value
+                curr_state[0][param] = model.listOfParameters[param].value
 
             for i, rxn in enumerate(model.listOfReactions):
                 # set reactions to uniform random number and add to start_state
@@ -254,9 +317,9 @@ class BasicTauLeapingSolver(GillesPySolver):
                 elif self.pause_event.is_set():
                     timeStopped = timeline[entry_count]
                     break
-                
+
                 #Until save step reached
-                while curr_time < save_time:
+                while curr_time[0] < save_time:
                     if self.stop_event.is_set():
                         self.rc = 33
                         break
@@ -267,17 +330,17 @@ class BasicTauLeapingSolver(GillesPySolver):
                     propensity_sum = 0
 
                     for i, r in enumerate(model.listOfReactions):
-                        propensities[r] = eval(compiled_propensities[r], curr_state)
+                        propensities[r] = eval(compiled_propensities[r], curr_state[0])
                         propensity_sum += propensities[r]
 
                     tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
-                            model, propensities, curr_state, curr_time, save_time]
+                            model, propensities, curr_state[0], curr_time[0], save_time]
 
                     tau_step = Tau.select(*tau_args)
 
                     prev_start_state = start_state.copy()
-                    prev_curr_state = curr_state.copy()
-                    prev_curr_time = curr_time
+                    prev_curr_state = curr_state[0].copy()
+                    prev_curr_time = curr_time[0]
 
                     loop_cnt = 0
                     while True:
@@ -285,8 +348,8 @@ class BasicTauLeapingSolver(GillesPySolver):
                         if loop_cnt > 100:
                             raise Exception("Loop over __get_reactions() exceeded loop count")
 
-                        reactions, curr_state, curr_time = self.__get_reactions(
-                            tau_step, curr_state, curr_time, save_time,
+                        reactions, curr_state[0], curr_time[0] = self.__get_reactions(
+                            tau_step, curr_state[0], curr_time[0], save_time,
                             propensities, model.listOfReactions)
 
                         # Update curr_state with the result of the SSA reaction that fired
@@ -295,30 +358,30 @@ class BasicTauLeapingSolver(GillesPySolver):
                             if reactions[rxn] > 0:
                                 for reactant in model.listOfReactions[rxn].reactants:
                                     species_modified[reactant.name] = True
-                                    curr_state[reactant.name] -= model.listOfReactions[
+                                    curr_state[0][reactant.name] -= model.listOfReactions[
                                         rxn].reactants[reactant] * reactions[rxn]
                                 for product in model.listOfReactions[rxn].products:
                                     species_modified[product.name] = True
-                                    curr_state[product.name] += model.listOfReactions[
+                                    curr_state[0][product.name] += model.listOfReactions[
                                         rxn].products[product] * reactions[rxn]
                         neg_state = False
                         for spec in species_modified:
-                            if curr_state[spec] < 0:
+                            if curr_state[0][spec] < 0:
                                 neg_state = True
                                 if debug:
                                     print("Negative state detected: curr_state[{0}]= {1}".format(
-                                        spec, curr_state[spec]))
+                                        spec, curr_state[0][spec]))
                         if neg_state:
                             if debug:
                                 print("\trxn={0}".format(reactions))
                             start_state = prev_start_state.copy()
-                            curr_state = prev_curr_state.copy()
-                            curr_time = prev_curr_time
+                            curr_state[0] = prev_curr_state.copy()
+                            curr_time[0] = prev_curr_time
                             tau_step = tau_step / 2
                             steps_rejected += 1
                             if debug:
                                 print("Resetting curr_state[{0}]= {1}".format(
-                                    spec, curr_state[spec]))
+                                    spec, curr_state[0][spec]))
                             if debug:
                                 print(
                                     "\tRejecting step, taking step of half size, ",
@@ -328,7 +391,7 @@ class BasicTauLeapingSolver(GillesPySolver):
 
                 # save step reached
                 for i in range(number_species):
-                    trajectory[entry_count][i + 1] = curr_state[species[i]]
+                    trajectory[entry_count][i + 1] = curr_state[0][species[i]]
                 save_time += increment
                 timestep += 1
                 entry_count += 1
