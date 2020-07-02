@@ -171,7 +171,10 @@ class NumPySSASolver(GillesPySolver):
             # copy initial state data
             trajectory = trajectory_base[trajectory_num]
             entry_count = 1
-            current_time = 0
+            if resume is not None:
+                current_time = resume['time'][-1]
+            else:
+                current_time = 0
             current_state = np.copy(trajectory[0, 1:])
             propensity_sums = np.zeros(number_reactions)
             # calculate initial propensity sums

@@ -165,9 +165,12 @@ class BasicODESolver(GillesPySolver):
             c_prop[r_name] = compile(reaction.ode_propensity_function, '<string>', 'eval')
 
         result = trajectory_base[0]
-        curr_time = 0
-        entry_count = 0
+        if resume is not None:
+            curr_time = resume['time'][-1]
+        else:
+            curr_time = 0
 
+        entry_count = 0
         y0 = [0] * len(model.listOfSpecies)
         curr_state = OrderedDict()
 

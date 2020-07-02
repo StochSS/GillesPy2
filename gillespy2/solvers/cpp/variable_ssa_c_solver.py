@@ -35,7 +35,7 @@ def _copy_files(destination):
 
 def _write_variables(outfile, model, reactions, species, parameters, parameter_mappings, resume=None):
     outfile.write("double V = {};\n".format(model.volume))
-    outfile.write("std :: string s_names[] = {");
+    outfile.write("std :: string s_names[] = {")
     if len(species) > 0:
         #Write model species names.
         for i in range(len(species)-1):
@@ -46,10 +46,7 @@ def _write_variables(outfile, model, reactions, species, parameters, parameter_m
         for i in range(len(species) - 1):
             # If resuming
             if not (resume is None):
-                if isinstance(resume, np.ndarray):
-                    outfile.write('{}, '.format(int(resume[0][-1][i + 1])))
-                else:
-                    outfile.write('{}, '.format(int(resume[species[i]][-1])))
+                outfile.write('{}, '.format(int(resume[species[i]][-1])))
             else:
                 outfile.write('{}, '.format(int(model.listOfSpecies[species[i]].initial_value)))
         if not (resume is None):
@@ -106,29 +103,6 @@ def _write_reactions(outfile, model, reactions, species):
             if any(elem in customrxns[i] for elem in list(model.listOfReactions[reactions[j]].reactants)) or \
                     any(elem in customrxns[i] for elem in list(model.listOfReactions[reactions[j]].products)):
                 outfile.write("model.reactions[{0}].affected_reactions.push_back({1});\n".format(i, j))
-
-    effectedrxns = []
-    for i in customrxns.keys():
-        for j in range(len(reactions)):
-            if i == j:
-                continue
-            if any(elem in customrxns[i] for elem in list(model.listOfReactions[reactions[j]].reactants)) or \
-                    any(elem in customrxns[i] for elem in list(model.listOfReactions[reactions[j]].products)):
-                outfile.write("model.reactions[{0}].affected_reactions.push_back({1});\n".format(i, j))
-
-
-def _parse_output(results, number_of_trajectories, number_timesteps, number_species):
-    trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
-    for timestep in range(number_timesteps):
-        values = results[timestep].split(" ")
-        trajectory_base[:, timestep, 0] = float(values[0])
-        index = 1
-        for trajectory in range(number_of_trajectories):
-            for species in range(number_species):
-                trajectory_base[trajectory, timestep, 1 + species] = float(values[index+species])
-            index += number_species
-    return trajectory_base
-
 
 def _parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species,pause=False):
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
@@ -295,11 +269,17 @@ class VariableSSACSolver(GillesPySolver):
                 if self.species[i] in variables:
                     populations += '{} '.format(int(variables[self.species[i]]))
                 else:
-                    populations += '{} '.format(int(model.listOfSpecies[self.species[i]].initial_value))
+                    if resume is not None:
+                        populations += '{} '.format(int(resume[self.species[i]][-1]))
+                    else:
+                        populations += '{} '.format(int(model.listOfSpecies[self.species[i]].initial_value))
             if self.species[-1] in variables:
                 populations += '{}'.format(int(variables[self.species[-1]]))
             else:
-                populations += '{}'.format(int(model.listOfSpecies[self.species[-1]].initial_value))
+                if resume is not None:
+                    populations += '{} '.format(int(resume[self.species[-1]][-1]))
+                else:
+                    populations += '{}'.format(int(model.listOfSpecies[self.species[-1]].initial_value))
             # Update Parameter Values
             for i in range(len(self.parameters)-1):
                 if self.parameters[i] in variables:
@@ -388,7 +368,7 @@ class VariableSSACSolver(GillesPySolver):
                 else:
                     cutoff -= 1
                 for i in self.simulation_data[0]:
-                        self.simulation_data[0][i] = self.simulation_data[0][i][:cutoff]
+                    self.simulation_data[0][i] = self.simulation_data[0][i][:cutoff]
 
             if resume is not None:
                 resumeTime = float(resume['time'][-1])
