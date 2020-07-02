@@ -211,9 +211,15 @@ class BasicTauLeapingSolver(GillesPySolver):
             start_state = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
             propensities = {}
             curr_state = {}
-            curr_time = 0
+
+            if resume is not None:
+                curr_time = resume['time'][-1]
+                save_time = resume['time'][-1]
+            else:
+                curr_time = 0
+                save_time = 0
+
             curr_state['vol'] = model.volume
-            save_time = 0
             data = { 'time': timeline}
             steps_taken = []
             steps_rejected = 0
