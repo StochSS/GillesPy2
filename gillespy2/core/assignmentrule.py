@@ -1,18 +1,16 @@
 from gillespy2.core.sortableobject import SortableObject
 
+
 class AssignmentRule(SortableObject):
     """
     An AssignmentRule is used to express equations that set the values of
     variables.  This would correspond to a function in the form of x = f(V)
-
-    Attributes
-    ----------
-    name : str
-        Name of the Rule
-    variable : str
-        Target Species/Parameter to be modified by rule
-    formula : str
-        String representation of formula to be evaluated
+    :param name: Name of the Rule
+    :type name: str
+    :param variable: Target Species/Parameter to be modified by rule
+    :type variable: str
+    :param formula: String representation of formula to be evaluated
+    :type formula: str
     """
 
     def __init__(self, variable=None, formula=None, name=None):

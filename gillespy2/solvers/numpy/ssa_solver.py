@@ -289,7 +289,7 @@ class NumPySSASolver(GillesPySolver):
             simulation_data.append(data)
 
         # If simulation has been paused, or tstopped !=0
-        if timeStopped != 0:
+        if timeStopped != 0 or resume is not None:
             simulation_data = nputils.numpy_resume(timeStopped, simulation_data, resume=resume)
 
         self.result = simulation_data

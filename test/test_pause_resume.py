@@ -1,7 +1,6 @@
 import unittest
 import numpy as np
 import subprocess
-
 from example_models import MichaelisMenten, Oregonator
 from gillespy2.core.results import Results, Trajectory
 from gillespy2.core import Species

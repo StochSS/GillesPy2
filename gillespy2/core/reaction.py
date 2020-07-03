@@ -12,27 +12,23 @@ class Reaction(SortableObject):
     function needs to be evaluable (and result in a non-negative scalar
     value) in the namespace defined by the union of those dicts.
 
-    Attributes
-    ----------
-    name : str
-        The name by which the reaction is called (optional).
-    reactants : dict
-        The reactants that are consumed in the reaction, with stoichiometry. An
-        example would be {R1 : 1, R2 : 2} if the reaction consumes two of R1 and
-        one of R2, where R1 and R2 are Species objects.
-    products : dict
-        The species that are created by the reaction event, with stoichiometry.
-        Same format as reactants.
-    propensity_function : str
-        The custom propensity fcn for the reaction. Must be evaluable in the
-        namespace of the reaction using C operations.
-    massaction : bool
-        The switch to use a mass-action reaction. If set to True, a rate value
-        is required.
-    rate : float
-        The rate of the mass-action reaction. Take care to note the units...
-    annotation : str
-        An optional note about the reaction.
+    :param name: The name by which the reaction is called (optional).
+    :type name: str
+    :param reactants: The reactants that are consumed in the reaction, with stoichiometry. An
+    example would be {R1 : 1, R2 : 2} if the reaction consumes two of R1 and
+    one of R2, where R1 and R2 are Species objects.
+    :type reactants: dict
+    :param products: The species that are created by the reaction event, with stoichiometry. Same format as reactants.
+    :type products: dict
+    :param propensity_function: The custom propensity function for the reaction. Must be evaluable in the
+    namespace of the reaction using C operations.
+    :type propensity_function: str
+    :param massaction: The switch to use a mass-action reaction. If set to True, a rate value is required.
+    :type massaction: bool
+    :param rate: The rate of the mass-action reaction, take care to note the units.
+    :type rate: float
+    :param annotation: An optional note about the reaction.
+    :type annotation: str
 
     Notes
     ----------
@@ -43,9 +39,8 @@ class Reaction(SortableObject):
     rate represents the mass-action constant rate independent of volume.
     """
 
-    def __init__(self, name="", reactants={}, products={},
-                 propensity_function=None, massaction=False,
-                 rate=None, annotation=None):
+    def __init__(self, name="", reactants={}, products={}, propensity_function=None, massaction=False, rate=None,
+                 annotation=None):
         """
         Initializes the reaction using short-hand notation.
         """
@@ -123,7 +118,7 @@ class Reaction(SortableObject):
                             return node
 
                     def visit_Name(self, node):
-                        #Visits Name nodes, if the name nodes "id" value is 'e', replace with numerical constant
+                        # Visits Name nodes, if the name nodes "id" value is 'e', replace with numerical constant
                         if node.id == 'e':
                             nameToConstant = ast.copy_location(ast.Num(float(np.e), ctx=node.ctx), node)
                             return nameToConstant
@@ -137,20 +132,25 @@ class Reaction(SortableObject):
                 class ToString(ast.NodeVisitor):
                     def __init__(self):
                         self.string = ''
+
                     def _string_changer(self, addition):
                         self.string += addition
+
                     def visit_BinOp(self, node):
                         self._string_changer('(')
                         self.visit(node.left)
                         self.visit(node.op)
                         self.visit(node.right)
                         self._string_changer(')')
+
                     def visit_Name(self, node):
                         self._string_changer(node.id)
                         self.generic_visit(node)
+
                     def visit_Num(self, node):
                         self._string_changer(str(node.n))
                         self.generic_visit(node)
+
                     def visit_Call(self, node):
                         self._string_changer(node.func.id + '(')
                         counter = 0
@@ -160,22 +160,28 @@ class Reaction(SortableObject):
                                 self._string_changer(',')
                                 counter += 1
                         self._string_changer(')')
+
                     def visit_Add(self, node):
                         self._string_changer('+')
                         self.generic_visit(node)
+
                     def visit_Div(self, node):
                         self._string_changer('/')
                         self.generic_visit(node)
+
                     def visit_Mult(self, node):
                         self._string_changer('*')
                         self.generic_visit(node)
+
                     def visit_UnaryOp(self, node):
                         self._string_changer('(')
                         self.visit_Usub(node)
                         self._string_changer(')')
+
                     def visit_Sub(self, node):
                         self._string_changer('-')
                         self.generic_visit(node)
+
                     def visit_Usub(self, node):
                         self._string_changer('-')
                         self.generic_visit(node)
@@ -183,7 +189,6 @@ class Reaction(SortableObject):
                 newFunc = ToString()
                 newFunc.visit(expr)
                 return newFunc.string
-
             self.propensity_function = __customPropParser()
 
     def __str__(self):
@@ -265,10 +270,8 @@ class Reaction(SortableObject):
         """
         Sets reaction type to either "mass-action" or "customized"
 
-        Attributes
-        ----------
-        rxntype : str
-            Either "mass-action" or "customized"
+        :param rxntype: Either "mass-action" or "customized"
+        :type rxntype: str
         """
         if rxntype.lower() not in {'mass-action', 'customized'}:
             raise ReactionError("Invalid reaction type.")
@@ -280,12 +283,10 @@ class Reaction(SortableObject):
         """
         Adds a reactant to the reaction (species that is consumed)
 
-        Attributes
-        ----------
-        S : gillespy.Species
-            Reactant to add to this reaction.
-        stoichiometry : int
-            The stoichiometry of the given reactant.
+        :param S: Reactant to add to this reaction.
+        :type S: gillespy2.Species
+        :param stoichiometry: The stoichiometry of the given reactant.
+        :type stoichiometry: int
         """
         if stoichiometry <= 0:
             raise ReactionError("Reaction Stoichiometry must be a \
@@ -296,12 +297,10 @@ class Reaction(SortableObject):
         """
         Adds a product to the reaction (species that is created)
 
-        Attributes
-        ----------
-        S : gillespy.Species
-            Product to add to this reaction.
-        stoichiometry : int
-            The stoichiometry of the given product.
+        :param S: Product to add to this reaction.
+        :type S: gillespy2.Species
+        :param stoichiometry: The stoichiometry of the given product.
+        :type stoichiometry: int
         """
         self.products[S.name] = stoichiometry
 
@@ -309,10 +308,8 @@ class Reaction(SortableObject):
         """
         Adds a note to the reaction
 
-        Attributes
-        ----------
-        annotation : str
-            An optional note about the reaction.
+        :param annotation: An optional note about the reaction.
+        :type annotation: str
         """
         self.annotation = annotation
 

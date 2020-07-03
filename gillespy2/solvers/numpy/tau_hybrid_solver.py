@@ -881,13 +881,12 @@ class TauHybridSolver(GillesPySolver):
                 if live_output_options['type'] == "graph":
                     for i, s in enumerate(list(model._listOfSpecies.keys())):
 
-                        if model.listOfSpecies[s].mode == 'continuous':
-                            log.warning('display "\type\" = \"graph\" not recommended with continuous species. '
+                        if model.listOfSpecies[s].mode is 'continuous':
+                            log.warning('display \"type\" = \"graph\" not recommended with continuous species. '
                                         'Try display \"type\" = \"text\" or \"progress\".')
                             break
 
-                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(model,
-                                                                            timeline, number_of_trajectories,
+                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(model, timeline, number_of_trajectories,
                                                                             live_output_options)
                 display_timer = gillespy2.core.liveGraphing.RepeatTimer(live_output_options['interval'],
                                                                         live_grapher[0].display,

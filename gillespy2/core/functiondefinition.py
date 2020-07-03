@@ -5,14 +5,12 @@ class FunctionDefinition(SortableObject):
     Object representation defining an evaluable function to be used during
     simulation of a GillesPy2 model
 
-    Attributes
-    ----------
-    name : str
-        Name of the function to be made and called.
-    function : str
-        Defined function body of operation to be performed.
-    variables : list
-        String names of Variables to be used as arguments to function.
+    :param name: Name of the function to be made and called
+    :type name: str
+    :param function: Defined function body of operation to be performed.
+    :type function: str
+    :param variables: String names of Variables to be used as arguments to function.
+    :type variables: list of strings
     """
 
     def __init__(self, name="", function=None, args=[]):

@@ -41,7 +41,7 @@ class LiveDisplayer():
     holds information required for displaying information when live_output = True
     """
 
-    def __init__(self, model=None,timeline=None, number_of_trajectories=1, live_output_options={}, resume=False):
+    def __init__(self, model=None, timeline=None, number_of_trajectories=1, live_output_options={}, resume=False):
 
         self.display_type = live_output_options['type']
         self.display_interval = live_output_options['interval']
@@ -113,7 +113,7 @@ class LiveDisplayer():
             if self.number_of_trajectories > 1:
                 print(self.trajectory_header())
             if self.resume is True:
-                print("progress =", round(((curr_time-self.x_shift)/(self.timeline_len))*100, 2), "%\n"
+                print("progress =", round(((curr_time-self.x_shift)/self.timeline_len)*100, 2), "%\n"
                       )
             else:
                 print("progress =", round((curr_time / (self.timeline_len + self.x_shift)) * 100, 2), "%\n")

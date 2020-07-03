@@ -5,7 +5,7 @@ from gillespy2.core.species import Species
 from gillespy2.core.reaction import Reaction
 import numpy as np
 from gillespy2.core.results import Trajectory,Results
-from gillespy2.core.events import *
+from collections import OrderedDict
 from gillespy2.core.gillespyError import *
 
 try:

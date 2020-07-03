@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from gillespy2.core.gillespyError import *
 
 
@@ -85,6 +84,7 @@ class EventTrigger:
             raise EventError('EventTrigger.persistent must be bool')
     def __str__(self):
         return self.expression
+
     def sanitized_expression(self, species_mappings, parameter_mappings):
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
                        reverse=True)

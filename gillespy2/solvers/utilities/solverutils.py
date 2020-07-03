@@ -196,13 +196,13 @@ def numpy_resume(timeStopped, simulation_data, resume=None):
     :type resume: gillespy2.core.results object
     :return: Combined simulation data, the old resume data and the current simulation data.
     """
-    if timeStopped != simulation_data[0]['time'][-1]:
-        tester = np.where(simulation_data[0]['time'] > timeStopped)[0].size
-        index = np.where(simulation_data[0]['time'] == timeStopped)[0][0]
-    if tester > 0:
-        for i in simulation_data[0]:
-            simulation_data[0][i] = simulation_data[0][i][:index]
-
+    if timeStopped != 0:
+        if timeStopped != simulation_data[0]['time'][-1]:
+            tester = np.where(simulation_data[0]['time'] > timeStopped)[0].size
+            index = np.where(simulation_data[0]['time'] == timeStopped)[0][0]
+        if tester > 0:
+            for i in simulation_data[0]:
+                simulation_data[0][i] = simulation_data[0][i][:index]
     if resume is not None:
         # If resuming, combine old pause with new data, and delete any excess null data
         for i in simulation_data[0]:

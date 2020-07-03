@@ -26,7 +26,7 @@ def _write_variables(outfile, model, reactions, species, parameters, parameter_m
    """
 
     outfile.write("double V = {};\n".format(model.volume))
-    outfile.write("std :: string s_names[] = {");
+    outfile.write("std :: string s_names[] = {")
     if len(species) > 0:
         # Write model species names.
         for i in range(len(species)-1):
@@ -62,12 +62,14 @@ def _write_variables(outfile, model, reactions, species, parameters, parameter_m
         if param != 'vol':
             outfile.write("double {0} = {1};\n".format(parameter_mappings[param], model.listOfParameters[param].value))
 
+
 def _update_parameters(outfile, model, parameters, parameter_mappings):
     for param in parameters:
         if param != 'vol':
             outfile.write('       arg_stream >> {};\n'.format(parameter_mappings[param]))
         else:
             outfile.write('       arg_stream >> V;\n')
+
 
 def _write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
     for i in range(len(reactions)):
@@ -212,29 +214,35 @@ class VariableSSACSolver(GillesPySolver):
             if v not in self.species+self.parameters:
                 raise gillespyError.SimulationError('Argument to variable "{}" \
                 is not a valid variable.  Variables must be model species or parameters.'.format(v))
-                
+
         if self.__compiled:
             populations = ''
             parameter_values = ''
             # Update Species Initial Values
-            for i in range(len(self.species)-1):
+            for i in range(len(self.species) - 1):
                 if self.species[i] in variables:
                     populations += '{} '.format(int(variables[self.species[i]]))
                 else:
-                    populations += '{} '.format(int(model.listOfSpecies[self.species[i]].initial_value))
+                    if resume is not None:
+                        populations += '{} '.format(int(resume[self.species[i]][-1]))
+                    else:
+                        populations += '{} '.format(int(model.listOfSpecies[self.species[i]].initial_value))
             if self.species[-1] in variables:
                 populations += '{}'.format(int(variables[self.species[-1]]))
             else:
-                populations += '{}'.format(int(model.listOfSpecies[self.species[-1]].initial_value))
+                if resume is not None:
+                    populations += '{} '.format(int(resume[self.species[-1]][-1]))
+                else:
+                    populations += '{}'.format(int(model.listOfSpecies[self.species[-1]].initial_value))
             # Update Parameter Values
-            for i in range(len(self.parameters)-1):
+            for i in range(len(self.parameters) - 1):
                 if self.parameters[i] in variables:
                     parameter_values += '{} '.format(variables[self.parameters[i]])
                 else:
                     if self.parameters[i] == 'vol':
-                        parameter_values +='{} '.format(model.volume)
+                        parameter_values += '{} '.format(model.volume)
                     else:
-                        parameter_values +='{} '.format(model.listOfParameters[self.parameters[i]].expression)
+                        parameter_values += '{} '.format(model.listOfParameters[self.parameters[i]].expression)
             if self.parameters[-1] in variables:
                 parameter_values += '{}'.format(variables[self.parameters[-1]])
             else:
@@ -249,9 +257,9 @@ class VariableSSACSolver(GillesPySolver):
 
             number_timesteps = int(round(t/increment + 1))
             # Execute simulation.
-            args = [os.path.join(self.output_directory, 'UserSimulation'), 
-                    '-trajectories', str(number_of_trajectories), 
-                    '-timesteps', str(number_timesteps), 
+            args = [os.path.join(self.output_directory, 'UserSimulation'),
+                    '-trajectories', str(number_of_trajectories),
+                    '-timesteps', str(number_timesteps),
                     '-end', str(t),
                     '-initial_values', populations,
                     '-parameters', parameter_values]
