@@ -18,17 +18,15 @@ def display_types():
 def valid_graph_params(live_output_options):
     if 'interval' not in live_output_options:
         live_output_options['interval'] = 1
-        log.warning("Undefined display \"interval\". Defaulting to 1")
     elif live_output_options['interval'] < 0:
-        log.warning("Got display \"interval\" < 0. Defaulting to 1")
 
-    if 'type' not in live_output_options or live_output_options['type'] not in display_types():
-        live_output_options['type'] = 'progress'
-        log.warning("Undefined display \"type\". Defaulting to \"progress\"")
+        log.warning("In LiveGraphing live_output_options, got \"interval\" = \"{0}\". setting interval = 1"
+                    .format(live_output_options['interval']))
+        live_output_options['interval'] = 1
 
     if live_output_options['type'] == "graph" and live_output_options['interval'] < 1:
-        log.warning("Got display \"interval\" = \"{0}\". Consider using an interval >= 1 when displaying graphs"
-                    .format(live_output_options['interval']))
+        log.warning("In LiveGraphing live_output_options, got \"interval\" = \"{0}\". Consider using an interval >= 1 "
+                    "when displaying graphs".format(live_output_options['interval']))
 
     if 'clear_output' not in live_output_options:
 
@@ -43,10 +41,12 @@ class LiveDisplayer():
     holds information required for displaying information when live_output = True
     """
 
-    def __init__(self, model=None, timeline=None, number_of_trajectories=1, live_output_options={}):
+    def __init__(self, model=None,timeline=None, number_of_trajectories=1, live_output_options={}, resume=False):
+
         self.display_type = live_output_options['type']
         self.display_interval = live_output_options['interval']
         self.model = model
+        self.resume = resume
         self.timeline = timeline
         self.timeline_len = timeline.size
         self.x_shift = int(timeline[0])
@@ -83,8 +83,7 @@ class LiveDisplayer():
 
         from IPython.display import clear_output
         from math import floor
-
-        curr_time = curr_time[0] + self.timeline[0]
+        curr_time = curr_time[0]
         curr_state = curr_state[0]
 
         # necessary for __f function in hybrid solver
@@ -95,62 +94,52 @@ class LiveDisplayer():
             if curr_state['time'] > curr_time:
                 curr_time = curr_state['time']
 
-        try:
-            if self.clear_output:
+        if self.clear_output:
                 clear_output(wait=True)
 
-            if self.display_type == "text":
+        if self.display_type == "text":
 
-                if not self.header_printed:
-                    self.print_text_header()
+            if not self.header_printed:
+                self.print_text_header()
 
-                print(str(round(curr_time, 2))[:10].ljust(10), end="|")
+            print(str(round(curr_time, 2))[:10].ljust(10), end="|")
 
-                for i in range(self.number_species):
-                    print(str(curr_state[self.species[i]])[:10].ljust(10), end="|")
-                print("")
+            for i in range(self.number_species):
+                print(str(curr_state[self.species[i]])[:10].ljust(10), end="|")
+            print("")
 
-            elif self.display_type == "progress":
+        elif self.display_type == "progress":
 
-                if self.number_of_trajectories > 1:
-                    print(self.trajectory_header())
-
+            if self.number_of_trajectories > 1:
+                print(self.trajectory_header())
+            if self.resume is True:
+                print("progress =", round(((curr_time-self.x_shift)/(self.timeline_len))*100, 2), "%\n"
+                      )
+            else:
                 print("progress =", round((curr_time / (self.timeline_len + self.x_shift)) * 100, 2), "%\n")
 
-            elif self.display_type == "graph":
+        elif self.display_type == "graph":
 
-                if self.display_interval < 1:
-                    log.warning(
-                        "Got display_interval = \"{0}\". Consider using an interval >= 1 when displaying graphs"
-                        .format(self.display_interval))
+            import matplotlib.pyplot as plt
+            from gillespy2.core.results import common_rgb_values
 
-                import matplotlib.pyplot as plt
-                from gillespy2.core.results import common_rgb_values
+            entry_count = floor(curr_time) - self.x_shift
 
-                entry_count = floor(curr_time) - self.x_shift
+            plt.figure(figsize=(18, 10))
+            plt.xlim(right=self.timeline[-1])
+            plt.xlim(left=self.timeline[0])
+            plt.title(self.trajectory_header())
 
-                if self.clear_output:
-                     clear_output(wait=True)
+            for i in range(self.number_species):
+                line_color = common_rgb_values()[(i) % len(common_rgb_values())]
 
-                plt.figure(figsize=(18, 10))
-                plt.xlim(right=self.timeline[-1])
-                plt.xlim(left=self.timeline[0])
-                plt.title(self.trajectory_header())
+                plt.plot(trajectory_base[0][:, 0][:entry_count].tolist(),
+                         trajectory_base[0][:, i + 1][:entry_count].tolist(), color=line_color,
+                         label=self.species[i])
 
-                for i in range(self.number_species):
-                    line_color = common_rgb_values()[i % len(common_rgb_values())]
+                plt.plot([entry_count - 1, curr_time - self.timeline[0]], [trajectory_base[0][:, i + 1][entry_count - 1],
+                                                        curr_state[self.species[i]]], linewidth=3,
+                         color=line_color)
 
-                    plt.plot(trajectory_base[0][:, 0][:entry_count].tolist(),
-                             trajectory_base[0][:, i + 1][:entry_count].tolist(), color=line_color,
-                             label=self.species[i])
-
-                    plt.plot([entry_count - 1, curr_time - self.timeline[0]], [trajectory_base[0][:, i + 1]
-                                                                               [entry_count - 1],
-                                                                               curr_state[self.species[i]]], linewidth=3
-                             , color=line_color)
-
-                plt.legend(loc='upper right')
-                plt.show()
-        except:
-            print("EXCEPT!")
-            log.warning("exception in liveGraphing.display. Variables may not have initialized properly before display was called.")
+            plt.legend(loc='upper right')
+            plt.show()
