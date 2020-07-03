@@ -2,7 +2,7 @@ import unittest
 import tempfile
 from gillespy2.core.gillespyError import DirectoryError, SimulationError
 from example_models import Example
-from gillespy2.solvers.cpp.variable_ssa_c_solver import VariableSSACSolver
+from gillespy2 import VariableSSACSolver
 
 
 class TestVariableSSACSolver(unittest.TestCase):

@@ -1,8 +1,5 @@
 import unittest
 import sys
-from gillespy2.core import Model
-from gillespy2.core.gillespyError import *
-
 
 class TestInit(unittest.TestCase):
     

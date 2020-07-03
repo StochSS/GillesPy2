@@ -59,7 +59,7 @@ if sys.version_info[0] < 3:
 import os, csv
 import numpy as np
 import gillespy2
-from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
+from gillespy2 import TauHybridSolver
 
 help = \
 '''This script is an application wrapper for interfacing GillesPy2's ODE solver
@@ -156,7 +156,7 @@ if not len(model.listOfSpecies):
     model.delete_all_parameters()
     model.add_species(species_to_add)
 # Run simulation and store results
-solver = BasicTauHybridSolver()
+solver = TauHybridSolver()
 model.tspan = np.linspace(start, duration, steps+1)
 results = model.run(solver=solver, show_labels=True, integrator='Radau',
 integrator_options={'max_step':.25, 'atol':atol, 'rtol':rtol})

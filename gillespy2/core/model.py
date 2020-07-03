@@ -1,18 +1,11 @@
-"""
-A simple toolkit for creating and simulating discrete stochastic models in
-python.
-
-"""
-from __future__ import division
-import ast
-import signal, os
+from gillespy2.core.reaction import *
+from gillespy2.core.raterule import RateRule
+from gillespy2.core.parameter import Parameter
+from gillespy2.core.species import Species
+from gillespy2.core.reaction import Reaction
 import numpy as np
-import uuid
-from contextlib import contextmanager
-from collections import OrderedDict
 from gillespy2.core.results import Trajectory,Results
-from gillespy2.core.events import *
-from gillespy2.core.gillespySolver import GillesPySolver
+from collections import OrderedDict
 from gillespy2.core.gillespyError import *
 
 try:
@@ -26,20 +19,21 @@ except:
     import re
     no_pretty_print = True
 
+
 def import_SBML(filename, name=None, gillespy_model=None):
     """
     SBML to GillesPy model converter. NOTE: non-mass-action rates
     in terms of concentrations may not be converted for population
     simulation. Use caution when importing SBML.
 
-    Attributes
-    ----------
-    filename : str
-        Path to the SBML file for conversion.
-    name : str
-        Name of the resulting model.
-    gillespy_model : gillespy.Model
-        If desired, the SBML model may be added to an existing GillesPy model.
+    :param filename: Path to the SBML file for conversion.
+    :type filename: str
+
+    :param name: Name of the resulting model
+    :type name: str
+
+    :param gillespy_model: If desired, the SBML model may be added to an existing GillesPy model
+    :type gillespy_model: gillespy.Model
     """
 
     try:
@@ -48,42 +42,6 @@ def import_SBML(filename, name=None, gillespy_model=None):
         raise ImportError('SBML conversion not imported successfully')
 
     return convert(filename, model_name=name, gillespy_model=gillespy_model)
-
-
-class SortableObject(object):
-    """Base class for GillesPy2 objects that are sortable."""
-
-    def __eq__(self, other):
-        return str(self) == str(other)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __gt__(self, other):
-        return not self.__le__(other)
-
-    def __ge__(self, other):
-        return not self.__lt__(other)
-
-    def __lt__(self, other):
-        return str(self) < str(other)
-
-    def __le__(self, other):
-        return str(self) <= str(other)
-
-    def __cmp__(self, other):
-        return cmp(str(self), str(other))
-
-    def __hash__(self):
-        if hasattr(self, '_hash'):
-            return self._hash
-        if hasattr(self, 'id'):
-            self._hash = hash(self.id)
-        elif hasattr(self, 'name'):
-            self._hash = hash(self.name)
-        else:
-            self._hash = hash(self)
-        return self._hash
 
 
 class Model(SortableObject):
@@ -95,24 +53,27 @@ class Model(SortableObject):
     Representation of a well mixed biochemical model. Contains reactions,
     parameters, species.
 
+    :param name: The name of the model, or an annotation describing it.
+    :type name: str
+    
+    :param population: The type of model being described. A discrete stochastic model is a
+    population model (True), a deterministic model is a concentration model
+    (False). Automatic conversion from population to concentration models
+    may be used, by setting the volume parameter.
     Attributes
-    ----------
-    name : str
-        The name of the model, or an annotation describing it.
-    population : bool
-        The type of model being described. A discrete stochastic model is a
-        population model (True), a deterministic model is a concentration model
-        (False). Automatic conversion from population to concentration models
-        may be used, by setting the volume parameter.
-    volume : float
-        The volume of the system matters when converting to from population to
-        concentration form. This will also set a parameter "vol" for use in
-        custom (i.e. non-mass-action) propensity functions.
-    tspan : numpy ndarray
-        The timepoints at which the model should be simulated. If None, a
-        default timespan is added. May be set later, see Model.timespan
-    annotation : str (optional)
-        Optional further description of model
+    :type population: bool
+
+    :param volume: The volume of the system matters when converting to from population to
+    concentration form. This will also set a parameter "vol" for use in
+    custom (i.e. non-mass-action) propensity functions.  
+    :type volume: float   
+    
+    :param tspan: The timepoints at which the model should be simulated. If None, a
+    default timespan is added. May be set later, see Model.timespan
+    :type tspan: numpy ndarray
+    
+    :param annotation: Option further description of model
+    :type annotation: str
     """
 
     def __init__(self, name="", population=True, volume=1.0, tspan=None, annotation="model"):
@@ -169,8 +130,10 @@ class Model(SortableObject):
 
     def __str__(self):
         divider = '\n**********\n'
+
         def decorate(header):
             return '\n' + divider + header + divider
+
         print_string = self.name
         if len(self.listOfSpecies):
             print_string += decorate('Species')
@@ -242,10 +205,8 @@ class Model(SortableObject):
         """
         Returns a species object by name.
 
-        Attributes
-        ----------
-        s_name : str
-            Name of the species object to be returned.
+        :param s_name: Name of the species object to be returned:
+        :type s_name: str
         """
         return self.listOfSpecies[s_name]
 
@@ -260,11 +221,10 @@ class Model(SortableObject):
         """
         Adds a species, or list of species to the model.
 
-        Attributes
-        ----------
-        obj : Species, or list of Species
-            The species or list of species to be added to the model object.
+        :param obj: The species or list of species to be added to the model object
+        :type obj: Species, or list of species
         """
+
         if isinstance(obj, list):
             for S in sorted(obj):
                 self.add_species(S)
@@ -283,10 +243,8 @@ class Model(SortableObject):
         """
         Removes a species object by name.
 
-        Attributes
-        ----------
-        obj : str
-            Name of the species object to be removed.
+        :param obj: Name of the species object to be removed
+        :type obj: str
         """
         self.listOfSpecies.pop(obj)
         self._listOfSpecies.pop(obj)
@@ -302,10 +260,8 @@ class Model(SortableObject):
         """
         Sets the units of the model to either "population" or "concentration"
 
-        Attributes
-        ----------
-        units : str
-            Either "population" or "concentration"
+        :param units: Either "population" or "concentration"
+        :type units: str
         """
         if units.lower() == 'concentration' or units.lower() == 'population':
             self.units = units.lower()
@@ -329,10 +285,8 @@ class Model(SortableObject):
         """
         Returns a parameter object by name.
 
-        Attributes
-        ----------
-        p_name : str
-            Name of the parameter object to be returned.
+        :param p_name: Name of the parameter object to be returned
+        :type p_name: str
         """
         try:
             return self.listOfParameters[p_name]
@@ -348,13 +302,10 @@ class Model(SortableObject):
 
     def add_parameter(self, params):
         """
-
         Adds a parameter, or list of parameters to the model.
 
-        Attributes
-        ----------
-        obj : Parameter, or list of Parameters
-            The parameter or list of parameters to be added to the model object.
+        :param params:  The parameter or list of parameters to be added to the model object.
+        :type params: Parameter, or list of parameters
         """
         if isinstance(params, list):
             for p in sorted(params):
@@ -374,25 +325,22 @@ class Model(SortableObject):
         """
         Removes a parameter object by name.
 
-        Attributes
-        ----------
-        obj : str
-            Name of the parameter object to be removed.
+        :param obj: Name of the parameter object to be removed
+        :type obj: str
         """
         self.listOfParameters.pop(obj)
         self._listOfParameters.pop(obj)
 
     def set_parameter(self, p_name, expression):
         """
-        Set the value of an existing paramter "pname" to "expression".
+        Set the value of an existing parameter "pname" to "expression".
 
-        Attributes
-        ----------
-        p_name : str
-            Name of the parameter whose value will be set.
-        expression : str
-            *String* that may be executed in C, describing the value of the
-            parameter. May reference other parameters by name. (e.g. "k1*4")
+        :param p_name: Name of the parameter whose value will be set.
+        :type p_name: str
+
+        :param expression: String that may be executed in C, describing the value of the
+        parameter. May reference other parameters by name. (e.g. "k1*4")
+        :type expression: str
         """
 
         p = self.listOfParameters[p_name]
@@ -402,7 +350,8 @@ class Model(SortableObject):
     def resolve_parameters(self):
         """ Internal function:
         attempt to resolve all parameter expressions to scalar floats.
-        This methods must be called before exporting the model. """
+        This methods must be called before exporting the model.
+        """
         self.update_namespace()
         for param in self.listOfParameters:
             try:
@@ -436,11 +385,9 @@ class Model(SortableObject):
         """
         Adds a reaction, or list of reactions to the model.
 
-        Attributes
-        ----------
-        obj : Reaction, or list of Reactions
-            The reaction or list of reaction objects to be added to the model
-            object.
+        :param reactions: The reaction or list of reaction objects to be added to the model
+        object.
+        :type reactions: Reaction, or list of Reactions
         """
 
         # TODO, make sure that you cannot overwrite an existing reaction
@@ -469,15 +416,11 @@ class Model(SortableObject):
 
     def add_rate_rule(self, rate_rules):
         """
-                Adds a rate rule, or list of rate rules to the model.
+        Adds a rate rule, or list of rate rules to the model.
 
-                Attributes
-                ----------
-                obj : RateRule, or list of RateRules
-                    The rate rule or list of rate rule objects to be added to the model
-                    object.
-                """
-
+        :param rate_rules: The rate rule or list of rate rule objects to be added to the model object.
+        :type rate_rules: RateRule, or list of RateRules
+        """
         if isinstance(rate_rules, list):
             for rr in sorted(rate_rules):
                 self.add_rate_rule(rr)
@@ -509,14 +452,10 @@ class Model(SortableObject):
 
     def add_event(self, event):
         """
-                Adds an event, or list of events to the model.
-
-                Attributes
-                ----------
-                event : Event, or list of Events
-                    The event or list of event objects to be added to the model
-                    object.
-                """
+        Adds an event, or list of events to the model.
+        :param event: The event or list of event objects to be added to the model object.
+        :type event: Event, or list of Events
+        """
 
         if isinstance(event, list):
             for e in event:
@@ -535,6 +474,12 @@ class Model(SortableObject):
         return event
 
     def add_function_definition(self, function_definitions):
+        """
+        Add FunctionDefinition or list of FunctionDefinitions
+        :param function_definitions: The FunctionDefinition, or list of FunctionDefinitions to be added to the model
+        object.
+        :type function_definitions: FunctionDefinition or list of FunctionDefinitions.
+        """
         if isinstance(function_definitions, list):
             for fd in function_definitions:
                 self.add_function_definition(fd)
@@ -546,6 +491,11 @@ class Model(SortableObject):
                     "Error using {} as a Function Definition. Reason given: ".format(function_definitions, e))
 
     def add_assignment_rule(self, assignment_rules):
+        """
+        Add AssignmentRule or list of AssignmentRules to the model object.
+        :param assignment_rules: The AssignmentRule or list of AssignmentRules to be added to the model object.
+        :type assignment_rules: AssignmentRule or list of AssignmentRules
+        """
         if isinstance(assignment_rules, list):
             for ar in assignment_rules:
                 self.add_assignment_rule(ar)
@@ -576,9 +526,9 @@ class Model(SortableObject):
         Set the time span of simulation. StochKit does not support non-uniform
         timespans.
 
-        tspan : numpy ndarray
-            Evenly-spaced list of times at which to sample the species
-            populations during the simulation.
+        :param time_span: Evenly-spaced list of times at which to sample the species
+        populations during the simulation.
+        :type time_span: numpy ndarray
         """
 
         items = np.diff(time_span)
@@ -592,7 +542,6 @@ class Model(SortableObject):
 
     def get_reaction(self, rname):
         """
-
         :param rname: name of reaction to return
         :return: Reaction object
         """
@@ -756,7 +705,7 @@ class Model(SortableObject):
     def get_best_solver(self, precompile=True):
         """
         Finds best solver for the users simulation. Currently, AssignmentRules, RateRules, FunctionDefinitions,
-        Events, and Species with a dynamic, or continuous population must use the BasicTauHybridSolver.
+        Events, and Species with a dynamic, or continuous population must use the TauHybridSolver.
         :param precompile: If True, and the model contains no AssignmentRules, RateRules, FunctionDefinitions, Events,
         or Species with a dynamic or continuous population, the get_best_solver will choose the VariableSSACSolver, else
         it will choose SSACSolver
@@ -776,11 +725,11 @@ class Model(SortableObject):
                     hybrid_check = True
                     break
         if can_use_numpy and hybrid_check:
-            from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
-            return BasicTauHybridSolver
+            from gillespy2 import TauHybridSolver
+            return TauHybridSolver
 
         elif not can_use_numpy and hybrid_check:
-            raise ModelError('BasicTauHybridSolver is the only solver currently that supports '
+            raise ModelError('TauHybridSolver is the only solver currently that supports '
                              'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
                              'Please install Numpy.')
         else:
@@ -795,10 +744,19 @@ class Model(SortableObject):
         Function calling simulation of the model. There are a number of
         parameters to be set here.
 
-        Return
-        ----------
+        :param solver: The solver by which to simulate the model. This solver object may
+        be initialized separately to specify an algorithm. Optional,
+        defaults to ssa solver.
+        :type solver: gillespy.GillesPySolver
 
-        If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is
+        :param timeout: Allows a time_out value in seconds to be sent to a signal handler, restricting simulation run-time
+        :type timeout: int
+
+        :param t: End time of simulation
+        :type t: int
+        :param solver_args: Solver-specific arguments to be passed to solver.run()
+
+        :return  If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is
         True,returns a Results object that inherits UserList and contains one or more Trajectory objects that
         inherit UserDict. Results object supports graphing and csv export.
 
@@ -806,18 +764,8 @@ class Model(SortableObject):
         control+c or pressing stop on a jupyter notebook. To resume a simulation, pass your previously ran results
         into the run method, and set t = to the time you wish the resuming simulation to end (run(resume=results, t=x)).
         Pause/Resume is only supported for SINGLE TRAJECTORY simulations. T MUST BE SET OR UNEXPECTED BEHAVIOR MAY OCCUR.
-
-        Attributes
-        ----------
-        solver : gillespy.GillesPySolver
-            The solver by which to simulate the model. This solver object may
-            be initialized separately to specify an algorithm. Optional, 
-            defaults to ssa solver.
-        timeout : int
-            Allows a time_out value in seconds to be sent to a signal handler, restricting simulation run-time
-        solver_args :
-            solver-specific arguments to be passed to solver.run()
         """
+
         if not show_labels:
             from gillespy2.core import log
             log.warning('show_labels = False is deprecated. Future releases of GillesPy2 may not support this feature.')
@@ -851,612 +799,19 @@ class Model(SortableObject):
                 results = results.to_array()
             return results
 
+        if len(solver_results) > 0:
+            results_list = []
+            for i in range(0, len(solver_results)):
+                temp = Trajectory(data=solver_results[i], model=self, solver_name=solver.name, rc=rc)
+                results_list.append(temp)
+
+            results = Results(results_list)
+            if show_labels == False:
+                results = results.to_array()
+            return results
+
         else:
             raise ValueError("number_of_trajectories must be non-negative and non-zero")
-
-
-class Species(SortableObject):
-    """
-    Chemical species. Can be added to Model object to interact with other
-    species or time.
-
-    Attributes
-    ----------
-    name : str
-        The name by which this species will be called in reactions and within
-        the model.
-    initial_value : int >= 0
-        Initial population of this species. If this is not provided as an int,
-        the type will be changed when it is added by numpy.int
-    constant: bool
-        If true, the value of the species cannot be changed.
-        (currently BasicTauHybridSolver only)
-    boundary_condition: bool
-        If true, species can be changed by events and rate rules, but not by
-        reactions. (currently BasicTauHybridOnly)
-    mode : str
-        ***FOR USE WITH BasicTauHybridSolver ONLY***
-        Sets the mode of representation of this species for the TauHybridSolver,
-        can be discrete, continuous, or dynamic.
-        mode='dynamic' - Allows a species to be represented as
-            either discrete or continuous
-        mode='continuous' - Species will only be represented as continuous
-        mode='discrete' - Species will only be represented as discrete
-    allow_negative_populations: bool
-        If true, population can be reduced below 0
-    switch_tol : float
-        ***FOR USE WITH BasicTauHybridSolver ONLY***
-        Tolerance level for considering a dynamic species deterministically,
-        value is compared to an estimated sd/mean population of a species after a
-        given time step. This value will be used if a switch_min is not
-        provided.  The default value is 0.03
-    switch_min : float
-        ***FOR USE WITH BasicTauHybridSolver ONLY***
-        Minimum population value at which species will be represented as
-        continuous. If a value is given, switch_min will be used instead of
-        switch_tol
-        
-    """
-
-    def __init__(self, name="", initial_value=0, constant=False,
-                 boundary_condition=False, mode=None,
-                 allow_negative_populations=False, switch_min=0,
-                 switch_tol=0.03):
-        # A species has a name (string) and an initial value (positive integer)
-        self.name = name
-        self.constant = constant
-        self.boundary_condition = boundary_condition
-        self.mode = mode
-        self.allow_negative_populations = allow_negative_populations
-        self.switch_min = switch_min
-        self.switch_tol = switch_tol
-
-        mode_list = ['continuous', 'dynamic', 'discrete', None]
-
-        if self.mode not in mode_list:
-            raise SpeciesError('Species mode must be either \'continuous\', \'dynamic\', \'discrete\', or '
-                               '\'unspecified(default to dynamic for BasicTauHybridSolver)\'.')
-        if mode == 'continuous':
-            self.initial_value = np.float(initial_value)
-        else:
-            if np.int(initial_value) != initial_value:
-                raise ValueError(
-                    "'initial_value' for Species with mode='discrete' must be an integer value. Change to mode='continuous' to use floating point values.")
-            self.initial_value = np.int(initial_value)
-        if not allow_negative_populations:
-            if self.initial_value < 0: raise ValueError('A species initial value must be \
-non-negative unless allow_negative_populations=True')
-
-    def __str__(self):
-        print_string = self.name
-        print_string += ': ' + str(self.initial_value)
-        '''
-        print_string += '\n\tInitial Value: ' + str(self.initial_value)
-        print_string += '\n\tConstant: ' + str(self.constant)
-        print_string += '\n\tBoundary Condition: ' + str(self.boundary_condition)
-        print_string += '\n\tMode: ' + self.mode
-        print_string += '\n\tAllow Negative Populations: ' + str(self.allow_negative_populations)
-        '''
-        return print_string
-
-    def set_initial_value(self, num):
-        """
-        Setter method for initial_value of a population
-        :param num: Integer to set initial species population
-        :raises SpeciesError: If num is non-negative or a decimal number
-        """
-        if isinstance(num, float) and (self.mode != 'dynamic' or self.mode != 'continuous'):
-            raise SpeciesError("Mode set to discrete, species must be an integer number.")
-        if num < 0 and self.allow_negative_populations == False:
-            raise SpeciesError("Species population must be non-negative, or allow_negative_populations "
-                               "must be set to True")
-        self.initial_value = num
-
-
-class Parameter(SortableObject):
-    """
-    A parameter can be given as an expression (function) or directly
-    as a value (scalar). If given an expression, it should be
-    understood as evaluable in the namespace of a parent Model.
-
-    Attributes
-    ----------
-    name : str
-        The name by which this parameter is called or referenced in reactions.
-    expression : str
-        String for a function calculating parameter values. Should be evaluable
-        in namespace of Model.
-    value : float
-        Value of a parameter if it is not dependent on other Model entities.
-    """
-
-    def __init__(self, name="", expression=None, value=None):
-
-        self.name = name
-        # We allow expression to be passed in as a non-string type. Invalid strings
-        # will be caught below. It is perfectly fine to give a scalar value as the expression.
-        # This can then be evaluated in an empty namespace to the scalar value.
-        self.expression = expression
-        if expression is not None:
-            self.expression = str(expression)
-
-        self.value = value
-
-        # self.value is allowed to be None, but not self.expression. self.value
-        # might not be evaluable in the namespace of this parameter, but defined
-        # in the context of a model or reaction.
-        if self.expression is None:
-            raise TypeError
-
-        if self.value is None:
-            self.evaluate()
-
-    def __str__(self):
-        return self.name + ': ' + self.expression
-
-    def evaluate(self, namespace={}):
-        """
-        Evaluate the expression and return the (scalar) value in the given
-        namespace.
-
-        Attributes
-        ----------
-        namespace : dict (optional)
-            The namespace in which to test evaluation of the parameter, if it
-            involves other parameters, etc.
-        """
-        try:
-            self.value = (float(eval(self.expression, namespace)))
-        except:
-            self.value = None
-
-    def set_expression(self, expression):
-        """
-        Sets the expression for a parameter.
-        """
-        self.expression = expression
-        # We allow expression to be passed in as a non-string type. Invalid
-        # strings will be caught below. It is perfectly fine to give a scalar
-        # value as the expression. This can then be evaluated in an empty
-        # namespace to the scalar value.
-        if expression is not None:
-            self.expression = str(expression)
-
-        if self.expression is None:
-            raise TypeError
-
-        self.evaluate()
-
-
-class FunctionDefinition(SortableObject):
-    """
-    Object representation defining an evaluable function to be used during
-    simulation of a GillesPy2 model
-
-    Attributes
-    ----------
-    name : str
-        Name of the function to be made and called.
-    function : str
-        Defined function body of operation to be performed.
-    variables : list
-        String names of Variables to be used as arguments to function.
-    """
-
-
-    def __init__(self, name="", function=None, args=[]):
-
-        import math
-        eval_globals = math.__dict__
-
-        self.name = name
-        args = ', '.join(args)
-        self.function = eval('lambda ' + args + ': ' + function, eval_globals)
-        if self.function is None:
-            raise TypeError
-
-    def sanitized_function(self, species_mappings, parameter_mappings):
-        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
-                       reverse=True)
-        replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
-                        for name in names]
-        sanitized_function = self.function
-        for id, name in enumerate(names):
-            sanitized_function = sanitized_function.replace(name, "{" + str(id) + "}")
-        return sanitized_function.format(*replacements)
-
-
-class AssignmentRule(SortableObject):
-    """
-    An AssignmentRule is used to express equations that set the values of
-    variables.  This would correspond to a function in the form of x = f(V)
-
-    Attributes
-    ----------
-    name : str
-        Name of the Rule
-    variable : str
-        Target Species/Parameter to be modified by rule
-    formula : str
-        String representation of formula to be evaluated
-    """
-
-    def __init__(self, variable=None, formula=None, name=None):
-        self.variable = variable
-        self.formula = formula
-        self.name = name
-
-    def __str__(self):
-        return self.variable + ': ' + self.formula
-
-    def sanitized_formula(self, species_mappings, parameter_mappings):
-        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
-                       reverse=True)
-        replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
-                        for name in names]
-        sanitized_formula = self.formula
-        for id, name in enumerate(names):
-            sanitized_formula = sanitized_formula.replace(name, "{" + str(id) + "}")
-        return sanitized_formula.format(*replacements)
-
-
-class RateRule(SortableObject):
-    """
-    A RateRule is used to express equations that determine the rates of change
-    of variables. This would correspond to a function in the form of dx/dt=f(W)
-
-    Attributes
-    ----------
-    name : str
-        Name of Rule
-    variable : str
-        Target Species/Parameter to be modified by rule
-    formula : str
-        String representation of formula to be evaluated
-    """
-
-    def __init__(self, variable=None, formula='', name=None):
-        self.formula = formula
-        self.variable = variable
-        self.name = name
-
-    def __str__(self):
-        try:
-            return self.name + ': Var: ' + self.variable + ': ' + self.formula
-        except:
-            return 'Rate Rule: {} contains an invalid variable or formula'.format(self.name)
-
-    def sanitized_formula(self, species_mappings, parameter_mappings):
-        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
-                       reverse=True)
-        replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
-                        for name in names]
-        sanitized_formula = self.formula
-        for id, name in enumerate(names):
-            sanitized_formula = sanitized_formula.replace(name, "{" + str(id) + "}")
-        return sanitized_formula.format(*replacements)
-
-
-class Reaction(SortableObject):
-    """
-    Models a single reaction. A reaction has its own dicts of species
-    (reactants and products) and parameters. The reaction's propensity
-    function needs to be evaluable (and result in a non-negative scalar
-    value) in the namespace defined by the union of those dicts.
-
-    Attributes
-    ----------
-    name : str
-        The name by which the reaction is called (optional).
-    reactants : dict
-        The reactants that are consumed in the reaction, with stoichiometry. An
-        example would be {R1 : 1, R2 : 2} if the reaction consumes two of R1 and
-        one of R2, where R1 and R2 are Species objects.
-    products : dict
-        The species that are created by the reaction event, with stoichiometry.
-        Same format as reactants.
-    propensity_function : str
-        The custom propensity fcn for the reaction. Must be evaluable in the
-        namespace of the reaction using C operations.
-    massaction : bool
-        The switch to use a mass-action reaction. If set to True, a rate value
-        is required.
-    rate : float
-        The rate of the mass-action reaction. Take care to note the units...
-    annotation : str
-        An optional note about the reaction.
-
-    Notes
-    ----------
-    For a species that is NOT consumed in the reaction but is part of a mass
-    action reaction, add it as both a reactant and a product.
-
-    Mass-action reactions must also have a rate term added. Note that the input
-    rate represents the mass-action constant rate independent of volume.
-    """
-
-    def __init__(self, name="", reactants={}, products={},
-                 propensity_function=None, massaction=False,
-                 rate=None, annotation=None):
-        """
-        Initializes the reaction using short-hand notation.
-        """
-
-        # Metadata
-        if name == "" or name is None:
-            self.name = 'rxn' + str(uuid.uuid4()).replace('-', '_')
-        else:
-            self.name = name
-        self.annotation = ""
-
-        # We might use this flag in the future to automatically generate
-        # the propensity function if set to True.
-        if propensity_function is not None:
-            self.massaction = False
-            self.marate = None
-        else:
-            self.massaction = True
-
-        self.propensity_function = propensity_function
-        self.ode_propensity_function = propensity_function
-
-        if self.propensity_function is not None and self.massaction:
-            errmsg = ("Reaction {} You cannot set the propensity type to mass-action and simultaneously set a "
-                      "propensity function.").format(self.name)
-            raise ReactionError(errmsg)
-
-        self.reactants = {}
-        for r in reactants:
-            rtype = type(r).__name__
-            if rtype == 'instance':
-                self.reactants[r.name] = reactants[r]
-            else:
-                self.reactants[r] = reactants[r]
-
-        self.products = {}
-        for p in products:
-            rtype = type(p).__name__
-            if rtype == 'instance':
-                self.products[p.name] = products[p]
-            else:
-                self.products[p] = products[p]
-
-        if self.massaction:
-            self.type = "mass-action"
-            if rate is None:
-                self.marate = None
-            else:
-                self.marate = rate
-                self.__create_mass_action()
-        else:
-            self.type = "customized"
-
-            def __customPropParser():
-                pow_func = ast.parse("pow", mode="eval").body
-
-                class ExpressionParser(ast.NodeTransformer):
-                    def visit_BinOp(self, node):
-                        node.left = self.visit(node.left)
-                        node.right = self.visit(node.right)
-                        if isinstance(node.op, (ast.BitXor, ast.Pow)):
-                            # ast.Call calls defined function, args include which nodes
-                            # are effected by function call
-                            call = ast.Call(func=pow_func,
-                                            args=[node.left, node.right],
-                                            keywords=[])
-                            # Copy_location copies lineno and coloffset attributes
-                            # from old node to new node. ast.copy_location(new_node,old_node)
-                            call = ast.copy_location(call, node)
-                            # Return changed node
-                            return call
-                        # No modification to node, classes extending NodeTransformer methods
-                        # Always return node or value
-                        else:
-                            return node
-
-                    def visit_Name(self, node):
-                        #Visits Name nodes, if the name nodes "id" value is 'e', replace with numerical constant
-                        if node.id == 'e':
-                            nameToConstant = ast.copy_location(ast.Num(float(np.e), ctx=node.ctx), node)
-                            return nameToConstant
-                        return node
-
-                expr = self.propensity_function
-                expr = expr.replace('^', '**')
-                expr = ast.parse(expr, mode='eval')
-                expr = ExpressionParser().visit(expr)
-
-                class ToString(ast.NodeVisitor):
-                    def __init__(self):
-                        self.string = ''
-                    def _string_changer(self, addition):
-                        self.string += addition
-                    def visit_BinOp(self, node):
-                        self._string_changer('(')
-                        self.visit(node.left)
-                        self.visit(node.op)
-                        self.visit(node.right)
-                        self._string_changer(')')
-                    def visit_Name(self, node):
-                        self._string_changer(node.id)
-                        self.generic_visit(node)
-                    def visit_Num(self, node):
-                        self._string_changer(str(node.n))
-                        self.generic_visit(node)
-                    def visit_Call(self, node):
-                        self._string_changer(node.func.id + '(')
-                        counter = 0
-                        for arg in node.args:
-                            self.visit(arg)
-                            if counter == 0:
-                                self._string_changer(',')
-                                counter += 1
-                        self._string_changer(')')
-                    def visit_Add(self, node):
-                        self._string_changer('+')
-                        self.generic_visit(node)
-                    def visit_Div(self, node):
-                        self._string_changer('/')
-                        self.generic_visit(node)
-                    def visit_Mult(self, node):
-                        self._string_changer('*')
-                        self.generic_visit(node)
-                    def visit_UnaryOp(self, node):
-                        self._string_changer('(')
-                        self.visit_Usub(node)
-                        self._string_changer(')')
-                    def visit_Sub(self, node):
-                        self._string_changer('-')
-                        self.generic_visit(node)
-                    def visit_Usub(self, node):
-                        self._string_changer('-')
-                        self.generic_visit(node)
-
-                newFunc = ToString()
-                newFunc.visit(expr)
-                return newFunc.string
-
-            self.propensity_function = __customPropParser()
-
-    def __str__(self):
-        print_string = self.name
-        if len(self.reactants):
-            print_string += '\n\tReactants'
-            for r, stoich in self.reactants.items():
-                try:
-                    print_string += '\n\t\t' + r.name + ': ' + str(stoich)
-                except Exception as e:
-                    print_string += '\n\t\t' + r + ': ' + 'INVALID - ' + str(e)
-        if len(self.products):
-            print_string += '\n\tProducts'
-            for p, stoich in self.products.items():
-                try:
-                    print_string += '\n\t\t' + p.name + ': ' + str(stoich)
-                except Exception as e:
-                    print_string += '\n\t\t' + p + ': ' + 'INVALID - ' + str(e)
-        print_string += '\n\tPropensity Function: ' + self.propensity_function
-        return print_string
-
-    def verify(self):
-        """ Check if the reaction is properly formatted.
-        Does nothing on sucesss, raises and error on failure."""
-        if self.marate is None and self.propensity_function is None:
-            raise ReactionError("You must specify either a mass-action rate or a propensity function")
-        if len(self.reactants) == 0 and len(self.products) == 0:
-            raise ReactionError("You must have a non-zero number of reactants or products.")
-
-    def __create_mass_action(self):
-        """
-        Initializes the mass action propensity function given
-        self.reactants and a single parameter value.
-        """
-        # We support zeroth, first and second order propensities only.
-        # There is no theoretical justification for higher order propensities.
-        # Users can still create such propensities if they really want to,
-        # but should then use a custom propensity.
-        total_stoch = 0
-        for r in sorted(self.reactants):
-            total_stoch += self.reactants[r]
-        if total_stoch > 2:
-            raise ReactionError("Reaction: A mass-action reaction cannot involve more than two of one species or one "
-                                "of two species. To declare a custom propensity, replace 'rate' with "
-                                "'propensity_function'.")
-
-        # Case EmptySet -> Y
-
-        propensity_function = self.marate.name
-        ode_propensity_function = self.marate.name
-
-        # There are only three ways to get 'total_stoch==2':
-        for r in sorted(self.reactants):
-            if isinstance(r, str):
-                rname = r
-            else:
-                rname = r.name
-            # Case 1: 2X -> Y
-            if self.reactants[r] == 2:
-                propensity_function = (propensity_function +
-                                       "*" + rname + "*(" + rname + "-1)/vol")
-                ode_propensity_function += '*' + rname + '*' + rname
-            else:
-                # Case 3: X1, X2 -> Y;
-                propensity_function += "*" + rname
-                ode_propensity_function += '*' + rname
-
-        # Set the volume dependency based on order.
-        order = len(self.reactants)
-        if order == 2:
-            propensity_function += "/vol"
-        elif order == 0:
-            propensity_function += "*vol"
-
-        self.propensity_function = propensity_function
-        self.ode_propensity_function = ode_propensity_function
-
-    def setType(self, rxntype):
-        """
-        Sets reaction type to either "mass-action" or "customized"
-
-        Attributes
-        ----------
-        rxntype : str
-            Either "mass-action" or "customized"
-        """
-        if rxntype.lower() not in {'mass-action', 'customized'}:
-            raise ReactionError("Invalid reaction type.")
-        self.type = rxntype.lower()
-
-        self.massaction = False if self.type == 'customized' else True
-
-    def addReactant(self, S, stoichiometry):
-        """
-        Adds a reactant to the reaction (species that is consumed)
-
-        Attributes
-        ----------
-        S : gillespy.Species
-            Reactant to add to this reaction.
-        stoichiometry : int
-            The stoichiometry of the given reactant.
-        """
-        if stoichiometry <= 0:
-            raise ReactionError("Reaction Stoichiometry must be a \
-                                    positive integer.")
-        self.reactants[S.name] = stoichiometry
-
-    def addProduct(self, S, stoichiometry):
-        """
-        Adds a product to the reaction (species that is created)
-
-        Attributes
-        ----------
-        S : gillespy.Species
-            Product to add to this reaction.
-        stoichiometry : int
-            The stoichiometry of the given product.
-        """
-        self.products[S.name] = stoichiometry
-
-    def Annotate(self, annotation):
-        """
-        Adds a note to the reaction
-
-        Attributes
-        ----------
-        annotation : str
-            An optional note about the reaction.
-        """
-        self.annotation = annotation
-
-    def sanitized_propensity_function(self, species_mappings, parameter_mappings):
-        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
-                       reverse=True)
-        replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
-                        for name in names]
-        sanitized_propensity = self.propensity_function
-        for id, name in enumerate(names):
-            sanitized_propensity = sanitized_propensity.replace(name, "{" + str(id) + "}")
-        return sanitized_propensity.format(*replacements)
 
 
 class StochMLDocument():

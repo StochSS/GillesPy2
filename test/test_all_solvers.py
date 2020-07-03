@@ -2,20 +2,19 @@ import unittest
 import numpy as np
 
 import gillespy2
-from example_models import Example, Oregonator
+from example_models import Example, Oregonator, MichaelisMenten
 from gillespy2.core.results import Results, Trajectory
-from gillespy2.solvers.cpp.ssa_c_solver import SSACSolver
-from gillespy2.solvers.cpp.variable_ssa_c_solver import VariableSSACSolver
-from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
-from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver
-from gillespy2.solvers.numpy.basic_tau_leaping_solver import BasicTauLeapingSolver
-from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
+from gillespy2 import SSACSolver
+from gillespy2 import VariableSSACSolver
+from gillespy2 import ODESolver
+from gillespy2 import NumPySSASolver
+from gillespy2 import TauLeapingSolver
+from gillespy2 import TauHybridSolver
 
 
 class TestAllSolvers(unittest.TestCase):
 
-    solvers = [SSACSolver, VariableSSACSolver, BasicODESolver, 
-                NumPySSASolver, BasicTauLeapingSolver, BasicTauHybridSolver]
+    solvers = [SSACSolver, VariableSSACSolver, ODESolver, NumPySSASolver, TauLeapingSolver, TauHybridSolver]
 
     model = Example()
     for sp in model.listOfSpecies.values():
@@ -55,7 +54,7 @@ class TestAllSolvers(unittest.TestCase):
             same_results = self.model.run(solver=solver, seed=1)
             compare_results = self.model.run(solver=solver,seed=1)
             self.assertTrue(np.array_equal(same_results.to_array(), compare_results.to_array()))
-            if solver.name == 'BasicODESolver': continue
+            if solver.name == 'ODESolver': continue
             diff_results = self.model.run(solver=solver, seed=2)
             self.assertFalse(np.array_equal(diff_results.to_array(),same_results.to_array()))
     
@@ -71,6 +70,21 @@ class TestAllSolvers(unittest.TestCase):
                 model = Oregonator()
                 model.timespan(np.linspace(0, 1000000, 101))
                 results = model.run(solver=solver, timeout=1)
+
+    def test_basic_solver_import(self):
+        from gillespy2.solvers.numpy.basic_tau_leaping_solver import BasicTauLeapingSolver
+        from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
+        from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
+        model = MichaelisMenten()
+        results1 = model.run(solver=BasicTauLeapingSolver)
+        self.assertTrue(results1[0].solver_name == 'TauLeapingSolver')
+
+        results2 = model.run(solver=BasicODESolver)
+        self.assertTrue(results2[0].solver_name == 'ODESolver')
+
+        results3 = model.run(solver=BasicTauHybridSolver)
+        self.assertTrue(results3[0].solver_name == 'TauHybridSolver')
+
 
 if __name__ == '__main__':
     unittest.main()
