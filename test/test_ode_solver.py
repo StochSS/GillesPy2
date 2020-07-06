@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import gillespy2
 from example_models import Example
-from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
+from gillespy2 import ODESolver
 
 
 class TestBasicODESolver(unittest.TestCase):
@@ -15,10 +15,10 @@ class TestBasicODESolver(unittest.TestCase):
                 with self.subTest(number_of_trajectories=i, show_labels=label):
                     if i > 1:
                         with self.assertLogs(level='WARN'):
-                            results = model.run(solver=BasicODESolver, show_labels=label, number_of_trajectories=i)
+                            results = model.run(solver=ODESolver, show_labels=label, number_of_trajectories=i)
                         self.assertEqual(len(results), i)
                     else:
-                        results = model.run(solver=BasicODESolver, show_labels=label, number_of_trajectories=i)
+                        results = model.run(solver=ODESolver, show_labels=label, number_of_trajectories=i)
 
                     if i > 1 or not label:
                         for result in results[1:]:
@@ -41,7 +41,7 @@ class TestBasicODESolver(unittest.TestCase):
                 self.add_reaction([r])
                 self.timespan(np.linspace(0, 100, 101))
         model = StoichTestModel()
-        result = model.run(solver=BasicODESolver)
+        result = model.run(solver=ODESolver)
         self.assertAlmostEqual(result['B'][-1], 5, places=3)
 
 

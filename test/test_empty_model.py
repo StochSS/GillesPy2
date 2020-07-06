@@ -1,5 +1,5 @@
 import unittest
-from gillespy2.core import Model
+from gillespy2.core.model import Model
 
 
 class EmptyModel(Model):

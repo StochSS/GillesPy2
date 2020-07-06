@@ -1,12 +1,11 @@
 import warnings
 from datetime import datetime
 from gillespy2.core.gillespyError import *
-import pickle
-
-from collections import UserDict,UserList
+from collections import UserDict, UserList
 
 # List of 50 hex color values used for plotting graphs
-common_rgb_values = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
+def common_rgb_values():
+    return ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
                          '#bcbd22', '#17becf', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff', '#ff00ff',
                          '#800000', '#808000', '#008000', '#800080', '#008080', '#000080', '#ff9999', '#ffcc99',
                          '#ccff99', '#cc99ff', '#ffccff', '#62666a', '#8896bb', '#77a096', '#9d5a6c', '#9d5a6c',
@@ -14,27 +13,29 @@ common_rgb_values = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c
                          '#000117', '#13a8fe', '#cf0060', '#04354b', '#0297a0', '#037665', '#eed284', '#442244',
                          '#ffddee', '#702afb']
 
-def _plot_iterate(self, show_labels = True, included_species_list = []):
+
+def _plot_iterate(self, show_labels=True, included_species_list=[]):
     import matplotlib.pyplot as plt
-    for i,species in enumerate(self.data):
+    for i, species in enumerate(self.data):
         if species != 'time':
 
             if species not in included_species_list and included_species_list:
                 continue
 
-            line_color = common_rgb_values[(i - 1) % len(common_rgb_values)]
+            line_color = common_rgb_values()[(i - 1) % len(common_rgb_values())]
 
             if show_labels:
                 label = species
             else:
                 label = ""
 
-            plt.plot(self.data['time'], self.data[species], label=label,color = line_color)
+            plt.plot(self.data['time'], self.data[species], label=label, color=line_color)
 
-def _plotplotly_iterate(trajectory, show_labels = True, trace_list = None, line_dict= None, included_species_list= []):
-    '''
+
+def _plotplotly_iterate(trajectory, show_labels=True, trace_list=None, line_dict=None, included_species_list=[]):
+    """
     Helper method for Results .plotplotly() method
-    '''
+    """
 
     if trace_list is None:
         trace_list = []
@@ -50,8 +51,8 @@ def _plotplotly_iterate(trajectory, show_labels = True, trace_list = None, line_
             if line_dict is None:
                 line_dict = {}
 
-            #If number of species exceeds number of available colors, loop back through colors
-            line_dict['color'] = common_rgb_values[(i-1)%len(common_rgb_values)]
+            # If number of species exceeds number of available colors, loop back through colors
+            line_dict['color'] = common_rgb_values()[(i-1)%len(common_rgb_values())]
 
             if show_labels:
                 trace_list.append(
@@ -80,21 +81,18 @@ def _plotplotly_iterate(trajectory, show_labels = True, trace_list = None, line_
 class Trajectory(UserDict):
     """ Trajectory Dict created by a gillespy2 solver containing single trajectory, extends the UserDict object.
 
-        Attributes
-        ----------
-        data : UserDict
-            A dictionary of trajectory values created by a solver
-        model : string
-            The name of the model used to create the trajectory
-        solver_name : string
-            The name of the solver used to create the trajectory
-        rc : int
-            The solver's status return code.
-        status : string
-            The solver status (e.g. 'Success', 'Timed Out')
-        """
+    :param data: A dictionary of trajectory values created by a solver
+    :type data: UserDict
+    :param model: The name of the model used to create the trajectory
+    :type model: str
+    :param solver_name: The name of the solver used to create the trajectory
+    :type solver_name: str
+    :param rc: The solvers status return code.
+    :type rc: int
+    :param status: The solver status ('Success','Timed out')
+    """
 
-    def __init__(self,data,model = None,solver_name = "Undefined solver name", rc=0):
+    def __init__(self, data, model=None, solver_name="Undefined solver name", rc=0):
 
         self.data = data
         self.model = model
@@ -106,7 +104,8 @@ class Trajectory(UserDict):
 
     def __getitem__(self, key):
         if type(key) is int:
-            warnings.warn("Trajectory is of type dictionary. Use trajectory['species'] instead of trajectory[0]['species'] ")
+            warnings.warn("Trajectory is of type dictionary. Use trajectory['species'] instead of "
+                          "trajectory[0]['species'] ")
             return self
         if key in self.data:
             return self.data[key]
@@ -114,31 +113,31 @@ class Trajectory(UserDict):
             return self.__class__.__missing__(self, key)
         raise KeyError(key)
 
+
 class Results(UserList):
-    """ List of Trajectory objects created by a gillespy2 solver, extends the UserList object.
+    """
+    List of Trajectory objects created by a gillespy2 solver, extends the UserList object.
 
-        Attributes
-        ----------
-        data : UserList
-            A list of Trajectory objects
-        """
+    :param data: A list of trajectory objects
+    :type data: UserList
+    """
 
-    def __init__(self,data):
+    def __init__(self, data):
         self.data = data
 
-    def __getattribute__(self,key):
-        if key == 'model' or key == 'solver_name' or key == 'rc'or key == 'status':
-            if len(self.data)>1:
+    def __getattribute__(self, key):
+        if key == 'model' or key == 'solver_name' or key == 'rc' or key == 'status':
+            if len(self.data) > 1:
                 warnings.warn("Results is of type list. Use results[i]['model'] instead of results['model'] ")
-            return(getattr(Results.__getattribute__(self,key='data')[0],key))
+            return getattr(Results.__getattribute__(self, key='data')[0], key)
         else: 
-            return UserList.__getattribute__(self,key)
+            return UserList.__getattribute__(self, key)
 
     def __getitem__(self, key):
         if key == 'data':
-            return UserList.__getitem__(self,key)
+            return UserList.__getitem__(self, key)
         if type(key) is str and key != 'data':
-            if len(self.data)>1:
+            if len(self.data) > 1:
                 warnings.warn("Results is of type list. Use results[i]['model'] instead of results['model'] ")
             return self.data[0][key]
         else:
@@ -161,7 +160,7 @@ class Results(UserList):
         combined_data = self.data + other.data
         return Results(data=combined_data)
 
-    def _validate_model(self, reference = None):
+    def _validate_model(self, reference=None):
         is_valid = True
         if reference is not None:
             reference_model = reference
@@ -172,7 +171,7 @@ class Results(UserList):
                 is_valid = False
         return is_valid
 
-    def _validate_solver(self, reference = None):
+    def _validate_solver(self, reference=None):
         is_valid = True
         if reference is not None:
             reference_solver = reference
@@ -183,7 +182,7 @@ class Results(UserList):
                 is_valid = False
         return is_valid
 
-    def _validate_title(self,show_title):
+    def _validate_title(self, show_title):
         if not show_title:
             title = ''
             return title
@@ -212,85 +211,84 @@ class Results(UserList):
         return results
 
     def to_csv(self, path=None, nametag=None, stamp=None):
-        """ outputs the Results to one or more .csv files in a new directory.
+        """
+        outputs the Results to one or more .csv files in a new directory.
 
-             Attributes
-            ----------
-            nametag: allows the user to optionally "tag" the directory and included files. Defaults to the model name.
-            path: the location for the new directory and included files. Defaults to model location.
-            stamp: Allows the user to optionally "tag" the directory (not included files). Default is timestamp.
-            """
+        :param nametag: allows the user to optionally "tag" the directory and included files. Defaults to the model
+        name.
+        :type nametag: str
+        :param path: the location for the new directory and included files. Defaults to model location.
+        :type path: str
+        :param stamp: Allows the user to optionally "tag" the directory (not included files). Default is timestamp.
+        :type stamp: str
+        """
         import csv
         import os
 
         if stamp is None:
             now = datetime.now()
-            stamp=datetime.timestamp(now)
+            stamp = datetime.timestamp(now)
         if nametag is None:
             identifier = self._validate_title(show_title=True)
         else:
             identifier = nametag
         if path is None:
-            directory = os.path.join(".",str(identifier)+str(stamp))
+            directory = os.path.join(".", str(identifier)+str(stamp))
         else:
-            directory = os.path.join(path,str(identifier)+str(stamp))
-    #multiple trajectories
-        if isinstance(self.data,list):
+            directory = os.path.join(path, str(identifier)+str(stamp))
+        # multiple trajectories
+        if isinstance(self.data, list):
             os.mkdir(directory)
-            for i, trajectory in enumerate(self.data):#write each CSV file
-                filename = os.path.join(directory,str(identifier)+str(i)+".csv")
+            for i, trajectory in enumerate(self.data):  # write each CSV file
+                filename = os.path.join(directory, str(identifier)+str(i)+".csv")
                 field_names = []
-                for species in trajectory: #build the header
+                for species in trajectory:  # build the header
                     field_names.append(species)
-                with open(filename, 'w', newline = '') as csv_file:
+                with open(filename, 'w', newline='') as csv_file:
                     csv_writer = csv.writer(csv_file)
-                    csv_writer.writerow(field_names) #write the header
-                    for n,time in enumerate(trajectory['time']):#write all lines of the CSV file
+                    csv_writer.writerow(field_names)  # write the header
+                    for n,time in enumerate(trajectory['time']):  # write all lines of the CSV file
                         this_line=[]
-                        for species in trajectory: #build one line of the CSV file
+                        for species in trajectory:  # build one line of the CSV file
                             this_line.append(trajectory[species][n])
-                        csv_writer.writerow(this_line) #write one line of the CSV file
+                        csv_writer.writerow(this_line)  # write one line of the CSV file
 
-    def plot(self, index=None, xaxis_label="Time ", xscale='linear', yscale='linear', yaxis_label="Species Population", style="default", title=None,
-             show_title=False, show_legend=True, multiple_graphs=False, included_species_list=[], save_png=False,
-             figsize = (18,10)):
-        """ Plots the Results using matplotlib.
+    def plot(self, index=None, xaxis_label="Time ", xscale='linear', yscale='linear', yaxis_label="Species Population",
+             style="default", title=None, show_title=False, show_legend=True, multiple_graphs=False,
+             included_species_list=[], save_png=False, figsize=(18, 10)):
+        """
+        Plots the Results using matplotlib.
 
-        Attributes
-        ----------
-        index : if not none, the index of the Trajectory to be plotted
-        xaxis_label : str
-            the label for the x-axis
-        yaxis_label : str
-            the label for the y-axis
-            style : str
-            the matplotlib style to be used for the graph or graphs
-        title : str
-            the title of the graph
-        multiple_graphs : bool
-            if each trajectory should have its own graph or if they should overlap
-        included_species_list : list
-             A list of strings describing which species to include. By default displays all species.
-        save_png : bool or str
-            Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file
-            is named after that string.
-        figsize : tuple
-            the size of the graph. A tuple of the form (width,height). Is (18,10) by default.
-
-
-            """
+        :param index: If not none, the index of the Trajectory to be plotted.
+        :type index: int
+        :param xaxis_label: The label for the x-axis
+        :type xaxis_label: str
+        :param yaxis_label: The label for the y-axis
+        :type yaxis_label: str
+        :param title: The title of the graph
+        :type title: str
+        :param multiple_graphs: IF each trajectory should have its own graph or if they should overlap.
+        :type multiple_graphs: bool
+        :param included_species_list: A list of strings describing which species to include. By default displays all
+        species.
+        :type included_species_list: list
+        :param save_png: Should the graph be saved as a png file. If True, File name is title of graph. If a string is
+        given, file is named after that string.
+        :type save_png: bool or str
+        :param figsize: The size of the graph. A tuple of the form (width,height). Is (18,10) by default.
+        :type figsize: tuple of ints (x,y)
+        """
         import matplotlib.pyplot as plt
         from collections import Iterable
         trajectory_list = []
-        if isinstance(index,Iterable):
+        if isinstance(index, Iterable):
             for i in index:
                 trajectory_list.append(self.data[i])
-        elif isinstance(index,int):
+        elif isinstance(index, int):
                 trajectory_list.append(self.data[index])
         else:
             trajectory_list = self.data
 
-            
         if title is None:
             title = self._validate_title(show_title)
 
@@ -298,15 +296,16 @@ class Results(UserList):
                 multiple_graphs = False
 
         if multiple_graphs:
-
-            for i,trajectory in enumerate(trajectory_list):
+            for i, trajectory in enumerate(trajectory_list):
                 result = Results(data=[trajectory])
                 if isinstance(save_png, str):
-                    result.plot(xaxis_label=xaxis_label, yaxis_label=yaxis_label, title=title + " " + str(i + 1), style=style,
-                                                 included_species_list=included_species_list,save_png=save_png + str(i + 1),figsize=figsize)
+                    result.plot(xaxis_label=xaxis_label, yaxis_label=yaxis_label, title=title + " " + str(i + 1),
+                                style=style, included_species_list=included_species_list, save_png=save_png + str(i + 1)
+                                , figsize=figsize)
                 else:
-                    result.plot(xaxis_label=xaxis_label, yaxis_label=yaxis_label, title=title + " " + str(i + 1),style=style,
-                                included_species_list=included_species_list, save_png=save_png, figsize=figsize)
+                    result.plot(xaxis_label=xaxis_label, yaxis_label=yaxis_label, title=title + " " + str(i + 1),
+                                style=style, included_species_list=included_species_list, save_png=save_png,
+                                figsize=figsize)
 
         else:
             try:
@@ -322,10 +321,10 @@ class Results(UserList):
             plt.xscale(xscale)
             plt.yscale(yscale)
 
-            for i,trajectory in enumerate(trajectory_list):
+            for i, trajectory in enumerate(trajectory_list):
 
                 if i > 0:
-                    _plot_iterate(trajectory, included_species_list=included_species_list,show_labels=False)
+                    _plot_iterate(trajectory, included_species_list=included_species_list, show_labels=False)
                 else:
                     _plot_iterate(trajectory, included_species_list=included_species_list)
 
@@ -343,30 +342,34 @@ class Results(UserList):
                    return_plotly_figure=False,  **layout_args):
         """ Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.
 
-        Attributes
-        ----------
-        index : if not none, the index of the Trajectory to be plotted
-        xaxis_label : str
-            the label for the x-axis
-        yaxis_label : str
-            the label for the y-axis
-        title : str
-            the title of the graph
-        multiple_graphs : bool
-            if each trajectory should have its own graph or if they should overlap
-        included_species_list : list
-             A list of strings describing which species to include. By default displays all species.
-        return_plotly_figure : bool
-            whether or not to return a figure dictionary of data(graph object traces) and layout options
-            which may be edited by the user.
-        **layout_args: dict
-            Optional additional arguments to be passed to plotly's Layout constructor.
+        :param index: If not none, the index of the Trajectory to be plotted.
+        :type index: int
+        :param xaxis_label: The label for the x-axis
+        :type xaxis_label: str
+        :param yaxis_label: The label for the y-axis
+        :type yaxis_label: str
+        :param title: The title of the graph
+        :type title: str
+        :param show_title: If True, title will be shown on graph.
+        :type show_title: bool
+        :param show_legend: Default True, if False, legend will not be shown on graph.
+        :type show_legend: bool
+        :param multiple_graphs: IF each trajectory should have its own graph or if they should overlap.
+        :type multiple_graphs: bool
+        :param included_species_list: A list of strings describing which species to include. By default displays all
+        species.
+        :type included_species_list: list
+        :param return_plotly_figure: Whether or not to return a figure dictionary of data(graph object traces) and
+        layout which may be edited by the user
+        :type return_plotly_figure: bool
+        :param **layout_args: Optional additional arguments to be passed to plotlys layout constructor.
+        :type **layout_args: dict
         """
 
         from plotly.offline import init_notebook_mode, iplot
         import plotly.graph_objs as go
 
-        #Backwards compatibility with xaxis_label argument (which duplicates plotly's xaxis_title argument)
+        # Backwards compatibility with xaxis_label argument (which duplicates plotly's xaxis_title argument)
         if layout_args.get('xaxis_title') is not None:
             xaxis_label = layout_args.get('xaxis_title')
             layout_args.pop('xaxis_title')
@@ -378,16 +381,15 @@ class Results(UserList):
 
         from collections import Iterable
         trajectory_list = []
-        if isinstance(index,Iterable):
+        if isinstance(index, Iterable):
             for i in index:
                 trajectory_list.append(self.data[i])
-        elif isinstance(index,int):
-                trajectory_list.append(self.data[index])
+        elif isinstance(index, int):
+            trajectory_list.append(self.data[index])
         else:
             trajectory_list = self.data
 
-        number_of_trajectories =len(trajectory_list)
-
+        number_of_trajectories = len(trajectory_list)
 
         if title is None:
             title = self._validate_title(show_title)
@@ -401,15 +403,16 @@ class Results(UserList):
 
             from plotly import tools
 
-            fig = tools.make_subplots(print_grid=False,rows=int(number_of_trajectories/2) + int(number_of_trajectories%2),
-                                      cols = 2)
+            fig = tools.make_subplots(print_grid=False, rows=int(number_of_trajectories/2) +
+                                                             int(number_of_trajectories % 2), cols=2)
 
             for i, trajectory in enumerate(trajectory_list):
                 if i > 0:
-                    trace_list = _plotplotly_iterate(trajectory, trace_list=[], included_species_list= included_species_list,
-                                                     show_labels=False)
+                    trace_list = _plotplotly_iterate(trajectory, trace_list=[], included_species_list=
+                    included_species_list, show_labels=False)
                 else:
-                    trace_list = _plotplotly_iterate(trajectory, trace_list=[], included_species_list=included_species_list)
+                    trace_list = _plotplotly_iterate(trajectory, trace_list=[], included_species_list=
+                    included_species_list)
 
                 for k in range(0, len(trace_list)):
                     if i % 2 == 0:
@@ -417,20 +420,17 @@ class Results(UserList):
                     else:
                         fig.append_trace(trace_list[k], int(i/2) + 1, 2)
 
-                fig['layout'].update(autosize=True,
-                                     height=400*len(trajectory_list),
-                                     showlegend=show_legend, title=title)
-
-            
-
+                fig['layout'].update(autosize=True, height=400*len(trajectory_list), showlegend=show_legend, title=title
+                                     )
         else:
             trace_list = []
-            for i,trajectory in enumerate(trajectory_list):
+            for i, trajectory in enumerate(trajectory_list):
                 if i > 0:
-                    trace_list = _plotplotly_iterate(trajectory, trace_list=trace_list,included_species_list= included_species_list,
-                                                     show_labels = False)
+                    trace_list = _plotplotly_iterate(trajectory, trace_list=trace_list, included_species_list=
+                    included_species_list, show_labels=False)
                 else:
-                    trace_list = _plotplotly_iterate(trajectory, trace_list=trace_list,included_species_list= included_species_list)
+                    trace_list = _plotplotly_iterate(trajectory, trace_list=trace_list, included_species_list=
+                    included_species_list)
 
             layout = go.Layout(
                 showlegend=show_legend,
@@ -448,56 +448,52 @@ class Results(UserList):
         else:
             iplot(fig)
 
-
     def average_ensemble(self):
         """
-                Generate a single Results object with a Trajectory that is made of the means of all trajectories' outputs
-                :return: the Results object
-                """
+        Generate a single Results object with a Trajectory that is made of the means of all trajectories' outputs
+        :return: the Results object
+        """
 
         trajectory_list = self.data
         number_of_trajectories = len(trajectory_list)
 
-        output_trajectory = Trajectory(data={},model=trajectory_list[0].model,solver_name=trajectory_list[0].solver_name)
+        output_trajectory = Trajectory(data={}, model=trajectory_list[0].model, solver_name=
+        trajectory_list[0].solver_name)
 
-        for species in trajectory_list[0]: #Initialize the output to be the same size as the inputs
+        for species in trajectory_list[0]:  # Initialize the output to be the same size as the inputs
             output_trajectory[species] = [0]*len(trajectory_list[0][species])
 
         output_trajectory['time'] = trajectory_list[0]['time']
 
-        for i in range(0,number_of_trajectories): #Add every value of every Trajectory Dict into one output Trajectory
+        for i in range(0, number_of_trajectories):  # Add every value of every Trajectory Dict into one output Trajectory
             trajectory_dict = trajectory_list[i]
             for species in trajectory_dict:
                 if species == 'time':
                     continue
-                for k in range(0,len(output_trajectory[species])):
+                for k in range(0, len(output_trajectory[species])):
                     output_trajectory[species][k] += trajectory_dict[species][k]
 
-        for species in output_trajectory:   #Divide for mean of every value in output Trajectory
+        for species in output_trajectory:   # Divide for mean of every value in output Trajectory
             if species == 'time':
                 continue
-            for i in range(0,len(output_trajectory[species])):
+            for i in range(0, len(output_trajectory[species])):
                 output_trajectory[species][i] /= number_of_trajectories
 
-        output_results = Results(data=[output_trajectory]) #package output_trajectory in a Results object
+        output_results = Results(data=[output_trajectory])  # package output_trajectory in a Results object
 
         return output_results
 
-    def stddev_ensemble(self,ddof = 0):
+    def stddev_ensemble(self, ddof=0):
         """
-                Generate a single Results object with a Trajectory that is made of the sample standard deviations of all 
-                trajectories' outputs.
+        Generate a single Results object with a Trajectory that is made of the sample standard deviations of all
+        trajectories' outputs.
 
-                  Attributes
-                ----------
-                ddof : int
-                    Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-                    the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
-                    standard deviation where ddof is 0.
-
-                :return: the Results object
-                """
-
+        :param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+        the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
+        where ddof is 0.
+        :type ddof: int
+        :return: the Results object
+        """
         from math import sqrt
 
         trajectory_list = self.data
@@ -509,63 +505,63 @@ class Results(UserList):
 
         average_list = self.average_ensemble().data[0]
 
-        output_trajectory = Trajectory(data={}, model=trajectory_list[0].model, solver_name=trajectory_list[0].solver_name)
+        output_trajectory = Trajectory(data={}, model=trajectory_list[0].model, solver_name=
+        trajectory_list[0].solver_name)
 
-        for species in trajectory_list[0]: #Initialize the output to be the same size as the inputs
+        for species in trajectory_list[0]:  # Initialize the output to be the same size as the inputs
             output_trajectory[species] = [0]*len(trajectory_list[0][species])
 
         output_trajectory['time'] = trajectory_list[0]['time']
 
-        for i in range(0,number_of_trajectories):
+        for i in range(0, number_of_trajectories):
             trajectory_dict = trajectory_list[i]
             for species in trajectory_dict:
                 if species == 'time':
                     continue
-                for k in range(0,len(output_trajectory['time'])):
+                for k in range(0, len(output_trajectory['time'])):
                     output_trajectory[species][k] += (trajectory_dict[species][k] - average_list[species][k])\
-                                          *(trajectory_dict[species][k] - average_list[species][k])
+                                          * (trajectory_dict[species][k] - average_list[species][k])
 
-        for species in output_trajectory:   #Divide for mean of every value in output Trajectory
+        for species in output_trajectory:   # Divide for mean of every value in output Trajectory
             if species == 'time':
                 continue
-            for i in range(0,len(output_trajectory[species])):
+            for i in range(0, len(output_trajectory[species])):
                 output_trajectory[species][i] /= (number_of_trajectories - ddof)
                 output_trajectory[species][i] = sqrt(output_trajectory[species][i])
 
-        output_results = Results(data=[output_trajectory]) #package output_trajectory in a Results object
+        output_results = Results(data=[output_trajectory])  # package output_trajectory in a Results object
         return output_results
 
     def plotplotly_std_dev_range(self, xaxis_label="Time ", yaxis_label="Species Population", title=None,
-                                 show_title = False, show_legend=True, included_species_list=[],
+                                 show_title=False, show_legend=True, included_species_list=[],
                                  return_plotly_figure=False, ddof=0, **layout_args):
         """
-           Plot a plotly graph depicting standard deviation and the mean graph of a results object
+        Plot a plotly graph depicting standard deviation and the mean graph of a results object
 
-         Attributes
-        ----------
-        xaxis_label : str
-            the label for the x-axis
-        yaxis_label : str
-            the label for the y-axis
-        title : str
-            the title of the graph
-        show_legend : bool
-            whether or not to display a legend which lists species
-        included_species_list : list
-            A list of strings describing which species to include. By default displays all species.
-        return_plotly_figure : bool
-            whether or not to return a figure dictionary of data(graph object traces) and layout options
-            which may be edited by the user.
-        ddof : int
-            Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
-            standard deviation where ddof is 0.
-        **layout_args: dict
-            Optional additional arguments to be passed to plotly's Layout constructor.
-
+        :param xaxis_label: The label for the x-axis
+        :type xaxis_label: str
+        :param yaxis_label: The label for the y-axis
+        :type yaxis_label: str
+        :param title: The title of the graph
+        :type title: str
+        :param show_title: If True, title will be shown on graph.
+        :type show_title: bool
+        :param show_legend: Default True, if False, legend will not be shown on graph.
+        :type show_legend: bool
+        :param included_species_list: A list of strings describing which species to include. By default displays all
+        species.
+        :type included_species_list: list
+        :param return_plotly_figure: Whether or not to return a figure dicctionary of data(graph object traces) and
+        layout which may be edited by the user
+        :type return_plotly_figure: bool
+        :param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+        the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
+        where ddof is 0.
+        :type ddof: int
+        :param **layout_args: Optional additional arguments to be passed to plotlys layout constructor.
+        :type **layout_args: dict
         """
-
-        #Backwards compatibility with xaxis_label argument (which duplicates plotly's xaxis_title argument)
+        # Backwards compatibility with xaxis_label argument (which duplicates plotly's xaxis_title argument)
         if layout_args.get('xaxis_title') is not None:
             xaxis_label = layout_args.get('xaxis_title')
             layout_args.pop('xaxis_title')
@@ -574,7 +570,7 @@ class Results(UserList):
             layout_args.pop('yaxis_title')
 
         average_trajectory = self.average_ensemble().data[0]
-        stddev_trajectory = self.stddev_ensemble(ddof= ddof).data[0]
+        stddev_trajectory = self.stddev_ensemble(ddof=ddof).data[0]
         from plotly.offline import init_notebook_mode, iplot
         import plotly.graph_objs as go
 
@@ -602,12 +598,12 @@ class Results(UserList):
                 # Append upper_bound list to trace_list
                 trace_list.append(
                     go.Scatter(
-                        name=species+ ' Upper Bound',
+                        name=species + ' Upper Bound',
                         x=average_trajectory['time'],
                         y=upper_bound,
                         mode='lines',
                         marker=dict(color="#444"),
-                        line=dict(width=1,dash='dot'),
+                        line=dict(width=1, dash='dot'),
                         legendgroup=str(average_trajectory[species]),
                         showlegend=False
                     )
@@ -631,14 +627,13 @@ class Results(UserList):
                         y= lower_bound,
                         mode='lines',
                         marker=dict(color="#444"),
-                        line=dict(width=1,dash='dot'),
+                        line=dict(width=1, dash='dot'),
                         fillcolor='rgba(68, 68, 68, 0.2)',
                         fill='tonexty',
                         legendgroup=str(average_trajectory[species]),
                         showlegend=False
                     )
                 )
-
 
         layout = go.Layout(
             showlegend=show_legend,
@@ -655,33 +650,34 @@ class Results(UserList):
         else:
             iplot(fig)
 
-    def plot_std_dev_range(self, xscale='linear',yscale='linear', xaxis_label ="Time ", yaxis_label ="Species Population", title=None,
-                           show_title=False, style="default", show_legend=True, included_species_list=[], ddof=0,
-                           save_png=False, figsize=(18,10)):
+    def plot_std_dev_range(self, xscale='linear', yscale='linear', xaxis_label="Time ", yaxis_label="Species Population"
+                           , title=None, show_title=False, style="default", show_legend=True, included_species_list=[],
+                           ddof=0, save_png=False, figsize=(18, 10)):
         """
             Plot a matplotlib graph depicting standard deviation and the mean graph of a results object
 
-         Attributes
-        ----------
-        xaxis_label : str
-            the label for the x-axis
-        yaxis_label : str
-            the label for the y-axis
-        title : str
-            the title of the graph
-        show_legend : bool
-            whether or not to display a legend which lists species
-        included_species_list : list
-            A list of strings describing which species to include. By default displays all species.
-        ddof : int
-            Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population
-            standard deviation where ddof is 0.
-        save_png : bool or str
-            Should the graph be saved as a png file. If True, File name is title of graph. If a string is given, file
-            is named after that string.
-        figsize : tuple
-            the size of the graph. A tuple of the form (width,height). Is (18,10) by default.
+        :param xaxis_label: The label for the x-axis
+        :type xaxis_label: str
+        :param yaxis_label: The label for the y-axis
+        :type yaxis_label: str
+        :param title: The title of the graph
+        :type title: str
+        :param show_title: Default False, if True, title will be displayed on the graph.
+        :type show_title: bool
+        :param style: Matplotlib style to be displayed on graph.
+        :type style: str
+        :param show_legend: Default to True, if False, legend will not be shown on graph.
+        :type show_legend: bool
+        :param included_species_list: A list of strings describing which species to include. By default displays all
+        species.
+        :type included_species_list: list
+        :param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+        the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
+        where ddof is 0.
+        :type ddof: int
+        :type save_png: bool or str
+        :param figsize: The size of the graph. A tuple of the form (width,height). Is (18,10) by default.
+        :type figsize: tuple of ints (x,y)
 
         """
 
@@ -705,12 +701,12 @@ class Results(UserList):
             if species not in included_species_list and included_species_list:
                 continue
 
-            lowerBound = [a-b for a,b in zip(average_result[species], stddev_trajectory[species])]
-            upperBound = [a+b for a,b in zip(average_result[species], stddev_trajectory[species])]
+            lowerBound = [a-b for a, b in zip(average_result[species], stddev_trajectory[species])]
+            upperBound = [a+b for a, b in zip(average_result[species], stddev_trajectory[species])]
 
-            plt.fill_between(average_result['time'], lowerBound, upperBound,color='whitesmoke')
-            plt.plot(average_result['time'],lowerBound,upperBound,color='grey',linestyle='dashed')
-            plt.plot(average_result['time'],average_result[species],label=species)
+            plt.fill_between(average_result['time'], lowerBound, upperBound, color='whitesmoke')
+            plt.plot(average_result['time'], lowerBound, upperBound, color='grey', linestyle='dashed')
+            plt.plot(average_result['time'], average_result[species], label=species)
 
         if not show_title:
             title = 'Standard Deviation Range'
@@ -733,5 +729,3 @@ class Results(UserList):
 
         elif save_png:
             plt.savefig(title)
-
-        

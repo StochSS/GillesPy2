@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from example_models import Example
-from gillespy2.solvers.numpy.basic_tau_leaping_solver import BasicTauLeapingSolver
+from gillespy2 import TauLeapingSolver
 
 
 class TestBasicTauLeapingSolver(unittest.TestCase):
