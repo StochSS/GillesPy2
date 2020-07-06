@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.solvers.stochkit package &#8212; GillesPy2 1.4.0 documentation</title>
+    <title>gillespy2.solvers.stochkit package &#8212; GillesPy2 1.5.0 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/gillespy2_alabaster_customizations.css" />
@@ -15,6 +15,7 @@
     <script src="../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="gillespy2.solvers.utilities package" href="gillespy2.solvers.utilities.html" />
     <link rel="prev" title="gillespy2.solvers.numpy package" href="gillespy2.solvers.numpy.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -81,6 +82,7 @@
   <li><a href="gillespy2.html">gillespy2 package</a><ul>
   <li><a href="gillespy2.solvers.html">gillespy2.solvers package</a><ul>
       <li>Previous: <a href="gillespy2.solvers.numpy.html" title="previous chapter">gillespy2.solvers.numpy package</a></li>
+      <li>Next: <a href="gillespy2.solvers.utilities.html" title="next chapter">gillespy2.solvers.utilities package</a></li>
   </ul></li>
   </ul></li>
   </ul></li>
@@ -139,133 +141,54 @@
 <dd><p>Abstract class for a StochKit solver. This is generally called from within a
 GillesPy Model through the Model.run function. Returns simulation
 trajectories.</p>
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.model">
-<code class="sig-name descname">model</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.model" title="Permalink to this definition">¶</a></dt>
-<dd><p>The model on which the solver will operate.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>gillespy.Model</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>GillesPy2.model</em>) – The model on which the solver will operate</p></li>
+<li><p><strong>t</strong> (<em>float</em>) – The end time of the solver</p></li>
+<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.t">
-<code class="sig-name descname">t</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.t" title="Permalink to this definition">¶</a></dt>
-<dd><p>The end time of the solver.</p>
+<p>trajectory will be returned at the end of the simulation.
+:type number_of_trajectories: int</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
+<li><p><strong>stochkit_home</strong> – Path to stochkit. This is set automatically upon installation, but</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.number_of_trajectories">
-<code class="sig-name descname">number_of_trajectories</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.number_of_trajectories" title="Permalink to this definition">¶</a></dt>
-<dd><p>The number of times to sample the chemical master equation. Each
-trajectory will be returned at the end of the simulation.</p>
+<p>may be overwritten if desired.
+:type stochkit_home: str</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>int</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>algorithm</strong> – The solver by which to simulate the model. ‘ssa’ or ‘tau_leaping’</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.increment">
-<code class="sig-name descname">increment</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.increment" title="Permalink to this definition">¶</a></dt>
-<dd><p>The time step of the solution.</p>
+<p>are the available options. If ‘ssa’ is chosen, StochKit will choose
+from the available ssa options.
+:type algorithm: str</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>job_id</strong> (<em>str</em>) – If given, this will be the name of the solver run. Usually not set.</p></li>
+<li><p><strong>extra_args</strong> – Any extra arguments for the stochkit solver. See StochKit2</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.seed">
-<code class="sig-name descname">seed</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.seed" title="Permalink to this definition">¶</a></dt>
-<dd><p>The random seed for the simulation. Defaults to None.</p>
+<p>documentation for details.
+:type extra_args: str</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>int</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation.</p></li>
+<li><p><strong>show_labels</strong> (<em>str</em>) – Use names of species as index of result object rather than position numbers.</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.stochkit_home">
-<code class="sig-name descname">stochkit_home</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.stochkit_home" title="Permalink to this definition">¶</a></dt>
-<dd><p>Path to stochkit. This is set automatically upon installation, but
-may be overwritten if desired.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.algorithm">
-<code class="sig-name descname">algorithm</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.algorithm" title="Permalink to this definition">¶</a></dt>
-<dd><p>The solver by which to simulate the model. ‘ssa’ or ‘tau_leaping’
-are the available options. If ‘ssa’ is chosen, StochKit will choose
-from the available ssa options.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.job_id">
-<code class="sig-name descname">job_id</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.job_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>If given, this will be the name of the solver run. Usually not set.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.extra_args">
-<code class="sig-name descname">extra_args</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.extra_args" title="Permalink to this definition">¶</a></dt>
-<dd><p>Any extra arguments for the stochkit solver. See StochKit2
-documentation for details.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.debug">
-<code class="sig-name descname">debug</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.debug" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set to True to provide additional debug information about the
-simulation.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>bool (False)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.show_labels">
-<code class="sig-name descname">show_labels</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver.show_labels" title="Permalink to this definition">¶</a></dt>
-<dd><p>Use names of species as index of result object rather than position numbers.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>bool (True)</p>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="method">
@@ -295,108 +218,54 @@ simulation.</p>
 <code class="sig-name descname">name</code><em class="property"> = 'StochKitODESolver'</em><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Abstract class for StochKit solver derived from the GillesPySolver class.
 This is generally used to set up the solver.</p>
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.model">
-<code class="sig-name descname">model</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.model" title="Permalink to this definition">¶</a></dt>
-<dd><p>The model on which the solver will operate.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>gillespy.Model</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>GillesPy2.model</em>) – The model on which the solver will operate</p></li>
+<li><p><strong>t</strong> (<em>float</em>) – The end time of the solver</p></li>
+<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.t">
-<code class="sig-name descname">t</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.t" title="Permalink to this definition">¶</a></dt>
-<dd><p>The end time of the solver.</p>
+<p>trajectory will be returned at the end of the simulation.
+:type number_of_trajectories: int</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
+<li><p><strong>stochkit_home</strong> – Path to stochkit. This is set automatically upon installation, but</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.number_of_trajectories">
-<code class="sig-name descname">number_of_trajectories</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.number_of_trajectories" title="Permalink to this definition">¶</a></dt>
-<dd><p>The number of times to sample the chemical master equation. Each
-trajectory will be returned at the end of the simulation.</p>
+<p>may be overwritten if desired.
+:type stochkit_home: str</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>int</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>algorithm</strong> – The solver by which to simulate the model. ‘ssa’ or ‘tau_leaping’</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.increment">
-<code class="sig-name descname">increment</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.increment" title="Permalink to this definition">¶</a></dt>
-<dd><p>The time step of the solution.</p>
+<p>are the available options. If ‘ssa’ is chosen, StochKit will choose
+from the available ssa options.
+:type algorithm: str</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>job_id</strong> (<em>str</em>) – If given, this will be the name of the solver run. Usually not set.</p></li>
+<li><p><strong>extra_args</strong> – Any extra arguments for the stochkit solver. See StochKit2</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.seed">
-<code class="sig-name descname">seed</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.seed" title="Permalink to this definition">¶</a></dt>
-<dd><p>The random seed for the simulation. Defaults to None.</p>
+<p>documentation for details.
+:type extra_args: str</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>int</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation.</p></li>
+<li><p><strong>show_labels</strong> (<em>str</em>) – Use names of species as index of result object rather than position numbers.</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.stochkit_home">
-<code class="sig-name descname">stochkit_home</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.stochkit_home" title="Permalink to this definition">¶</a></dt>
-<dd><p>Path to stochkit. This is set automatically upon installation, but
-may be overwritten if desired.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.algorithm">
-<code class="sig-name descname">algorithm</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.algorithm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Already set to ‘stochkit_ode.py’</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.job_id">
-<code class="sig-name descname">job_id</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.job_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>If given, this will be the name of the solver run. Usually not set.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.debug">
-<code class="sig-name descname">debug</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver.debug" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set to True to provide additional debug information about the
-simulation.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>bool (False)</p>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="method">
@@ -421,121 +290,54 @@ simulation.</p>
 <code class="sig-name descname">name</code><em class="property"> = 'StochKitSolver'</em><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Abstract class for StochKit solver derived from the GillesPySolver class.
 This is generally used to set up the solver.</p>
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.model">
-<code class="sig-name descname">model</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.model" title="Permalink to this definition">¶</a></dt>
-<dd><p>The model on which the solver will operate.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>gillespy.Model</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>GillesPy2.model</em>) – The model on which the solver will operate</p></li>
+<li><p><strong>t</strong> (<em>float</em>) – The end time of the solver</p></li>
+<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.t">
-<code class="sig-name descname">t</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.t" title="Permalink to this definition">¶</a></dt>
-<dd><p>The end time of the solver.</p>
+<p>trajectory will be returned at the end of the simulation.
+:type number_of_trajectories: int</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
+<li><p><strong>stochkit_home</strong> – Path to stochkit. This is set automatically upon installation, but</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.number_of_trajectories">
-<code class="sig-name descname">number_of_trajectories</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.number_of_trajectories" title="Permalink to this definition">¶</a></dt>
-<dd><p>The number of times to sample the chemical master equation. Each
-trajectory will be returned at the end of the simulation.</p>
+<p>may be overwritten if desired.
+:type stochkit_home: str</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>int</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>algorithm</strong> – The solver by which to simulate the model. ‘ssa’ or ‘tau_leaping’</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.increment">
-<code class="sig-name descname">increment</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.increment" title="Permalink to this definition">¶</a></dt>
-<dd><p>The time step of the solution.</p>
+<p>are the available options. If ‘ssa’ is chosen, StochKit will choose
+from the available ssa options.
+:type algorithm: str</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>job_id</strong> (<em>str</em>) – If given, this will be the name of the solver run. Usually not set.</p></li>
+<li><p><strong>extra_args</strong> – Any extra arguments for the stochkit solver. See StochKit2</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.seed">
-<code class="sig-name descname">seed</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.seed" title="Permalink to this definition">¶</a></dt>
-<dd><p>The random seed for the simulation. Defaults to None.</p>
+<p>documentation for details.
+:type extra_args: str</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>int</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation.</p></li>
+<li><p><strong>show_labels</strong> (<em>str</em>) – Use names of species as index of result object rather than position numbers.</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.stochkit_home">
-<code class="sig-name descname">stochkit_home</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.stochkit_home" title="Permalink to this definition">¶</a></dt>
-<dd><p>Path to stochkit. This is set automatically upon installation, but
-may be overwritten if desired.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.algorithm">
-<code class="sig-name descname">algorithm</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.algorithm" title="Permalink to this definition">¶</a></dt>
-<dd><p>The solver by which to simulate the model. ‘ssa’ or ‘tau_leaping’
-are the available options. If ‘ssa’ is chosen, StochKit will choose
-from the available ssa options.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.job_id">
-<code class="sig-name descname">job_id</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.job_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>If given, this will be the name of the solver run. Usually not set.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.method">
-<code class="sig-name descname">method</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.method" title="Permalink to this definition">¶</a></dt>
-<dd><p>The specific SSA to call. NOT YET FUNCTIONAL.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.debug">
-<code class="sig-name descname">debug</code><a class="headerlink" href="#gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver.debug" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set to True to provide additional debug information about the
-simulation.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>bool (False)</p>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="method">
@@ -563,121 +365,54 @@ simulation.</p>
 <code class="sig-name descname">name</code><em class="property"> = 'StochKitSolver'</em><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitSolver.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Abstract class for StochKit solver derived from the GillesPySolver class.
 This is generally used to set up the solver.</p>
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.StochKitSolver.model">
-<code class="sig-name descname">model</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitSolver.model" title="Permalink to this definition">¶</a></dt>
-<dd><p>The model on which the solver will operate.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>gillespy.Model</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>GillesPy2.model</em>) – The model on which the solver will operate</p></li>
+<li><p><strong>t</strong> (<em>float</em>) – The end time of the solver</p></li>
+<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.StochKitSolver.t">
-<code class="sig-name descname">t</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitSolver.t" title="Permalink to this definition">¶</a></dt>
-<dd><p>The end time of the solver.</p>
+<p>trajectory will be returned at the end of the simulation.
+:type number_of_trajectories: int</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
+<li><p><strong>stochkit_home</strong> – Path to stochkit. This is set automatically upon installation, but</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.StochKitSolver.number_of_trajectories">
-<code class="sig-name descname">number_of_trajectories</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitSolver.number_of_trajectories" title="Permalink to this definition">¶</a></dt>
-<dd><p>The number of times to sample the chemical master equation. Each
-trajectory will be returned at the end of the simulation.</p>
+<p>may be overwritten if desired.
+:type stochkit_home: str</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>int</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>algorithm</strong> – The solver by which to simulate the model. ‘ssa’ or ‘tau_leaping’</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.StochKitSolver.increment">
-<code class="sig-name descname">increment</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitSolver.increment" title="Permalink to this definition">¶</a></dt>
-<dd><p>The time step of the solution.</p>
+<p>are the available options. If ‘ssa’ is chosen, StochKit will choose
+from the available ssa options.
+:type algorithm: str</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>job_id</strong> (<em>str</em>) – If given, this will be the name of the solver run. Usually not set.</p></li>
+<li><p><strong>extra_args</strong> – Any extra arguments for the stochkit solver. See StochKit2</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.StochKitSolver.seed">
-<code class="sig-name descname">seed</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitSolver.seed" title="Permalink to this definition">¶</a></dt>
-<dd><p>The random seed for the simulation. Defaults to None.</p>
+<p>documentation for details.
+:type extra_args: str</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>int</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation.</p></li>
+<li><p><strong>show_labels</strong> (<em>str</em>) – Use names of species as index of result object rather than position numbers.</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.StochKitSolver.stochkit_home">
-<code class="sig-name descname">stochkit_home</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitSolver.stochkit_home" title="Permalink to this definition">¶</a></dt>
-<dd><p>Path to stochkit. This is set automatically upon installation, but
-may be overwritten if desired.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.StochKitSolver.algorithm">
-<code class="sig-name descname">algorithm</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitSolver.algorithm" title="Permalink to this definition">¶</a></dt>
-<dd><p>The solver by which to simulate the model. ‘ssa’ or ‘tau_leaping’
-are the available options. If ‘ssa’ is chosen, StochKit will choose
-from the available ssa options.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.StochKitSolver.job_id">
-<code class="sig-name descname">job_id</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitSolver.job_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>If given, this will be the name of the solver run. Usually not set.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.StochKitSolver.method">
-<code class="sig-name descname">method</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitSolver.method" title="Permalink to this definition">¶</a></dt>
-<dd><p>The specific SSA to call. NOT YET FUNCTIONAL.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.StochKitSolver.debug">
-<code class="sig-name descname">debug</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitSolver.debug" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set to True to provide additional debug information about the
-simulation.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>bool (False)</p>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="method">
@@ -702,108 +437,54 @@ simulation.</p>
 <code class="sig-name descname">name</code><em class="property"> = 'StochKitODESolver'</em><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitODESolver.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Abstract class for StochKit solver derived from the GillesPySolver class.
 This is generally used to set up the solver.</p>
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.StochKitODESolver.model">
-<code class="sig-name descname">model</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitODESolver.model" title="Permalink to this definition">¶</a></dt>
-<dd><p>The model on which the solver will operate.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>gillespy.Model</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>GillesPy2.model</em>) – The model on which the solver will operate</p></li>
+<li><p><strong>t</strong> (<em>float</em>) – The end time of the solver</p></li>
+<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.StochKitODESolver.t">
-<code class="sig-name descname">t</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitODESolver.t" title="Permalink to this definition">¶</a></dt>
-<dd><p>The end time of the solver.</p>
+<p>trajectory will be returned at the end of the simulation.
+:type number_of_trajectories: int</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
+<li><p><strong>stochkit_home</strong> – Path to stochkit. This is set automatically upon installation, but</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.StochKitODESolver.number_of_trajectories">
-<code class="sig-name descname">number_of_trajectories</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitODESolver.number_of_trajectories" title="Permalink to this definition">¶</a></dt>
-<dd><p>The number of times to sample the chemical master equation. Each
-trajectory will be returned at the end of the simulation.</p>
+<p>may be overwritten if desired.
+:type stochkit_home: str</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>int</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>algorithm</strong> – The solver by which to simulate the model. ‘ssa’ or ‘tau_leaping’</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.StochKitODESolver.increment">
-<code class="sig-name descname">increment</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitODESolver.increment" title="Permalink to this definition">¶</a></dt>
-<dd><p>The time step of the solution.</p>
+<p>are the available options. If ‘ssa’ is chosen, StochKit will choose
+from the available ssa options.
+:type algorithm: str</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>job_id</strong> (<em>str</em>) – If given, this will be the name of the solver run. Usually not set.</p></li>
+<li><p><strong>extra_args</strong> – Any extra arguments for the stochkit solver. See StochKit2</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.StochKitODESolver.seed">
-<code class="sig-name descname">seed</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitODESolver.seed" title="Permalink to this definition">¶</a></dt>
-<dd><p>The random seed for the simulation. Defaults to None.</p>
+<p>documentation for details.
+:type extra_args: str</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>int</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation.</p></li>
+<li><p><strong>show_labels</strong> (<em>str</em>) – Use names of species as index of result object rather than position numbers.</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.StochKitODESolver.stochkit_home">
-<code class="sig-name descname">stochkit_home</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitODESolver.stochkit_home" title="Permalink to this definition">¶</a></dt>
-<dd><p>Path to stochkit. This is set automatically upon installation, but
-may be overwritten if desired.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.StochKitODESolver.algorithm">
-<code class="sig-name descname">algorithm</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitODESolver.algorithm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Already set to ‘stochkit_ode.py’</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.StochKitODESolver.job_id">
-<code class="sig-name descname">job_id</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitODESolver.job_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>If given, this will be the name of the solver run. Usually not set.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="gillespy2.solvers.stochkit.StochKitODESolver.debug">
-<code class="sig-name descname">debug</code><a class="headerlink" href="#gillespy2.solvers.stochkit.StochKitODESolver.debug" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set to True to provide additional debug information about the
-simulation.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>bool (False)</p>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="method">
@@ -826,6 +507,10 @@ simulation.</p>
         <li>
           &larr;
           <a href="gillespy2.solvers.numpy.html" title="Previous document">gillespy2.solvers.numpy package</a>
+        </li>
+        <li>
+          <a href="gillespy2.solvers.utilities.html" title="Next document">gillespy2.solvers.utilities package</a>
+          &rarr;
         </li>
     </ul>
   </nav>

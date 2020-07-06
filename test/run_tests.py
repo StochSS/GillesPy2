@@ -17,7 +17,6 @@ if __name__ == '__main__':
         print('Running tests in develop mode. Appending repository directory to system path.')
         sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-
     import test_empty_model
     import test_model
     import test_ode_solver
@@ -31,6 +30,7 @@ if __name__ == '__main__':
     import test_sys_init
     import test_results
     import test_propensity_parser
+    import test_pause_resume
 
     modules = [
         test_empty_model,
@@ -40,6 +40,7 @@ if __name__ == '__main__':
         test_simple_model,
         test_ssa_c_solver,
         test_variable_ssa_c_solver,
+        test_pause_resume,
         test_SBML,
         test_example_models,
         test_all_solvers,

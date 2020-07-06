@@ -1,6 +1,5 @@
-from collections import OrderedDict
 from gillespy2.core.gillespyError import *
-from gillespy2.core.gillespy2 import *
+
 
 class EventAssignment:
     """
@@ -9,16 +8,16 @@ class EventAssignment:
     associated trigger changes from false to true, or after a specified delay,
     depending on how the Event to which it is assigned is configured.
 
-    Attributes
-    ----------
-    variable : gillespy2.Species, gillespy2.Parameter
-        Target model component to be modified by the EventAssignment
-        expression. Valid target variables include gillespy2 Species,
-        Parameters, and Compartments.
-    expression : str
-        String to be evaluated when the event is fired.  This expression must
-        be evaluable within the model namespace, and the results of it's
-        evaluation will be assigned to the EventAssignment variable.
+    :param variable: Target model component to be modified by the EventAssignment
+    expression. Valid target variables include gillespy2 Species,
+    Parameters, and Compartments.
+    :type variable: gillespy2.Species, gillespy2.Parameter
+
+    :param expression: String to be evaluated when the event is fired.  This expression must
+    be evaluable within the model namespace, and the results of it's
+    evaluation will be assigned to the EventAssignment variable.
+    :type expression: str
+
     """
 
     def __init__(self, variable=None, expression=None):
@@ -29,8 +28,8 @@ class EventAssignment:
         if expression is not None:
             self.expression = str(expression)
 
-        
-        from gillespy2.core.gillespy2 import Species, Parameter
+        from gillespy2.core.parameter import Parameter
+        from gillespy2.core.species import Species
         #TODO: ADD Compartment to valid variable types once implemented
         valid_variable_types = [Species, Parameter, str]
 
@@ -43,6 +42,7 @@ class EventAssignment:
             raise EventError(
                              'GillesPy2 Event Assignment expression requires a '
                              'valid string expression')
+
     def __str__(self):
         return self.variable.name + ': ' + self.expression
 
@@ -52,21 +52,20 @@ class EventTrigger:
     Trigger detects changes in model/environment conditions in order to fire an
     event.  A Trigger contains an expression, a mathematical function which can
     be evaluated to a boolean value within a model's namespace.  Upon
-    transitioning from 'false' to 'true', this trigger will cause the immediate 
-    execution of an event's list of assignments if no delay is present, otherwise, 
+    transitioning from 'false' to 'true', this trigger will cause the immediate
+    execution of an event's list of assignments if no delay is present, otherwise,
     the delay evaluation will be initialized.
 
-    Attributes
-    ----------
-    expression : str
-        String for a function calculating EventTrigger values. Should be evaluable
-        in namespace of Model.
-    value : bool
-        Value of EventTrigger at simulation start, with time t=0
-    persistent : bool
-        Determines of trigger condition is persistent or not.
-    """
+    :param expression: String for a function calculating EventTrigger values. Should be evaluable
+    in namespace of Model.
+    :type expression: str
 
+    :param value: Value of EventTrigger at simulation start, with time t=0
+    :type value: bool
+
+    :param persistent: Determines if trigger condition is persistent or not
+    :type persistent: bool
+    """
     def __init__(self, expression=None, initial_value = False, persistent = False):
 
         if isinstance(expression, str):
@@ -85,8 +84,10 @@ class EventTrigger:
             raise EventError('EventTrigger.persistent must be bool')
     def __str__(self):
         return self.expression
+
     def sanitized_expression(self, species_mappings, parameter_mappings):
-        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key = lambda x: len(x), reverse=True)
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
+                       reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
         sanitized_expression = self.expression
@@ -94,34 +95,39 @@ class EventTrigger:
             sanitized_expression = sanitized_expression.replace(name, "{"+str(id)+"}")
         return sanitized_expression.format(*replacements)
 
+
 class Event:
+
     """
     An Event can be given as an assignment_expression (function) or directly
     as a value (scalar). If given an assignment_expression, it should be
     understood as evaluable in the namespace of a parent Model.
 
-    Attributes
-    ----------
-    name : str
-        The name by which this Event is called or referenced in reactions.
-    assignments : list
-        List of EventAssignments to be executed at trigger or delay
-    trigger : EventTrigger
-        contains math expression which can be evaluated to 
-        a boolean result.  Upon the transition from 'False' to 'True',
-        event assignments may be executed immediately, or after a
-        designated delay.
-    delay : string
-        contains math expression evaluable within model namespace.
-        This expression designates a delay between the trigger of
-        an event and the execution of its assignments.
-    priority : string
-        contains math expression evaluable within model namespace.
-        TODO: MORE INFO
-    use_values_from_trigger_time: boolean
+    :param name: The name by which this Event is called or referenced in reactions.
+    :type name: str
+
+    :param assignments: List of EventAssignments to be executed at trigger or delay
+    :type assignments: str
+
+    :param trigger: contains math expression which can be evaluated to
+    a boolean result.  Upon the transition from 'False' to 'True',
+    event assignments may be executed immediately, or after a
+    designated delay.
+    :type trigger: EventTrigger
+
+    :param delay: contains math expression evaluable within model namespace.
+    This expression designates a delay between the trigger of
+    an event and the execution of its assignments.
+    :type delay: str
+
+    :param priority: Contains math expression evaluable within model namespace.
+    :type priority: str
+
+    :param use_values_from_trigger_time
+    :type use_values_from_trigger_time: bool
     """
     def __eq__(self, other):
-        return str(self)==str(other)
+        return str(self) == str(other)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -149,8 +155,8 @@ class Event:
             self._hash = hash(self)
         return self._hash
 
-    def __init__(self, name="", delay = None, assignments = [], priority="0", 
-        trigger = None, use_values_from_trigger_time = False):
+    def __init__(self, name="", delay=None, assignments=[], priority="0", trigger=None,
+                 use_values_from_trigger_time=False):
 
         # Events can contain any number of assignments
         self.assignments = []
@@ -185,8 +191,7 @@ class Event:
                 if hasattr(assign, 'variable'):
                     self.assignments.append(assign)
                 else:
-                    raise EventError('assignment list contains an item '
-                        'is not an EventAssignment.')
+                    raise EventError('assignment list contains an item is not an EventAssignment.')
         elif hasattr(assignments, 'variable'):
             self.assignments.append(assignments)
         else:
@@ -206,19 +211,19 @@ class Event:
         if len(self.assignments):
             print_string += '\n\tAssignments:'
             for a in self.assignments:
-                print_string += '\n\t\t' + a.variable.name + ': ' + a.expression
+                if isinstance(a.variable, str):
+                    print_string += '\n\t\t' + a.variable + ': ' + a.expression
+                else:
+                    print_string += '\n\t\t' + a.variable.name + ': ' + a.expression
         return print_string
 
     def add_assignment(self, assignment):
         """
         Adds an eventAssignment or a list of eventAssignments.
-
-        Attributes
-        ----------
-        assignment : EventAssignment or a list of EventAssignments
-            The event or list of events to be added to this event.
+        :param assignment: EventAssignment or a list of EventAssignments
+        The event or list of events to be added to this event.
+        :type assignment: EventAssignment or list of EventAssignments
         """
-
         if hasattr(assignment, 'variable'):
             self.assignments.append(assignment)
         elif isinstance(assignment, list):
@@ -226,12 +231,12 @@ class Event:
                 if hasattr(assign, 'variable'):
                     self.assignments.append(assign)
                 else:
-                    raise EventError('add_assignment failed to add EventAssignment. '
-                    'Assignment to be added must be of type EventAssignment '
-                    'or list of EventAssignment objects.')
+                    raise EventError('add_assignment failed to add EventAssignment. Assignment to be added must be of '
+                                     'type EventAssignment or list of EventAssignment objects.')
         else:
-            raise ModelError("Unexpected parameter for add_assignment. Parameter must be EventAssignment or list of EventAssignments")
-        return obj
+            raise ModelError("Unexpected parameter for add_assignment. Parameter must be EventAssignment or list of "
+                             "EventAssignments")
+        return assignment
 
 
 

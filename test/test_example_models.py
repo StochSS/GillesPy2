@@ -1,7 +1,7 @@
 import unittest
 from example_models import *
 from gillespy2.core.gillespyError import *
-from gillespy2.solvers.numpy import BasicODESolver
+from gillespy2 import ODESolver
 #from TestBattery import *
 
 class TestExampleModels(unittest.TestCase):
@@ -12,7 +12,7 @@ class TestExampleModels(unittest.TestCase):
 
     def test_lacOperon_example(self):
         lacOperon_model = LacOperon()
-        results = lacOperon_model.run(solver=BasicODESolver)
+        results = lacOperon_model.run(solver=ODESolver)
 
     def test_schlogl_example(self):
         schlogl_model = Schlogl()

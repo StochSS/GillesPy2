@@ -16,36 +16,44 @@ class StochKitBaseSolver(GillesPySolver):
     GillesPy Model through the Model.run function. Returns simulation
     trajectories.
 
-    Attributes
-    ----------
-    model : gillespy.Model
-        The model on which the solver will operate.
-    t : float
-        The end time of the solver.
-    number_of_trajectories : int
-        The number of times to sample the chemical master equation. Each
-        trajectory will be returned at the end of the simulation.
-    increment : float
-        The time step of the solution.
-    seed : int
-        The random seed for the simulation. Defaults to None.
-    stochkit_home : str
-        Path to stochkit. This is set automatically upon installation, but
-        may be overwritten if desired.
-    algorithm : str
-        The solver by which to simulate the model. 'ssa' or 'tau_leaping'
-        are the available options. If 'ssa' is chosen, StochKit will choose
-        from the available ssa options.
-    job_id : str
-        If given, this will be the name of the solver run. Usually not set.
-    extra_args : str
-        Any extra arguments for the stochkit solver. See StochKit2
-        documentation for details.
-    debug : bool (False)
-        Set to True to provide additional debug information about the
-        simulation.
-    show_labels : bool (True)
-        Use names of species as index of result object rather than position numbers.
+
+    :param model: The model on which the solver will operate
+    :type model: GillesPy2.model
+    
+    :param t: The end time of the solver
+    :type t: float
+    
+    :param number_of_trajectories: The number of times to sample the chemical master equation. Each
+    trajectory will be returned at the end of the simulation.
+    :type number_of_trajectories: int
+    
+    :param increment: The time step of the solution
+    :type increment: float
+    
+    :param seed: The random seed for the simulation. Defaults to None.
+    :type seed: int
+    
+    :param stochkit_home: Path to stochkit. This is set automatically upon installation, but
+    may be overwritten if desired.
+    :type stochkit_home: str
+    
+    :param algorithm: The solver by which to simulate the model. 'ssa' or 'tau_leaping'
+    are the available options. If 'ssa' is chosen, StochKit will choose
+    from the available ssa options.
+    :type algorithm: str
+    
+    :param job_id: If given, this will be the name of the solver run. Usually not set.
+    :type job_id: str
+    
+    :param extra_args:  Any extra arguments for the stochkit solver. See StochKit2
+    documentation for details.
+    :type extra_args: str
+    
+    :param debug: Set to True to provide additional debug information about the simulation.
+    :type debug: bool
+    
+    :param show_labels: Use names of species as index of result object rather than position numbers.
+    :type show_labels: str
     """
     @classmethod
     def run(cls, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
@@ -208,33 +216,44 @@ class StochKitSolver(StochKitBaseSolver):
     Abstract class for StochKit solver derived from the GillesPySolver class.
     This is generally used to set up the solver.
 
-    Attributes
-    ----------
-    model : gillespy.Model
-        The model on which the solver will operate.
-    t : float
-        The end time of the solver.
-    number_of_trajectories : int
-        The number of times to sample the chemical master equation. Each
-        trajectory will be returned at the end of the simulation.
-    increment : float
-        The time step of the solution.
-    seed : int
-        The random seed for the simulation. Defaults to None.
-    stochkit_home : str
-        Path to stochkit. This is set automatically upon installation, but
-        may be overwritten if desired.
-    algorithm : str
-        The solver by which to simulate the model. 'ssa' or 'tau_leaping'
-        are the available options. If 'ssa' is chosen, StochKit will choose
-        from the available ssa options.
-    job_id : str
-        If given, this will be the name of the solver run. Usually not set.
-    method : str
-        The specific SSA to call. NOT YET FUNCTIONAL.
-    debug : bool (False)
-        Set to True to provide additional debug information about the
-        simulation.
+
+    :param model: The model on which the solver will operate
+    :type model: GillesPy2.model
+
+    :param t: The end time of the solver
+    :type t: float
+
+    :param number_of_trajectories: The number of times to sample the chemical master equation. Each
+    trajectory will be returned at the end of the simulation.
+    :type number_of_trajectories: int
+
+    :param increment: The time step of the solution
+    :type increment: float
+
+    :param seed: The random seed for the simulation. Defaults to None.
+    :type seed: int
+
+    :param stochkit_home: Path to stochkit. This is set automatically upon installation, but
+    may be overwritten if desired.
+    :type stochkit_home: str
+
+    :param algorithm: The solver by which to simulate the model. 'ssa' or 'tau_leaping'
+    are the available options. If 'ssa' is chosen, StochKit will choose
+    from the available ssa options.
+    :type algorithm: str
+
+    :param job_id: If given, this will be the name of the solver run. Usually not set.
+    :type job_id: str
+
+    :param extra_args:  Any extra arguments for the stochkit solver. See StochKit2
+    documentation for details.
+    :type extra_args: str
+
+    :param debug: Set to True to provide additional debug information about the simulation.
+    :type debug: bool
+
+    :param show_labels: Use names of species as index of result object rather than position numbers.
+    :type show_labels: str
     """
     @classmethod
     def run(cls, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
@@ -286,29 +305,44 @@ class StochKitODESolver(StochKitBaseSolver):
     Abstract class for StochKit solver derived from the GillesPySolver class.
     This is generally used to set up the solver.
 
-    Attributes
-    ----------
-    model : gillespy.Model
-        The model on which the solver will operate.
-    t : float
-        The end time of the solver.
-    number_of_trajectories : int
-        The number of times to sample the chemical master equation. Each
-        trajectory will be returned at the end of the simulation.
-    increment : float
-        The time step of the solution.
-    seed : int
-        The random seed for the simulation. Defaults to None.
-    stochkit_home : str
-        Path to stochkit. This is set automatically upon installation, but
-        may be overwritten if desired.
-    algorithm : str
-        Already set to 'stochkit_ode.py'
-    job_id : str
-        If given, this will be the name of the solver run. Usually not set.
-    debug : bool (False)
-        Set to True to provide additional debug information about the
-        simulation.
+
+    :param model: The model on which the solver will operate
+    :type model: GillesPy2.model
+
+    :param t: The end time of the solver
+    :type t: float
+
+    :param number_of_trajectories: The number of times to sample the chemical master equation. Each
+    trajectory will be returned at the end of the simulation.
+    :type number_of_trajectories: int
+
+    :param increment: The time step of the solution
+    :type increment: float
+
+    :param seed: The random seed for the simulation. Defaults to None.
+    :type seed: int
+
+    :param stochkit_home: Path to stochkit. This is set automatically upon installation, but
+    may be overwritten if desired.
+    :type stochkit_home: str
+
+    :param algorithm: The solver by which to simulate the model. 'ssa' or 'tau_leaping'
+    are the available options. If 'ssa' is chosen, StochKit will choose
+    from the available ssa options.
+    :type algorithm: str
+
+    :param job_id: If given, this will be the name of the solver run. Usually not set.
+    :type job_id: str
+
+    :param extra_args:  Any extra arguments for the stochkit solver. See StochKit2
+    documentation for details.
+    :type extra_args: str
+
+    :param debug: Set to True to provide additional debug information about the simulation.
+    :type debug: bool
+
+    :param show_labels: Use names of species as index of result object rather than position numbers.
+    :type show_labels: str
     """
 
     @classmethod

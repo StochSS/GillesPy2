@@ -1,0 +1,228 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>gillespy2.core.species &#8212; GillesPy2 1.5.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/css/gillespy2_alabaster_customizations.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../../../_static/img/gillespy2-logo.svg" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/img/gillespy2-logo.svg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=GillesPy2&repo=GillesPy2&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/installation/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/basic_usage/basic_usage.html">Basic usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/tut_toggle_switch/tut_toggle_switch.html">Tutorial: ODE vs. SSA</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../classes/gillespy2.html">gillespy2 package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for gillespy2.core.species</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">gillespy2.core.sortableobject</span> <span class="k">import</span> <span class="n">SortableObject</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="Species"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.species.Species">[docs]</a><span class="k">class</span> <span class="nc">Species</span><span class="p">(</span><span class="n">SortableObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Chemical species. Can be added to Model object to interact with other</span>
+<span class="sd">    species or time.</span>
+
+<span class="sd">    :param name: The name by which this species will be called in reactions and within the model.</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    :param initial_value: Initial population of this species. If this is not provided as an int,</span>
+<span class="sd">    the type will be changed when it is added by numpy.int</span>
+<span class="sd">    :type initial_value: int &gt;= 0</span>
+<span class="sd">    :param constant: If true, the value of the species cannot be changed (currently TauHybridSolver only)</span>
+<span class="sd">    :type constant: bool</span>
+<span class="sd">    :param boundary_condition: If true, species can be changed by events and rate rules, but not by reactions.</span>
+<span class="sd">    (TauHybridSolver only)</span>
+<span class="sd">    :type boundary_condition: bool</span>
+<span class="sd">    :param mode: ***FOR USE WITH BasicTauHybridSolver ONLY***</span>
+<span class="sd">    Sets the mode of representation of this species for the TauHybridSolver,</span>
+<span class="sd">    can be discrete, continuous, or dynamic.</span>
+<span class="sd">    mode=&#39;dynamic&#39; - Allows a species to be represented as either discrete or continuous</span>
+<span class="sd">    mode=&#39;continuous&#39; - Species will only be represented as continuous</span>
+<span class="sd">    mode=&#39;discrete&#39; - Species will only be represented as discrete</span>
+<span class="sd">    :type mode: str</span>
+<span class="sd">    :param allow_negative_populations: If true, population can be reduces below 0.</span>
+<span class="sd">    :type allow_negative_populations: bool</span>
+<span class="sd">    :param switch_tol: ***FOR USE WITH BasicTauHybridSolver ONLY***</span>
+<span class="sd">    Tolerance level for considering a dynamic species deterministically, value is compared to an estimated sd/mean</span>
+<span class="sd">    population of a species after a given time step. This value will be used if a switch_min is not provided.</span>
+<span class="sd">    The default value is 0.03</span>
+<span class="sd">    :type switch_tol: float</span>
+<span class="sd">    :param switch_min:  ***FOR USE WITH BasicTauHybridSolver ONLY***</span>
+<span class="sd">    Minimum population value at which species will be represented as continuous. If a value is given, switch_min will be</span>
+<span class="sd">    used instead of switch_tol</span>
+<span class="sd">    :type switch_min: float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">initial_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">constant</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">boundary_condition</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">allow_negative_populations</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">switch_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                 <span class="n">switch_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">):</span>
+        <span class="c1"># A species has a name (string) and an initial value (positive integer)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constant</span> <span class="o">=</span> <span class="n">constant</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boundary_condition</span> <span class="o">=</span> <span class="n">boundary_condition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_negative_populations</span> <span class="o">=</span> <span class="n">allow_negative_populations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">switch_min</span> <span class="o">=</span> <span class="n">switch_min</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">switch_tol</span> <span class="o">=</span> <span class="n">switch_tol</span>
+
+        <span class="n">mode_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;continuous&#39;</span><span class="p">,</span> <span class="s1">&#39;dynamic&#39;</span><span class="p">,</span> <span class="s1">&#39;discrete&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mode_list</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SpeciesError</span><span class="p">(</span><span class="s1">&#39;Species mode must be either </span><span class="se">\&#39;</span><span class="s1">continuous</span><span class="se">\&#39;</span><span class="s1">, </span><span class="se">\&#39;</span><span class="s1">dynamic</span><span class="se">\&#39;</span><span class="s1">, </span><span class="se">\&#39;</span><span class="s1">discrete</span><span class="se">\&#39;</span><span class="s1">, or &#39;</span>
+                               <span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">unspecified(default to dynamic for BasicTauHybridSolver)</span><span class="se">\&#39;</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;continuous&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initial_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">(</span><span class="n">initial_value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">(</span><span class="n">initial_value</span><span class="p">)</span> <span class="o">!=</span> <span class="n">initial_value</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;&#39;initial_value&#39; for Species with mode=&#39;discrete&#39; must be an integer value. Change to &quot;</span>
+                    <span class="s2">&quot;mode=&#39;continuous&#39; to use floating point values.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initial_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">(</span><span class="n">initial_value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">allow_negative_populations</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_value</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;A species initial value must be non-negative unless allow_negative_populations=True&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">print_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_value</span><span class="p">)</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        print_string += &#39;\n\tInitial Value: &#39; + str(self.initial_value)</span>
+<span class="sd">        print_string += &#39;\n\tConstant: &#39; + str(self.constant)</span>
+<span class="sd">        print_string += &#39;\n\tBoundary Condition: &#39; + str(self.boundary_condition)</span>
+<span class="sd">        print_string += &#39;\n\tMode: &#39; + self.mode</span>
+<span class="sd">        print_string += &#39;\n\tAllow Negative Populations: &#39; + str(self.allow_negative_populations)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">print_string</span>
+
+<div class="viewcode-block" id="Species.set_initial_value"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.species.Species.set_initial_value">[docs]</a>    <span class="k">def</span> <span class="nf">set_initial_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Setter method for initial_value of a population</span>
+<span class="sd">        :param num: Integer to set initial species population</span>
+<span class="sd">        :raises SpeciesError: If num is non-negative or a decimal number</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">!=</span> <span class="s1">&#39;dynamic&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">!=</span> <span class="s1">&#39;continuous&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">SpeciesError</span><span class="p">(</span><span class="s2">&quot;Mode set to discrete, species must be an integer number.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">num</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">allow_negative_populations</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SpeciesError</span><span class="p">(</span><span class="s2">&quot;Species population must be non-negative, or allow_negative_populations &quot;</span>
+                               <span class="s2">&quot;must be set to True&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_value</span> <span class="o">=</span> <span class="n">num</span></div></div>
+</pre></div>
+
+          </div>
+              <div class="related bottom">
+                &nbsp;
+  <nav id="rellinks">
+    <ul>
+    </ul>
+  </nav>
+              </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;Copyright (C) 2017-2020.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+    <a href="https://github.com/GillesPy2/GillesPy2" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

@@ -16,4 +16,4 @@ def check_cpp_support():
 
 can_use_cpp = check_cpp_support()
 
-__all__ = ['SSACSolver'] if can_use_cpp else []
+__all__ = ['SSACSolver','VariableSSACSolver'] if can_use_cpp else []
