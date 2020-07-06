@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.core.events &#8212; GillesPy2 1.4.0 documentation</title>
+    <title>gillespy2.core.events &#8212; GillesPy2 1.5.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -100,9 +100,8 @@
           <div class="body" role="main">
             
   <h1>Source code for gillespy2.core.events</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core.gillespy2</span> <span class="k">import</span> <span class="o">*</span>
+<span></span><span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="k">import</span> <span class="o">*</span>
+
 
 <div class="viewcode-block" id="EventAssignment"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.events.EventAssignment">[docs]</a><span class="k">class</span> <span class="nc">EventAssignment</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -111,16 +110,16 @@
 <span class="sd">    associated trigger changes from false to true, or after a specified delay,</span>
 <span class="sd">    depending on how the Event to which it is assigned is configured.</span>
 
-<span class="sd">    Attributes</span>
-<span class="sd">    ----------</span>
-<span class="sd">    variable : gillespy2.Species, gillespy2.Parameter</span>
-<span class="sd">        Target model component to be modified by the EventAssignment</span>
-<span class="sd">        expression. Valid target variables include gillespy2 Species,</span>
-<span class="sd">        Parameters, and Compartments.</span>
-<span class="sd">    expression : str</span>
-<span class="sd">        String to be evaluated when the event is fired.  This expression must</span>
-<span class="sd">        be evaluable within the model namespace, and the results of it&#39;s</span>
-<span class="sd">        evaluation will be assigned to the EventAssignment variable.</span>
+<span class="sd">    :param variable: Target model component to be modified by the EventAssignment</span>
+<span class="sd">    expression. Valid target variables include gillespy2 Species,</span>
+<span class="sd">    Parameters, and Compartments.</span>
+<span class="sd">    :type variable: gillespy2.Species, gillespy2.Parameter</span>
+
+<span class="sd">    :param expression: String to be evaluated when the event is fired.  This expression must</span>
+<span class="sd">    be evaluable within the model namespace, and the results of it&#39;s</span>
+<span class="sd">    evaluation will be assigned to the EventAssignment variable.</span>
+<span class="sd">    :type expression: str</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -131,8 +130,8 @@
         <span class="k">if</span> <span class="n">expression</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">expression</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
 
-        
-        <span class="kn">from</span> <span class="nn">gillespy2.core.gillespy2</span> <span class="k">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Parameter</span>
+        <span class="kn">from</span> <span class="nn">gillespy2.core.parameter</span> <span class="k">import</span> <span class="n">Parameter</span>
+        <span class="kn">from</span> <span class="nn">gillespy2.core.species</span> <span class="k">import</span> <span class="n">Species</span>
         <span class="c1">#TODO: ADD Compartment to valid variable types once implemented</span>
         <span class="n">valid_variable_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">Species</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
 
@@ -145,6 +144,7 @@
             <span class="k">raise</span> <span class="n">EventError</span><span class="p">(</span>
                              <span class="s1">&#39;GillesPy2 Event Assignment expression requires a &#39;</span>
                              <span class="s1">&#39;valid string expression&#39;</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">expression</span></div>
 
@@ -154,21 +154,20 @@
 <span class="sd">    Trigger detects changes in model/environment conditions in order to fire an</span>
 <span class="sd">    event.  A Trigger contains an expression, a mathematical function which can</span>
 <span class="sd">    be evaluated to a boolean value within a model&#39;s namespace.  Upon</span>
-<span class="sd">    transitioning from &#39;false&#39; to &#39;true&#39;, this trigger will cause the immediate </span>
-<span class="sd">    execution of an event&#39;s list of assignments if no delay is present, otherwise, </span>
+<span class="sd">    transitioning from &#39;false&#39; to &#39;true&#39;, this trigger will cause the immediate</span>
+<span class="sd">    execution of an event&#39;s list of assignments if no delay is present, otherwise,</span>
 <span class="sd">    the delay evaluation will be initialized.</span>
 
-<span class="sd">    Attributes</span>
-<span class="sd">    ----------</span>
-<span class="sd">    expression : str</span>
-<span class="sd">        String for a function calculating EventTrigger values. Should be evaluable</span>
-<span class="sd">        in namespace of Model.</span>
-<span class="sd">    value : bool</span>
-<span class="sd">        Value of EventTrigger at simulation start, with time t=0</span>
-<span class="sd">    persistent : bool</span>
-<span class="sd">        Determines of trigger condition is persistent or not.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    :param expression: String for a function calculating EventTrigger values. Should be evaluable</span>
+<span class="sd">    in namespace of Model.</span>
+<span class="sd">    :type expression: str</span>
 
+<span class="sd">    :param value: Value of EventTrigger at simulation start, with time t=0</span>
+<span class="sd">    :type value: bool</span>
+
+<span class="sd">    :param persistent: Determines if trigger condition is persistent or not</span>
+<span class="sd">    :type persistent: bool</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">initial_value</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">persistent</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -187,8 +186,10 @@
             <span class="k">raise</span> <span class="n">EventError</span><span class="p">(</span><span class="s1">&#39;EventTrigger.persistent must be bool&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">expression</span>
+
 <div class="viewcode-block" id="EventTrigger.sanitized_expression"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.events.EventTrigger.sanitized_expression">[docs]</a>    <span class="k">def</span> <span class="nf">sanitized_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species_mappings</span><span class="p">,</span> <span class="n">parameter_mappings</span><span class="p">):</span>
-        <span class="n">names</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">species_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">parameter_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">key</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">species_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">parameter_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                       <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">replacements</span> <span class="o">=</span> <span class="p">[</span><span class="n">parameter_mappings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">parameter_mappings</span> <span class="k">else</span> <span class="n">species_mappings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
                         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
         <span class="n">sanitized_expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expression</span>
@@ -196,35 +197,68 @@
             <span class="n">sanitized_expression</span> <span class="o">=</span> <span class="n">sanitized_expression</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;{&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sanitized_expression</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">replacements</span><span class="p">)</span></div></div>
 
+
 <div class="viewcode-block" id="Event"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.events.Event">[docs]</a><span class="k">class</span> <span class="nc">Event</span><span class="p">:</span>
+
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An Event can be given as an assignment_expression (function) or directly</span>
 <span class="sd">    as a value (scalar). If given an assignment_expression, it should be</span>
 <span class="sd">    understood as evaluable in the namespace of a parent Model.</span>
 
-<span class="sd">    Attributes</span>
-<span class="sd">    ----------</span>
-<span class="sd">    name : str</span>
-<span class="sd">        The name by which this Event is called or referenced in reactions.</span>
-<span class="sd">    assignments : list</span>
-<span class="sd">        List of EventAssignments to be executed at trigger or delay</span>
-<span class="sd">    trigger : EventTrigger</span>
-<span class="sd">        contains math expression which can be evaluated to </span>
-<span class="sd">        a boolean result.  Upon the transition from &#39;False&#39; to &#39;True&#39;,</span>
-<span class="sd">        event assignments may be executed immediately, or after a</span>
-<span class="sd">        designated delay.</span>
-<span class="sd">    delay : string</span>
-<span class="sd">        contains math expression evaluable within model namespace.</span>
-<span class="sd">        This expression designates a delay between the trigger of</span>
-<span class="sd">        an event and the execution of its assignments.</span>
-<span class="sd">    priority : string</span>
-<span class="sd">        contains math expression evaluable within model namespace.</span>
-<span class="sd">        TODO: MORE INFO</span>
-<span class="sd">    use_values_from_trigger_time: boolean</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    :param name: The name by which this Event is called or referenced in reactions.</span>
+<span class="sd">    :type name: str</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">delay</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">assignments</span> <span class="o">=</span> <span class="p">[],</span> <span class="n">priority</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> 
-        <span class="n">trigger</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">use_values_from_trigger_time</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="sd">    :param assignments: List of EventAssignments to be executed at trigger or delay</span>
+<span class="sd">    :type assignments: str</span>
+
+<span class="sd">    :param trigger: contains math expression which can be evaluated to</span>
+<span class="sd">    a boolean result.  Upon the transition from &#39;False&#39; to &#39;True&#39;,</span>
+<span class="sd">    event assignments may be executed immediately, or after a</span>
+<span class="sd">    designated delay.</span>
+<span class="sd">    :type trigger: EventTrigger</span>
+
+<span class="sd">    :param delay: contains math expression evaluable within model namespace.</span>
+<span class="sd">    This expression designates a delay between the trigger of</span>
+<span class="sd">    an event and the execution of its assignments.</span>
+<span class="sd">    :type delay: str</span>
+
+<span class="sd">    :param priority: Contains math expression evaluable within model namespace.</span>
+<span class="sd">    :type priority: str</span>
+
+<span class="sd">    :param use_values_from_trigger_time</span>
+<span class="sd">    :type use_values_from_trigger_time: bool</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__le__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__lt__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">str</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">str</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_hash&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hash</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hash</span> <span class="o">=</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hash</span> <span class="o">=</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hash</span> <span class="o">=</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hash</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">assignments</span><span class="o">=</span><span class="p">[],</span> <span class="n">priority</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">use_values_from_trigger_time</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 
         <span class="c1"># Events can contain any number of assignments</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">assignments</span> <span class="o">=</span> <span class="p">[]</span>
@@ -259,8 +293,7 @@
                 <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">assign</span><span class="p">,</span> <span class="s1">&#39;variable&#39;</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">assignments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">assign</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">EventError</span><span class="p">(</span><span class="s1">&#39;assignment list contains an item &#39;</span>
-                        <span class="s1">&#39;is not an EventAssignment.&#39;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">EventError</span><span class="p">(</span><span class="s1">&#39;assignment list contains an item is not an EventAssignment.&#39;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">assignments</span><span class="p">,</span> <span class="s1">&#39;variable&#39;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">assignments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">assignments</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -273,25 +306,26 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">EventError</span><span class="p">(</span>
                 <span class="s1">&#39;use_values_from_trigger_time requires bool&#39;</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">print_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
         <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t</span><span class="s1">Trigger: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">assignments</span><span class="p">):</span>
             <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t</span><span class="s1">Assignments:&#39;</span>
             <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">assignments</span><span class="p">:</span>
-                <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">a</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="n">a</span><span class="o">.</span><span class="n">expression</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">variable</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">a</span><span class="o">.</span><span class="n">variable</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="n">a</span><span class="o">.</span><span class="n">expression</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">a</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="n">a</span><span class="o">.</span><span class="n">expression</span>
         <span class="k">return</span> <span class="n">print_string</span>
 
 <div class="viewcode-block" id="Event.add_assignment"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.events.Event.add_assignment">[docs]</a>    <span class="k">def</span> <span class="nf">add_assignment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">assignment</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds an eventAssignment or a list of eventAssignments.</span>
-
-<span class="sd">        Attributes</span>
-<span class="sd">        ----------</span>
-<span class="sd">        assignment : EventAssignment or a list of EventAssignments</span>
-<span class="sd">            The event or list of events to be added to this event.</span>
+<span class="sd">        :param assignment: EventAssignment or a list of EventAssignments</span>
+<span class="sd">        The event or list of events to be added to this event.</span>
+<span class="sd">        :type assignment: EventAssignment or list of EventAssignments</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">assignment</span><span class="p">,</span> <span class="s1">&#39;variable&#39;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">assignments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">assignment</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">assignment</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -299,12 +333,12 @@
                 <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">assign</span><span class="p">,</span> <span class="s1">&#39;variable&#39;</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">assignments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">assign</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">EventError</span><span class="p">(</span><span class="s1">&#39;add_assignment failed to add EventAssignment. &#39;</span>
-                    <span class="s1">&#39;Assignment to be added must be of type EventAssignment &#39;</span>
-                    <span class="s1">&#39;or list of EventAssignment objects.&#39;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">EventError</span><span class="p">(</span><span class="s1">&#39;add_assignment failed to add EventAssignment. Assignment to be added must be of &#39;</span>
+                                     <span class="s1">&#39;type EventAssignment or list of EventAssignment objects.&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s2">&quot;Unexpected parameter for add_assignment. Parameter must be EventAssignment or list of EventAssignments&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">obj</span></div></div>
+            <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s2">&quot;Unexpected parameter for add_assignment. Parameter must be EventAssignment or list of &quot;</span>
+                             <span class="s2">&quot;EventAssignments&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">assignment</span></div></div>
 
 
 

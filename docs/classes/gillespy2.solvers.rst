@@ -11,6 +11,7 @@ Subpackages
    gillespy2.solvers.cython
    gillespy2.solvers.numpy
    gillespy2.solvers.stochkit
+   gillespy2.solvers.utilities
 
 Module contents
 ---------------

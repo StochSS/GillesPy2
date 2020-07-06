@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2 package &#8212; GillesPy2 1.4.0 documentation</title>
+    <title>gillespy2 package &#8212; GillesPy2 1.5.0 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/gillespy2_alabaster_customizations.css" />
@@ -118,11 +118,19 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="gillespy2.core.html">gillespy2.core package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.assignmentrule">gillespy2.core.assignmentrule module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.events">gillespy2.core.events module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.gillespy2">gillespy2.core.gillespy2 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.functiondefinition">gillespy2.core.functiondefinition module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.gillespyError">gillespy2.core.gillespyError module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.gillespySolver">gillespy2.core.gillespySolver module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.liveGraphing">gillespy2.core.liveGraphing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.model">gillespy2.core.model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.parameter">gillespy2.core.parameter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.raterule">gillespy2.core.raterule module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.reaction">gillespy2.core.reaction module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.results">gillespy2.core.results module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.sortableobject">gillespy2.core.sortableobject module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.species">gillespy2.core.species module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core">Module contents</a></li>
 </ul>
 </li>
@@ -156,11 +164,13 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="gillespy2.solvers.numpy.html">gillespy2.solvers.numpy package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.numpy.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.numpy.html#module-gillespy2.solvers.numpy.Tau">gillespy2.solvers.numpy.Tau module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.numpy.html#module-gillespy2.solvers.numpy.basic_ode_solver">gillespy2.solvers.numpy.basic_ode_solver module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.numpy.html#module-gillespy2.solvers.numpy.basic_tau_hybrid_solver">gillespy2.solvers.numpy.basic_tau_hybrid_solver module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.numpy.html#module-gillespy2.solvers.numpy.basic_tau_leaping_solver">gillespy2.solvers.numpy.basic_tau_leaping_solver module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.numpy.html#module-gillespy2.solvers.numpy.ode_solver">gillespy2.solvers.numpy.ode_solver module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.numpy.html#module-gillespy2.solvers.numpy.ssa_solver">gillespy2.solvers.numpy.ssa_solver module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.numpy.html#module-gillespy2.solvers.numpy.tau_hybrid_solver">gillespy2.solvers.numpy.tau_hybrid_solver module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.numpy.html#module-gillespy2.solvers.numpy.tau_leaping_solver">gillespy2.solvers.numpy.tau_leaping_solver module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.numpy.html#module-gillespy2.solvers.numpy">Module contents</a></li>
 </ul>
 </li>
@@ -168,6 +178,13 @@
 <li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.stochkit.html#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.stochkit.html#module-gillespy2.solvers.stochkit.stochkit_solvers">gillespy2.solvers.stochkit.stochkit_solvers module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.stochkit.html#module-gillespy2.solvers.stochkit">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.solvers.utilities.html">gillespy2.solvers.utilities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.utilities.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.utilities.html#module-gillespy2.solvers.utilities.Tau">gillespy2.solvers.utilities.Tau module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.utilities.html#module-gillespy2.solvers.utilities.solverutils">gillespy2.solvers.utilities.solverutils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.utilities.html#module-gillespy2.solvers.utilities">Module contents</a></li>
 </ul>
 </li>
 </ul>
