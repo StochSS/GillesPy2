@@ -627,6 +627,8 @@ class TauHybridSolver(GillesPySolver):
                                         event_queue, trigger_states, delayed_events)
                     event_cycle = True
 
+        events_processed = self.__process_queued_events(model, event_queue, trigger_states, curr_state)
+
         return sol, curr_state, curr_time, save_times
 
     def __set_seed(self, seed):
