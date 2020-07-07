@@ -785,11 +785,12 @@ class Model(SortableObject):
                                             timeout=timeout, **solver_args)
         except Exception as e:
             if cpp_support is False:
-                if solver.name == 'SSACSolver' or solver.name == 'VariableSSACSolver':
-                    from gillespy2.core import log
-                    log.warning("Please install/configure 'g++' and 'make' on your"
-                                " system, to ensure that GillesPy2 C solvers will"
-                                " run properly.")
+                if not isinstance(solver, str):
+                    if solver.name == 'SSACSolver' or solver.name == 'VariableSSACSolver':
+                        from gillespy2.core import log
+                        log.warning("Please install/configure 'g++' and 'make' on your"
+                                    " system, to ensure that GillesPy2 C solvers will"
+                                    " run properly.")
             raise SimulationError(
                 "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e))
 
