@@ -131,7 +131,7 @@ class TauLeapingSolver(GillesPySolver):
                                                                                         )
             # curr_time and curr_state are list of len 1 so that __run receives reference
             if resume is not None:
-                curr_time = [resume['time'][-1]]
+                total_time = [resume['time'][-1]]
             else:
                 total_time = [0]
 
@@ -241,7 +241,8 @@ class TauLeapingSolver(GillesPySolver):
             curr_state[0] = {}
 
             if resume is not None:
-                save_time = curr_time[0]
+                save_time = total_time[0]
+                curr_time = [save_time]
             else:
                 save_time = 0
                 curr_time = [0]

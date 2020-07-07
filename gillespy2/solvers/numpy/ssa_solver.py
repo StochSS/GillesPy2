@@ -77,7 +77,7 @@ class NumPySSASolver(GillesPySolver):
 
         # curr_time and curr_state are list of len 1 so that __run receives reference
         if resume is not None:
-            curr_time = [resume['time'][-1]]
+            total_time = [resume['time'][-1]]
         else:
             total_time = [0]
         curr_state = [None]
@@ -211,6 +211,7 @@ class NumPySSASolver(GillesPySolver):
                 curr_time = [resume['time'][-1]]
             else:
                 curr_time = [0]
+
 
 
             for spec in model.listOfSpecies:
