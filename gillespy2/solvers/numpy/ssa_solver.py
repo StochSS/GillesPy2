@@ -56,7 +56,6 @@ class NumPySSASolver(GillesPySolver):
 
         if timeout is not None and timeout <= 0:
             timeout = None
-
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
@@ -80,6 +79,7 @@ class NumPySSASolver(GillesPySolver):
             total_time = [resume['time'][-1]]
         else:
             total_time = [0]
+
         curr_state = [None]
         live_grapher = [None]
 
@@ -191,6 +191,7 @@ class NumPySSASolver(GillesPySolver):
         # begin simulating each trajectory
         simulation_data = []
         for trajectory_num in range(number_of_trajectories):
+            total_time[0] = 0
             if self.stop_event.is_set():
                 self.rc = 33
                 break
@@ -211,8 +212,6 @@ class NumPySSASolver(GillesPySolver):
                 curr_time = [resume['time'][-1]]
             else:
                 curr_time = [0]
-
-
 
             for spec in model.listOfSpecies:
                 if resume is not None:
