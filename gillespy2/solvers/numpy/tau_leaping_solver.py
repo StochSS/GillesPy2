@@ -129,17 +129,16 @@ class TauLeapingSolver(GillesPySolver):
             trajectory_base, tempSpecies = nputils.numpy_trajectory_base_initialization(model, number_of_trajectories,
                                                                                         timeline, species, resume=resume
                                                                                         )
-
             # curr_time and curr_state are list of len 1 so that __run receives reference
             if resume is not None:
-                curr_time = [resume['time'][-1]]
+                total_time = [resume['time'][-1]]
             else:
-                curr_time = [0]
+                total_time = [0]
 
             curr_state = [None]
             live_grapher = [None]
 
-            sim_thread = Thread(target=self.___run, args=(model, curr_state, curr_time, timeline, trajectory_base,
+            sim_thread = Thread(target=self.___run, args=(model, curr_state, total_time, timeline, trajectory_base,
                                                           live_grapher,), kwargs={'t': t,
                                                                                   'number_of_trajectories':
                                                                                       number_of_trajectories,
@@ -161,7 +160,7 @@ class TauLeapingSolver(GillesPySolver):
                     live_grapher[0] = liveGraphing.LiveDisplayer(model, timeline, number_of_trajectories,
                                                                  live_output_options, resume=resumeTest)
                     display_timer = liveGraphing.RepeatTimer(live_output_options['interval'], live_grapher[0].display,
-                                                                        args=(curr_state, curr_time, trajectory_base,))
+                                                                        args=(curr_state, total_time, trajectory_base,))
                     display_timer.start()
 
                 sim_thread.join(timeout=timeout)
@@ -181,12 +180,12 @@ class TauLeapingSolver(GillesPySolver):
                 raise self.has_raised_exception
             return self.result, self.rc
 
-    def ___run(self, model, curr_state,curr_time, timeline, trajectory_base, live_grapher, t=20,
+    def ___run(self, model, curr_state,total_time, timeline, trajectory_base, live_grapher, t=20,
                number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, show_labels=True,
                timeout=None, resume=None, tau_tol=0.03, **kwargs):
 
         try:
-            self.__run(model, curr_state, curr_time, timeline, trajectory_base, live_grapher, t, number_of_trajectories,
+            self.__run(model, curr_state, total_time, timeline, trajectory_base, live_grapher, t, number_of_trajectories,
                        increment, seed, debug, profile, timeout, resume, tau_tol, **kwargs)
 
         except Exception as e:
@@ -194,7 +193,7 @@ class TauLeapingSolver(GillesPySolver):
             self.result = []
             return [], -1
 
-    def __run(self, model, curr_state, curr_time, timeline, trajectory_base, live_grapher, t=20,
+    def __run(self, model, curr_state, total_time, timeline, trajectory_base, live_grapher, t=20,
               number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, timeout=None,
               resume=None, tau_tol=0.03, **kwargs):
 
@@ -240,10 +239,13 @@ class TauLeapingSolver(GillesPySolver):
             start_state = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
             propensities = {}
             curr_state[0] = {}
+
             if resume is not None:
-                save_time = curr_time[0]
+                save_time = total_time[0]
+                curr_time = [save_time]
             else:
                 save_time = 0
+                curr_time = [0]
 
             curr_state[0]['vol'] = model.volume
             data = { 'time': timeline}
@@ -345,6 +347,7 @@ class TauLeapingSolver(GillesPySolver):
                             start_state = prev_start_state.copy()
                             curr_state[0] = prev_curr_state.copy()
                             curr_time[0] = prev_curr_time
+                            total_time[0] = prev_curr_time
                             tau_step = tau_step / 2
                             steps_rejected += 1
                             if debug:

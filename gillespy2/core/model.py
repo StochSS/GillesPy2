@@ -702,7 +702,7 @@ class Model(SortableObject):
         return 'Element not found!'
 
 
-    def get_best_solver(self, precompile=True):
+    def get_best_solver(self, cpp_test = True):
         """
         Finds best solver for the users simulation. Currently, AssignmentRules, RateRules, FunctionDefinitions,
         Events, and Species with a dynamic, or continuous population must use the TauHybridSolver.
@@ -732,14 +732,18 @@ class Model(SortableObject):
             raise ModelError('TauHybridSolver is the only solver currently that supports '
                              'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
                              'Please install Numpy.')
-        else:
-            if precompile:
-                from gillespy2.solvers.cpp.variable_ssa_c_solver import VariableSSACSolver
-                return VariableSSACSolver
-            from gillespy2.solvers.auto import SSASolver
-            return SSASolver
+        from gillespy2.solvers.utilities.solverutils import check_cpp_support
+        cpp_test = check_cpp_support()
 
-    def run(self, solver=None, timeout=0, t=None, show_labels=True, **solver_args):
+        if cpp_test is False and can_use_numpy and not hybrid_check:
+            from gillespy2 import NumPySSASolver
+            return NumPySSASolver
+
+        else:
+            from gillespy2 import VariableSSACSolver
+            return VariableSSACSolver
+
+    def run(self, solver=None, timeout=0, t=None, show_labels=True, cpp_support=False, **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -768,16 +772,25 @@ class Model(SortableObject):
 
         if not show_labels:
             from gillespy2.core import log
-            log.warning('show_labels = False is deprecated. Future releases of GillesPy2 may not support this feature.')
-
+            log.warning('show_labels = False is deprecated. Future releases '
+                        'of GillesPy2 may not support this feature.')
         if t is None:
             t = self.tspan[-1]
+
         if solver is None:
             solver = self.get_best_solver()
+
         try:
             solver_results, rc = solver.run(model=self, t=t, increment=self.tspan[-1] - self.tspan[-2],
                                             timeout=timeout, **solver_args)
         except Exception as e:
+            if cpp_support is False:
+                if not isinstance(solver, str):
+                    if solver.name == 'SSACSolver' or solver.name == 'VariableSSACSolver':
+                        from gillespy2.core import log
+                        log.warning("Please install/configure 'g++' and 'make' on your"
+                                    " system, to ensure that GillesPy2 C solvers will"
+                                    " run properly.")
             raise SimulationError(
                 "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e))
 
