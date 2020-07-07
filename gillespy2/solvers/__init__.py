@@ -9,4 +9,3 @@ if not __all__:
                          "ments for running simulations using GillesPy2."
                          " Please install NumPy, or configure the C++ 'g++' "
                          "compiler on your machine.")
-

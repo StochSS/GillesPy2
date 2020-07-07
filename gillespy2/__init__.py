@@ -13,4 +13,3 @@ from gillespy2.solvers import *
 from gillespy2.core import *
 import gillespy2.sbml
 
-print(__import__)
