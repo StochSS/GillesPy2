@@ -248,7 +248,7 @@ class TauLeapingSolver(GillesPySolver):
                 curr_time = [0]
 
             curr_state[0]['vol'] = model.volume
-            data = { 'time': timeline}
+            data = {'time': timeline}
             steps_taken = []
             steps_rejected = 0
             entry_count = 0
@@ -311,6 +311,7 @@ class TauLeapingSolver(GillesPySolver):
                     prev_start_state = start_state.copy()
                     prev_curr_state = curr_state[0].copy()
                     prev_curr_time = curr_time[0]
+                    total_time[0] = curr_time[0]
 
                     loop_cnt = 0
                     while True:
@@ -348,6 +349,7 @@ class TauLeapingSolver(GillesPySolver):
                             curr_state[0] = prev_curr_state.copy()
                             curr_time[0] = prev_curr_time
                             total_time[0] = prev_curr_time
+
                             tau_step = tau_step / 2
                             steps_rejected += 1
                             if debug:

@@ -16,6 +16,10 @@ def display_types():
 
 
 def valid_graph_params(live_output_options):
+    if live_output_options['type'] not in ['progress', 'graph', 'text']:
+        from gillespy2.core.gillespyError import SimulationError
+        raise SimulationError("Invalid input to 'live_output', please check spelling and ensure input is"
+                              " lower case.")
     if 'interval' not in live_output_options:
         live_output_options['interval'] = 1
     elif live_output_options['interval'] < 0:
@@ -102,7 +106,10 @@ class LiveDisplayer():
             if not self.header_printed:
                 self.print_text_header()
 
-            print(str(round(curr_time, 2))[:10].ljust(10), end="|")
+            if self.resume is True:
+                print(str(round(curr_time+self.x_shift, 2))[:10].ljust(10),end='|')
+            else:
+                print(str(round(curr_time, 2))[:10].ljust(10), end="|")
 
             for i in range(self.number_species):
                 print(str(curr_state[self.species[i]])[:10].ljust(10), end="|")
@@ -129,17 +136,14 @@ class LiveDisplayer():
             plt.xlim(right=self.timeline[-1])
             plt.xlim(left=self.timeline[0])
             plt.title(self.trajectory_header())
-
             for i in range(self.number_species):
                 line_color = common_rgb_values()[(i) % len(common_rgb_values())]
-
                 plt.plot(trajectory_base[0][:, 0][:entry_count].tolist(),
                          trajectory_base[0][:, i + 1][:entry_count].tolist(), color=line_color,
                          label=self.species[i])
 
-                plt.plot([entry_count - 1, curr_time - self.timeline[0]], [trajectory_base[0][:, i + 1][entry_count - 1],
-                                                        curr_state[self.species[i]]], linewidth=3,
+                plt.plot([entry_count - 1, curr_time - self.timeline[0]], [trajectory_base[0][:, i + 1][entry_count - 1]
+                    , curr_state[self.species[i]]], linewidth=3,
                          color=line_color)
-
             plt.legend(loc='upper right')
             plt.show()
