@@ -702,7 +702,7 @@ class Model(SortableObject):
         return 'Element not found!'
 
 
-    def get_best_solver(self, cpp_test = True):
+    def get_best_solver(self, precompile=True):
         """
         Finds best solver for the users simulation. Currently, AssignmentRules, RateRules, FunctionDefinitions,
         Events, and Species with a dynamic, or continuous population must use the TauHybridSolver.
@@ -740,8 +740,12 @@ class Model(SortableObject):
             return NumPySSASolver
 
         else:
-            from gillespy2 import VariableSSACSolver
-            return VariableSSACSolver
+            if precompile:
+                from gillespy2 import VariableSSACSolver
+                return VariableSSACSolver
+            else:
+                from gillespy2 import SSACSolver
+                return SSACSolver
 
     def run(self, solver=None, timeout=0, t=None, show_labels=True, cpp_support=False, **solver_args):
         """
