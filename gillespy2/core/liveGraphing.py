@@ -1,6 +1,5 @@
 import threading
 from gillespy2.core import log
-from IPython.display import clear_output
 
 
 class RepeatTimer(threading.Timer):
@@ -10,6 +9,7 @@ class RepeatTimer(threading.Timer):
     pause = False
 
     def run(self):
+        from IPython.display import clear_output
         type = str.join('', [*self.args[3]])
         self.args = self.args[:3]
         while not self.finished.wait(self.interval):
@@ -95,7 +95,7 @@ class LiveDisplayer():
     curr_state and curr_time should be list of len 1 to get reference
     '''
     def display(self, curr_state, curr_time, trajectory_base):
-
+        from IPython.display import clear_output
         from math import floor
         curr_time = curr_time[0]
         curr_state = curr_state[0]
