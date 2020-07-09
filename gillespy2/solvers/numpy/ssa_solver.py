@@ -30,6 +30,7 @@ class NumPySSASolver(GillesPySolver):
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True,
             live_output=None, live_output_options={}, timeout=None, resume=None, **kwargs):
+
         """
         Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
         :param model: The model on which the solver will operate.
@@ -79,6 +80,8 @@ class NumPySSASolver(GillesPySolver):
             total_time = [resume['time'][-1]]
         else:
             total_time = [0]
+        if resume:
+            print('total_time, resume : ',total_time)
 
         curr_state = [None]
         live_grapher = [None]
@@ -203,7 +206,6 @@ class NumPySSASolver(GillesPySolver):
         # begin simulating each trajectory
         simulation_data = []
         for trajectory_num in range(number_of_trajectories):
-            total_time[0] = 0
             if self.stop_event.is_set():
                 self.rc = 33
                 break
