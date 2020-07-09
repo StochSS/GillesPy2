@@ -1,14 +1,25 @@
 import threading
 from gillespy2.core import log
+from IPython.display import clear_output
 
 
 class RepeatTimer(threading.Timer):
     """
     Threading timer which repeatedly calls the given function instead of simply ending
     """
+    pause = False
+
     def run(self):
+        type = str.join('', [*self.args[3]])
+        self.args = self.args[:3]
         while not self.finished.wait(self.interval):
             self.function(*self.args, **self.kwargs)
+
+        if not self.pause:
+            if type == 'progress':
+                clear_output()
+                print('progress = 100 %')
+
 
 
 def display_types():
@@ -85,7 +96,6 @@ class LiveDisplayer():
     '''
     def display(self, curr_state, curr_time, trajectory_base):
 
-        from IPython.display import clear_output
         from math import floor
         curr_time = curr_time[0]
         curr_state = curr_state[0]

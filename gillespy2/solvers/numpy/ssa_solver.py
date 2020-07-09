@@ -101,12 +101,14 @@ class NumPySSASolver(GillesPySolver):
                     resumeTest = True  # If resuming, relay this information to live_grapher
                 else:
                     resumeTest = False
-                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer( model, timeline, number_of_trajectories,
+                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(model, timeline, number_of_trajectories,
                                                                              live_output_options,resume = resumeTest)
                 display_timer = gillespy2.core.liveGraphing.RepeatTimer(live_output_options['interval'],
                                                                         live_grapher[0].display, args=(curr_state,
                                                                                                        total_time,
-                                                                                                       trajectory_base,)
+                                                                                                       trajectory_base,
+                                                                                                       live_output
+                                                                                                       )
                                                                         )
                 display_timer.start()
             sim_thread.join(timeout=timeout)
@@ -117,6 +119,7 @@ class NumPySSASolver(GillesPySolver):
                 pass
         except KeyboardInterrupt:
             if live_output:
+                display_timer.pause = True
                 display_timer.cancel()
             self.pause_event.set()
             while self.result is None:
@@ -191,7 +194,6 @@ class NumPySSASolver(GillesPySolver):
         # begin simulating each trajectory
         simulation_data = []
         for trajectory_num in range(number_of_trajectories):
-            total_time[0] = 0
             if self.stop_event.is_set():
                 self.rc = 33
                 break

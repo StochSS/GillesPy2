@@ -160,7 +160,7 @@ class TauLeapingSolver(GillesPySolver):
                     live_grapher[0] = liveGraphing.LiveDisplayer(model, timeline, number_of_trajectories,
                                                                  live_output_options, resume=resumeTest)
                     display_timer = liveGraphing.RepeatTimer(live_output_options['interval'], live_grapher[0].display,
-                                                                        args=(curr_state, total_time, trajectory_base,))
+                                                                        args=(curr_state, total_time, trajectory_base, live_output))
                     display_timer.start()
 
                 sim_thread.join(timeout=timeout)
@@ -172,6 +172,7 @@ class TauLeapingSolver(GillesPySolver):
                     pass
             except KeyboardInterrupt:
                 if live_grapher[0] is not None:
+                    display_timer.pause = True
                     display_timer.cancel()
                 self.pause_event.set()
                 while self.result is None:
