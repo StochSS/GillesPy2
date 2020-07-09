@@ -130,6 +130,7 @@ class ODESolver(GillesPySolver):
                                                                                           'integrator_options':
                                                                                               integrator_options, })
         try:
+            time = 0
             sim_thread.start()
             if live_output is not None:
                 import gillespy2.core.liveGraphing
@@ -148,7 +149,15 @@ class ODESolver(GillesPySolver):
                                                                         args=(curr_state, curr_time, trajectory_base,))
                 display_timer.start()
 
-            sim_thread.join(timeout=timeout)
+            if timeout is not None:
+                while sim_thread.is_alive():
+                    sim_thread.join(.1)
+                    time += .1
+                    if time >= timeout:
+                        break
+            else:
+                while sim_thread.is_alive():
+                    sim_thread.join(.1)
 
             if live_grapher[0] is not None:
                 display_timer.cancel()
