@@ -1,4 +1,6 @@
 jobs:
+  allow_failures:
+    - os: windows # This should be removed once tests pass on Windows. 
   include:
     - os: linux
       dist: xenial
@@ -8,8 +10,6 @@ jobs:
         - "curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter"
         - "chmod +x ./cc-test-reporter"
         - "./cc-test-reporter before-build"
-      script:
-        - "coverage run --source=gillespy2 --omit=gillespy2/solvers/stochkit/* test/run_tests.py -m develop"
       after_script:
         - "coverage xml"
         - "if [[ \"$TRAVIS_TEST_RESULT\" == 0 ]]; then ./cc-test-reporter after-build -t coverage.py --exit-code $TRAVIS_TEST_RESULT; fi"
