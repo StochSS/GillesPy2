@@ -172,7 +172,7 @@ class NumPySSASolver(GillesPySolver):
         propensity_functions = {}
 
         # create an array mapping reactions to species modified
-        species_changes = np.zeros((number_reactions, number_species))
+        species_changes = np.zeros((number_reactions, number_species), order='C')
 
         # pre-evaluate propensity equations from strings:
         for i, reaction in enumerate(reactions):
@@ -206,21 +206,26 @@ class NumPySSASolver(GillesPySolver):
             # copy initial state data
             trajectory = trajectory_base[trajectory_num]
             entry_count = 1
-            curr_state[0] = {}
             # curr_time and curr_state are list of len 1 so that __run receives reference
             if resume is not None:
                 curr_time = [resume['time'][-1]]
             else:
                 curr_time = [0]
 
-            for spec in model.listOfSpecies:
-                if resume is not None:
-                    curr_state[0][spec] = resume[spec][-1]
-                else:
-                    curr_state[0][spec] = model.listOfSpecies[spec].initial_value
+            if resume is None:
+                curr_state[0] = {s:v.initial_value for (s,v) in model.listOfSpecies.items()}
+            else:
+                curr_state[0] = {spec:resume[spec][-1] for spec in species}
 
-            propensity_sums = np.zeros(number_reactions)
+            species_states = list(curr_state[0].values())
+            propensity_sums = np.zeros(number_reactions, order='C')
             # calculate initial propensity sums
+            for i, r in enumerate(reactions):
+                propensity_sums[i] = propensity_functions[r][0](species_states)
+                if debug:
+                    print('propensity: ', propensity_sums[i])
+
+
             while entry_count < timeline.size:
                 if self.stop_event.is_set():
                     self.rc = 33
@@ -229,14 +234,6 @@ class NumPySSASolver(GillesPySolver):
                     timeStopped = timeline[entry_count]
                     break
                 # determine next reaction
-
-                species_states = list(curr_state[0].values())
-
-                for i in range(number_reactions):
-                    propensity_sums[i] = propensity_functions[reactions[i]][0](species_states)
-
-                    if debug:
-                        print('propensity: ', propensity_sums[i])
 
                 propensity_sum = np.sum(propensity_sums)
                 if debug:
@@ -247,8 +244,9 @@ class NumPySSASolver(GillesPySolver):
                     break
 
                 cumulative_sum = random.uniform(0, propensity_sum)
-                curr_time[0] += -math.log(random.random()) / propensity_sum
-                total_time[0] += -math.log(random.random()) / propensity_sum
+                delta_t = -math.log(random.random()) / propensity_sum
+                curr_time[0] += delta_t
+                total_time[0] += delta_t
                 if debug:
                     print('cumulative sum: ', cumulative_sum)
                     print('entry count: ', entry_count)
@@ -291,8 +289,8 @@ class NumPySSASolver(GillesPySolver):
             data = {
                 'time': timeline
             }
-            for i in range(number_species):
-                data[species[i]] = trajectory[:, i+1]
+            for i, spec in enumerate(species):
+                data[spec] = trajectory[:, i+1]
             simulation_data.append(data)
 
         # If simulation has been paused, or tstopped !=0
