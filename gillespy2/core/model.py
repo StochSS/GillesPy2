@@ -702,7 +702,7 @@ class Model(SortableObject):
         return 'Element not found!'
 
 
-    def get_best_solver(self, cpp_test = True):
+    def get_best_solver(self, precompile=True):
         """
         Finds best solver for the users simulation. Currently, AssignmentRules, RateRules, FunctionDefinitions,
         Events, and Species with a dynamic, or continuous population must use the TauHybridSolver.
@@ -739,8 +739,12 @@ class Model(SortableObject):
             return NumPySSASolver
 
         else:
-            from gillespy2 import VariableSSACSolver
-            return VariableSSACSolver
+            if precompile:
+                from gillespy2 import VariableSSACSolver
+                return VariableSSACSolver
+            else:
+                from gillespy2 import SSACSolver
+                return SSACSolver
 
     def run(self, solver=None, timeout=0, t=None, show_labels=True, cpp_support=False, **solver_args):
         """
@@ -758,6 +762,10 @@ class Model(SortableObject):
         :param t: End time of simulation
         :type t: int
         :param solver_args: Solver-specific arguments to be passed to solver.run()
+
+        :param cpp_support: INTERNAL USE ONLY, flag for whether or not a computer has the capability to compile a
+        C++ program.
+        :type cpp_support: bool
 
         :return  If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is
         True,returns a Results object that inherits UserList and contains one or more Trajectory objects that
@@ -783,13 +791,15 @@ class Model(SortableObject):
             solver_results, rc = solver.run(model=self, t=t, increment=self.tspan[-1] - self.tspan[-2],
                                             timeout=timeout, **solver_args)
         except Exception as e:
-            if cpp_support is False:
-                if not isinstance(solver, str):
-                    if solver.name == 'SSACSolver' or solver.name == 'VariableSSACSolver':
-                        from gillespy2.core import log
-                        log.warning("Please install/configure 'g++' and 'make' on your"
-                                    " system, to ensure that GillesPy2 C solvers will"
-                                    " run properly.")
+            # If user has specified the SSACSolver, but they don't actually have a g++ compiler,
+            # This will throw an error and throw log. IF a user specifies cpp_support == True and don't have a compiler
+            # They would bypass this log.warning and just recieve an error
+            if cpp_support is False and not isinstance(solver, str):
+                if solver.name == 'SSACSolver' or solver.name == 'VariableSSACSolver':
+                    from gillespy2.core import log
+                    log.warning("Please install/configure 'g++' and 'make' on your"
+                                " system, to ensure that GillesPy2 C solvers will"
+                                " run properly.")
             raise SimulationError(
                 "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e))
 
