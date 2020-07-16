@@ -246,39 +246,30 @@ def dependency_grapher(model, reactions):
     :param reactions: list(model.listOfReactions)
     :return: Dependency graph dictionary
     """
-    dependent_rxns = {}
-    for i in reactions:
-        cust_spec = []
-        if model.listOfReactions[i].type == 'customized':
-            cust_spec = (species_parse(model, model.listOfReactions[i].propensity_function))
+    from itertools import combinations
 
-        for j in reactions:
-
-            if i not in dependent_rxns:
-                dependent_rxns[i] = {'dependencies': []}
-            if j not in dependent_rxns:
-                dependent_rxns[j] = {'dependencies': []}
-            if i == j:
-                continue
-
-            reactantsI = list(model.listOfReactions[i].reactants.keys())
-            reactantsJ = list(model.listOfReactions[j].reactants.keys())
-
-            if j not in dependent_rxns[i]['dependencies']:
-                if any(elem in reactantsI for elem in reactantsJ):
-                    if i not in dependent_rxns[j]['dependencies']:
-                        dependent_rxns[j]['dependencies'].append(i)
-                    dependent_rxns[i]['dependencies'].append(j)
-
-            if i not in dependent_rxns[j]['dependencies']:
-                if any(elem in list(model.listOfReactions[i].products.keys()) for elem in
-                       list(model.listOfReactions[j].reactants.keys())):
+    dependent_rxns = {r:{'dependencies':[]} for r in reactions}
+    reactants = {r:list(model.listOfReactions[r].reactants.keys()) for r in reactions}
+    products = {r:list(model.listOfReactions[r].products.keys()) for r in reactions}
+    cust_spec = {
+        r:species_parse(
+                        model.listOfReactions[r].propensity_function) \
+                        for r in reactions if model.listOfReactions[r].type == 'customized'}
+    print(cust_spec)
+    for i, j in combinations(reactions, 2):
+        if j not in dependent_rxns[i]['dependencies']:
+            if any(elem in reactants[i] for elem in reactants[j]):
+                if i not in dependent_rxns[j]['dependencies']:
                     dependent_rxns[j]['dependencies'].append(i)
+                dependent_rxns[i]['dependencies'].append(j)
 
-            if cust_spec:
-                if any(elem in cust_spec for elem in list(model.listOfReactions[j].reactants)) or any \
-                            (elem in cust_spec for elem in list(model.listOfReactions[j].products)):
-                    dependent_rxns[i]['dependencies'].append(j)
+        if i not in dependent_rxns[j]['dependencies']:
+            if any(elem in products[i] for elem in reactants[j]):
+                dependent_rxns[j]['dependencies'].append(i)
+
+        if i in cust_spec:
+            if any(elem in cust_spec[i] for elem in reactants[j]+products[j]):
+                dependent_rxns[i]['dependencies'].append(j)
 
     return dependent_rxns
 
