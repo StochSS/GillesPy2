@@ -219,12 +219,6 @@ class NumPySSASolver(GillesPySolver):
 
             species_states = list(curr_state[0].values())
             propensity_sums = np.zeros(number_reactions, order='C')
-            # calculate initial propensity sums
-            for i, r in enumerate(reactions):
-                propensity_sums[i] = propensity_functions[r][0](species_states)
-                if debug:
-                    print('propensity: ', propensity_sums[i])
-
 
             while entry_count < timeline.size:
                 if self.stop_event.is_set():
@@ -234,6 +228,11 @@ class NumPySSASolver(GillesPySolver):
                     timeStopped = timeline[entry_count]
                     break
                 # determine next reaction
+                for i, r in enumerate(reactions):
+                    propensity_sums[i] = propensity_functions[r][0](species_states)
+                    if debug:
+                        print('propensity: ', propensity_sums[i])
+
 
                 propensity_sum = np.sum(propensity_sums)
                 if debug:
