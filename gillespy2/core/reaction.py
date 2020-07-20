@@ -37,6 +37,10 @@ class Reaction(SortableObject):
 
     Mass-action reactions must also have a rate term added. Note that the input
     rate represents the mass-action constant rate independent of volume.
+
+    if a name is not provided for reactions, the name will be populated by the
+    model based on the order it was added. This could impact seeded simulation 
+    results if the order of addition is not preserved.
     """
 
     def __init__(self, name="", reactants={}, products={}, propensity_function=None, massaction=False, rate=None,
