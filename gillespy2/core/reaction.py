@@ -46,10 +46,7 @@ class Reaction(SortableObject):
         """
 
         # Metadata
-        if name == "" or name is None:
-            self.name = 'rxn' + str(uuid.uuid4()).replace('-', '_')
-        else:
-            self.name = name
+        self.name = name
         self.annotation = ""
 
         # We might use this flag in the future to automatically generate
