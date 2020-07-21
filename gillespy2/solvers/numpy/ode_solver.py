@@ -146,7 +146,7 @@ class ODESolver(GillesPySolver):
                                                                             live_output_options, resume=resumeTest)
                 display_timer = gillespy2.core.liveGraphing.RepeatTimer(live_output_options['interval'],
                                                                         live_grapher[0].display,
-                                                                        args=(curr_state, curr_time, trajectory_base,))
+                                                                        args=(curr_state, curr_time, trajectory_base,live_output))
                 display_timer.start()
 
             if timeout is not None:
@@ -167,6 +167,7 @@ class ODESolver(GillesPySolver):
                 pass
         except KeyboardInterrupt:
             if live_output:
+                display_timer.pause = True
                 display_timer.cancel()
             self.pause_event.set()
             while self.result is None:
