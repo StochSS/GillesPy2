@@ -147,23 +147,42 @@ class TauLeapingSolver(GillesPySolver):
                                                                                   'timeout': timeout, 'tau_tol': tau_tol
                                                                                   })
             try:
+                time = 0
                 sim_thread.start()
-                if resume is not None:
-                    resumeTest = True  # If resuming, relay this information to live_grapher
-                else:
-                    resumeTest = False
-
                 if live_output is not None:
                     import gillespy2.core.liveGraphing
                     live_output_options['type'] = live_output
-                    gillespy2.core.liveGraphing.valid_graph_params(live_output_options)
-                    live_grapher[0] = liveGraphing.LiveDisplayer(model, timeline, number_of_trajectories,
-                                                                 live_output_options, resume=resumeTest)
-                    display_timer = liveGraphing.RepeatTimer(live_output_options['interval'], live_grapher[0].display,
-                                                                        args=(curr_state, total_time, trajectory_base, live_output))
+                    gillespy2.core.liveGraphing.valid_graph_params(
+                        live_output_options)
+                    if resume is not None:
+                        resumeTest = True  # If resuming, relay this information to live_grapher
+                    else:
+                        resumeTest = False
+                    live_grapher[
+                        0] = gillespy2.core.liveGraphing.LiveDisplayer(model,
+                                                                       timeline,
+                                                                       number_of_trajectories,
+                                                                       live_output_options,
+                                                                       resume=resumeTest)
+                    display_timer = gillespy2.core.liveGraphing.RepeatTimer(
+                        live_output_options['interval'],
+                        live_grapher[0].display, args=(curr_state,
+                                                       total_time,
+                                                       trajectory_base,
+                                                       live_output
+                                                       )
+                        )
                     display_timer.start()
 
-                sim_thread.join(timeout=timeout)
+                if timeout is not None:
+                    while sim_thread.is_alive():
+                        sim_thread.join(.1)
+                        time += .1
+                        if time >= timeout:
+                            break
+                else:
+                    while sim_thread.is_alive():
+                        sim_thread.join(.1)
 
                 if live_grapher[0] is not None:
                     display_timer.cancel()
@@ -171,7 +190,7 @@ class TauLeapingSolver(GillesPySolver):
                 while self.result is None:
                     pass
             except KeyboardInterrupt:
-                if live_grapher[0] is not None:
+                if live_output:
                     display_timer.pause = True
                     display_timer.cancel()
                 self.pause_event.set()
@@ -179,6 +198,7 @@ class TauLeapingSolver(GillesPySolver):
                     pass
             if hasattr(self, 'has_raised_exception'):
                 raise self.has_raised_exception
+
             return self.result, self.rc
 
     def ___run(self, model, curr_state,total_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,

@@ -116,10 +116,7 @@ class LiveDisplayer():
             if not self.header_printed:
                 self.print_text_header()
 
-            if self.resume is True:
-                print(str(round(curr_time+self.x_shift, 2))[:10].ljust(10),end='|')
-            else:
-                print(str(round(curr_time, 2))[:10].ljust(10), end="|")
+            print(str(round(curr_time, 2))[:10].ljust(10), end="|")
 
             for i in range(self.number_species):
                 print(str(curr_state[self.species[i]])[:10].ljust(10), end="|")
