@@ -6,9 +6,20 @@ class RepeatTimer(threading.Timer):
     """
     Threading timer which repeatedly calls the given function instead of simply ending
     """
+    pause = False
+
     def run(self):
+        from IPython.display import clear_output
+        type = str.join('', [*self.args[3]])
+        self.args = self.args[:3]
         while not self.finished.wait(self.interval):
             self.function(*self.args, **self.kwargs)
+
+        if not self.pause:
+            if type == 'progress':
+                clear_output()
+                print('progress = 100 %')
+
 
 
 def display_types():
@@ -16,6 +27,10 @@ def display_types():
 
 
 def valid_graph_params(live_output_options):
+    if live_output_options['type'] not in ['progress', 'graph', 'text']:
+        from gillespy2.core.gillespyError import SimulationError
+        raise SimulationError("Invalid input to 'live_output', please check spelling and ensure input is"
+                              " lower case.")
     if 'interval' not in live_output_options:
         live_output_options['interval'] = 1
     elif live_output_options['interval'] < 0:
@@ -80,7 +95,6 @@ class LiveDisplayer():
     curr_state and curr_time should be list of len 1 to get reference
     '''
     def display(self, curr_state, curr_time, trajectory_base):
-
         from IPython.display import clear_output
         from math import floor
         curr_time = curr_time[0]
@@ -129,17 +143,14 @@ class LiveDisplayer():
             plt.xlim(right=self.timeline[-1])
             plt.xlim(left=self.timeline[0])
             plt.title(self.trajectory_header())
-
             for i in range(self.number_species):
                 line_color = common_rgb_values()[(i) % len(common_rgb_values())]
-
                 plt.plot(trajectory_base[0][:, 0][:entry_count].tolist(),
                          trajectory_base[0][:, i + 1][:entry_count].tolist(), color=line_color,
                          label=self.species[i])
 
-                plt.plot([entry_count - 1, curr_time - self.timeline[0]], [trajectory_base[0][:, i + 1][entry_count - 1],
-                                                        curr_state[self.species[i]]], linewidth=3,
+                plt.plot([entry_count - 1, curr_time - self.timeline[0]], [trajectory_base[0][:, i + 1][entry_count - 1]
+                    , curr_state[self.species[i]]], linewidth=3,
                          color=line_color)
-
             plt.legend(loc='upper right')
             plt.show()

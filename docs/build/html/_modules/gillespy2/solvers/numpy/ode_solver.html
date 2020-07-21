@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.solvers.numpy.ode_solver &#8212; GillesPy2 1.5.0 documentation</title>
+    <title>gillespy2.solvers.numpy.ode_solver &#8212; GillesPy2 1.5.2 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -232,6 +232,7 @@
                                                                                           <span class="s1">&#39;integrator_options&#39;</span><span class="p">:</span>
                                                                                               <span class="n">integrator_options</span><span class="p">,</span> <span class="p">})</span>
         <span class="k">try</span><span class="p">:</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">sim_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">live_output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="kn">import</span> <span class="nn">gillespy2.core.liveGraphing</span>
@@ -247,10 +248,18 @@
                                                                             <span class="n">live_output_options</span><span class="p">,</span> <span class="n">resume</span><span class="o">=</span><span class="n">resumeTest</span><span class="p">)</span>
                 <span class="n">display_timer</span> <span class="o">=</span> <span class="n">gillespy2</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">liveGraphing</span><span class="o">.</span><span class="n">RepeatTimer</span><span class="p">(</span><span class="n">live_output_options</span><span class="p">[</span><span class="s1">&#39;interval&#39;</span><span class="p">],</span>
                                                                         <span class="n">live_grapher</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">display</span><span class="p">,</span>
-                                                                        <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="p">,))</span>
+                                                                        <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="p">,</span><span class="n">live_output</span><span class="p">))</span>
                 <span class="n">display_timer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 
-            <span class="n">sim_thread</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">timeout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">while</span> <span class="n">sim_thread</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+                    <span class="n">sim_thread</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">.</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">time</span> <span class="o">+=</span> <span class="o">.</span><span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">time</span> <span class="o">&gt;=</span> <span class="n">timeout</span><span class="p">:</span>
+                        <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">while</span> <span class="n">sim_thread</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+                    <span class="n">sim_thread</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">.</span><span class="mi">1</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">live_grapher</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">display_timer</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
@@ -260,6 +269,7 @@
                 <span class="k">pass</span>
         <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">live_output</span><span class="p">:</span>
+                <span class="n">display_timer</span><span class="o">.</span><span class="n">pause</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="n">display_timer</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">pause_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
             <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
