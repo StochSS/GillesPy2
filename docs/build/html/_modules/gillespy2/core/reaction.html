@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.core.reaction &#8212; GillesPy2 1.5.0 documentation</title>
+    <title>gillespy2.core.reaction &#8212; GillesPy2 1.5.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -139,6 +139,10 @@
 
 <span class="sd">    Mass-action reactions must also have a rate term added. Note that the input</span>
 <span class="sd">    rate represents the mass-action constant rate independent of volume.</span>
+
+<span class="sd">    if a name is not provided for reactions, the name will be populated by the</span>
+<span class="sd">    model based on the order it was added. This could impact seeded simulation </span>
+<span class="sd">    results if the order of addition is not preserved.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">reactants</span><span class="o">=</span><span class="p">{},</span> <span class="n">products</span><span class="o">=</span><span class="p">{},</span> <span class="n">propensity_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">massaction</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -148,10 +152,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Metadata</span>
-        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">or</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;rxn&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
         <span class="c1"># We might use this flag in the future to automatically generate</span>

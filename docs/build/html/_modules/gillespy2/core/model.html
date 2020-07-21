@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.core.model &#8212; GillesPy2 1.5.0 documentation</title>
+    <title>gillespy2.core.model &#8212; GillesPy2 1.5.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -500,9 +500,18 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">reactions</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">validate_reactants_and_products</span><span class="p">(</span><span class="n">reactions</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">reactions</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s2">&quot;Duplicate name of reaction: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reactions</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">reactions</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">reactions</span>
+                <span class="k">if</span> <span class="n">reactions</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">reactions</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="s1">&#39;reaction</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">:</span>
+                            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="s1">&#39;reaction</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">reactions</span>
+                            <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">reactions</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s2">&quot;Duplicate name of reaction: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reactions</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">reactions</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">reactions</span>
                 <span class="c1"># Build Sanitized reaction as well</span>
                 <span class="n">sanitized_reaction</span> <span class="o">=</span> <span class="n">Reaction</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;R</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_listOfReactions</span><span class="p">)))</span>
                 <span class="n">sanitized_reaction</span><span class="o">.</span><span class="n">reactants</span> <span class="o">=</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_listOfSpecies</span><span class="p">[</span><span class="n">species</span><span class="o">.</span><span class="n">name</span><span class="p">]:</span> <span class="n">reactions</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="k">for</span>
@@ -834,14 +843,21 @@
             <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s1">&#39;TauHybridSolver is the only solver currently that supports &#39;</span>
                              <span class="s1">&#39;AssignmentRules, RateRules, FunctionDefinitions, or Events. &#39;</span>
                              <span class="s1">&#39;Please install Numpy.&#39;</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">gillespy2.solvers.utilities.cpp_support_test</span> <span class="k">import</span> <span class="n">cpp_support</span>
+
+        <span class="k">if</span> <span class="n">cpp_support</span> <span class="ow">is</span> <span class="kc">False</span> <span class="ow">and</span> <span class="n">can_use_numpy</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">hybrid_check</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">gillespy2</span> <span class="k">import</span> <span class="n">NumPySSASolver</span>
+            <span class="k">return</span> <span class="n">NumPySSASolver</span>
+
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">precompile</span><span class="p">:</span>
-                <span class="kn">from</span> <span class="nn">gillespy2.solvers.cpp.variable_ssa_c_solver</span> <span class="k">import</span> <span class="n">VariableSSACSolver</span>
+                <span class="kn">from</span> <span class="nn">gillespy2</span> <span class="k">import</span> <span class="n">VariableSSACSolver</span>
                 <span class="k">return</span> <span class="n">VariableSSACSolver</span>
-            <span class="kn">from</span> <span class="nn">gillespy2.solvers.auto</span> <span class="k">import</span> <span class="n">SSASolver</span>
-            <span class="k">return</span> <span class="n">SSASolver</span></div>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">gillespy2</span> <span class="k">import</span> <span class="n">SSACSolver</span>
+                <span class="k">return</span> <span class="n">SSACSolver</span></div>
 
-<div class="viewcode-block" id="Model.run"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">solver_args</span><span class="p">):</span>
+<div class="viewcode-block" id="Model.run"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cpp_support</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">solver_args</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Function calling simulation of the model. There are a number of</span>
 <span class="sd">        parameters to be set here.</span>
@@ -858,6 +874,10 @@
 <span class="sd">        :type t: int</span>
 <span class="sd">        :param solver_args: Solver-specific arguments to be passed to solver.run()</span>
 
+<span class="sd">        :param cpp_support: INTERNAL USE ONLY, flag for whether or not a computer has the capability to compile a</span>
+<span class="sd">        C++ program.</span>
+<span class="sd">        :type cpp_support: bool</span>
+
 <span class="sd">        :return  If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is</span>
 <span class="sd">        True,returns a Results object that inherits UserList and contains one or more Trajectory objects that</span>
 <span class="sd">        inherit UserDict. Results object supports graphing and csv export.</span>
@@ -870,16 +890,27 @@
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">show_labels</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">log</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;show_labels = False is deprecated. Future releases of GillesPy2 may not support this feature.&#39;</span><span class="p">)</span>
-
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;show_labels = False is deprecated. Future releases &#39;</span>
+                        <span class="s1">&#39;of GillesPy2 may not support this feature.&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
         <span class="k">if</span> <span class="n">solver</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">solver</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_best_solver</span><span class="p">()</span>
+
         <span class="k">try</span><span class="p">:</span>
             <span class="n">solver_results</span><span class="p">,</span> <span class="n">rc</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span>
                                             <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span> <span class="o">**</span><span class="n">solver_args</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># If user has specified the SSACSolver, but they don&#39;t actually have a g++ compiler,</span>
+            <span class="c1"># This will throw an error and throw log. IF a user specifies cpp_support == True and don&#39;t have a compiler</span>
+            <span class="c1"># They would bypass this log.warning and just recieve an error</span>
+            <span class="k">if</span> <span class="n">cpp_support</span> <span class="ow">is</span> <span class="kc">False</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">solver</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;SSACSolver&#39;</span> <span class="ow">or</span> <span class="n">solver</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;VariableSSACSolver&#39;</span><span class="p">:</span>
+                    <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">log</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Please install/configure &#39;g++&#39; and &#39;make&#39; on your&quot;</span>
+                                <span class="s2">&quot; system, to ensure that GillesPy2 C solvers will&quot;</span>
+                                <span class="s2">&quot; run properly.&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span>
                 <span class="s2">&quot;argument &#39;solver=</span><span class="si">{}</span><span class="s2">&#39; to run() failed.  Reason Given: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
 
