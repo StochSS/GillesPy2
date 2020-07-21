@@ -6,7 +6,6 @@ Subpackages
 
 .. toctree::
 
-   gillespy2.solvers.auto
    gillespy2.solvers.cpp
    gillespy2.solvers.cython
    gillespy2.solvers.numpy
