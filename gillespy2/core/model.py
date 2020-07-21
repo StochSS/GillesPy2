@@ -398,9 +398,18 @@ class Model(SortableObject):
             try:
                 reactions.verify()
                 self.validate_reactants_and_products(reactions)
-                if reactions.name in self.listOfReactions:
-                    raise ModelError("Duplicate name of reaction: {0}".format(reactions.name))
-                self.listOfReactions[reactions.name] = reactions
+                if reactions.name is None or reactions.name == '':
+                    i = 0
+                    while True:
+                        if 'reaction{}'.format(i) in self.listOfReactions:
+                            i += 1
+                        else:
+                            self.listOfReactions['reaction{}'.format(i)] = reactions
+                            break
+                else:
+                    if reactions.name in self.listOfReactions:
+                        raise ModelError("Duplicate name of reaction: {0}".format(reactions.name))
+                    self.listOfReactions[reactions.name] = reactions
                 # Build Sanitized reaction as well
                 sanitized_reaction = Reaction(name='R{}'.format(len(self._listOfReactions)))
                 sanitized_reaction.reactants = {self._listOfSpecies[species.name]: reactions.reactants[species] for
