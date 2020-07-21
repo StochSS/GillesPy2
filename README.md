@@ -45,7 +45,7 @@ python3 -m pip install gillespy2 --user --upgrade
 
 As an alternative to getting it from PyPI, you can instruct `pip` to install GillesPy2 directly from the GitHub repository:
 ```sh
-python3 -m pip install https://github.com/GillesPy2/GillesPy2/archive/master.zip --user --upgrade
+python3 -m pip install https://github.com/GillesPy2/GillesPy2/archive/main.zip --user --upgrade
 ```
 
 As a final alternative, you can first use `git` to clone a copy of the GillesPy2 source tree from the GitHub repository to your local computer disk, and then install GillesPy2 using that copy:
@@ -63,7 +63,7 @@ GillesPy2 provides simple object-oriented abstractions for defining a model of a
 1. Create a `GillesPy2.Model` containing molecular species, parameters, and reactions (or import it from an [SBML](http://sbml.org) file)
 2. Invoke the model's `.run()` method.
 
-The `run()` method can be customized using keyword arguments to select different solvers, random seed, data return type and more.  For more detailed examples on how to use GillesPy2, please see the [Getting Started](https://github.com/GillesPy2/GillesPy2/tree/master/examples/Getting-Started.ipynb) Jupyter notebook contained in the [examples](https://github.com/GillesPy2/GillesPy2/tree/master/examples) subdirectory.
+The `run()` method can be customized using keyword arguments to select different solvers, random seed, data return type and more.  For more detailed examples on how to use GillesPy2, please see the [Getting Started](https://github.com/GillesPy2/GillesPy2/tree/main/examples/Getting-Started.ipynb) Jupyter notebook contained in the [examples](https://github.com/GillesPy2/GillesPy2/tree/main/examples) subdirectory.
 
 ### _Simple example to illustrate the use of GillesPy2_
 
@@ -144,20 +144,20 @@ GillesPy2's [online documentation](https://gillespy2.github.io/GillesPy2/) provi
 Contributing
 ------------
 
-We would be happy to receive your help and participation with enhancing GillesPy2!  The [UML class diagram](UML_CLASS_DIAGRAM.md) and [Pynsource](https://pynsource.com/) [UML class model](docs/getting_started/basic_usage/gillespy2-UML-class-model.pyns) may help you familiarize yourself with the existing code. Please follow the guidelines described in [CONTRIBUTING.md](https://github.com/GillesPy2/GillesPy2/tree/master/CONTRIBUTING.md).
+We would be happy to receive your help and participation with enhancing GillesPy2!  The [UML class diagram](UML_CLASS_DIAGRAM.md) and [Pynsource](https://pynsource.com/) [UML class model](docs/getting_started/basic_usage/gillespy2-UML-class-model.pyns) may help you familiarize yourself with the existing code. Please follow the guidelines described in [CONTRIBUTING.md](https://github.com/GillesPy2/GillesPy2/tree/main/CONTRIBUTING.md).
 
-New developments happen primarily in the [`develop`](https://github.com/GillesPy2/GillesPy2/commits/develop) branch.  New releases are put in the `master` branch.
+New developments happen primarily in the [`develop`](https://github.com/GillesPy2/GillesPy2/commits/develop) branch.  New releases are put in the `main` branch.
 
 <p align="center">
 
-| Master Branch   | Develop Branch | Test Coverage | Maintainability |
+| Main Branch   | Develop Branch | Test Coverage | Maintainability |
 |:---------------:|:--------------:|:--------:|:---------------:|
-| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=master)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Test Coverage](https://api.codeclimate.com/v1/badges/990ac9d778d681d32eea/test_coverage)](https://codeclimate.com/github/GillesPy2/GillesPy2/test_coverage) | [![Maintainability](https://api.codeclimate.com/v1/badges/990ac9d778d681d32eea/maintainability)](https://codeclimate.com/github/GillesPy2/GillesPy2/maintainability) |
+| [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=main)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Build Status](https://travis-ci.org/GillesPy2/GillesPy2.svg?branch=develop)](https://travis-ci.org/GillesPy2/GillesPy2) | [![Test Coverage](https://api.codeclimate.com/v1/badges/990ac9d778d681d32eea/test_coverage)](https://codeclimate.com/github/GillesPy2/GillesPy2/test_coverage) | [![Maintainability](https://api.codeclimate.com/v1/badges/990ac9d778d681d32eea/maintainability)](https://codeclimate.com/github/GillesPy2/GillesPy2/maintainability) |
 
 License
 -------
 
-GillesPy2 is licensed under the GNU General Public License version 3.  Please see the file [LICENSE](https://github.com/GillesPy2/GillesPy2/blob/master/LICENSE) for more information.
+GillesPy2 is licensed under the GNU General Public License version 3.  Please see the file [LICENSE](https://github.com/GillesPy2/GillesPy2/blob/main/LICENSE) for more information.
 
 Authors and history
 ---------------------------

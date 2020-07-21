@@ -24,6 +24,6 @@ deploy:
   user: __token__
   on:
     repo: GillesPy2/GillesPy2
-    branch: master
+    branch: main
     tags: true
     
