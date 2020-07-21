@@ -80,8 +80,6 @@ class NumPySSASolver(GillesPySolver):
             total_time = [resume['time'][-1]]
         else:
             total_time = [0]
-        if resume:
-            print('total_time, resume : ',total_time)
 
         curr_state = [None]
         live_grapher = [None]
