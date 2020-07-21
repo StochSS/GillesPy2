@@ -1,0 +1,382 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>gillespy2.solvers.numpy.ode_solver &#8212; GillesPy2 1.5.0 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/css/gillespy2_alabaster_customizations.css" />
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../../../../_static/img/gillespy2-logo.svg" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../../index.html">
+    <img class="logo" src="../../../../_static/img/gillespy2-logo.svg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=GillesPy2&repo=GillesPy2&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started/installation/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started/basic_usage/basic_usage.html">Basic usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorials/tut_toggle_switch/tut_toggle_switch.html">Tutorial: ODE vs. SSA</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../classes/gillespy2.html">gillespy2 package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for gillespy2.solvers.numpy.ode_solver</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;GillesPy2 Solver for ODE solutions.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">threading</span> <span class="k">import</span> <span class="n">Thread</span><span class="p">,</span> <span class="n">Event</span>
+<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="k">import</span> <span class="n">ode</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">GillesPySolver</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">gillespyError</span>
+<span class="kn">from</span> <span class="nn">gillespy2.solvers.utilities</span> <span class="k">import</span> <span class="n">solverutils</span> <span class="k">as</span> <span class="n">nputils</span>
+
+
+<div class="viewcode-block" id="ODESolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.ode_solver.ODESolver">[docs]</a><span class="k">class</span> <span class="nc">ODESolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This Solver produces the deterministic continuous solution via ODE.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ODESolver&quot;</span>
+    <span class="n">rc</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">stop_event</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">pause_event</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ODESolver&quot;</span>
+        <span class="n">rc</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">stop_event</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">pause_event</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__f</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">c_prop</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The right hand side of the differential equation, uses scipy.integrate ode</span>
+<span class="sd">        :param t: time as a numpy array</span>
+<span class="sd">        :param y: species pops as a list</span>
+<span class="sd">        :param curr_state: dictionary of eval variables</span>
+<span class="sd">        :param model: model being simulated</span>
+<span class="sd">        :param c_prop: precompiled reaction propensity function</span>
+<span class="sd">        :return: integration step</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">curr_state</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">t</span>
+        <span class="n">state_change</span> <span class="o">=</span>  <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">):</span>
+            <span class="n">curr_state</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">state_change</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">propensity</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">r_name</span><span class="p">,</span> <span class="n">reaction</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">propensity</span><span class="p">[</span><span class="n">r_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">c_prop</span><span class="p">[</span><span class="n">r_name</span><span class="p">],</span> <span class="n">curr_state</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">react</span><span class="p">,</span> <span class="n">stoich</span> <span class="ow">in</span> <span class="n">reaction</span><span class="o">.</span><span class="n">reactants</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">state_change</span><span class="p">[</span><span class="n">react</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">-=</span> <span class="n">propensity</span><span class="p">[</span><span class="n">r_name</span><span class="p">]</span> <span class="o">*</span> <span class="n">stoich</span>
+            <span class="k">for</span> <span class="n">prod</span><span class="p">,</span> <span class="n">stoich</span> <span class="ow">in</span> <span class="n">reaction</span><span class="o">.</span><span class="n">products</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">state_change</span><span class="p">[</span><span class="n">prod</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">+=</span> <span class="n">propensity</span><span class="p">[</span><span class="n">r_name</span><span class="p">]</span> <span class="o">*</span> <span class="n">stoich</span>
+        <span class="n">state_change</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">state_change</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">state_change</span>
+
+<div class="viewcode-block" id="ODESolver.get_solver_settings"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.ode_solver.ODESolver.get_solver_settings">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_solver_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;number_of_trajectories&#39;</span><span class="p">,</span> <span class="s1">&#39;increment&#39;</span><span class="p">,</span> <span class="s1">&#39;integrator&#39;</span><span class="p">,</span> <span class="s1">&#39;integrator_options&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;timeout&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ODESolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.ode_solver.ODESolver.run">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="s1">&#39;lsoda&#39;</span><span class="p">,</span>
+            <span class="n">integrator_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">live_output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">live_output_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param model: gillespy2.model class object</span>
+<span class="sd">        :param t: end time of simulation</span>
+<span class="sd">        :param number_of_trajectories: Should be 1.</span>
+<span class="sd">            This is deterministic and will always have same results</span>
+<span class="sd">        :param increment: time step increment for plotting</span>
+<span class="sd">        :param integrator: integrator to be used form scipy.integrate.ode. Options include &#39;vode&#39;, &#39;zvode&#39;, &#39;lsoda&#39;,</span>
+<span class="sd">        &#39;dopri5&#39;, and &#39;dop835&#39;.  For more details,</span>
+<span class="sd">        see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html</span>
+
+<span class="sd">        :param integrator_options: a dictionary containing options to the scipy integrator. for a list of options,</span>
+<span class="sd">        see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.</span>
+<span class="sd">            Example use: {max_step : 0, rtol : .01}</span>
+
+<span class="sd">        :param timeout: If set, if simulation takes longer than timeout, will exit.</span>
+<span class="sd">        :type timeout: int</span>
+<span class="sd">        :param resume: Result of a previously run simulation, to be resumed</span>
+<span class="sd">        :param live_output : str The type of output to be displayed by solver. Can be &quot;progress&quot;, &quot;text&quot;, or &quot;graph&quot;.</span>
+<span class="sd">        :param live_output_options : dictionary contains options for live_output. By default {&quot;interval&quot;:1}.</span>
+<span class="sd">                    &quot;interval&quot; specifies seconds between displaying.</span>
+<span class="sd">                    &quot;clear_output&quot; specifies if display should be refreshed with each displa</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+            <span class="bp">self</span> <span class="o">=</span> <span class="n">ODESolver</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_event</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pause_event</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">timeout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">timeout</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">timeout</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Unsupported keyword argument to </span><span class="si">{0}</span><span class="s1"> solver: </span><span class="si">{1}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">number_of_trajectories</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Generating duplicate trajectories for model with ODE Solver. &quot;</span>
+                        <span class="s2">&quot;Consider running with only 1 trajectory.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">resume</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># start where we last left off if resuming a simulation</span>
+            <span class="n">lastT</span> <span class="o">=</span> <span class="n">resume</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="n">lastT</span> <span class="o">-</span> <span class="n">resume</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">timeline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">lastT</span><span class="p">,</span> <span class="n">t</span><span class="o">+</span><span class="n">step</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">timeline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">t</span> <span class="o">/</span> <span class="n">increment</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)))</span>
+
+        <span class="n">species</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">_listOfSpecies</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">trajectory_base</span><span class="p">,</span> <span class="n">tmpSpecies</span> <span class="o">=</span> <span class="n">nputils</span><span class="o">.</span><span class="n">numpy_trajectory_base_initialization</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="p">,</span>
+                                                                                   <span class="n">timeline</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">resume</span><span class="o">=</span><span class="n">resume</span><span class="p">)</span>
+
+        <span class="c1"># curr_time and curr_state are list of len 1 so that __run receives reference</span>
+        <span class="k">if</span> <span class="n">resume</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">curr_time</span> <span class="o">=</span> <span class="p">[</span><span class="n">resume</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">curr_time</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># Current Simulation Time</span>
+        <span class="n">curr_state</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+        <span class="n">live_grapher</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+
+        <span class="n">sim_thread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">___run</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">timeline</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="p">,</span>
+                                                      <span class="n">tmpSpecies</span><span class="p">,</span> <span class="n">live_grapher</span><span class="p">,),</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="n">t</span><span class="p">,</span>
+                                                                                          <span class="s1">&#39;number_of_trajectories&#39;</span><span class="p">:</span>
+                                                                                              <span class="n">number_of_trajectories</span><span class="p">,</span>
+                                                                                          <span class="s1">&#39;increment&#39;</span><span class="p">:</span> <span class="n">increment</span><span class="p">,</span>
+                                                                                          <span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="n">timeout</span><span class="p">,</span>
+                                                                                          <span class="s1">&#39;resume&#39;</span><span class="p">:</span> <span class="n">resume</span><span class="p">,</span>
+                                                                                          <span class="s1">&#39;integrator&#39;</span><span class="p">:</span> <span class="n">integrator</span><span class="p">,</span>
+                                                                                          <span class="s1">&#39;integrator_options&#39;</span><span class="p">:</span>
+                                                                                              <span class="n">integrator_options</span><span class="p">,</span> <span class="p">})</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sim_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">live_output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">gillespy2.core.liveGraphing</span>
+                <span class="n">live_output_options</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">live_output</span>
+
+                <span class="n">gillespy2</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">liveGraphing</span><span class="o">.</span><span class="n">valid_graph_params</span><span class="p">(</span><span class="n">live_output_options</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">resume</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">resumeTest</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># If resuming, relay this information to live_grapher</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">resumeTest</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">live_grapher</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">gillespy2</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">liveGraphing</span><span class="o">.</span><span class="n">LiveDisplayer</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">timeline</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="p">,</span>
+                                                                            <span class="n">live_output_options</span><span class="p">,</span> <span class="n">resume</span><span class="o">=</span><span class="n">resumeTest</span><span class="p">)</span>
+                <span class="n">display_timer</span> <span class="o">=</span> <span class="n">gillespy2</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">liveGraphing</span><span class="o">.</span><span class="n">RepeatTimer</span><span class="p">(</span><span class="n">live_output_options</span><span class="p">[</span><span class="s1">&#39;interval&#39;</span><span class="p">],</span>
+                                                                        <span class="n">live_grapher</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">display</span><span class="p">,</span>
+                                                                        <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="p">,))</span>
+                <span class="n">display_timer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+            <span class="n">sim_thread</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">live_grapher</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">display_timer</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">stop_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">live_output</span><span class="p">:</span>
+                <span class="n">display_timer</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pause_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;has_raised_exception&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_raised_exception</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rc</span></div>
+
+    <span class="k">def</span> <span class="nf">___run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">timeline</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="p">,</span> <span class="n">tmpSpecies</span><span class="p">,</span> <span class="n">live_grapher</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+               <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="s1">&#39;lsoda&#39;</span><span class="p">,</span>
+               <span class="n">integrator_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__run</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">timeline</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="p">,</span> <span class="n">tmpSpecies</span><span class="p">,</span> <span class="n">live_grapher</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span>
+                       <span class="n">number_of_trajectories</span><span class="p">,</span> <span class="n">increment</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">show_labels</span><span class="p">,</span> <span class="n">integrator</span><span class="p">,</span> <span class="n">integrator_options</span><span class="p">,</span> <span class="n">resume</span><span class="p">,</span>
+                       <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">has_raised_exception</span> <span class="o">=</span> <span class="n">e</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">return</span> <span class="p">[],</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">__run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">timeline</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="p">,</span> <span class="n">tmpSpecies</span><span class="p">,</span> <span class="n">live_grapher</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+              <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="s1">&#39;lsoda&#39;</span><span class="p">,</span>
+              <span class="n">integrator_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="n">timeStopped</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">resume</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">resume</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">model</span> <span class="o">!=</span> <span class="n">model</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">ModelError</span><span class="p">(</span><span class="s1">&#39;When resuming, one must not alter the model being resumed.&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="n">resume</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">ExecutionError</span><span class="p">(</span>
+                    <span class="s2">&quot;&#39;t&#39; must be greater than previous simulations end time, or set in the run() method as the &quot;</span>
+                    <span class="s2">&quot;simulations next end time&quot;</span><span class="p">)</span>
+
+        <span class="c1"># compile reaction propensity functions for eval</span>
+        <span class="n">c_prop</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">r_name</span><span class="p">,</span> <span class="n">reaction</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">c_prop</span><span class="p">[</span><span class="n">r_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">compile</span><span class="p">(</span><span class="n">reaction</span><span class="o">.</span><span class="n">ode_propensity_function</span><span class="p">,</span> <span class="s1">&#39;&lt;string&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;eval&#39;</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">trajectory_base</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">entry_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">y0</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">)</span>
+
+        <span class="n">curr_state</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">resume</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tmpSpecies</span><span class="p">):</span>
+                <span class="n">curr_state</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmpSpecies</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+                <span class="n">y0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmpSpecies</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+                <span class="n">curr_state</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">initial_value</span>
+                <span class="n">y0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">initial_value</span>
+
+        <span class="k">for</span> <span class="n">p_name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">curr_state</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">p_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">rhs</span> <span class="o">=</span> <span class="n">ode</span><span class="p">(</span><span class="n">ODESolver</span><span class="o">.</span><span class="n">__f</span><span class="p">)</span><span class="o">.</span><span class="n">set_integrator</span><span class="p">(</span><span class="n">integrator</span><span class="p">,</span> <span class="o">**</span><span class="n">integrator_options</span><span class="p">)</span>
+        <span class="n">rhs</span><span class="o">.</span><span class="n">set_initial_value</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">set_f_params</span><span class="p">(</span><span class="n">curr_state</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">c_prop</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="n">entry_count</span> <span class="o">&lt;</span> <span class="n">timeline</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">rc</span> <span class="o">=</span> <span class="mi">33</span>
+                <span class="k">break</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pause_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                <span class="n">timeStopped</span> <span class="o">=</span> <span class="n">timeline</span><span class="p">[</span><span class="n">entry_count</span><span class="p">]</span>
+                <span class="k">break</span>
+
+            <span class="n">int_time</span> <span class="o">=</span> <span class="n">curr_time</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">increment</span>
+            <span class="n">entry_count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">y0</span> <span class="o">=</span> <span class="n">rhs</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">int_time</span><span class="p">)</span>
+            <span class="n">curr_time</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">increment</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">):</span>
+                <span class="n">curr_state</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">spec</span><span class="p">]</span> <span class="o">=</span> <span class="n">y0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">entry_count</span><span class="p">][</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">curr_state</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">spec</span><span class="p">]</span>
+
+        <span class="n">results_as_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">timeline</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">):</span>
+            <span class="n">results_as_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[:,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">results_as_dict</span><span class="p">]</span> <span class="o">*</span> <span class="n">number_of_trajectories</span>
+
+        <span class="k">if</span> <span class="n">timeStopped</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">resume</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">nputils</span><span class="o">.</span><span class="n">numpy_resume</span><span class="p">(</span><span class="n">timeStopped</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">resume</span><span class="o">=</span><span class="n">resume</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="n">results</span>
+        <span class="k">return</span> <span class="n">results</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rc</span></div>
+</pre></div>
+
+          </div>
+              <div class="related bottom">
+                &nbsp;
+  <nav id="rellinks">
+    <ul>
+    </ul>
+  </nav>
+              </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;Copyright (C) 2017-2020.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+    <a href="https://github.com/GillesPy2/GillesPy2" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

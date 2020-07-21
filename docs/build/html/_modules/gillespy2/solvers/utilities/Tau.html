@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.solvers.numpy.Tau &#8212; GillesPy2 1.4.0 documentation</title>
+    <title>gillespy2.solvers.utilities.Tau &#8212; GillesPy2 1.5.0 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -99,34 +99,38 @@
 
           <div class="body" role="main">
             
-  <h1>Source code for gillespy2.solvers.numpy.Tau</h1><div class="highlight"><pre>
-<span></span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">This Python module contains the initialization and selection methods for the Tau-Leaping method described in Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006). &quot;Efficient step size selection for the tau-leaping simulation method&quot; (PDF). The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151.</span>
-
+  <h1>Source code for gillespy2.solvers.utilities.Tau</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This Python module contains the initialization and selection methods for the Tau-Leaping method described in Cao, Y.;</span>
+<span class="sd">Gillespie, D. T.; Petzold, L. R. (2006). &quot;Efficient step size selection for the tau-leaping simulation method&quot; (PDF).</span>
+<span class="sd">The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151.</span>
 <span class="sd">This module is for use in the basic_tau_leaping_solver and basic_tau_hybrid solver only.</span>
-<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">&quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="initialize"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.Tau.initialize">[docs]</a><span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+
+<div class="viewcode-block" id="initialize"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.utilities.html#gillespy2.solvers.utilities.Tau.initialize">[docs]</a><span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This method initailizes the state for tau-leaping selections to be made.</span>
-<span class="sd">    Based on Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006). &quot;Efficient step size selection for the tau-leaping simulation method&quot; (PDF). The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    Based on Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006). &quot;Efficient step size selection for the tau-leaping</span>
+<span class="sd">    simulation method&quot; (PDF).</span>
+<span class="sd">    The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">HOR</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># Highest Order Reaction of species</span>
+    <span class="n">HOR</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Highest Order Reaction of species</span>
     <span class="n">reactants</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># a list of all species in the model which act as reactants</span>
-    <span class="n">mu_i</span> <span class="o">=</span> <span class="p">{}</span>   <span class="c1"># mu_i for each species</span>
+    <span class="n">mu_i</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># mu_i for each species</span>
     <span class="n">sigma_i</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># sigma_i squared for each species</span>
-    <span class="n">g_i</span> <span class="o">=</span> <span class="p">{}</span>    <span class="c1"># Relative species error allowance denominator</span>
-    <span class="n">epsilon_i</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># Relative error allowance of species</span>
+    <span class="n">g_i</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Relative species error allowance denominator</span>
+    <span class="n">epsilon_i</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Relative error allowance of species</span>
     <span class="n">critical_threshold</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># Reactant Population to be considered critical</span>
 
-    <span class="c1">#initialize Highest Order Reactions</span>
+    <span class="c1"># initialize Highest Order Reactions</span>
     <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">:</span>
         <span class="n">HOR</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="c1">#Create list of all reactants</span>
+    <span class="c1"># Create list of all reactants</span>
     <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">:</span>
-        <span class="c1">#Calculate this reaction&#39;s order</span>
+        <span class="c1"># Calculate this reaction&#39;s order</span>
         <span class="n">reaction_order</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">reactants</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
         <span class="k">for</span> <span class="n">reactant</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">reactants</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="c1"># Build reactant list</span>
@@ -137,31 +141,38 @@
             <span class="c1"># if this reaction&#39;s order is higher than previous, set HOR</span>
             <span class="k">if</span> <span class="n">reaction_order</span> <span class="o">&gt;</span> <span class="n">HOR</span><span class="p">[</span><span class="n">reactant</span><span class="o">.</span><span class="n">name</span><span class="p">]:</span>
                 <span class="n">HOR</span><span class="p">[</span><span class="n">reactant</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">reaction_order</span>
-                <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">reaction_order</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="n">g_i</span><span class="p">[</span><span class="n">reactant</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">2</span><span class="o">+</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
-                <span class="k">elif</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">reaction_order</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span> <span class="n">g_i</span><span class="p">[</span><span class="n">reactant</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">2</span><span class="o">+</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
-                <span class="k">elif</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span> <span class="n">g_i</span><span class="p">[</span><span class="n">reactant</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="o">+</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">+</span><span class="p">(</span><span class="mi">2</span><span class="o">/</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="mi">2</span><span class="p">)))</span>
-                <span class="k">else</span><span class="p">:</span> 
+                <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">reaction_order</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">g_i</span><span class="p">[</span><span class="n">reactant</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">reaction_order</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="n">g_i</span><span class="p">[</span><span class="n">reactant</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))</span>
+                <span class="k">elif</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="n">g_i</span><span class="p">[</span><span class="n">reactant</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)))</span>
+                <span class="k">else</span><span class="p">:</span>
                     <span class="n">g_i</span><span class="p">[</span><span class="n">reactant</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">HOR</span><span class="p">[</span><span class="n">reactant</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
                     <span class="n">epsilon_i</span><span class="p">[</span><span class="n">reactant</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">epsilon</span> <span class="o">/</span> <span class="n">g_i</span><span class="p">[</span><span class="n">reactant</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
 
     <span class="c1"># Return components for tau selection</span>
     <span class="k">return</span> <span class="n">HOR</span><span class="p">,</span> <span class="n">reactants</span><span class="p">,</span> <span class="n">mu_i</span><span class="p">,</span> <span class="n">sigma_i</span><span class="p">,</span> <span class="n">g_i</span><span class="p">,</span> <span class="n">epsilon_i</span><span class="p">,</span> <span class="n">critical_threshold</span></div>
 
-<div class="viewcode-block" id="select"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.Tau.select">[docs]</a><span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="o">*</span><span class="n">tau_args</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    Tau Selection method based on Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006). &quot;Efficient step size selection for the tau-leaping simulation method&quot; (PDF). The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-    
-    <span class="n">HOR</span><span class="p">,</span> <span class="n">reactants</span><span class="p">,</span> <span class="n">mu_i</span><span class="p">,</span> <span class="n">sigma_i</span><span class="p">,</span> <span class="n">g_i</span><span class="p">,</span> <span class="n">epsilon_i</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">critical_threshold</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">save_time</span> <span class="o">=</span> <span class="n">tau_args</span>
+
+<div class="viewcode-block" id="select"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.utilities.html#gillespy2.solvers.utilities.Tau.select">[docs]</a><span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="o">*</span><span class="n">tau_args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Tau Selection method based on Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006).</span>
+<span class="sd">    &quot;Efficient step size selection for the tau-leaping simulation method&quot; (PDF).</span>
+<span class="sd">    The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">HOR</span><span class="p">,</span> <span class="n">reactants</span><span class="p">,</span> <span class="n">mu_i</span><span class="p">,</span> <span class="n">sigma_i</span><span class="p">,</span> <span class="n">g_i</span><span class="p">,</span> <span class="n">epsilon_i</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">critical_threshold</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> \
+    <span class="n">curr_time</span><span class="p">,</span> <span class="n">save_time</span> <span class="o">=</span> <span class="n">tau_args</span>
     <span class="n">tau_step</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">crit_taus</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># Estimated time to single-firing of critical reactions</span>
-    <span class="n">critical_reactions</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># List of critical reactions at this step</span>
-    <span class="n">critical</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># system-wide flag, true when any reaction is critical</span>
-    <span class="n">critical_tau</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># holds the smallest tau time for critical reactions</span>
-    <span class="n">non_critical_tau</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># holds the smallest tau time for non-critical reactions</span>
+    <span class="n">crit_taus</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Estimated time to single-firing of critical reactions</span>
+    <span class="n">critical_reactions</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># List of critical reactions at this step</span>
+    <span class="n">critical</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># system-wide flag, true when any reaction is critical</span>
+    <span class="n">critical_tau</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># holds the smallest tau time for critical reactions</span>
+    <span class="n">non_critical_tau</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># holds the smallest tau time for non-critical reactions</span>
     <span class="n">tau</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="c1">#Determine if there are any critical reactions</span>
+    <span class="c1"># Determine if there are any critical reactions</span>
     <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span><span class="o">.</span><span class="n">reactants</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">curr_state</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">/</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="n">critical_threshold</span> <span class="ow">and</span> <span class="n">propensities</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -173,14 +184,13 @@
     <span class="k">if</span> <span class="n">critical</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">propensities</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">crit_taus</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">propensities</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span>
+                <span class="n">crit_taus</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">propensities</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span>
         <span class="n">critical_tau</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">crit_taus</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-
 
     <span class="c1"># If a reactant&#39;s HOR requires &gt;1 of that reactant, evaluate lambda at curr_state</span>
     <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">g_i</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">g_i</span><span class="p">[</span><span class="n">r</span><span class="p">]):</span>
-            <span class="n">g_i</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="n">g_i</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">](</span><span class="n">curr_state</span><span class="p">[</span><span class="n">r</span><span class="p">])</span>
+            <span class="n">g_i</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="n">g_i</span><span class="p">[</span><span class="n">r</span><span class="p">](</span><span class="n">curr_state</span><span class="p">[</span><span class="n">r</span><span class="p">])</span>
             <span class="n">epsilon_i</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="n">epsilon</span> <span class="o">/</span> <span class="n">g_i</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
 
     <span class="n">tau_i</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># estimated tau for non-critical reactions</span>
@@ -188,7 +198,7 @@
     <span class="n">sigma_i</span> <span class="o">=</span> <span class="p">{</span><span class="n">species</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
 
     <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">:</span>
-        <span class="c1">#Calculate abs mean and standard deviation for each reactant</span>
+        <span class="c1"># Calculate abs mean and standard deviation for each reactant</span>
         <span class="k">for</span> <span class="n">reactant</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">reactants</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">reactant</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mu_i</span><span class="p">:</span>
                 <span class="n">mu_i</span><span class="p">[</span><span class="n">reactant</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
@@ -206,13 +216,13 @@
         <span class="k">if</span> <span class="n">mu_i</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># Cao, Gillespie, Petzold 33</span>
             <span class="n">tau_i</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
-                    <span class="nb">abs</span><span class="p">(</span><span class="n">max_pop_change_mean</span> <span class="o">/</span> <span class="n">mu_i</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">]),</span> 
-                    <span class="n">max_pop_change_sd</span> <span class="o">/</span> <span class="n">sigma_i</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+                <span class="nb">abs</span><span class="p">(</span><span class="n">max_pop_change_mean</span> <span class="o">/</span> <span class="n">mu_i</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">]),</span>
+                <span class="n">max_pop_change_sd</span> <span class="o">/</span> <span class="n">sigma_i</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tau_i</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">non_critical_tau</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">tau_i</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
     <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">:</span>
-        <span class="c1">#Calculate abs mean and standard deviation for each reactant</span>
+        <span class="c1"># Calculate abs mean and standard deviation for each reactant</span>
         <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">products</span><span class="p">:</span>
             <span class="n">mu_i</span><span class="p">[</span><span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">-=</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">product</span><span class="p">]</span> <span class="o">*</span> <span class="n">propensities</span><span class="p">[</span>
                 <span class="n">r</span><span class="p">]</span>  <span class="c1"># Cao, Gillespie, Petzold 32a</span>
@@ -231,7 +241,7 @@
         <span class="n">tau</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">non_critical_tau</span><span class="p">,</span> <span class="n">critical_tau</span><span class="p">)</span>
     <span class="c1"># If selected tau exceeds save time, integrate to save time</span>
     <span class="k">if</span> <span class="n">tau</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">tau</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">tau</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">)</span> <span class="c1"># set minimum to prevent integration errors</span>
+        <span class="n">tau</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">tau</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">)</span>  <span class="c1"># set minimum to prevent integration errors</span>
         <span class="k">if</span> <span class="n">save_time</span> <span class="o">-</span> <span class="n">curr_time</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">tau</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">tau</span><span class="p">,</span> <span class="n">save_time</span> <span class="o">-</span> <span class="n">curr_time</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
