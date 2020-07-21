@@ -7,14 +7,15 @@
 #include "model.h"
 #include "ssa.h"
 #include "tau.h"
+#include "tau_leaper.h"
 
 using namespace Gillespy;
 
 //Default values, replaced with command line args
-unsigned int number_trajectories = 0;
-unsigned int number_timesteps = 0;
+unsigned int number_trajectories = 1; // CHANGE BACK TO 0 WHEN NOT TESTING GOOD LORD
+unsigned int number_timesteps = 101; // ALSO CHANGE BACK TO 0, GOOD LORD
 int random_seed = 0;
-double end_time = 0;
+double end_time = 100.0; // PLEase< PLEAAELPEKAPKPASE CHANGE BACK TO 0
 bool seed_time = true;
 
 //Default constants
@@ -43,7 +44,8 @@ const double P2 = 0.1;
 
 class PropensityFunction : public IPropensityFunction{
 public:
-  double evaluate(unsigned int reaction_number, unsigned int* S){
+    
+  double eval_tau_state(unsigned int reaction_number, int* S){
     switch(reaction_number){
             case 0:
                 return P0*S[0]*S[3]/V;
@@ -57,6 +59,12 @@ public:
       return -1;
     }
   }
+
+  // THIS IS BAD AN AM MISSING SOMETHING, DELETE LATER
+  double evaluate(unsigned int reaction_number, unsigned int *state){
+      return 0;
+  }
+
 };
 
 int main(int argc, char* argv[]){
@@ -117,12 +125,14 @@ int main(int argc, char* argv[]){
  if(seed_time){
    random_seed = time(NULL);
  }
+  double tau_tol = 0.03;
   IPropensityFunction *propFun = new PropensityFunction();
-  //Simulation simulation(&model, number_trajectories, number_timesteps, end_time, propFun, random_seed, simulation.current_time);
-  // tau_leap_simulation(&simulation)
-  //std :: cout << simulation << std :: endl;
-  int TEST = initialize(model, .03);
+  Simulation simulation(&model, number_trajectories, number_timesteps, end_time, propFun, random_seed, simulation.current_time);
+  std::cout<<"hello0"<<std::endl;
+  tau_leaper(&simulation, tau_tol);
+
   //simulation.output_results_buffer(std :: cout);
   delete propFun;
+  std::cout<<"SIM FINISHED!!"<<std::endl;
   return 0;
 }
