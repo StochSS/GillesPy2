@@ -892,7 +892,7 @@ class TauHybridSolver(GillesPySolver):
                                                                             live_output_options)
                 display_timer = gillespy2.core.liveGraphing.RepeatTimer(live_output_options['interval'],
                                                                         live_grapher[0].display,
-                                                                        args=(curr_state, curr_time, trajectory_base,))
+                                                                        args=(curr_state, curr_time, trajectory_base, live_output))
                 display_timer.start()
 
             sim_thread.join(timeout=timeout)
