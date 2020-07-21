@@ -398,9 +398,18 @@ class Model(SortableObject):
             try:
                 reactions.verify()
                 self.validate_reactants_and_products(reactions)
-                if reactions.name in self.listOfReactions:
-                    raise ModelError("Duplicate name of reaction: {0}".format(reactions.name))
-                self.listOfReactions[reactions.name] = reactions
+                if reactions.name is None or reactions.name == '':
+                    i = 0
+                    while True:
+                        if 'reaction{}'.format(i) in self.listOfReactions:
+                            i += 1
+                        else:
+                            self.listOfReactions['reaction{}'.format(i)] = reactions
+                            break
+                else:
+                    if reactions.name in self.listOfReactions:
+                        raise ModelError("Duplicate name of reaction: {0}".format(reactions.name))
+                    self.listOfReactions[reactions.name] = reactions
                 # Build Sanitized reaction as well
                 sanitized_reaction = Reaction(name='R{}'.format(len(self._listOfReactions)))
                 sanitized_reaction.reactants = {self._listOfSpecies[species.name]: reactions.reactants[species] for
@@ -732,14 +741,21 @@ class Model(SortableObject):
             raise ModelError('TauHybridSolver is the only solver currently that supports '
                              'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
                              'Please install Numpy.')
+        from gillespy2.solvers.utilities.cpp_support_test import cpp_support
+
+        if cpp_support is False and can_use_numpy and not hybrid_check:
+            from gillespy2 import NumPySSASolver
+            return NumPySSASolver
+
         else:
             if precompile:
-                from gillespy2.solvers.cpp.variable_ssa_c_solver import VariableSSACSolver
+                from gillespy2 import VariableSSACSolver
                 return VariableSSACSolver
-            from gillespy2.solvers.auto import SSASolver
-            return SSASolver
+            else:
+                from gillespy2 import SSACSolver
+                return SSACSolver
 
-    def run(self, solver=None, timeout=0, t=None, show_labels=True, **solver_args):
+    def run(self, solver=None, timeout=0, t=None, show_labels=True, cpp_support=False, **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -756,6 +772,10 @@ class Model(SortableObject):
         :type t: int
         :param solver_args: Solver-specific arguments to be passed to solver.run()
 
+        :param cpp_support: INTERNAL USE ONLY, flag for whether or not a computer has the capability to compile a
+        C++ program.
+        :type cpp_support: bool
+
         :return  If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is
         True,returns a Results object that inherits UserList and contains one or more Trajectory objects that
         inherit UserDict. Results object supports graphing and csv export.
@@ -768,16 +788,27 @@ class Model(SortableObject):
 
         if not show_labels:
             from gillespy2.core import log
-            log.warning('show_labels = False is deprecated. Future releases of GillesPy2 may not support this feature.')
-
+            log.warning('show_labels = False is deprecated. Future releases '
+                        'of GillesPy2 may not support this feature.')
         if t is None:
             t = self.tspan[-1]
+
         if solver is None:
             solver = self.get_best_solver()
+
         try:
             solver_results, rc = solver.run(model=self, t=t, increment=self.tspan[-1] - self.tspan[-2],
                                             timeout=timeout, **solver_args)
         except Exception as e:
+            # If user has specified the SSACSolver, but they don't actually have a g++ compiler,
+            # This will throw an error and throw log. IF a user specifies cpp_support == True and don't have a compiler
+            # They would bypass this log.warning and just recieve an error
+            if cpp_support is False and not isinstance(solver, str):
+                if solver.name == 'SSACSolver' or solver.name == 'VariableSSACSolver':
+                    from gillespy2.core import log
+                    log.warning("Please install/configure 'g++' and 'make' on your"
+                                " system, to ensure that GillesPy2 C solvers will"
+                                " run properly.")
             raise SimulationError(
                 "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e))
 

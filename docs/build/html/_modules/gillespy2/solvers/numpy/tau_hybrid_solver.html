@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.solvers.numpy.tau_hybrid_solver &#8212; GillesPy2 1.5.0 documentation</title>
+    <title>gillespy2.solvers.numpy.tau_hybrid_solver &#8212; GillesPy2 1.5.2 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -994,7 +994,7 @@
                                                                             <span class="n">live_output_options</span><span class="p">)</span>
                 <span class="n">display_timer</span> <span class="o">=</span> <span class="n">gillespy2</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">liveGraphing</span><span class="o">.</span><span class="n">RepeatTimer</span><span class="p">(</span><span class="n">live_output_options</span><span class="p">[</span><span class="s1">&#39;interval&#39;</span><span class="p">],</span>
                                                                         <span class="n">live_grapher</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">display</span><span class="p">,</span>
-                                                                        <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="p">,))</span>
+                                                                        <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="p">,</span> <span class="n">live_output</span><span class="p">))</span>
                 <span class="n">display_timer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 
             <span class="n">sim_thread</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>

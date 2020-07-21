@@ -30,6 +30,7 @@ class NumPySSASolver(GillesPySolver):
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True,
             live_output=None, live_output_options={}, timeout=None, resume=None, **kwargs):
+
         """
         Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
         :param model: The model on which the solver will operate.
@@ -56,7 +57,6 @@ class NumPySSASolver(GillesPySolver):
 
         if timeout is not None and timeout <= 0:
             timeout = None
-
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
@@ -77,13 +77,14 @@ class NumPySSASolver(GillesPySolver):
 
         # curr_time and curr_state are list of len 1 so that __run receives reference
         if resume is not None:
-            curr_time = [resume['time'][-1]]
+            total_time = [resume['time'][-1]]
         else:
-            curr_time = [0]
+            total_time = [0]
+
         curr_state = [None]
         live_grapher = [None]
 
-        sim_thread = Thread(target=self.___run, args=(model, curr_state, curr_time, timeline, trajectory_base,
+        sim_thread = Thread(target=self.___run, args=(model, curr_state, total_time, timeline, trajectory_base,
                                                       live_grapher,), kwargs={'t': t, 'number_of_trajectories':
                                                                               number_of_trajectories,
                                                                               'increment': increment,
@@ -92,6 +93,7 @@ class NumPySSASolver(GillesPySolver):
                                                                               'timeout': timeout,
                                                                               'resume': resume, })
         try:
+            time = 0
             sim_thread.start()
             if live_output is not None:
                 import gillespy2.core.liveGraphing
@@ -101,15 +103,27 @@ class NumPySSASolver(GillesPySolver):
                     resumeTest = True  # If resuming, relay this information to live_grapher
                 else:
                     resumeTest = False
-                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer( model, timeline, number_of_trajectories,
+                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(model, timeline, number_of_trajectories,
                                                                              live_output_options,resume = resumeTest)
                 display_timer = gillespy2.core.liveGraphing.RepeatTimer(live_output_options['interval'],
                                                                         live_grapher[0].display, args=(curr_state,
-                                                                                                       curr_time,
-                                                                                                       trajectory_base,)
+                                                                                                       total_time,
+                                                                                                       trajectory_base,
+                                                                                                       live_output
+                                                                                                       )
                                                                         )
                 display_timer.start()
-            sim_thread.join(timeout=timeout)
+
+            if timeout is not None:
+                while sim_thread.is_alive():
+                    sim_thread.join(.1)
+                    time += .1
+                    if time >= timeout:
+                        break
+            else:
+                while sim_thread.is_alive():
+                    sim_thread.join(.1)
+
             if live_grapher[0] is not None:
                 display_timer.cancel()
             self.stop_event.set()
@@ -117,6 +131,7 @@ class NumPySSASolver(GillesPySolver):
                 pass
         except KeyboardInterrupt:
             if live_output:
+                display_timer.pause = True
                 display_timer.cancel()
             self.pause_event.set()
             while self.result is None:
@@ -126,19 +141,19 @@ class NumPySSASolver(GillesPySolver):
 
         return self.result, self.rc
 
-    def ___run(self, model, curr_state, curr_time, timeline, trajectory_base, live_grapher, t=20,
+    def ___run(self, model, curr_state, total_time, timeline, trajectory_base, live_grapher, t=20,
                number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True, resume=None,
                timeout=None):
 
         try:
-            self.__run(model, curr_state, curr_time, timeline, trajectory_base, live_grapher, t, number_of_trajectories,
+            self.__run(model, curr_state, total_time, timeline, trajectory_base, live_grapher, t, number_of_trajectories,
                        increment, seed, debug, show_labels, resume, timeout)
         except Exception as e:
             self.has_raised_exception = e
             self.result = []
             return [], -1
 
-    def __run(self, model, curr_state, curr_time, timeline, trajectory_base, live_grapher, t=20,
+    def __run(self, model, curr_state, total_time, timeline, trajectory_base, live_grapher, t=20,
               number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True,
               resume=None,  timeout=None):
 
@@ -206,6 +221,11 @@ class NumPySSASolver(GillesPySolver):
             trajectory = trajectory_base[trajectory_num]
             entry_count = 1
             curr_state[0] = {}
+            # curr_time and curr_state are list of len 1 so that __run receives reference
+            if resume is not None:
+                curr_time = [resume['time'][-1]]
+            else:
+                curr_time = [0]
 
             for spec in model.listOfSpecies:
                 if resume is not None:
@@ -242,6 +262,7 @@ class NumPySSASolver(GillesPySolver):
 
                 cumulative_sum = random.uniform(0, propensity_sum)
                 curr_time[0] += -math.log(random.random()) / propensity_sum
+                total_time[0] += -math.log(random.random()) / propensity_sum
                 if debug:
                     print('cumulative sum: ', cumulative_sum)
                     print('entry count: ', entry_count)
