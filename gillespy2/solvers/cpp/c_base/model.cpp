@@ -2,10 +2,13 @@
 
 namespace Gillespy{
   
-  Model :: Model(std :: vector<std :: string> species_names, std :: vector<unsigned int> species_populations, std :: vector<std :: string> reaction_names):
+  Model :: Model(std :: vector<std :: string> species_names, std :: vector<unsigned int> species_populations, std :: vector<std :: string> reaction_names, std::map<int,int> affected_reactions):
+
     number_species(species_names.size()),
     number_reactions(reaction_names.size())
   {
+      std::cout<<"HERE"<<std::endl;
+
     species = std :: make_unique<Species[]>(number_species);
     for(unsigned int i = 0; i < number_species; i++){
       species[i].id = i;

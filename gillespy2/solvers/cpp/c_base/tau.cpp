@@ -13,24 +13,24 @@ TauArgs initialize(Gillespy::Model &model, double tau_tol){
    for (int i=0; i<model.number_species; i++){
        tau_args.HOR[model.species[i].name] = 0;
    }
-   // initize mu_i, sigma_i
 
+   for (int r = 0; r<model.number_reactions;r++){
+        int rxn_order = 0;
+        for (int spec = 0; spec<model.number_species; spec++){
+            if (model.reactions[r].species_change[spec]>0)
+                tau_args.products[r].push_back(spec);
+            else if (model.reactions[r].species_change[spec]<0){
+                rxn_order +=1;
+                tau_args.reactions_reactants[r].push_back(spec);
+                tau_args.reactants.insert(model.species[spec]);
+            }
+        }
 
-   // Create list of reactions
-   for (int r=0; r<model.number_reactions; r++){
-       //Calculate reaction r's rxn order
-       int rxn_order = 0;
-       for (int s=0; s<model.number_species; s++){
-           if (model.reactions[r].species_change[s]<0)
-               rxn_order += 1;
-       }
-
-       for (int reactant=0; reactant<model.number_species; reactant++){
-           if (model.reactions[r].species_change[reactant]<0){ // << the absolute value for this line is "count" in tau.py
-               //insert reactant into set, ordered by species id (found in Gillespy::Species struct)
-               tau_args.reactants.insert(model.species[reactant]);              
-
-               // if this reaction's order is higher than previous, set
+       // std::cout<<model.reactions[reaction.first].name<<" BELOW"<<std::endl;// Loop through mapping of reactions and their reactants (reactions reactants)
+       //std::cout<<" : "<<model.species[reactant].name<<std::endl;
+       // if this reaction's order is higher than previous, set
+       if (tau_args.reactions_reactants[r].size()>0){
+           for (auto const &reactant:tau_args.reactions_reactants[r]){
                if (rxn_order > tau_args.HOR[model.species[reactant].name]){
                    tau_args.HOR[model.species[reactant].name] = rxn_order;
                    tau_args.g_i[model.species[reactant].name] = tau_args.HOR[model.species[reactant].name];
@@ -57,13 +57,15 @@ TauArgs initialize(Gillespy::Model &model, double tau_tol){
                }
            }
        }
-
-   //END OF LIST OF RXNS
    }
+   if (tau_args.reactions_reactants.size()==0){
+       std::cout<<"yo"<<std::endl;
+   }
+
    return tau_args;
 }
 
-double select(Gillespy::Model &model, TauArgs tau_args, const double tau_tol, const double current_time, const int save_time, double *propensity_values, int *current_state){
+double select(Gillespy::Model &model, TauArgs &tau_args, const double &tau_tol, const double &current_time, const double &save_time, const std::vector<double> &propensity_values, const std::vector<int> &current_state){
     double tau; //tau time to step;
     std::map<std::string,double> critical_taus;    //Mapping of possible critical_taus, to be evaluated
     std::map<std::string,double> mu_i;
@@ -72,8 +74,6 @@ double select(Gillespy::Model &model, TauArgs tau_args, const double tau_tol, co
     double non_critical_tau = 0;  // holds the smallest tau time for non-critical reactions
     double critical_tau = 0;  // holds the smallest tau time for critical reactions
 
-    //DEBUG FOR ME TO DELETE L8R!!
-    bool debug = false;
     int v;//used for number of population reactant consumes
 
     // initialize mu_i and sigma_i to 0
@@ -82,13 +82,18 @@ double select(Gillespy::Model &model, TauArgs tau_args, const double tau_tol, co
             sigma_i[model.species[spec].name] = 0;
 
         }
-    // Determine if there are any critical reactions
+    // Determine if there are any critical reactions, update mu_i and sigma_i
     for (int reaction = 0; reaction < model.number_reactions; reaction++){
-        for (int reactant = 0; reactant < model.number_species; reactant++){
+        for (auto const &reactant: tau_args.reactions_reactants[reaction]){
             if (model.reactions[reaction].species_change[reactant]<0){
                 v = abs(model.reactions[reaction].species_change[reactant]);
-                if ((double)current_state[reactant] / v < tau_args.critical_threshold && propensity_values[reaction] > 0)
-                    critical = true;
+
+                if ((double)current_state[reactant] / v < tau_args.critical_threshold && propensity_values[reaction] > 0){
+                    critical = true; // Critical reaction present in simulation
+                }
+                int consumed = abs(model.reactions[reaction].species_change[reactant]);
+                mu_i[model.species[reactant].name] += consumed*propensity_values[reaction];//Cao, Gillespie, Petzold 32a
+                sigma_i[model.species[reactant].name] += std::pow(consumed,2) * propensity_values[reaction];//Cao, Gillespie, Petzold 32a
             }
         }
     }
@@ -99,14 +104,6 @@ double select(Gillespy::Model &model, TauArgs tau_args, const double tau_tol, co
         for (int reaction = 0; reaction < model.number_reactions; reaction++){
             if (propensity_values[reaction]>0)
                 critical_taus[model.reactions[reaction].name] = 1/propensity_values[reaction];
-        }
-
-        // Find min of critical tau if present
-        if (critical_taus.size()>0){
-            std::pair<std::string, double> min;
-            //find min of tau_i
-            min = *min_element(critical_taus.begin(), critical_taus.end(),[](const auto& lhs, const auto& rhs){ return lhs.second < rhs.second;});
-            critical_tau = min.second;
         }
     }
 
@@ -122,16 +119,6 @@ double select(Gillespy::Model &model, TauArgs tau_args, const double tau_tol, co
     std::map<std::string,double> tau_i;    //Mapping of possible critical_taus, to be evaluated
 
 
-    for (int reaction = 0; reaction < model.number_reactions; reaction++){
-        for (int reactant = 0; reactant < model.number_species; reactant++){
-            if (model.reactions[reaction].species_change[reactant]<0){
-                int consumed = abs(model.reactions[reaction].species_change[reactant]);
-                mu_i[model.species[reactant].name] += consumed*propensity_values[reaction];//Cao, Gillespie, Petzold 32a
-                sigma_i[model.species[reactant].name] += std::pow(consumed,2) * propensity_values[reaction];//Cao, Gillespie, Petzold 32a
-           }
-        }
-    }
-
     for (const auto &r : tau_args.reactants)
     {
         double calculated_max = tau_args.epsilon_i[r.name] * current_state[r.id];
@@ -140,7 +127,6 @@ double select(Gillespy::Model &model, TauArgs tau_args, const double tau_tol, co
                 max_pop_change_mean = 1;
         else
             max_pop_change_mean = calculated_max;
-
         double max_pop_change_sd = pow(max_pop_change_mean,2);
 
         if (mu_i[r.name] > 0){ // Cao, Gillespie, Petzold 33
@@ -155,23 +141,26 @@ double select(Gillespy::Model &model, TauArgs tau_args, const double tau_tol, co
         non_critical_tau = min.second;
     }
 
-
     // If all reactions are non-critical, use non-critical tau.
-    if (critical == false)
+    if (critical == false){
         tau = non_critical_tau;
-
+    }
     // If all reactions are critical, use critical tau.
-    else if (tau_i.size()==0)
+    else if (tau_i.size()==0){
         tau = critical_tau;
+    }
     // If there are both critical, and non critical reactions,
     // Take the shortest tau between critica and non-critical.
-    else
+    else{
         tau = std::min(non_critical_tau, critical_tau);
+    }
     // If selected tau exceeds save time, integrate to save time
-    if (tau > 0)
+    if (tau > 0){
         tau = std::max(tau, 1e-10);
-        if (save_time - current_time > 0)
+        if (save_time - current_time > 0){
             tau = std::min(tau, save_time - current_time);
+        }
+    }
     else{
         tau = save_time - current_time;
     }

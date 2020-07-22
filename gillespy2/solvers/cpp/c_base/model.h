@@ -13,7 +13,6 @@ namespace Gillespy{
     unsigned int id; //useful for index id in arrays
     std :: string name;
     unsigned int initial_population;
-
     //Used for hashing into set, for TauLeapingCSolver
     bool operator < (const Species &other) const { return id < other.id; }
   };
@@ -22,7 +21,7 @@ namespace Gillespy{
     unsigned int id; //useful for propensity function id associated
     std :: string name;
     std :: unique_ptr<int[]> species_change; //list of changes to species with this reaction firing
-    std :: vector<unsigned int> affected_reactions; //list of which reactions have propensities that would change with this reaction firing 
+    std :: vector<unsigned int> affected_reactions; //list of which reactions have propensities that would change with this reaction firing
   };
   
   //Represents a model of reactions and species
@@ -38,8 +37,7 @@ namespace Gillespy{
   //Interface class to represent container for propensity functions
   class IPropensityFunction{
   public:
-    virtual double evaluate(unsigned int reaction_number, unsigned int* state) = 0;
-    virtual double eval_tau_state(unsigned int reaction_number, int* state) = 0;
+    virtual double evaluate(unsigned int reaction_number, const std::vector<int> &S) = 0;
 
     virtual ~IPropensityFunction() {}
   };
