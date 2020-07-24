@@ -38,7 +38,6 @@ namespace Gillespy{
   class IPropensityFunction{
   public:
     virtual double evaluate(unsigned int reaction_number, const std::vector<int> &S) = 0;
-
     virtual ~IPropensityFunction() {}
   };
 

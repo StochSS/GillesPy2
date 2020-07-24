@@ -70,7 +70,7 @@ void tau_leaper(Gillespy::Simulation* simulation, const double tau_tol){
 
 
             //Initialize simulation variables
-            double current_time = 0;
+            simulation->current_time = 0;
             unsigned int entry_count = 0;
             //Propensity sum initialization, to be added to later.
             double propensity_sum;
@@ -86,7 +86,7 @@ void tau_leaper(Gillespy::Simulation* simulation, const double tau_tol){
             while (entry_count < simulation->end_time+1){ // while less than end_time? Could be incorrect
                 if (interrupted)
                     break;
-                while(current_time < save_time){
+                while(simulation->current_time < save_time){
                     if(interrupted) // If timeout, or keyboard interrupt
                         break;
                     //calculate propensities for each step
@@ -95,19 +95,19 @@ void tau_leaper(Gillespy::Simulation* simulation, const double tau_tol){
                     }
 
 
-                    tau_step = select(*(simulation->model), tau_args, tau_tol, current_time, save_time, propensity_values, current_state); // tau_step selection process
+                    tau_step = select(*(simulation->model), tau_args, tau_tol, simulation->current_time, save_time, propensity_values, current_state); // tau_step selection process
 
                     prev_curr_state = current_state;
-                    double prev_curr_time = current_time;
+                    double prev_curr_time = simulation->current_time;
                     int loop_cnt = 0;
 
                     while (true){
 
                         std::map<std::string, int> rxn_count;
                         std::pair<std::map<std::string,int>,double> values;
-                        values = get_reactions(simulation -> model, propensity_values, tau_step, current_time, save_time);
+                        values = get_reactions(simulation -> model, propensity_values, tau_step, simulation->current_time, save_time);
                         rxn_count = values.first; // How many times reactions in model fired over a tau step
-                        current_time  = values.second;
+                        simulation->current_time  = values.second;
 
                         std::map<int,bool> species_modified;
                         for (int i = 0; i<simulation->model->number_reactions; i++){
@@ -134,7 +134,7 @@ void tau_leaper(Gillespy::Simulation* simulation, const double tau_tol){
 
                         if (neg_state == true){
                             current_state = prev_curr_state;
-                            current_time = prev_curr_time;
+                            simulation->current_time = prev_curr_time;
                             tau_step /= 2;
                             }
 
@@ -148,21 +148,6 @@ void tau_leaper(Gillespy::Simulation* simulation, const double tau_tol){
                 save_time += increment;
                 entry_count += 1;
               }
-                /*
-                std::cout<<"TRAJECTORY: "<< trajectory_number<<std::endl;
-                for (int entry = 0; entry<simulation->end_time+1; entry++){
-                    std::cout<<"[";
-                    for (int spec = 0; spec<simulation->model->number_species; spec++){
-                        if (spec == 0)
-                            std::cout<<simulation->trajectories[trajectory_number][entry][spec]<<"("<<simulation->model->species[spec].name<<")";
-                        else
-                            std::cout<<", "<<simulation->trajectories[trajectory_number][entry][spec]<<"("<<simulation->model->species[spec].name<<")";
-                        }
-                    std::cout<<"]";
-                    std::cout<<std::endl;
-                    }
-                */
-
 
             }
         }
