@@ -255,7 +255,6 @@ def dependency_grapher(model, reactions):
         r:species_parse(
                         model.listOfReactions[r].propensity_function) \
                         for r in reactions if model.listOfReactions[r].type == 'customized'}
-    print(cust_spec)
     for i, j in combinations(reactions, 2):
         if j not in dependent_rxns[i]['dependencies']:
             if any(elem in reactants[i] for elem in reactants[j]):
