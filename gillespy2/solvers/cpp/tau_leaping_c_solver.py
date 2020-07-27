@@ -114,7 +114,7 @@ class TauLeapingCSolver(GillesPySolver):
             # Write simulation C++ file.
             template_keyword = "__DEFINE_"
             # Use same lists of model's species and reactions to maintain order
-            with open(os.path.join(self.output_directory, 'UserSimulation.cpp'), 'w') as outfile:
+            with open(os.path.join(self.output_directory, 'TauSimulation.cpp'), 'w') as outfile:
                 for line in template:
                     if line.startswith(template_keyword):
                         line = line[len(template_keyword):]
@@ -135,13 +135,13 @@ class TauLeapingCSolver(GillesPySolver):
             if self.resume[0].model != self.model:
                 raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
             else:
-                built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'], stdout=subprocess.PIPE,
+                built = subprocess.run(["make", "-C", self.output_directory, 'TauSimulation'], stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE)
         else:
             try:
-                cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulation'],
+                cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulationTau'],
                                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'],
+                built = subprocess.run(["make", "-C", self.output_directory, 'TauSimulation'],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             except KeyboardInterrupt:
                 log.warning("Solver has been interrupted during compile time, unexpected behavior may occur.")
@@ -204,7 +204,7 @@ class TauLeapingCSolver(GillesPySolver):
             number_timesteps = int(round(t / increment + 1))
 
             # Execute simulation.
-            args = [os.path.join(self.output_directory, 'UserSimulation'), '-trajectories', str(number_of_trajectories),
+            args = [os.path.join(self.output_directory, 'TauSimulation'), '-trajectories', str(number_of_trajectories),
                     '-timesteps', str(number_timesteps), '-tau_step', str(tau_step), '-end', str(t)]
 
             if seed is not None:

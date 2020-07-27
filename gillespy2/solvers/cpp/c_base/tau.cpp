@@ -26,8 +26,6 @@ TauArgs initialize(Gillespy::Model &model, double tau_tol){
             }
         }
 
-       // std::cout<<model.reactions[reaction.first].name<<" BELOW"<<std::endl;// Loop through mapping of reactions and their reactants (reactions reactants)
-       //std::cout<<" : "<<model.species[reactant].name<<std::endl;
        // if this reaction's order is higher than previous, set
        if (tau_args.reactions_reactants[r].size()>0){
            for (auto const &reactant:tau_args.reactions_reactants[r]){
@@ -57,9 +55,6 @@ TauArgs initialize(Gillespy::Model &model, double tau_tol){
                }
            }
        }
-   }
-   if (tau_args.reactions_reactants.size()==0){
-       std::cout<<"yo"<<std::endl;
    }
 
    return tau_args;
@@ -105,6 +100,10 @@ double select(Gillespy::Model &model, TauArgs &tau_args, const double &tau_tol, 
             if (propensity_values[reaction]>0)
                 critical_taus[model.reactions[reaction].name] = 1/propensity_values[reaction];
         }
+        std::pair<std::string, double> min;
+        //find min of critical_taus
+        min = *min_element(critical_taus.begin(), critical_taus.end(),[](const auto& lhs, const auto& rhs){ return lhs.second < rhs.second;});
+        critical_tau = min.second;
     }
 
     if (tau_args.g_i_lambdas.size()>0){
@@ -116,21 +115,16 @@ double select(Gillespy::Model &model, TauArgs &tau_args, const double &tau_tol, 
            }
     }
 
-    std::map<std::string,double> tau_i;    //Mapping of possible critical_taus, to be evaluated
+    std::map<std::string,double> tau_i;    //Mapping of possible non-critical_taus, to be evaluated
 
 
     for (const auto &r : tau_args.reactants)
     {
         double calculated_max = tau_args.epsilon_i[r.name] * current_state[r.id];
-        double max_pop_change_mean;
-        if (calculated_max < 1)
-                max_pop_change_mean = 1;
-        else
-            max_pop_change_mean = calculated_max;
+        double max_pop_change_mean = std::max(calculated_max, 1.0);
         double max_pop_change_sd = pow(max_pop_change_mean,2);
-
         if (mu_i[r.name] > 0){ // Cao, Gillespie, Petzold 33
-            tau_i[r.name] = std::min(std::abs(max_pop_change_mean / mu_i[r.name]),max_pop_change_sd / sigma_i[r.name]);
+            tau_i[r.name] = std::min(std::abs(max_pop_change_mean / mu_i[r.name]), max_pop_change_sd / sigma_i[r.name]);
         }
     }
 

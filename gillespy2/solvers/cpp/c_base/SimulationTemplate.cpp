@@ -28,8 +28,8 @@ __DEFINE_PROPENSITY__
       return -1;
     }
   }
+  double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S){return 1.0;}
 };
-
 int main(int argc, char* argv[]){
   std :: vector<std :: string> species_names(s_names, s_names + sizeof(s_names)/sizeof(std :: string));
   std :: vector<unsigned int> species_populations(populations, populations + sizeof(populations)/sizeof(populations[0]));

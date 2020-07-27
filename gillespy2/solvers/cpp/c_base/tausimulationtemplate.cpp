@@ -19,20 +19,20 @@ double end_time = 0;
 bool seed_time = true;
 double tau_tol = 0.03;
 
+//Default constants
 __DEFINE_CONSTANTS__
 
 class PropensityFunction : public IPropensityFunction{
 public:
 
-  double evaluate(unsigned int reaction_number, const std::vector<int> &S){
+  double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S){
     switch(reaction_number){
 __DEFINE_PROPENSITY__
-
-
     default: //Error
       return -1;
     }
   }
+  double evaluate(unsigned int reaction_number, unsigned int* state){return 1.0;}
 };
 
 int main(int argc, char* argv[]){
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]){
 
   //Begin reaction species changes
 __DEFINE_REACTIONS_
-  //End reaction species changes
+    //End reaction species changes
 
   model.update_affected_reactions();
 
@@ -81,7 +81,7 @@ __DEFINE_REACTIONS_
 
   IPropensityFunction *propFun = new PropensityFunction();
   Simulation simulation(&model, number_trajectories, number_timesteps, end_time, propFun, random_seed, simulation.current_time);
-  tau_leaper(&simulation, tau_tol);
+  tau_leaper(&simulation,  .03);
   simulation.output_results_buffer(std :: cout);
   delete propFun;
   return 0;

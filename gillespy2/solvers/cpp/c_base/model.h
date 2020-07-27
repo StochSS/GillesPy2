@@ -35,11 +35,13 @@ namespace Gillespy{
   };
   
   //Interface class to represent container for propensity functions
-  class IPropensityFunction{
+   class IPropensityFunction{
   public:
-    virtual double evaluate(unsigned int reaction_number, const std::vector<int> &S) = 0;
-    virtual ~IPropensityFunction() {}
+    virtual double evaluate(unsigned int reaction_number, unsigned int* state) = 0;
+    virtual double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S) = 0;
+    virtual ~IPropensityFunction() {};
   };
+
 
   
   //Represents simulation return data
