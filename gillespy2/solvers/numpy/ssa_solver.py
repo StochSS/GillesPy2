@@ -30,6 +30,7 @@ class NumPySSASolver(GillesPySolver):
     @classmethod
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True,
             live_output=None, live_output_options={}, timeout=None, resume=None, **kwargs):
+
         """
         Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
         :param model: The model on which the solver will operate.
@@ -92,6 +93,7 @@ class NumPySSASolver(GillesPySolver):
                                                                               'timeout': timeout,
                                                                               'resume': resume, })
         try:
+            time = 0
             sim_thread.start()
             if live_output is not None:
                 import gillespy2.core.liveGraphing
@@ -101,15 +103,27 @@ class NumPySSASolver(GillesPySolver):
                     resumeTest = True  # If resuming, relay this information to live_grapher
                 else:
                     resumeTest = False
-                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer( model, timeline, number_of_trajectories,
+                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(model, timeline, number_of_trajectories,
                                                                              live_output_options,resume = resumeTest)
                 display_timer = gillespy2.core.liveGraphing.RepeatTimer(live_output_options['interval'],
                                                                         live_grapher[0].display, args=(curr_state,
                                                                                                        total_time,
-                                                                                                       trajectory_base,)
+                                                                                                       trajectory_base,
+                                                                                                       live_output
+                                                                                                       )
                                                                         )
                 display_timer.start()
-            sim_thread.join(timeout=timeout)
+
+            if timeout is not None:
+                while sim_thread.is_alive():
+                    sim_thread.join(.1)
+                    time += .1
+                    if time >= timeout:
+                        break
+            else:
+                while sim_thread.is_alive():
+                    sim_thread.join(.1)
+
             if live_grapher[0] is not None:
                 display_timer.cancel()
             self.stop_event.set()
@@ -117,6 +131,7 @@ class NumPySSASolver(GillesPySolver):
                 pass
         except KeyboardInterrupt:
             if live_output:
+                display_timer.pause = True
                 display_timer.cancel()
             self.pause_event.set()
             while self.result is None:
@@ -191,7 +206,6 @@ class NumPySSASolver(GillesPySolver):
         # begin simulating each trajectory
         simulation_data = []
         for trajectory_num in range(number_of_trajectories):
-            total_time[0] = 0
             if self.stop_event.is_set():
                 self.rc = 33
                 break

@@ -182,11 +182,8 @@ class VariableSSACSolver(GillesPySolver):
                     "'t' must be greater than previous simulations end time, or set in the run() method as the "
                     "simulations next end time")
 
-        if resume is not None:
+        if self is None or self.model is None:
             self = VariableSSACSolver(model, resume=resume)
-        else:
-            if self is None or self.model is None:
-                self = VariableSSACSolver(model)
 
         if len(kwargs) > 0:
             for key in kwargs:

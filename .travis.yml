@@ -1,21 +1,40 @@
-os: linux
-dist: xenial
-language: python
-python: "3.6"
-before_script:
-    - "curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter"
-    - "chmod +x ./cc-test-reporter"
-    - "./cc-test-reporter before-build"
+jobs:
+  allow_failures:
+    - os: windows # This should be removed once tests pass on Windows. 
+  include:
+    - os: linux
+      dist: xenial
+      language: python
+      python: 3.6
+      before_script:
+        - "curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter"
+        - "chmod +x ./cc-test-reporter"
+        - "./cc-test-reporter before-build"
+      after_script:
+        - "coverage xml"
+        - "if [[ \"$TRAVIS_TEST_RESULT\" == 0 ]]; then ./cc-test-reporter after-build -t coverage.py --exit-code $TRAVIS_TEST_RESULT; fi"
+    - os: linux
+      dist: bionic
+      language: python
+      python: 3.6
+    - os: osx
+      osx_image: xcode9.4   # Python 3.6.5 running on macOS 10.13
+      language: shell       # 'language: python' is an error on Travis CI macOS
+    - os: windows
+      language: shell       # 'language: python' is an error on Travis CI Windows
+      before_install:
+        - choco install python --version 3.6.0
+        - choco install make
+        - python -m pip install --upgrade pip
+      env: PATH=/c/Python36:/c/Python36/Scripts:$PATH
 install:
-          - pip3 install -r requirements.txt
-          - pip3 install python-libsbml
-          - pip3 install cython
-          - pip3 install coverage
+  - pip3 install --upgrade pip           
+  - pip3 install -r requirements.txt
+  - pip3 install python-libsbml
+  - pip3 install cython
+  - pip3 install coverage
 script:
-    - "coverage run --source=gillespy2 --omit=gillespy2/solvers/stochkit/* test/run_tests.py -m develop"
-after_script:
-    - "coverage xml"
-    - "if [[ \"$TRAVIS_TEST_RESULT\" == 0 ]]; then ./cc-test-reporter after-build -t coverage.py --exit-code $TRAVIS_TEST_RESULT; fi"
+  - "coverage run --source=gillespy2 --omit=gillespy2/solvers/stochkit/* test/run_tests.py -m develop"
 deploy:
   # API token stored in env var PYPI_PASSWORD on Travis CI
   provider: pypi
@@ -23,7 +42,8 @@ deploy:
   edge: true # opt in to dpl v2
   user: __token__
   on:
+    condition: $TRAVIS_DIST = xenial
     repo: GillesPy2/GillesPy2
-    branch: master
+    branch: main
     tags: true
-    
+

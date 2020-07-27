@@ -58,6 +58,20 @@ class TestAllSolvers(unittest.TestCase):
             diff_results = self.model.run(solver=solver, seed=2)
             self.assertFalse(np.array_equal(diff_results.to_array(),same_results.to_array()))
     
+    def test_random_seed_unnamed_reactions(self):
+        model = self.model
+        k2 = gillespy2.Parameter(name='k2', expression=1.0)
+        model.add_parameter([k2])
+        unnamed_rxn = gillespy2.Reaction(reactants={}, products={'Sp':1}, rate=k2)
+        model.add_reaction(unnamed_rxn)
+        for solver in self.solvers:
+            same_results = self.model.run(solver=solver, seed=1)
+            compare_results = self.model.run(solver=solver,seed=1)
+            self.assertTrue(np.array_equal(same_results.to_array(), compare_results.to_array()))
+            if solver.name == 'ODESolver': continue
+            diff_results = self.model.run(solver=solver, seed=2)
+            self.assertFalse(np.array_equal(diff_results.to_array(),same_results.to_array()))
+
     def test_extraneous_args(self):
         for solver in self.solvers:
             with self.assertLogs(level='WARN'):

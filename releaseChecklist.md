@@ -15,7 +15,7 @@
 
 6. Update all instances of the version number (including version.py)
 
-7. Push changes to master
+7. Push changes to 'main'
 
 
 

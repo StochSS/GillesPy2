@@ -130,6 +130,7 @@ class ODESolver(GillesPySolver):
                                                                                           'integrator_options':
                                                                                               integrator_options, })
         try:
+            time = 0
             sim_thread.start()
             if live_output is not None:
                 import gillespy2.core.liveGraphing
@@ -145,10 +146,18 @@ class ODESolver(GillesPySolver):
                                                                             live_output_options, resume=resumeTest)
                 display_timer = gillespy2.core.liveGraphing.RepeatTimer(live_output_options['interval'],
                                                                         live_grapher[0].display,
-                                                                        args=(curr_state, curr_time, trajectory_base,))
+                                                                        args=(curr_state, curr_time, trajectory_base,live_output))
                 display_timer.start()
 
-            sim_thread.join(timeout=timeout)
+            if timeout is not None:
+                while sim_thread.is_alive():
+                    sim_thread.join(.1)
+                    time += .1
+                    if time >= timeout:
+                        break
+            else:
+                while sim_thread.is_alive():
+                    sim_thread.join(.1)
 
             if live_grapher[0] is not None:
                 display_timer.cancel()
@@ -158,6 +167,7 @@ class ODESolver(GillesPySolver):
                 pass
         except KeyboardInterrupt:
             if live_output:
+                display_timer.pause = True
                 display_timer.cancel()
             self.pause_event.set()
             while self.result is None:

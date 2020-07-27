@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.solvers.numpy.basic_tau_hybrid_solver &#8212; GillesPy2 1.5.2 documentation</title>
+    <title>gillespy2.solvers.utilities.cpp_support_test &#8212; GillesPy2 1.5.2 documentation</title>
     <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -99,13 +99,29 @@
 
           <div class="body" role="main">
             
-  <h1>Source code for gillespy2.solvers.numpy.basic_tau_hybrid_solver</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">.tau_hybrid_solver</span> <span class="k">import</span> <span class="n">TauHybridSolver</span>
+  <h1>Source code for gillespy2.solvers.utilities.cpp_support_test</h1><div class="highlight"><pre>
+<span></span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This file contains a function and variable for testing a machines support of GillesPy2 C++ solvers.</span>
+<span class="sd">Used in model.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="BasicTauHybridSolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.basic_tau_hybrid_solver.BasicTauHybridSolver">[docs]</a><span class="k">class</span> <span class="nc">BasicTauHybridSolver</span><span class="p">(</span><span class="n">TauHybridSolver</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">log</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The name &#39;BasicTauHybridSolver&#39; has been deprecated, future versions of GillesPy2 will not allow&quot;</span>
-                <span class="s2">&quot; this import. Please import &#39;TauHybridSolver&#39;&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="check_cpp_support"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.utilities.html#gillespy2.solvers.utilities.cpp_support_test.check_cpp_support">[docs]</a><span class="k">def</span> <span class="nf">check_cpp_support</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">gillespy2.solvers.cpp.example_models</span> <span class="k">import</span> <span class="n">Example</span>
+    <span class="kn">from</span> <span class="nn">gillespy2</span> <span class="k">import</span> <span class="n">SSACSolver</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">Example</span><span class="p">()</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">SSACSolver</span><span class="p">,</span> <span class="n">cpp_support</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Unable to use C++ optimized SSA: </span><span class="si">{0}</span><span class="s1">.  The performance of &#39;</span> \
+        <span class="s1">&#39;this package can be significantly increased if you install/configure GCC on &#39;</span> \
+        <span class="s1">&#39;this machine.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<span class="n">cpp_support</span> <span class="o">=</span> <span class="n">check_cpp_support</span><span class="p">()</span>
 </pre></div>
 
           </div>
