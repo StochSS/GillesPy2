@@ -232,19 +232,6 @@ class TauHybridSolver(GillesPySolver):
 
         return state_change
 
-    @staticmethod
-    def __event(curr_state, species, reactions, rate_rules, propensities,
-                y_map, compiled_reactions, compiled_rate_rules, event_queue,
-                assignment_rules, tau,
-                t, y):
-        """
-        Base "Event" method used in scipy.integrate.solve_ivp.  This method
-        utilizes the brentq method to determine root crossings, and is used in
-        conjunction with model stochastic reactions to discover reaction
-        firings.
-        """
-        return tau - t
-
     def __find_event_time(self, sol, model, start, end, index, depth):
         """
         Helper method providing binary search implementation for locating
@@ -443,21 +430,18 @@ class TauHybridSolver(GillesPySolver):
         rhs = lambda t, y: TauHybridSolver.__f(t, y, *int_args)
 
         if pure_ode:
-            tau_event = None
             next_tau = model.tspan[-1]
         else:
             next_tau = curr_time + tau_step
-            tau_event = partial(TauHybridSolver.__event, *int_args, next_tau)
-            tau_event.terminal = True
 
         curr_state['t'] = curr_time
         curr_state['time'] = curr_time
 
         # Integrate until end or tau is reached
         # TODO: Need a way to exit solve_ivp when timeout is triggered
-        sol = solve_ivp(rhs, [curr_time, model.tspan[-1]], y0,
+        sol = solve_ivp(rhs, [curr_time, next_tau], y0,
                         method=integrator, dense_output=True,
-                        events=tau_event, **integrator_options)
+                        **integrator_options)
 
         # Search for precise event times
         if len(model.listOfEvents):
@@ -468,8 +452,6 @@ class TauHybridSolver(GillesPySolver):
 
         # Get next tau time
         reaction_times = []
-        if tau_event is not None:
-            reaction_times.append(min(sol.t_events))
 
         # Set curr time to next time a change occurs in the system outside of
         # the standard ODE process.  Determine what kind of change this is,
