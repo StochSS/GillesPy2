@@ -56,7 +56,8 @@ class TauHybridSolver(GillesPySolver):
         name = 'TauHybridSolver'
         rc = 0
 
-    def __toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, curr_state, det_spec):
+    def __toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, 
+                            curr_state, det_spec, rr_sets):
         """
         Helper method which is used to convert reaction channels into
         rate rules, and rate rules into reaction channels, as they are switched
@@ -88,14 +89,14 @@ class TauHybridSolver(GillesPySolver):
                 inactive_reactions[r] = rxns.pop(r, None)
 
         # Check if this reaction set is already compiled and in use:
-        if deterministic_reactions in rate_rules.keys():
-            return
-
+        if deterministic_reactions in rr_sets.keys():
+            return rr_sets[deterministic_reactions]
+        else:
         # Otherwise, this is a new determinstic reaction set that must be compiled
-        if not deterministic_reactions in rate_rules:
-            rate_rules[deterministic_reactions] = self.__create_diff_eqs(deterministic_reactions, model, dependencies)
+            return self.__create_diff_eqs(deterministic_reactions, model,
+                                            dependencies, rr_sets)
 
-    def __create_diff_eqs(self, comb, model, dependencies):
+    def __create_diff_eqs(self, comb, model, dependencies, rr_sets):
         """
         Helper method used to convert stochastic reaction descriptions into
         differential equations, used dynamically throught the simulation.
@@ -106,9 +107,9 @@ class TauHybridSolver(GillesPySolver):
         # Initialize sample dict
         for spec in model.listOfSpecies:
             if spec in model.listOfRateRules:
-                diff_eqs[spec] = model.listOfRateRules[spec].formula
+                diff_eqs[model.listOfSpecies[spec]] = model.listOfRateRules[spec].formula
             else:
-                diff_eqs[spec] = '0'
+                diff_eqs[model.listOfSpecies[spec]] = '0'
 
         # loop through each det reaction and concatenate it's diff eq for each species
         for reaction in comb:
@@ -124,20 +125,20 @@ class TauHybridSolver(GillesPySolver):
             for dep in dependencies[reaction]:
                 if factor[dep] != 0:
                     if model.listOfSpecies[dep].mode == 'continuous':
-                        diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep],
+                        diff_eqs[model.listOfSpecies[dep]] += ' + {0}*({1})'.format(factor[dep],
                                                                model.listOfReactions[reaction].ode_propensity_function)
                     else:
-                        diff_eqs[dep] += ' + {0}*({1})'.format(factor[dep],
+                        diff_eqs[model.listOfSpecies[dep]] += ' + {0}*({1})'.format(factor[dep],
                                                                model.listOfReactions[reaction].propensity_function)
 
         for spec in model.listOfSpecies:
-            if diff_eqs[spec] == '0':
-                del diff_eqs[spec]
+            if diff_eqs[model.listOfSpecies[spec]] == '0':
+                del diff_eqs[model.listOfSpecies[spec]]
 
         # create a dictionary of compiled gillespy2 rate rules
         for spec, rate in diff_eqs.items():
-            rate_rules[spec] = compile(gillespy2.RateRule(model.listOfSpecies[spec], rate).formula, '<string>', 'eval')
-
+            rate_rules[spec] = compile(gillespy2.RateRule(spec, rate).formula, '<string>', 'eval')
+        rr_sets[comb] = rate_rules # save values
         return rate_rules
 
     def __flag_det_reactions(self, model, det_spec, det_rxn, dependencies):
@@ -204,7 +205,7 @@ class TauHybridSolver(GillesPySolver):
 
     @staticmethod
     def __f(t, y, curr_state, species, reactions, rate_rules, propensities,
-            y_map, compiled_reactions, compiled_rate_rules, events, assignment_rules):
+            y_map, compiled_reactions, active_rr, events, assignment_rules):
         """
         Evaluate the propensities for the reactions and the RHS of the Reactions and RateRules.
         Also evaluates boolean value of event triggers.
@@ -219,9 +220,9 @@ class TauHybridSolver(GillesPySolver):
                                                                    {**eval_globals, **curr_state})
             else:
                 curr_state[item] = y[index]
-        for rr in compiled_rate_rules:
+        for s, rr in active_rr.items():
             try:
-                state_change[y_map[rr]] += eval(compiled_rate_rules[rr], {**eval_globals, **curr_state})
+                state_change[y_map[s.name]] += eval(rr, {**eval_globals, **curr_state})
             except ValueError:
                 pass
         for i, r in enumerate(compiled_reactions):
@@ -408,7 +409,7 @@ class TauHybridSolver(GillesPySolver):
 
     def __integrate(self, integrator, integrator_options, curr_state, y0, model, curr_time,
                     propensities, y_map, compiled_reactions,
-                    compiled_rate_rules, event_queue,
+                    active_rr, event_queue,
                     delayed_events, trigger_states,
                     event_sensitivity, tau_step, pure_ode):
         """ 
@@ -424,7 +425,7 @@ class TauHybridSolver(GillesPySolver):
                     model.listOfRateRules,
                     propensities, y_map,
                     compiled_reactions,
-                    compiled_rate_rules,
+                    active_rr,
                     events,
                     model.listOfAssignmentRules]
 
@@ -509,7 +510,7 @@ class TauHybridSolver(GillesPySolver):
 
     def __simulate(self, integrator, integrator_options, curr_state, y0, model, curr_time,
                    propensities, species, parameters, compiled_reactions,
-                   compiled_rate_rules, y_map, trajectory, save_times,
+                   active_rr, y_map, trajectory, save_times,
                    delayed_events, trigger_states, event_sensitivity,
                    tau_step, pure_ode, debug):
         """
@@ -542,7 +543,7 @@ class TauHybridSolver(GillesPySolver):
             sol, curr_time = self.__integrate(integrator, integrator_options, curr_state,
                                               y0, model, curr_time, propensities, y_map,
                                               compiled_reactions,
-                                              compiled_rate_rules,
+                                              active_rr,
                                               event_queue,
                                               delayed_events,
                                               trigger_states,
@@ -648,8 +649,6 @@ class TauHybridSolver(GillesPySolver):
         compiled_rate_rules = OrderedDict()
         for i, rr in enumerate(model.listOfRateRules.values()):
             compiled_rate_rules[rr.variable] = compile(rr.formula, '<string>', 'eval')
-        base_set = {s.name:rr for s, rr in compiled_rate_rules.items()}
-        compiled_rate_rules[frozenset()] = base_set
         compiled_inactive_reactions = OrderedDict()
 
         compiled_propensities = compiled_reactions.copy()
@@ -1041,12 +1040,12 @@ class TauHybridSolver(GillesPySolver):
                     print('det_rxn: {0}'.format(det_rxn))
 
                 # Set active reactions and rate rules for this integration step
-                if pure_stochastic:
-                    active_rr = compiled_rate_rules
+                rr_sets = {frozenset() : compiled_rate_rules} # base rr set
+                if pure_stochastic or pure_ode:
+                    active_rr = rr_sets[frozenset()]
                 else:
-                    self.__toggle_reactions(model, all_compiled, deterministic_reactions, dependencies, curr_state[0],
-                                            det_spec)
-                    active_rr = compiled_rate_rules[deterministic_reactions]
+                    active_rr = self.__toggle_reactions(model, all_compiled, deterministic_reactions, 
+                                                        dependencies, curr_state[0], det_spec, rr_sets)
 
                 # Create integration initial state vector
                 y0, y_map = self.__map_state(species, parameters,
