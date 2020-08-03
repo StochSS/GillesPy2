@@ -19,7 +19,7 @@ class TestSBML(unittest.TestCase):
         except ImportError:
             from urllib.request import urlopen
 
-        sbml_file = 'http://www.ebi.ac.uk/biomodels-main/download?mid=BIOMD0000000028'
+        sbml_file = 'https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000028.2?filename=BIOMD0000000028_url.xml'
         response = urlopen(sbml_file)
         tmp = tempfile.NamedTemporaryFile(delete=False)
         tmp.write(response.read())
