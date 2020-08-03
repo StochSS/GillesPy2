@@ -68,6 +68,7 @@ class TauHybridSolver(GillesPySolver):
         rate_rules = all_compiled['rules']
         rxns = all_compiled['rxns']
 
+
         # If the set has changed, reactivate non-determinsitic reactions
         reactivate = []
         for r in inactive_reactions:
@@ -428,12 +429,11 @@ class TauHybridSolver(GillesPySolver):
                     model.listOfAssignmentRules]
 
         rhs = lambda t, y: TauHybridSolver.__f(t, y, *int_args)
-
+        tau_step = max(1e-6, tau_step)
         if pure_ode:
             next_tau = model.tspan[-1]
         else:
             next_tau = curr_time + tau_step
-
         curr_state['t'] = curr_time
         curr_state['time'] = curr_time
 
@@ -442,6 +442,7 @@ class TauHybridSolver(GillesPySolver):
         sol = solve_ivp(rhs, [curr_time, next_tau], y0,
                         method=integrator, dense_output=True,
                         **integrator_options)
+
 
         # Search for precise event times
         if len(model.listOfEvents):
@@ -647,7 +648,8 @@ class TauHybridSolver(GillesPySolver):
         compiled_rate_rules = OrderedDict()
         for i, rr in enumerate(model.listOfRateRules.values()):
             compiled_rate_rules[rr.variable] = compile(rr.formula, '<string>', 'eval')
-
+        base_set = {s.name:rr for s, rr in compiled_rate_rules.items()}
+        compiled_rate_rules[frozenset()] = base_set
         compiled_inactive_reactions = OrderedDict()
 
         compiled_propensities = compiled_reactions.copy()
