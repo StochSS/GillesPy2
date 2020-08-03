@@ -428,7 +428,6 @@ class TauHybridSolver(GillesPySolver):
                     active_rr,
                     events,
                     model.listOfAssignmentRules]
-
         rhs = lambda t, y: TauHybridSolver.__f(t, y, *int_args)
         tau_step = max(1e-6, tau_step)
         if pure_ode:
@@ -648,7 +647,11 @@ class TauHybridSolver(GillesPySolver):
                                             'eval')
         compiled_rate_rules = OrderedDict()
         for i, rr in enumerate(model.listOfRateRules.values()):
-            compiled_rate_rules[rr.variable] = compile(rr.formula, '<string>', 'eval')
+            if isinstance(rr.variable, str):
+                compiled_rate_rules[model.listOfSpecies[rr.variable]] = compile(
+                                                            rr.formula, '<string>', 'eval')
+            else:
+                compiled_rate_rules[rr.variable] = compile(rr.formula, '<string>', 'eval')
         compiled_inactive_reactions = OrderedDict()
 
         compiled_propensities = compiled_reactions.copy()
@@ -1041,7 +1044,7 @@ class TauHybridSolver(GillesPySolver):
 
                 # Set active reactions and rate rules for this integration step
                 rr_sets = {frozenset() : compiled_rate_rules} # base rr set
-                if pure_stochastic or pure_ode:
+                if pure_stochastic:
                     active_rr = rr_sets[frozenset()]
                 else:
                     active_rr = self.__toggle_reactions(model, all_compiled, deterministic_reactions, 
