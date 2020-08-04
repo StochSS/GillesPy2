@@ -449,6 +449,11 @@ class Model(SortableObject):
                     raise ModelError('Invalid Rate Rule. Expression must be a non-empty string value')
                 if rate_rules.variable == None:
                     raise ModelError('A GillesPy2 Rate Rule must be associated with a valid variable')
+                if isinstance(rate_rules.variable, str):
+                    v = rate_rules.variable
+                    if v not in self.listOfSpecies and v not in self.listOfParameters:
+                        raise ModelError(
+                            'Invalid variable entered for Rate Rule: {}'.format(rate_rules.name))
 
                 self.listOfRateRules[rate_rules.name] = rate_rules
                 sanitized_rate_rule = RateRule(name='RR{}'.format(len(self._listOfRateRules)))
