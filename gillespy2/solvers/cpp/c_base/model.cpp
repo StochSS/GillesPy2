@@ -91,6 +91,7 @@ void Simulation :: output_results_buffer(std::ostream& os){
                 }
             }
          }
+    os<<(int)current_time;
     }
 
 }

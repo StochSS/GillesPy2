@@ -92,9 +92,9 @@ def _parse_binary_output(results_buffer, number_of_trajectories, number_timestep
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
 
     # Timestopped is added to the end of the data, when a simulation completes or is paused
-    np.set_printoptions(suppress=True)
     if pause:
-        timeStopped = data[-1]
+        timeStopped = int(data[-1])
+        data.pop()
     else:
         timeStopped = 0
     for t in range(number_of_trajectories):

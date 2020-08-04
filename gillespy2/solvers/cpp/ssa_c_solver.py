@@ -235,8 +235,6 @@ class SSACSolver(GillesPySolver):
 
             # Decode from byte, split by comma into array
             stdout = stdout.decode('utf-8').split(',')
-            # Remove extra value at end of array
-            stdout = stdout[:-1]
             # Parse/return results
 
             if return_code in [0, 33]:
@@ -245,7 +243,6 @@ class SSACSolver(GillesPySolver):
                                                                            pause=pause)
                 if model.tspan[2] - model.tspan[1] == 1:
                     timeStopped = int(timeStopped)
-
                 # Format results
                 self.simulation_data = []
                 for trajectory in range(number_of_trajectories):

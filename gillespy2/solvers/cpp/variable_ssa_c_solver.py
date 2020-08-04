@@ -292,8 +292,6 @@ class VariableSSACSolver(GillesPySolver):
                     return_code = 33
             # Decode from byte, split by comma into array
             stdout = stdout.decode('utf-8').split(',')
-            # Remove extra value at end of array
-            stdout = stdout[:-1]
             # Parse/return results.
 
             if return_code in [0, 33]:
