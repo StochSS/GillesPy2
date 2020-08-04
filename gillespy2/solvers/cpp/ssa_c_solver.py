@@ -233,10 +233,15 @@ class SSACSolver(GillesPySolver):
                         pause = True
                         return_code = 33
 
-            # Parse/return results.
+            # Decode from byte, split by comma into array
+            stdout = stdout.decode('utf-8').split(',')
+            # Remove extra value at end of array
+            stdout = stdout[:-1]
+            # Parse/return results
+
             if return_code in [0, 33]:
                 trajectory_base, timeStopped = cutils._parse_binary_output(stdout, number_of_trajectories,
-                                                                           number_timesteps, len(model.listOfSpecies),
+                                                                           number_timesteps, len(model.listOfSpecies), stdout,
                                                                            pause=pause)
                 if model.tspan[2] - model.tspan[1] == 1:
                     timeStopped = int(timeStopped)
