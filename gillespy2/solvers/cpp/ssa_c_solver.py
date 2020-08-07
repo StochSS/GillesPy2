@@ -11,7 +11,7 @@ import numpy as np
 
 GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
 GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base')
-
+MAKE_FILE = os.path.dirname(os.path.abspath(__file__))+'/c_base/makefile'
 
 def _write_constants(outfile, model, reactions, species, parameter_mappings, resume):
     """
@@ -135,16 +135,21 @@ class SSACSolver(GillesPySolver):
             if self.resume[0].model != self.model:
                 raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
             else:
-                built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'], stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE)
-        else:
-            try:
-                cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulation'],
-                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'],
-                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            except KeyboardInterrupt:
-                log.warning("Solver has been interrupted during compile time, unexpected behavior may occur.")
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        else:
+             try:
+                 cleaned = subprocess.run(
+                     ["make", "-C", self.output_directory, '-f', MAKE_FILE,
+                      'cleanSimulation'],
+                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                 built = subprocess.run(
+                     ["make", "-C", self.output_directory, '-f', MAKE_FILE,
+                      'UserSimulation'], stdout=subprocess.PIPE,
+                     stderr=subprocess.PIPE)
+             except KeyboardInterrupt:
+                 log.warning(
+                     "Solver has been interrupted during compile time, unexpected behavior may occur.")
 
         if built.returncode == 0:
             self.__compiled = True
