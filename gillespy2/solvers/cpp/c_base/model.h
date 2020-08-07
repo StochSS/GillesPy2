@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <math.h>
+#include <cmath>
 
 namespace Gillespy{
 
@@ -24,12 +24,13 @@ namespace Gillespy{
   
   //Represents a model of reactions and species
   struct Model{
+      void update_affected_reactions();
+
     unsigned int number_species;
     std :: unique_ptr<Species[]> species;
     unsigned int number_reactions;
     std :: unique_ptr<Reaction[]> reactions;
     Model(std :: vector<std :: string> species_names, std :: vector<unsigned int> species_populations, std :: vector<std :: string> reaction_names);
-    void update_affected_reactions();
   };
   
   //Interface class to represent container for propensity functions
@@ -43,6 +44,8 @@ namespace Gillespy{
   //Represents simulation return data
   struct Simulation{
     Model* model;
+    ~Simulation();
+
     double* timeline;
     double end_time;
     double current_time;
@@ -53,7 +56,6 @@ namespace Gillespy{
     unsigned int*** trajectories;
     IPropensityFunction *propensity_function;
     Simulation(Model* model, unsigned int number_trajectories, unsigned int number_timesteps, double end_time, IPropensityFunction* propensity_function, int random_seed, double current_time);
-    ~Simulation();
     friend std :: ostream& operator<<(std :: ostream& os, const Simulation& simulation);
     void output_results_buffer(std :: ostream& os);
   };
