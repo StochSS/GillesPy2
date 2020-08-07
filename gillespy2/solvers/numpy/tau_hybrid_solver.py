@@ -430,7 +430,7 @@ class TauHybridSolver(GillesPySolver):
                     model.listOfAssignmentRules]
         rhs = lambda t, y: TauHybridSolver.__f(t, y, *int_args)
         if 'min_step' in integrator_options:
-            tau_step = max(min_step, tau_step)
+            tau_step = max(integrator_options['min_step'], tau_step)
         else:
             tau_step = max(1e-6, tau_step)
         if pure_ode:
