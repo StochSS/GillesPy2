@@ -429,7 +429,10 @@ class TauHybridSolver(GillesPySolver):
                     events,
                     model.listOfAssignmentRules]
         rhs = lambda t, y: TauHybridSolver.__f(t, y, *int_args)
-        tau_step = max(1e-6, tau_step)
+        if 'min_step' in integrator_options:
+            tau_step = max(min_step, tau_step)
+        else:
+            tau_step = max(1e-6, tau_step)
         if pure_ode:
             next_tau = model.tspan[-1]
         else:
@@ -869,7 +872,7 @@ class TauHybridSolver(GillesPySolver):
                 if live_output_options['type'] == "graph":
                     for i, s in enumerate(list(model._listOfSpecies.keys())):
 
-                        if model.listOfSpecies[s].mode is 'continuous':
+                        if model.listOfSpecies[s].mode == 'continuous':
                             log.warning('display \"type\" = \"graph\" not recommended with continuous species. '
                                         'Try display \"type\" = \"text\" or \"progress\".')
                             break
