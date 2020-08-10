@@ -1114,6 +1114,7 @@ class StochMLDocument():
                     raise InvalidStochMLError(
                         "Found a customized propensity function, but no expression was given. {}".format(e))
                 reaction.propensity_function = propfunc
+                reaction.ode_propensity_function = propfunc
             else:
                 raise InvalidStochMLError(
                     "Unsupported or no reaction type given for reaction" + name)
