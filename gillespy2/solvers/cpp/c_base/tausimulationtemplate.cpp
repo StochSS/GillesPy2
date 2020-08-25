@@ -5,8 +5,6 @@
 #include <time.h>
 #include <math.h>
 #include "model.h"
-#include "ssa.h"
-#include "tau.h"
 #include "tau_leaper.h"
 
 using namespace Gillespy;
@@ -81,7 +79,7 @@ __DEFINE_REACTIONS_
 
   IPropensityFunction *propFun = new PropensityFunction();
   Simulation simulation(&model, number_trajectories, number_timesteps, end_time, propFun, random_seed, simulation.current_time);
-  tau_leaper(&simulation,  .03);
+  tau_leaper(&simulation, tau_tol);
   simulation.output_results_buffer(std :: cout);
   delete propFun;
   return 0;
