@@ -11,6 +11,7 @@ import numpy as np
 
 GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
 GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base')
+MAKE_FILE = os.path.dirname(os.path.abspath(__file__))+'/c_base/makefile'
 
 
 def _write_variables(outfile, model, reactions, species, parameters, parameter_mappings, resume=None):
@@ -149,16 +150,22 @@ class VariableSSACSolver(GillesPySolver):
             if self.resume[0].model != self.model:
                 raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
             else:
-                built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'], stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE)
+                built = subprocess.run(
+                    ["make", "-C", self.output_directory, 'UserSimulation'],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         else:
             try:
-                cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulation'],
-                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'],
-                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                cleaned = subprocess.run(
+                    ["make", "-C", self.output_directory, '-f', MAKE_FILE,
+                     'cleanSimulation'],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                built = subprocess.run(
+                    ["make", "-C", self.output_directory, '-f', MAKE_FILE,
+                     'UserSimulation'], stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE)
             except KeyboardInterrupt:
-                log.warning("Solver has been interrupted during compile time, unexpected behavior may occur.")
+                log.warning(
+                    "Solver has been interrupted during compile time, unexpected behavior may occur.")
 
         if built.returncode == 0:
             self.__compiled = True
@@ -182,11 +189,8 @@ class VariableSSACSolver(GillesPySolver):
                     "'t' must be greater than previous simulations end time, or set in the run() method as the "
                     "simulations next end time")
 
-        if resume is not None:
+        if self is None or self.model is None:
             self = VariableSSACSolver(model, resume=resume)
-        else:
-            if self is None or self.model is None:
-                self = VariableSSACSolver(model)
 
         if len(kwargs) > 0:
             for key in kwargs:
@@ -293,12 +297,14 @@ class VariableSSACSolver(GillesPySolver):
                     stdout, stderr = simulation.communicate()
                     pause = True
                     return_code = 33
-
+            # Decode from byte, split by comma into array
+            stdout = stdout.decode('utf-8').split(',')
             # Parse/return results.
+
             if return_code in [0, 33]:
                 trajectory_base, timeStopped = cutils._parse_binary_output(stdout, number_of_trajectories,
-                                                                           number_timesteps,
-                                                                           len(model.listOfSpecies), pause=pause)
+                                                                           number_timesteps, len(model.listOfSpecies),
+                                                                           stdout, pause=pause)
                 if model.tspan[2] - model.tspan[1] == 1:
                     timeStopped = int(timeStopped)
 

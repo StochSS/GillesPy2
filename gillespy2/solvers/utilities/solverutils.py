@@ -75,7 +75,7 @@ def _write_reactions(outfile, model, reactions, species):
                 outfile.write("model.reactions[{0}].affected_reactions.push_back({1});\n".format(i, j))
 
 
-def _parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species, pause=False):
+def _parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species, data, pause=False):
     """
     This function reads binary output from a CPP simulation
     :param results_buffer: stdout of the CPP simulation ran
@@ -90,23 +90,20 @@ def _parse_binary_output(results_buffer, number_of_trajectories, number_timestep
     timeout.
     """
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
-    step_size = number_species * number_of_trajectories + 1  #1 for timestep
-    data = np.frombuffer(results_buffer, dtype=np.float64)
+
     # Timestopped is added to the end of the data, when a simulation completes or is paused
     if pause:
-        timeStopped = data[-1]
+        timeStopped = int(data[-1])
+        data.pop()
     else:
         timeStopped = 0
-    assert(len(data) == (number_of_trajectories*number_timesteps*number_species + number_timesteps)+1)
-    for timestep in range(number_timesteps):
-        index = step_size * timestep
-        trajectory_base[:, timestep, 0] = data[index]
-        index += 1
-        for trajectory in range(number_of_trajectories):
-            for species in range(number_species):
-                trajectory_base[trajectory, timestep, 1 + species] = data[index + species]
-            index += number_species
+    for t in range(number_of_trajectories):
+        for i in range(number_timesteps*(number_species+1)):
+            index = i + (number_timesteps*(number_species+1)*t)
+            trajectory_base[t][i//(number_species+1)][i % (number_species+1)] = data[index]
+
     return trajectory_base, timeStopped
+
 
 
 def c_solver_resume(timeStopped, simulation_data, t, resume=None):
@@ -281,22 +278,4 @@ def dependency_grapher(model, reactions):
                     dependent_rxns[i]['dependencies'].append(j)
 
     return dependent_rxns
-
-"""
-Below is a utility that checks whether or not users can use C++ solvers.
-"""
-
-def check_cpp_support():
-    from gillespy2.solvers.cpp.example_models import Example
-    from gillespy2 import SSACSolver
-    try:
-        model = Example()
-        results = model.run(solver=SSACSolver, cpp_support=True)
-        return True
-    except Exception as e:
-        log.warn('Unable to use C++ optimized SSA: {0}.  The performance of ' \
-        'this package can be significantly increased if you install/configure GCC on ' \
-        'this machine.'.format(e))
-        return False
-
 

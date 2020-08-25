@@ -12,6 +12,14 @@ gillespy2.solvers.utilities.Tau module
    :undoc-members:
    :show-inheritance:
 
+gillespy2.solvers.utilities.cpp\_support\_test module
+-----------------------------------------------------
+
+.. automodule:: gillespy2.solvers.utilities.cpp_support_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 gillespy2.solvers.utilities.solverutils module
 ----------------------------------------------
 
