@@ -1,7 +1,7 @@
 #include "model.h"
 
 namespace Gillespy{
-  
+
   Model :: Model(std :: vector<std :: string> species_names, std :: vector<unsigned int> species_populations, std :: vector<std :: string> reaction_names):
     number_species(species_names.size()),
     number_reactions(reaction_names.size())
@@ -17,7 +17,7 @@ namespace Gillespy{
       reactions[i].name = reaction_names[i];
       reactions[i].species_change = std :: make_unique<int[]>(number_species);
       for(unsigned int j = 0; j < number_species; j++){
-	reactions[i].species_change[j] = 0;	
+	reactions[i].species_change[j] = 0;
       }
       reactions[i].affected_reactions = std :: vector<unsigned int>();
     }
@@ -27,13 +27,13 @@ namespace Gillespy{
     //Clear affected_reactions for each reaction
     for(unsigned int i = 0; i < number_reactions; i++){
       reactions[i].affected_reactions.clear();
-    }   
+    }
     //Check all reactions for common species changes -> affected reactions
     for(unsigned int r1 = 0; r1 < number_reactions; r1++){
       for(unsigned int r2 = 0; r2 < number_reactions; r2++){
 	    for(unsigned int s = 0; s < number_species; s++){
 	        if(reactions[r2].species_change[s] != 0){
-	            reactions[r1].affected_reactions.push_back(r2);
+                reactions[r1].affected_reactions.push_back(r2);
 	        }
 	    }
       }
@@ -41,12 +41,14 @@ namespace Gillespy{
   }
 
 
-  Simulation :: Simulation(Model* model, unsigned int number_trajectories, unsigned int number_timesteps, double end_time, IPropensityFunction* propensity_function, int random_seed,double current_time) : model(model), end_time(end_time), random_seed(random_seed), number_timesteps(number_timesteps), number_trajectories(number_trajectories), propensity_function(propensity_function){
+  Simulation :: Simulation(Model* model, unsigned int number_trajectories, unsigned int number_timesteps, double end_time, IPropensityFunction* propensity_function, int random_seed,double current_time, int ODE) : model(model), end_time(end_time), random_seed(random_seed), number_timesteps(number_timesteps), number_trajectories(number_trajectories), propensity_function(propensity_function){
     timeline = new double[number_timesteps];
     double timestep_size = end_time/(number_timesteps-1);
     for(unsigned int i = 0; i < number_timesteps; i++){
       timeline[i] = timestep_size * i;
     }
+
+
     unsigned int trajectory_size = number_timesteps * (model -> number_species);
     trajectories_1D = new unsigned int[number_trajectories * trajectory_size];
     trajectories = new unsigned int**[number_trajectories];
@@ -55,7 +57,10 @@ namespace Gillespy{
       for(unsigned int j = 0; j < number_timesteps; j++){
 	trajectories[i][j] = &(trajectories_1D[i * trajectory_size + j *  (model -> number_species)]);
       }
-    }    
+    }
+
+
+
   }
 
 
@@ -68,7 +73,7 @@ namespace Gillespy{
     delete trajectories;
   }
 
-  
+
   std :: ostream& operator<<(std :: ostream& os, const Simulation& simulation){
     for(unsigned int i = 0; i < simulation.number_timesteps; i++){
       os << simulation.timeline[i] << " ";
