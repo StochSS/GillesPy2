@@ -9,49 +9,23 @@
 using namespace Gillespy;
 
 //Default values, replaced with command line args
-unsigned int number_trajectories = 1; // CHANGE BACK TO 0 WHEN NOT TESTING
-unsigned int number_timesteps = 101; // ALSO CHANGE BACK TO 0,
+unsigned int number_trajectories = 0;
+unsigned int number_timesteps = 0;
 int random_seed = 0;
 double end_time = 100.0;
 bool seed_time = true;
-double increment = 1;
+double increment = 0;
 
 //Default constants
-// __DEFINE_CONSTANTS__
-const double V = 1.0;
-std::string s_names[] = {
-"Enzyme",
-"Enzyme_Substrate_Complex",
-"Product",
-"Substrate",
-};
-unsigned int populations[] = {
-120,
-0,
-0,
-301
-};
-std::string r_names[] = {
-"r1",
-"r2",
-"r3"
-};
-const double P0 = 0.0017;
-const double P1 = 0.5;
-const double P2 = 0.1;
+__DEFINE_CONSTANTS__
 
 class PropensityFunction : public IPropensityFunction{
 public:
 
-  double evaluate(int reaction_number, std::vector <double> S){
+double evaluate(int reaction_number, std::vector <double> S){
   switch(reaction_number){
-            case 0:
-                return P0*S[0]*S[3]/V;
-            case 1:
-                return P1*S[1];
-            case 2:
-                return P2*S[1];
 
+__DEFINE_PROPENSITY__
 
     default: //Error
       return -1;
@@ -68,25 +42,7 @@ int main(int argc, char* argv[]){
   Model model(species_names, species_populations, reaction_names);
 
   //Begin reaction species changes
-//HERE WRITES MAN: __DEFINE_REACTIONS_
-  model.reactions[0].species_change[0] = -1;
-
-  model.reactions[0].species_change[1] = 1;
-
-  model.reactions[0].species_change[3] = -1;
-
-  model.reactions[1].species_change[0] = 1;
-
-  model.reactions[1].species_change[1] = -1;
-
-  model.reactions[1].species_change[3] = 1;
-
-  model.reactions[2].species_change[0] = 1;
-
-  model.reactions[2].species_change[1] = -1;
-
-  model.reactions[2].species_change[2] = 1;
-
+__DEFINE_REACTIONS_
   //End reaction species changes
   model.update_affected_reactions();
 
@@ -104,7 +60,7 @@ int main(int argc, char* argv[]){
      case 'e':
        arg_stream >> end_time;
        break;
-      case 'i':
+     case 'i':
         arg_stream >> increment;
         break;
      case 't':
@@ -123,9 +79,8 @@ int main(int argc, char* argv[]){
  }
   IPropensityFunction *propFun = new PropensityFunction();
   Simulation simulation(&model, number_trajectories, number_timesteps, end_time, propFun, random_seed, simulation.current_time, 1);
-
   ODESolver(&simulation,increment);
-  //simulation.output_results_buffer(std :: cout);
+  simulation.output_results_buffer(std :: cout);
   delete propFun;
   return 0;
 }

@@ -50,17 +50,14 @@ namespace Gillespy{
 
 
     unsigned int trajectory_size = number_timesteps * (model -> number_species);
-    trajectories_1D = new unsigned int[number_trajectories * trajectory_size];
-    trajectories = new unsigned int**[number_trajectories];
+    trajectories_1D = new double[number_trajectories * trajectory_size];
+    trajectories = new double**[number_trajectories];
     for(unsigned int i = 0; i < number_trajectories; i++){
-      trajectories[i] = new unsigned int*[number_timesteps];
+      trajectories[i] = new double*[number_timesteps];
       for(unsigned int j = 0; j < number_timesteps; j++){
 	trajectories[i][j] = &(trajectories_1D[i * trajectory_size + j *  (model -> number_species)]);
       }
     }
-
-
-
   }
 
 

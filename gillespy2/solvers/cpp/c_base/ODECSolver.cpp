@@ -9,14 +9,6 @@
 #include "model.h"
 using namespace Gillespy;
 
-// https://computing.llnl.gov/sites/default/files/public/cv_guide.pdf
-// This program follows general guidelines found in CVODE user docs, section 4.4 "A skeleton of the user's main program"
-
-// TODO: Implement flag checking (CV_MEM_NULL, CV_NO_MALLOC, CV_ILL_INPUT) outlined in function
-// TODO: Think of a good way to handle trajectory found within the Gillespy::Simulation struct. Currently, it is a int pointer...
-// which means double values will be cast to "int", hence why current output are integer values, rather than double values
-
-
 #define NV_Ith_S(v,i) (NV_DATA_S(v)[i]) // Access to individual components of data array, of N len vector
 
 static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data); // forward declare function to be used to solve RHS of ODE
@@ -24,8 +16,6 @@ static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data); // forwar
 struct UserData {
   Gillespy::Simulation *my_sim;
 };
-
-
 
 void ODESolver(Gillespy::Simulation* simulation, double increment){
 	int flag; // CVODE constants returned if bad output, or success output.
@@ -44,9 +34,7 @@ void ODESolver(Gillespy::Simulation* simulation, double increment){
 
 	// Initial conditions
 	sunindextype N = (simulation -> model)->number_species; // length of problem, 'sunindextype' index's sundials N
-	// vectors, default value is int64_t
 	//  N_VECTOR is a custom vector type with various methods. API is located on Chapter 6 of CVode guide
-	//  It includes destructor methods, cloning methods, get and set pointer methods, lengths, MaxNorm methods, etc.
 
 	N_Vector y0; // Initialize initial condition vector as an N_Vector.
 	y0 = N_VNew_Serial(N);
@@ -59,7 +47,7 @@ void ODESolver(Gillespy::Simulation* simulation, double increment){
 	void* cvode_mem = NULL; // create cvode object ptr
 	cvode_mem = CVodeCreate(CV_BDF); // CV_ADAMS for nonstiff, CV_BDF for stiff problems
 
-	realtype t0 = 0; // time i.c, must use realtype, all cvode applications use realtypes
+	realtype t0 = 0; // time i.c, must use realtype
 	flag = CVodeInit(cvode_mem, f, t0, y0); // Initalize ODE Solver with allocated memory, RHS function, t0, and y0.
 	// Set tolerances defined in beginning
 	flag = CVodeSStolerances(cvode_mem, reltol, abstol);
@@ -74,8 +62,6 @@ void ODESolver(Gillespy::Simulation* simulation, double increment){
 	LS = SUNLinSol_SPGMR(y0, 0, 0);
 
 	// Attach linear solver module 
-	// If nonlinear solver requiring linear solver chosen (default Newton) then initialize CVLS llinear solver by
-	// attaching linear solver object (LS) and matrix object if applicable, with the call
     flag = CVodeSetUserData(cvode_mem, data);
     // CVodeSetLinearSolver(cvode_mem, LS, J))
 	// cvode_mem : pointer to CVODE memory block | LS : SUNLINSOL object to use for solving linear systems
@@ -104,16 +90,6 @@ void ODESolver(Gillespy::Simulation* simulation, double increment){
             simulation->trajectories[0][curr_time][(int)species] = NV_Ith_S(y0,species);
         }
 	}
-
-
-    for (int i = 0; i<simulation->number_timesteps; i++){
-        std::cout<<"timestep: "<<i<<std::endl;
-        for (int spec = 0; spec<simulation->model->number_species; spec++){
-            std::cout<<simulation->trajectories[0][i][spec]<<" | ";
-        }
-        std::cout<<std::endl;
-        std::cout<<std::endl;
-    }
 
 	// Deallocate memory from solution vec
 	N_VDestroy(y0);
