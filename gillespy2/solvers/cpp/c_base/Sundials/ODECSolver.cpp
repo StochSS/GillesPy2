@@ -1,10 +1,11 @@
 #include <iostream>
-#include <cvode/cvode.h> // prototypes for CVODE fcts., consts., realtype, sunindextype
-#include <nvector/nvector_serial.h>  // access to serial N_Vector
-#include <sunlinsol/sunlinsol_spgmr.h>  //access to SPGMR SUNLinearSolver
-#include <cvode/cvode_spils.h> // access to CVSpils interface
-#include <sundials/sundials_types.h>  // defs. of realtype, sunindextype
-#include <sundials/sundials_math.h>  // contains the macros ABS, SUNSQR,
+#include "cvode.h" // prototypes for CVODE fcts., consts., realtype, sunindextype
+#include "nvector_serial.h"  // access to serial N_Vector
+#include "sunlinsol_spgmr.h"  //access to SPGMR SUNLinearSolver
+#include "cvode_spils.h" // access to CVSpils interface
+
+#include "sundials_types.h"  // defs. of realtype, sunindextype
+#include "sundials_math.h"  // contains the macros ABS, SUNSQR,
 #include "ODECSolver.h"
 #include "model.h"
 using namespace Gillespy;

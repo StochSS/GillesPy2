@@ -1,5 +1,6 @@
 import os  # for getting directories for C++ files
 import shutil  # for deleting/copying files
+from distutils.dir_util import copy_tree
 import ast  # for dependency graphing
 import numpy as np
 from gillespy2.core import log, Species
@@ -26,13 +27,19 @@ def find_time(array, value):
     return index
 
 
-def _copy_files(destination, GILLESPY_C_DIRECTORY):
+def _copy_files(destination, GILLESPY_C_DIRECTORY, ode=False):
     src_files = os.listdir(GILLESPY_C_DIRECTORY)
-    for src_file in src_files:
-        src_file = os.path.join(GILLESPY_C_DIRECTORY, src_file)
-        if os.path.isfile(src_file):
-            shutil.copy(src_file, destination)
-
+    if not ode:
+        for src_file in src_files:
+            src_file = os.path.join(GILLESPY_C_DIRECTORY, src_file)
+            if os.path.isfile(src_file):
+                shutil.copy(src_file, destination)
+    else:
+        for root, dirs, files in os.walk(GILLESPY_C_DIRECTORY):
+            for file in files:
+                path_file = os.path.join(root, file)
+                shutil.copy2(path_file, destination)
+        print(src_files)
 
 def _write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
     """

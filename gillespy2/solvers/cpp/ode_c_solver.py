@@ -10,8 +10,8 @@ import tempfile  # for temporary directories
 import numpy as np
 
 GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
-GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base')
-MAKE_FILE = os.path.dirname(os.path.abspath(__file__)) + '/c_base/makefile'
+GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base/Sundials')
+MAKE_FILE = os.path.dirname(os.path.abspath(__file__)) + '/c_base/Sundials/makefile'
 
 
 def _write_constants(outfile, model, reactions, species, parameter_mappings, resume):
@@ -69,7 +69,7 @@ class ODECSolver(GillesPySolver):
     name = "ODECSolver"
     """TODO"""
 
-    def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None):
+    def __init__(self, model=None, output_directory=GILLESPY_C_DIRECTORY, delete_directory=True, resume=None):
         super(ODECSolver, self).__init__()
         self.__compiled = False
         self.delete_directory = False
@@ -101,7 +101,7 @@ class ODECSolver(GillesPySolver):
             if not os.path.isdir(self.output_directory):
                 raise gillespyError.DirectoryError("Errors encountered while setting up directory for Solver C++ files."
                                                    )
-            cutils._copy_files(self.output_directory, GILLESPY_C_DIRECTORY)
+            #cutils._copy_files(self.output_directory, GILLESPY_C_DIRECTORY, ode=True)
             self.__write_template()
             self.__compile()
 
@@ -136,17 +136,17 @@ class ODECSolver(GillesPySolver):
             if self.resume[0].model != self.model:
                 raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
             else:
-                built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'],
+                built = subprocess.run(["make", "-C", self.output_directory, 'ODESimulation'],
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         else:
             try:
                 cleaned = subprocess.run(
                     ["make", "-C", self.output_directory, '-f', MAKE_FILE,
-                     'cleanSimulation'],
+                     'cleanSimulationODE'],
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 built = subprocess.run(
                     ["make", "-C", self.output_directory, '-f', MAKE_FILE,
-                     'UserSimulation'], stdout=subprocess.PIPE,
+                     'ODESimulation'], stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE)
             except KeyboardInterrupt:
                 log.warning(
