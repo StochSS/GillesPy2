@@ -2,7 +2,7 @@ import sys
 sys.path.insert(0,'..')
 
 try:
-    from tqdm import tqdm
+    from tqdm import tqdm, trange
 except ImportError:
     raise ImportError('tqdm is required. Please install it.')
 from itertools import product
@@ -12,7 +12,6 @@ import os.path
 import numpy as np
 import pickle
 import gillespy2
-from gillespy2.solvers.python import *
 #BasicSSASolver
 from gillespy2.solvers.numpy import *
 #BasicODESolver, BasicRootSolver, BasicTauLeapingSolver, NumPySSASolver, TauLeapingSolver

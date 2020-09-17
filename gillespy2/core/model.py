@@ -1198,7 +1198,7 @@ class StochMLDocument():
 
         for reactant, stoichiometry in R.reactants.items():
             srElement = eTree.Element('SpeciesReference')
-            srElement.set('id', str(reactant))
+            srElement.set('id', reactant.name)
             srElement.set('stoichiometry', str(stoichiometry))
             reactants.append(srElement)
 
@@ -1207,7 +1207,7 @@ class StochMLDocument():
         products = eTree.Element('Products')
         for product, stoichiometry in R.products.items():
             srElement = eTree.Element('SpeciesReference')
-            srElement.set('id', str(product))
+            srElement.set('id', product.name)
             srElement.set('stoichiometry', str(stoichiometry))
             products.append(srElement)
         e.append(products)
