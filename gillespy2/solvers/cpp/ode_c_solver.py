@@ -10,8 +10,8 @@ import tempfile  # for temporary directories
 import numpy as np
 
 GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
-GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base/Sundials')
-MAKE_FILE = os.path.dirname(os.path.abspath(__file__)) + '/c_base/Sundials/makefile'
+GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base/build')
+MAKE_FILE = os.path.dirname(os.path.abspath(__file__)) + '/c_base/build/makefile'
 
 
 def _write_constants(outfile, model, reactions, species, parameter_mappings, resume):
@@ -115,7 +115,7 @@ class ODECSolver(GillesPySolver):
             # Write simulation C++ file.
             template_keyword = "__DEFINE_"
             # Use same lists of model's species and reactions to maintain order
-            with open(os.path.join(self.output_directory, 'UserSimulation.cpp'), 'w') as outfile:
+            with open(os.path.join(self.output_directory, 'ODESimulation.cpp'), 'w') as outfile:
                 for line in template:
                     if line.startswith(template_keyword):
                         line = line[len(template_keyword):]
