@@ -10,13 +10,14 @@ import tempfile  # for temporary directories
 import numpy as np
 
 GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
-GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base/build')
-MAKE_FILE = os.path.dirname(os.path.abspath(__file__)) + '/c_base/build/makefile'
-
+GILLESPY_C_ODE_DIR = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base/ode_cpp_solver')
+MAKE_FILE = os.path.dirname(os.path.abspath(__file__)) + '/c_base/ode_cpp_solver/makefile'
+SUNDIALS_DIR = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base/Sundials')
+CBASE_DIR = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base/')
 
 def _write_constants(outfile, model, reactions, species, parameter_mappings, resume):
     """
-    This function writes the models constants to a user simulation file
+    This function writes the models constants to a ODE simulation file
     :param outfile: CPP file, used for simulating a model
     :param model: The model that is being simulated
     :param reactions: List of names of a models reactions
@@ -69,7 +70,7 @@ class ODECSolver(GillesPySolver):
     name = "ODECSolver"
     """TODO"""
 
-    def __init__(self, model=None, output_directory=GILLESPY_C_DIRECTORY, delete_directory=True, resume=None):
+    def __init__(self, model=None, output_directory=False, delete_directory=True, resume=None):
         super(ODECSolver, self).__init__()
         self.__compiled = False
         self.delete_directory = False
@@ -101,7 +102,6 @@ class ODECSolver(GillesPySolver):
             if not os.path.isdir(self.output_directory):
                 raise gillespyError.DirectoryError("Errors encountered while setting up directory for Solver C++ files."
                                                    )
-            #cutils._copy_files(self.output_directory, GILLESPY_C_DIRECTORY, ode=True)
             self.__write_template()
             self.__compile()
 
@@ -111,7 +111,7 @@ class ODECSolver(GillesPySolver):
 
     def __write_template(self, template_file='ODETemplate.cpp'):
         # Open up template file for reading.
-        with open(os.path.join(self.output_directory, template_file), 'r') as template:
+        with open(os.path.join(GILLESPY_C_ODE_DIR, template_file), 'r') as template:
             # Write simulation C++ file.
             template_keyword = "__DEFINE_"
             # Use same lists of model's species and reactions to maintain order
@@ -140,14 +140,15 @@ class ODECSolver(GillesPySolver):
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         else:
             try:
-                cleaned = subprocess.run(
-                    ["make", "-C", self.output_directory, '-f', MAKE_FILE,
-                     'cleanSimulationODE'],
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                built = subprocess.run(
-                    ["make", "-C", self.output_directory, '-f', MAKE_FILE,
-                     'ODESimulation'], stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE)
+                #cleaned = subprocess.run(
+                   # ["make", "-C", self.output_directory, '-f', MAKE_FILE,
+                   #  'cleanSimulationODE'],
+                   # stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                cmd = ["make", "-C", self.output_directory, '-f', MAKE_FILE,
+                     'ODESimulation', 'GILLESPY_C_ODE_DIR='+GILLESPY_C_ODE_DIR, 'CBASE_DIR='+CBASE_DIR,
+                     'SUNDIALS_DIR='+SUNDIALS_DIR]
+                print(cmd)
+                built = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             except KeyboardInterrupt:
                 log.warning(
                     "Solver has been interrupted during compile time, unexpected behavior may occur.")
@@ -168,7 +169,8 @@ class ODECSolver(GillesPySolver):
 
     def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
             increment=0.05, seed=None, debug=False, profile=False, resume=None, **kwargs):
-
+        if model is None:
+            model = self.model
         pause = False
         if resume is not None:
             if t < resume['time'][-1]:
@@ -205,7 +207,7 @@ class ODECSolver(GillesPySolver):
 
             number_timesteps = int(round(t / increment + 1))
             # Execute simulation.
-            args = [os.path.join(self.output_directory, 'UserSimulation'), '-trajectories', str(number_of_trajectories), '-increment', str(increment),
+            args = [os.path.join(self.output_directory, 'ODESimulation'), '-trajectories', str(number_of_trajectories), '-increment', str(increment),
                     '-timesteps', str(number_timesteps), '-end', str(t)]
             if seed is not None:
                 if isinstance(seed, int):

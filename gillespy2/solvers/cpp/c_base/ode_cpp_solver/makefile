@@ -1,8 +1,8 @@
 CC=g++
 CPPFLAGS = -c  -std=c++14 -Wall -O3
-SIMFLAGS = -L. -std=c++14 -Wall -O3
-SRCDIR = ../Sundials/src
-INCDIR = ../Sundials/include
+LINKFLAGS = -L. -std=c++14 -Wall -O3
+SRCDIR = $(SUNDIALS_DIR)/src
+INCDIR = $(SUNDIALS_DIR)/include
 
 SIMDEPS = model.h
 SIMOBJ = model.o
@@ -13,20 +13,22 @@ sundials_types.h sundials_math.h sunlinsol_spgmr.h
 
 SUNOBJ = cvode_nls.o cvode_io.o sundials_iterative.o cvode_proj.o sundials_matrix.o sunmatrix_band.o sunmatrix_dense.o cvode_ls.o \
 sundials_linearsolver.o sundials_nonlinearsolver.o sundials_nvector_senswrapper.o sunnonlinsol_newton.o \
-sundials_nvector.o nvector_serial.o cvode.o cvode_spils.o sundials_math.o sunlinsol_spgmr.o ODECSolver.o
+sundials_nvector.o nvector_serial.o cvode.o cvode_spils.o sundials_math.o sunlinsol_spgmr.o
 
+model.o:
+	$(CC) -c -o model.o $(CBASE_DIR)/model.cpp -I$(CBASE_DIR) $(CPPLAGS)
 
 %.o: $(SRCDIR)/%.c
 	$(CC) -c -o $@ $< -I$(INCDIR) $(CPPLAGS)
 
 ODESimulation.o:
-	$(CC) -c -o ODESimulation.o ODESimulation.cpp -I../ $(CPPFLAGS)
+	$(CC) -c -o ODESimulation.o ODESimulation.cpp -I$(CBASE_DIR) -I$(GILLESPY_C_ODE_DIR) $(CPPFLAGS)
 
-ODECSolver.o: $(SUNOBJ) $(SIMOBJ)
-	$(CC) -c -o ODECSolver.o ODECSolver.cpp -I../ -I$(SRCDIR) -I$(INCDIR) $(OBJ) $(SIMOBJ)
+ODECSolver.o:
+	$(CC) -c -o ODECSolver.o $(GILLESPY_C_ODE_DIR)/ODECSolver.cpp -I$(CBASE_DIR) -I$(SRCDIR) -I$(INCDIR)
 
-ODESimulation: ODECSolver.o ODESimulation.o
-	$(CC) -o ODESimulation ODECSolver.o ODESimulation.o $(SIMFLAGS)
+ODESimulation: ODECSolver.o ODESimulation.o $(SUNOBJ) model.o
+	$(CC) -o ODESimulation ODECSolver.o ODESimulation.o $(SUNOBJ) model.o $(LINKFLAGS)
 
 cleanSimulationODE:
 	rm -f ODESimulation
