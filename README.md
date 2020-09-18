@@ -45,12 +45,12 @@ python3 -m pip install gillespy2 --user --upgrade
 
 As an alternative to getting it from PyPI, you can instruct `pip` to install GillesPy2 directly from the GitHub repository:
 ```sh
-python3 -m pip install https://github.com/GillesPy2/GillesPy2/archive/main.zip --user --upgrade
+python3 -m pip install https://github.com/StochSS/GillesPy2/archive/main.zip --user --upgrade
 ```
 
 As a final alternative, you can first use `git` to clone a copy of the GillesPy2 source tree from the GitHub repository to your local computer disk, and then install GillesPy2 using that copy:
 ```sh
-git clone https://github.com/GillesPy2/GillesPy2.git
+git clone https://github.com/StochSS/GillesPy2.git
 cd GillesPy2
 python3 -m pip install  .  --user --upgrade
 ```
@@ -63,7 +63,7 @@ GillesPy2 provides simple object-oriented abstractions for defining a model of a
 1. Create a `GillesPy2.Model` containing molecular species, parameters, and reactions (or import it from an [SBML](http://sbml.org) file)
 2. Invoke the model's `.run()` method.
 
-The `run()` method can be customized using keyword arguments to select different solvers, random seed, data return type and more.  For more detailed examples on how to use GillesPy2, please see the [Getting Started](https://github.com/StochSS/GillesPy2/tree/main/examples/Getting-Started.ipynb) Jupyter notebook contained in the [examples](https://github.com/StochSS/GillesPy2/tree/main/examples) subdirectory.
+The `run()` method can be customized using keyword arguments to select different solvers, random seed, data return type and more.  For more detailed examples on how to use GillesPy2, please see the [Getting Started](https://github.com/StochSS/GillesPy2/tree/main/examples/StartHere.ipynb) Jupyter notebook contained in the [examples](https://github.com/StochSS/GillesPy2/tree/main/examples) subdirectory.
 
 ### _Simple example to illustrate the use of GillesPy2_
 
