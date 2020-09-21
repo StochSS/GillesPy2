@@ -26,15 +26,7 @@ def find_time(array, value):
     return index
 
 
-def _copy_files(destination, GILLESPY_C_DIRECTORY):
-    src_files = os.listdir(GILLESPY_C_DIRECTORY)
-    for src_file in src_files:
-        src_file = os.path.join(GILLESPY_C_DIRECTORY, src_file)
-        if os.path.isfile(src_file):
-            shutil.copy(src_file, destination)
-
-
-def _write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
+def write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
     """
     This functions writes a models propensity functions to a cpp user simulation template, for the SSACSolvers.
     :param outfile: File where the propensity function will be written to
@@ -53,7 +45,7 @@ def _write_propensity(outfile, model, species_mappings, parameter_mappings, reac
                                                                                         parameter_mappings)))
 
 
-def _write_reactions(outfile, model, reactions, species):
+def write_reactions(outfile, model, reactions, species):
     customrxns = {}
     for i in range(len(reactions)):
         reaction = model.listOfReactions[reactions[i]]
@@ -75,7 +67,7 @@ def _write_reactions(outfile, model, reactions, species):
                 outfile.write("model.reactions[{0}].affected_reactions.push_back({1});\n".format(i, j))
 
 
-def _parse_binary_output(number_of_trajectories, number_timesteps, number_species, data, pause=False):
+def parse_binary_output(number_of_trajectories, number_timesteps, number_species, data, pause=False):
     """
     This function reads binary output from a CPP simulation
     :param data: stdout of the CPP simulation ran
@@ -101,7 +93,6 @@ def _parse_binary_output(number_of_trajectories, number_timesteps, number_specie
             index = i + (number_timesteps*(number_species+1)*t)
             trajectory_base[t][i//(number_species+1)][i % (number_species+1)] = data[index]
     return trajectory_base, timeStopped
-
 
 
 def c_solver_resume(timeStopped, simulation_data, t, resume=None):

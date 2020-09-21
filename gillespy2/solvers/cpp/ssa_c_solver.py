@@ -10,8 +10,10 @@ import tempfile #for temporary directories
 import numpy as np
 
 GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
-GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base')
-MAKE_FILE = os.path.dirname(os.path.abspath(__file__))+'/c_base/makefile'
+GILLESPY_CPP_SSA_DIR = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base/ssa_cpp_solver')
+MAKE_FILE = os.path.dirname(os.path.abspath(__file__)) + '/c_base/ssa_cpp_solver/makefile'
+CBASE_DIR = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base/')
+
 
 def _write_constants(outfile, model, reactions, species, parameter_mappings, resume):
     """
@@ -100,7 +102,6 @@ class SSACSolver(GillesPySolver):
             if not os.path.isdir(self.output_directory):
                 raise gillespyError.DirectoryError("Errors encountered while setting up directory for Solver C++ files."
                                                    )
-            cutils._copy_files(self.output_directory, GILLESPY_C_DIRECTORY)
             self.__write_template()
             self.__compile()
 
@@ -110,7 +111,7 @@ class SSACSolver(GillesPySolver):
         
     def __write_template(self, template_file='SimulationTemplate.cpp'):
         # Open up template file for reading.
-        with open(os.path.join(self.output_directory, template_file), 'r') as template:
+        with open(os.path.join(GILLESPY_CPP_SSA_DIR, template_file), 'r') as template:
             # Write simulation C++ file.
             template_keyword = "__DEFINE_"
             # Use same lists of model's species and reactions to maintain order
@@ -120,33 +121,27 @@ class SSACSolver(GillesPySolver):
                         line = line[len(template_keyword):]
                         if line.startswith("CONSTANTS"):
                             _write_constants(outfile, self.model, self.reactions, self.species, self.parameter_mappings
-                                             ,self.resume)
+                                             , self.resume)
                         if line.startswith("PROPENSITY"):
-                            cutils._write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings
-                                                     , self.reactions)
+                            cutils.write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings
+                                                    , self.reactions)
                         if line.startswith("REACTIONS"):
-                            cutils._write_reactions(outfile, self.model, self.reactions, self.species)
+                            cutils.write_reactions(outfile, self.model, self.reactions, self.species)
                     else:
                         outfile.write(line)
 
     def __compile(self):
+        cmd = ["make", "-C", self.output_directory, '-f', MAKE_FILE, 'UserSimulation', 'GILLESPY_CPP_SSA_DIR='
+               + GILLESPY_CPP_SSA_DIR, 'CBASE_DIR=' + CBASE_DIR]
         # Use makefile.
         if self.resume:
             if self.resume[0].model != self.model:
                 raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
             else:
-                built = subprocess.run(["make", "-C", self.output_directory, 'UserSimulation'],
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                built = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         else:
              try:
-                 cleaned = subprocess.run(
-                     ["make", "-C", self.output_directory, '-f', MAKE_FILE,
-                      'cleanSimulation'],
-                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                 built = subprocess.run(
-                     ["make", "-C", self.output_directory, '-f', MAKE_FILE,
-                      'UserSimulation'], stdout=subprocess.PIPE,
-                     stderr=subprocess.PIPE)
+                 built = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
              except KeyboardInterrupt:
                  log.warning(
                      "Solver has been interrupted during compile time, unexpected behavior may occur.")
@@ -243,9 +238,8 @@ class SSACSolver(GillesPySolver):
             # Parse/return results
 
             if return_code in [0, 33]:
-                trajectory_base, timeStopped = cutils._parse_binary_output(number_of_trajectories,
-                                                                           number_timesteps, len(model.listOfSpecies), stdout,
-                                                                           pause=pause)
+                trajectory_base, timeStopped = cutils.parse_binary_output(number_of_trajectories, number_timesteps,
+                                                                          len(model.listOfSpecies), stdout, pause=pause)
                 if model.tspan[2] - model.tspan[1] == 1:
                     timeStopped = int(timeStopped)
                 # Format results

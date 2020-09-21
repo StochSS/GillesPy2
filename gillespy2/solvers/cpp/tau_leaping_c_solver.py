@@ -122,10 +122,10 @@ class TauLeapingCSolver(GillesPySolver):
                             _write_constants(outfile, self.model, self.reactions, self.species, self.parameter_mappings
                                              , self.resume)
                         if line.startswith("PROPENSITY"):
-                            cutils._write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings
-                                                     , self.reactions)
+                            cutils.write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings
+                                                    , self.reactions)
                         if line.startswith("REACTIONS"):
-                            cutils._write_reactions(outfile, self.model, self.reactions, self.species)
+                            cutils.write_reactions(outfile, self.model, self.reactions, self.species)
                     else:
                         outfile.write(line)
 
@@ -240,9 +240,9 @@ class TauLeapingCSolver(GillesPySolver):
             stdout = stdout.decode('utf-8').split(',')
             # Parse/return results.
             if return_code in [0, 33]:
-                trajectory_base, timeStopped = cutils._parse_binary_output(number_of_trajectories,
-                                                                           number_timesteps, len(model.listOfSpecies),
-                                                                           stdout,pause=pause)
+                trajectory_base, timeStopped = cutils.parse_binary_output(number_of_trajectories,
+                                                                          number_timesteps, len(model.listOfSpecies),
+                                                                          stdout, pause=pause)
                 if model.tspan[2] - model.tspan[1] == 1:
                     timeStopped = int(timeStopped)
 
