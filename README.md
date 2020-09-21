@@ -152,7 +152,7 @@ New developments happen primarily in the [`develop`](https://github.com/StochSS/
 
 | Main Branch   | Develop Branch | Test Coverage | Maintainability |
 |:---------------:|:--------------:|:--------:|:---------------:|
-| [![Build Status](https://travis-ci.org/StochSS/GillesPy2.svg?branch=main)](https://travis-ci.org/StochSS/GillesPy2) | [![Build Status](https://travis-ci.org/StochSS/GillesPy2.svg?branch=develop)](https://travis-ci.org/StochSS/GillesPy2) | [![Test Coverage](https://api.codeclimate.com/v1/badges/990ac9d778d681d32eea/test_coverage)](https://codeclimate.com/github/StochSS/GillesPy2/test_coverage) | [![Maintainability](https://api.codeclimate.com/v1/badges/990ac9d778d681d32eea/maintainability)](https://codeclimate.com/github/StochSS/GillesPy2/maintainability) |
+| [![Build Status](https://travis-ci.org/StochSS/GillesPy2.svg?branch=main)](https://travis-ci.org/StochSS/GillesPy2) | [![Build Status](https://travis-ci.org/StochSS/GillesPy2.svg?branch=develop)](https://travis-ci.org/StochSS/GillesPy2) | [![Test Coverage](https://api.codeclimate.com/v1/badges/990ac9d778d681d32eea/test_coverage)](https://codeclimate.com/github/GillesPy2/GillesPy2/test_coverage) | [![Maintainability](https://api.codeclimate.com/v1/badges/990ac9d778d681d32eea/maintainability)](https://codeclimate.com/github/GillesPy2/GillesPy2/maintainability) |
 
 License
 -------
