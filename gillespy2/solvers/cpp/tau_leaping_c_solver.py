@@ -10,8 +10,9 @@ import tempfile  # for temporary directories
 import numpy as np
 
 GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
-GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base')
-
+GILLESPY_CPP_TAU_DIR = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base/tau_leaping_cpp_solver')
+MAKE_FILE = os.path.dirname(os.path.abspath(__file__)) + '/c_base/tau_leaping_cpp_solver/makefile'
+CBASE_DIR = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base/')
 
 def _write_constants(outfile, model, reactions, species, parameter_mappings, resume):
     """
@@ -100,7 +101,6 @@ class TauLeapingCSolver(GillesPySolver):
             if not os.path.isdir(self.output_directory):
                 raise gillespyError.DirectoryError("Errors encountered while setting up directory for Solver C++ files."
                                                    )
-            cutils._copy_files(self.output_directory, GILLESPY_C_DIRECTORY)
             self.__write_template()
             self.__compile()
 
@@ -110,7 +110,7 @@ class TauLeapingCSolver(GillesPySolver):
 
     def __write_template(self, template_file='tausimulationtemplate.cpp'):
         # Open up template file for reading.
-        with open(os.path.join(self.output_directory, template_file), 'r') as template:
+        with open(os.path.join(GILLESPY_CPP_TAU_DIR, template_file), 'r') as template:
             # Write simulation C++ file.
             template_keyword = "__DEFINE_"
             # Use same lists of model's species and reactions to maintain order
@@ -130,19 +130,17 @@ class TauLeapingCSolver(GillesPySolver):
                         outfile.write(line)
 
     def __compile(self):
-        # Use makefile.
+        cmd = ["make", "-C", self.output_directory, '-f', MAKE_FILE,
+               'TauSimulation', 'GILLESPY_CPP_TAU_DIR=' + GILLESPY_CPP_TAU_DIR, 'CBASE_DIR=' + CBASE_DIR]
+
         if self.resume:
             if self.resume[0].model != self.model:
                 raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
             else:
-                built = subprocess.run(["make", "-C", self.output_directory, 'TauSimulation'], stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE)
+                built = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         else:
             try:
-                cleaned = subprocess.run(["make", "-C", self.output_directory, 'cleanSimulationTau'],
-                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                built = subprocess.run(["make", "-C", self.output_directory, 'TauSimulation'],
-                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                built = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             except KeyboardInterrupt:
                 log.warning("Solver has been interrupted during compile time, unexpected behavior may occur.")
 
@@ -238,12 +236,13 @@ class TauLeapingCSolver(GillesPySolver):
                     stdout, stderr = simulation.communicate()
                     pause = True
                     return_code = 33
-
+            # Decode from byte, split by comma into array
+            stdout = stdout.decode('utf-8').split(',')
             # Parse/return results.
             if return_code in [0, 33]:
-                trajectory_base, timeStopped = cutils._parse_binary_output(stdout, number_of_trajectories,
+                trajectory_base, timeStopped = cutils._parse_binary_output(number_of_trajectories,
                                                                            number_timesteps, len(model.listOfSpecies),
-                                                                           pause=pause)
+                                                                           stdout,pause=pause)
                 if model.tspan[2] - model.tspan[1] == 1:
                     timeStopped = int(timeStopped)
 

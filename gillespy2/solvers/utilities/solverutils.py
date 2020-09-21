@@ -75,10 +75,10 @@ def _write_reactions(outfile, model, reactions, species):
                 outfile.write("model.reactions[{0}].affected_reactions.push_back({1});\n".format(i, j))
 
 
-def _parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species, data, pause=False):
+def _parse_binary_output(number_of_trajectories, number_timesteps, number_species, data, pause=False):
     """
     This function reads binary output from a CPP simulation
-    :param results_buffer: stdout of the CPP simulation ran
+    :param data: stdout of the CPP simulation ran
     :param number_of_trajectories: Total number of trajectories for a simulation
     :type number_of_trajectories: int
     :param number_timesteps: How many steps for a given simulation
@@ -90,7 +90,6 @@ def _parse_binary_output(results_buffer, number_of_trajectories, number_timestep
     timeout.
     """
     trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
-
     # Timestopped is added to the end of the data, when a simulation completes or is paused
     if pause:
         timeStopped = int(data[-1])
@@ -101,7 +100,6 @@ def _parse_binary_output(results_buffer, number_of_trajectories, number_timestep
         for i in range(number_timesteps*(number_species+1)):
             index = i + (number_timesteps*(number_species+1)*t)
             trajectory_base[t][i//(number_species+1)][i % (number_species+1)] = data[index]
-
     return trajectory_base, timeStopped
 
 
