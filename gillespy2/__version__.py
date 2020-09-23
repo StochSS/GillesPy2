@@ -5,7 +5,7 @@
 # @website https://github.com/StochSS/GillesPy2
 # =============================================================================
 
-__version__      = '1.5.4'
+__version__      = '1.5.5'
 __title__        = 'GillesPy2'
 __description__  = 'Python interface for Gillespie-style biochemical simulations'
 __url__          = 'https://github.com/StochSS/GillesPy2'
