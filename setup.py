@@ -3,7 +3,7 @@
 # @file    setup.py
 # @brief   GillesPy2 setup file
 # @license Please see the file named LICENSE in the project directory
-# @website https://github.com/GillesPy2/GillesPy2
+# @website https://github.com/StochSS/GillesPy2
 #
 # Note: how to do a PyPI release
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -65,8 +65,8 @@ setup(name                 = version['__title__'].lower(),
       long_description_content_type = "text/markdown",
       keywords             = "biochemical simulation, Gillespie algorithm, stochastic simulation, biology",
       project_urls         = {
-          "Tracker": "https://github.com/GillesPy2/GillesPy2/issues",
-          "Source" : "https://github.com/GillesPy2/GillesPy2",
+          "Tracker": "https://github.com/StochSS/GillesPy2/issues",
+          "Source" : "https://github.com/StochSS/GillesPy2",
       },
       packages             = find_packages('.'),
       include_package_data = True,
