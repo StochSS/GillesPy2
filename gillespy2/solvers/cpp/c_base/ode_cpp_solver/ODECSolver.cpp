@@ -40,9 +40,9 @@ void ODESolver(Gillespy::Simulation* simulation, double increment){
 	N_Vector y0; // Initialize initial condition vector as an N_Vector.
 	y0 = N_VNew_Serial(N);
 	for(unsigned int species_number = 0; species_number < ((simulation -> model) -> number_species); species_number++){
-        NV_Ith_S(y0, species_number) = (simulation -> model) -> species[species_number].initial_population;
-        simulation -> trajectories[0][0][species_number] = (simulation -> model) -> species[species_number].initial_population;
-  	  } // Add species initial conditions to 'y0', our "current state vector"
+		NV_Ith_S(y0, species_number) = (simulation -> model) -> species[species_number].initial_population;
+		simulation -> trajectories[0][0][species_number] = (simulation -> model) -> species[species_number].initial_population;
+	} // Add species initial conditions to 'y0', our "current state vector"
 
 	//Initialize CVODE solver object
 	void* cvode_mem = NULL; // create cvode object ptr
@@ -86,9 +86,9 @@ void ODESolver(Gillespy::Simulation* simulation, double increment){
 	int curr_time = 0;
 	for (tout = step_length; tout <= end_time; tout += step_length){
 		flag = CVode(cvode_mem, tout, y0, &tret, CV_NORMAL);
-        curr_time+=1;
-        for (sunindextype species = 0; species < N; species++){
-            simulation->trajectories[0][curr_time][(int)species] = NV_Ith_S(y0,species);
+		curr_time+=1;
+		for (sunindextype species = 0; species < N; species++){
+			simulation->trajectories[0][curr_time][(int)species] = NV_Ith_S(y0,species);
         	}
 	}
 
