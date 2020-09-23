@@ -26,9 +26,9 @@ void ODESolver(Gillespy::Simulation* simulation, double increment){
 	// CV_ILL_Input: An input tolerance was negative
 
 	// Allocate memory for data to be passed to RHS of ODE
-    UserData *data = new UserData();
-    data->my_sim = simulation;
-    // my_sim points to a Gillespy::Simulation struct
+    	UserData *data = new UserData();
+    	data->my_sim = simulation;
+    	// my_sim points to a Gillespy::Simulation struct
 
 	realtype abstol = 1e-5; // real tolerance of system
   	realtype reltol = 1e-5; // absolute tolerance of system
@@ -42,7 +42,7 @@ void ODESolver(Gillespy::Simulation* simulation, double increment){
 	for(unsigned int species_number = 0; species_number < ((simulation -> model) -> number_species); species_number++){
         NV_Ith_S(y0, species_number) = (simulation -> model) -> species[species_number].initial_population;
         simulation -> trajectories[0][0][species_number] = (simulation -> model) -> species[species_number].initial_population;
-    } // Add species initial conditions to 'y0', our "current state vector"
+  	  } // Add species initial conditions to 'y0', our "current state vector"
 
 	//Initialize CVODE solver object
 	void* cvode_mem = NULL; // create cvode object ptr
@@ -63,8 +63,8 @@ void ODESolver(Gillespy::Simulation* simulation, double increment){
 	LS = SUNLinSol_SPGMR(y0, 0, 0);
 
 	// Attach linear solver module 
-    flag = CVodeSetUserData(cvode_mem, data);
-    // CVodeSetLinearSolver(cvode_mem, LS, J))
+   	flag = CVodeSetUserData(cvode_mem, data);
+    	// CVodeSetLinearSolver(cvode_mem, LS, J))
 	// cvode_mem : pointer to CVODE memory block | LS : SUNLINSOL object to use for solving linear systems
 	// J : SUNMATRIX object as template for the Jacobian, default NULL if not applicable
 	flag = CVodeSetLinearSolver(cvode_mem, LS, NULL);
@@ -89,7 +89,7 @@ void ODESolver(Gillespy::Simulation* simulation, double increment){
         curr_time+=1;
         for (sunindextype species = 0; species < N; species++){
             simulation->trajectories[0][curr_time][(int)species] = NV_Ith_S(y0,species);
-        }
+        	}
 	}
 
 	// Deallocate memory from solution vec
@@ -104,37 +104,37 @@ void ODESolver(Gillespy::Simulation* simulation, double increment){
 
 
 static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data) {
-  // N_VGetArrayPointer returns a pointer to the data in the N_Vector class.
+  	// N_VGetArrayPointer returns a pointer to the data in the N_Vector class.
   	realtype *ydata  = N_VGetArrayPointer(y); // pointer y vector
   	realtype *dydata = N_VGetArrayPointer(y_dot); // pointer ydot vec
   	UserData *sim_data;
   	sim_data = (UserData*) user_data; // void pointer magic
 
-    std::vector <double> curr_state; // create vector of curr_state doubles, sent to propensity_function->evaluate()
+    	std::vector <double> curr_state; // create vector of curr_state doubles, sent to propensity_function->evaluate()
   	int number_species = sim_data->my_sim->model->number_species; // for readability
   	int number_reacs = sim_data->my_sim->model->number_reactions; // for readability
-    std::vector <realtype> propensity; // Vector of propensities of type 'realtypes' (doubles used in SUNDIALS),
+   	std::vector <realtype> propensity; // Vector of propensities of type 'realtypes' (doubles used in SUNDIALS),
 
   	for (sunindextype i = 0; i < number_species; i++){
-  	    dydata[i] = 0; // Initialize change in y to '0'
+		dydata[i] = 0; // Initialize change in y to '0'
   		curr_state.push_back(ydata[i]); // add values found in our curr_state vector, 'ydata' to our curr_state <double> vector
   		// This vector is used for our propensity_function method "evaluate", defined in abstract in 'model.h'
   	}
 
   	for (sunindextype rxn = 0; rxn < number_reacs; rxn++){
-  	    // Calculate propensity for each reaction, at current state
+		// Calculate propensity for each reaction, at current state
   		propensity.push_back((sim_data->my_sim)->propensity_function->evaluate((int)rxn, curr_state));
 
-  	    for (sunindextype spec = 0; spec < (sim_data->my_sim)->model->number_species; spec++){
-            // if species is a product of this reaction, add propensity fxn
-    		if ((sim_data->my_sim)->model->reactions[rxn].species_change[spec] > 0){
-    			dydata[spec] += propensity[rxn];
-    		}
-    		// else if this species is reactant, subtract propensity fxn
-    		else if ((sim_data->my_sim)->model->reactions[rxn].species_change[spec] < 0){
-    			dydata[spec] -= propensity[rxn];
-    		}
-  	    }
+  	   	for (sunindextype spec = 0; spec < (sim_data->my_sim)->model->number_species; spec++){
+			// if species is a product of this reaction, add propensity fxn
+    			if ((sim_data->my_sim)->model->reactions[rxn].species_change[spec] > 0){
+    				dydata[spec] += propensity[rxn];
+    			}
+    			// else if this species is reactant, subtract propensity fxn
+    			else if ((sim_data->my_sim)->model->reactions[rxn].species_change[spec] < 0){
+				dydata[spec] -= propensity[rxn];
+    			}
+  	  	  }
   	}
 
 
