@@ -760,7 +760,7 @@ class Model(SortableObject):
                 from gillespy2 import SSACSolver
                 return SSACSolver
 
-    def run(self, solver=None, timeout=0, t=None, show_labels=True, cpp_support=False, **solver_args):
+    def run(self, solver=None, timeout=0, t=None, increment=None, show_labels=True, cpp_support=False, **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -800,10 +800,10 @@ class Model(SortableObject):
 
         if solver is None:
             solver = self.get_best_solver()
-
+        if increment is None:
+            increment = self.tspan[-1] - self.tspan[-2]
         try:
-            solver_results, rc = solver.run(model=self, t=t, increment=self.tspan[-1] - self.tspan[-2],
-                                            timeout=timeout, **solver_args)
+            solver_results, rc = solver.run(model=self, t=t, increment=increment, timeout=timeout, **solver_args)
         except Exception as e:
             # If user has specified the SSACSolver, but they don't actually have a g++ compiler,
             # This will throw an error and throw log. IF a user specifies cpp_support == True and don't have a compiler
