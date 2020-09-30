@@ -135,23 +135,14 @@ class ODECSolver(GillesPySolver):
         if self.resume:
             if self.resume[0].model != self.model:
                 raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
-            else:
-                built = subprocess.run(["make", "-C", self.output_directory, 'ODESimulation'],
-                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        else:
-            try:
-                #cleaned = subprocess.run(
-                   # ["make", "-C", self.output_directory, '-f', MAKE_FILE,
-                   #  'cleanSimulationODE'],
-                   # stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                cmd = ["make", "-C", self.output_directory, '-f', MAKE_FILE,
-                     'ODESimulation', 'GILLESPY_C_ODE_DIR='+GILLESPY_C_ODE_DIR, 'CBASE_DIR='+CBASE_DIR,
-                     'SUNDIALS_DIR='+SUNDIALS_DIR]
-                print(cmd)
-                built = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            except KeyboardInterrupt:
-                log.warning(
-                    "Solver has been interrupted during compile time, unexpected behavior may occur.")
+        try:
+            cmd = ["make", "-C", self.output_directory, '-f', MAKE_FILE,
+                 'ODESimulation', 'GILLESPY_C_ODE_DIR='+GILLESPY_C_ODE_DIR, 'CBASE_DIR='+CBASE_DIR,
+                 'SUNDIALS_DIR='+SUNDIALS_DIR]
+            built = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except KeyboardInterrupt:
+            log.warning(
+                "Solver has been interrupted during compile time, unexpected behavior may occur.")
 
         if built.returncode == 0:
             self.__compiled = True
