@@ -242,7 +242,7 @@ class VariableSSACSolver(GillesPySolver):
             if self.parameters[-1] in variables:
                 parameter_values += '{}'.format(variables[self.parameters[-1]])
             else:
-                if self.parameters[i] == 'vol':
+                if self.parameters[-1] == 'vol':
                     parameter_values += '{}'.format(model.volume)
                 else:
                     parameter_values += '{}'.format(model.listOfParameters[self.parameters[-1]].expression)

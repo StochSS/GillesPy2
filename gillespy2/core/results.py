@@ -42,7 +42,7 @@ def _plotplotly_iterate(trajectory, show_labels=True, trace_list=None, line_dict
 
     import plotly.graph_objs as go
 
-    for i,species in enumerate(trajectory.data):
+    for i, species in enumerate(trajectory.data):
         if species != 'time':
 
             if species not in included_species_list and included_species_list:
@@ -61,7 +61,8 @@ def _plotplotly_iterate(trajectory, show_labels=True, trace_list=None, line_dict
                         y=trajectory.data[species],
                         mode='lines',
                         name=species,
-                        line = line_dict
+                        line=line_dict,
+                        legendgroup=species
                     )
                 )
             else:
@@ -72,6 +73,7 @@ def _plotplotly_iterate(trajectory, show_labels=True, trace_list=None, line_dict
                         mode='lines',
                         name=species,
                         line=line_dict,
+                        legendgroup=species,
                         showlegend=False
                     )
                 )
@@ -431,6 +433,7 @@ class Results(UserList):
                 else:
                     trace_list = _plotplotly_iterate(trajectory, trace_list=trace_list, included_species_list=
                     included_species_list)
+
 
             layout = go.Layout(
                 showlegend=show_legend,
