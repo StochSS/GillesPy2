@@ -43,7 +43,7 @@ deploy:
   user: __token__
   on:
     condition: $TRAVIS_DIST = xenial
-    repo: GillesPy2/GillesPy2
+    repo: StochSS/GillesPy2
     branch: main
     tags: true
 

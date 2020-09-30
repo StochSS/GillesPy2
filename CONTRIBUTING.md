@@ -3,7 +3,7 @@
 By contributing to GillesPy2, you agree to the [Code of Conduct](/CODE_OF_CONDUCT.md) and that the contents of this project are distributed under the [GNU GPL v3](/LICENSE). Please review both of these documents. If after reading you are interested in contributing, please follow these guidelines:  
 
 ### 1. Making Changes:  
-a) Create a fork from this repository ('https://github.com/GillesPy2/GillesPy2')  
+a) Create a fork from this repository ('https://github.com/StochSS/GillesPy2')  
 b) Create a new branch.  
 c) Please use a meaningful name, and include the issue # if applicable.  
 d) For bug fixes, branch from 'main'  
