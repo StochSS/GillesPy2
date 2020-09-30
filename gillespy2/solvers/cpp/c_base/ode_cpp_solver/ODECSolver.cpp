@@ -84,7 +84,7 @@ void ODESolver(Gillespy::Simulation* simulation, double increment){
 	// Cvode() returns a vector, 'y0' (which is y(tout)), and corresponding  variable value 't' = tret (return time).
 	// With CV_NORMAL, tret will be equal to tout, and y0 = y(tout)
 	int curr_time = 0;
-	for (tout = step_length; tout <= end_time; tout += step_length){
+	for (tout = step_length; tout < end_time+step_length; tout += step_length){
 		flag = CVode(cvode_mem, tout, y0, &tret, CV_NORMAL);
 		curr_time+=1;
 		for (sunindextype species = 0; species < N; species++){
