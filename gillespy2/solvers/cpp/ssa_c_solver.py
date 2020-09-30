@@ -1,12 +1,12 @@
 import gillespy2
 from gillespy2.core import gillespyError, GillesPySolver, log
 from gillespy2.solvers.utilities import solverutils as cutils
-import signal, time #for solver timeout implementation
-import os #for getting directories for C++ files
-import shutil #for deleting/copying files
-import subprocess #For calling make and executing c solver
-import inspect #for finding the Gillespy2 module path
-import tempfile #for temporary directories
+import signal, time  # for solver timeout implementation
+import os  # for getting directories for C++ files
+import shutil  # for deleting/copying files
+import subprocess  # For calling make and executing c solver
+import inspect  # for finding the Gillespy2 module path
+import tempfile  # for temporary directories
 import numpy as np
 
 GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
@@ -31,16 +31,16 @@ def _write_constants(outfile, model, reactions, species, parameter_mappings, res
     outfile.write("std :: string s_names[] = {")
     if len(species) > 0:
         # Write model species names.
-        for i in range(len(species)-1):
+        for i in range(len(species) - 1):
             outfile.write('"{}", '.format(species[i]))
         outfile.write('"{}"'.format(species[-1]))
         outfile.write("};\nunsigned int populations[] = {")
         # Write initial populations.
-        for i in range(len(species)-1):
+        for i in range(len(species) - 1):
             # If resuming
             if not (resume is None):
                 if isinstance(resume, np.ndarray):
-                    outfile.write('{}, '.format(int(resume[0][-1][i+1])))
+                    outfile.write('{}, '.format(int(resume[0][-1][i + 1])))
                 else:
                     outfile.write('{}, '.format(int(resume[species[i]][-1])))
             else:
@@ -56,7 +56,7 @@ def _write_constants(outfile, model, reactions, species, parameter_mappings, res
     if len(reactions) > 0:
         # Write reaction names
         outfile.write("std :: string r_names[] = {")
-        for i in range(len(reactions)-1):
+        for i in range(len(reactions) - 1):
             outfile.write('"{}", '.format(reactions[i]))
         outfile.write('"{}"'.format(reactions[-1]))
         outfile.write("};\n")
@@ -86,7 +86,7 @@ class SSACSolver(GillesPySolver):
 
             if isinstance(output_directory, str):
                 output_directory = os.path.abspath(output_directory)
-            
+
                 if isinstance(output_directory, str):
                     if not os.path.isfile(output_directory):
                         self.output_directory = output_directory
@@ -98,7 +98,7 @@ class SSACSolver(GillesPySolver):
             else:
                 self.temporary_directory = tempfile.TemporaryDirectory()
                 self.output_directory = self.temporary_directory.name
-                
+
             if not os.path.isdir(self.output_directory):
                 raise gillespyError.DirectoryError("Errors encountered while setting up directory for Solver C++ files."
                                                    )
@@ -108,7 +108,7 @@ class SSACSolver(GillesPySolver):
     def __del__(self):
         if self.delete_directory and os.path.isdir(self.output_directory):
             shutil.rmtree(self.output_directory)
-        
+
     def __write_template(self, template_file='SimulationTemplate.cpp'):
         # Open up template file for reading.
         with open(os.path.join(GILLESPY_CPP_SSA_DIR, template_file), 'r') as template:
@@ -137,14 +137,11 @@ class SSACSolver(GillesPySolver):
         if self.resume:
             if self.resume[0].model != self.model:
                 raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
-            else:
-                built = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        else:
-             try:
-                 built = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-             except KeyboardInterrupt:
-                 log.warning(
-                     "Solver has been interrupted during compile time, unexpected behavior may occur.")
+        try:
+            built = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except KeyboardInterrupt:
+            log.warning(
+                "Solver has been interrupted during compile time, unexpected behavior may occur.")
 
         if built.returncode == 0:
             self.__compiled = True
@@ -176,13 +173,13 @@ class SSACSolver(GillesPySolver):
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
-        
+
         unsupported_sbml_features = {
-                        'Rate Rules': len(model.listOfRateRules),
-                        'Assignment Rules': len(model.listOfAssignmentRules), 
-                        'Events': len(model.listOfEvents),
-                        'Function Definitions': len(model.listOfFunctionDefinitions)
-                        }
+            'Rate Rules': len(model.listOfRateRules),
+            'Assignment Rules': len(model.listOfAssignmentRules),
+            'Events': len(model.listOfEvents),
+            'Function Definitions': len(model.listOfFunctionDefinitions)
+        }
         detected_features = []
         for feature, count in unsupported_sbml_features.items():
             if count:
@@ -197,7 +194,7 @@ class SSACSolver(GillesPySolver):
             if resume is not None:
                 t = abs(t - resume['time'][-1])
 
-            number_timesteps = int(round(t/increment + 1))
+            number_timesteps = int(round(t / increment + 1))
             # Execute simulation.
             args = [os.path.join(self.output_directory, 'UserSimulation'), '-trajectories', str(number_of_trajectories),
                     '-timesteps', str(number_timesteps), '-end', str(t)]
@@ -228,10 +225,10 @@ class SSACSolver(GillesPySolver):
                     pause = True
                     return_code = 33
                 except subprocess.TimeoutExpired:
-                        os.killpg(simulation.pid, signal.SIGINT)  # send signal to the process group
-                        stdout, stderr = simulation.communicate()
-                        pause = True
-                        return_code = 33
+                    os.killpg(simulation.pid, signal.SIGINT)  # send signal to the process group
+                    stdout, stderr = simulation.communicate()
+                    pause = True
+                    return_code = 33
 
             # Decode from byte, split by comma into array
             stdout = stdout.decode('utf-8').split(',')
@@ -257,4 +254,3 @@ class SSACSolver(GillesPySolver):
                 self.simulation_data = cutils.c_solver_resume(timeStopped, self.simulation_data, t, resume=resume)
 
         return self.simulation_data, return_code
-

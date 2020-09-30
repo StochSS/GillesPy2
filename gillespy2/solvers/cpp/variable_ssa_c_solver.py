@@ -154,14 +154,11 @@ class VariableSSACSolver(GillesPySolver):
         if self.resume:
             if self.resume[0].model != self.model:
                 raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
-            else:
-                built = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        else:
-            try:
-                built = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            except KeyboardInterrupt:
-                log.warning(
-                    "Solver has been interrupted during compile time, unexpected behavior may occur.")
+        try:
+            built = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except KeyboardInterrupt:
+            log.warning(
+                "Solver has been interrupted during compile time, unexpected behavior may occur.")
         if built.returncode == 0:
             self.__compiled = True
         else:
