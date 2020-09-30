@@ -50,7 +50,7 @@
 
 #ifndef _SUNDIALS_CONFIG_H
 #define _SUNDIALS_CONFIG_H
-#include <sundials/sundials_config.h>
+#include "sundials_config.h"
 #endif
 
 #include <float.h>

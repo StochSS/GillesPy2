@@ -24,8 +24,8 @@
 
 #include <stdio.h>
 
-#include <sundials/sundials_iterative.h>
-#include <sundials/sundials_math.h>
+#include "sundials_iterative.h"
+#include "sundials_math.h"
 
 #define FACTOR RCONST(1000.0)
 #define ZERO   RCONST(0.0)

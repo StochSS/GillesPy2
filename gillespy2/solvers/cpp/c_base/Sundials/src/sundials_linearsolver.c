@@ -19,7 +19,7 @@
  * -----------------------------------------------------------------*/
 
 #include <stdlib.h>
-#include <sundials/sundials_linearsolver.h>
+#include "sundials_linearsolver.h"
 
 /* -----------------------------------------------------------------
  * Create a new empty SUNLinearSolver object

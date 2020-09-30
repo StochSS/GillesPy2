@@ -19,11 +19,11 @@
 #ifndef _CVLS_H
 #define _CVLS_H
 
-#include <sundials/sundials_direct.h>
-#include <sundials/sundials_iterative.h>
-#include <sundials/sundials_linearsolver.h>
-#include <sundials/sundials_matrix.h>
-#include <sundials/sundials_nvector.h>
+#include "sundials_direct.h"
+#include "sundials_iterative.h"
+#include "sundials_linearsolver.h"
+#include "sundials_matrix.h"
+#include "sundials_nvector.h"
 
 #ifdef __cplusplus  /* wrapper to enable C++ usage */
 extern "C" {

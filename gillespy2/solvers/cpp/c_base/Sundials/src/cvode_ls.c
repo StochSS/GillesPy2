@@ -21,10 +21,10 @@
 
 #include "cvode_impl.h"
 #include "cvode_ls_impl.h"
-#include <sundials/sundials_math.h>
-#include <sunmatrix/sunmatrix_band.h>
-#include <sunmatrix/sunmatrix_dense.h>
-#include <sunmatrix/sunmatrix_sparse.h>
+#include "sundials_math.h"
+#include "sunmatrix_band.h"
+#include "sunmatrix_dense.h"
+#include "sunmatrix_sparse.h"
 
 /* Private constants */
 #define MIN_INC_MULT RCONST(1000.0)

@@ -20,8 +20,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <sunlinsol/sunlinsol_spgmr.h>
-#include <sundials/sundials_math.h>
+#include "sunlinsol_spgmr.h"
+#include "sundials_math.h"
 
 #include "sundials_debug.h"
 

@@ -19,8 +19,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <sunnonlinsol/sunnonlinsol_newton.h>
-#include <sundials/sundials_math.h>
+#include "sunnonlinsol_newton.h"
+#include "sundials_math.h"
 #include "sundials_nvector_senswrapper.h"
 
 #include "sundials_debug.h"

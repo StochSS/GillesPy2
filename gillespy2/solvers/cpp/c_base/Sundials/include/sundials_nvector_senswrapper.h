@@ -27,7 +27,7 @@
 #define _NVECTOR_SENSWRAPPER_H
 
 #include <stdio.h>
-#include <sundials/sundials_nvector.h>
+#include "sundials_nvector.h"
 
 #ifdef __cplusplus  /* wrapper to enable C++ usage */
 extern "C" {

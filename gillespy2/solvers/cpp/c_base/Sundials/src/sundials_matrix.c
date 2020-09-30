@@ -19,8 +19,8 @@
  * -----------------------------------------------------------------*/
 
 #include <stdlib.h>
-#include <sundials/sundials_matrix.h>
-#include <sundials/sundials_nvector.h>
+#include "sundials_matrix.h"
+#include "sundials_nvector.h"
 
 /* -----------------------------------------------------------------
  * Create a new empty SUNMatrix object

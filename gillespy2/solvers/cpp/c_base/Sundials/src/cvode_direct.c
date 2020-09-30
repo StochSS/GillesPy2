@@ -16,8 +16,8 @@
  * linear solver interface in cvode_ls.h.
  *-----------------------------------------------------------------*/
 
-#include <cvode/cvode_ls.h>
-#include <cvode/cvode_direct.h>
+#include "cvode_ls.h"
+#include "cvode_direct.h"
 
 #ifdef __cplusplus  /* wrapper to enable C++ usage */
 extern "C" {

@@ -21,8 +21,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <sunmatrix/sunmatrix_dense.h>
-#include <sundials/sundials_math.h>
+#include "sunmatrix_dense.h"
+#include "sundials_math.h"
 
 #define ZERO RCONST(0.0)
 #define ONE  RCONST(1.0)

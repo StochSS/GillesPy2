@@ -53,10 +53,10 @@
 #ifndef _SUNLINEARSOLVER_H
 #define _SUNLINEARSOLVER_H
 
-#include <sundials/sundials_types.h>
-#include <sundials/sundials_iterative.h>
-#include <sundials/sundials_matrix.h>
-#include <sundials/sundials_nvector.h>
+#include "sundials_types.h"
+#include "sundials_iterative.h"
+#include "sundials_matrix.h"
+#include "sundials_nvector.h"
 
 #ifdef __cplusplus  /* wrapper to enable C++ usage */
 extern "C" {

@@ -24,7 +24,7 @@
 #include <stdlib.h>
 
 #include "cvode_impl.h"
-#include <sundials/sundials_types.h>
+#include "sundials_types.h"
 
 #define ZERO   RCONST(0.0)
 #define HALF   RCONST(0.5)

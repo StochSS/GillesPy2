@@ -20,7 +20,7 @@
 #include <stdarg.h>
 #include <string.h>
 
-#include <sundials/sundials_nvector.h>
+#include "sundials_nvector.h"
 #include "sundials_nvector_senswrapper.h"
 
 #define ZERO RCONST(0.0)

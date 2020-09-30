@@ -17,7 +17,7 @@
  * ---------------------------------------------------------------------------*/
 
 #include <stdlib.h>
-#include <sundials/sundials_nonlinearsolver.h>
+#include "sundials_nonlinearsolver.h"
 
 /* -----------------------------------------------------------------------------
  * Create a new empty SUNLinearSolver object

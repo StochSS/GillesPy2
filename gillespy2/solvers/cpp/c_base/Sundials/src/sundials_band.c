@@ -23,8 +23,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <sundials/sundials_band.h>
-#include <sundials/sundials_math.h>
+#include "sundials_band.h"
+#include "sundials_math.h"
 
 #define ZERO RCONST(0.0)
 #define ONE  RCONST(1.0)

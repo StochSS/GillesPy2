@@ -17,7 +17,7 @@
 #ifndef _SUNDIALS_VERSION_H
 #define _SUNDIALS_VERSION_H
 
-#include <sundials/sundials_config.h>
+#include "sundials_config.h"
 
 #ifdef __cplusplus  /* wrapper to enable C++ usage */
 extern "C" {

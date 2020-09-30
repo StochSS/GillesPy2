@@ -25,9 +25,9 @@
 #include <string.h>
 
 #include "cvode_impl.h"
-#include <sundials/sundials_math.h>
-#include <sundials/sundials_types.h>
-#include <sunnonlinsol/sunnonlinsol_newton.h>
+#include "sundials_math.h"
+#include "sundials_types.h"
+#include "sunnonlinsol_newton.h"
 
 /*=================================================================*/
 /* CVODE Private Constants                                         */

@@ -24,7 +24,7 @@
 #ifndef _SUNDIALS_BAND_H
 #define _SUNDIALS_BAND_H
 
-#include <sundials/sundials_direct.h>
+#include "sundials_direct.h"
 
 #ifdef __cplusplus  /* wrapper to enable C++ usage */
 extern "C" {

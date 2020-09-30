@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <sundials/sundials_nvector.h>
+#include "sundials_nvector.h"
 
 /* -----------------------------------------------------------------
  * Create an empty NVector object
