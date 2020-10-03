@@ -60,7 +60,7 @@ def _write_propensity(outfile, model, species_mappings, parameter_mappings, reac
                                                                                         parameter_mappings)))
 
 
-def _write_reactions(outfile, model, reactions, species):
+def write_reactions(outfile, model, reactions, species):
     customrxns = {}
     for i in range(len(reactions)):
         reaction = model.listOfReactions[reactions[i]]
@@ -82,10 +82,10 @@ def _write_reactions(outfile, model, reactions, species):
                 outfile.write("model.reactions[{0}].affected_reactions.push_back({1});\n".format(i, j))
 
 
-def _parse_binary_output(results_buffer, number_of_trajectories, number_timesteps, number_species, data, pause=False):
+def parse_binary_output(number_of_trajectories, number_timesteps, number_species, data, pause=False):
     """
     This function reads binary output from a CPP simulation
-    :param results_buffer: stdout of the CPP simulation ran
+    :param data: stdout of the CPP simulation ran
     :param number_of_trajectories: Total number of trajectories for a simulation
     :type number_of_trajectories: int
     :param number_timesteps: How many steps for a given simulation
@@ -108,9 +108,7 @@ def _parse_binary_output(results_buffer, number_of_trajectories, number_timestep
         for i in range(number_timesteps*(number_species+1)):
             index = i + (number_timesteps*(number_species+1)*t)
             trajectory_base[t][i//(number_species+1)][i % (number_species+1)] = data[index]
-
     return trajectory_base, timeStopped
-
 
 
 def c_solver_resume(timeStopped, simulation_data, t, resume=None):

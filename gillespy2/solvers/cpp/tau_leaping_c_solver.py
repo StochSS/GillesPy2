@@ -1,21 +1,20 @@
 import gillespy2
-from gillespy2.core import Model, Reaction, gillespyError, GillesPySolver, log
+from gillespy2.core import gillespyError, GillesPySolver, log
 from gillespy2.solvers.utilities import solverutils as cutils
-import signal # for solver timeout implementation
-import os  #for getting directories for C++ files
-import shutil #for deleting/copying files
-import subprocess #For calling make and executing c solver
-import inspect #for finding the Gillespy2 module path
-import tempfile #for temporary directories
+import signal, time  # for solver timeout implementation
+import os  # for getting directories for C++ files
+import shutil  # for deleting/copying files
+import subprocess  # For calling make and executing c solver
+import inspect  # for finding the Gillespy2 module path
+import tempfile  # for temporary directories
 import numpy as np
 
 GILLESPY_PATH = os.path.dirname(os.path.abspath(__file__))
-GILLESPY_CPP_SSA_DIR = os.path.join(GILLESPY_PATH, 'c_base/ssa_cpp_solver')
-MAKE_FILE = os.path.dirname(os.path.abspath(__file__)) + '/c_base/ssa_cpp_solver/makefile'
+GILLESPY_CPP_TAU_DIR = os.path.join(GILLESPY_PATH, 'c_base/tau_leaping_cpp_solver')
+MAKE_FILE = os.path.dirname(os.path.abspath(__file__)) + '/c_base/tau_leaping_cpp_solver/makefile'
 CBASE_DIR = os.path.join(GILLESPY_PATH, 'c_base/')
 
-
-def _write_variables(outfile, model, reactions, species, parameters, parameter_mappings, resume=None):
+def _write_constants(outfile, model, reactions, species, parameter_mappings, resume):
     """
     This function writes the models constants to a user simulation file
     :param outfile: CPP file, used for simulating a model
@@ -25,13 +24,13 @@ def _write_variables(outfile, model, reactions, species, parameters, parameter_m
     :param parameter_mappings: List of sanitized parameter names
     :param resume: If resuming a simulation from a previous one, resume is the results object from the prior simulation.
     Else, it is defaulted to None.
-   """
+    """
 
-    outfile.write("double V = {};\n".format(model.volume))
+    outfile.write("const double V = {};\n".format(model.volume))
     outfile.write("std :: string s_names[] = {")
     if len(species) > 0:
         # Write model species names.
-        for i in range(len(species)-1):
+        for i in range(len(species) - 1):
             outfile.write('"{}", '.format(species[i]))
         outfile.write('"{}"'.format(species[-1]))
         outfile.write("};\nunsigned int populations[] = {")
@@ -56,37 +55,22 @@ def _write_variables(outfile, model, reactions, species, parameters, parameter_m
     if len(reactions) > 0:
         # Write reaction names
         outfile.write("std :: string r_names[] = {")
-        for i in range(len(reactions)-1):
+        for i in range(len(reactions) - 1):
             outfile.write('"{}", '.format(reactions[i]))
         outfile.write('"{}"'.format(reactions[-1]))
         outfile.write("};\n")
-    for param in parameters:
-        if param != 'vol':
-            outfile.write("double {0} = {1};\n".format(parameter_mappings[param], model.listOfParameters[param].value))
+    for param in model.listOfParameters:
+        outfile.write("const double {0} = {1};\n".format(parameter_mappings[param], model.listOfParameters[param].value)
+
+                      )
 
 
-def _update_parameters(outfile, model, parameters, parameter_mappings):
-    for param in parameters:
-        if param != 'vol':
-            outfile.write('       arg_stream >> {};\n'.format(parameter_mappings[param]))
-        else:
-            outfile.write('       arg_stream >> V;\n')
-
-
-def _write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
-    for i in range(len(reactions)):
-        # Write switch statement case for reaction
-        outfile.write("""
-        case {0}:
-            return {1};
-        """.format(i, model.listOfReactions[reactions[i]].sanitized_propensity_function(species_mappings, parameter_mappings)))
-
-
-class VariableSSACSolver(GillesPySolver):
-    name = "VariableSSACSolver"
+class TauLeapingCSolver(GillesPySolver):
+    name = "TauLeapingCSolver"
+    """TODO"""
 
     def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None):
-        super(VariableSSACSolver, self).__init__()
+        super(TauLeapingCSolver, self).__init__()
         self.__compiled = False
         self.delete_directory = False
         self.model = model
@@ -101,7 +85,7 @@ class VariableSSACSolver(GillesPySolver):
 
             if isinstance(output_directory, str):
                 output_directory = os.path.abspath(output_directory)
-            
+
                 if isinstance(output_directory, str):
                     if not os.path.isfile(output_directory):
                         self.output_directory = output_directory
@@ -113,67 +97,65 @@ class VariableSSACSolver(GillesPySolver):
             else:
                 self.temporary_directory = tempfile.TemporaryDirectory()
                 self.output_directory = self.temporary_directory.name
-                
-            if not os.path.isdir(self.output_directory):
-                raise gillespyError.DirectoryError("Errors encountered while setting up directory for Solver C++ files.")
 
+            if not os.path.isdir(self.output_directory):
+                raise gillespyError.DirectoryError("Errors encountered while setting up directory for Solver C++ files."
+                                                   )
             self.__write_template()
             self.__compile()
-        
+
     def __del__(self):
         if self.delete_directory and os.path.isdir(self.output_directory):
             shutil.rmtree(self.output_directory)
-        
-    def __write_template(self, template_file='VariableSimulationTemplate.cpp'):
+
+    def __write_template(self, template_file='tausimulationtemplate.cpp'):
         # Open up template file for reading.
-        with open(os.path.join(GILLESPY_CPP_SSA_DIR, template_file), 'r') as template:
+        with open(os.path.join(GILLESPY_CPP_TAU_DIR, template_file), 'r') as template:
             # Write simulation C++ file.
             template_keyword = "__DEFINE_"
             # Use same lists of model's species and reactions to maintain order
-            with open(os.path.join(self.output_directory, 'UserSimulation.cpp'), 'w') as outfile:
+            with open(os.path.join(self.output_directory, 'TauSimulation.cpp'), 'w') as outfile:
                 for line in template:
                     if line.startswith(template_keyword):
                         line = line[len(template_keyword):]
-                        if line.startswith("VARIABLES"):
-                            _write_variables(outfile, self.model, self.reactions, self.species, self.parameters,
-                                             self.parameter_mappings,self.resume)
+                        if line.startswith("CONSTANTS"):
+                            _write_constants(outfile, self.model, self.reactions, self.species, self.parameter_mappings
+                                             , self.resume)
                         if line.startswith("PROPENSITY"):
                             cutils.write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings
                                                     , self.reactions)
                         if line.startswith("REACTIONS"):
-                           cutils.write_reactions(outfile, self.model, self.reactions, self.species)
-                        if line.startswith("PARAMETER_UPDATES"):
-                            _update_parameters(outfile, self.model, self.parameters, self.parameter_mappings)
+                            cutils.write_reactions(outfile, self.model, self.reactions, self.species)
                     else:
                         outfile.write(line)
 
     def __compile(self):
-        cmd = ["make", "-C", self.output_directory, '-f', MAKE_FILE, 'UserSimulation',
-               'GILLESPY_CPP_SSA_DIR=' + GILLESPY_CPP_SSA_DIR, 'CBASE_DIR=' + CBASE_DIR]
-        # Use makefile.
+        cmd = ["make", "-C", self.output_directory, '-f', MAKE_FILE,
+               'TauSimulation', 'GILLESPY_CPP_TAU_DIR=' + GILLESPY_CPP_TAU_DIR, 'CBASE_DIR=' + CBASE_DIR]
         if self.resume:
             if self.resume[0].model != self.model:
                 raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
         try:
             built = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except KeyboardInterrupt:
-            log.warning(
-                "Solver has been interrupted during compile time, unexpected behavior may occur.")
+            log.warning("Solver has been interrupted during compile time, unexpected behavior may occur.")
         if built.returncode == 0:
             self.__compiled = True
         else:
-            raise gillespyError.BuildError("Error encountered while compiling file:\nReturn code: {0}."
-                                           "\nError:\n{1}\n{2}\n".format(built.returncode, built.stdout.decode
-            ('utf-8'),built.stderr.decode('utf-8')))
+            raise gillespyError.BuildError("Error encountered while compiling file:\nReturn code: "
+                                           "{0}.\nError:\n{1}\n{2}\n".format(built.returncode,
+                                                                             built.stdout.decode('utf-8'),
+                                                                             built.stderr.decode('utf-8')))
 
     def get_solver_settings(self):
         """
         :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
         """
-        return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile', 'variables')
+        return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
     def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
-            increment=0.05, seed=None, debug=False, profile=False, variables={}, resume=None, **kwargs):
+            increment=0.05, seed=None, debug=False, profile=False, resume=None, tau_step=.03, **kwargs):
+
         pause = False
         if resume is not None:
             if t < resume['time'][-1]:
@@ -181,84 +163,43 @@ class VariableSSACSolver(GillesPySolver):
                     "'t' must be greater than previous simulations end time, or set in the run() method as the "
                     "simulations next end time")
 
-        if self is None or self.model is None:
-            self = VariableSSACSolver(model, resume=resume)
+        if resume is not None:
+            self = TauLeapingCSolver(model, resume=resume)
+
+        else:
+            if self is None or self.model is None:
+                self = TauLeapingCSolver(model)
 
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
-        
+
         unsupported_sbml_features = {
-                        'Rate Rules': len(model.listOfRateRules),
-                        'Assignment Rules': len(model.listOfAssignmentRules), 
-                        'Events': len(model.listOfEvents),
-                        'Function Definitions': len(model.listOfFunctionDefinitions)
-                        }
+            'Rate Rules': len(model.listOfRateRules),
+            'Assignment Rules': len(model.listOfAssignmentRules),
+            'Events': len(model.listOfEvents),
+            'Function Definitions': len(model.listOfFunctionDefinitions)
+        }
         detected_features = []
         for feature, count in unsupported_sbml_features.items():
             if count:
                 detected_features.append(feature)
 
         if len(detected_features):
-                raise gillespyError.ModelError(
-                'Could not run Model.  SBML Feature: {} not supported by SSACSolver.'.format(detected_features))
-
-        if not isinstance(variables, dict):
-            raise gillespyError.SimulationError(
-                'argument to variables must be a dictionary.')
-        for v in variables.keys():
-            if v not in self.species+self.parameters:
-                raise gillespyError.SimulationError('Argument to variable "{}" \
-                is not a valid variable.  Variables must be model species or parameters.'.format(v))
+            raise gillespyError.ModelError('Could not run Model.  SBML Feature: {} not supported by SSACSolver.'
+                                           .format(detected_features))
 
         if self.__compiled:
-            populations = ''
-            parameter_values = ''
-            # Update Species Initial Values
-            for i in range(len(self.species) - 1):
-                if self.species[i] in variables:
-                    populations += '{} '.format(int(variables[self.species[i]]))
-                else:
-                    if resume is not None:
-                        populations += '{} '.format(int(resume[self.species[i]][-1]))
-                    else:
-                        populations += '{} '.format(int(model.listOfSpecies[self.species[i]].initial_value))
-            if self.species[-1] in variables:
-                populations += '{}'.format(int(variables[self.species[-1]]))
-            else:
-                if resume is not None:
-                    populations += '{} '.format(int(resume[self.species[-1]][-1]))
-                else:
-                    populations += '{}'.format(int(model.listOfSpecies[self.species[-1]].initial_value))
-            # Update Parameter Values
-            for i in range(len(self.parameters) - 1):
-                if self.parameters[i] in variables:
-                    parameter_values += '{} '.format(variables[self.parameters[i]])
-                else:
-                    if self.parameters[i] == 'vol':
-                        parameter_values += '{} '.format(model.volume)
-                    else:
-                        parameter_values += '{} '.format(model.listOfParameters[self.parameters[i]].expression)
-            if self.parameters[-1] in variables:
-                parameter_values += '{}'.format(variables[self.parameters[-1]])
-            else:
-                if self.parameters[-1] == 'vol':
-                    parameter_values += '{}'.format(model.volume)
-                else:
-                    parameter_values += '{}'.format(model.listOfParameters[self.parameters[-1]].expression)
             self.simulation_data = None
-
             if resume is not None:
-                t = abs(t - int(resume['time'][-1]))
+                t = abs(t - resume['time'][-1])
 
-            number_timesteps = int(round(t/increment + 1))
+            number_timesteps = int(round(t / increment + 1))
+
             # Execute simulation.
-            args = [os.path.join(self.output_directory, 'UserSimulation'),
-                    '-trajectories', str(number_of_trajectories),
-                    '-timesteps', str(number_timesteps),
-                    '-end', str(t),
-                    '-initial_values', populations,
-                    '-parameters', parameter_values]
+            args = [os.path.join(self.output_directory, 'TauSimulation'), '-trajectories', str(number_of_trajectories),
+                    '-timesteps', str(number_timesteps), '-tau_step', str(tau_step), '-end', str(t)]
+
             if seed is not None:
                 if isinstance(seed, int):
                     args.append('-seed')
@@ -273,6 +214,7 @@ class VariableSSACSolver(GillesPySolver):
 
             # begin subprocess c simulation with timeout (default timeout=0 will not timeout)
             with subprocess.Popen(args, stdout=subprocess.PIPE, start_new_session=True) as simulation:
+                return_code = 0
                 try:
                     if timeout > 0:
                         stdout, stderr = simulation.communicate(timeout=timeout)
@@ -292,7 +234,6 @@ class VariableSSACSolver(GillesPySolver):
             # Decode from byte, split by comma into array
             stdout = stdout.decode('utf-8').split(',')
             # Parse/return results.
-
             if return_code in [0, 33]:
                 trajectory_base, timeStopped = cutils.parse_binary_output(number_of_trajectories,
                                                                           number_timesteps, len(model.listOfSpecies),
@@ -306,13 +247,11 @@ class VariableSSACSolver(GillesPySolver):
                     data = {'time': trajectory_base[trajectory, :, 0]}
                     for i in range(len(self.species)):
                         data[self.species[i]] = trajectory_base[trajectory, :, i + 1]
-
                     self.simulation_data.append(data)
             else:
                 raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:"
                                                    "\nReturn code: {0}.\nError:\n{1}\n".
                                                    format(simulation.returncode, simulation.stderr))
-
             if resume is not None or timeStopped != 0:
                 self.simulation_data = cutils.c_solver_resume(timeStopped, self.simulation_data, t, resume=resume)
 

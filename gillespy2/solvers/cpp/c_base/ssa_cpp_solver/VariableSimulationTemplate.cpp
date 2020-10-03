@@ -28,6 +28,7 @@ __DEFINE_PROPENSITY__
       return -1;
     }
   }
+  double TauEvaluate(unsigned int reaction_number,  const std::vector<int> &S){return 1.0;}
 };
 
 int main(int argc, char* argv[]){
