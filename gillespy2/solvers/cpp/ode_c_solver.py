@@ -9,11 +9,11 @@ import inspect  # for finding the Gillespy2 module path
 import tempfile  # for temporary directories
 import numpy as np
 
-GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
-GILLESPY_C_ODE_DIR = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base/ode_cpp_solver')
+GILLESPY_PATH = os.path.dirname(os.path.abspath(__file__))
+GILLESPY_C_ODE_DIR = os.path.join(GILLESPY_PATH, 'c_base/ode_cpp_solver')
 MAKE_FILE = os.path.dirname(os.path.abspath(__file__)) + '/c_base/ode_cpp_solver/makefile'
-SUNDIALS_DIR = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base/Sundials')
-CBASE_DIR = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base/')
+SUNDIALS_DIR = os.path.join(GILLESPY_PATH, 'c_base/Sundials')
+CBASE_DIR = os.path.join(GILLESPY_PATH, 'c_base/')
 
 def _write_constants(outfile, model, reactions, species, parameter_mappings, resume):
     """
