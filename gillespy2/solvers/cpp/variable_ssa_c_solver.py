@@ -9,10 +9,10 @@ import inspect #for finding the Gillespy2 module path
 import tempfile #for temporary directories
 import numpy as np
 
-GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
-GILLESPY_CPP_SSA_DIR = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base/ssa_cpp_solver')
+GILLESPY_PATH = os.path.dirname(os.path.abspath(__file__))
+GILLESPY_CPP_SSA_DIR = os.path.join(GILLESPY_PATH, 'c_base/ssa_cpp_solver')
 MAKE_FILE = os.path.dirname(os.path.abspath(__file__)) + '/c_base/ssa_cpp_solver/makefile'
-CBASE_DIR = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base/')
+CBASE_DIR = os.path.join(GILLESPY_PATH, 'c_base/')
 
 
 def _write_variables(outfile, model, reactions, species, parameters, parameter_mappings, resume=None):
