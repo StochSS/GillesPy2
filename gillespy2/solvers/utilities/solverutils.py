@@ -39,9 +39,8 @@ def _copy_files(destination, GILLESPY_C_DIRECTORY, ode=False):
             for file in files:
                 path_file = os.path.join(root, file)
                 shutil.copy2(path_file, destination)
-        print(src_files)
 
-def _write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
+def write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
     """
     This functions writes a models propensity functions to a cpp user simulation template, for the SSACSolvers.
     :param outfile: File where the propensity function will be written to

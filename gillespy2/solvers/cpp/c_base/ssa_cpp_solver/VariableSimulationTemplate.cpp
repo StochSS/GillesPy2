@@ -29,6 +29,7 @@ __DEFINE_PROPENSITY__
     }
   }
   double TauEvaluate(unsigned int reaction_number,  const std::vector<int> &S){return 1.0;}
+  double ODEEvaluate(int reaction_number, const std::vector <double> &S){return 1.0;}
 };
 
 int main(int argc, char* argv[]){
@@ -80,7 +81,18 @@ __DEFINE_REACTIONS_
    random_seed = time(NULL);
  }
   IPropensityFunction *propFun = new PropensityFunction();
-  Simulation simulation(&model, number_trajectories, number_timesteps, end_time, propFun, random_seed,simulation.current_time);
+  // Simulation INIT
+  Simulation simulation;
+  Model* modelptr;
+  modelptr = &model;
+  simulation.model = modelptr;
+  simulation.end_time = end_time;
+  simulation.random_seed = random_seed;
+  simulation.number_timesteps = number_timesteps;
+  simulation.number_trajectories = number_trajectories;
+  simulation.propensity_function = propFun;
+  simulationSSAINIT(&model, simulation);
+  // Perform SSA  //
   ssa_direct(&simulation);
   //std :: cout << simulation << std :: endl;
   simulation.output_results_buffer(std :: cout);

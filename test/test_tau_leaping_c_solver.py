@@ -4,7 +4,7 @@ from gillespy2.core.gillespyError import DirectoryError
 from example_models import Example
 from gillespy2.solvers.cpp.tau_leaping_c_solver import TauLeapingCSolver
 
-class TestSSACSolver(unittest.TestCase):
+class TestTauLeapingCSolver(unittest.TestCase):
     def test_create(self):
         model = Example()
         solver = TauLeapingCSolver(model)

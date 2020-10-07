@@ -23,7 +23,7 @@ __DEFINE_CONSTANTS__
 class PropensityFunction : public IPropensityFunction{
 public:
 
-double evaluate(int reaction_number, std::vector <double> S){
+double ODEEvaluate(int reaction_number, const std::vector <double> &S){
   switch(reaction_number){
 
 __DEFINE_PROPENSITY__
@@ -32,7 +32,8 @@ __DEFINE_PROPENSITY__
       return -1;
     }
   }
-
+    double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S){return 1.0;}
+    double evaluate(unsigned int reaction_number, unsigned int* S){return 1.0;}
 };
 
 int main(int argc, char* argv[]){
@@ -79,7 +80,19 @@ __DEFINE_REACTIONS_
    random_seed = time(NULL);
  }
   IPropensityFunction *propFun = new PropensityFunction();
-  Simulation simulation(&model, number_trajectories, number_timesteps, end_time, propFun, random_seed, simulation.current_time, 1);
+   //Simulation INIT
+  Simulation simulation;
+  Model* modelptr;
+  modelptr = &model;
+  simulation.ISODE=1;
+  simulation.model = modelptr;
+  simulation.end_time = end_time;
+  simulation.random_seed = random_seed;
+  simulation.number_timesteps = number_timesteps;
+  simulation.number_trajectories = number_trajectories;
+  simulation.propensity_function = propFun;
+  simulationODEINIT(&model, simulation);
+  // Perform ODE  //
   ODESolver(&simulation,increment);
   simulation.output_results_buffer(std :: cout);
   delete propFun;

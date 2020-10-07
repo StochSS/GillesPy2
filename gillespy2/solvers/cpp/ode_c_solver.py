@@ -15,7 +15,7 @@ MAKE_FILE = os.path.dirname(os.path.abspath(__file__)) + '/c_base/ode_cpp_solver
 SUNDIALS_DIR = os.path.join(GILLESPY_PATH, 'c_base/Sundials')
 CBASE_DIR = os.path.join(GILLESPY_PATH, 'c_base/')
 
-def _write_constants(outfile, model, reactions, species, parameter_mappings, resume):
+def write_constants(outfile, model, reactions, species, parameter_mappings, resume):
     """
     This function writes the models constants to a ODE simulation file
     :param outfile: CPP file, used for simulating a model
@@ -120,13 +120,13 @@ class ODECSolver(GillesPySolver):
                     if line.startswith(template_keyword):
                         line = line[len(template_keyword):]
                         if line.startswith("CONSTANTS"):
-                            _write_constants(outfile, self.model, self.reactions, self.species, self.parameter_mappings
+                            write_constants(outfile, self.model, self.reactions, self.species, self.parameter_mappings
                                              , self.resume)
                         if line.startswith("PROPENSITY"):
-                            cutils._write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings
+                            cutils.write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings
                                                      , self.reactions)
                         if line.startswith("REACTIONS"):
-                            cutils._write_reactions(outfile, self.model, self.reactions, self.species)
+                            cutils.write_reactions(outfile, self.model, self.reactions, self.species)
                     else:
                         outfile.write(line)
 
@@ -237,10 +237,8 @@ class ODECSolver(GillesPySolver):
             # Parse/return results
 
             if return_code in [0, 33]:
-                trajectory_base, timeStopped = cutils._parse_binary_output(stdout, number_of_trajectories,
-                                                                           number_timesteps, len(model.listOfSpecies),
-                                                                           stdout,
-                                                                           pause=pause)
+                trajectory_base, timeStopped = cutils.parse_binary_output(number_of_trajectories, number_timesteps,
+                                                                          len(model.listOfSpecies), stdout, pause=pause)
                 if model.tspan[2] - model.tspan[1] == 1:
                     timeStopped = int(timeStopped)
                 # Format results
