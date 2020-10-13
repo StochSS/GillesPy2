@@ -1,5 +1,5 @@
 CC=g++
-CPFPLAGS=-c -std=c++14 -Wall -O3
+CPPFPLAGS=-c -std=c++14 -Wall -O3
 LINKFLAGS = -L. -std=c++14 -Wall -O3
 DEPS = model.h ssa.h
 OBJ = model.o ssa.o
