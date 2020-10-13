@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-c -std=c++14 -Wall -O3
+CPFPLAGS=-c -std=c++14 -Wall -O3
 LINKFLAGS = -L. -std=c++14 -Wall -O3
 DEPS = model.h ssa.h
 OBJ = model.o ssa.o
@@ -8,13 +8,13 @@ OBJ = model.o ssa.o
 all: UserSimulation
 
 model.o:
-	$(CC) -c -o model.o $(CBASE_DIR)/model.cpp -I$(CBASE_DIR) $(CPPLAGS)
+	$(CC) -c -o model.o $(CBASE_DIR)/model.cpp -I$(CBASE_DIR) $(CPPFLAGS)
 
 ssa.o:
-	$(CC) -c -o ssa.o $(GILLESPY_CPP_SSA_DIR)/ssa.cpp -I$(CBASE_DIR) $(CPPLAGS)
+	$(CC) -c -o ssa.o $(GILLESPY_CPP_SSA_DIR)/ssa.cpp -I$(CBASE_DIR) $(CPPFLAGS)
 
 UserSimulation.o:
-	$(CC) -c -o UserSimulation.o UserSimulation.cpp -I$(GILLESPY_CPP_SSA_DIR) -I$(CBASE_DIR) $(CFLAGS)
+	$(CC) -c -o UserSimulation.o UserSimulation.cpp -I$(GILLESPY_CPP_SSA_DIR) -I$(CBASE_DIR) $(CPPFLAGS)
 
 UserSimulation: $(OBJ) UserSimulation.o
 	$(CC) -o UserSimulation $(OBJ) UserSimulation.o -I$(CBASE_DIR) -I$(GILLESPY_CPP_SSA_DIR) $(LINKFLAGS)
