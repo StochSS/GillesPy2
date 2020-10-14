@@ -10,24 +10,22 @@ def check_cpp_support():
 
     dependencies = ['g++', 'make']
     missing = []
-
-    log_str = ""
+    any_missing = False
 
     for dependency in dependencies:
         if shutil.which(dependency) != None:
             continue
 
         missing.append(dependency)
+        any_missing = True
 
-    if len(missing) > 0:
+    if any_missing is True:
         from gillespy2.core import log
-        log.warn('Unable to use C++ optimized SSA due to one or more missing dependencies: {0}. '.format(missing))
-        log.warn('The performance of this package can be significantly improved if you install/configure '
-        'these on your machine.')
-        
-        return False
+        log.warn('Unable to use C++ optimized SSA due to one or more missing dependencies: {0}. '
+        'The performance of this package can be significantly increased if you install/configure '
+        'these on your machine.'.format(missing))
 
-    return True
+    return not any_missing
 
     """
     from gillespy2.solvers.cpp.example_models import Example
