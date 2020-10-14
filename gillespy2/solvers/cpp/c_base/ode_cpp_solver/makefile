@@ -1,5 +1,5 @@
 CC=g++
-CPPFLAGS = -c  -std=c++14 -Wall -O3
+CFLAGS = -c  -std=c++14 -Wall -O3
 LINKFLAGS = -L. -std=c++14 -Wall -O3
 SRCDIR = $(SUNDIALS_DIR)/src
 INCDIR = $(SUNDIALS_DIR)/include
@@ -16,13 +16,13 @@ sundials_linearsolver.o sundials_nonlinearsolver.o sundials_nvector_senswrapper.
 sundials_nvector.o nvector_serial.o cvode.o cvode_spils.o sundials_math.o sunlinsol_spgmr.o
 
 model.o:
-	$(CC) -c -o model.o $(CBASE_DIR)/model.cpp -I$(CBASE_DIR) $(CPPLAGS)
+	$(CC) -c -o model.o $(CBASE_DIR)/model.cpp -I$(CBASE_DIR) $(CFLAGS)
 
 %.o: $(SRCDIR)/%.c
-	$(CC) -c -o $@ $< -I$(INCDIR) $(CPPLAGS)
+	$(CC) -c -o $@ $< -I$(INCDIR) $(CFLAGS)
 
 ODESimulation.o:
-	$(CC) -c -o ODESimulation.o ODESimulation.cpp -I$(CBASE_DIR) -I$(GILLESPY_C_ODE_DIR) $(CPPFLAGS)
+	$(CC) -c -o ODESimulation.o ODESimulation.cpp -I$(CBASE_DIR) -I$(GILLESPY_C_ODE_DIR) $(CFLAGS)
 
 ODECSolver.o:
 	$(CC) -c -o ODECSolver.o $(GILLESPY_C_ODE_DIR)/ODECSolver.cpp -I$(CBASE_DIR) -I$(SRCDIR) -I$(INCDIR)

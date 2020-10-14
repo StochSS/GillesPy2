@@ -1,17 +1,17 @@
 CC=g++
-CPPFLAGS = -c  -std=c++14 -Wall -O3
+CFLAGS = -c  -std=c++14 -Wall -O3
 LINKFLAGS = -L. -std=c++14 -Wall -O3
 DEPS = model.h tau_leaper.h
 OBJ = tau_leaper.o model.o
 
 model.o:
-	$(CC) -c -o model.o $(CBASE_DIR)/model.cpp -I$(CBASE_DIR) $(CPPFLAGS)
+	$(CC) -c -o model.o $(CBASE_DIR)/model.cpp -I$(CBASE_DIR) $(CFLAGS)
 
 tau_leaper.o:
-	$(CC) -c -o tau_leaper.o $(GILLESPY_CPP_TAU_DIR)/tau_leaper.cpp -I$(CBASE_DIR) -I$(GILLESPY_CPP_TAU_DIR) $(CPPFLAGS)
+	$(CC) -c -o tau_leaper.o $(GILLESPY_CPP_TAU_DIR)/tau_leaper.cpp -I$(CBASE_DIR) -I$(GILLESPY_CPP_TAU_DIR) $(CFLAGS)
 
 TauSimulation.o:
-	$(CC) -c -o TauSimulation.o TauSimulation.cpp -I$(CBASE_DIR) -I$(GILLESPY_CPP_TAU_DIR) $(CPPFLAGS)
+	$(CC) -c -o TauSimulation.o TauSimulation.cpp -I$(CBASE_DIR) -I$(GILLESPY_CPP_TAU_DIR) $(CFLAGS)
 
 TauSimulation: TauSimulation.o $(OBJ)
 	$(CC) -o TauSimulation TauSimulation.o $(OBJ) $(LINKFLAGS)
