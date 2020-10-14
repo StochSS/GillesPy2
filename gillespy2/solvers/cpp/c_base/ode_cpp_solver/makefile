@@ -16,16 +16,16 @@ sundials_linearsolver.o sundials_nonlinearsolver.o sundials_nvector_senswrapper.
 sundials_nvector.o nvector_serial.o cvode.o cvode_spils.o sundials_math.o sunlinsol_spgmr.o
 
 model.o:
-	$(CC) -c -o model.o $(CBASE_DIR)/model.cpp -I$(CBASE_DIR) $(CFLAGS)
+	$(CC) -c -o model.o $(CBASE_DIR)/model.cpp $(CFLAGS) -I$(CBASE_DIR)
 
 %.o: $(SRCDIR)/%.c
-	$(CC) -c -o $@ $< -I$(INCDIR) $(CFLAGS)
+	$(CC) -c -o $@ $< $(CFLAGS) -I$(INCDIR)
 
 ODESimulation.o:
-	$(CC) -c -o ODESimulation.o ODESimulation.cpp -I$(CBASE_DIR) -I$(GILLESPY_C_ODE_DIR) $(CFLAGS)
+	$(CC) -c -o ODESimulation.o ODESimulation.cpp $(CFLAGS) -I$(CBASE_DIR) -I$(GILLESPY_C_ODE_DIR)
 
 ODECSolver.o:
-	$(CC) -c -o ODECSolver.o $(GILLESPY_C_ODE_DIR)/ODECSolver.cpp -I$(CBASE_DIR) -I$(SRCDIR) -I$(INCDIR)
+	$(CC) -c -o ODECSolver.o $(GILLESPY_C_ODE_DIR)/ODECSolver.cpp $(CFLAGS) -I$(CBASE_DIR) -I$(SRCDIR) -I$(INCDIR)
 
 ODESimulation: ODECSolver.o ODESimulation.o $(SUNOBJ) model.o
 	$(CC) -o ODESimulation ODECSolver.o ODESimulation.o $(SUNOBJ) model.o $(LINKFLAGS)
