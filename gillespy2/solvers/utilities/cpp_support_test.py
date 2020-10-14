@@ -6,6 +6,30 @@ Used in model.py
 
 
 def check_cpp_support():
+    import shutil;
+
+    dependencies = ['g++', 'make']
+    missing = []
+
+    log_str = ""
+
+    for dependency in dependencies:
+        if shutil.which(dependency) != None:
+            continue
+
+        missing.append(dependency)
+
+    if len(missing) > 0:
+        from gillespy2.core import log
+        log.warn('Unable to use C++ optimized SSA due to one or more missing dependencies: {0}. '.format(missing))
+        log.warn('The performance of this package can be significantly improved if you install/configure '
+        'these on your machine.')
+        
+        return False
+
+    return True
+
+    """
     from gillespy2.solvers.cpp.example_models import Example
     from gillespy2 import SSACSolver
     try:
@@ -17,6 +41,6 @@ def check_cpp_support():
         'this package can be significantly increased if you install/configure GCC on ' \
         'this machine.'.format(e))
         return False
-
+    """
 
 cpp_support = check_cpp_support()
