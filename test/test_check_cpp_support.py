@@ -1,15 +1,11 @@
 """
-This test will determine if the behavior exhibited by the new check_cpp_support() function matches
-the previous try/catch implementation.
+Test to determine if the behavior exhibited by the new check_cpp_support() function matches
+what is expected by the previous try/catch implementation.
 """
 
 import unittest;
 
 class TestCheckCPPSupport(unittest.TestCase):
-    def test_check_cpp_support(self):
-        from gillespy2.solvers.utilities.cpp_support_test import check_cpp_support
-        self.assertEqual(check_cpp_support(), old_check_cpp_support())
-
     def old_check_cpp_support(self):
         from gillespy2.solvers.cpp.example_models import Example
         from gillespy2 import SSACSolver
@@ -24,3 +20,9 @@ class TestCheckCPPSupport(unittest.TestCase):
             'this machine.'.format(e))
             return False
 
+    def test_check_cpp_support(self):
+        from gillespy2.solvers.utilities.cpp_support_test import check_cpp_support
+        self.assertEqual(check_cpp_support(), self.old_check_cpp_support())
+
+if __name__ == '__main__':
+    unittest.main()
