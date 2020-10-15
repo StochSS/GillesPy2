@@ -4,7 +4,6 @@ This file contains a function and variable for testing a machines support of Gil
 Used in model.py
 """
 
-
 def check_cpp_support():
     dependencies = ['g++', 'make']
     missing = []
