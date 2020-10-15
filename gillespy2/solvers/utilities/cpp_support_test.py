@@ -5,12 +5,13 @@ Used in model.py
 """
 
 def check_cpp_support():
+    import shutil
+
     dependencies = ['g++', 'make']
     missing = []
     any_missing = False
 
     for dependency in dependencies:
-        import shutil;
         if shutil.which(dependency) != None:
             continue
 
