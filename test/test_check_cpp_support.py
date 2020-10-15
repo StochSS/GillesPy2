@@ -6,6 +6,10 @@ what is expected by the previous try/catch implementation.
 import unittest;
 
 class TestCheckCPPSupport(unittest.TestCase):
+    def test_check_cpp_support(self):
+        from gillespy2.solvers.utilities.cpp_support_test import check_cpp_support
+        self.assertEqual(check_cpp_support(), self.old_check_cpp_support())
+
     def old_check_cpp_support(self):
         from gillespy2.solvers.cpp.example_models import Example
         from gillespy2 import SSACSolver
@@ -19,10 +23,6 @@ class TestCheckCPPSupport(unittest.TestCase):
             'this package can be significantly increased if you install/configure GCC on ' \
             'this machine.'.format(e))
             return False
-
-    def test_check_cpp_support(self):
-        from gillespy2.solvers.utilities.cpp_support_test import check_cpp_support
-        self.assertEqual(check_cpp_support(), self.old_check_cpp_support())
 
 if __name__ == '__main__':
     unittest.main()
