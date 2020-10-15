@@ -746,9 +746,9 @@ class Model(SortableObject):
             raise ModelError('TauHybridSolver is the only solver currently that supports '
                              'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
                              'Please install Numpy.')
-        from gillespy2.solvers.utilities.cpp_support_test import cpp_support
-
-        if cpp_support is False and can_use_numpy and not hybrid_check:
+        
+        from gillespy2.solvers.cpp import can_use_cpp
+        if can_use_cpp is False and can_use_numpy and not hybrid_check:
             from gillespy2 import NumPySSASolver
             return NumPySSASolver
 
