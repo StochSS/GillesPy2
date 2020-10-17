@@ -14,67 +14,18 @@ GILLESPY_CPP_TAU_DIR = os.path.join(GILLESPY_PATH, 'c_base/tau_leaping_cpp_solve
 MAKE_FILE = os.path.dirname(os.path.abspath(__file__)) + '/c_base/tau_leaping_cpp_solver/makefile'
 CBASE_DIR = os.path.join(GILLESPY_PATH, 'c_base/')
 
-def _write_constants(outfile, model, reactions, species, parameter_mappings, resume):
-    """
-    This function writes the models constants to a user simulation file
-    :param outfile: CPP file, used for simulating a model
-    :param model: The model that is being simulated
-    :param reactions: List of names of a models reactions
-    :param species: List of sanitized species names
-    :param parameter_mappings: List of sanitized parameter names
-    :param resume: If resuming a simulation from a previous one, resume is the results object from the prior simulation.
-    Else, it is defaulted to None.
-    """
-
-    outfile.write("const double V = {};\n".format(model.volume))
-    outfile.write("std :: string s_names[] = {")
-    if len(species) > 0:
-        # Write model species names.
-        for i in range(len(species) - 1):
-            outfile.write('"{}", '.format(species[i]))
-        outfile.write('"{}"'.format(species[-1]))
-        outfile.write("};\nunsigned int populations[] = {")
-        # Write initial populations.
-        for i in range(len(species) - 1):
-            # If resuming
-            if not (resume is None):
-                if isinstance(resume, np.ndarray):
-                    outfile.write('{}, '.format(int(resume[0][-1][i + 1])))
-                else:
-                    outfile.write('{}, '.format(int(resume[species[i]][-1])))
-            else:
-                outfile.write('{}, '.format(int(model.listOfSpecies[species[i]].initial_value)))
-        if not (resume is None):
-            if isinstance(resume, np.ndarray):
-                outfile.write('{}'.format(int(resume[0][-1][-1])))
-            else:
-                outfile.write('{}'.format(int(resume[species[-1]][-1])))
-        else:
-            outfile.write('{}'.format(int(model.listOfSpecies[species[-1]].initial_value)))
-        outfile.write("};\n")
-    if len(reactions) > 0:
-        # Write reaction names
-        outfile.write("std :: string r_names[] = {")
-        for i in range(len(reactions) - 1):
-            outfile.write('"{}", '.format(reactions[i]))
-        outfile.write('"{}"'.format(reactions[-1]))
-        outfile.write("};\n")
-    for param in model.listOfParameters:
-        outfile.write("const double {0} = {1};\n".format(parameter_mappings[param], model.listOfParameters[param].value)
-
-                      )
-
 
 class TauLeapingCSolver(GillesPySolver):
     name = "TauLeapingCSolver"
     """TODO"""
 
-    def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None):
+    def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None, variable = False):
         super(TauLeapingCSolver, self).__init__()
         self.__compiled = False
         self.delete_directory = False
         self.model = model
         self.resume = resume
+        self.variable = variable
         if self.model is not None:
             # Create constant, ordered lists for reactions/species/
             self.species_mappings = self.model.sanitized_species_names()
@@ -108,7 +59,13 @@ class TauLeapingCSolver(GillesPySolver):
         if self.delete_directory and os.path.isdir(self.output_directory):
             shutil.rmtree(self.output_directory)
 
-    def __write_template(self, template_file='tausimulationtemplate.cpp'):
+    def __write_template(self):
+
+        if self.variable:
+            template_file = 'VariableTauSimulationTemplate.cpp'
+        else:
+            template_file = 'TauSimulationTemplate.cpp'
+
         # Open up template file for reading.
         with open(os.path.join(GILLESPY_CPP_TAU_DIR, template_file), 'r') as template:
             # Write simulation C++ file.
@@ -118,14 +75,17 @@ class TauLeapingCSolver(GillesPySolver):
                 for line in template:
                     if line.startswith(template_keyword):
                         line = line[len(template_keyword):]
-                        if line.startswith("CONSTANTS"):
-                            _write_constants(outfile, self.model, self.reactions, self.species, self.parameter_mappings
-                                             , self.resume)
+                        if line.startswith("VARIABLES"):
+                            cutils.write_variables(outfile, self.model, self.reactions, self.species,
+                                                   self.parameter_mappings, self.resume, variable=self.variable)
                         if line.startswith("PROPENSITY"):
                             cutils.write_propensity(outfile, self.model, self.species_mappings, self.parameter_mappings
                                                     , self.reactions)
                         if line.startswith("REACTIONS"):
                             cutils.write_reactions(outfile, self.model, self.reactions, self.species)
+                        if self.variable:
+                            if line.startswith("PARAMETER_UPDATES"):
+                                cutils.update_parameters(outfile, self.parameters, self.parameter_mappings)
                     else:
                         outfile.write(line)
 
@@ -154,7 +114,7 @@ class TauLeapingCSolver(GillesPySolver):
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
     def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
-            increment=0.05, seed=None, debug=False, profile=False, resume=None, tau_step=.03, **kwargs):
+            increment=0.05, seed=None, debug=False, profile=False, resume=None, tau_step=.03, variables = {}, **kwargs):
 
         pause = False
         if resume is not None:
@@ -199,6 +159,12 @@ class TauLeapingCSolver(GillesPySolver):
             # Execute simulation.
             args = [os.path.join(self.output_directory, 'TauSimulation'), '-trajectories', str(number_of_trajectories),
                     '-timesteps', str(number_timesteps), '-tau_step', str(tau_step), '-end', str(t)]
+
+            if self.variable:  # Is a variable simulation
+                populations = cutils.update_species_init_values(model.listOfSpecies, self.species, variables, resume)
+                parameter_values = cutils.change_param_values(model.listOfParameters, self.parameters, model.volume,
+                                                              variables)
+                args.extend(['-initial_values', populations, '-parameters', parameter_values])
 
             if seed is not None:
                 if isinstance(seed, int):

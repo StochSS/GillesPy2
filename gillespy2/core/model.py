@@ -721,8 +721,7 @@ class Model(SortableObject):
         Finds best solver for the users simulation. Currently, AssignmentRules, RateRules, FunctionDefinitions,
         Events, and Species with a dynamic, or continuous population must use the TauHybridSolver.
         :param precompile: If True, and the model contains no AssignmentRules, RateRules, FunctionDefinitions, Events,
-        or Species with a dynamic or continuous population, the get_best_solver will choose the VariableSSACSolver, else
-        it will choose SSACSolver
+        or Species with a dynamic or continuous population, it will choose SSACSolver
         :type precompile: bool
         :return: gillespy2.gillespySolver
         """
@@ -753,12 +752,8 @@ class Model(SortableObject):
             return NumPySSASolver
 
         else:
-            if precompile:
-                from gillespy2 import VariableSSACSolver
-                return VariableSSACSolver
-            else:
-                from gillespy2 import SSACSolver
-                return SSACSolver
+            from gillespy2 import SSACSolver
+            return SSACSolver
 
     def run(self, solver=None, timeout=0, t=None, increment=None, show_labels=True, cpp_support=False, **solver_args):
         """
@@ -809,7 +804,7 @@ class Model(SortableObject):
             # This will throw an error and throw log. IF a user specifies cpp_support == True and don't have a compiler
             # They would bypass this log.warning and just recieve an error
             if cpp_support is False and not isinstance(solver, str):
-                if solver.name == 'SSACSolver' or solver.name == 'VariableSSACSolver':
+                if solver.name == 'SSACSolver':
                     from gillespy2.core import log
                     log.warning("Please install/configure 'g++' and 'make' on your"
                                 " system, to ensure that GillesPy2 C solvers will"

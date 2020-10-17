@@ -40,6 +40,70 @@ def _copy_files(destination, GILLESPY_C_DIRECTORY, ode=False):
                 path_file = os.path.join(root, file)
                 shutil.copy2(path_file, destination)
 
+
+def write_variables(outfile, model, reactions, species, parameter_mappings, resume=None, variable=False):
+    """
+    This function writes the models constants to a user simulation file
+    :param outfile: CPP file, used for simulating a model
+    :param model: The model that is being simulated
+    :param reactions: List of names of a models reactions
+    :param species: List of sanitized species names
+    :param parameter_mappings: List of sanitized parameter names
+    :param resume: If resuming a simulation from a previous one, resume is the results object from the prior simulation.
+    Else, it is defaulted to None.
+   """
+    parameters = list(parameter_mappings.keys())
+
+    const_or_not = ''
+    if not variable:
+        const_or_not = 'const '
+        print('here')
+    outfile.write("{0}double V = {1};\n".format(const_or_not, model.volume))
+    outfile.write("std :: string s_names[] = {")
+    if len(species) > 0:
+        # Write model species names.
+        for i in range(len(species)-1):
+            outfile.write('"{}", '.format(species[i]))
+        outfile.write('"{}"'.format(species[-1]))
+        outfile.write("};\nunsigned int populations[] = {")
+        # Write initial populations.
+        for i in range(len(species) - 1):
+            # If resuming
+            if not (resume is None):
+                if isinstance(resume, np.ndarray):
+                    outfile.write('{}, '.format(int(resume[0][-1][i + 1])))
+                else:
+                    outfile.write('{}, '.format(int(resume[species[i]][-1])))
+            else:
+                outfile.write('{}, '.format(int(model.listOfSpecies[species[i]].initial_value)))
+        if not (resume is None):
+            if isinstance(resume, np.ndarray):
+                outfile.write('{}'.format(int(resume[0][-1][-1])))
+            else:
+                outfile.write('{}'.format(int(resume[species[-1]][-1])))
+        else:
+            outfile.write('{}'.format(int(model.listOfSpecies[species[-1]].initial_value)))
+        outfile.write("};\n")
+    if len(reactions) > 0:
+        # Write reaction names
+        outfile.write("std :: string r_names[] = {")
+        for i in range(len(reactions)-1):
+            outfile.write('"{}", '.format(reactions[i]))
+        outfile.write('"{}"'.format(reactions[-1]))
+        outfile.write("};\n")
+    for param in parameters:
+        if param != 'vol':
+            outfile.write("{0}double {1} = {2};\n".format(const_or_not,parameter_mappings[param], model.listOfParameters[param].value))
+
+
+def update_parameters(outfile, parameters, parameter_mappings):
+    for param in parameters:
+        if param != 'vol':
+            outfile.write('       arg_stream >> {};\n'.format(parameter_mappings[param]))
+        else:
+            outfile.write('       arg_stream >> V;\n')
+
+
 def write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
     """
     This functions writes a models propensity functions to a cpp user simulation template, for the SSACSolvers.
@@ -213,7 +277,50 @@ def numpy_resume(timeStopped, simulation_data, resume=None):
 
     return simulation_data
 
+"""
+VARIABLE SOLVER METHODS
+"""
 
+
+def update_species_init_values(listOfSpecies, species, variables, resume = None):
+    # Update Species Initial Values
+    populations = ''
+    for i in range(len(species) - 1):
+        if species[i] in variables:
+            populations += '{} '.format(int(variables[species[i]]))
+        else:
+            if resume is not None:
+                populations += '{} '.format(int(resume[species[i]][-1]))
+            else:
+                populations += '{} '.format(int(listOfSpecies[species[i]].initial_value))
+    if species[-1] in variables:
+        populations += '{}'.format(int(variables[species[-1]]))
+    else:
+        if resume is not None:
+            populations += '{} '.format(int(resume[species[-1]][-1]))
+        else:
+            populations += '{}'.format(int(listOfSpecies[species[-1]].initial_value))
+    return populations
+
+def change_param_values(listOfParameters, parameters, volume, variables):
+    # Update Parameter Values
+    parameter_values = ''
+    for i in range(len(parameters) - 1):
+        if parameters[i] in variables:
+            parameter_values += '{} '.format(variables[parameters[i]])
+        else:
+            if parameters[i] == 'vol':
+                parameter_values += '{} '.format(volume)
+            else:
+                parameter_values += '{} '.format(listOfParameters[parameters[i]].expression)
+    if parameters[-1] in variables:
+        parameter_values += '{}'.format(variables[parameters[-1]])
+    else:
+        if parameters[-1] == 'vol':
+            parameter_values += '{}'.format(volume)
+        else:
+            parameter_values += '{}'.format(listOfParameters[parameters[-1]].expression)
+    return parameter_values
 """
 Below are two functions used for creating dependency graphs in the C solvers, and Numpy Solvers.
 """
