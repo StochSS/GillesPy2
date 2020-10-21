@@ -17,14 +17,13 @@ class ODECSolver(GillesPySolver):
     name = "ODECSolver"
     """TODO"""
 
-    def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None, variable = False):
+    def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None, variable=False):
         super(ODECSolver, self).__init__()
         self.__compiled = False
         self.delete_directory = False
         self.model = model
         self.resume = resume
         self.variable = variable
-
         if self.model is not None:
             # Create constant, ordered lists for reactions/species/
             self.species_mappings = self.model.sanitized_species_names()
@@ -147,7 +146,7 @@ class ODECSolver(GillesPySolver):
 
         if len(detected_features):
                 raise gillespyError.ModelError(
-                'Could not run Model.  SBML Feature: {} not supported by SSACSolver.'.format(detected_features))
+                'Could not run Model.  SBML Feature: {} not supported by ODECSolver.'.format(detected_features))
 
         if not isinstance(variables, dict):
             raise gillespyError.SimulationError(

@@ -57,7 +57,6 @@ def write_variables(outfile, model, reactions, species, parameter_mappings, resu
     const_or_not = ''
     if not variable:
         const_or_not = 'const '
-        print('here')
     outfile.write("{0}double V = {1};\n".format(const_or_not, model.volume))
     outfile.write("std :: string s_names[] = {")
     if len(species) > 0:

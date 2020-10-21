@@ -5,7 +5,6 @@ from example_models import MichaelisMenten, Oregonator
 from gillespy2.core.results import Results, Trajectory
 from gillespy2.core import Species
 from gillespy2 import SSACSolver
-from gillespy2 import VariableSSACSolver
 from gillespy2 import ODESolver
 from gillespy2 import NumPySSASolver
 from gillespy2 import TauLeapingSolver
@@ -17,8 +16,7 @@ import os
 
 
 class TestPauseResume(unittest.TestCase):
-    solvers = [SSACSolver, VariableSSACSolver, ODESolver,
-               NumPySSASolver, TauLeapingSolver]
+    solvers = [SSACSolver, ODESolver, NumPySSASolver, TauLeapingSolver]
 
     model = MichaelisMenten()
     for sp in model.listOfSpecies.values():

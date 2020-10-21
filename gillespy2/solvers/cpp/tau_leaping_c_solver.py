@@ -19,7 +19,7 @@ class TauLeapingCSolver(GillesPySolver):
     name = "TauLeapingCSolver"
     """TODO"""
 
-    def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None, variable = False):
+    def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None, variable=False):
         super(TauLeapingCSolver, self).__init__()
         self.__compiled = False
         self.delete_directory = False
@@ -60,6 +60,7 @@ class TauLeapingCSolver(GillesPySolver):
             shutil.rmtree(self.output_directory)
 
     def __write_template(self):
+        # Open up template file for reading.
 
         if self.variable:
             template_file = 'VariableTauSimulationTemplate.cpp'
@@ -114,7 +115,7 @@ class TauLeapingCSolver(GillesPySolver):
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
     def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
-            increment=0.05, seed=None, debug=False, profile=False, resume=None, tau_step=.03, variables = {}, **kwargs):
+            increment=0.05, seed=None, debug=False, profile=False, resume=None, tau_step=.03, variables={}, **kwargs):
 
         pause = False
         if resume is not None:
@@ -123,12 +124,9 @@ class TauLeapingCSolver(GillesPySolver):
                     "'t' must be greater than previous simulations end time, or set in the run() method as the "
                     "simulations next end time")
 
-        if resume is not None:
+        if self is None or self.model is None:
             self = TauLeapingCSolver(model, resume=resume)
 
-        else:
-            if self is None or self.model is None:
-                self = TauLeapingCSolver(model)
 
         if len(kwargs) > 0:
             for key in kwargs:
@@ -146,8 +144,16 @@ class TauLeapingCSolver(GillesPySolver):
                 detected_features.append(feature)
 
         if len(detected_features):
-            raise gillespyError.ModelError('Could not run Model.  SBML Feature: {} not supported by SSACSolver.'
-                                           .format(detected_features))
+                raise gillespyError.ModelError(
+                'Could not run Model.  SBML Feature: {} not supported by TauLeapingSolver.'.format(detected_features))
+
+        if not isinstance(variables, dict):
+            raise gillespyError.SimulationError(
+                'argument to variables must be a dictionary.')
+        for v in variables.keys():
+            if v not in self.species+self.parameters:
+                raise gillespyError.SimulationError('Argument to variable "{}" \
+                is not a valid variable.  Variables must be model species or parameters.'.format(v))
 
         if self.__compiled:
             self.simulation_data = None
@@ -165,6 +171,7 @@ class TauLeapingCSolver(GillesPySolver):
                 parameter_values = cutils.change_param_values(model.listOfParameters, self.parameters, model.volume,
                                                               variables)
                 args.extend(['-initial_values', populations, '-parameters', parameter_values])
+                print('HERE in self.variable tau')
 
             if seed is not None:
                 if isinstance(seed, int):
@@ -180,7 +187,6 @@ class TauLeapingCSolver(GillesPySolver):
 
             # begin subprocess c simulation with timeout (default timeout=0 will not timeout)
             with subprocess.Popen(args, stdout=subprocess.PIPE, start_new_session=True) as simulation:
-                return_code = 0
                 try:
                     if timeout > 0:
                         stdout, stderr = simulation.communicate(timeout=timeout)
