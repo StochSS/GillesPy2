@@ -193,6 +193,7 @@ class Reaction(SortableObject):
             self.propensity_function = __customPropParser()
 
     def __str__(self):
+        self.verify()
         print_string = self.name
         if len(self.reactants):
             print_string += '\n\tReactants'
