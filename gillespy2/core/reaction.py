@@ -125,6 +125,7 @@ class Reaction(SortableObject):
                             return nameToConstant
                         return node
 
+                self.verify()
                 expr = self.propensity_function
                 expr = expr.replace('^', '**')
                 expr = ast.parse(expr, mode='eval')
@@ -199,14 +200,20 @@ class Reaction(SortableObject):
             print_string += '\n\tReactants'
             for r, stoich in self.reactants.items():
                 try:
-                    print_string += '\n\t\t' + r.name + ': ' + str(stoich)
+                    if isinstance(r, str):
+                        print_string += '\n\t\t' + r + ': ' + str(stoich)
+                    else:
+                        print_string += '\n\t\t' + r.name + ': ' + str(stoich)
                 except Exception as e:
                     print_string += '\n\t\t' + r + ': ' + 'INVALID - ' + str(e)
         if len(self.products):
             print_string += '\n\tProducts'
             for p, stoich in self.products.items():
                 try:
-                    print_string += '\n\t\t' + p.name + ': ' + str(stoich)
+                    if isinstance(p, str):
+                        print_string += '\n\t\t' + p + ': ' + str(stoich)
+                    else:
+                        print_string += '\n\t\t' + p.name + ': ' + str(stoich)
                 except Exception as e:
                     print_string += '\n\t\t' + p + ': ' + 'INVALID - ' + str(e)
         print_string += '\n\tPropensity Function: ' + self.propensity_function
@@ -217,6 +224,9 @@ class Reaction(SortableObject):
         Does nothing on sucesss, raises and error on failure."""
         if self.marate is None and self.propensity_function is None:
             raise ReactionError("You must specify either a mass-action rate or a propensity function")
+        if self.marate is None and self.propensity_function is not None:
+            if self.propensity_function.strip() == '':
+                raise ReactionError("Propensity Function cannot be empty string.")
         if len(self.reactants) == 0 and len(self.products) == 0:
             raise ReactionError("You must have a non-zero number of reactants or products.")
 
