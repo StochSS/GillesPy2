@@ -91,3 +91,7 @@ class Species(SortableObject):
             raise SpeciesError("Species population must be non-negative, or allow_negative_populations "
                                "must be set to True")
         self.initial_value = num
+
+class Variable(Species):
+    pass
+
