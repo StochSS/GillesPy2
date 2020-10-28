@@ -4,13 +4,13 @@ import numpy as np
 
 class Species(SortableObject):
     """
-    Chemical species. Can be added to Model object to interact with other
-    species or time.
+    Time varying quantities of interest; e.g.: concentrations, populations, or
+    counts of biochemical species, epidemological compartments, chemicals,
+    proteins, or molecules.
 
     :param name: The name by which this species will be called in reactions and within the model.
     :type name: str
-    :param initial_value: Initial population of this species. If this is not provided as an int,
-    the type will be changed when it is added by numpy.int
+    :param initial_value: Initial population/concentration of this variable. 
     :type initial_value: int >= 0
     :param constant: If true, the value of the species cannot be changed (currently TauHybridSolver only)
     :type constant: bool
@@ -93,5 +93,39 @@ class Species(SortableObject):
         self.initial_value = num
 
 class Variable(Species):
+    """
+    Time varying quantities of interest; e.g.: concentrations, populations, or
+    counts of biochemical species, epidemological compartments, chemicals,
+    proteins, or molecules.
+
+    :param name: The name by which this variable will be called in reactions and within the model.
+    :type name: str
+    :param initial_value: Initial population/concentration of this variable. 
+    :type initial_value: int >= 0
+    :param constant: If true, the value of the variable cannot be changed (currently TauHybridSolver only)
+    :type constant: bool
+    :param boundary_condition: If true, variable can be changed by events and rate rules, but not by reactions.
+    (TauHybridSolver only)
+    :type boundary_condition: bool
+    :param mode: ***FOR USE WITH BasicTauHybridSolver ONLY***
+    Sets the mode of representation of this variable for the TauHybridSolver,
+    can be discrete, continuous, or dynamic.
+    mode='dynamic' - Allows a variable to be represented as either discrete or continuous
+    mode='continuous' - Variable will only be represented as continuous
+    mode='discrete' - Variable will only be represented as discrete
+    :type mode: str
+    :param allow_negative_populations: If true, population can be reduces below 0.
+    :type allow_negative_populations: bool
+    :param switch_tol: ***FOR USE WITH BasicTauHybridSolver ONLY***
+    Tolerance level for considering a dynamic variable deterministically, value is compared to an estimated sd/mean
+    population of a variable after a given time step. This value will be used if a switch_min is not provided.
+    The default value is 0.03
+    :type switch_tol: float
+    :param switch_min:  ***FOR USE WITH BasicTauHybridSolver ONLY***
+    Minimum population value at which variable will be represented as continuous. If a value is given, switch_min will be
+    used instead of switch_tol
+    :type switch_min: float
+    """
+
     pass
 
