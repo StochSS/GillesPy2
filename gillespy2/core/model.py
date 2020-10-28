@@ -239,6 +239,15 @@ class Model(SortableObject):
                 raise ParameterError("Error using {} as a Species. Reason given: {}".format(obj, e))
         return obj
 
+    def add_variable(self, obj):
+        """
+        Adds a variable, or list of variables to the model.
+
+        :param obj: The variable or list of variables to be added to the model object
+        :type obj: Variable, or list of Variables
+        """
+        return add_species(self, object)
+
     def delete_species(self, obj):
         """
         Removes a species object by name.
@@ -255,6 +264,21 @@ class Model(SortableObject):
         """
         self.listOfSpecies.clear()
         self._listOfSpecies.clear()
+
+    def delete_variable(self, obj):
+        """
+        Removes a variable object by name.
+
+        :param obj: Name of the variable object to be removed
+        :type obj: str
+        """
+        delete_species(self, obj)
+
+    def delete_all_variables(self):
+        """
+        Removes all variables from the model object.
+        """
+        delete_all_species(self)
 
     def set_units(self, units):
         """
