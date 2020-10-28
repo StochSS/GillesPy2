@@ -253,7 +253,7 @@ void tau_leaper(Gillespy::Simulation* simulation, const double tau_tol){
             std::vector <int> prev_curr_state;
 
             // Each save step
-            while (entry_count < simulation->end_time+1){ // while less than end_time? Could be incorrect
+            while (entry_count < simulation->number_timesteps){ // while less than end_time? Could be incorrect
                 if (interrupted)
                     break;
                 while(simulation->current_time < save_time){
