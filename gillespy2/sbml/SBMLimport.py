@@ -46,7 +46,7 @@ def __read_sbml_model(filename):
 def __get_math(math):
     math_str = libsbml.formulaToL3String(math)
     replacements = {
-        'ln(': 'log(',
+        '\bln\b': 'log',
         '^': '**',
         '&&': 'and',
         '||': 'or'
