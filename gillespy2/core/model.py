@@ -44,6 +44,24 @@ def import_SBML(filename, name=None, gillespy_model=None):
     return convert(filename, model_name=name, gillespy_model=gillespy_model)
 
 
+def export_SBML(gillespy_model, filename=None):
+    """
+    GillesPy model to SBML converter
+
+    :param gillespy_model: GillesPy model to be converted to SBML
+    :type gillespy_model: gillespy.Model
+
+    :param filename: Path to the SBML file for conversion
+    :type filename: str
+    """
+    try:
+        from gillespy2.sbml.SBMLexport import convert
+    except ImportError:
+        raise ImportError('SBML export conversion not imported successfully')
+
+    return export(gillespy_model, path=filename)
+
+
 class Model(SortableObject):
     # reserved names for model species/parameter names, volume, and operators.
     reserved_names = ['vol']
