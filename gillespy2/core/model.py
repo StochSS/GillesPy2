@@ -55,7 +55,7 @@ def export_SBML(gillespy_model, filename=None):
     :type filename: str
     """
     try:
-        from gillespy2.sbml.SBMLexport import convert
+        from gillespy2.sbml.SBMLexport import export
     except ImportError:
         raise ImportError('SBML export conversion not imported successfully')
 
