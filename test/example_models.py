@@ -5,7 +5,7 @@ import numpy as np
 class VilarOscillator(Model):
     def __init__(self, parameter_values=None):
         # initialize Model
-        Model.__init__(self, name="VilarOscillator")
+        Model.__init__(self, name="Vilar_Oscillator")
 
         # parameters
         alpha_a = Parameter(name='alpha_a', expression=50.0)
@@ -73,7 +73,7 @@ class VilarOscillator(Model):
 class Dimerization(Model):
     def __init__(self, parameter_values=None):
         # First call the gillespy2.Model initializer.
-        Model.__init__(self)
+        Model.__init__(self, name="Dimerization")
 
         # Define parameters for the rates of creation and dissociation.
         k_c = Parameter(name='k_c', expression=0.005)
