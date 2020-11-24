@@ -96,7 +96,7 @@ class Dimerization(Model):
         self.add_reaction([r_creation, r_dissociation])
 
         # Set the timespan for the simulation.
-        self.timespan(numpy.linspace(0, 100, 101))
+        self.timespan(np.linspace(0, 100, 101))
 
 
 class Trichloroethylene(Model):
