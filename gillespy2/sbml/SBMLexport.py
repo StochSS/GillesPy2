@@ -20,7 +20,7 @@ def __add_species(species_list, model):
     for name, species in species_list.items():
         spec = model.createSpecies()
         spec.initDefaults()
-        spec.setCompartment("c")
+        spec.setCompartment("vol")
         spec.setId(name)
         spec.setInitialAmount(species.initial_value)
 
@@ -133,9 +133,9 @@ def export(model, path=None):
     sbml_model.setName(model.name)
 
     compartment = sbml_model.createCompartment()
-    compartment.setId('c')
+    compartment.setId('vol')
     compartment.setConstant(True)
-    compartment.setSize(1)
+    compartment.setSize(model.volume)
     compartment.setSpatialDimensions(3)
 
     __add_species(model.listOfSpecies, sbml_model)
