@@ -70,7 +70,7 @@ class VilarOscillator(Model):
         self.timespan(np.linspace(0, 200, 201))
 
 
-class Dimerization(gillespy2.Model):
+class Dimerization(Model):
     def __init__(self, parameter_values=None):
         # First call the gillespy2.Model initializer.
         super().__init__(self)
