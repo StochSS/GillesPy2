@@ -123,6 +123,15 @@ def __write_to_file(document, path):
         sbml_file.write(writer.writeSBMLToString(document))
 
 def export(model, path=None):
+    """
+    GillesPy model to SBML converter
+
+    :param model: GillesPy model to be converted to SBML
+    :type model: gillespy.Model
+
+    :param path: Path to the SBML file for conversion
+    :type path: str
+    """
 
     if path is None:
         path = f"{model.name}.xml"
