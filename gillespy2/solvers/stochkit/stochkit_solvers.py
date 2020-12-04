@@ -11,6 +11,7 @@ from gillespy2.core.gillespyError import SimulationError, InvalidModelError
 
 class StochKitBaseSolver(GillesPySolver):
     name = "StochKitBaseSolver"
+    rc = 0
     """
     Abstract class for a StochKit solver. This is generally called from within a
     GillesPy Model through the Model.run function. Returns simulation
@@ -143,7 +144,7 @@ class StochKitBaseSolver(GillesPySolver):
             if show_labels:
                 labels, trajectories = trajectories
                 trajectories = cls.label_trajectories(trajectories, labels)
-            return trajectories
+            return trajectories, cls.rc
         except Exception as e:
             compile_log_file = os.path.join(prefix_base_dir, 'temp_input_{0}_generated_code'.format(job_id),
                                             'compile-log.txt')
