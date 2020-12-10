@@ -538,10 +538,10 @@ class Model(SortableObject):
     def timespan(self, time_span):
         """
         Set the time span of simulation. StochKit does not support non-uniform
-        timespans.
+        timespans. 
 
         :param time_span: Evenly-spaced list of times at which to sample the species
-        populations during the simulation.
+        populations during the simulation. Best to use the form np.linspace(<start time>, <end time>, <number of time-points, inclusive>)
         :type time_span: numpy ndarray
         """
 
