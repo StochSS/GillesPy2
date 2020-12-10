@@ -305,7 +305,7 @@ class VariableSSACSolver(GillesPySolver):
                 trajectory_base, timeStopped = cutils._parse_binary_output(stdout, number_of_trajectories,
                                                                            number_timesteps, len(model.listOfSpecies),
                                                                            stdout, pause=pause)
-                if model.tspan[2] - model.tspan[1] == 1:
+                if model.tspan[1] - model.tspan[0] == 1:
                     timeStopped = int(timeStopped)
 
                 # Format results
