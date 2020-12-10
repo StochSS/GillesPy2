@@ -5,7 +5,7 @@ import numpy as np
 class VilarOscillator(Model):
     def __init__(self, parameter_values=None):
         # initialize Model
-        Model.__init__(self, name="Vilar_Oscillator")
+        Model.__init__(self, name="VilarOscillator")
 
         # parameters
         alpha_a = Parameter(name='alpha_a', expression=50.0)
