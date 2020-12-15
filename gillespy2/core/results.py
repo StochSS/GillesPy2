@@ -162,6 +162,12 @@ class Results(UserList):
         combined_data = self.data + other.data
         return Results(data=combined_data)
 
+    def __radd__(self, other):
+        if other == 0:
+            return self
+        else:
+            return self.__add__(other)
+
     def _validate_model(self, reference=None):
         is_valid = True
         if reference is not None:

@@ -46,7 +46,7 @@ def __read_sbml_model(filename):
 def __get_math(math):
     math_str = libsbml.formulaToL3String(math)
     replacements = {
-        'ln': 'log',
+        '\bln\b': 'log',
         '^': '**',
         '&&': 'and',
         '||': 'or'
@@ -120,9 +120,12 @@ def __get_compartments(sbml_model, gillespy_model):
         name = compartment.getId()
         value = compartment.getSize()
 
-        gillespy_parameter = gillespy2.Parameter(name=name, expression=value)
-        init_state[name] = value
-        gillespy_model.add_parameter([gillespy_parameter])
+        if name == "vol":
+            gillespy_model.volume = value
+        else:
+            gillespy_parameter = gillespy2.Parameter(name=name, expression=value)
+            init_state[name] = value
+            gillespy_model.add_parameter([gillespy_parameter])
 
     '''
     for i in range(sbml_model.getNumCompartments()):
