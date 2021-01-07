@@ -564,7 +564,7 @@ class Model(SortableObject):
         """
         
         first_diff = time_span[1] - time_span[0]
-        other diff = time_span[2:] - time:span[1:-1]
+        other diff = time_span[2:] - time_span[1:-1]
         isuniform = np.isclose(other_diff, first_diff).all()
 
         if isuniform:
