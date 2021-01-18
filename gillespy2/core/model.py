@@ -562,10 +562,10 @@ class Model(SortableObject):
         populations during the simulation. Best to use the form np.linspace(<start time>, <end time>, <number of time-points, inclusive>)
         :type time_span: numpy ndarray
         """
-
-        items = np.diff(time_span)
-        items = np.array([round(item, 10) for item in items])
-        isuniform = (len(set(items)) == 1)
+        
+        first_diff = time_span[1] - time_span[0]
+        other_diff = time_span[2:] - time_span[1:-1]
+        isuniform = np.isclose(other_diff, first_diff).all()
 
         if isuniform:
             self.tspan = time_span
