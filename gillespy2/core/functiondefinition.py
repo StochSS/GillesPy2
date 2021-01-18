@@ -20,8 +20,8 @@ class FunctionDefinition(SortableObject):
 
         self.name = name
         self.function_string = function
-        args = ', '.join(args)
-        self.function = eval('lambda ' + args + ': ' + function, eval_globals)
+        self.args = ', '.join(args)
+        self.function = eval('lambda ' + self.args + ': ' + function, eval_globals)
         if self.function is None:
             raise TypeError
 
