@@ -25,6 +25,11 @@ class FunctionDefinition(SortableObject):
         if self.function is None:
             raise TypeError
 
+
+    def __str__(self):
+        return f"self.name: Args: {self.args}, Expression: {self.function_string}"
+
+
     def sanitized_function(self, species_mappings, parameter_mappings):
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
                        reverse=True)

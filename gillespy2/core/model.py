@@ -177,6 +177,10 @@ class Model(SortableObject):
             print_string += decorate('Rate Rules')
             for rr in sorted(self.listOfRateRules.values()):
                 print_string += '\n' + str(rr)
+	if len(self.listOfFunctionDefinitions):
+	    print_string += decorate('Function Definitions')
+	    for fd in sorted(self.listOfFunctionDefinitions.values()):
+		print_string += '\n' + str(fd)
         return print_string
 
     def serialize(self):
