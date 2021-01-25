@@ -161,7 +161,7 @@ class Model(SortableObject):
                 print_string += '\n' + str(rr)
         return print_string
 
-    def model_to_json_string(self):
+    def to_json_string(self):
         model_json = {}
         species_mappings = self.sanitized_species_names()
         parameter_mappings = self.sanitized_parameter_names()
@@ -198,8 +198,7 @@ class Model(SortableObject):
             reaction['products'] = {}
             for product in sorted(r.products):
                 reaction['products'][product] = r.products[product]
-            # find out how to sanitize propensity function using species/parameter mappings
-            reaction['propensity_function'] = r.propensity_function
+            reaction['propensity_function'] = r.sanitized_propensity_function(species_mappings, parameter_mappings)
             reaction['massaction'] = r.massaction
             reaction['marate'] = r.marate
             reaction['type'] = r.type
@@ -253,7 +252,16 @@ class Model(SortableObject):
         timespan['end'] = self.tspan[-1]
         timespan['points'] = self.tspan.size
         model_json['timespan'] = timespan
+
         return str(model_json)
+
+    def remote_solver_hash(self):
+        """ Creates an md5 hash of a **mostly** anonymized version of the model to be used for caching """
+        json_string = self.to_json_string()
+        import hashlib
+        mdfive = hashlib.md5(json_string.encode())
+        return mdfive.hexdigest()
+
 
     def serialize(self):
         """ Serializes the Model object to valid StochML. """
