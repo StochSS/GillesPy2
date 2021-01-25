@@ -161,6 +161,100 @@ class Model(SortableObject):
                 print_string += '\n' + str(rr)
         return print_string
 
+    def model_to_json_string(self):
+        model_json = {}
+        species_mappings = self.sanitized_species_names()
+        parameter_mappings = self.sanitized_parameter_names()
+
+        model_json['units'] = self.units
+
+        parameters = {}
+        for i, p in enumerate(sorted(self.listOfParameters.values())):
+            parameter = {}
+            parameter['expression'] = p.expression
+            parameter['value'] = p.value
+            parameters['P'+str(i)] = parameter
+        model_json['parameters'] = parameters
+
+        species = {}
+        for i, s in enumerate(sorted(self.get_all_species().values())):
+            specie = {}
+            specie['value'] = s.initial_value
+            specie['constant'] = s.constant
+            specie['boundary_condition'] = s.boundary_condition
+            specie['mode'] = s.mode
+            specie['allow_negative_populations'] = s.allow_negative_populations
+            specie['switch_min'] = s.switch_min
+            specie['switch_tol'] = s.switch_tol
+            species["S"+str(i)] = specie
+        model_json['species'] = species
+
+        reactions = {}
+        for i, r in enumerate(sorted(self._listOfReactions.values())):
+            reaction = {}
+            reaction['reactants'] = {}
+            for reactant in sorted(r.reactants):
+                reaction['reactants'][reactant] = r.reactants[reactant]
+            reaction['products'] = {}
+            for product in sorted(r.products):
+                reaction['products'][product] = r.products[product]
+            # find out how to sanitize propensity function using species/parameter mappings
+            reaction['propensity_function'] = r.propensity_function
+            reaction['massaction'] = r.massaction
+            reaction['marate'] = r.marate
+            reaction['type'] = r.type
+            # getting error - no rate attribute?
+        #     reaction['rate'] = r.rate
+            reactions["R"+str(i)] = reaction
+        model_json['reactions'] = reactions
+
+        model_json['volume'] = self.volume
+
+        assignment_rules = {}
+        for i, r in enumerate(sorted(self.get_all_assignment_rules().values())):
+            assignment_rules["rule" +
+                            str(i)] = r.sanitized_formula(species_mappings, parameter_mappings)
+        model_json['assignment_rules'] = assignment_rules
+
+        rate_rules = {}
+        for i, r in enumerate(sorted(self.get_all_rate_rules().values())):
+            rate_rules["rule" +
+                    str(i)] = r.sanitized_formula(species_mappings, parameter_mappings)
+        model_json['rate_rules'] = rate_rules
+
+        events = {}
+        for i, e in enumerate(sorted(self.get_all_events().values())):
+            event = {}
+            event['trigger'] = {'value': e.trigger.value,
+                                'persistent': e.trigger.persistent,
+                                'expression': e.trigger.sanitized_expression(species_mappings, parameter_mappings)}
+            event['delay'] = e.delay
+            event['assignments'] = {}
+            for i, e_a in enumerate(e.assignments):
+                if type(e_a.variable) is Species:
+                    v = species_mappings[e_a.variable.name]
+                elif type(e_a.variable) is Parameter:
+                    v = parameter_mappings[e_a.variable.name]
+                else:
+                    #will need to update this once Compartment is implemented
+                    v = e_a.variable.name
+                event['assignments']['EA' +
+                                    str(i)] = {'variable': v, 'expression': e_a.expression}
+            events['E'+str(i)] = event
+        model_json['events'] = events
+
+        function_definitions = {}
+        for i, e in enumerate(sorted(self.get_all_function_definitions().values())):
+            function_definitions['FD'+str(i)] = e.name
+        model_json['function_definitions'] = function_definitions
+
+        timespan = {}
+        timespan['start'] = self.tspan[0]
+        timespan['end'] = self.tspan[-1]
+        timespan['points'] = self.tspan.size
+        model_json['timespan'] = timespan
+        return str(model_json)
+
     def serialize(self):
         """ Serializes the Model object to valid StochML. """
         self.resolve_parameters()
@@ -502,7 +596,7 @@ class Model(SortableObject):
                 self.listOfFunctionDefinitions[function_definitions.name] = function_definitions
             except Exception as e:
                 raise ParameterError(
-                    "Error using {} as a Function Definition. Reason given: ".format(function_definitions, e))
+                    "Error using {} as a Function Definition. Reason given: {}".format(function_definitions, e))
 
     def add_assignment_rule(self, assignment_rules):
         """
@@ -533,7 +627,7 @@ class Model(SortableObject):
 
                 self.listOfAssignmentRules[assignment_rules.name] = assignment_rules
             except Exception as e:
-                raise ParameterError("Error using {} as a Assignment Rule. Reason given: ".format(assignment_rules, e))
+                raise ParameterError("Error using {} as a Assignment Rule. Reason given: {}".format(assignment_rules, e))
 
     def timespan(self, time_span):
         """
