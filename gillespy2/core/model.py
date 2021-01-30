@@ -820,7 +820,7 @@ class Model(SortableObject):
             solver = self.get_best_solver()
 
         try:
-            solver_results, rc = solver.run(model=self, t=t, increment=self.tspan[-1] - self.tspan[-2],
+            solver_results, rc = solver.run(model=self, t=t - self.tspan[0], increment=self.tspan[-1] - self.tspan[-2],
                                             timeout=timeout, **solver_args)
         except Exception as e:
             # If user has specified the SSACSolver, but they don't actually have a g++ compiler,
@@ -844,18 +844,9 @@ class Model(SortableObject):
 
         if len(solver_results) > 0:
             results_list = []
+            init_time = self.tspan[0]
             for i in range(0, len(solver_results)):
-                temp = Trajectory(data=solver_results[i], model=self, solver_name=solver.name, rc=rc)
-                results_list.append(temp)
-
-            results = Results(results_list)
-            if show_labels == False:
-                results = results.to_array()
-            return results
-
-        if len(solver_results) > 0:
-            results_list = []
-            for i in range(0, len(solver_results)):
+                solver_results[i]['time'] += init_time
                 temp = Trajectory(data=solver_results[i], model=self, solver_name=solver.name, rc=rc)
                 results_list.append(temp)
 
