@@ -190,20 +190,22 @@ class Model(SortableObject):
         model_json['species'] = species
 
         reactions = {}
-        for i, r in enumerate(sorted(self._listOfReactions.values())):
+        for i, r in enumerate(sorted(self.get_all_reactions().values())):
             reaction = {}
             reaction['reactants'] = {}
             for reactant in sorted(r.reactants):
-                reaction['reactants'][reactant] = r.reactants[reactant]
+                reaction['reactants'][species_mappings[reactant.name]] = r.reactants[reactant]
             reaction['products'] = {}
             for product in sorted(r.products):
-                reaction['products'][product] = r.products[product]
+                reaction['products'][species_mappings[product.name]] = r.products[product]
             reaction['propensity_function'] = r.sanitized_propensity_function(species_mappings, parameter_mappings)
-            reaction['massaction'] = r.massaction
-            reaction['marate'] = r.marate
             reaction['type'] = r.type
+            if r.massaction is True:
+                reaction['massaction'] = r.massaction
+                reaction['marate'] = parameter_mappings[r.marate.name]
             # getting error - no rate attribute?
-        #     reaction['rate'] = r.rate
+            # else:
+                # reaction['rate'] = r.rate
             reactions["R"+str(i)] = reaction
         model_json['reactions'] = reactions
 
