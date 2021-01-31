@@ -74,3 +74,14 @@ class Parameter(SortableObject):
             raise TypeError
 
         self.evaluate()
+
+    def sanitized_expression(self, species_mappings, parameter_mappings):
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
+                       reverse=True)
+        replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
+                        for name in names]
+        sanitized_expression = self.expression
+        for id, name in enumerate(names):
+            sanitized_expression = sanitized_expression.replace(
+                name, "{"+str(id)+"}")
+        return sanitized_expression.format(*replacements)
