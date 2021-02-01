@@ -259,7 +259,7 @@ class Model(SortableObject):
         return json.dumps(model_json)
 
     def remote_solver_hash(self):
-        """ Creates an md5 hash of a **mostly** anonymized version of the model to be used for caching """
+        """ Creates an md5 hash of an anonymized version of the model to be used for caching """
         json_string = self.to_json_string()
         import hashlib
         mdfive = hashlib.md5(json_string.encode())
