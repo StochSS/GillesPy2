@@ -171,7 +171,7 @@ class Model(SortableObject):
         parameters = {}
         for i, p in enumerate(sorted(self.listOfParameters.values())):
             parameter = {}
-            parameter['expression'] = p.expression
+            parameter['expression'] = p.sanitized_expression(species_mappings, parameter_mappings)
             parameter['value'] = p.value
             parameters['P'+str(i)] = parameter
         model_json['parameters'] = parameters
@@ -246,7 +246,7 @@ class Model(SortableObject):
 
         function_definitions = {}
         for i, e in enumerate(sorted(self.get_all_function_definitions().values())):
-            function_definitions['FD'+str(i)] = e.name
+            function_definitions['FD'+str(i)] = e.sanitized_function(species_mappings, parameter_mappings)
         model_json['function_definitions'] = function_definitions
 
         timespan = {}
