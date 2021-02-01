@@ -166,71 +166,71 @@ class Model(SortableObject):
         species_mappings = self.sanitized_species_names()
         parameter_mappings = self.sanitized_parameter_names()
 
-        model_json['units'] = self.units
+        model_json["units"] = self.units
 
         parameters = {}
-        for i, p in enumerate(sorted(self.listOfParameters.values())):
+        for i, p in enumerate(sorted(self.listOfParameters.values(), key=lambda p: parameter_mappings[p.name])):
             parameter = {}
-            parameter['expression'] = p.sanitized_expression(species_mappings, parameter_mappings)
-            parameter['value'] = p.value
-            parameters['P'+str(i)] = parameter
-        model_json['parameters'] = parameters
+            parameter["expression"] = p.sanitized_expression(species_mappings, parameter_mappings)
+            parameter["value"] = p.value
+            parameters["P"+str(i)] = parameter
+        model_json["parameters"] = parameters
 
         species = {}
-        for i, s in enumerate(sorted(self.get_all_species().values())):
+        for i, s in enumerate(sorted(self.get_all_species().values(), key=lambda s: species_mappings[s.name])):
             specie = {}
-            specie['value'] = s.initial_value
-            specie['constant'] = s.constant
-            specie['boundary_condition'] = s.boundary_condition
-            specie['mode'] = s.mode
-            specie['allow_negative_populations'] = s.allow_negative_populations
-            specie['switch_min'] = s.switch_min
-            specie['switch_tol'] = s.switch_tol
+            specie["value"] = s.initial_value
+            specie["constant"] = s.constant
+            specie["boundary_condition"] = s.boundary_condition
+            specie["mode"] = s.mode
+            specie["allow_negative_populations"] = s.allow_negative_populations
+            specie["switch_min"] = s.switch_min
+            specie["switch_tol"] = s.switch_tol
             species["S"+str(i)] = specie
-        model_json['species'] = species
+        model_json["species"] = species
 
         reactions = {}
-        for i, r in enumerate(sorted(self.get_all_reactions().values())):
+        for i, r in enumerate(sorted(self.get_all_reactions().values(), key=lambda r: r.sanitized_propensity_function(species_mappings, parameter_mappings))):
             reaction = {}
-            reaction['reactants'] = {}
-            for reactant in sorted(r.reactants):
-                reaction['reactants'][species_mappings[reactant.name]] = r.reactants[reactant]
-            reaction['products'] = {}
-            for product in sorted(r.products):
-                reaction['products'][species_mappings[product.name]] = r.products[product]
-            reaction['propensity_function'] = r.sanitized_propensity_function(species_mappings, parameter_mappings)
-            reaction['type'] = r.type
+            reaction["reactants"] = {}
+            for reactant in sorted(r.reactants, key=lambda s: species_mappings[s.name]):
+                reaction["reactants"][species_mappings[reactant.name]] = r.reactants[reactant]
+            reaction["products"] = {}
+            for product in sorted(r.products, key=lambda s: species_mappings[s.name]):
+                reaction["products"][species_mappings[product.name]] = r.products[product]
+            reaction["propensity_function"] = r.sanitized_propensity_function(species_mappings, parameter_mappings)
+            reaction["type"] = r.type
             if r.massaction is True:
-                reaction['massaction'] = r.massaction
-                reaction['marate'] = parameter_mappings[r.marate.name]
+                reaction["massaction"] = r.massaction
+                reaction["marate"] = parameter_mappings[r.marate.name]
             # getting error - no rate attribute?
             # else:
-                # reaction['rate'] = r.rate
+                # reaction["rate"] = r.rate
             reactions["R"+str(i)] = reaction
-        model_json['reactions'] = reactions
+        model_json["reactions"] = reactions
 
-        model_json['volume'] = self.volume
+        model_json["volume"] = self.volume
 
         assignment_rules = {}
-        for i, r in enumerate(sorted(self.get_all_assignment_rules().values())):
+        for i, r in enumerate(sorted(self.get_all_assignment_rules().values(), key=lambda r: r.sanitized_formula(species_mappings, parameter_mappings))):
             assignment_rules["rule" +
                             str(i)] = r.sanitized_formula(species_mappings, parameter_mappings)
-        model_json['assignment_rules'] = assignment_rules
+        model_json["assignment_rules"] = assignment_rules
 
         rate_rules = {}
-        for i, r in enumerate(sorted(self.get_all_rate_rules().values())):
+        for i, r in enumerate(sorted(self.get_all_rate_rules().values(), key=lambda r: r.sanitized_formula(species_mappings, parameter_mappings))):
             rate_rules["rule" +
                     str(i)] = r.sanitized_formula(species_mappings, parameter_mappings)
-        model_json['rate_rules'] = rate_rules
+        model_json["rate_rules"] = rate_rules
 
         events = {}
-        for i, e in enumerate(sorted(self.get_all_events().values())):
+        for i, e in enumerate(sorted(self.get_all_events().values(), key=lambda e: e.trigger.sanitized_expression(species_mappings, parameter_mappings))):
             event = {}
-            event['trigger'] = {'value': e.trigger.value,
-                                'persistent': e.trigger.persistent,
-                                'expression': e.trigger.sanitized_expression(species_mappings, parameter_mappings)}
-            event['delay'] = e.delay
-            event['assignments'] = {}
+            event["trigger"] = {"value": e.trigger.value,
+                                "persistent": e.trigger.persistent,
+                                "expression": e.trigger.sanitized_expression(species_mappings, parameter_mappings)}
+            event["delay"] = e.delay
+            event["assignments"] = {}
             for i, e_a in enumerate(e.assignments):
                 if type(e_a.variable) is Species:
                     v = species_mappings[e_a.variable.name]
@@ -239,23 +239,24 @@ class Model(SortableObject):
                 else:
                     #will need to update this once Compartment is implemented
                     v = e_a.variable.name
-                event['assignments']['EA' +
-                                    str(i)] = {'variable': v, 'expression': e_a.expression}
-            events['E'+str(i)] = event
-        model_json['events'] = events
+                event["assignments"]["EA" +
+                                    str(i)] = {"variable": v, "expression": e_a.expression}
+            events["E"+str(i)] = event
+        model_json["events"] = events
 
         function_definitions = {}
-        for i, e in enumerate(sorted(self.get_all_function_definitions().values())):
-            function_definitions['FD'+str(i)] = e.sanitized_function(species_mappings, parameter_mappings)
-        model_json['function_definitions'] = function_definitions
+        for i, f in enumerate(sorted(self.get_all_function_definitions().values(), key=lambda f: f.sanitized_function(species_mappings, parameter_mappings))):
+            function_definitions["FD"+str(i)] = f.sanitized_function(species_mappings, parameter_mappings)
+        model_json["function_definitions"] = function_definitions
 
         timespan = {}
-        timespan['start'] = self.tspan[0]
-        timespan['end'] = self.tspan[-1]
-        timespan['points'] = self.tspan.size
-        model_json['timespan'] = timespan
+        timespan["start"] = self.tspan[0]
+        timespan["end"] = self.tspan[-1]
+        timespan["points"] = self.tspan.size
+        model_json["timespan"] = timespan
+        import json
 
-        return str(model_json)
+        return json.dumps(model_json)
 
     def remote_solver_hash(self):
         """ Creates an md5 hash of a **mostly** anonymized version of the model to be used for caching """
