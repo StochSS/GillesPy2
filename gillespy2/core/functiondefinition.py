@@ -19,6 +19,7 @@ class FunctionDefinition(SortableObject):
         eval_globals = math.__dict__
 
         self.name = name
+        self.function_string = function
         args = ', '.join(args)
         self.function = eval('lambda ' + args + ': ' + function, eval_globals)
         if self.function is None:
@@ -29,7 +30,7 @@ class FunctionDefinition(SortableObject):
                        reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
-        sanitized_function = self.function
+        sanitized_function = self.function_string
         for id, name in enumerate(names):
             sanitized_function = sanitized_function.replace(name, "{" + str(id) + "}")
         return sanitized_function.format(*replacements)
