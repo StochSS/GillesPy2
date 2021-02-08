@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
 import subprocess
+from shutil import which
 from example_models import MichaelisMenten, Oregonator
 from gillespy2.core.results import Results, Trajectory
 from gillespy2.core import Species
@@ -56,8 +57,11 @@ class TestPauseResume(unittest.TestCase):
                                                  t=1)
 
     def test_pause(self):
-        args = [['python3', 'pause_model.py', 'NumPySSASolver'], ['python3', 'pause_model.py', 'TauLeapingSolver'],
-                ['python3', 'pause_model.py', 'ODESolver']]
+        py_path = which('python3')
+        model_path = os.path.join(os.getcwd(), 'pause_model.py')
+        args = [[py_path, model_path, 'NumPySSASolver'],
+                [py_path, model_path, 'TauLeapingSolver'],
+                [py_path, model_path, 'ODESolver']]
         for arg in args:
             p = subprocess.Popen(arg, start_new_session=True, stdout=subprocess.PIPE)
             time.sleep(2)
