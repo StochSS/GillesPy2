@@ -113,7 +113,7 @@ def __add_function_definitions(function_definition_list, model):
     for name, function_def in function_definition_list.items():
         func_def = model.createFunctionDefinition()
         func_def.setId(name)
-	func_str = f"lambda({func_def.args}, {func_def.function_string})"
+        func_str = f"lambda({func_def.args}, {func_def.function_string})"
         function = __get_math(func_str)
         func_def.setMath(function)
 
