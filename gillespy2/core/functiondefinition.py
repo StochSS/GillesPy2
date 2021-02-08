@@ -20,10 +20,17 @@ class FunctionDefinition(SortableObject):
 
         self.name = name
         self.function_string = function
-        args = ', '.join(args)
-        self.function = eval('lambda ' + args + ': ' + function, eval_globals)
+
+        self.args = ', '.join(args)
+        self.function = eval('lambda ' + self.args + ': ' + function, eval_globals)
+
         if self.function is None:
             raise TypeError
+
+
+    def __str__(self):
+        return f"self.name: Args: {self.args}, Expression: {self.function_string}"
+
 
     def sanitized_function(self, species_mappings, parameter_mappings):
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),

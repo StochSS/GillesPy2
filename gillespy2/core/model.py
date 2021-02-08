@@ -44,6 +44,24 @@ def import_SBML(filename, name=None, gillespy_model=None):
     return convert(filename, model_name=name, gillespy_model=gillespy_model)
 
 
+def export_SBML(gillespy_model, filename=None):
+    """
+    GillesPy model to SBML converter
+
+    :param gillespy_model: GillesPy model to be converted to SBML
+    :type gillespy_model: gillespy.Model
+
+    :param filename: Path to the SBML file for conversion
+    :type filename: str
+    """
+    try:
+        from gillespy2.sbml.SBMLexport import export
+    except ImportError:
+        raise ImportError('SBML export conversion not imported successfully')
+
+    return export(gillespy_model, path=filename)
+
+
 class Model(SortableObject):
     # reserved names for model species/parameter names, volume, and operators.
     reserved_names = ['vol']
@@ -159,6 +177,11 @@ class Model(SortableObject):
             print_string += decorate('Rate Rules')
             for rr in sorted(self.listOfRateRules.values()):
                 print_string += '\n' + str(rr)
+        if len(self.listOfFunctionDefinitions):
+            print_string += decorate('Function Definitions')
+            for fd in sorted(self.listOfFunctionDefinitions.values()):
+                print_string += '\n' + str(fd)
+
         return print_string
 
     def to_json_string(self):
@@ -643,16 +666,16 @@ class Model(SortableObject):
     def timespan(self, time_span):
         """
         Set the time span of simulation. StochKit does not support non-uniform
-        timespans.
+        timespans. 
 
         :param time_span: Evenly-spaced list of times at which to sample the species
-        populations during the simulation.
+        populations during the simulation. Best to use the form np.linspace(<start time>, <end time>, <number of time-points, inclusive>)
         :type time_span: numpy ndarray
         """
-
-        items = np.diff(time_span)
-        items = np.array([round(item, 10) for item in items])
-        isuniform = (len(set(items)) == 1)
+        
+        first_diff = time_span[1] - time_span[0]
+        other_diff = time_span[2:] - time_span[1:-1]
+        isuniform = np.isclose(other_diff, first_diff).all()
 
         if isuniform:
             self.tspan = time_span
@@ -1303,7 +1326,7 @@ class StochMLDocument():
 
         for reactant, stoichiometry in R.reactants.items():
             srElement = eTree.Element('SpeciesReference')
-            srElement.set('id', str(reactant))
+            srElement.set('id', str(reactant.name))
             srElement.set('stoichiometry', str(stoichiometry))
             reactants.append(srElement)
 
@@ -1312,7 +1335,7 @@ class StochMLDocument():
         products = eTree.Element('Products')
         for product, stoichiometry in R.products.items():
             srElement = eTree.Element('SpeciesReference')
-            srElement.set('id', str(product))
+            srElement.set('id', str(product.name))
             srElement.set('stoichiometry', str(stoichiometry))
             products.append(srElement)
         e.append(products)
