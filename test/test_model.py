@@ -44,6 +44,22 @@ class TestModel(unittest.TestCase):
         with self.assertRaises(InvalidModelError):
             model.timespan(np.array([0, 0.1, 0.5]))
 
+    def test_nonzero_initial_time(self):
+        model = Model()
+        r = Parameter(name='R', expression=0.5)
+        model.add_parameter(r)
+        s1 = Species('A', initial_value=0)
+        s2 = Species('B', initial_value=0)
+        model.add_species([s1, s2])
+        r1 = Reaction(name="r1", reactants={s1: 1}, products={s2: 1}, rate=r)
+        r2 = Reaction(name="r2", reactants={s2: 1}, products={s1: 1}, rate=r)
+        model.add_reaction([r1, r2])
+        # Add a timespan for the range [33, 100]
+        tspan = np.linspace(start=33, stop=100)
+        model.timespan(tspan)
+        result = model.run()['time']
+        np.testing.assert_array_almost_equal(result, tspan, decimal=3)
+
     def test_duplicate_parameter_names(self):
         model = Model()
         param1 = Parameter('A', expression=0)
