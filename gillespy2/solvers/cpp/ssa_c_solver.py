@@ -218,18 +218,18 @@ class SSACSolver(GillesPySolver):
                     else:
                         raise gillespyError.ModelError("seed must be a positive integer")
 
+            # Windows event handling
             if os.name == "nt":
-                import multiprocessing
-
-                with subprocess.Popen(args, stdout=subprocess.PIPE, start_new_session=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP) as simulation:
+                # Windows has some issues with process groups; must be handled differently!
+                with subprocess.Popen(args, stdout=subprocess.PIPE, start_new_session=True,
+                                      creationflags=subprocess.CREATE_NEW_PROCESS_GROUP) as simulation:
                     return_code = 0
 
                     try:
                         # For some reason, on Windows, the KeyboardInterrupt exception breaks the pipe to stdout.
                         # As a result, a keyboard event has to be handled gracefully without raising an exception.
                         # Thus, a signal handler is used!
-                        def tmp_sighandler(sig, wig):
-                            print("PING!")
+                        def tmp_sighandler(sig, stack):
                             simulation.send_signal(signal.CTRL_BREAK_EVENT)
                         prev_sighandler = signal.signal(signal.SIGINT, tmp_sighandler)
 
@@ -240,13 +240,20 @@ class SSACSolver(GillesPySolver):
 
                         return_code = simulation.wait()
                     except subprocess.TimeoutExpired:
-                            simulation.send_signal(signal.CTRL_BREAK_EVENT)
-                            stdout, stderr = simulation.communicate()
-                            pause = True
-                            return_code = 33
+                        simulation.send_signal(signal.CTRL_BREAK_EVENT)
+                        stdout, stderr = simulation.communicate()
+                        pause = True
+                        return_code = 33
                     finally:
                         # Restore the old signal handler
                         signal.signal(signal.SIGINT, prev_sighandler)
+                        # Decode from byte, split by comma into array
+                        stdout = stdout.decode('utf-8').split(',')
+                        # Check if the simulation had been paused
+                        # (Necessary because we can't set pause to True from signal handler)
+                        if int(stdout[-1]) != round(t):
+                            pause = True
+            # POSIX event handling
             else:
                 with subprocess.Popen(args, stdout=subprocess.PIPE, start_new_session=True) as simulation:
                     return_code = 0
@@ -266,10 +273,8 @@ class SSACSolver(GillesPySolver):
                             stdout, stderr = simulation.communicate()
                             pause = True
                             return_code = 33
-
-            # Decode from byte, split by comma into array
-            stdout = stdout.decode('utf-8').split(',')
-            print("Results: {}".format(len(stdout)))
+                # Decode from byte, split by comma into array
+                stdout = stdout.decode('utf-8').split(',')
             # Parse/return results
 
             if return_code in [0, 33]:
