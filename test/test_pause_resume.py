@@ -58,14 +58,17 @@ class TestPauseResume(unittest.TestCase):
 
     def test_pause(self):
         py_path = which('python3')
-        model_path = os.path.join(os.getcwd(), 'pause_model.py')
+        model_path = os.path.join(os.path.dirname(__file__), 'pause_model.py')
         args = [[py_path, model_path, 'NumPySSASolver'],
                 [py_path, model_path, 'TauLeapingSolver'],
                 [py_path, model_path, 'ODESolver']]
         for arg in args:
             p = subprocess.Popen(arg, start_new_session=True, stdout=subprocess.PIPE)
             time.sleep(2)
-            os.kill(p.pid, signal.SIGINT)
+            if os.name == 'nt':
+                p.send_signal(signal.CTRL_C_EVENT)
+            else:
+                os.kill(p.pid, signal.SIGINT)
             out, err = p.communicate()
             # End time for Oregonator is 5. If indexing into a numpy array using the form:
             # results[0][-1][0] (where .run(show_labels=False), this index being the last time in the index
