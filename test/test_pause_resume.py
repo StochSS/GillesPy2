@@ -58,6 +58,8 @@ class TestPauseResume(unittest.TestCase):
 
     def test_pause(self):
         py_path = which('python3')
+        if py_path is None:
+            py_path = which('python')
         model_path = os.path.join(os.path.dirname(__file__), 'pause_model.py')
         args = [[py_path, model_path, 'NumPySSASolver'],
                 [py_path, model_path, 'TauLeapingSolver'],
