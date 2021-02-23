@@ -4,16 +4,31 @@
 #include <string.h>//Included for memcpy only
 #include <csignal>//Included for timeout signal handling
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 namespace Gillespy{
 
-  bool interrupted = false ;
+  volatile bool interrupted = false ;
+
+  #ifdef _WIN32
+  BOOL WINAPI eventHandler(DWORD CtrlType) {
+    interrupted = true;
+    return TRUE;
+  }
+  #endif
 
   void signalHandler( int signum){
     interrupted = true ;
   }
 
   void ssa_direct(Simulation* simulation){
-    signal(SIGINT, signalHandler) ;
+    #ifdef _WIN32
+    SetConsoleCtrlHandler(eventHandler, TRUE);
+    #else
+    signal(SIGINT, signalHandler);
+    #endif
 
     if(simulation){
       std :: mt19937_64 rng(simulation -> random_seed);

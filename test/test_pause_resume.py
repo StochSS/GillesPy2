@@ -65,11 +65,13 @@ class TestPauseResume(unittest.TestCase):
                 [py_path, model_path, 'TauLeapingSolver'],
                 [py_path, model_path, 'ODESolver']]
         for arg in args:
-            p = subprocess.Popen(arg, start_new_session=True, stdout=subprocess.PIPE)
-            time.sleep(2)
             if os.name == 'nt':
-                p.send_signal(signal.CTRL_C_EVENT)
+                p = subprocess.Popen(arg, stdout=subprocess.PIPE, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+                time.sleep(2)
+                p.send_signal(signal.CTRL_BREAK_EVENT)
             else:
+                p = subprocess.Popen(arg, start_new_session=True, stdout=subprocess.PIPE)
+                time.sleep(2)
                 os.kill(p.pid, signal.SIGINT)
             out, err = p.communicate()
             # End time for Oregonator is 5. If indexing into a numpy array using the form:
