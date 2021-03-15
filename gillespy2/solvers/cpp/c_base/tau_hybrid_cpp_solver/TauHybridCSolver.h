@@ -2,8 +2,8 @@
 #define TAUHYBRIDCSOLVER_H
 #include "model.h"
 
-using namespace Gillespy;
-void TauHybridSolver(Gillespy::Simulation* simulation, double increment);
-
+namespace Gillespy {
+    void TauHybridSolver(Gillespy::Simulation* simulation, const double tau_tol);
+}
 
 #endif 

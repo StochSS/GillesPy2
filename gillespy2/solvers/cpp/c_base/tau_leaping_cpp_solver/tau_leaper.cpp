@@ -18,6 +18,7 @@ void signalHandler(int signum){
   interrupted = true;
 }
 struct TauArgs{
+    //Highest Order Reaction
     std::map<std::string,int> HOR;
     std::set<Gillespy::Species> reactants;
     //Below are g_i_lambdas, pop element when used
