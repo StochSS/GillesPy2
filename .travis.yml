@@ -27,6 +27,7 @@ jobs:
         - choco install make
         - choco install mingw
         - python -m pip install --upgrade pip
+        - python -m pip install certifi
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
 install:
   - pip3 install --upgrade pip           
