@@ -167,7 +167,7 @@ class SSACSolver(GillesPySolver):
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
     def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
-            increment=0.05, seed=None, debug=False, profile=False, resume=None, **kwargs):
+            increment=0.05, seed=None, debug=False, profile=False, resume=None, buf=1024, **kwargs):
 
         pause = False
         if resume is not None:
@@ -230,14 +230,22 @@ class SSACSolver(GillesPySolver):
                     # Handler for reading data from subprocess, in background thread.
                     def sim_delegate(sim_buffer):
                         def read_next():
-                            line = simulation.stdout.read(1024).decode("utf-8")
-                            sim_buffer.append(line)
+                            """
+                            Reads the next block from the simulation output.
+                            Returns the length of the string read.
+                            """
+                            line = simulation.stdout.read(buf).decode("utf-8").strip()
+                            ln = len(line)
+                            if ln > 0:
+                                sim_buffer.append(line)
+                            return ln
                         # Read output 1kb at a time, until the program is finished.
                         while simulation.poll() is None:
                             read_next()
-                        # Do one last read, in case there's still anything left in the buffer.
-                        if not simulation.stdout.closed:
-                            read_next()
+                        # Keep reading from the output buffer until there's nothing left.
+                        # Necessary because it's possible for there to be leftover data in the buffer.
+                        while read_next() > 0:
+                            pass
 
                     # Buffer to store the output of the simulation (retrieved from sim_delegate thread).
                     output_process = threading.Thread(name="SimulationHandlerThread",
