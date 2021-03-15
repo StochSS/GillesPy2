@@ -1,9 +1,10 @@
 import gillespy2
 from gillespy2.core import Model, Reaction, gillespyError, GillesPySolver, log
 from gillespy2.solvers.utilities import solverutils as cutils
-import signal # for solver timeout implementation
+import signal, time # for solver timeout implementation
 import os  #for getting directories for C++ files
 import shutil #for deleting/copying files
+import threading # for handling read/write to simulation in the background
 import subprocess #For calling make and executing c solver
 import inspect #for finding the Gillespy2 module path
 import tempfile #for temporary directories
@@ -280,40 +281,79 @@ class VariableSSACSolver(GillesPySolver):
                         raise gillespyError.ModelError("seed must be a positive integer")
 
             # begin subprocess c simulation with timeout (default timeout=0 will not timeout)
+            # Windows event handling
             if os.name == "nt":
+                # Windows has some issues with process groups; must be handled differently!
                 with subprocess.Popen(args, stdout=subprocess.PIPE, start_new_session=True,
                                       creationflags=subprocess.CREATE_NEW_PROCESS_GROUP) as simulation:
                     return_code = 0
+
+                    # Handler for reading data from subprocess, in background thread.
+                    def sim_delegate(sim_buffer):
+                        def read_next():
+                            """
+                            Reads the next block from the simulation output.
+                            Returns the length of the string read.
+                            """
+                            line = simulation.stdout.read(8192).decode("utf-8").strip()
+                            ln = len(line)
+                            if ln > 0:
+                                sim_buffer.append(line)
+                            return ln
+                        # Read output 1 block at a time, until the program is finished.
+                        page_size = 0
+                        while simulation.poll() is None:
+                            page_size = read_next()
+                            if page_size == 0:
+                                break
+                        # Keep reading from the output buffer until there's nothing left.
+                        # Necessary because it's possible for there to be leftover data in the buffer.
+                        while page_size > 0:
+                            page_size = read_next()
+
+                    # Buffer to store the output of the simulation (retrieved from sim_delegate thread).
+                    buffer = []
+                    output_process = threading.Thread(name="SimulationHandlerThread",
+                                                      target=sim_delegate,
+                                                      args=(buffer,))
 
                     try:
                         # For some reason, on Windows, the KeyboardInterrupt exception breaks the pipe to stdout.
                         # As a result, a keyboard event has to be handled gracefully without raising an exception.
                         # Thus, a signal handler is used!
-                        def tmp_sighandler(sig, stack):
+                        thread_events = { "timeout": False }
+                        output_process.start()
+
+                        # Put a timer on in the background, if a timeout was specified.
+                        def timeout_kill():
+                            thread_events["timeout"] = True
                             simulation.send_signal(signal.CTRL_BREAK_EVENT)
-
-                        prev_sighandler = signal.signal(signal.SIGINT, tmp_sighandler)
-
+                        timeout_thread = threading.Timer(timeout, timeout_kill)
                         if timeout > 0:
-                            stdout, stderr = simulation.communicate(timeout=timeout)
-                        else:
-                            stdout, stderr = simulation.communicate()
+                            timeout_thread.start()
 
-                        return_code = simulation.wait()
-                    except subprocess.TimeoutExpired:
+                        # Poll for the program's status; keyboard interrupt is ignored if we use .wait()
+                        while simulation.poll() is None:
+                            time.sleep(0.1)
+                    except KeyboardInterrupt:
                         simulation.send_signal(signal.CTRL_BREAK_EVENT)
-                        stdout, stderr = simulation.communicate()
                         pause = True
                         return_code = 33
                     finally:
-                        # Restore the old signal handler
-                        signal.signal(signal.SIGINT, prev_sighandler)
+                        # Finish off the output reader thread and the timer thread.
+                        return_code = simulation.wait()
+                        output_process.join()
+                        if timeout_thread.is_alive():
+                            timeout_thread.join()
+
                         # Decode from byte, split by comma into array
-                        stdout = stdout.decode('utf-8').split(',')
+                        stdout = "".join(buffer).split(",")
                         # Check if the simulation had been paused
-                        # (Necessary because we can't set pause to True from signal handler)
-                        if int(stdout[-1]) != round(t):
+                        # (Necessary because we can't set pause to True from thread handler)
+                        if thread_events["timeout"]:
                             pause = True
+                            return_code = 33
+            # POSIX event handling
             else:
                 with subprocess.Popen(args, stdout=subprocess.PIPE, start_new_session=True) as simulation:
                     try:

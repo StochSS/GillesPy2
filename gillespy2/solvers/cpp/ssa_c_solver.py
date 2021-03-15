@@ -167,7 +167,7 @@ class SSACSolver(GillesPySolver):
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
     def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
-            increment=0.05, seed=None, debug=False, profile=False, resume=None, buf=1024, **kwargs):
+            increment=0.05, seed=None, debug=False, profile=False, resume=None, **kwargs):
 
         pause = False
         if resume is not None:
@@ -226,7 +226,6 @@ class SSACSolver(GillesPySolver):
                                       creationflags=subprocess.CREATE_NEW_PROCESS_GROUP) as simulation:
                     return_code = 0
 
-                    buffer = []
                     # Handler for reading data from subprocess, in background thread.
                     def sim_delegate(sim_buffer):
                         def read_next():
@@ -234,20 +233,24 @@ class SSACSolver(GillesPySolver):
                             Reads the next block from the simulation output.
                             Returns the length of the string read.
                             """
-                            line = simulation.stdout.read(buf).decode("utf-8").strip()
+                            line = simulation.stdout.read(8192).decode("utf-8").strip()
                             ln = len(line)
                             if ln > 0:
                                 sim_buffer.append(line)
                             return ln
-                        # Read output 1kb at a time, until the program is finished.
+                        # Read output 1 block at a time, until the program is finished.
+                        page_size = 0
                         while simulation.poll() is None:
-                            read_next()
+                            page_size = read_next()
+                            if page_size == 0:
+                                break
                         # Keep reading from the output buffer until there's nothing left.
                         # Necessary because it's possible for there to be leftover data in the buffer.
-                        while read_next() > 0:
-                            pass
+                        while page_size > 0:
+                            page_size = read_next()
 
                     # Buffer to store the output of the simulation (retrieved from sim_delegate thread).
+                    buffer = []
                     output_process = threading.Thread(name="SimulationHandlerThread",
                                                       target=sim_delegate,
                                                       args=(buffer,))
@@ -270,13 +273,13 @@ class SSACSolver(GillesPySolver):
                         # Poll for the program's status; keyboard interrupt is ignored if we use .wait()
                         while simulation.poll() is None:
                             time.sleep(0.1)
-                        return_code = simulation.wait()
                     except KeyboardInterrupt:
                         simulation.send_signal(signal.CTRL_BREAK_EVENT)
                         pause = True
                         return_code = 33
                     finally:
                         # Finish off the output reader thread and the timer thread.
+                        return_code = simulation.wait()
                         simulation.wait()
                         output_process.join()
                         if timeout_thread.is_alive():
