@@ -256,10 +256,12 @@ class SSACSolver(GillesPySolver):
                         # For some reason, on Windows, the KeyboardInterrupt exception breaks the pipe to stdout.
                         # As a result, a keyboard event has to be handled gracefully without raising an exception.
                         # Thus, a signal handler is used!
+                        thread_events = { "timeout": False }
                         output_process.start()
 
                         # Put a timer on in the background, if a timeout was specified.
                         def timeout_kill():
+                            thread_events["timeout"] = True
                             simulation.send_signal(signal.CTRL_BREAK_EVENT)
                         timeout_thread = threading.Timer(timeout, timeout_kill)
                         if timeout > 0:
@@ -284,7 +286,7 @@ class SSACSolver(GillesPySolver):
                         stdout = "".join(buffer).split(",")
                         # Check if the simulation had been paused
                         # (Necessary because we can't set pause to True from thread handler)
-                        if int(stdout[-1]) != round(t):
+                        if thread_events["timeout"]:
                             pause = True
                             return_code = 33
             # POSIX event handling
