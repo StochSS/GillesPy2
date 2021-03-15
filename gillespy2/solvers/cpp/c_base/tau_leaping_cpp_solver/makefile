@@ -7,11 +7,11 @@ OBJ = tau_leaper.o model.o tau.o
 model.o:
 	$(CC) -c -o model.o $(CBASE_DIR)/model.cpp $(CFLAGS) -I$(CBASE_DIR)
 
+tau_leaper.o:
+	$(CC) -c -o tau_leaper.o $(GILLESPY_CPP_TAU_DIR)/tau_leaper.cpp $(CFLAGS) -I$(CBASE_DIR) -I$(GILLESPY_CPP_TAU_DIR) -I$(CBASE_DIR)/Tau
+
 tau.o:
 	$(CC) -c -o tau.o $(CBASE_DIR)/Tau/tau.cpp $(CFLAGS) -I$(CBASE_DIR)
-
-tau_leaper.o:
-	$(CC) -c -o tau_leaper.o $(GILLESPY_CPP_TAU_DIR)/tau_leaper.cpp $(CFLAGS) -I$(CBASE_DIR) -I$(GILLESPY_CPP_TAU_DIR)
 
 TauSimulation.o:
 	$(CC) -c -o TauSimulation.o TauSimulation.cpp $(CFLAGS) -I$(CBASE_DIR) -I$(GILLESPY_CPP_TAU_DIR)
