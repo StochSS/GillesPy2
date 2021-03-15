@@ -226,16 +226,20 @@ class SSACSolver(GillesPySolver):
                                       creationflags=subprocess.CREATE_NEW_PROCESS_GROUP) as simulation:
                     return_code = 0
 
+                    buffer = []
                     # Handler for reading data from subprocess, in background thread.
                     def sim_delegate(sim_buffer):
+                        def read_next():
+                            line = simulation.stdout.read(1024).decode("utf-8")
+                            sim_buffer.append(line)
                         # Read output 1kb at a time, until the program is finished.
                         while simulation.poll() is None:
-                            line = simulation.stdout.read(1024).decode("utf-8")
-                            if len(line) > 1:
-                                sim_buffer.append(line)
+                            read_next()
+                        # Do one last read, in case there's still anything left in the buffer.
+                        if not simulation.stdout.closed:
+                            read_next()
 
                     # Buffer to store the output of the simulation (retrieved from sim_delegate thread).
-                    buffer = []
                     output_process = threading.Thread(name="SimulationHandlerThread",
                                                       target=sim_delegate,
                                                       args=(buffer,))
@@ -263,6 +267,7 @@ class SSACSolver(GillesPySolver):
                         return_code = 33
                     finally:
                         # Finish off the output reader thread and the timer thread.
+                        simulation.wait()
                         output_process.join()
                         if timeout_thread.is_alive():
                             timeout_thread.join()
