@@ -1,5 +1,6 @@
 import unittest
 import tempfile
+import os
 from example_models import Example
 from gillespy2.core.model import import_SBML, export_SBML
 from gillespy2 import ODESolver
@@ -13,7 +14,8 @@ class TestSBML(unittest.TestCase):
         except ImportError:
             return
 
-        sbml_model, errors = import_SBML("assets/test_sbml.xml")
+        model_path = os.path.join(os.path.dirname(__file__), "assets", "test_sbml.xml")
+        sbml_model, errors = import_SBML(model_path)
         sbml_results = sbml_model.run(solver=ODESolver)
 
     def test_sbml_export_conversion(self):
