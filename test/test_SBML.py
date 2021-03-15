@@ -1,7 +1,5 @@
 import unittest
 import tempfile
-import os
-import ssl
 from example_models import Example
 from gillespy2.core.model import import_SBML, export_SBML
 from gillespy2 import ODESolver
@@ -15,27 +13,7 @@ class TestSBML(unittest.TestCase):
         except ImportError:
             return
 
-        try:
-            from urllib2 import urlopen, URLError
-
-        except ImportError:
-            from urllib.request import urlopen
-            from urllib.error import URLError
-
-        sbml_file = 'https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000028.2?filename=BIOMD0000000028_url.xml'
-        try:
-            response = urlopen(sbml_file)
-        except URLError:
-            from certifi import where
-            ctx = ssl.create_default_context()
-            ctx.load_default_certs()
-            ctx.load_verify_locations(where())
-            response = urlopen(sbml_file, context=ctx)
-        tmp = tempfile.NamedTemporaryFile(delete=False)
-        tmp.write(response.read())
-        tmp.close()
-        sbml_model, errors = import_SBML(tmp.name)
-        os.remove(tmp.name)
+        sbml_model, errors = import_SBML("assets/test_sbml.xml")
         sbml_results = sbml_model.run(solver=ODESolver)
 
     def test_sbml_export_conversion(self):
