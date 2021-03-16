@@ -231,14 +231,8 @@ class SSACSolver(GillesPySolver):
                         sim_buffer.append(line)
                     return ln
                 # Read output 1 block at a time, until the program is finished.
-                page_size = 0
-                while sim.poll() is None:
-                    page_size = read_next()
-                    if page_size == 0:
-                        break
-                # Keep reading from the output buffer until there's nothing left.
-                # Necessary because it's possible for there to be leftover data in the buffer.
-                while page_size > 0:
+                page_size = read_next()
+                while page_size > 0 and sim.poll() is None:
                     page_size = read_next()
 
             # Buffer to store the output of the simulation (retrieved from sim_delegate thread).
