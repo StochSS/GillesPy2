@@ -237,32 +237,30 @@ class SSACSolver(GillesPySolver):
 
             # Buffer to store the output of the simulation (retrieved from sim_delegate thread).
             buffer = []
-            # Windows event handling
             # Each platform is given their own platform-specific sub_kill() function.
-            thread_events = { "timeout": False }
+            # Windows event handling
             if os.name == "nt":
                 sub_kill = lambda sim: sim.send_signal(signal.CTRL_BREAK_EVENT)
-                simulation = subprocess.Popen(args, stdout=subprocess.PIPE, start_new_session=True,
-                                              creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+                platform_args = { "creationflags": subprocess.CREATE_NEW_PROCESS_GROUP,
+                                  "start_new_session": True }
             # POSIX event handling
             else:
                 sub_kill = lambda sim: os.killpg(sim.pid, signal.SIGINT)
-                simulation = subprocess.Popen(args, stdout=subprocess.PIPE, start_new_session=True)
-            output_process = threading.Thread(name="SimulationHandlerThread",
-                                                target=sim_delegate,
-                                                args=(simulation, buffer))
+                platform_args = { "start_new_session": True }
 
-            with simulation:
-                return_code = 0
-                output_process.start()
-
+            thread_events = { "timeout": False }
+            with subprocess.Popen(args, stdout=subprocess.PIPE, **platform_args) as simulation:
                 # Put a timer on in the background, if a timeout was specified.
                 def timeout_kill():
                     thread_events["timeout"] = True
                     sub_kill(simulation)
-
+                timeout_thread = threading.Timer(timeout, timeout_kill)
                 try:
-                    timeout_thread = threading.Timer(timeout, timeout_kill)
+                    return_code = 0
+                    output_process = threading.Thread(name="SimulationHandlerThread",
+                                                    target=sim_delegate,
+                                                    args=(simulation, buffer))
+                    output_process.start()
                     if timeout > 0:
                         timeout_thread.start()
 
