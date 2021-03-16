@@ -220,62 +220,54 @@ class SSACSolver(GillesPySolver):
                     else:
                         raise gillespyError.ModelError("seed must be a positive integer")
 
+            # Handler for reading data from subprocess, in background thread.
+            def sim_delegate(sim, sim_buffer):
+                def read_next():
+                    # Reads the next block from the simulation output.
+                    # Returns the length of the string read.
+                    line = sim.stdout.read().decode("utf-8")
+                    ln = len(line)
+                    if ln > 0:
+                        sim_buffer.append(line)
+                    return ln
+                # Read output 1 block at a time, until the program is finished.
+                page_size = 0
+                while sim.poll() is None:
+                    page_size = read_next()
+                    if page_size == 0:
+                        break
+                # Keep reading from the output buffer until there's nothing left.
+                # Necessary because it's possible for there to be leftover data in the buffer.
+                while page_size > 0:
+                    page_size = read_next()
+
+            # Buffer to store the output of the simulation (retrieved from sim_delegate thread).
+            buffer = []
             # Windows event handling
+            # Each platform is given their own platform-specific sub_kill() function.
+            thread_events = { "timeout": False }
             if os.name == "nt":
+                sub_kill = lambda sim: sim.send_signal(signal.CTRL_BREAK_EVENT)
                 simulation = subprocess.Popen(args, stdout=subprocess.PIPE, start_new_session=True,
                                               creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
             # POSIX event handling
             else:
+                sub_kill = lambda sim: os.killpg(sim.pid, signal.SIGINT)
                 simulation = subprocess.Popen(args, stdout=subprocess.PIPE, start_new_session=True)
-            return_code = 0
+            output_process = threading.Thread(name="SimulationHandlerThread",
+                                                target=sim_delegate,
+                                                args=(simulation, buffer))
 
             with simulation:
-                # Handler for reading data from subprocess, in background thread.
-                def sim_delegate(sim_buffer):
-                    def read_next():
-                        # Reads the next block from the simulation output.
-                        # Returns the length of the string read.
-                        line = simulation.stdout.read(8192).decode("utf-8").strip()
-                        ln = len(line)
-                        if ln > 0:
-                            sim_buffer.append(line)
-                        return ln
-                    # Read output 1 block at a time, until the program is finished.
-                    page_size = 0
-                    while simulation.poll() is None:
-                        page_size = read_next()
-                        if page_size == 0:
-                            break
-                    # Keep reading from the output buffer until there's nothing left.
-                    # Necessary because it's possible for there to be leftover data in the buffer.
-                    while page_size > 0:
-                        page_size = read_next()
+                return_code = 0
+                output_process.start()
 
-                def sub_kill():
-                    # Sends platform-specific signals to the simulation process.
-                    if os.name == "nt":
-                        simulation.send_signal(signal.CTRL_BREAK_EVENT)
-                    else:
-                        os.killpg(simulation.pid, signal.SIGINT) # send signal to the process group
-
-                # Buffer to store the output of the simulation (retrieved from sim_delegate thread).
-                buffer = []
-                output_process = threading.Thread(name="SimulationHandlerThread",
-                                                    target=sim_delegate,
-                                                    args=(buffer,))
+                # Put a timer on in the background, if a timeout was specified.
+                def timeout_kill():
+                    thread_events["timeout"] = True
+                    sub_kill(simulation)
 
                 try:
-                    # For some reason, on Windows, the KeyboardInterrupt exception breaks the pipe to stdout.
-                    # As a result, a keyboard event has to be handled gracefully without raising an exception.
-                    # Thus, a signal handler is used!
-                    thread_events = { "timeout": False }
-                    output_process.start()
-
-                    # Put a timer on in the background, if a timeout was specified.
-                    def timeout_kill():
-                        thread_events["timeout"] = True
-                        sub_kill()
-
                     timeout_thread = threading.Timer(timeout, timeout_kill)
                     if timeout > 0:
                         timeout_thread.start()
@@ -284,7 +276,7 @@ class SSACSolver(GillesPySolver):
                     while simulation.poll() is None:
                         time.sleep(0.1)
                 except KeyboardInterrupt:
-                    sub_kill()
+                    sub_kill(simulation)
                     pause = True
                     return_code = 33
                 finally:
@@ -292,7 +284,7 @@ class SSACSolver(GillesPySolver):
                     return_code = simulation.wait()
                     output_process.join()
                     if timeout_thread.is_alive():
-                        timeout_thread.join()
+                        timeout_thread.cancel()
 
                     # Decode from byte, split by comma into array
                     stdout = "".join(buffer).split(",")
