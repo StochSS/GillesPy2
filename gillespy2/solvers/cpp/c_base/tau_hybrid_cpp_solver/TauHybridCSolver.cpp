@@ -1,4 +1,6 @@
 #include <iostream>
+#include <csignal> //Included for timeout signal handling
+#include <random>
 #include "cvode.h" // prototypes for CVODE fcts., consts.
 #include "nvector_serial.h"  // access to serial N_Vector
 #include "sunlinsol_spgmr.h"  //access to SPGMR SUNLinearSolver
@@ -7,6 +9,7 @@
 #include "sundials_math.h"  // contains the macros ABS, SUNSQR, EXP
 #include "TauHybridCSolver.h"
 #include "model.h"
+#include "tau.h"
 using namespace Gillespy;
 
 #define NV_Ith_S(v,i) (NV_DATA_S(v)[i]) // Access to individual components of data array, of N len vector
@@ -16,11 +19,56 @@ static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data); // forwar
 struct UserData {
   Gillespy::Simulation *my_sim;
 };
+namespace Gillespy {
+	bool interrupted = false;
 
-void TauHybridCSolver(Gillespy::Simulation* simulation, double increment){
+	void signalHandler(int signum)
+	{
+		interrupted = true;
+	}
+	std::pair<std::map<std::string, int>, double> get_reactions(const Gillespy::Model *model, const std::vector<double> &propensity_values, double tau_step, double current_time, double save_time)
+	{
+		/*
+     * Helper Function to get reactions fired from t to t+tau. Effects two values:
+     *rxn_count - dict with key=Reaction channel value=number of times fired
+     *curr_time - float representing current time
+     */
+
+		if (current_time + tau_step > save_time)
+			tau_step = save_time - current_time;
+
+		std::map<std::string, int> rxn_count; // map of how many times reaction is fired
+		std::random_device rd;
+		std::mt19937 generator(rd());
+		std::pair<std::map<std::string, int>, double> values; // value pair to be returned, map of times {map of times reaction fired, current time}
+
+		for (int i = 0; i < model->number_reactions; i++)
+		{
+			std::poisson_distribution<int> poisson(propensity_values[i] * tau_step);
+			rxn_count[model->reactions[i].name] = poisson(generator);
+		}
+		current_time = current_time + tau_step;
+		values.first = rxn_count;
+		values.second = current_time;
+		return values;
+	}
 	
-}
+	struct set_recommended_ODE_defaults{
+		//??????
 
+	}
+
+	
+
+	void TauHybridCSolver(Gillespy::Simulation *simulation, double increment)
+	{
+		signal(SIGINT, signalHandler);
+
+		if (simulation) {
+
+		}
+	}
+}
 
 static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data) {
   	// N_VGetArrayPointer returns a pointer to the data in the N_Vector class.

@@ -19,11 +19,6 @@ void signalHandler(int signum){
   interrupted = true;
 }
 
-
-
-
-
-
 std::pair<std::map<std::string,int>,double> get_reactions(const Gillespy::Model *model, const std::vector<double> &propensity_values, double tau_step, double current_time, double save_time){
     /*
      * Helper Function to get reactions fired from t to t+tau. Effects two values:

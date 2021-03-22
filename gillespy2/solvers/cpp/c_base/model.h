@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
+#include "sundials_types.h"
 
 namespace Gillespy{
 
@@ -72,5 +73,18 @@ namespace Gillespy{
   void simulationODEINIT(Model* model, Simulation &simulation);
   void simulationSSAINIT(Model* model, Simulation &simulation);
 
+  typedef struct {
+    // CVODE constants returned if bad output, or success output.
+    // Constants: CV_SUCCESS,
+    // CV_MEM_NULL: CVODE memory block not initialized through call to CVodeCreate
+    // CV_NO_MALLOC: The allocation function CVodeInit not called
+    // CV_ILL_Input: An input tolerance was negative
+    int flag;
+    // absolute tolerace of a system
+    realtype abstol;
+    // relative tolerance of system
+    realtype reltol;
+    // double max_step;
+  } integrator_options;
 }
 #endif

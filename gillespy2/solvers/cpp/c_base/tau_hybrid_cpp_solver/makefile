@@ -1,3 +1,6 @@
+# SUNDIALS_DIR = ../Sundials
+# CBASE_DIR = ../
+
 CC=g++
 CFLAGS = -c  -std=c++14 -Wall -O3
 LINKFLAGS = -L. -std=c++14 -Wall -O3
@@ -15,8 +18,10 @@ SUNOBJ = cvode_nls.o cvode_io.o sundials_iterative.o cvode_proj.o sundials_matri
 sundials_linearsolver.o sundials_nonlinearsolver.o sundials_nvector_senswrapper.o sunnonlinsol_newton.o \
 sundials_nvector.o nvector_serial.o cvode.o cvode_spils.o sundials_math.o sunlinsol_spgmr.o
 
+# all: model.o TauHybridSimulation.o TauHybridCSolver.o TauHybridSimulation
+
 model.o:
-	$(CC) -c -o model.o $(CBASE_DIR)/model.cpp $(CFLAGS) -I$(CBASE_DIR)
+	$(CC) -c -o model.o $(CBASE_DIR)/model.cpp $(CFLAGS) -I$(CBASE_DIR) -I$(INCDIR)
 
 %.o: $(SRCDIR)/%.c
 	$(CC) -c -o $@ $< $(CFLAGS) -I$(INCDIR)
