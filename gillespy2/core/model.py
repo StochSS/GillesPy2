@@ -243,17 +243,17 @@ class Model(SortableObject):
 
         assignment_rules = {}
         for i, r in enumerate(sorted(self.get_all_assignment_rules().values(), key=lambda r: r.sanitized_formula(species_mappings, parameter_mappings))):
-            assignment_rules["rule" +
+            assignment_rules["a_rule" +
                             str(i)] = r.sanitized_formula(species_mappings, parameter_mappings)
-            translation_table["rule" + str(i)] = r.name
+            translation_table["a_rule" + str(i)] = r.name
 
         model_json["assignment_rules"] = assignment_rules
 
         rate_rules = {}
         for i, r in enumerate(sorted(self.get_all_rate_rules().values(), key=lambda r: r.sanitized_formula(species_mappings, parameter_mappings))):
-            rate_rules["rule" +
+            rate_rules["r_rule" +
                     str(i)] = r.sanitized_formula(species_mappings, parameter_mappings)
-            translation_table["rule" + str(i)] = r.name
+            translation_table["r_rule" + str(i)] = r.name
 
         model_json["rate_rules"] = rate_rules
 
@@ -301,9 +301,53 @@ class Model(SortableObject):
         import json
         return json.dumps(model_json, indent=4)
 
-    def from_json(self, json):
+    def from_json(self, json_str):
         """ Apply the json string to the model """
+        import json
+        model_json = json.loads(json_str)
 
+        translation_table = model_json["translation_table"]
+        self.units = model_json["units"]
+        self.volume = model_json["volume"]
+
+        for param_name in model_json["parameters"]:
+            param = model_json["parameters"][param_name]
+
+            self.listOfParameters[translation_table[param_name]] = Parameter(
+                name=translation_table[param_name], 
+                expression=param["expression"], 
+                value=param["value"])
+
+        for specie_name in model_json["species"]:
+            specie = model_json["species"][specie_name]
+
+            self.listOfSpecies[translation_table[specie_name]] = Species(
+                name=translation_table[specie_name], 
+                initial_value=specie["value"],
+                constant=specie["constant"],
+                boundary_condition=specie["boundary_condition"],
+                mode=specie["mode"],
+                allow_negative_populations=specie["allow_negative_populations"],
+                switch_min=specie["switch_min"],
+                switch_tol=specie["switch_tol"])
+
+        for reaction_name in model_json["reactions"]:
+            reaction = model_json["reactions"][reaction_name]
+
+            new = Reaction(
+                name=translation_table[reaction_name],
+                propensity_function=reaction["propensity_function"],
+                reactants=reaction["reactants"],
+                products=reaction["products"])
+            new.type = reaction["type"]
+
+            if reaction["massaction"]:
+                new.massaction = True
+                new.marate = reaction["marate"]
+
+            self.listOfReactions[translation_table[reaction_name]] = new
+
+        # TODO: Assignment and rate rules.
 
     def remote_solver_hash(self):
         """ Creates an md5 hash of an anonymized version of the model to be used for caching """
