@@ -184,19 +184,22 @@ class Model(SortableObject):
 
         return print_string
 
-    def to_json_string(self):
+    def to_json(self):
         model_json = {}
+        translation_table = {}
         species_mappings = self.sanitized_species_names()
         parameter_mappings = self.sanitized_parameter_names()
 
         model_json["units"] = self.units
-
         parameters = {}
         for i, p in enumerate(sorted(self.listOfParameters.values(), key=lambda p: parameter_mappings[p.name])):
             parameter = {}
             parameter["expression"] = p.sanitized_expression(species_mappings, parameter_mappings)
             parameter["value"] = p.value
+
             parameters["P"+str(i)] = parameter
+            translation_table["P" + str(i)] = p.name
+
         model_json["parameters"] = parameters
 
         species = {}
@@ -209,7 +212,10 @@ class Model(SortableObject):
             specie["allow_negative_populations"] = s.allow_negative_populations
             specie["switch_min"] = s.switch_min
             specie["switch_tol"] = s.switch_tol
+
             species["S"+str(i)] = specie
+            translation_table["S" + str(i)] = s.name
+
         model_json["species"] = species
 
         reactions = {}
@@ -230,20 +236,25 @@ class Model(SortableObject):
             # else:
                 # reaction["rate"] = r.rate
             reactions["R"+str(i)] = reaction
-        model_json["reactions"] = reactions
+            translation_table["R" + str(i)] = r.name
 
+        model_json["reactions"] = reactions
         model_json["volume"] = self.volume
 
         assignment_rules = {}
         for i, r in enumerate(sorted(self.get_all_assignment_rules().values(), key=lambda r: r.sanitized_formula(species_mappings, parameter_mappings))):
             assignment_rules["rule" +
                             str(i)] = r.sanitized_formula(species_mappings, parameter_mappings)
+            translation_table["rule" + str(i)] = r.name
+
         model_json["assignment_rules"] = assignment_rules
 
         rate_rules = {}
         for i, r in enumerate(sorted(self.get_all_rate_rules().values(), key=lambda r: r.sanitized_formula(species_mappings, parameter_mappings))):
             rate_rules["rule" +
                     str(i)] = r.sanitized_formula(species_mappings, parameter_mappings)
+            translation_table["rule" + str(i)] = r.name
+
         model_json["rate_rules"] = rate_rules
 
         events = {}
@@ -264,22 +275,35 @@ class Model(SortableObject):
                     v = e_a.variable.name
                 event["assignments"]["EA" +
                                     str(i)] = {"variable": v, "expression": e_a.expression}
+                translation_table["EA" + str(i)] = e_a.name
+                
             events["E"+str(i)] = event
+            translation_table["E" + str(i)] = e.name
+
         model_json["events"] = events
 
         function_definitions = {}
         for i, f in enumerate(sorted(self.get_all_function_definitions().values(), key=lambda f: f.sanitized_function(species_mappings, parameter_mappings))):
             function_definitions["FD"+str(i)] = f.sanitized_function(species_mappings, parameter_mappings)
+            translation_table["FD" + str(i)] = f.name
+
         model_json["function_definitions"] = function_definitions
 
         timespan = {}
         timespan["start"] = self.tspan[0]
         timespan["end"] = self.tspan[-1]
         timespan["points"] = self.tspan.size
-        model_json["timespan"] = timespan
-        import json
 
-        return json.dumps(model_json)
+        import functools
+        model_json["timespan"] = timespan
+        model_json["translation_table"] = translation_table
+
+        import json
+        return json.dumps(model_json, indent=4)
+
+    def from_json(self, json):
+        """ Apply the json string to the model """
+
 
     def remote_solver_hash(self):
         """ Creates an md5 hash of an anonymized version of the model to be used for caching """
