@@ -210,9 +210,9 @@ class Results(UserList):
         results = []
         size1 = len(self.data[0]['time'])
         size2 = len(self.data[0])
-        newArray = np.zeros((size1, size2))
 
         for trajectory in range(0,len(self.data)):
+            newArray = np.zeros((size1, size2))
             for i, key in enumerate(self.data[trajectory]):
                 newArray[:, i] = self.data[trajectory][key]
             results.append(newArray)
