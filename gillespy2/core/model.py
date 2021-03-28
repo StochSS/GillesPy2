@@ -185,6 +185,26 @@ class Model(SortableObject):
         return print_string
 
     def to_json(self):
+        import json
+
+        jsonified_model = {
+            "name": self.name,
+            "annotation": self.annotation,
+            "units": self.units,
+            "volume": self.volume,
+            "parameters": list(map(lambda x: x.to_json(), self.listOfParameters.values())),
+            "species": list(map(lambda x: x.to_json(), self.listOfSpecies.values())),
+            "reactions": list(map(lambda x: x.to_json(), self.get_all_reactions().values())),
+            "timespan": {
+                "start": self.tspan[0],
+                "end": self.tspan[-1],
+                "points": self.tspan.size
+            }
+        }
+
+        print(json.dumps(jsonified_model, indent=4))
+        return
+
         model_json = {}
         translation_table = {}
         species_mappings = self.sanitized_species_names()

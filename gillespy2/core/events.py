@@ -1,7 +1,8 @@
 from gillespy2.core.gillespyError import *
+from gillespy2.core.jsonify import Jsonify
 
 
-class EventAssignment:
+class EventAssignment(Jsonify):
     """
     An EventAssignment describes a change to be performed to the current model
     simulation.  This is assignment can either be fired at the time its
@@ -46,8 +47,17 @@ class EventAssignment:
     def __str__(self):
         return self.variable.name + ': ' + self.expression
 
+    def into_json(self):
+        return {
+            "variable": self.variable,
+            "expression": self.expression
+        }
 
-class EventTrigger:
+    def from_json(self, json_object):
+        pass
+
+
+class EventTrigger(Jsonify):
     """
     Trigger detects changes in model/environment conditions in order to fire an
     event.  A Trigger contains an expression, a mathematical function which can
@@ -95,8 +105,18 @@ class EventTrigger:
             sanitized_expression = sanitized_expression.replace(name, "{"+str(id)+"}")
         return sanitized_expression.format(*replacements)
 
+    def into_json(self):
+        return {
+            "value": self.value,
+            "persistent": self.persistent,
+            "expression": self.trigger
+        }
 
-class Event:
+    def from_json(self, json_object):
+        pass
+
+
+class Event(Jsonify):
 
     """
     An Event can be given as an assignment_expression (function) or directly
@@ -238,5 +258,12 @@ class Event:
                              "EventAssignments")
         return assignment
 
+    def into_json(self):
+        return {
+            "trigger": self.trigger.to_json(),
+            "delay": self.delay,
+            "assignments": list(map(lambda x: x.to_json(), self.assignments)),
+        }
 
-
+    def from_json(self, json_object):
+        pass

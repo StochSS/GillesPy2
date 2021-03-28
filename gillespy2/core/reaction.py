@@ -1,11 +1,12 @@
 from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.gillespyError import *
+from gillespy2.core.jsonify import Jsonify
 import numpy as np
 import uuid
 import ast
 
 
-class Reaction(SortableObject):
+class Reaction(SortableObject, Jsonify):
     """
     Models a single reaction. A reaction has its own dicts of species
     (reactants and products) and parameters. The reaction's propensity
@@ -334,3 +335,17 @@ class Reaction(SortableObject):
         for id, name in enumerate(names):
             sanitized_propensity = sanitized_propensity.replace(name, "{" + str(id) + "}")
         return sanitized_propensity.format(*replacements)
+
+    def to_json(self):
+        return {
+            "name": self.name,
+            "reactants": list(map(lambda x: { "key": x.to_json(), "value": self.reactants[x] }, self.reactants)),
+            "products": list(map(lambda x: x.to_json(), self.products)),
+            "propensity_function": self.propensity_function,
+            "type": self.type,
+            "massaction": self.massaction,
+            "marate": self.marate.to_json()
+        }
+
+    def from_json(self, json_object):
+        pass

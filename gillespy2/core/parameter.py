@@ -1,7 +1,8 @@
 from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.gillespyError import *
+from gillespy2.core.jsonify import Jsonify
 
-class Parameter(SortableObject):
+class Parameter(SortableObject, Jsonify):
     """
     A parameter can be given as an expression (function) or directly
     as a value (scalar). If given an expression, it should be
