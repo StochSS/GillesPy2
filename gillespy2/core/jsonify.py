@@ -7,3 +7,6 @@ class Jsonify:
 
     def public_vars(self):
         return { k:v for k, v in vars(self).items() if not k.startswith("_") }
+
+    def encode_dict(self, dict):
+        return list(map(lambda x: x.to_json(), dict.values()))
