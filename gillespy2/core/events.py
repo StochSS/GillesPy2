@@ -47,16 +47,6 @@ class EventAssignment(Jsonify):
     def __str__(self):
         return self.variable.name + ': ' + self.expression
 
-    def into_json(self):
-        return {
-            "variable": self.variable,
-            "expression": self.expression
-        }
-
-    def from_json(self, json_object):
-        pass
-
-
 class EventTrigger(Jsonify):
     """
     Trigger detects changes in model/environment conditions in order to fire an
@@ -104,17 +94,6 @@ class EventTrigger(Jsonify):
         for id, name in enumerate(names):
             sanitized_expression = sanitized_expression.replace(name, "{"+str(id)+"}")
         return sanitized_expression.format(*replacements)
-
-    def into_json(self):
-        return {
-            "value": self.value,
-            "persistent": self.persistent,
-            "expression": self.trigger
-        }
-
-    def from_json(self, json_object):
-        pass
-
 
 class Event(Jsonify):
 
