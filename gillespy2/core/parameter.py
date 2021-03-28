@@ -86,3 +86,8 @@ class Parameter(SortableObject, Jsonify):
             sanitized_expression = sanitized_expression.replace(
                 name, "{"+str(id)+"}")
         return sanitized_expression.format(*replacements)
+
+    def from_json(json_object):
+        return Parameter(name=json_object["name"],
+                         expression=json_object["expression"],
+                         value=json_object["value"])

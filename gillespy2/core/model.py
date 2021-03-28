@@ -106,6 +106,7 @@ class Model(SortableObject, Jsonify):
         self.listOfParameters = OrderedDict()
         self.listOfSpecies = OrderedDict()
         self.listOfReactions = OrderedDict()
+
         self.listOfAssignmentRules = OrderedDict()
         self.listOfRateRules = OrderedDict()
         self.listOfEvents = OrderedDict()
@@ -186,17 +187,35 @@ class Model(SortableObject, Jsonify):
 
     def to_json(self):
         import json
+        from gillespy2.core.jsonify import ComplexJsonEncoder
+
+        # jsonified_model = {
+        #     "name": self.name,
+        #     "annotation": self.annotation,
+        #     "units": self.units,
+        #     "volume": self.volume,
+        #     "parameters": self.encode_dict(self.listOfParameters),
+        #     "species": self.encode_dict(self.listOfSpecies),
+        #     "reactions": self.encode_dict(self.get_all_reactions()),
+        #     "assignment_rules": self.encode_dict(self.get_all_assignment_rules()),
+        #     "rate_rules": self.encode_dict(self.get_all_rate_rules()),
+        #     "timespan": {
+        #         "start": self.tspan[0],
+        #         "end": self.tspan[-1],
+        #         "points": self.tspan.size
+        #     }
+        # }
 
         jsonified_model = {
             "name": self.name,
             "annotation": self.annotation,
             "units": self.units,
             "volume": self.volume,
-            "parameters": self.encode_dict(self.listOfParameters),
-            "species": self.encode_dict(self.listOfSpecies),
-            "reactions": self.encode_dict(self.get_all_reactions()),
-            "assignment_rules": self.encode_dict(self.get_all_assignment_rules()),
-            "rate_rules": self.encode_dict(self.get_all_rate_rules()),
+            "parameters": self.listOfParameters,
+            "species": self.listOfSpecies,
+            "reactions": self.listOfReactions,
+            "assignment_rules": self.listOfAssignmentRules,
+            "rate_rules": self.listOfRateRules,
             "timespan": {
                 "start": self.tspan[0],
                 "end": self.tspan[-1],
@@ -204,8 +223,9 @@ class Model(SortableObject, Jsonify):
             }
         }
 
-        print(json.dumps(jsonified_model, indent=4))
-        return
+        test = json.dumps(jsonified_model, cls=ComplexJsonEncoder, indent=4)
+        print(test)
+        return test
 
         model_json = {}
         translation_table = {}
@@ -323,53 +343,43 @@ class Model(SortableObject, Jsonify):
         import json
         return json.dumps(model_json, indent=4)
 
-    def from_json(self, json_str):
-        """ Apply the json string to the model """
+    def from_json(json_str):
         import json
         model_json = json.loads(json_str)
+        model = Model(name = "temp")
 
-        translation_table = model_json["translation_table"]
-        self.units = model_json["units"]
-        self.volume = model_json["volume"]
+        jsonified_model = {
+            "name": model.name,
+            "annotation": model.annotation,
+            "units": model.units,
+            "volume": model.volume,
+            "parameters": model.encode_dict(model.listOfParameters),
+            "species": model.encode_dict(model.listOfSpecies),
+            "reactions": model.encode_dict(model.get_all_reactions()),
+            "assignment_rules": model.encode_dict(model.get_all_assignment_rules()),
+            "rate_rules": model.encode_dict(model.get_all_rate_rules()),
+            "timespan": {
+                "start": model.tspan[0],
+                "end": model.tspan[-1],
+                "points": model.tspan.size
+            }
+        }
 
-        for param_name in model_json["parameters"]:
-            param = model_json["parameters"][param_name]
+        from gillespy2.core.assignmentrule import AssignmentRule
+        model.name = model_json["name"]
+        model.annotation = model_json["annotation"]
+        model.units = model_json["units"]
+        model.volume = model_json["volume"]
 
-            self.listOfParameters[translation_table[param_name]] = Parameter(
-                name=translation_table[param_name], 
-                expression=param["expression"], 
-                value=param["value"])
+        model.listOfParameters = OrderedDict((x["name"], Parameter.from_json(x)) for x in model_json["parameters"])
+        model.listOfSpecies = OrderedDict((x["name"], Species.from_json(x)) for x in model_json["species"])
+        model.listOfReactions = OrderedDict((x["name"], Reaction.from_json(x)) for x in model_json["reactions"])
 
-        for specie_name in model_json["species"]:
-            specie = model_json["species"][specie_name]
+        print(model)
+        model.listOfAssignmentRules = OrderedDict(map(lambda x: AssignmentRule.from_json(x), model_json["assignment_rules"]))
+        model.listOfRateRules = OrderedDict(map(lambda x: RateRule.from_json(x), model_json["rate_rules"]))
 
-            self.listOfSpecies[translation_table[specie_name]] = Species(
-                name=translation_table[specie_name], 
-                initial_value=specie["value"],
-                constant=specie["constant"],
-                boundary_condition=specie["boundary_condition"],
-                mode=specie["mode"],
-                allow_negative_populations=specie["allow_negative_populations"],
-                switch_min=specie["switch_min"],
-                switch_tol=specie["switch_tol"])
-
-        for reaction_name in model_json["reactions"]:
-            reaction = model_json["reactions"][reaction_name]
-
-            new = Reaction(
-                name=translation_table[reaction_name],
-                propensity_function=reaction["propensity_function"],
-                reactants=reaction["reactants"],
-                products=reaction["products"])
-            new.type = reaction["type"]
-
-            if reaction["massaction"]:
-                new.massaction = True
-                new.marate = reaction["marate"]
-
-            self.listOfReactions[translation_table[reaction_name]] = new
-
-        # TODO: Assignment and rate rules.
+        return model
 
     def remote_solver_hash(self):
         """ Creates an md5 hash of an anonymized version of the model to be used for caching """

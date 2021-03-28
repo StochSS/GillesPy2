@@ -241,7 +241,7 @@ class Event(Jsonify):
         return {
             "trigger": self.trigger.to_json(),
             "delay": self.delay,
-            "assignments": list(map(lambda x: x.to_json(), self.assignments)),
+            "assignments": self.assignments,
         }
 
     def from_json(self, json_object):

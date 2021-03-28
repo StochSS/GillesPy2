@@ -337,15 +337,30 @@ class Reaction(SortableObject, Jsonify):
         return sanitized_propensity.format(*replacements)
 
     def to_json(self):
+        print(self.products)
+
+        # "reactants": list(map(lambda x: {"key": x.to_json(), "value": self.reactants[x]}, self.reactants)),
+
         return {
             "name": self.name,
-            "reactants": list(map(lambda x: { "key": x.to_json(), "value": self.reactants[x] }, self.reactants)),
-            "products": list(map(lambda x: x.to_json(), self.products)),
+            "reactants": list(map(lambda x: {x.name: self.reactants[x]}, self.reactants)),
+            "products": list(map(lambda x: {x.name: self.products[x]}, self.products)),
             "propensity_function": self.propensity_function,
             "type": self.type,
             "massaction": self.massaction,
-            "marate": self.marate.to_json()
+            "marate": self.marate
         }
 
-    def from_json(self, json_object):
-        pass
+    def from_json(json_object):
+        from gillespy2.core.species import Species
+        new = Reaction(
+            name=json_object["name"],
+            reactants=dict(map(lambda x: {x["key"]["name"], x["value"]}, json_object["reactants"])),
+            products=dict(map(lambda x: Species.from_json(x), json_object["products"])),
+            propensity_function=json_object["propensity_function"],
+            massaction=json_object["massaction"],
+        )
+        new.type = json_object["type"]
+        new.marate = json_object["marate"]
+
+        return new

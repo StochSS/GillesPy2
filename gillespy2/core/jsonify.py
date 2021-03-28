@@ -2,11 +2,21 @@ class Jsonify:
     def to_json(self):
         return self.public_vars()
 
-    def from_json(self, json_object):
-        self.__dict__ = json_object
+    def from_json(json_object):
+        pass
 
     def public_vars(self):
         return { k:v for k, v in vars(self).items() if not k.startswith("_") }
 
     def encode_dict(self, dict):
         return list(map(lambda x: x.to_json(), dict.values()))
+
+from json import JSONEncoder
+class ComplexJsonEncoder(JSONEncoder):
+    def default(self, o):
+        print(type(o))
+
+        if isinstance(o, Jsonify):
+            return o.to_json()
+
+        return "unknown"
