@@ -62,7 +62,7 @@ def export_SBML(gillespy_model, filename=None):
     return export(gillespy_model, path=filename)
 
 
-class Model(SortableObject):
+class Model(SortableObject, Jsonify):
     # reserved names for model species/parameter names, volume, and operators.
     reserved_names = ['vol']
     special_characters = ['[', ']', '+', '-', '*', '/', '.', '^']
@@ -192,9 +192,11 @@ class Model(SortableObject):
             "annotation": self.annotation,
             "units": self.units,
             "volume": self.volume,
-            "parameters": list(map(lambda x: x.to_json(), self.listOfParameters.values())),
-            "species": list(map(lambda x: x.to_json(), self.listOfSpecies.values())),
-            "reactions": list(map(lambda x: x.to_json(), self.get_all_reactions().values())),
+            "parameters": self.encode_dict(self.listOfParameters),
+            "species": self.encode_dict(self.listOfSpecies),
+            "reactions": self.encode_dict(self.get_all_reactions()),
+            "assignment_rules": self.encode_dict(self.get_all_assignment_rules()),
+            "rate_rules": self.encode_dict(self.get_all_rate_rules()),
             "timespan": {
                 "start": self.tspan[0],
                 "end": self.tspan[-1],
