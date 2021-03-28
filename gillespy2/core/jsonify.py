@@ -17,6 +17,8 @@ class ComplexJsonEncoder(JSONEncoder):
         print(type(o))
 
         if isinstance(o, Jsonify):
-            return o.to_json()
+            model = o.to_json()
+            model["_type"] = str(type(o))
+            return model
 
         return "unknown"
