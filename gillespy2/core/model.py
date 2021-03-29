@@ -185,20 +185,19 @@ class Model(SortableObject, Jsonify):
 
         return print_string
 
-    def to_json(self):
-        import json
-        from gillespy2.core.jsonify import ComplexJsonEncoder
+    def to_dict(self):
+        return self.public_vars()
 
-        # jsonified_model = {
+        # return {
         #     "name": self.name,
         #     "annotation": self.annotation,
         #     "units": self.units,
         #     "volume": self.volume,
-        #     "parameters": self.encode_dict(self.listOfParameters),
-        #     "species": self.encode_dict(self.listOfSpecies),
-        #     "reactions": self.encode_dict(self.get_all_reactions()),
-        #     "assignment_rules": self.encode_dict(self.get_all_assignment_rules()),
-        #     "rate_rules": self.encode_dict(self.get_all_rate_rules()),
+        #     "listOfParameters": self.listOfParameters,
+        #     "listOfSpecies": self.listOfSpecies,
+        #     "listOfReactions": self.listOfReactions,
+        #     "listOfAssignmentRules": self.listOfAssignmentRules,
+        #     "rate_rules": self.listOfRateRules,
         #     "timespan": {
         #         "start": self.tspan[0],
         #         "end": self.tspan[-1],
@@ -206,25 +205,11 @@ class Model(SortableObject, Jsonify):
         #     }
         # }
 
-        jsonified_model = {
-            "name": self.name,
-            "annotation": self.annotation,
-            "units": self.units,
-            "volume": self.volume,
-            "parameters": self.listOfParameters,
-            "species": self.listOfSpecies,
-            "reactions": self.listOfReactions,
-            "assignment_rules": self.listOfAssignmentRules,
-            "rate_rules": self.listOfRateRules,
-            "timespan": {
-                "start": self.tspan[0],
-                "end": self.tspan[-1],
-                "points": self.tspan.size
-            }
-        }
+    def to_json(self):
+        import json
+        from gillespy2.core.jsonify import ComplexJsonEncoder
 
-        test = json.dumps(jsonified_model, cls=ComplexJsonEncoder, indent=4)
-        print(test)
+        test = json.dumps(self, cls=ComplexJsonEncoder, indent=4)
         return test
 
         model_json = {}
@@ -345,40 +330,15 @@ class Model(SortableObject, Jsonify):
 
     def from_json(json_str):
         import json
-        model_json = json.loads(json_str)
-        model = Model(name = "temp")
+        from gillespy2.core.jsonify import ComplexTypeDecoder
 
-        jsonified_model = {
-            "name": model.name,
-            "annotation": model.annotation,
-            "units": model.units,
-            "volume": model.volume,
-            "parameters": model.encode_dict(model.listOfParameters),
-            "species": model.encode_dict(model.listOfSpecies),
-            "reactions": model.encode_dict(model.get_all_reactions()),
-            "assignment_rules": model.encode_dict(model.get_all_assignment_rules()),
-            "rate_rules": model.encode_dict(model.get_all_rate_rules()),
-            "timespan": {
-                "start": model.tspan[0],
-                "end": model.tspan[-1],
-                "points": model.tspan.size
-            }
-        }
+        if type(json_str) is dict:
+            model = Model()
+            model.__dict__ = json_str
 
-        from gillespy2.core.assignmentrule import AssignmentRule
-        model.name = model_json["name"]
-        model.annotation = model_json["annotation"]
-        model.units = model_json["units"]
-        model.volume = model_json["volume"]
+            return model
 
-        model.listOfParameters = OrderedDict((x["name"], Parameter.from_json(x)) for x in model_json["parameters"])
-        model.listOfSpecies = OrderedDict((x["name"], Species.from_json(x)) for x in model_json["species"])
-        model.listOfReactions = OrderedDict((x["name"], Reaction.from_json(x)) for x in model_json["reactions"])
-
-        print(model)
-        model.listOfAssignmentRules = OrderedDict(map(lambda x: AssignmentRule.from_json(x), model_json["assignment_rules"]))
-        model.listOfRateRules = OrderedDict(map(lambda x: RateRule.from_json(x), model_json["rate_rules"]))
-
+        model = json.loads(json_str, object_hook=ComplexTypeDecoder.decode_hook)
         return model
 
     def remote_solver_hash(self):
