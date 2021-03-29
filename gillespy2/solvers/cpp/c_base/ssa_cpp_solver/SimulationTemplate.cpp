@@ -77,6 +77,7 @@ __DEFINE_REACTIONS_
   Simulation simulation;
   Model* modelptr;
   modelptr = &model;
+  simulation.type = SSA;
   simulation.model = modelptr;
   simulation.end_time = end_time;
   simulation.random_seed = random_seed;

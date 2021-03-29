@@ -2,6 +2,7 @@
 
 namespace Gillespy{
 
+
   Model :: Model(std :: vector<std :: string> species_names, std :: vector<unsigned int> species_populations, std :: vector<std :: string> reaction_names):
     number_species(species_names.size()),
     number_reactions(reaction_names.size())
@@ -57,15 +58,13 @@ namespace Gillespy{
     }
   }
 
-
+// initialize timeline, 
 void simulationODEINIT(Model* model, Simulation &simulation){
     simulation.timeline = new double[simulation.number_timesteps];
     double timestep_size = simulation.end_time/(simulation.number_timesteps-1);
     for(unsigned int i = 0; i < simulation.number_timesteps; i++){
       simulation.timeline[i] = timestep_size * i;
     }
-
-
     unsigned int trajectory_size = simulation.number_timesteps * (model -> number_species);
     simulation.trajectories_1DODE = new double[simulation.number_trajectories * trajectory_size];
     simulation.trajectoriesODE = new double**[simulation.number_trajectories];
@@ -77,22 +76,35 @@ void simulationODEINIT(Model* model, Simulation &simulation){
     }
   }
 
+void simulationINIT(Model* model, Simulation &sim) {
+  int type = sim.type;
+  if (type == ODE || type == HYBRID) {
+    simulationODEINIT(model, sim);
+  }
+  else if (type == SSA || type == TAU || type == HYBRID)
+  {
+    simulationSSAINIT(model, sim);
+  }
+  
+}
+
 
   Simulation :: ~Simulation(){
+    int type = this->type;
     delete timeline;
-    if (ISODE==1){
-    delete trajectories_1DODE;
-    for(unsigned int i = 0; i < number_trajectories; i++){
-      delete trajectoriesODE[i];
+    if (type == ODE || type == HYBRID){
+      delete trajectories_1DODE;
+      for(unsigned int i = 0; i < number_trajectories; i++){
+        delete trajectoriesODE[i];
+      }
+      delete trajectoriesODE;
     }
-    delete trajectoriesODE;
-    }else{
-
-    delete trajectories_1D;
-     for(unsigned int i = 0; i < number_trajectories; i++){
-      delete trajectories[i];
-    }
-    delete trajectories;
+    else if (type == SSA || type == TAU || type == HYBRID){
+      delete trajectories_1D;
+      for(unsigned int i = 0; i < number_trajectories; i++){
+        delete trajectories[i];
+      }
+      delete trajectories;
     }
   }
 
@@ -102,7 +114,7 @@ void simulationODEINIT(Model* model, Simulation &simulation){
       os << simulation.timeline[i] << " ";
       for(unsigned int trajectory = 0; trajectory < simulation.number_trajectories; trajectory++){
 	for(unsigned int j = 0; j < simulation.model -> number_species; j++){
-	    if (simulation.ISODE==1){os << simulation.trajectoriesODE[trajectory][i][j] <<  " ";}
+	    if (simulation.type==ODE){os << simulation.trajectoriesODE[trajectory][i][j] <<  " ";}
 	    else{os << simulation.trajectories[trajectory][i][j] <<  " ";}
 	}
       }
@@ -116,7 +128,7 @@ void Simulation :: output_results_buffer(std::ostream& os){
         for (int j = 0; j<number_timesteps;j++){
             os<<timeline[j]<<',';
             for (int k = 0; k<model->number_species; k++){
-                if (ISODE==1){os<<trajectoriesODE[i][j][k]<<',';}
+                if (type==ODE){os<<trajectoriesODE[i][j][k]<<',';}
                 else{os<<trajectories[i][j][k]<<',';}
                 }
             }

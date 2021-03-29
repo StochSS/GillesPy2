@@ -88,6 +88,8 @@ namespace Gillespy {
 			for(uint32_t s = 0; s < num_species; s++){
 				simulation->trajectories[0][0][s] = model.species[s].initial_population;
 			}
+
+			//Simulate for each trajectory
 		}
 	}
 }

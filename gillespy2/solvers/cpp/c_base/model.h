@@ -5,7 +5,6 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
-// #include "sundials_types.h"
 
 namespace Gillespy{
 
@@ -44,14 +43,20 @@ namespace Gillespy{
     virtual ~IPropensityFunction() {};
   };
 
-
+  #define SSA 1
+  #define ODE 2
+  #define TAU 3
+  #define HYBRID 4
 
   struct Simulation{
     Model* model;
     ~Simulation();
 
-    int ISODE = 0; // if 0, not ODE sim, if 1, ODE sim
+    // the type of simulation - SSA, ODE, TAU, or HYBRID
+    int type;
+    // array representing discrete time steps for the simulation
     double* timeline;
+    // 
     double end_time;
     double current_time;
     int random_seed;
@@ -60,6 +65,9 @@ namespace Gillespy{
     unsigned int number_trajectories;
 
     unsigned int* trajectories_1D;
+    // first dimension: trajectory by number
+    // second dimension: the associated timesteps for that trajectory 
+    // third dimension: the 
     unsigned int*** trajectories;
 
     double* trajectories_1DODE;

@@ -83,7 +83,7 @@ __DEFINE_REACTIONS_
   Simulation simulation;
   Model* modelptr;
   modelptr = &model;
-  simulation.ISODE=1;
+  simulation.type = ODE;
   simulation.model = modelptr;
   simulation.end_time = end_time;
   simulation.random_seed = random_seed;
