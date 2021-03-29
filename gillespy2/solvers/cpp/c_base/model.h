@@ -78,8 +78,9 @@ namespace Gillespy{
     void output_results_buffer(std :: ostream& os);
   };
   //Trajectory initializers for ODE and SSA solvers
-  void simulationODEINIT(Model* model, Simulation &simulation);
-  void simulationSSAINIT(Model* model, Simulation &simulation);
+  // void simulationODEINIT(Model* model, Simulation &simulation);
+  // void simulationSSAINIT(Model* model, Simulation &simulation);
+  void simulationINIT(Model* model, Simulation &simulation);
 
   
 }

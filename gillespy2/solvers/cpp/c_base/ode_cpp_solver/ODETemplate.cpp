@@ -90,7 +90,7 @@ __DEFINE_REACTIONS_
   simulation.number_timesteps = number_timesteps;
   simulation.number_trajectories = number_trajectories;
   simulation.propensity_function = propFun;
-  simulationODEINIT(&model, simulation);
+  simulationINIT(&model, simulation);
   // Perform ODE  //
   ODESolver(&simulation,increment);
   simulation.output_results_buffer(std :: cout);

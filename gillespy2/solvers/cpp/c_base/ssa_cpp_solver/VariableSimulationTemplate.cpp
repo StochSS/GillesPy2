@@ -92,7 +92,7 @@ __DEFINE_REACTIONS_
   simulation.number_timesteps = number_timesteps;
   simulation.number_trajectories = number_trajectories;
   simulation.propensity_function = propFun;
-  simulationSSAINIT(&model, simulation);
+  simulationINIT(&model, simulation);
   // Perform SSA  //
   ssa_direct(&simulation);
 
