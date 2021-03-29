@@ -188,28 +188,31 @@ class Model(SortableObject, Jsonify):
     def to_dict(self):
         return self.public_vars()
 
-        # return {
-        #     "name": self.name,
-        #     "annotation": self.annotation,
-        #     "units": self.units,
-        #     "volume": self.volume,
-        #     "listOfParameters": self.listOfParameters,
-        #     "listOfSpecies": self.listOfSpecies,
-        #     "listOfReactions": self.listOfReactions,
-        #     "listOfAssignmentRules": self.listOfAssignmentRules,
-        #     "rate_rules": self.listOfRateRules,
-        #     "timespan": {
-        #         "start": self.tspan[0],
-        #         "end": self.tspan[-1],
-        #         "points": self.tspan.size
-        #     }
-        # }
-
     def to_json(self):
         import json
+        from collections import ChainMap
         from gillespy2.core.jsonify import ComplexJsonEncoder
 
-        test = json.dumps(self, cls=ComplexJsonEncoder, indent=4)
+        species = self.listOfSpecies.values()
+        reactions = self.listOfReactions.values()
+        parameters = self.listOfParameters.values()
+        assignments = self.listOfAssignmentRules.values()
+        rates = self.listOfRateRules.values()
+        events = self.listOfEvents.values()
+
+        key_table = ChainMap(
+            dict(zip((x.name for x in species), (f"S{x}" for x in range(0, len(species))))),
+            dict(zip((x.name for x in reactions), (f"R{x}" for x in range(0, len(reactions))))),
+            dict(zip((x.name for x in parameters), (f"P{x}" for x in range(0, len(parameters))))),
+            dict(zip((x.name for x in assignments), (f"AR{x}" for x in range(0, len(assignments))))),
+            dict(zip((x.name for x in rates), (f"RR{x}" for x in range(0, len(rates))))),
+            dict(zip((x.name for x in events), (f"E{x}" for x in range(0, len(events)))))
+        )
+
+        translation_table = ChainMap(self.sanitized_species_names(), self.sanitized_parameter_names())
+        encoder = ComplexJsonEncoder(translation_table=dict(translation_table))
+
+        test = json.dumps(self, default=encoder.default, indent=4)
         return test
 
         model_json = {}
@@ -332,6 +335,7 @@ class Model(SortableObject, Jsonify):
         import json
         from gillespy2.core.jsonify import ComplexJsonDecoder
 
+        # If the input type is a dictionary, then we've finished decoding all other entries.
         if type(json_str) is dict:
             model = Model()
             model.__dict__ = json_str
@@ -340,6 +344,13 @@ class Model(SortableObject, Jsonify):
 
         model = json.loads(json_str, object_hook=ComplexJsonDecoder.decode_hook)
         return model
+
+    def make_anon(self, json_str):
+        import copy
+
+        json_model = Model.from_json(json_str)
+        species_mapping = self.sanitized_species_names()
+        parameter_mapping = self.sanitized_parameter_names()
 
     def remote_solver_hash(self):
         """ Creates an md5 hash of an anonymized version of the model to be used for caching """
