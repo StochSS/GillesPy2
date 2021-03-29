@@ -330,7 +330,7 @@ class Model(SortableObject, Jsonify):
 
     def from_json(json_str):
         import json
-        from gillespy2.core.jsonify import ComplexTypeDecoder
+        from gillespy2.core.jsonify import ComplexJsonDecoder
 
         if type(json_str) is dict:
             model = Model()
@@ -338,7 +338,7 @@ class Model(SortableObject, Jsonify):
 
             return model
 
-        model = json.loads(json_str, object_hook=ComplexTypeDecoder.decode_hook)
+        model = json.loads(json_str, object_hook=ComplexJsonDecoder.decode_hook)
         return model
 
     def remote_solver_hash(self):
