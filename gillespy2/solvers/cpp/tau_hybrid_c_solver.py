@@ -67,7 +67,7 @@ class TauHybridCSolver(GillesPySolver):
         if self.variable:
             template_file = "VariableTauHybridTemplate.cpp"
         else:
-            template_file = "TauhybridTemplate.cpp"
+            template_file = "TauHybridTemplate.cpp"
 
         with open(os.path.join(GILLESPY_CPP_TAU_HYBRID_DIR, template_file), 'r') as template:
             # Write simulation C++ file.

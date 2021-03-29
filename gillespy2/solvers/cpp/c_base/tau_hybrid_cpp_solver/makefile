@@ -30,7 +30,7 @@ TauHybridSimulation.o:
 	$(CC) -c -o TauHybridSimulation.o TauHybridSimulation.cpp $(CFLAGS) -I$(CBASE_DIR) -I$(GILLESPY_CPP_TAU_HYBRID_DIR)
 
 TauHybridCSolver.o:
-	$(CC) -c -o TauHybridCSolver.o $(GILLESPY_CPP_TAU_HYBRID_DIR)/TauHybridCSolver.cpp $(CFLAGS) -I$(CBASE_DIR) -I$(SRCDIR) -I$(INCDIR)
+	$(CC) -c -o TauHybridCSolver.o $(GILLESPY_CPP_TAU_HYBRID_DIR)/TauHybridCSolver.cpp $(CFLAGS) -I$(CBASE_DIR) -I$(SRCDIR) -I$(INCDIR) -I$(CBASE_DIR)/Tau
 
 TauHybridSimulation: TauHybridCSolver.o TauHybridSimulation.o $(SUNOBJ) model.o
 	$(CC) -o TauHybridSimulation TauHybridCSolver.o TauHybridSimulation.o $(SUNOBJ) model.o $(LINKFLAGS)
