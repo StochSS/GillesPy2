@@ -237,9 +237,9 @@ class Event(Jsonify):
                              "EventAssignments")
         return assignment
 
-    def into_json(self):
+    def to_dict(self):
         return {
-            "trigger": self.trigger.to_json(),
+            "trigger": self.trigger,
             "delay": self.delay,
             "assignments": self.assignments,
         }
