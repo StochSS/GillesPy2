@@ -12,12 +12,25 @@
 #include "tau.h"
 using namespace Gillespy;
 
-#define NV_Ith_S(v,i) (NV_DATA_S(v)[i]) // Access to individual components of data array, of N len vector
+// #define NV_Ith_S(v,i) (NV_DATA_S(v)[i]) // Access to individual components of data array, of N len vector
 
 static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data); // forward declare function to be used to solve RHS of ODE
 
 struct UserData {
   Gillespy::Simulation *my_sim;
+};
+struct IntegratorOptions{
+  // CVODE constants returned if bad output, or success output.
+  // Constants: CV_SUCCESS,
+  // CV_MEM_NULL: CVODE memory block not initialized through call to CVodeCreate
+  // CV_NO_MALLOC: The allocation function CVodeInit not called
+  // CV_ILL_Input: An input tolerance was negative
+  int flag;
+  // absolute tolerace of a system
+  realtype abstol;
+  // relative tolerance of system
+  realtype reltol;
+  // double max_step;
 };
 namespace Gillespy {
 	bool interrupted = false;
@@ -53,19 +66,28 @@ namespace Gillespy {
 		return values;
 	}
 	
-	struct set_recommended_ODE_defaults{
-		//??????
-
-	}
 
 	
 
-	void TauHybridCSolver(Gillespy::Simulation *simulation, double increment)
+	void TauHybridCSolver(Gillespy::Simulation *simulation, const double tau_tol)
 	{
 		signal(SIGINT, signalHandler);
-
 		if (simulation) {
+			uint32_t num_species = (simulation->model)->number_species;
+			uint32_t num_reactions = (simulation->model)->number_reactions;
+			Model &model = *(simulation->model);
+			TauArgs tau_args = initialize(*(simulation->model),tau_tol);
+			double increment = simulation->timeline[1] - simulation->timeline[0];
 
+			//initialize current_state vector to 0 for each species
+			std::vector<int> current_state(num_species);
+			//initialize propensity_values to 0 for each species
+			std::vector<double> propensity_values(num_reactions);
+
+			//copy initial state for each trajectory
+			for(uint32_t s = 0; s < num_species; s++){
+				simulation->trajectories[0][0][s] = model.species[s].initial_population;
+			}
 		}
 	}
 }
