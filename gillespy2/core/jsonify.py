@@ -1,9 +1,9 @@
-from json import JSONEncoder, JSONDecoder
+from json import JSONEncoder
 
 
 class Jsonify:
     """
-    Interface to allow for instances of arbitrary types to be encoded and decoded dynamically.
+    Interface to allow for instances of arbitrary types to be encoded into json strings and decoded into new objects.
     """
 
     def to_dict(self):
@@ -34,6 +34,10 @@ class Jsonify:
 
 
 class ComplexJsonEncoder(JSONEncoder):
+    def __init__(self, key_table=None, **kwargs):
+        super(ComplexJsonEncoder, self).__init__(**kwargs)
+        self.key_table = key_table
+
     def default(self, o):
         from numpy import ndarray
         from gillespy2.core.model import Model
@@ -53,8 +57,38 @@ class ComplexJsonEncoder(JSONEncoder):
         else:
             model["_type"] = f"{o.__class__.__module__}.{o.__class__.__name__}"
 
+        def recursive_translate(obj):
+            for k in list(obj.keys()):
+                from collections import OrderedDict, Hashable, ChainMap
+                if isinstance(obj[k], OrderedDict):
+                    obj[k] = dict(obj[k])
+
+                if isinstance(obj[k], list) and isinstance(obj[k][0], dict):
+                    obj[k] = dict(ChainMap(obj[k]))
+                    print(obj[k])
+
+                if isinstance(obj[k], dict):
+                    recursive_translate(obj[k])
+                    continue
+
+                if not isinstance(obj[k], Hashable):
+                    continue
+
+                v = obj[k]
+
+                if v in self.key_table:
+                    obj[k] = self.key_table[v]
+
+                if k in self.key_table:
+                    obj[self.key_table[k]] = obj.pop(k)
+
+        recursive_translate(model)
+
         return model
 
+    def encode(self, o):
+        print(type(o))
+        return self.encode(o)
 
 class ComplexJsonDecoder:
     @staticmethod
