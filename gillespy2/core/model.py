@@ -200,20 +200,26 @@ class Model(SortableObject, Jsonify):
         rates = self.listOfRateRules.values()
         events = self.listOfEvents.values()
 
-        key_table = ChainMap(
+        species_mapping = self.sanitized_species_names()
+        parameter_mappings = self.sanitized_parameter_names()
+
+        translation_table = ChainMap(
+            # Build translation mappings for user-defined variable names.
             dict(zip((x.name for x in species), (f"S{x}" for x in range(0, len(species))))),
             dict(zip((x.name for x in reactions), (f"R{x}" for x in range(0, len(reactions))))),
             dict(zip((x.name for x in parameters), (f"P{x}" for x in range(0, len(parameters))))),
             dict(zip((x.name for x in assignments), (f"AR{x}" for x in range(0, len(assignments))))),
             dict(zip((x.name for x in rates), (f"RR{x}" for x in range(0, len(rates))))),
-            dict(zip((x.name for x in events), (f"E{x}" for x in range(0, len(events)))))
+            dict(zip((x.name for x in events), (f"E{x}" for x in range(0, len(events))))),
+
+            # Build translation mappings for formulas.
+            dict((x.propensity_function, x.sanitized_propensity_function(species_mapping, parameter_mappings)) for x in reactions),
         )
 
-        translation_table = ChainMap(self.sanitized_species_names(), self.sanitized_parameter_names())
-        encoder = ComplexJsonEncoder(translation_table=dict(translation_table))
+        encoder = ComplexJsonEncoder(key_table=dict(translation_table))
+        json_str = json.dumps(self, indent=4, default=encoder.default)
 
-        test = json.dumps(self, default=encoder.default, indent=4)
-        return test
+        return json_str
 
         model_json = {}
         translation_table = {}
