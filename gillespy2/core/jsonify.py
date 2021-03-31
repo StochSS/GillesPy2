@@ -58,37 +58,46 @@ class ComplexJsonEncoder(JSONEncoder):
             model["_type"] = f"{o.__class__.__module__}.{o.__class__.__name__}"
 
         # If valid, recursively translate keys and values in the current model.
-        def recursive_translate(obj):
-            for k in list(obj.keys()):
-                from collections import OrderedDict, Hashable
-
-                # OrderedDicts are immutable, so we need to convert it into a dictionary prior to translation.
-                if isinstance(obj[k], OrderedDict):
-                    obj[k] = dict(obj[k])
-
-                # We need to translate all sub-elements in a dictionary, so recurse into it.
-                if isinstance(obj[k], dict):
-                    recursive_translate(obj[k])
-                    continue
-
-                # If the value isn't Hashable, continue.
-                if not isinstance(obj[k], Hashable):
-                    continue
-
-                v = obj[k]
-                if v in self.key_table:
-                    obj[k] = self.key_table[v]
-
-                if k in self.key_table:
-                    obj[self.key_table[k]] = obj.pop(k)
-
-        recursive_translate(model)
+        self.recursive_translate(model)
 
         return model
 
-    def encode(self, o):
-        print(type(o))
-        return self.encode(o)
+    def recursive_translate(self, obj):
+        # If the input object is a list, we iterate through it element by element.
+        if isinstance(obj, list):
+            for i, item in enumerate(list(obj)):
+                if item in self.key_table:
+                    obj[i] = self.key_table[item]
+
+            return
+
+        # Else, the item is a dictionary, so we iterate through each key/value.
+        for k in list(obj.keys()):
+            from collections import OrderedDict, Hashable
+
+            # If the value is a list, we need to iterate through it.
+            if isinstance(obj[k], list):
+                self.recursive_translate(obj[k])
+
+            # OrderedDicts are immutable, so we need to convert it into a dictionary prior to translation.
+            if isinstance(obj[k], OrderedDict):
+                obj[k] = dict(obj[k])
+
+            # We need to translate all sub-elements in a dictionary, so recurse into it.
+            if isinstance(obj[k], dict):
+                self.recursive_translate(obj[k])
+                continue
+
+            # If the value isn't Hashable, continue.
+            if not isinstance(obj[k], Hashable):
+                continue
+
+            v = obj[k]
+            if v in self.key_table:
+                obj[k] = self.key_table[v]
+
+            if k in self.key_table:
+                obj[self.key_table[k]] = obj.pop(k)
 
 
 class ComplexJsonDecoder:

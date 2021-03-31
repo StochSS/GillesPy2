@@ -206,6 +206,7 @@ class Model(SortableObject, Jsonify):
 
         translation_table = dict(ChainMap(
             # Build translation mappings for user-defined variable names.
+            dict({ self.name: "Model" }),
             dict(zip((str(x.name) for x in species), (f"S{x}" for x in range(0, len(species))))),
             dict(zip((str(x.name) for x in reactions), (f"R{x}" for x in range(0, len(reactions))))),
             dict(zip((str(x.name) for x in parameters), (f"P{x}" for x in range(0, len(parameters))))),
