@@ -57,25 +57,25 @@ class ComplexJsonEncoder(JSONEncoder):
         else:
             model["_type"] = f"{o.__class__.__module__}.{o.__class__.__name__}"
 
+        # If valid, recursively translate keys and values in the current model.
         def recursive_translate(obj):
             for k in list(obj.keys()):
                 from collections import OrderedDict, Hashable, ChainMap
+
+                # OrderedDicts are immutable, so we need to convert it into a dictionary prior to translation.
                 if isinstance(obj[k], OrderedDict):
                     obj[k] = dict(obj[k])
 
-                if isinstance(obj[k], list) and isinstance(obj[k][0], dict):
-                    obj[k] = dict(ChainMap(obj[k]))
-                    print(obj[k])
-
+                # We need to translate all sub-elements in a dictionary, so recurse into it.
                 if isinstance(obj[k], dict):
                     recursive_translate(obj[k])
                     continue
 
+                # If the value isn't Hashable, continue.
                 if not isinstance(obj[k], Hashable):
                     continue
 
                 v = obj[k]
-
                 if v in self.key_table:
                     obj[k] = self.key_table[v]
 

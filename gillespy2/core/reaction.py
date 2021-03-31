@@ -353,8 +353,8 @@ class Reaction(SortableObject, Jsonify):
         from collections import ChainMap
         new = Reaction(
             name=json_object["name"],
-            reactants=dict(ChainMap(*json_object["reactants"])),
-            products=dict(ChainMap(*json_object["products"])),
+            reactants=json_object["reactants"],
+            products=json_object["products"],
             propensity_function=json_object["propensity_function"],
             massaction=json_object["massaction"],
         )

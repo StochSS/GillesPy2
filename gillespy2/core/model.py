@@ -199,6 +199,7 @@ class Model(SortableObject, Jsonify):
         assignments = self.listOfAssignmentRules.values()
         rates = self.listOfRateRules.values()
         events = self.listOfEvents.values()
+        functions = self.listOfFunctionDefinitions.values()
 
         species_mapping = self.sanitized_species_names()
         parameter_mappings = self.sanitized_parameter_names()
@@ -211,13 +212,18 @@ class Model(SortableObject, Jsonify):
             dict(zip((x.name for x in assignments), (f"AR{x}" for x in range(0, len(assignments))))),
             dict(zip((x.name for x in rates), (f"RR{x}" for x in range(0, len(rates))))),
             dict(zip((x.name for x in events), (f"E{x}" for x in range(0, len(events))))),
+            dict(zip((x.name for x in functions), (f"F{x}" for x in range(0, len(functions))))),
 
             # Build translation mappings for formulas.
             dict((x.propensity_function, x.sanitized_propensity_function(species_mapping, parameter_mappings)) for x in reactions),
+            dict((x.formula, x.sanitized_formula(species_mapping, parameter_mappings)) for x in assignments),
+            dict((x.formula, x.sanitized_formula(species_mapping, parameter_mappings)) for x in rates),
+            dict((x.expression, x.sanitized_expression(species_mapping, parameter_mappings)) for x in events),
+            dict((x.name, x.sanitized_function(species_mapping, parameter_mappings)) for x in functions)
         )
 
         encoder = ComplexJsonEncoder(key_table=dict(translation_table))
-        json_str = json.dumps(self, indent=4, default=encoder.default)
+        json_str = json.dumps(self, indent=4, sort_keys=True, default=encoder.default)
 
         return json_str
 
