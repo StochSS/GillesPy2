@@ -60,7 +60,7 @@ class ComplexJsonEncoder(JSONEncoder):
         # If valid, recursively translate keys and values in the current model.
         def recursive_translate(obj):
             for k in list(obj.keys()):
-                from collections import OrderedDict, Hashable, ChainMap
+                from collections import OrderedDict, Hashable
 
                 # OrderedDicts are immutable, so we need to convert it into a dictionary prior to translation.
                 if isinstance(obj[k], OrderedDict):
@@ -89,6 +89,7 @@ class ComplexJsonEncoder(JSONEncoder):
     def encode(self, o):
         print(type(o))
         return self.encode(o)
+
 
 class ComplexJsonDecoder:
     @staticmethod
