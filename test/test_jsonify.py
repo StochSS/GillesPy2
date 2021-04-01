@@ -56,3 +56,23 @@ class TestJsonModels(unittest.TestCase):
             r_back = r_from.to_json()
 
             self.assertEqual(r_json, r_back)
+
+    def test_anon_model_runs(self):
+        from gillespy2.core.results import Results
+        models = [
+            Example,
+            MichaelisMenten,
+            Tyson2StateOscillator,
+            Schlogl
+        ]
+
+        for model in models:
+            target = model()
+            translation_table = target.get_translation_table()
+            results = target.run()
+
+            r_json = results.to_json(translation_table)
+            r_from = Results.from_json(r_json)
+            r_back = r_from.to_json(translation_table)
+
+            self.assertEqual(r_json, r_back)
