@@ -1,3 +1,4 @@
+import json
 from json import JSONEncoder
 
 
@@ -17,11 +18,17 @@ class Jsonify:
         """
         Convert some json_object into a decoded Python type. This function should return a __new__ instance of the type.
 
-        :param json_object: A json dict to be converted into a new type instance.
+        :param json_object: A json str to be converted into a new type instance.
         """
-        new = cls()
-        new.__dict__ = json_object
-        return new
+
+        # If the json_object is actually a dict, it means we've decoded as much as possible.
+        if type(json_object) is dict:
+            new = cls.__new__(cls)
+            new.__dict__ = json_object
+
+            return new
+
+        return json.loads(json_object, object_hook=ComplexJsonDecoder.decode_hook)
 
     def to_dict(self):
         """
@@ -73,11 +80,9 @@ class ComplexJsonEncoder(JSONEncoder):
 
         # If valid, recursively translate keys and values in the current model.
         self.recursive_translate(model)
-
         return model
 
     def recursive_translate(self, obj):
-        import inspect, copy
         from collections import OrderedDict, Hashable
 
         if obj is None or self.key_table is None:

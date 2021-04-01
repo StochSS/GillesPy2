@@ -186,28 +186,13 @@ class Model(SortableObject, Jsonify):
         return print_string
 
     def to_json(self, translation_table=None):
-        import json, copy
-        from collections import ChainMap
+        import json
         from gillespy2.core.jsonify import ComplexJsonEncoder
 
         encoder = ComplexJsonEncoder(key_table=translation_table)
         json_str = json.dumps(self, indent=4, sort_keys=False, default=encoder.default)
 
         return json_str
-
-    def from_json(json_str):
-        import json
-        from gillespy2.core.jsonify import ComplexJsonDecoder
-
-        # If the input type is a dictionary, then we've finished decoding all other entries.
-        if type(json_str) is dict:
-            model = Model()
-            model.__dict__ = json_str
-
-            return model
-
-        model = json.loads(json_str, object_hook=ComplexJsonDecoder.decode_hook)
-        return model
 
     def get_translation_table(self):
         import json, copy
