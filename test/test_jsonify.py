@@ -31,7 +31,7 @@ class TestJsonModels(unittest.TestCase):
         non_anon_back_into_json = non_anon_from_json.to_json()
 
         self.assertEqual(non_anon_json, non_anon_back_into_json)
-        print("\t[PASS] Non-anonymous json conversion.")
+        print("  [PASS] Non-anonymous model -> json -> model -> json conversion.")
 
         target2 = model()
         table = target2.get_translation_table()
@@ -41,4 +41,4 @@ class TestJsonModels(unittest.TestCase):
         anon_back_into_json = anon_from_json.to_json(table)
 
         self.assertEqual(anon_json, anon_back_into_json)
-        print("\t[PASS] Anonymous json conversion.")
+        print("  [PASS] Anonymous model -> json -> model -> json conversion.")

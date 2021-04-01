@@ -201,7 +201,6 @@ class Model(SortableObject, Jsonify):
 
         # If the input type is a dictionary, then we've finished decoding all other entries.
         if type(json_str) is dict:
-            print(json_str)
             model = Model()
             model.__dict__ = json_str
 
