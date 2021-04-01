@@ -6,6 +6,22 @@ class Jsonify:
     Interface to allow for instances of arbitrary types to be encoded into json strings and decoded into new objects.
     """
 
+    def to_json(self, translation_table=None):
+        import json
+        from .jsonify import ComplexJsonEncoder
+
+        encoder = ComplexJsonEncoder(translation_table)
+        return json.dumps(self, indent=4, default=encoder.default)
+
+    @staticmethod
+    def from_json(json_object):
+        """
+        Convert some json_object into a decoded Python type. This function should return a __new__ instance of the type.
+
+        :param json_object: A json dict to be converted into a new type instance.
+        """
+        pass
+
     def to_dict(self):
         """
         Convert the object into a dictionary ready for json encoding.
@@ -17,12 +33,9 @@ class Jsonify:
         """
         return self.public_vars()
 
-    @staticmethod
-    def from_json(json_object):
+    def get_translation_table(self):
         """
-        Convert some json_object into a decoded Python type. This function should return a __new__ instance of the type.
-
-        :param json_object: A json dict to be converted into a new type instance.
+        Generate a translation table that describes key:value pairs to convert user-defined data into generic equivalents.
         """
         pass
 
@@ -63,9 +76,22 @@ class ComplexJsonEncoder(JSONEncoder):
         return model
 
     def recursive_translate(self, obj):
+        import inspect
+        from collections import OrderedDict, Hashable
+
+        if obj is None:
+            return
+
         # If the input object is a list, we iterate through it element by element.
         if isinstance(obj, list):
             for i, item in enumerate(list(obj)):
+                if isinstance(item, dict) or isinstance(item, list):
+                    self.recursive_translate(item)
+                    continue
+
+                if not isinstance(item, Hashable):
+                    continue
+
                 if item in self.key_table:
                     obj[i] = self.key_table[item]
 
@@ -73,11 +99,16 @@ class ComplexJsonEncoder(JSONEncoder):
 
         # Else, the item is a dictionary, so we iterate through each key/value.
         for k in list(obj.keys()):
-            from collections import OrderedDict, Hashable
+            print(f"{k}: {type(obj[k])}")
+
+            if k in self.key_table:
+                obj[self.key_table[k]] = obj.pop(k)
+                k = self.key_table[k]
 
             # If the value is a list, we need to iterate through it.
             if isinstance(obj[k], list):
                 self.recursive_translate(obj[k])
+                continue
 
             # OrderedDicts are immutable, so we need to convert it into a dictionary prior to translation.
             if isinstance(obj[k], OrderedDict):
@@ -95,9 +126,6 @@ class ComplexJsonEncoder(JSONEncoder):
             v = obj[k]
             if v in self.key_table:
                 obj[k] = self.key_table[v]
-
-            if k in self.key_table:
-                obj[self.key_table[k]] = obj.pop(k)
 
 
 class ComplexJsonDecoder:

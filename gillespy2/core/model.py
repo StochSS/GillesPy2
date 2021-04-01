@@ -185,13 +185,35 @@ class Model(SortableObject, Jsonify):
 
         return print_string
 
-    def to_dict(self):
-        return self.public_vars()
-
-    def to_json(self):
+    def to_json(self, translation_table=None):
         import json, copy
         from collections import ChainMap
         from gillespy2.core.jsonify import ComplexJsonEncoder
+
+        new_model = copy.deepcopy(self)
+        encoder = ComplexJsonEncoder(key_table=translation_table)
+
+        json_str = json.dumps(new_model, indent=4, sort_keys=True, default=encoder.default)
+
+        return json_str
+
+    def from_json(json_str):
+        import json
+        from gillespy2.core.jsonify import ComplexJsonDecoder
+
+        # If the input type is a dictionary, then we've finished decoding all other entries.
+        if type(json_str) is dict:
+            model = Model()
+            model.__dict__ = json_str
+
+            return model
+
+        model = json.loads(json_str, object_hook=ComplexJsonDecoder.decode_hook)
+        return model
+
+    def get_translation_table(self):
+        import json, copy
+        from collections import ChainMap
 
         species = self.listOfSpecies.values()
         reactions = self.listOfReactions.values()
@@ -204,7 +226,9 @@ class Model(SortableObject, Jsonify):
         species_mapping = self.sanitized_species_names()
         parameter_mappings = self.sanitized_parameter_names()
 
+        # A translation table is used to anonymize user-defined variable names and formulas into generic counterparts.
         translation_table = dict(ChainMap(
+
             # Build translation mappings for user-defined variable names.
             dict({ self.name: "Model" }),
             dict(zip((str(x.name) for x in species), (f"S{x}" for x in range(0, len(species))))),
@@ -223,25 +247,7 @@ class Model(SortableObject, Jsonify):
             dict((x.name, x.sanitized_function(species_mapping, parameter_mappings)) for x in functions)
         ))
 
-        encoder = ComplexJsonEncoder(key_table=translation_table)
-        json_str = json.dumps(self, indent=4, sort_keys=True, default=encoder.default)
-
-        self.translation_table = translation_table
-        return json_str
-
-    def from_json(json_str):
-        import json
-        from gillespy2.core.jsonify import ComplexJsonDecoder
-
-        # If the input type is a dictionary, then we've finished decoding all other entries.
-        if type(json_str) is dict:
-            model = Model()
-            model.__dict__ = json_str
-
-            return model
-
-        model = json.loads(json_str, object_hook=ComplexJsonDecoder.decode_hook)
-        return model
+        return translation_table
 
     def remote_solver_hash(self):
         """ Creates an md5 hash of an anonymized version of the model to be used for caching """
