@@ -8,19 +8,20 @@ class Jsonify:
 
     def to_json(self, translation_table=None):
         import json
-        from .jsonify import ComplexJsonEncoder
 
         encoder = ComplexJsonEncoder(translation_table)
         return json.dumps(self, indent=4, default=encoder.default)
 
-    @staticmethod
-    def from_json(json_object):
+    @classmethod
+    def from_json(cls, json_object):
         """
         Convert some json_object into a decoded Python type. This function should return a __new__ instance of the type.
 
         :param json_object: A json dict to be converted into a new type instance.
         """
-        pass
+        new = cls()
+        new.__dict__ = json_object
+        return new
 
     def to_dict(self):
         """
