@@ -92,9 +92,3 @@ class Species(SortableObject, Jsonify):
             raise SpeciesError("Species population must be non-negative, or allow_negative_populations "
                                "must be set to True")
         self.initial_value = num
-
-    def from_json(json_object):
-        new = Species()
-        new.__dict__ = json_object
-
-        return new

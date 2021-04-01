@@ -95,6 +95,7 @@ class EventTrigger(Jsonify):
             sanitized_expression = sanitized_expression.replace(name, "{"+str(id)+"}")
         return sanitized_expression.format(*replacements)
 
+
 class Event(Jsonify):
 
     """
@@ -236,13 +237,3 @@ class Event(Jsonify):
             raise ModelError("Unexpected parameter for add_assignment. Parameter must be EventAssignment or list of "
                              "EventAssignments")
         return assignment
-
-    def to_dict(self):
-        return {
-            "trigger": self.trigger,
-            "delay": self.delay,
-            "assignments": self.assignments,
-        }
-
-    def from_json(self, json_object):
-        pass

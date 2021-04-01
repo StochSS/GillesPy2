@@ -346,9 +346,3 @@ class Reaction(SortableObject, Jsonify):
             "massaction": self.massaction,
             "marate": self.marate
         }
-
-    def from_json(json_object):
-        new = Reaction()
-        new.__dict__ = json_object
-
-        return new
