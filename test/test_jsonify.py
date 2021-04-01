@@ -4,41 +4,55 @@ sys.path.append("..")
 from example_models import *
 
 class TestJsonModels(unittest.TestCase):
-    def test_jsonify_all_models(self):
+    models = [
+        Example,
+        MichaelisMenten,
+        VilarOscillator,
+        Dimerization,
+        Trichloroethylene,
+        LacOperon,
+        Schlogl,
+        ToggleSwitch,
+        Tyson2StateOscillator,
+        Oregonator,
+    ]
+
+    def test_non_anon_model_norun(self):
+        for model in self.models:
+            target = model()
+            non_anon_json = target.to_json()
+            non_anon_from_json = model.from_json(non_anon_json)
+            non_anon_back_into_json = non_anon_from_json.to_json()
+
+            self.assertEqual(non_anon_json, non_anon_back_into_json)
+
+    def test_anon_model_norun(self):
+        for model in self.models:
+            target = model()
+            table = target.get_translation_table()
+
+            anon_json = target.to_json(table)
+            anon_from_json = model.from_json(anon_json)
+            anon_back_into_json = anon_from_json.to_json(table)
+
+            self.assertEqual(anon_json, anon_back_into_json)
+
+    def test_non_anon_model_run(self):
+        from gillespy2.core.results import Results
+
         models = [
             Example,
             MichaelisMenten,
-            VilarOscillator, 
-            Dimerization, 
-            Trichloroethylene, 
-            LacOperon, 
-            Schlogl, 
-            ToggleSwitch,
             Tyson2StateOscillator,
-            Oregonator,
+            Schlogl
         ]
 
         for model in models:
-            self._test_model(model)
+            target = model()
+            results = target.run()
 
+            r_json = results.to_json()
+            r_from = Results.from_json(r_json)
+            r_back = r_from.to_json()
 
-    def _test_model(self, model):
-        print(f"Running: {model.__name__}")
-
-        target = model()
-        non_anon_json = target.to_json()
-        non_anon_from_json = model.from_json(non_anon_json)
-        non_anon_back_into_json = non_anon_from_json.to_json()
-
-        self.assertEqual(non_anon_json, non_anon_back_into_json)
-        print("  [PASS] Non-anonymous model -> json -> model -> json conversion.")
-
-        target2 = model()
-        table = target2.get_translation_table()
-
-        anon_json = target2.to_json(table)
-        anon_from_json = model.from_json(anon_json)
-        anon_back_into_json = anon_from_json.to_json(table)
-
-        self.assertEqual(anon_json, anon_back_into_json)
-        print("  [PASS] Anonymous model -> json -> model -> json conversion.")
+            self.assertEqual(r_json, r_back)
