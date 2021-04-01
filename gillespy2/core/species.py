@@ -94,10 +94,7 @@ class Species(SortableObject, Jsonify):
         self.initial_value = num
 
     def from_json(json_object):
-        return Species(name=json_object["name"],
-                       constant=json_object["constant"],
-                       boundary_condition=json_object["boundary_condition"],
-                       mode=json_object["mode"],
-                       allow_negative_populations=json_object["allow_negative_populations"],
-                       switch_min=json_object["switch_min"],
-                       switch_tol=json_object["switch_tol"])
+        new = Species()
+        new.__dict__ = json_object
+
+        return new
