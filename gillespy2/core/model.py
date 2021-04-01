@@ -190,10 +190,8 @@ class Model(SortableObject, Jsonify):
         from collections import ChainMap
         from gillespy2.core.jsonify import ComplexJsonEncoder
 
-        new_model = copy.deepcopy(self)
         encoder = ComplexJsonEncoder(key_table=translation_table)
-
-        json_str = json.dumps(new_model, indent=4, sort_keys=True, default=encoder.default)
+        json_str = json.dumps(self, indent=4, sort_keys=False, default=encoder.default)
 
         return json_str
 
@@ -203,6 +201,7 @@ class Model(SortableObject, Jsonify):
 
         # If the input type is a dictionary, then we've finished decoding all other entries.
         if type(json_str) is dict:
+            print(json_str)
             model = Model()
             model.__dict__ = json_str
 
@@ -231,13 +230,13 @@ class Model(SortableObject, Jsonify):
 
             # Build translation mappings for user-defined variable names.
             dict({ self.name: "Model" }),
-            dict(zip((str(x.name) for x in species), (f"S{x}" for x in range(0, len(species))))),
-            dict(zip((str(x.name) for x in reactions), (f"R{x}" for x in range(0, len(reactions))))),
-            dict(zip((str(x.name) for x in parameters), (f"P{x}" for x in range(0, len(parameters))))),
-            dict(zip((str(x.name) for x in assignments), (f"AR{x}" for x in range(0, len(assignments))))),
-            dict(zip((str(x.name) for x in rates), (f"RR{x}" for x in range(0, len(rates))))),
-            dict(zip((str(x.name) for x in events), (f"E{x}" for x in range(0, len(events))))),
-            dict(zip((str(x.name) for x in functions), (f"F{x}" for x in range(0, len(functions))))),
+            dict(zip((str(x.name) for x in species), (f"{x}_S" for x in range(0, len(species))))),
+            dict(zip((str(x.name) for x in reactions), (f"{x}_R" for x in range(0, len(reactions))))),
+            dict(zip((str(x.name) for x in parameters), (f"{x}_P" for x in range(0, len(parameters))))),
+            dict(zip((str(x.name) for x in assignments), (f"{x}_AR" for x in range(0, len(assignments))))),
+            dict(zip((str(x.name) for x in rates), (f"{x}_RR" for x in range(0, len(rates))))),
+            dict(zip((str(x.name) for x in events), (f"{x}_E" for x in range(0, len(events))))),
+            dict(zip((str(x.name) for x in functions), (f"{x}_F" for x in range(0, len(functions))))),
 
             # Build translation mappings for formulas.
             dict((x.propensity_function, x.sanitized_propensity_function(species_mapping, parameter_mappings)) for x in reactions),
@@ -257,7 +256,6 @@ class Model(SortableObject, Jsonify):
         json_string = self.to_json()
         mdfive = hashlib.md5(json_string.encode())
         return mdfive.hexdigest()
-
 
     def serialize(self):
         """ Serializes the Model object to valid StochML. """
