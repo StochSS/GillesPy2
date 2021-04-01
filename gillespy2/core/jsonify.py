@@ -76,10 +76,10 @@ class ComplexJsonEncoder(JSONEncoder):
         return model
 
     def recursive_translate(self, obj):
-        import inspect
+        import inspect, copy
         from collections import OrderedDict, Hashable
 
-        if obj is None:
+        if obj is None or self.key_table is None:
             return
 
         # If the input object is a list, we iterate through it element by element.
@@ -99,8 +99,6 @@ class ComplexJsonEncoder(JSONEncoder):
 
         # Else, the item is a dictionary, so we iterate through each key/value.
         for k in list(obj.keys()):
-            print(f"{k}: {type(obj[k])}")
-
             if k in self.key_table:
                 obj[self.key_table[k]] = obj.pop(k)
                 k = self.key_table[k]

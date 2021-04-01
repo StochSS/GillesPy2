@@ -339,8 +339,8 @@ class Reaction(SortableObject, Jsonify):
     def to_dict(self):
         return {
             "name": self.name,
-            "reactants": dict((str(x), self.reactants[x]) for x in self.reactants),
-            "products": dict((str(x), self.products[x]) for x in self.products),
+            "reactants": dict((x if isinstance(x, str) else x.name, self.reactants[x]) for x in self.reactants),
+            "products": dict((x if isinstance(x, str) else x.name, self.products[x]) for x in self.products),
             "propensity_function": self.propensity_function,
             "type": self.type,
             "massaction": self.massaction,
