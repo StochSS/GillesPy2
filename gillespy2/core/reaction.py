@@ -339,8 +339,8 @@ class Reaction(SortableObject, Jsonify):
     def to_dict(self):
         return {
             "name": self.name,
-            "reactants": dict((x.name, self.reactants[x]) for x in self.reactants),
-            "products": dict((x.name, self.products[x]) for x in self.products),
+            "reactants": dict((str(x), self.reactants[x]) for x in self.reactants),
+            "products": dict((str(x), self.products[x]) for x in self.products),
             "propensity_function": self.propensity_function,
             "type": self.type,
             "massaction": self.massaction,
@@ -348,18 +348,7 @@ class Reaction(SortableObject, Jsonify):
         }
 
     def from_json(json_object):
-
-        from gillespy2.core.species import Species
-        from collections import ChainMap
-        new = Reaction(
-            name=json_object["name"],
-            reactants=json_object["reactants"],
-            products=json_object["products"],
-            propensity_function=json_object["propensity_function"],
-            massaction=json_object["massaction"],
-        )
-
-        new.type = json_object["type"]
-        new.marate = json_object["marate"]
+        new = Reaction()
+        new.__dict__ = json_object
 
         return new
