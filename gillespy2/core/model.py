@@ -185,15 +185,6 @@ class Model(SortableObject, Jsonify):
 
         return print_string
 
-    def to_json(self, translation_table=None):
-        import json
-        from gillespy2.core.jsonify import ComplexJsonEncoder
-
-        encoder = ComplexJsonEncoder(key_table=translation_table)
-        json_str = json.dumps(self, indent=4, sort_keys=False, default=encoder.default)
-
-        return json_str
-
     def get_translation_table(self):
         import json, copy
         from collections import ChainMap

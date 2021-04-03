@@ -1,4 +1,4 @@
-import json
+import json, hashlib
 from json import JSONEncoder
 
 
@@ -11,7 +11,7 @@ class Jsonify:
         import json
 
         encoder = ComplexJsonEncoder(translation_table)
-        return json.dumps(self, indent=4, default=encoder.default)
+        return json.dumps(self, indent=4, sort_keys=True, default=encoder.default)
 
     @classmethod
     def from_json(cls, json_object):
@@ -53,6 +53,13 @@ class Jsonify:
         """
         return {k: v for k, v in vars(self).items() if not k.startswith("_")}
 
+    def get_json_hash(self, translation_table):
+        """
+        Get the hash of the anonymous json representation of self.
+        """
+
+        json_str = self.to_json(translation_table)
+        return hashlib.md5(str.encode(json_str)).hexdigest()
 
 class ComplexJsonEncoder(JSONEncoder):
     def __init__(self, key_table=None, **kwargs):
