@@ -4,7 +4,7 @@ from gillespy2.core.parameter import Parameter
 import sys, unittest
 
 sys.path.append("..")
-from test.example_models import *
+from example_models import *
 from gillespy2.core.results import Results
 
 class TestJsonModels(unittest.TestCase):
