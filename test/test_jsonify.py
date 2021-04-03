@@ -1,7 +1,11 @@
+from gillespy2.core.reaction import Reaction
+from gillespy2.core import parameter
+from gillespy2.core.parameter import Parameter
 import sys, unittest
 
 sys.path.append("..")
-from example_models import *
+from test.example_models import *
+from gillespy2.core.results import Results
 
 class TestJsonModels(unittest.TestCase):
     models = [
@@ -10,11 +14,16 @@ class TestJsonModels(unittest.TestCase):
         VilarOscillator,
         Dimerization,
         Trichloroethylene,
-        LacOperon,
-        Schlogl,
         ToggleSwitch,
         Tyson2StateOscillator,
         Oregonator,
+    ]
+
+    runnable_models = [
+        Example,
+        MichaelisMenten,
+        Tyson2StateOscillator,
+        Schlogl
     ]
 
     def test_non_anon_model_norun(self):
@@ -38,16 +47,7 @@ class TestJsonModels(unittest.TestCase):
             self.assertEqual(anon_json, anon_back_into_json)
 
     def test_non_anon_model_run(self):
-        from gillespy2.core.results import Results
-
-        models = [
-            Example,
-            MichaelisMenten,
-            Tyson2StateOscillator,
-            Schlogl
-        ]
-
-        for model in models:
+        for model in self.runnable_models:
             target = model()
             results = target.run()
 
@@ -58,15 +58,7 @@ class TestJsonModels(unittest.TestCase):
             self.assertEqual(r_json, r_back)
 
     def test_anon_model_runs(self):
-        from gillespy2.core.results import Results
-        models = [
-            Example,
-            MichaelisMenten,
-            Tyson2StateOscillator,
-            Schlogl
-        ]
-
-        for model in models:
+        for model in self.runnable_models:
             target = model()
             translation_table = target.get_translation_table()
             results = target.run()
@@ -76,3 +68,63 @@ class TestJsonModels(unittest.TestCase):
             r_back = r_from.to_json(translation_table)
 
             self.assertEqual(r_json, r_back)
+
+    def test_model_hash(self):
+        for model in self.models:
+            # Simple test to see if two identical models will return the same hash.
+            model_1 = model()
+            model_2 = model()
+
+            self.assertEqual(model_1.get_json_hash(model_1.get_translation_table()), model_2.get_json_hash(model_2.get_translation_table()))
+
+            # Create a test class and change the variable insertion order.
+            model_1 = model()
+            model_1.var1 = "Hello"
+            model_1.var2 = "world"
+            model_1.var3 = [ "Hello world!" ]
+
+            model_2 = model()
+            model_2.var3 = [ "Hello world!" ]
+            model_2.var2 = "world"
+            model_2.var1 = "Hello"
+
+            translation_table = model_1.get_translation_table()
+
+            # A bit overkill, but it's good to check to ensure that both the JSON and hash output match.
+            self.assertEqual(model_1.to_json(translation_table), model_2.to_json(translation_table))
+            self.assertEqual(model_1.get_json_hash(translation_table), model_2.get_json_hash(translation_table))
+
+    def test_model_hash_chaos(self):
+        for model in self.models:
+            # Chaos -- add 5 random species, parameters, and reactions.
+            model_1 = model()
+            model_2 = model()
+
+            import random
+            from gillespy2.core import Parameter, Species, Reaction
+
+            parameters = [Parameter(name=bytes(random.sample(range(97, 123), 10)).decode(), expression=random.randint(0, 10)) for x in range(5)]
+            model_1.add_parameter(random.sample(parameters, len(parameters)))
+            model_2.add_parameter(random.sample(parameters, len(parameters)))
+
+            species = [Species(name=bytes(random.sample(range(97, 123), 10)).decode(), initial_value=random.randint(0, 10)) for x in range(5)]
+            model_1.add_species(random.sample(species, len(species)))
+            model_2.add_species(random.sample(species, len(species)))
+
+            reactions = [Reaction(
+                name=bytes(random.sample(range(97, 123), 10)).decode(), 
+                reactants={ species[random.randint(0, len(species) - 1)].name: random.randint(0, 5) },
+                products={ species[random.randint(0, len(species) - 1)].name: random.randint(0, 5) },
+                propensity_function=parameters[random.randint(0, len(parameters) - 1)].name) for x in range(5)]
+
+            model_1.add_reaction(random.sample(reactions, len(reactions)))
+            model_2.add_reaction(random.sample(reactions, len(reactions)))
+
+            # At this point, model_1 and model_2 contain the same data, but it was entered in a different order.
+            # The json hash function should ensure that they are still equivalent.
+
+            translation_table = model_1.get_translation_table()
+            self.assertEqual(model_1.get_json_hash(translation_table), model_2.get_json_hash(translation_table))
+
+            translation_table = model_2.get_translation_table()
+            self.assertEqual(model_1.get_json_hash(translation_table), model_2.get_json_hash(translation_table))
