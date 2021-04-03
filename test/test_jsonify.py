@@ -96,13 +96,13 @@ class TestJsonModels(unittest.TestCase):
 
     def test_model_hash_chaos(self):
         for model in self.models:
-            # Chaos -- add 5 random species, parameters, and reactions.
             model_1 = model()
             model_2 = model()
 
             import random
             from gillespy2.core import Parameter, Species, Reaction
 
+            # Generate lists of random parameters, species, and reactions. Each will then be added to model_1 and model_2 in random order.
             parameters = [Parameter(name=bytes(random.sample(range(97, 123), 10)).decode(), expression=random.randint(0, 10)) for x in range(5)]
             model_1.add_parameter(random.sample(parameters, len(parameters)))
             model_2.add_parameter(random.sample(parameters, len(parameters)))
@@ -126,5 +126,6 @@ class TestJsonModels(unittest.TestCase):
             translation_table = model_1.get_translation_table()
             self.assertEqual(model_1.get_json_hash(translation_table), model_2.get_json_hash(translation_table))
 
+            # The translation_table of model_2 should still make model_1 and model_2 equivalent.
             translation_table = model_2.get_translation_table()
             self.assertEqual(model_1.get_json_hash(translation_table), model_2.get_json_hash(translation_table))
