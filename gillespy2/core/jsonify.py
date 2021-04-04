@@ -172,7 +172,7 @@ class ComplexJsonCoder(JSONEncoder):
 class TranslationTable(Jsonify):
     def __init__(self, to_anon_table):
         self.to_anon = to_anon_table
-        self.from_anon = { (v, k) for k, v in self.to_anon.items() }
+        self.from_anon = dict({v, k} for k, v in self.to_anon.items())
 
 
 class NdArrayCoder(Jsonify):

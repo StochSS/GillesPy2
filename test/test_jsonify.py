@@ -1,3 +1,4 @@
+from gillespy2.core.jsonify import TranslationTable
 from gillespy2.core.reaction import Reaction
 from gillespy2.core import parameter
 from gillespy2.core.parameter import Parameter
@@ -129,3 +130,6 @@ class TestJsonModels(unittest.TestCase):
             # The translation_table of model_2 should still make model_1 and model_2 equivalent.
             translation_table = model_2.get_translation_table()
             self.assertEqual(model_1.get_json_hash(translation_table), model_2.get_json_hash(translation_table))
+
+            # The translation table for model_1 and model_2 should also be the same.
+            self.assertEqual(model_1.get_translation_table().to_json(), model_2.get_translation_table().to_json())
