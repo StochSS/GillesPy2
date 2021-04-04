@@ -1,5 +1,7 @@
-import json, hashlib
+import collections, json, hashlib
+
 from json import JSONEncoder
+from typing import Hashable
 
 
 class Jsonify:
@@ -8,8 +10,6 @@ class Jsonify:
     """
 
     def to_json(self, translation_table=None):
-        import json
-
         encoder = ComplexJsonCoder(translation_table)
         return json.dumps(self, indent=4, sort_keys=True, default=encoder.default)
 
@@ -56,7 +56,7 @@ class Jsonify:
         """
         return {k: v for k, v in vars(self).items() if not k.startswith("_")}
 
-    def get_json_hash(self, translation_table):
+    def get_json_hash(self, translation_table=None):
         """
         Get the hash of the anonymous json representation of self.
         """
@@ -91,12 +91,16 @@ class ComplexJsonCoder(JSONEncoder):
 
         # If valid, recursively translate keys and values in the current model.
         if self.translation_table is not None:
-            self.recursive_translate(model, self.translation_table.to_anon)
+            model = self.recursive_translate(model, self.translation_table.to_anon)
 
         return model
 
     def decode(self, obj):
         from pydoc import locate
+
+        # If a translation_table is present, we need to convert anon values to named.
+        if self.translation_table is not None:
+            obj = self.recursive_translate(obj, self.translation_table.from_anon)
 
         # _type is a field embedded by the encoder to indicate which Jsonify instance will be used to decode the json string.
         if "_type" not in obj:
@@ -111,69 +115,38 @@ class ComplexJsonCoder(JSONEncoder):
         if not issubclass(obj_type, Jsonify):
             raise Exception(f"{obj_type}")
 
-        decoded = obj_type.from_json(obj, self.translation_table)
-
-        # If a translation_table is present, we need to convert anon values to named.
-        if self.translation_table is not None:
-            self.recursive_translate(decoded, self.translation_table.from_anon)
-
-        return decoded
+        return obj_type.from_json(obj, self.translation_table)
 
     def recursive_translate(self, obj, translation_table):
-        from collections import OrderedDict, Hashable
-
-        if obj is None or translation_table is None:
-            return
-
-        # If the input object is a list, we iterate through it element by element.
         if isinstance(obj, list):
-            for i, item in enumerate(list(obj)):
-                if isinstance(item, dict) or isinstance(item, list):
-                    self.recursive_translate(item, translation_table)
-                    continue
+            for item in obj:
+                item = self.recursive_translate(item, translation_table)
 
-                if not isinstance(item, Hashable):
-                    continue
+        elif isinstance(obj, dict):
+            # Convert the dictionary into a list of tuples. This makes it easier to modify key names.
+            obj = list((k, v) for k, v in obj.items())
+            new_pairs = [ ]
 
-                if item in translation_table:
-                    obj[i] = translation_table[item]
+            for pair in obj:
+                new_pairs.append((
+                    self.recursive_translate(pair[0], translation_table),
+                    self.recursive_translate(pair[1], translation_table)
+                ))
 
-            return
+            obj = dict((x[0], x[1]) for x in new_pairs)
 
-        # Else, the item is a dictionary, so we iterate through each key/value.
-        for k in list(obj.keys()):
-            if k in translation_table:
-                obj[translation_table[k]] = obj.pop(k)
-                k = translation_table[k]
+        elif isinstance(obj, collections.OrderedDict):
+            obj = self.recursive_translate(dict(obj), translation_table)
 
-            # If the value is a list, we need to iterate through it.
-            if isinstance(obj[k], list):
-                self.recursive_translate(obj[k], translation_table)
-                continue
+        elif isinstance(obj, Hashable) and obj in translation_table.keys():
+            obj = translation_table.get(obj, obj)
 
-            # OrderedDicts are immutable, so we need to convert it into a dictionary prior to translation.
-            if isinstance(obj[k], OrderedDict):
-                obj[k] = dict(obj[k])
-
-            # We need to translate all sub-elements in a dictionary, so recurse into it.
-            if isinstance(obj[k], dict):
-                self.recursive_translate(obj[k], translation_table)
-                continue
-
-            # If the value isn't Hashable, continue.
-            if not isinstance(obj[k], Hashable):
-                continue
-
-            v = obj[k]
-            if v in translation_table:
-                obj[k] = translation_table[v]
-
+        return obj
 
 class TranslationTable(Jsonify):
-    def __init__(self, to_anon_table):
-        self.to_anon = to_anon_table
-        self.from_anon = dict({v, k} for k, v in self.to_anon.items())
-
+    def __init__(self, to_anon):
+        self.to_anon = to_anon.copy()
+        self.from_anon = dict((v, k) for k, v in list(self.to_anon.items()))
 
 class NdArrayCoder(Jsonify):
     @staticmethod

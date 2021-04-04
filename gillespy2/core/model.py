@@ -221,7 +221,7 @@ class Model(SortableObject, Jsonify):
             dict((x.name, x.sanitized_function(species_mapping, parameter_mappings)) for x in functions)
         ))
 
-        return TranslationTable(to_anon_table=translation_table)
+        return TranslationTable(to_anon=translation_table)
 
     def remote_solver_hash(self):
         """ Creates an md5 hash of an anonymized version of the model to be used for caching """
