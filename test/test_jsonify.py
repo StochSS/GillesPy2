@@ -95,6 +95,9 @@ class TestJsonModels(unittest.TestCase):
             self.assertEqual(model_1.to_json(translation_table), model_2.to_json(translation_table))
             self.assertEqual(model_1.get_json_hash(translation_table), model_2.get_json_hash(translation_table))
 
+            # The translation for model_1 and model_2 should be the same.
+            self.assertEqual(model_1.get_translation_table().to_json(), model_2.get_translation_table().to_json())
+
     def test_model_hash_chaos(self):
         for model in self.models:
             model_1 = model()
@@ -133,3 +136,29 @@ class TestJsonModels(unittest.TestCase):
 
             # The translation table for model_1 and model_2 should also be the same.
             self.assertEqual(model_1.get_translation_table().to_json(), model_2.get_translation_table().to_json())
+
+    def test_anon_conversion(self):
+        for model in self.models:
+            model_1 = model()
+
+            # For each model, check to see if we cab convert its table to and from json accurately.
+            translation_table = model_1.get_translation_table()
+            translation_table_from_json = TranslationTable.from_json(translation_table.to_json())
+
+            self.assertEqual(translation_table.to_json(), translation_table_from_json.to_json())
+
+            # For each model, ensure that the anonymized version is still equivalent to the original when converted back.
+            model_1 = model()
+            model_2 = model.from_json(model_1.to_json(translation_table), translation_table)
+
+            self.maxDiff = None
+            self.assertEqual(model_1.to_json(), model_2.to_json())
+
+            # Ensure that the JSON hash of model_1 and model_2 are still the same, even though model_2 is anon.
+            model_1 = model()
+            model_2 = model_1.from_json(model_1.to_json(translation_table), translation_table)
+
+            self.assertEqual(model_1.get_json_hash(), model_2.get_json_hash())
+
+
+            
