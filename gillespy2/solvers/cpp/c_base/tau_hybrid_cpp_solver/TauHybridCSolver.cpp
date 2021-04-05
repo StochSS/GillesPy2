@@ -71,11 +71,14 @@ namespace Gillespy {
 
 	void TauHybridCSolver(Gillespy::Simulation *simulation, const double tau_tol)
 	{
+		//timeouts not supported right now??
 		signal(SIGINT, signalHandler);
 		if (simulation) {
-			uint32_t num_species = (simulation->model)->number_species;
-			uint32_t num_reactions = (simulation->model)->number_reactions;
+			int num_species = (simulation->model)->number_species;
+			int num_reactions = (simulation->model)->number_reactions;
+			int num_trajectories = simulation->number_trajectories;
 			Model &model = *(simulation->model);
+			// std::unique_ptr<Species[]> species = model.species;??
 			TauArgs tau_args = initialize(*(simulation->model),tau_tol);
 			double increment = simulation->timeline[1] - simulation->timeline[0];
 
@@ -85,11 +88,35 @@ namespace Gillespy {
 			std::vector<double> propensity_values(num_reactions);
 
 			//copy initial state for each trajectory
-			for(uint32_t s = 0; s < num_species; s++){
+			for(int s = 0; s < num_species; s++){
 				simulation->trajectories[0][0][s] = model.species[s].initial_population;
 			}
-
 			//Simulate for each trajectory
+			//make new method here
+			for(int traj = 0; traj < num_trajectories; traj++){
+				if (interrupted){
+					break;
+				}
+
+				for (int s = 0; s < num_species; s++) {
+					current_state[s] = model.species[s].initial_population;
+				}
+				simulation->current_time = 0;
+				//what is this?
+				int entry_count = 0;
+				//propensity sum is...
+				double propensity_sum;
+				//save time is...
+				double save_time = 0;
+				// steps rejected is...
+				int steps_rejected = 0;
+				//tau_step is...
+				double tau_step;
+				
+				std::vector<int> prev_curr_state;
+
+				while (entry_count < simulation->number_timesteps)
+			}
 		}
 	}
 }
@@ -127,7 +154,7 @@ static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data) {
     			}
   	  	  }
   	}
-
-
   return(0);
 }
+
+

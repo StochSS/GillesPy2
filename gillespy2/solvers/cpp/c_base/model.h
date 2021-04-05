@@ -14,8 +14,12 @@ namespace Gillespy{
     unsigned int id; //useful for index id in arrays
     std :: string name;
     unsigned int initial_population;
+    // allows the user to specify if a species' population should definitely be modeled continuously or discretely
     // CONTINUOUS or DISCRETE - used for hybrid solver
-    unsigned int  mode;
+    int  user_mode;
+    // otherwise, mode will be determined by the program and this flag will switch back and forth between continuous and discrete through the runtime of the simulation
+    // CONTINUOUS or DISCRETE - used for hybrid solver
+    int dynamic_mode;
     //Used for hashing into set, for TauLeapingCSolver
     bool operator < (const Species &other) const { return id < other.id; }
   };
@@ -68,13 +72,22 @@ namespace Gillespy{
     unsigned int number_trajectories;
 
     unsigned int* trajectories_1D;
+    // this is your results!!
     // first dimension: trajectory by number
     // second dimension: the associated timesteps for that trajectory 
-    // third dimension: the 
+    // third dimension: the species' population at the given timestep for the given trajectory (integer because discrete stochastic) 
     unsigned int*** trajectories;
-
+    // this is your results!!
+    // first dimension: trajectory by number
+    // second dimension: the associated timesteps for that trajectory
+    // third dimension: the species' population at the given timestep for the given trajectory (double because ODE)
     double* trajectories_1DODE;
     double*** trajectoriesODE;
+
+    // this is essentially just an array that tracks whether or not a given species was computed continuously or discretely for a given timestep and trajectory (iteration of simulation)
+    // CONTINUOUS 0
+    // DISCRETE 1
+    int*** trajectoriesHYBRID;
 
     IPropensityFunction *propensity_function;
     friend std :: ostream& operator<<(std :: ostream& os, const Simulation& simulation);

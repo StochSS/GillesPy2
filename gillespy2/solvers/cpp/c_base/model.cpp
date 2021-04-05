@@ -125,14 +125,27 @@ void simulationINIT(Model* model, Simulation &sim) {
 
 void Simulation :: output_results_buffer(std::ostream& os){
     for (int i = 0 ; i < number_trajectories; i++){
-        for (int j = 0; j<number_timesteps;j++){
-            os<<timeline[j]<<',';
-            for (int k = 0; k<model->number_species; k++){
-                if (type==ODE){os<<trajectoriesODE[i][j][k]<<',';}
-                else{os<<trajectories[i][j][k]<<',';}
+      for (int j = 0; j < number_timesteps; j++){
+          os<<timeline[j]<<',';
+          for (int k = 0; k < model->number_species; k++){
+              if (type == ODE){
+                os<<trajectoriesODE[i][j][k]<<',';
                 }
-            }
-         }
+              else if (type == SSA){
+                os<<trajectories[i][j][k]<<',';
+              }
+              else if (type == HYBRID) {
+                if (trajectoriesHYBRID[i][j][k] == CONTINUOUS){
+                  os << trajectoriesODE[i][j][k] << ',';
+                }
+                else if (trajectoriesHYBRID[i][j][k] == DISCRETE){
+                  os << trajectories[i][j][k] << ',';
+                }
+                
+              }
+          }
+        }
+    }
     os<<(int)current_time;
     }
 
