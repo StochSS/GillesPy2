@@ -7,12 +7,15 @@
 #include <cmath>
 
 namespace Gillespy{
-
+  #define CONTINUOUS 0
+  #define DISCRETE 1
   //Represents info for a chemical reactant/product
   struct Species{
     unsigned int id; //useful for index id in arrays
     std :: string name;
     unsigned int initial_population;
+    // CONTINUOUS or DISCRETE - used for hybrid solver
+    unsigned int  mode;
     //Used for hashing into set, for TauLeapingCSolver
     bool operator < (const Species &other) const { return id < other.id; }
   };
