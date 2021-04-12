@@ -1,3 +1,5 @@
+from gillespy2.core.species import Species
+from json.encoder import JSONEncoder
 from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.gillespyError import *
 from gillespy2.core.jsonify import Jsonify
@@ -337,12 +339,24 @@ class Reaction(SortableObject, Jsonify):
         return sanitized_propensity.format(*replacements)
 
     def to_dict(self):
-        return {
-            "name": self.name,
-            "reactants": dict((x if isinstance(x, str) else x.name, self.reactants[x]) for x in self.reactants),
-            "products": dict((x if isinstance(x, str) else x.name, self.products[x]) for x in self.products),
-            "propensity_function": self.propensity_function,
-            "type": self.type,
-            "massaction": self.massaction,
-            "marate": self.marate
-        }
+        temp = vars(self).copy()
+
+        # This to_dict overload is needed because, while Species is hashable (thanks to it's inheretence),
+        # objects are not valid key values in the JSON spec. To fix this, we set the Species equal to some key 'key', 
+        # and it's value equal to some key 'value'.
+
+        temp["products"] = list({"key": k, "value": v} for k, v in self.products.items())
+        temp["reactants"] = list({"key": k, "value": v} for k, v in self.reactants.items())
+
+        return temp
+
+    @classmethod
+    def from_json(cls, json_object, translation_table=None):
+        new = Reaction.__new__(Reaction)
+        new.__dict__ = json_object
+
+        # Same as in to_dict(), but we need to reverse it back into its original representation.
+        new.products = {x["key"]: x["value"] for x in json_object["products"]}
+        new.reactants = {x["key"]: x["value"] for x in json_object["reactants"]}
+
+        return new
