@@ -1,4 +1,4 @@
-import collections, json, hashlib, numpy
+import collections, json, hashlib, re, numpy
 
 from json import JSONEncoder
 from typing import Hashable
@@ -67,9 +67,33 @@ class Jsonify:
         Get the hash of the anonymous json representation of self.
         """
 
-        json_str = self.to_json(translation_table)
-        return hashlib.md5(str.encode(json_str)).hexdigest()
+        return hashlib.md5(str.encode(self.to_json())).hexdigest()
 
+    def to_anon(self):
+        """
+        Converts self into an anonymous instance of self.
+        """
+
+        jsoned = self.to_json()
+        anon = self.get_translation_table().text_to_anon(jsoned)
+
+        return self.from_json(anon)
+
+    def to_named(self):
+        """
+        Converts self into a named instance of self.
+        """
+
+        named_json = self.get_translation_table().text_to_named(self.to_json)
+        return self.from_json(named_json)
+
+    def __eq__(self, o):
+        """
+        Overload to compare the json of two objects that derive from Jsonify. This method will not do any 
+        additional translation.
+        """
+
+        return self.get_json_hash() == o.get_json_hash()
 
 class ComplexJsonCoder(JSONEncoder):
     def __init__(self, translation_table=None, **kwargs):
@@ -158,7 +182,33 @@ class ComplexJsonCoder(JSONEncoder):
 class TranslationTable(Jsonify):
     def __init__(self, to_anon):
         self.to_anon = to_anon.copy()
-        self.from_anon = dict((v, k) for k, v in list(self.to_anon.items()))
+        self.to_named = dict((v, k) for k, v in list(self.to_anon.items()))
+
+    def text_to_anon(self, json_texts):
+        return self._translate(json_texts, self.to_anon)
+
+    def text_to_named(self, json_texts):
+        return self._translate(json_texts, self.to_named)
+
+    def _translate(self, text, table):
+        # Grab the indexes of all matching keys via regex.
+        # This will grab 1 or more characters comprised of '_' and any other alpha-numeric values.
+        matches = list(re.finditer("([\_a-zA-Z0-9])+", text))
+
+        last = 0
+        translated = []
+
+        # Iterate through each match, copying last and match boundaries into the list.
+        for match in matches:
+            translated.append(text[last:match.start()])
+            translated.append(table.get(text[match.start():match.end()], text[match.start():match.end()]))
+
+            last = match.end()
+        
+        # Write the last of the text to the buffer.
+        translated.append(text[last:])
+
+        return "".join(translated)
 
 class NdArrayCoder(Jsonify):
     @staticmethod
