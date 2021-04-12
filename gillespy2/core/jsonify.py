@@ -24,10 +24,7 @@ class Jsonify:
 
         # If the json_object is actually a dict, it means we've decoded as much as possible.
         if type(json_object) is dict:
-            new = cls.__new__(cls)
-            new.__dict__ = json_object
-
-            return new
+            return cls.from_dict(json_object)
 
         decoder = ComplexJsonCoder()
         return json.loads(json_object, object_hook=decoder.decode)
@@ -44,11 +41,24 @@ class Jsonify:
 
         vars = self.__dict__.copy()
 
-        # We remove _hash since it's identifiable to the named status of a model.
+        # We remove _hash since it's identifiable to the model.
         if "_hash" in vars:
             vars.pop("_hash")
 
         return vars
+
+    @classmethod
+    def from_dict(cls, dict):
+        """
+        Convert some dict into a new instance of a python type. This function will return a __new__ instance of the tupe.
+
+        :param dict: The dictionary to apply onto the new instance.
+        """
+
+        new = cls.__new__(cls)
+        new.__dict__ = dict.copy()
+
+        return new
 
     def get_translation_table(self):
         """
@@ -184,15 +194,15 @@ class TranslationTable(Jsonify):
         self.to_anon = to_anon.copy()
         self.to_named = dict((v, k) for k, v in list(self.to_anon.items()))
 
-    def text_to_anon(self, json_texts):
-        return self._translate(json_texts, self.to_anon)
+    def text_to_anon(self, text):
+        return self._translate(text, self.to_anon)
 
-    def text_to_named(self, json_texts):
-        return self._translate(json_texts, self.to_named)
+    def text_to_named(self, text):
+        return self._translate(text, self.to_named)
 
     def _translate(self, text, table):
         # Grab the indexes of all matching keys via regex.
-        # This will grab 1 or more characters comprised of '_' and any other alpha-numeric values.
+        # This will grab 1 or more characters between two quotes.
 
         #matches = list(re.finditer("([\_a-zA-Z0-9])+", text))
         matches = list(re.finditer(r"\"(.*?)\"", text))
