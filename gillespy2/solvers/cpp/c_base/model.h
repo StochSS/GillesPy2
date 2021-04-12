@@ -9,6 +9,7 @@
 namespace Gillespy{
   #define CONTINUOUS 0
   #define DISCRETE 1
+  #define DYNAMIC 2
   //Represents info for a chemical reactant/product
   struct Species{
     unsigned int id; //useful for index id in arrays
@@ -33,7 +34,7 @@ namespace Gillespy{
   
   //Represents a model of reactions and species
   struct Model{
-      void update_affected_reactions();
+    void update_affected_reactions();
     unsigned int number_species;
     std :: unique_ptr<Species[]> species;
     unsigned int number_reactions;

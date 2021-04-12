@@ -39,12 +39,15 @@ namespace Gillespy {
 	{
 		interrupted = true;
 	}
-	std::pair<std::map<std::string, int>, double> get_reactions(const Gillespy::Model *model, const std::vector<double> &propensity_values, double tau_step, double current_time, double save_time)
+	void partition_species(const Model &model, const std::vector<double> &propensity_values ){
+		
+	}
+		std::pair<std::map<std::string, int>, double> get_reactions(const Gillespy::Model *model, const std::vector<double> &propensity_values, double tau_step, double current_time, double save_time)
 	{
 		/*
-     * Helper Function to get reactions fired from t to t+tau. Effects two values:
-     *rxn_count - dict with key=Reaction channel value=number of times fired
-     *curr_time - float representing current time
+     * Helper Function to get reactions fired from t to t+tau. Affects two values:
+     * rxn_count - dict with key=Reaction channel value=number of times fired
+     * curr_time - float representing current time
      */
 
 		if (current_time + tau_step > save_time)
@@ -115,7 +118,7 @@ namespace Gillespy {
 				
 				std::vector<int> prev_curr_state;
 
-				while (entry_count < simulation->number_timesteps)
+				// while (entry_count < simulation->number_timesteps)
 			}
 		}
 	}
@@ -156,5 +159,4 @@ static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data) {
   	}
   return(0);
 }
-
 
