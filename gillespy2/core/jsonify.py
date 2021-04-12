@@ -32,7 +32,6 @@ class Jsonify:
         decoder = ComplexJsonCoder(translation_table)
         return json.loads(json_object, object_hook=decoder.decode)
 
-
     def to_dict(self):
         """
         Convert the object into a dictionary ready for json encoding.
@@ -42,7 +41,12 @@ class Jsonify:
 
         :param self: Instance of the object to convert into a dict.
         """
-        return self.public_vars()
+
+        vars = self.__dict__.copy()
+        if "_hash" in vars:
+            vars.pop("_hash")
+
+        return vars
 
     def get_translation_table(self):
         """
@@ -152,6 +156,10 @@ class NdArrayCoder(Jsonify):
     @staticmethod
     def to_dict(self):
         return {
+            "data": self.tolist(),
+            "_type": f"{NdArrayCoder.__module__}.{NdArrayCoder.__name__}"
+        }
+        return {
             "start": self[0],
             "end": self[-1],
             "size": self.size,
@@ -161,4 +169,5 @@ class NdArrayCoder(Jsonify):
     @staticmethod
     def from_json(json_object, translation_table):
         import numpy
+        return numpy.array(json_object["data"])
         return numpy.linspace(start=json_object["start"], stop=json_object["end"], num=json_object["size"])
