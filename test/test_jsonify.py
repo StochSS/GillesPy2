@@ -28,22 +28,15 @@ class TestJsonModels(unittest.TestCase):
         # Convert a model to json, back again, and then back into json. It should be equal to the original.
         for model in self.models:
             target = model()
-            non_anon_json = target.to_json()
-            non_anon_from_json = model.from_json(non_anon_json)
-            non_anon_back_into_json = non_anon_from_json.to_json()
 
-            self.assertEqual(non_anon_json, non_anon_back_into_json)
+            self.assertEqual(target.to_json(), model.from_json(target.to_json()).to_json())
 
     def test_anon_model_norun(self):
         for model in self.models:
             target = model()
-            table = target.get_translation_table()
+            anon_json = target.to_anon().to_json()
 
-            anon_json = target.to_json(table)
-            anon_from_json = model.from_json(anon_json)
-            anon_back_into_json = anon_from_json.to_json(table)
-
-            self.assertEqual(anon_json, anon_back_into_json)
+            self.assertEqual(anon_json, model.from_json(anon_json).to_json())
 
     def test_non_anon_model_run(self):
         for model in self.runnable_models:
@@ -59,14 +52,12 @@ class TestJsonModels(unittest.TestCase):
     def test_anon_model_runs(self):
         for model in self.runnable_models:
             target = model()
-            translation_table = target.get_translation_table()
+
             results = target.run()
+            results.translation_table = target.get_translation_table()
+            results = results.to_anon().to_json()
 
-            r_json = results.to_json(translation_table)
-            r_from = Results.from_json(r_json)
-            r_back = r_from.to_json(translation_table)
-
-            self.assertEqual(r_json, r_back)
+            self.assertEqual(results, Results.from_json(results).to_json())
 
     def test_model_hash(self):
         for model in self.models:
@@ -74,7 +65,7 @@ class TestJsonModels(unittest.TestCase):
             model_1 = model()
             model_2 = model()
 
-            self.assertEqual(model_1.get_json_hash(model_1.get_translation_table()), model_2.get_json_hash(model_2.get_translation_table()))
+            self.assertEqual(model_1.to_anon().get_json_hash(), model_2.to_anon().get_json_hash())
 
             # Create a test class and change the variable insertion order.
             model_1 = model()
@@ -90,14 +81,14 @@ class TestJsonModels(unittest.TestCase):
             translation_table = model_1.get_translation_table()
 
             # A bit overkill, but it's good to check to ensure that both the JSON and hash output match.
-            self.assertEqual(model_1.to_json(translation_table), model_2.to_json(translation_table))
-            self.assertEqual(model_1.get_json_hash(translation_table), model_2.get_json_hash(translation_table))
+            self.assertEqual(model_1.to_anon().to_json(), model_2.to_anon().to_json())
+            self.assertEqual(model_1.to_anon().get_json_hash(), model_2.to_anon().get_json_hash())
 
             # The translation for model_1 and model_2 should be the same.
             self.assertEqual(model_1.get_translation_table().to_json(), model_2.get_translation_table().to_json())
 
-            self.assertEqual(model_1.to_json(), Model.from_json(model_2.to_json(translation_table), translation_table).to_json())
-            self.assertEqual(model_1.get_json_hash(translation_table), Model.from_json(model_2.to_json(translation_table)).get_json_hash())
+            self.assertEqual(model_1.to_json(), Model.from_json(model_2.to_anon().to_json()).to_named().to_json())
+            self.assertEqual(model_1.to_anon().get_json_hash(), Model.from_json(model_2.to_anon().to_json()).get_json_hash())
 
     def test_model_hash_chaos(self):
         import random
@@ -127,13 +118,7 @@ class TestJsonModels(unittest.TestCase):
 
             # At this point, model_1 and model_2 contain the same data, but it was entered in a different order.
             # The json hash function should ensure that they are still equivalent.
-
-            translation_table = model_1.get_translation_table()
-            self.assertEqual(model_1.get_json_hash(translation_table), model_2.get_json_hash(translation_table))
-
-            # The translation_table of model_2 should still make model_1 and model_2 equivalent.
-            translation_table = model_2.get_translation_table()
-            self.assertEqual(model_1.get_json_hash(translation_table), model_2.get_json_hash(translation_table))
+            self.assertEqual(model_1.to_anon().get_json_hash(), model_2.to_anon().get_json_hash())
 
             # The translation table for model_1 and model_2 should also be the same.
             self.assertEqual(model_1.get_translation_table().to_json(), model_2.get_translation_table().to_json())
@@ -150,14 +135,13 @@ class TestJsonModels(unittest.TestCase):
 
             # For each model, ensure that the anonymized version is still equivalent to the original when converted back.
             model_1 = model()
-            model_2 = model.from_json(model_1.to_json(translation_table), translation_table)
+            model_2 = model.from_json(model_1.to_anon().to_json()).to_named()
 
-            self.maxDiff = None
             self.assertEqual(model_1.to_json(), model_2.to_json())
 
             # Ensure that the JSON hash of model_1 and model_2 are still the same, even though model_2 is anon.
             model_1 = model()
-            model_2 = model_1.from_json(model_1.to_json(translation_table), translation_table)
+            model_2 = model_1.from_json(model_1.to_anon().to_json()).to_named()
 
             self.assertEqual(model_1.get_json_hash(), model_2.get_json_hash())
 
