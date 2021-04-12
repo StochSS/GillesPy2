@@ -78,7 +78,7 @@ namespace Gillespy {
 			int num_reactions = (simulation->model)->number_reactions;
 			int num_trajectories = simulation->number_trajectories;
 			Model &model = *(simulation->model);
-			// std::unique_ptr<Species[]> species = model.species;??
+			std::unique_ptr<Species[]> &species = model.species;
 			TauArgs tau_args = initialize(*(simulation->model),tau_tol);
 			double increment = simulation->timeline[1] - simulation->timeline[0];
 
@@ -89,7 +89,7 @@ namespace Gillespy {
 
 			//copy initial state for each trajectory
 			for(int s = 0; s < num_species; s++){
-				simulation->trajectories[0][0][s] = model.species[s].initial_population;
+				simulation->trajectories[0][0][s] = species[s].initial_population;
 			}
 			//Simulate for each trajectory
 			//make new method here
@@ -99,7 +99,7 @@ namespace Gillespy {
 				}
 
 				for (int s = 0; s < num_species; s++) {
-					current_state[s] = model.species[s].initial_population;
+					current_state[s] = species[s].initial_population;
 				}
 				simulation->current_time = 0;
 				//what is this?
