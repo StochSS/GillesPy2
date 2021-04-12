@@ -1,4 +1,4 @@
-import collections, json, hashlib, re, numpy
+import collections, json, hashlib, re, copy, numpy
 
 from json import JSONEncoder
 from typing import Hashable
@@ -10,8 +10,12 @@ class Jsonify:
     """
 
     def to_json(self, translation_table=None):
+        """
+        Convert self into a json string.
+        """
+
         encoder = ComplexJsonCoder()
-        return json.dumps(self, indent=4, sort_keys=True, default=encoder.default)
+        return json.dumps(copy.deepcopy(self), indent=4, sort_keys=True, default=encoder.default)
 
     @classmethod
     def from_json(cls, json_object, translation_table=None):
@@ -60,6 +64,22 @@ class Jsonify:
 
         return new
 
+    def to_anon(self):
+        """
+        Converts self into an anonymous instance of self.
+        """
+
+        anon_json = self.get_translation_table().text_to_anon(self.to_json())
+        return self.from_json(anon_json)
+
+    def to_named(self):
+        """
+        Converts self into a named instance of self.
+        """
+
+        named_json = self.get_translation_table().text_to_named(self.to_json())
+        return self.from_json(named_json)
+
     def get_translation_table(self):
         """
         Generate a translation table that describes key:value pairs to convert user-defined data into generic equivalents.
@@ -77,24 +97,6 @@ class Jsonify:
         Get the hash of the anonymous json representation of self.
         """
         return hashlib.md5(str.encode(self.to_json())).hexdigest()
-
-    def to_anon(self):
-        """
-        Converts self into an anonymous instance of self.
-        """
-
-        jsoned = self.to_json()
-        anon = self.get_translation_table().text_to_anon(jsoned)
-
-        return self.from_json(anon)
-
-    def to_named(self):
-        """
-        Converts self into a named instance of self.
-        """
-
-        named_json = self.get_translation_table().text_to_named(self.to_json())
-        return self.from_json(named_json)
 
     def __eq__(self, o):
         """

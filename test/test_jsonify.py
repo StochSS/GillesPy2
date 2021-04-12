@@ -25,6 +25,7 @@ class TestJsonModels(unittest.TestCase):
     ]
 
     def test_non_anon_model_norun(self):
+        # Convert a model to json, back again, and then back into json. It should be equal to the original.
         for model in self.models:
             target = model()
             non_anon_json = target.to_json()
