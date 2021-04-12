@@ -1,4 +1,4 @@
-import collections, json, hashlib
+import collections, json, hashlib, numpy
 
 from json import JSONEncoder
 from typing import Hashable
@@ -43,6 +43,8 @@ class Jsonify:
         """
 
         vars = self.__dict__.copy()
+
+        # We remove _hash since it's identifiable to the named status of a model.
         if "_hash" in vars:
             vars.pop("_hash")
 
@@ -74,6 +76,12 @@ class ComplexJsonCoder(JSONEncoder):
         super(ComplexJsonCoder, self).__init__(**kwargs)
         self.translation_table = translation_table
 
+    """
+    This function is called when json.dumps() fires. default() is a bad name for the function,
+    but anything else makes JSONEncoder freak out.
+
+    :param o: The object that is currently being encoded into JSON.
+    """
     def default(self, o):
         from numpy import ndarray
         from gillespy2.core.model import Model
@@ -159,15 +167,7 @@ class NdArrayCoder(Jsonify):
             "data": self.tolist(),
             "_type": f"{NdArrayCoder.__module__}.{NdArrayCoder.__name__}"
         }
-        return {
-            "start": self[0],
-            "end": self[-1],
-            "size": self.size,
-            "_type": f"{NdArrayCoder.__module__}.{NdArrayCoder.__name__}"
-        }
 
     @staticmethod
     def from_json(json_object, translation_table):
-        import numpy
         return numpy.array(json_object["data"])
-        return numpy.linspace(start=json_object["start"], stop=json_object["end"], num=json_object["size"])
