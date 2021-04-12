@@ -205,23 +205,40 @@ class Model(SortableObject, Jsonify):
 
             # Build translation mappings for user-defined variable names.
             dict({ self.name: "Model" }),
-            dict(zip((str(x.name) for x in species), (f"{x}_S" for x in range(0, len(species))))),
-            dict(zip((str(x.name) for x in reactions), (f"{x}_R" for x in range(0, len(reactions))))),
-            dict(zip((str(x.name) for x in parameters), (f"{x}_P" for x in range(0, len(parameters))))),
-            dict(zip((str(x.name) for x in assignments), (f"{x}_AR" for x in range(0, len(assignments))))),
-            dict(zip((str(x.name) for x in rates), (f"{x}_RR" for x in range(0, len(rates))))),
-            dict(zip((str(x.name) for x in events), (f"{x}_E" for x in range(0, len(events))))),
-            dict(zip((str(x.name) for x in functions), (f"{x}_F" for x in range(0, len(functions))))),
+            dict(zip((str(x.name) for x in species), (f"S{x}" for x in range(0, len(species))))),
+            dict(zip((str(x.name) for x in reactions), (f"R{x}" for x in range(0, len(reactions))))),
+            dict(zip((str(x.name) for x in parameters), (f"P{x}" for x in range(0, len(parameters))))),
+            dict(zip((str(x.name) for x in assignments), (f"AR{x}" for x in range(0, len(assignments))))),
+            dict(zip((str(x.name) for x in rates), (f"RR{x}" for x in range(0, len(rates))))),
+            dict(zip((str(x.name) for x in events), (f"E{x}" for x in range(0, len(events))))),
+            dict(zip((str(x.name) for x in functions), (f"F{x}" for x in range(0, len(functions))))),
 
             # Build translation mappings for formulas.
-            dict((x.propensity_function, x.sanitized_propensity_function(species_mapping, parameter_mappings)) for x in reactions),
-            dict((x.formula, x.sanitized_formula(species_mapping, parameter_mappings)) for x in assignments),
-            dict((x.formula, x.sanitized_formula(species_mapping, parameter_mappings)) for x in rates),
-            dict((x.expression, x.sanitized_expression(species_mapping, parameter_mappings)) for x in events),
-            dict((x.name, x.sanitized_function(species_mapping, parameter_mappings)) for x in functions)
+            # dict((x.propensity_function, x.sanitized_propensity_function(species_mapping, parameter_mappings)) for x in reactions),
+            # dict((x.formula, x.sanitized_formula(species_mapping, parameter_mappings)) for x in assignments),
+            # dict((x.formula, x.sanitized_formula(species_mapping, parameter_mappings)) for x in rates),
+            # dict((x.expression, x.sanitized_expression(species_mapping, parameter_mappings)) for x in events),
+            # dict((x.name, x.sanitized_function(species_mapping, parameter_mappings)) for x in functions)
         ))
 
-        return TranslationTable(to_anon=translation_table)
+        from functools import reduce
+        import re
+        def anonymize_function(func): 
+            matches = re.finditer("([0-z])+", func)
+
+            return reduce(lambda a, kv: a.replace(*kv), ((match.group(), translation_table.get(match.group(), match.group())) for match in matches), func)
+
+        function_table = dict(ChainMap(
+            dict((x.propensity_function, anonymize_function(x.propensity_function)) for x in reactions),
+            dict((x.formula, anonymize_function(x.formula)) for x in assignments),
+            dict((x.formula, anonymize_function(x.formula)) for x in rates),
+            dict((x.expression, anonymize_function(x.expression)) for x in events),
+            dict((x.name, anonymize_function(x.name)) for x in functions)
+        ))
+
+        print(function_table)
+
+        return TranslationTable(to_anon={**translation_table, **function_table})
 
     def remote_solver_hash(self):
         """ Creates an md5 hash of an anonymized version of the model to be used for caching """

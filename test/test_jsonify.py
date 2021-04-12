@@ -1,12 +1,9 @@
-from gillespy2.core.jsonify import TranslationTable
-from gillespy2.core.reaction import Reaction
-from gillespy2.core import parameter
-from gillespy2.core.parameter import Parameter
 import sys, unittest
 
 sys.path.append("..")
 from example_models import *
-from gillespy2.core.results import Results
+from gillespy2.core import Model, Reaction, Parameter, Species, Results
+from gillespy2.core.jsonify import TranslationTable
 
 class TestJsonModels(unittest.TestCase):
     models = [
@@ -98,13 +95,16 @@ class TestJsonModels(unittest.TestCase):
             # The translation for model_1 and model_2 should be the same.
             self.assertEqual(model_1.get_translation_table().to_json(), model_2.get_translation_table().to_json())
 
+            self.assertEqual(model_1.to_json(), Model.from_json(model_2.to_json(translation_table), translation_table).to_json())
+            self.assertEqual(model_1.get_json_hash(translation_table), Model.from_json(model_2.to_json(translation_table)).get_json_hash())
+
     def test_model_hash_chaos(self):
+        import random
+
         for model in self.models:
             model_1 = model()
             model_2 = model()
 
-            import random
-            from gillespy2.core import Parameter, Species, Reaction
 
             # Generate lists of random parameters, species, and reactions. Each will then be added to model_1 and model_2 in random order.
             parameters = [Parameter(name=bytes(random.sample(range(97, 123), 10)).decode(), expression=random.randint(0, 10)) for x in range(5)]
