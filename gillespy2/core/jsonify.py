@@ -10,7 +10,7 @@ class Jsonify:
     """
 
     def to_json(self, translation_table=None):
-        encoder = ComplexJsonCoder(translation_table)
+        encoder = ComplexJsonCoder()
         return json.dumps(self, indent=4, sort_keys=True, default=encoder.default)
 
     @classmethod
@@ -29,7 +29,7 @@ class Jsonify:
 
             return new
 
-        decoder = ComplexJsonCoder(translation_table)
+        decoder = ComplexJsonCoder()
         return json.loads(json_object, object_hook=decoder.decode)
 
     def to_dict(self):
@@ -54,7 +54,7 @@ class Jsonify:
         """
         Generate a translation table that describes key:value pairs to convert user-defined data into generic equivalents.
         """
-        pass
+        return self.translation_table
 
     def public_vars(self):
         """
@@ -66,7 +66,6 @@ class Jsonify:
         """
         Get the hash of the anonymous json representation of self.
         """
-
         return hashlib.md5(str.encode(self.to_json())).hexdigest()
 
     def to_anon(self):
@@ -84,7 +83,7 @@ class Jsonify:
         Converts self into a named instance of self.
         """
 
-        named_json = self.get_translation_table().text_to_named(self.to_json)
+        named_json = self.get_translation_table().text_to_named(self.to_json())
         return self.from_json(named_json)
 
     def __eq__(self, o):
@@ -92,7 +91,6 @@ class Jsonify:
         Overload to compare the json of two objects that derive from Jsonify. This method will not do any 
         additional translation.
         """
-
         return self.get_json_hash() == o.get_json_hash()
 
 class ComplexJsonCoder(JSONEncoder):
@@ -153,6 +151,8 @@ class ComplexJsonCoder(JSONEncoder):
 
         return obj_type.from_json(obj, self.translation_table)
 
+    # NOTE: This function is technically "deprecated", but the regex translation implementation in TranslationTable is not rubust
+    # enough for me to remove this.
     def recursive_translate(self, obj, translation_table):
         if isinstance(obj, list):
             for item in obj:
@@ -193,7 +193,9 @@ class TranslationTable(Jsonify):
     def _translate(self, text, table):
         # Grab the indexes of all matching keys via regex.
         # This will grab 1 or more characters comprised of '_' and any other alpha-numeric values.
-        matches = list(re.finditer("([\_a-zA-Z0-9])+", text))
+
+        #matches = list(re.finditer("([\_a-zA-Z0-9])+", text))
+        matches = list(re.finditer(r"\"(.*?)\"", text))
 
         last = 0
         translated = []
