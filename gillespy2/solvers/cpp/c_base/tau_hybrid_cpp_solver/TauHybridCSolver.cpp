@@ -39,8 +39,22 @@ namespace Gillespy {
 	{
 		interrupted = true;
 	}
-	void partition_species(const Model &model, const std::vector<double> &propensity_values ){
-		
+	void init_species_mode(const Model &model){
+		int num_species = model.number_species;
+		for (int s = 0; s < num_species; s++){
+			// if the user chooses discrete, initialise the partition flag to such.
+			if (model.species[s].user_mode == DISCRETE){
+				model.species[s].partition_mode = DISCRETE;
+			}
+			// otherwise, either the user chose continuous or dynamic (or null).
+			// in any case, just initialise to continuous.
+			else {
+				model.species[s].partition_mode = CONTINUOUS;
+			}
+		}
+	}
+	void partition_species(const Model &model, const std::vector<double> &propensity_values, double tau_step, double current_time)
+	{
 	}
 		std::pair<std::map<std::string, int>, double> get_reactions(const Gillespy::Model *model, const std::vector<double> &propensity_values, double tau_step, double current_time, double save_time)
 	{

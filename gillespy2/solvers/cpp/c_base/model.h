@@ -15,12 +15,18 @@ namespace Gillespy{
     unsigned int id; //useful for index id in arrays
     std :: string name;
     unsigned int initial_population;
-    // allows the user to specify if a species' population should definitely be modeled continuously or discretely
-    // CONTINUOUS or DISCRETE - used for hybrid solver
+    // Used for hybrid solver
+    // allows the user to specify if a species' population should definitely be modeled continuously or 
+    // discretely
+    // CONTINUOUS or DISCRETE
+    // otherwise, mode will be determined by the program (DYNAMIC)
+    // if no choice is made, DYNAMIC will be assumed 
     int  user_mode;
-    // otherwise, mode will be determined by the program and this flag will switch back and forth between continuous and discrete through the runtime of the simulation
-    // CONTINUOUS or DISCRETE - used for hybrid solver
-    int dynamic_mode;
+    // during simulation execution, a species will fall into either of the two categories, CONTINUOUS or DISCRETE
+    // this is pre-determined only if the user_mode specifies CONTINUOUS or DISCRETE.
+    // otherwise, if DYNAMIC is specified, partition_mode will be continually calculated throughout the simulation
+    // according to standard deviation and coefficient of variance.
+    int partition_mode;
     //Used for hashing into set, for TauLeapingCSolver
     bool operator < (const Species &other) const { return id < other.id; }
   };
