@@ -197,37 +197,29 @@ class Model(SortableObject, Jsonify):
         events = self.listOfEvents.values()
         functions = self.listOfFunctionDefinitions.values()
 
-        species_mapping = self.sanitized_species_names()
-        parameter_mappings = self.sanitized_parameter_names()
-
         # A translation table is used to anonymize user-defined variable names and formulas into generic counterparts.
         translation_table = dict(ChainMap(
 
             # Build translation mappings for user-defined variable names.
             dict({ self.name: "Model" }),
-            dict(zip((str(x.name) for x in species), (f"S{x}" for x in range(0, len(species))))),
-            dict(zip((str(x.name) for x in reactions), (f"R{x}" for x in range(0, len(reactions))))),
-            dict(zip((str(x.name) for x in parameters), (f"P{x}" for x in range(0, len(parameters))))),
-            dict(zip((str(x.name) for x in assignments), (f"AR{x}" for x in range(0, len(assignments))))),
-            dict(zip((str(x.name) for x in rates), (f"RR{x}" for x in range(0, len(rates))))),
-            dict(zip((str(x.name) for x in events), (f"E{x}" for x in range(0, len(events))))),
-            dict(zip((str(x.name) for x in functions), (f"F{x}" for x in range(0, len(functions))))),
-
-            # Build translation mappings for formulas.
-            # dict((x.propensity_function, x.sanitized_propensity_function(species_mapping, parameter_mappings)) for x in reactions),
-            # dict((x.formula, x.sanitized_formula(species_mapping, parameter_mappings)) for x in assignments),
-            # dict((x.formula, x.sanitized_formula(species_mapping, parameter_mappings)) for x in rates),
-            # dict((x.expression, x.sanitized_expression(species_mapping, parameter_mappings)) for x in events),
-            # dict((x.name, x.sanitized_function(species_mapping, parameter_mappings)) for x in functions)
+            dict(zip((str(x.name) for x in species), (f"S_{x}" for x in range(0, len(species))))),
+            dict(zip((str(x.name) for x in reactions), (f"R_{x}" for x in range(0, len(reactions))))),
+            dict(zip((str(x.name) for x in parameters), (f"P_{x}" for x in range(0, len(parameters))))),
+            dict(zip((str(x.name) for x in assignments), (f"AR_{x}" for x in range(0, len(assignments))))),
+            dict(zip((str(x.name) for x in rates), (f"RR_{x}" for x in range(0, len(rates))))),
+            dict(zip((str(x.name) for x in events), (f"E_{x}" for x in range(0, len(events))))),
+            dict(zip((str(x.name) for x in functions), (f"F_{x}" for x in range(0, len(functions))))),
         ))
 
         from functools import reduce
         import re
         def anonymize_function(func): 
+            # Grab all strings of numeric and alphabetical characters, stopping at any non-matching boundaries.
             matches = re.finditer("([0-z])+", func)
 
             return reduce(lambda a, kv: a.replace(*kv), ((match.group(), translation_table.get(match.group(), match.group())) for match in matches), func)
 
+        # Build a table of named function -> anon function mappings.
         function_table = dict(ChainMap(
             dict((x.propensity_function, anonymize_function(x.propensity_function)) for x in reactions),
             dict((x.formula, anonymize_function(x.formula)) for x in assignments),
@@ -235,8 +227,6 @@ class Model(SortableObject, Jsonify):
             dict((x.expression, anonymize_function(x.expression)) for x in events),
             dict((x.name, anonymize_function(x.name)) for x in functions)
         ))
-
-        print(function_table)
 
         return TranslationTable(to_anon={**translation_table, **function_table})
 
