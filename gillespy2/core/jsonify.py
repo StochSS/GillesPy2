@@ -9,7 +9,7 @@ class Jsonify:
     Interface to allow for instances of arbitrary types to be encoded into json strings and decoded into new objects.
     """
 
-    def to_json(self, translation_table=None):
+    def to_json(self):
         """
         Convert self into a json string.
         """
@@ -18,7 +18,7 @@ class Jsonify:
         return json.dumps(copy.deepcopy(self), indent=4, sort_keys=True, default=encoder.default)
 
     @classmethod
-    def from_json(cls, json_object, translation_table=None):
+    def from_json(cls, json_object):
         """
         Convert some json_object into a decoded Python type. This function should return a __new__ instance of the type.
 
@@ -48,6 +48,9 @@ class Jsonify:
         # We remove _hash since it's identifiable to the model.
         if "_hash" in vars:
             vars.pop("_hash")
+
+        if "translation_table" in vars:
+            vars.pop("translation_table")
 
         return vars
 
@@ -86,13 +89,17 @@ class Jsonify:
         """
         return self.translation_table
 
+    def set_translation_table(self, table):
+        self.translation_table = table
+        return self
+
     def public_vars(self):
         """
         Gets a dictionary of public vars that exist on self. Keys starting with '_' are ignored.
         """
         return {k: v for k, v in vars(self).items() if not k.startswith("_")}
 
-    def get_json_hash(self, translation_table=None):
+    def get_json_hash(self):
         """
         Get the hash of the anonymous json representation of self.
         """
@@ -161,7 +168,7 @@ class ComplexJsonCoder(JSONEncoder):
         if not issubclass(obj_type, Jsonify):
             raise Exception(f"{obj_type}")
 
-        return obj_type.from_json(obj, self.translation_table)
+        return obj_type.from_json(obj)
 
     # NOTE: This function is technically "deprecated", but the regex translation implementation in TranslationTable is not rubust
     # enough for me to remove this.
@@ -192,9 +199,12 @@ class ComplexJsonCoder(JSONEncoder):
         return obj
 
 class TranslationTable(Jsonify):
-    def __init__(self, to_anon):
+    def __init__(self, to_anon, blocklist={ }):
         self.to_anon = to_anon.copy()
         self.to_named = dict((v, k) for k, v in list(self.to_anon.items()))
+        self.blocklist = None
+
+        print(self.blocklist)
 
     def text_to_anon(self, text):
         return self._translate(text, self.to_anon)
@@ -233,5 +243,5 @@ class NdArrayCoder(Jsonify):
         }
 
     @staticmethod
-    def from_json(json_object, translation_table):
+    def from_json(json_object):
         return numpy.array(json_object["data"])
