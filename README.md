@@ -55,6 +55,9 @@ cd GillesPy2
 python3 -m pip install  .  --user --upgrade
 ```
 
+**NOTE:** to import/export SMBL, libSBML must be installed.  It is not installed by default with GillesPy2.  To include libSBML in the installation of GillesPy2 use `pip install gillespy2[sbml]`.  If GillesPy2 is already installed use `pip install python_libSBML`.
+
+
 Usage
 -----
 

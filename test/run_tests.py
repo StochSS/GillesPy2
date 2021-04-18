@@ -33,6 +33,7 @@ if __name__ == '__main__':
     import test_results
     import test_propensity_parser
     import test_pause_resume
+    import test_check_cpp_support
 
     modules = [
         test_empty_model,
@@ -50,7 +51,8 @@ if __name__ == '__main__':
         test_all_solvers,
         test_sys_init,
         test_results,
-        test_propensity_parser
+        test_propensity_parser,
+        test_check_cpp_support
     ]
 
     for module in modules:

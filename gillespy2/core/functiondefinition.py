@@ -19,6 +19,7 @@ class FunctionDefinition(SortableObject):
         eval_globals = math.__dict__
 
         self.name = name
+        self.function_string = function
         args = ', '.join(args)
         self.function = eval('lambda ' + args + ': ' + function, eval_globals)
         if self.function is None:
