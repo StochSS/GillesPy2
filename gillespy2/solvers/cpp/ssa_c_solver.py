@@ -1,4 +1,3 @@
-import gillespy2
 from gillespy2.core import gillespyError, GillesPySolver, log
 from gillespy2.solvers.utilities import solverutils as cutils
 import signal  # for solver timeout implementation
@@ -6,7 +5,6 @@ import os  # for getting directories for C++ files
 import shutil   # for deleting/copying files
 import subprocess  # for calling make and executing c solver
 import tempfile  # for temporary directories
-import numpy as np
 
 GILLESPY_PATH = os.path.dirname(os.path.abspath(__file__))
 GILLESPY_CPP_SSA_DIR = os.path.join(GILLESPY_PATH, 'c_base/ssa_cpp_solver')
@@ -17,7 +15,7 @@ CBASE_DIR = os.path.join(GILLESPY_PATH, 'c_base/')
 class SSACSolver(GillesPySolver):
     name = "SSACSolver"
 
-    def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None, variable=False):
+    def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None, variable=True):
         super(SSACSolver, self).__init__()
         self.__compiled = False
         self.delete_directory = False

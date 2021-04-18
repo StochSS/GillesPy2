@@ -1,4 +1,3 @@
-import gillespy2
 from gillespy2.core import gillespyError, GillesPySolver, log
 from gillespy2.solvers.utilities import solverutils as cutils
 import signal, time  # for solver timeout implementation
@@ -13,11 +12,12 @@ MAKE_FILE = os.path.dirname(os.path.abspath(__file__)) + '/c_base/ode_cpp_solver
 SUNDIALS_DIR = os.path.join(GILLESPY_PATH, 'c_base/Sundials')
 CBASE_DIR = os.path.join(GILLESPY_PATH, 'c_base/')
 
+
 class ODECSolver(GillesPySolver):
     name = "ODECSolver"
     """TODO"""
 
-    def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None, variable=False):
+    def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None, variable=True):
         super(ODECSolver, self).__init__()
         self.__compiled = False
         self.delete_directory = False
