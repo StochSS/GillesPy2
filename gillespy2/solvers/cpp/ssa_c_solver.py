@@ -6,12 +6,7 @@ import os #for getting directories for C++ files
 import shutil #for deleting/copying files
 import threading # for handling read/write to simulation in the background
 import subprocess #For calling make and executing c solver
-import inspect #for finding the Gillespy2 module path
 import tempfile #for temporary directories
-
-GILLESPY_PATH = os.path.dirname(inspect.getfile(gillespy2))
-GILLESPY_C_DIRECTORY = os.path.join(GILLESPY_PATH, 'solvers/cpp/c_base')
-MAKE_FILE = os.path.dirname(os.path.abspath(__file__))+'/c_base/makefile'
 
 GILLESPY_PATH = os.path.dirname(os.path.abspath(__file__))
 GILLESPY_CPP_SSA_DIR = os.path.join(GILLESPY_PATH, 'c_base/ssa_cpp_solver')
@@ -226,7 +221,6 @@ class SSACSolver(GillesPySolver):
                     sub_kill(simulation)
                 timeout_thread = threading.Timer(timeout, timeout_kill)
                 try:
-                    return_code = 0
                     output_process = threading.Thread(name="SimulationHandlerThread",
                                                     target=sim_delegate,
                                                     args=(simulation, buffer))
@@ -240,7 +234,6 @@ class SSACSolver(GillesPySolver):
                 except KeyboardInterrupt:
                     sub_kill(simulation)
                     pause = True
-                    return_code = 33
                 finally:
                     # Finish off the output reader thread and the timer thread.
                     return_code = simulation.wait()

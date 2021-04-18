@@ -1,17 +1,18 @@
 from gillespy2.core import gillespyError, GillesPySolver, log
 from gillespy2.solvers.utilities import solverutils as cutils
-import signal, time  # for solver timeout implementation
-import os  # for getting directories for C++ files
-import shutil  # for deleting/copying files
-import subprocess  # For calling make and executing c solver
-import tempfile  # for temporary directories
+import signal  # for solver timeout implementation
+import time #for solver timeout implementation
+import os #for getting directories for C++ files
+import shutil #for deleting/copying files
+import threading # for handling read/write to simulation in the background
+import subprocess #For calling make and executing c solver
+import tempfile #for temporary directories
 
 GILLESPY_PATH = os.path.dirname(os.path.abspath(__file__))
 GILLESPY_C_ODE_DIR = os.path.join(GILLESPY_PATH, 'c_base/ode_cpp_solver')
 MAKE_FILE = os.path.dirname(os.path.abspath(__file__)) + '/c_base/ode_cpp_solver/makefile'
 SUNDIALS_DIR = os.path.join(GILLESPY_PATH, 'c_base/Sundials')
 CBASE_DIR = os.path.join(GILLESPY_PATH, 'c_base/')
-
 
 class ODECSolver(GillesPySolver):
     name = "ODECSolver"
@@ -188,31 +189,77 @@ class ODECSolver(GillesPySolver):
                     else:
                         raise gillespyError.ModelError("seed must be a positive integer")
 
-            # begin subprocess c simulation with timeout (default timeout=0 will not timeout)
-            with subprocess.Popen(args, stdout=subprocess.PIPE, start_new_session=True) as simulation:
+            # Handler for reading data from subprocess, in background thread.
+            def sim_delegate(sim, sim_buffer):
+                def read_next():
+                    # Reads the next block from the simulation output.
+                    # Returns the length of the string read.
+                    line = sim.stdout.read().decode("utf-8")
+                    ln = len(line)
+                    if ln > 0:
+                        sim_buffer.append(line)
+                    return ln
+
+                # Read output 1 block at a time, until the program is finished.
+                page_size = read_next()
+                while page_size > 0 and sim.poll() is None:
+                    page_size = read_next()
+
+            # Buffer to store the output of the simulation (retrieved from sim_delegate thread).
+            buffer = []
+            # Each platform is given their own platform-specific sub_kill() function.
+            # Windows event handling
+            if os.name == "nt":
+                sub_kill = lambda sim: sim.send_signal(signal.CTRL_BREAK_EVENT)
+                platform_args = {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP,
+                                 "start_new_session": True}
+            # POSIX event handling
+            else:
+                sub_kill = lambda sim: os.killpg(sim.pid, signal.SIGINT)
+                platform_args = {"start_new_session": True}
+
+            thread_events = {"timeout": False}
+            with subprocess.Popen(args, stdout=subprocess.PIPE, **platform_args) as simulation:
+                # Put a timer on in the background, if a timeout was specified.
+                def timeout_kill():
+                    thread_events["timeout"] = True
+                    sub_kill(simulation)
+
+                timeout_thread = threading.Timer(timeout, timeout_kill)
                 try:
+                    output_process = threading.Thread(name="SimulationHandlerThread",
+                                                      target=sim_delegate,
+                                                      args=(simulation, buffer))
+                    output_process.start()
                     if timeout > 0:
-                        stdout, stderr = simulation.communicate(timeout=timeout)
-                    else:
-                        stdout, stderr = simulation.communicate()
-                    return_code = simulation.wait()
+                        timeout_thread.start()
+
+                    # Poll for the program's status; keyboard interrupt is ignored if we use .wait()
+                    while simulation.poll() is None:
+                        time.sleep(0.1)
                 except KeyboardInterrupt:
-                    os.killpg(simulation.pid, signal.SIGINT)  # send signal to the process group
-                    stdout, stderr = simulation.communicate()
+                    sub_kill(simulation)
                     pause = True
-                    return_code = 33
-                except subprocess.TimeoutExpired:
-                    os.killpg(simulation.pid, signal.SIGINT)  # send signal to the process group
-                    stdout, stderr = simulation.communicate()
-                    pause = True
-                    return_code = 33
-            # Decode from byte, split by comma into array
-            stdout = stdout.decode('utf-8').split(',')
-            # Parse/return results
+                finally:
+                    # Finish off the output reader thread and the timer thread.
+                    return_code = simulation.wait()
+                    output_process.join()
+                    if timeout_thread.is_alive():
+                        timeout_thread.cancel()
+
+                    # Decode from byte, split by comma into array
+                    stdout = "".join(buffer).split(",")
+                    # Check if the simulation had been paused
+                    # (Necessary because we can't set pause to True from thread handler)
+                    if thread_events["timeout"]:
+                        pause = True
+                        return_code = 33
 
             if return_code in [0, 33]:
-                trajectory_base, timeStopped = cutils.parse_binary_output(number_of_trajectories, number_timesteps,
-                                                                          len(model.listOfSpecies), stdout, pause=pause)
+                trajectory_base, timeStopped = cutils.parse_binary_output(number_of_trajectories,
+                                                                          number_timesteps,
+                                                                          len(model.listOfSpecies), stdout,
+                                                                          pause=pause)
                 if model.tspan[2] - model.tspan[1] == 1:
                     timeStopped = int(timeStopped)
 
@@ -230,7 +277,8 @@ class ODECSolver(GillesPySolver):
                                                    format(simulation.returncode, simulation.stderr))
 
             if resume is not None or timeStopped != 0:
-                self.simulation_data = cutils.c_solver_resume(timeStopped, self.simulation_data, t, resume=resume)
+                self.simulation_data = cutils.c_solver_resume(timeStopped, self.simulation_data, t,
+                                                              resume=resume)
 
         return self.simulation_data, return_code
 
