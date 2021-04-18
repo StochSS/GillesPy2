@@ -1,0 +1,1088 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<sbml xmlns="http://www.sbml.org/sbml/level2/version4" level="2" metaid="metaid_0000001" version="4">
+  <model id="model_0000001" metaid="metaid_0000002" name="Markevich2004_MAPK_phosphoRandomElementary">
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <p>The model corresponds to the schema 3 of Markevich et al 2004, as described in the figure 2 and the supplementary table S2. Phosphorylations follow distributive random kinetics, while dephosphorylations follow an ordered mechanism. The phosphorylations are modeled with three elementary reactions:      <br/>
+          E+S&lt;=>ES->E+P      <br/>
+          The dephosphorylations are modeled with five elementary reactions:      <br/>
+          E+S&lt;=>ES->EP&lt;=>E+P      <br/>
+          The model reproduces figure 5 in the main article.      </p>
+            <p>The model is further described in:      <br/>
+                <strong>Signaling switches and bistability arising from multisite phosphorylation in protein kinase cascades.</strong>
+          Markevich NI, Hoek JB, Kholodenko BN. J Cell Biol. 2004 Feb 2;164(3):353-9.      <br/>
+          PMID:      <a href="http://www.ncbi.nlm.nih.gov/pubmed/14744999">14744999</a>
+          ; DOI:      <a href="http://dx.doi.org/10.1083/jcb.200308060">10.1083/jcb.200308060</a>
+                <br/>
+          Abstract:      <br/>
+          Mitogen-activated protein kinase (MAPK) cascades can operate as bistable switches residing in either of two different stable states. MAPK cascades are often embedded in positive feedback loops, which are considered to be a prerequisite for bistable behavior. Here we demonstrate that in the absence of any imposed feedback regulation, bistability and hysteresis can arise solely from a distributive kinetic mechanism of the two-site MAPK phosphorylation and dephosphorylation. Importantly, the reported kinetic properties of the kinase (MEK) and phosphatase (MKP3) of extracellular signal-regulated kinase (ERK) fulfill the essential requirements for generating a bistable switch at a single MAPK cascade level. Likewise, a cycle where multisite phosphorylations are performed by different kinases, but dephosphorylation reactions are catalyzed by the same phosphatase, can also exhibit bistability and hysteresis. Hence, bistability induced by multisite covalent modification may be a widespread mechanism of the control of protein activity.      </p>
+            <p>This model originates from BioModels Database: A Database of Annotated Published Models (http://www.ebi.ac.uk/biomodels/). It is copyright (c) 2005-2010 The BioModels.net Team.      <br/>
+          For more information see the      <a href="http://www.ebi.ac.uk/biomodels/legal.html" target="_blank">terms of use</a>
+          .      <br/>
+          To cite BioModels Database, please use:      <a href="http://www.ncbi.nlm.nih.gov/pubmed/20587024" target="_blank">Li C, Donizelli M, Rodriguez N, Dharuri H, Endler L, Chelliah V, Li L, He E, Henry A, Stefan MI, Snoep JL, Hucka M, Le Novère N, Laibe C (2010) BioModels Database: An enhanced, curated and annotated resource for published quantitative kinetic models. BMC Syst Biol., 4:92.</a>
+                </p>
+            </body>
+      
+    </notes>
+    <annotation>
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+        <rdf:Description rdf:about="#metaid_0000002">
+	<dc:creator>
+	<rdf:Bag>
+	<rdf:li rdf:parseType="Resource">
+	<vCard:N rdf:parseType="Resource">
+	<vCard:Family>Le Novère</vCard:Family>
+	<vCard:Given>Nicolas</vCard:Given>
+	</vCard:N>
+	<vCard:EMAIL>lenov@ebi.ac.uk</vCard:EMAIL>
+	<vCard:ORG rdf:parseType="Resource">
+	<vCard:Orgname>EMBL-EBI</vCard:Orgname>
+	</vCard:ORG>
+	</rdf:li>
+	</rdf:Bag>
+	</dc:creator>
+	<dcterms:created rdf:parseType="Resource">
+	<dcterms:W3CDTF>2005-05-23T16:11:24Z</dcterms:W3CDTF>
+	</dcterms:created>
+	<dcterms:modified rdf:parseType="Resource">
+	<dcterms:W3CDTF>2012-05-15T21:42:30Z</dcterms:W3CDTF>
+	</dcterms:modified>
+	<bqmodel:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/biomodels.db/MODEL6618552953"/>
+	</rdf:Bag>
+	</bqmodel:is>
+	<bqmodel:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/biomodels.db/BIOMD0000000028"/>
+	</rdf:Bag>
+	</bqmodel:is>
+	<bqmodel:isDescribedBy>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/pubmed/14744999"/>
+	</rdf:Bag>
+	</bqmodel:isDescribedBy>
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0000165"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	<bqbiol:hasTaxon>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/taxonomy/8355"/>
+	</rdf:Bag>
+	</bqbiol:hasTaxon>
+	</rdf:Description>
+	
+      </rdf:RDF>
+    </annotation>
+      <listOfUnitDefinitions>
+      <unitDefinition id="substance" metaid="metaid_0000003" name="nanomole (default)">
+        <listOfUnits>
+          <unit kind="mole" metaid="_035441" scale="-9"/>
+        </listOfUnits>
+      </unitDefinition>
+    </listOfUnitDefinitions>
+    <listOfCompartments>
+      <compartment id="cell" metaid="metaid_0000004" name="cell" size="1">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000004">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0005623"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </compartment>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species compartment="cell" id="M" initialConcentration="800" metaid="metaid_0000005" name="ERK">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000005">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P26696"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species compartment="cell" id="MpY" initialConcentration="0" metaid="metaid_0000006" name="ERK-PY">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000006">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P26696"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species compartment="cell" id="MpT" initialConcentration="0" metaid="metaid_0000007" name="ERK-PT">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000007">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P26696"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species compartment="cell" id="Mpp" initialConcentration="0" metaid="metaid_0000008" name="ERK-PP">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000008">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P26696"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species compartment="cell" id="MEK" initialConcentration="180" metaid="metaid_0000009" name="MEK">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000009">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q05116"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species compartment="cell" id="MKP3" initialConcentration="100" metaid="metaid_0000010" name="MKP3">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000010">
+	<bqbiol:is>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q90W58"/>
+	</rdf:Bag>
+	</bqbiol:is>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species compartment="cell" id="MpY_MEK" initialConcentration="0" metaid="metaid_0000011" name="ERK-PY_MEK">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000011">
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q05116"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P26696"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species compartment="cell" id="MpT_MEK" initialConcentration="0" metaid="metaid_0000012" name="ERK-PT_MEK">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000012">
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P26696"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q05116"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species compartment="cell" id="M_MEK_Y" initialConcentration="0" metaid="metaid_0000015" name="ERK_MEK_Y">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000015">
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P26696"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q05116"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species compartment="cell" id="M_MEK_T" initialConcentration="0" metaid="metaid_0000016" name="ERK_MEK_T">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000016">
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P26696"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q05116"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species compartment="cell" id="Mpp_MKP3" initialConcentration="0" metaid="metaid_0000013" name="ERK-PP_MKP3">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000013">
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P26696"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q90W58"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species compartment="cell" id="MpY_MKP3" initialConcentration="0" metaid="metaid_0000014" name="ERK-PY_MKP3">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000014">
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P26696"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q90W58"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species compartment="cell" id="MpT_MKP3_Y" initialConcentration="0" metaid="metaid_0000017" name="ERK-PT_MKP3_Y">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000017">
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P26696"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q90W58"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species compartment="cell" id="MpT_MKP3_T" initialConcentration="0" metaid="metaid_0000018" name="ERK-PT_MKP3_T">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000018">
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P26696"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q90W58"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species compartment="cell" id="M_MKP3_T" initialConcentration="0" metaid="metaid_0001000" name="ERK_MKP3_T">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0001000">
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P26696"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q90W58"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+      <species compartment="cell" id="M_MKP3_Y" initialConcentration="0" metaid="metaid_0001001" name="ERK_MKP3_Y">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0001001">
+	<bqbiol:hasPart>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/Q90W58"/>
+	<rdf:li rdf:resource="http://identifiers.org/uniprot/P26696"/>
+	</rdf:Bag>
+	</bqbiol:hasPart>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+            </species>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter id="k1" metaid="metaid_0000019" name="k1" value="0.005"/>
+      <parameter id="k_1" metaid="metaid_0000020" name="k_1" value="1"/>
+      <parameter id="k2" metaid="metaid_0000021" name="k2" value="1.08"/>
+      <parameter id="k3" metaid="metaid_0000022" name="k3" value="0.025"/>
+      <parameter id="k_3" metaid="metaid_0000023" name="k_3" value="1"/>
+      <parameter id="k4" metaid="metaid_0000024" name="k4" value="0.007"/>
+      <parameter id="k5" metaid="metaid_0000025" name="k5" value="0.05"/>
+      <parameter id="k_5" metaid="metaid_0000026" name="k_5" value="1"/>
+      <parameter id="k6" metaid="metaid_0000027" name="k6" value="0.008"/>
+      <parameter id="k7" metaid="metaid_0000028" name="k7" value="0.005"/>
+      <parameter id="k_7" metaid="metaid_0000029" name="k_7" value="1"/>
+      <parameter id="k8" metaid="metaid_0000030" name="k8" value="0.45"/>
+      <parameter id="h1" metaid="metaid_0000031" name="h1" value="0.045"/>
+      <parameter id="h_1" metaid="metaid_0000032" name="h_1" value="1"/>
+      <parameter id="h2" metaid="metaid_0000033" name="h2" value="0.092"/>
+      <parameter id="h3" metaid="metaid_0000034" name="h3" value="1"/>
+      <parameter id="h_3" metaid="metaid_0000035" name="h_3" value="0.01"/>
+      <parameter id="h4" metaid="metaid_0000036" name="h4" value="0.01"/>
+      <parameter id="h_4" metaid="metaid_0000037" name="h_4" value="1"/>
+      <parameter id="h5" metaid="metaid_0000038" name="h5" value="0.5"/>
+      <parameter id="h6" metaid="metaid_0000039" name="h6" value="0.086"/>
+      <parameter id="h_6" metaid="metaid_0000040" name="h_6" value="0.0011"/>
+      <parameter id="h7" metaid="metaid_0000041" name="h7" value="0.01"/>
+      <parameter id="h_7" metaid="metaid_0000042" name="h_7" value="1"/>
+      <parameter id="h8" metaid="metaid_0000043" name="h8" value="0.47"/>
+      <parameter id="h9" metaid="metaid_0000044" name="h9" value="0.14"/>
+      <parameter id="h_9" metaid="metaid_0000045" name="h_9" value="0.0018"/>
+    </listOfParameters>
+    <listOfReactions>
+      <reaction id="reaction_0000001" metaid="metaid_0000046" name="binding ERK and MEK">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000046">
+              <bqbiol:isHomologTo>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_495"/>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_1780"/>
+	</rdf:Bag>
+	</bqbiol:isHomologTo>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0051019"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0031434"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_035453" species="M"/>
+          <speciesReference metaid="_035465" species="MEK"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_035477" species="M_MEK_Y"/>
+        </listOfProducts>
+        <kineticLaw metaid="_035489">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> cell </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k1 </ci>
+                  <ci> M </ci>
+                  <ci> MEK </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k_1 </ci>
+                  <ci> M_MEK_Y </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="reaction_0000002" metaid="metaid_0000047" name="tyr phosphorylation of ERK" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000047">
+              <bqbiol:isHomologTo>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_2247"/>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_136"/>
+	</rdf:Bag>
+	</bqbiol:isHomologTo>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/ec-code/2.7.12.2"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0018108"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0004708"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_035501" species="M_MEK_Y"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_035513" species="MpY"/>
+          <speciesReference metaid="_035525" species="MEK"/>
+        </listOfProducts>
+        <kineticLaw metaid="_035537">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> cell </ci>
+              <ci> k2 </ci>
+              <ci> M_MEK_Y </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="reaction_0000003" metaid="metaid_0000048" name="binding ERK-PY and MEK">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000048">
+              <bqbiol:isHomologTo>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_495"/>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_1780"/>
+	</rdf:Bag>
+	</bqbiol:isHomologTo>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0051019"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0031434"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_035550" species="MpY"/>
+          <speciesReference metaid="_035562" species="MEK"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_035574" species="MpY_MEK"/>
+        </listOfProducts>
+        <kineticLaw metaid="_035587">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> cell </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k3 </ci>
+                  <ci> MpY </ci>
+                  <ci> MEK </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k_3 </ci>
+                  <ci> MpY_MEK </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="reaction_0000004" metaid="metaid_0000049" name="thr phosphorylation of ERK" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000049">
+              <bqbiol:isHomologTo>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_2247"/>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_136"/>
+	</rdf:Bag>
+	</bqbiol:isHomologTo>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/ec-code/2.7.12.2"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0004708"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0018107"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0000187"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_035599" species="MpY_MEK"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_035611" species="Mpp"/>
+          <speciesReference metaid="_035623" species="MEK"/>
+        </listOfProducts>
+        <kineticLaw metaid="_035635">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> cell </ci>
+              <ci> k4 </ci>
+              <ci> MpY_MEK </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="reaction_0000005" metaid="metaid_0000050" name="binding ERK and MEK">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000050">
+              <bqbiol:isHomologTo>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_495"/>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_1780"/>
+	</rdf:Bag>
+	</bqbiol:isHomologTo>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0051019"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0031434"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_035647" species="M"/>
+          <speciesReference metaid="_035659" species="MEK"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_035671" species="M_MEK_T"/>
+        </listOfProducts>
+        <kineticLaw metaid="_035683">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> cell </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k5 </ci>
+                  <ci> M </ci>
+                  <ci> MEK </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k_5 </ci>
+                  <ci> M_MEK_T </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="reaction_0000006" metaid="metaid_0000051" name="thr phosphorylation of ERK" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000051">
+              <bqbiol:isHomologTo>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_2247"/>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_136"/>
+	</rdf:Bag>
+	</bqbiol:isHomologTo>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/ec-code/2.7.12.2"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0018107"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0004708"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_035695" species="M_MEK_T"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_035707" species="MpT"/>
+          <speciesReference metaid="_035719" species="MEK"/>
+        </listOfProducts>
+        <kineticLaw metaid="_035731">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> cell </ci>
+              <ci> k6 </ci>
+              <ci> M_MEK_T </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="reaction_0000007" metaid="metaid_0000052" name="binding ERK-PT and MEK">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000052">
+              <bqbiol:isHomologTo>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_1780"/>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_495"/>
+	</rdf:Bag>
+	</bqbiol:isHomologTo>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0051019"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0031434"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_035743" species="MpT"/>
+          <speciesReference metaid="_035755" species="MEK"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_035767" species="MpT_MEK"/>
+        </listOfProducts>
+        <kineticLaw metaid="_035779">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> cell </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> k7 </ci>
+                  <ci> MpT </ci>
+                  <ci> MEK </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> k_7 </ci>
+                  <ci> MpT_MEK </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="reaction_0000008" metaid="metaid_0000053" name="tyr phosphorylation of ERK" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000053">
+              <bqbiol:isHomologTo>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_2247"/>
+	<rdf:li rdf:resource="http://identifiers.org/reactome/REACT_136"/>
+	</rdf:Bag>
+	</bqbiol:isHomologTo>
+	
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/ec-code/2.7.12.2"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0000187"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0018108"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0004708"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_035791" species="MpT_MEK"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_035803" species="Mpp"/>
+          <speciesReference metaid="_035815" species="MEK"/>
+        </listOfProducts>
+        <kineticLaw metaid="_035827">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> cell </ci>
+              <ci> k8 </ci>
+              <ci> MpT_MEK </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="reaction_0000009" metaid="metaid_0000054" name="binding ERK-PP and MKP3">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000054">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0051019"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_035839" species="Mpp"/>
+          <speciesReference metaid="_035851" species="MKP3"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_035863" species="Mpp_MKP3"/>
+        </listOfProducts>
+        <kineticLaw metaid="_035875">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> cell </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> h1 </ci>
+                  <ci> Mpp </ci>
+                  <ci> MKP3 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> h_1 </ci>
+                  <ci> Mpp_MKP3 </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="reaction_0000010" metaid="metaid_0000055" name="dephosphorylation of tyr on ERK-PP" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000055">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/ec-code/3.1.3.16"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0006470"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0000188"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_035887" species="Mpp_MKP3"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_035899" species="MpT_MKP3_Y"/>
+        </listOfProducts>
+        <kineticLaw metaid="_035911">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> cell </ci>
+              <ci> h2 </ci>
+              <ci> Mpp_MKP3 </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="reaction_0000011" metaid="metaid_0000056" name="dissociation ERK-PT and MKP3">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000056">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0043241"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_035923" species="MpT_MKP3_Y"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_035935" species="MpT"/>
+          <speciesReference metaid="_035947" species="MKP3"/>
+        </listOfProducts>
+        <kineticLaw metaid="_035959">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> cell </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> h3 </ci>
+                  <ci> MpT_MKP3_Y </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> h_3 </ci>
+                  <ci> MpT </ci>
+                  <ci> MKP3 </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="reaction_0000012" metaid="metaid_0000057" name="dephosphorylation of ERK-PT" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000057">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/ec-code/3.1.3.16"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0006470"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_035971" species="MpT_MKP3_T"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_035983" species="M_MKP3_T"/>
+        </listOfProducts>
+        <kineticLaw metaid="_035995">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> cell </ci>
+              <ci> h5 </ci>
+              <ci> MpT_MKP3_T </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="reaction_0000013" metaid="metaid_0000058" name="binding ERK-PT and MKP3">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000058">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0051019"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_036007" species="MpT"/>
+          <speciesReference metaid="_036019" species="MKP3"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_036031" species="MpT_MKP3_T"/>
+        </listOfProducts>
+        <kineticLaw metaid="_036043">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> cell </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> h4 </ci>
+                  <ci> MpT </ci>
+                  <ci> MKP3 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> h_4 </ci>
+                  <ci> MpT_MKP3_T </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="reaction_0000014" metaid="metaid_0000059" name="dephosphorylation of ERK-PY" reversible="false">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000059">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/ec-code/3.1.3.16"/>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0006470"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_036055" species="MpY_MKP3"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_036067" species="M_MKP3_Y"/>
+        </listOfProducts>
+        <kineticLaw metaid="_036079">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> cell </ci>
+              <ci> h8 </ci>
+              <ci> MpY_MKP3 </ci>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="reaction_0000015" metaid="metaid_0000060" name="dissociation ERK and MKP3">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000060">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0043241"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_036092" species="M_MKP3_T"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_036104" species="M"/>
+          <speciesReference metaid="_036116" species="MKP3"/>
+        </listOfProducts>
+        <kineticLaw metaid="_036128">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> cell </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> h6 </ci>
+                  <ci> M_MKP3_T </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> h_6 </ci>
+                  <ci> M </ci>
+                  <ci> MKP3 </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="reaction_0000017" metaid="metaid_0000061" name="binding ERK-PY and MKP3">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000061">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0051019"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_036140" species="MpY"/>
+          <speciesReference metaid="_036152" species="MKP3"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_036164" species="MpY_MKP3"/>
+        </listOfProducts>
+        <kineticLaw metaid="_036177">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> cell </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> h7 </ci>
+                  <ci> MpY </ci>
+                  <ci> MKP3 </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> h_7 </ci>
+                  <ci> MpY_MKP3 </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+      <reaction id="reaction_0000019" metaid="metaid_0000063" name="Dissociation ERK and MKP3">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:bqmodel="http://biomodels.net/model-qualifiers/" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/">
+            <rdf:Description rdf:about="#metaid_0000063">
+	<bqbiol:isVersionOf>
+	<rdf:Bag>
+	<rdf:li rdf:resource="http://identifiers.org/obo.go/GO:0043241"/>
+	</rdf:Bag>
+	</bqbiol:isVersionOf>
+	</rdf:Description>
+	
+          </rdf:RDF>
+        </annotation>
+              <listOfReactants>
+          <speciesReference metaid="_036189" species="M_MKP3_Y"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference metaid="_036201" species="M"/>
+          <speciesReference metaid="_036213" species="MKP3"/>
+        </listOfProducts>
+        <kineticLaw metaid="_036225">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">          
+            <apply>
+              <times/>
+              <ci> cell </ci>
+              <apply>
+                <minus/>
+                <apply>
+                  <times/>
+                  <ci> h9 </ci>
+                  <ci> M_MKP3_Y </ci>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> h_9 </ci>
+                  <ci> M </ci>
+                  <ci> MKP3 </ci>
+                </apply>
+              </apply>
+            </apply>
+          </math>
+                </kineticLaw>
+      </reaction>
+    </listOfReactions>
+  </model>
+</sbml>

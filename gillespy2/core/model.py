@@ -177,6 +177,11 @@ class Model(SortableObject):
             print_string += decorate('Rate Rules')
             for rr in sorted(self.listOfRateRules.values()):
                 print_string += '\n' + str(rr)
+        if len(self.listOfFunctionDefinitions):
+            print_string += decorate('Function Definitions')
+            for fd in sorted(self.listOfFunctionDefinitions.values()):
+                print_string += '\n' + str(fd)
+
         return print_string
 
     def serialize(self):
@@ -562,10 +567,10 @@ class Model(SortableObject):
         populations during the simulation. Best to use the form np.linspace(<start time>, <end time>, <number of time-points, inclusive>)
         :type time_span: numpy ndarray
         """
-
-        items = np.diff(time_span)
-        items = np.array([round(item, 10) for item in items])
-        isuniform = (len(set(items)) == 1)
+        
+        first_diff = time_span[1] - time_span[0]
+        other_diff = time_span[2:] - time_span[1:-1]
+        isuniform = np.isclose(other_diff, first_diff).all()
 
         if isuniform:
             self.tspan = time_span
@@ -836,17 +841,6 @@ class Model(SortableObject):
 
         if hasattr(solver_results[0], 'shape'):
             return solver_results
-
-        if len(solver_results) > 0:
-            results_list = []
-            for i in range(0, len(solver_results)):
-                temp = Trajectory(data=solver_results[i], model=self, solver_name=solver.name, rc=rc)
-                results_list.append(temp)
-
-            results = Results(results_list)
-            if show_labels == False:
-                results = results.to_array()
-            return results
 
         if len(solver_results) > 0:
             results_list = []
