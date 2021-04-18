@@ -168,7 +168,6 @@ class TauLeapingCSolver(GillesPySolver):
                 parameter_values = cutils.change_param_values(model.listOfParameters, self.parameters, model.volume,
                                                               variables)
                 args.extend(['-initial_values', populations, '-parameters', parameter_values])
-                print('HERE in self.variable tau')
 
             if seed is not None:
                 if isinstance(seed, int):
