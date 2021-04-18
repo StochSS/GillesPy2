@@ -15,8 +15,8 @@ int random_seed = 0;
 double end_time = 0;
 bool seed_time = true;
 
-//Default constants
-__DEFINE_CONSTANTS__
+//Default constants/variables
+__DEFINE_VARIABLES__
 
 class PropensityFunction : public IPropensityFunction{
 public:
@@ -85,7 +85,6 @@ __DEFINE_REACTIONS_
   simulation.propensity_function = propFun;
   simulationSSAINIT(&model, simulation);
   // Perform SSA  //
- // std :: cout << simulation << std :: endl;
 
   ssa_direct(&simulation);
   simulation.output_results_buffer(std :: cout);

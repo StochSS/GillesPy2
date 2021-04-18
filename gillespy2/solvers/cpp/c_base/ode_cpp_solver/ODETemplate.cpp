@@ -6,7 +6,6 @@
 #include <math.h>
 #include "model.h"
 #include "ODECSolver.h"
-
 using namespace Gillespy;
 
 //Default values, replaced with command line args
@@ -17,8 +16,8 @@ double end_time = 100.0;
 bool seed_time = true;
 double increment = 0;
 
-//Default constants
-__DEFINE_CONSTANTS__
+//Default constants/variables
+__DEFINE_VARIABLES__
 
 class PropensityFunction : public IPropensityFunction{
 public:

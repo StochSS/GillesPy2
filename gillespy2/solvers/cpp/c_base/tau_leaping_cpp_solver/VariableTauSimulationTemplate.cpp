@@ -6,7 +6,6 @@
 #include <math.h>
 #include "model.h"
 #include "tau_leaper.h"
-
 using namespace Gillespy;
 
 //Default values, replaced with command line args
@@ -17,8 +16,8 @@ double end_time = 0;
 bool seed_time = true;
 double tau_tol = 0.03;
 
-//Default constants
-__DEFINE_CONSTANTS__
+//Default constants/variables
+__DEFINE_VARIABLES__
 
 class PropensityFunction : public IPropensityFunction{
 public:
@@ -36,25 +35,21 @@ __DEFINE_PROPENSITY__
 };
 
 int main(int argc, char* argv[]){
-  std :: vector<std :: string> species_names(s_names, s_names + sizeof(s_names)/sizeof(std :: string));
-  std :: vector<unsigned int> species_populations(populations, populations + sizeof(populations)/sizeof(populations[0]));
-  std :: vector<std :: string> reaction_names(r_names, r_names + sizeof(r_names)/sizeof(std :: string));
-
-  Model model(species_names, species_populations, reaction_names);
-
-  //Begin reaction species changes
-__DEFINE_REACTIONS_
-    //End reaction species changes
-
-  model.update_affected_reactions();
-
-  //Parse command line arguments
+ //Parse command line arguments
  std :: string arg;
  for(int i = 1; i < argc - 1; i++){
    arg = argv[i];
    if(argc > i+1 && arg.size() > 1 && arg[0] == '-'){
      std :: stringstream arg_stream(argv[i+1]);
      switch(arg[1]){
+     case 'i':
+       for(int j = 0; j < int(sizeof(populations)); j++){
+       arg_stream >> populations[j];
+       }
+       break;
+     case 'p':
+__DEFINE_PARAMETER_UPDATES__
+       break;
      case 's':
        arg_stream >> random_seed;
        seed_time = false;
@@ -75,7 +70,18 @@ __DEFINE_REACTIONS_
    }
  }
 
- if(seed_time){
+  std :: vector<std :: string> species_names(s_names, s_names + sizeof(s_names)/sizeof(std :: string));
+  std :: vector<unsigned int> species_populations(populations, populations + sizeof(populations)/sizeof(populations[0]));
+  std :: vector<std :: string> reaction_names(r_names, r_names + sizeof(r_names)/sizeof(std :: string));
+  
+  Model model(species_names, species_populations, reaction_names);
+
+  //Begin reaction species changes
+__DEFINE_REACTIONS_
+  //End reaction species changes
+  model.update_affected_reactions();
+ 
+  if(seed_time){
    random_seed = time(NULL);
  }
 

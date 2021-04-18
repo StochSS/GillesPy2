@@ -5,7 +5,6 @@ from example_models import MichaelisMenten, Oregonator
 from gillespy2.core.results import Results, Trajectory
 from gillespy2.core import Species
 from gillespy2 import SSACSolver
-from gillespy2 import VariableSSACSolver
 from gillespy2 import ODESolver
 from gillespy2 import NumPySSASolver
 from gillespy2 import TauLeapingSolver
@@ -17,8 +16,7 @@ import os
 
 
 class TestPauseResume(unittest.TestCase):
-    solvers = [SSACSolver, VariableSSACSolver, ODESolver,
-               NumPySSASolver, TauLeapingSolver]
+    solvers = [SSACSolver, ODESolver, NumPySSASolver, TauLeapingSolver]
 
     model = MichaelisMenten()
     for sp in model.listOfSpecies.values():
@@ -68,7 +66,7 @@ class TestPauseResume(unittest.TestCase):
             # One would get an output of "5.0" before converting it to an int. Hence, assert time != 5.0 rather than 5.
             self.assertFalse(out.decode('utf-8').rstrip() == '5.0')
 
-        solvers = [VariableSSACSolver, SSACSolver]
+        solvers = [SSACSolver]
         # For the C solvers, timeouts behave identical to a keyboard interrupt, and would return the same data, if
         # one was to KeyBoardInterrupt, at the same time a timeout ended. This is because timeouts in C solvers
         # and KeyBoardInterrupt send the same signal to the subprocess, the only difference is KeyBoardInterrupt is
