@@ -73,6 +73,13 @@ namespace Gillespy {
 				}
 			}
 		}
+		//init sd's
+		for (int i = 0; i < model.number_species; ++i){
+			if (model.species[i].user_mode == DYNAMIC){
+				sd.insert({i, 0});
+			}
+		}
+		
 
 	}
 		std::pair<std::map<std::string, int>, double> get_reactions(const Gillespy::Model *model, const std::vector<double> &propensity_values, double tau_step, double current_time, double save_time)
