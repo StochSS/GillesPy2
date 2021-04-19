@@ -189,62 +189,26 @@ class SSACSolver(GillesPySolver):
                     else:
                         raise gillespyError.ModelError("seed must be a positive integer")
 
-            # Handler for reading data from subprocess, in background thread.
-            def sim_delegate(sim, sim_buffer):
-                def read_next():
-                    # Reads the next block from the simulation output.
-                    # Returns the length of the string read.
-                    line = sim.stdout.read().decode("utf-8")
-                    ln = len(line)
-                    if ln > 0:
-                        sim_buffer.append(line)
-                    return ln
-                # Read output 1 block at a time, until the program is finished.
-                page_size = read_next()
-                while page_size > 0 and sim.poll() is None:
-                    page_size = read_next()
-
-            # Buffer to store the output of the simulation (retrieved from sim_delegate thread).
-            buffer = []
-
-            thread_events = { "timeout": False }
             with platformutils.open_simulation(args, stdout=subprocess.PIPE) as simulation:
-                # Put a timer on in the background, if a timeout was specified.
-                def timeout_kill():
-                    thread_events["timeout"] = True
-                    platformutils.sub_kill(simulation)
-                timeout_thread = threading.Timer(timeout, timeout_kill)
+                return_code = 0
+                reader = platformutils.SimulationReader(simulation, timeout)
                 try:
-                    return_code = 0
-                    output_process = threading.Thread(name="SimulationHandlerThread",
-                                                    target=sim_delegate,
-                                                    args=(simulation, buffer))
-                    output_process.start()
-                    if timeout > 0:
-                        timeout_thread.start()
-
-                    # Poll for the program's status; keyboard interrupt is ignored if we use .wait()
-                    while simulation.poll() is None:
-                        time.sleep(0.1)
+                    reader.start()
+                    stdout, return_code = reader.read()
                 except KeyboardInterrupt:
                     platformutils.sub_kill(simulation)
+                    stdout, return_code = reader.read()
                     pause = True
                     return_code = 33
                 finally:
-                    # Finish off the output reader thread and the timer thread.
-                    return_code = simulation.wait()
-                    output_process.join()
-                    if timeout_thread.is_alive():
-                        timeout_thread.cancel()
-
-                    # Decode from byte, split by comma into array
-                    stdout = "".join(buffer).split(",")
                     # Check if the simulation had been paused
                     # (Necessary because we can't set pause to True from thread handler)
-                    if thread_events["timeout"]:
+                    if reader.timed_out:
                         pause = True
                         return_code = 33
 
+            # Decode from byte, split by comma into array
+            stdout = stdout.split(",")
             if return_code in [0, 33]:
                 trajectory_base, timeStopped = cutils.parse_binary_output(number_of_trajectories, number_timesteps,
                                                                           len(model.listOfSpecies), stdout, pause=pause)
