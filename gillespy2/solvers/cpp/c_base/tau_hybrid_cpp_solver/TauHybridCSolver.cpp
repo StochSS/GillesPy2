@@ -39,8 +39,9 @@ namespace Gillespy {
 	{
 		interrupted = true;
 	}
-	void init_species_mode(const Model &model){
+	void init_species_mode(const Model &model, Simulation &simulation){
 		int num_species = model.number_species;
+		// int num_det_species = 0;
 		for (int s = 0; s < num_species; s++){
 			// if the user chooses discrete, initialise the partition flag to such.
 			if (model.species[s].user_mode == DISCRETE){
@@ -50,11 +51,25 @@ namespace Gillespy {
 			// in any case, just initialise to continuous.
 			else {
 				model.species[s].partition_mode = CONTINUOUS;
+				// num_det_species++;
 			}
 		}
+		// simulation.number_det_species = num_det_species;
 	}
-	void partition_species(const Model &model, const std::vector<double> &propensity_values, double tau_step, double current_time)
-	{
+	void partition_species(const Model &model, const std::vector<double> &propensity_values, std::vector<int> curr_state, double tau_step, double current_time, std::map<int, bool> &det_species){
+		// coefficient of variance- key:species id, value: cv
+		std::map<int, double> cv;
+		// means
+		std::map<int, double> means;
+		// standard deviation
+		std::map<int, double> sd;
+		//init means
+		for (int i = 0; i < model.number_species; ++i){
+			if (model.species[i].user_mode == DYNAMIC){
+				cv.insert({i, curr_state[i]});
+			}
+		}
+
 	}
 		std::pair<std::map<std::string, int>, double> get_reactions(const Gillespy::Model *model, const std::vector<double> &propensity_values, double tau_step, double current_time, double save_time)
 	{
@@ -99,8 +114,12 @@ namespace Gillespy {
 			TauArgs tau_args = initialize(*(simulation->model),tau_tol);
 			double increment = simulation->timeline[1] - simulation->timeline[0];
 
+			typedef union {
+				int discrete;
+				double continuous;
+			} hybrid_state;
 			//initialize current_state vector to 0 for each species
-			std::vector<int> current_state(num_species);
+			std::vector<hybrid_state> current_state(num_species);
 			//initialize propensity_values to 0 for each species
 			std::vector<double> propensity_values(num_reactions);
 
