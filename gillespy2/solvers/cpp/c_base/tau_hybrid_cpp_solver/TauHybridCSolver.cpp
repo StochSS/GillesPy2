@@ -135,7 +135,11 @@ namespace Gillespy {
 				}
 
 				for (int s = 0; s < num_species; s++) {
-					current_state[s] = species[s].initial_population;
+					if (species[s].user_mode == DISCRETE){
+						current_state[s].discrete = species[s].initial_population;
+					}else {
+						current_state[s].continuous = (double) species[s].initial_population;
+					}
 				}
 				simulation->current_time = 0;
 				//what is this?
