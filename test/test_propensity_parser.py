@@ -1,21 +1,22 @@
 import unittest
 from gillespy2.solvers.utilities.solverutils import dependency_grapher
-from gillespy2.core import Reaction
+from gillespy2.core import Reaction, Species
 
-r1 = Reaction(name='r1', propensity_function="5*x^2+e*b+6")
-r2 = Reaction(name='r2', propensity_function="5*x**2+e*b+6")
+s = Species(name='s', initial_value=0)
+r1 = Reaction(name='r1', reactants={s:1}, propensity_function="5*x^2+e*b+6")
+r2 = Reaction(name='r2', reactants={s:1}, propensity_function="5*x**2+e*b+6")
 
-r3 = Reaction(name='r3', propensity_function="1*alpha/2+5^beta")
-r4 = Reaction(name='r4', propensity_function="1*alpha/2+5**beta")
+r3 = Reaction(name='r3', reactants={s:1}, propensity_function="1*alpha/2+5^beta")
+r4 = Reaction(name='r4', reactants={s:1}, propensity_function="1*alpha/2+5**beta")
 
-r5 = Reaction(name='r5', propensity_function="2.78*x+3^(4*x)")
-r6 = Reaction(name='r6', propensity_function="2.78*x+3**(4*x)")
+r5 = Reaction(name='r5', reactants={s:1}, propensity_function="2.78*x+3^(4*x)")
+r6 = Reaction(name='r6', reactants={s:1}, propensity_function="2.78*x+3**(4*x)")
 
-r7 = Reaction(name='r7', propensity_function="(alpha/beta + delta**gamma)/(atlas-zeta)")
-r8 = Reaction(name='r8', propensity_function="(alpha/beta + delta^gamma)/(atlas-zeta)")
+r7 = Reaction(name='r7', reactants={s:1}, propensity_function="(alpha/beta + delta**gamma)/(atlas-zeta)")
+r8 = Reaction(name='r8', reactants={s:1}, propensity_function="(alpha/beta + delta^gamma)/(atlas-zeta)")
 
-r9 = Reaction(name='r9', propensity_function="-5*-x^2")
-r10 = Reaction(name='r10', propensity_function="-5*-x**2")
+r9 = Reaction(name='r9', reactants={s:1}, propensity_function="-5*-x^2")
+r10 = Reaction(name='r10', reactants={s:1}, propensity_function="-5*-x**2")
 
 
 class TestPropensityFunctions(unittest.TestCase):

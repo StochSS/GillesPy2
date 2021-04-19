@@ -46,7 +46,7 @@ class TestResults(unittest.TestCase):
             with mock.patch('plotly.graph_objs.Scatter') as mock_scatter:
                 with mock.patch('plotly.graph_objs.Layout') as mock_layout:
                     results.plotplotly(return_plotly_figure=True,xscale='log')
-        mock_layout.assert_called_with(showlegend=True, title='', xaxis_title='Time ', xscale='log', yaxis_title='Species Population')
+        mock_layout.assert_called_with(showlegend=True, title='', xaxis_title='Time', xscale='log', yaxis_title='Value')
 
     def test_plotly_std_dev_range_layout_args(self):
         from unittest import mock
@@ -59,7 +59,7 @@ class TestResults(unittest.TestCase):
                 with mock.patch('plotly.graph_objs.Layout') as mock_layout:
                     results.plotplotly_std_dev_range(return_plotly_figure=True, xscale='log')
         mock_layout.assert_called_with(legend={'traceorder':'normal'},showlegend=True, title='Standard Deviation Range',
-                                       xaxis_title='Time ', xscale='log', yaxis_title='Species Population')
+                                       xaxis_title='Time', xscale='log', yaxis_title='Value')
 
     def test_pickle_stable_plot_iterate(self):
         from unittest import mock

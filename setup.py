@@ -83,4 +83,10 @@ setup(name                 = version['__title__'].lower(),
           'Topic :: Scientific/Engineering :: Medical Science Apps.',
           'Intended Audience :: Science/Research'
       ],
+      extras_requires = {
+          'sbml': [
+              'python_libsbml',
+              'lxml',
+          ],
+      },
 )
