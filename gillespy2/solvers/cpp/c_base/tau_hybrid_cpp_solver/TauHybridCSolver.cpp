@@ -56,7 +56,7 @@ namespace Gillespy {
 		}
 		// simulation.number_det_species = num_det_species;
 	}
-	void partition_species(const Model &model, const std::vector<double> &propensity_values, std::vector<int> curr_state, double tau_step, double current_time, std::map<int, bool> &det_species){
+	void partition_species(const Model &model, const std::vector<double> &propensity_values, std::vector<hybrid_state> curr_state, double tau_step, double current_time, std::map<int, bool> &det_species){
 		// coefficient of variance- key:species id, value: cv
 		std::map<int, double> cv;
 		// means
@@ -66,7 +66,11 @@ namespace Gillespy {
 		//init means
 		for (int i = 0; i < model.number_species; ++i){
 			if (model.species[i].user_mode == DYNAMIC){
-				cv.insert({i, curr_state[i]});
+				if (model.species[i].partition_mode == CONTINUOUS){
+					cv.insert({i, curr_state[i].continuous});
+				}else {
+					cv.insert({i, curr_state[i].discrete});
+				}
 			}
 		}
 
@@ -114,10 +118,7 @@ namespace Gillespy {
 			TauArgs tau_args = initialize(*(simulation->model),tau_tol);
 			double increment = simulation->timeline[1] - simulation->timeline[0];
 
-			typedef union {
-				int discrete;
-				double continuous;
-			} hybrid_state;
+			
 			//initialize current_state vector to 0 for each species
 			std::vector<hybrid_state> current_state(num_species);
 			//initialize propensity_values to 0 for each species
