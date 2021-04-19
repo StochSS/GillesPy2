@@ -1,6 +1,7 @@
 import gillespy2
 from gillespy2.core import gillespyError, GillesPySolver, log
 from gillespy2.solvers.utilities import solverutils as cutils
+from gillespy2.solvers.utilities import platformutils
 import signal
 import time #for solver timeout implementation
 import os #for getting directories for C++ files
@@ -209,15 +210,12 @@ class SSACSolver(GillesPySolver):
             # Windows event handling
             if os.name == "nt":
                 sub_kill = lambda sim: sim.send_signal(signal.CTRL_BREAK_EVENT)
-                platform_args = { "creationflags": subprocess.CREATE_NEW_PROCESS_GROUP,
-                                  "start_new_session": True }
             # POSIX event handling
             else:
                 sub_kill = lambda sim: os.killpg(sim.pid, signal.SIGINT)
-                platform_args = { "start_new_session": True }
 
             thread_events = { "timeout": False }
-            with subprocess.Popen(args, stdout=subprocess.PIPE, **platform_args) as simulation:
+            with platformutils.open_simulation(args, stdout=subprocess.PIPE) as simulation:
                 # Put a timer on in the background, if a timeout was specified.
                 def timeout_kill():
                     thread_events["timeout"] = True
