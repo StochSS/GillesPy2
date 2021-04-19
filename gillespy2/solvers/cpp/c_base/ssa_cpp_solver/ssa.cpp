@@ -1,34 +1,22 @@
 #include "ssa.h"
+#include "platform.h"
 #include <random>//Included for mt19937 random number generator
 #include <cmath>//Included for natural logarithm
 #include <string.h>//Included for memcpy only
 #include <csignal>//Included for timeout signal handling
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
+static volatile bool interrupted = false;
+
+static INTERRUPT_HANDLER signalHandler(INTERRUPT_SIGNUM signum)
+{
+	interrupted = true;
+	INTERRUPT_RETURN;
+}
 
 namespace Gillespy{
 
-  volatile bool interrupted = false ;
-
-  #ifdef _WIN32
-  BOOL WINAPI eventHandler(DWORD CtrlType) {
-    interrupted = true;
-    return TRUE;
-  }
-  #endif
-
-  void signalHandler( int signum){
-    interrupted = true ;
-  }
-
   void ssa_direct(Simulation* simulation){
-    #ifdef _WIN32
-    SetConsoleCtrlHandler(eventHandler, TRUE);
-    #else
-    signal(SIGINT, signalHandler);
-    #endif
+    SET_INTERRUPT_HANDLER(signalHandler);
 
     if(simulation){
       std :: mt19937_64 rng(simulation -> random_seed);
