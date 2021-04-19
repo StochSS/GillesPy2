@@ -8,6 +8,7 @@ April 18, 2021
 """
 
 import subprocess
+import signal
 import os
 
 def open_simulation(args, **kwargs):
@@ -23,3 +24,15 @@ def open_simulation(args, **kwargs):
         kwargs["creationflags"] |= subprocess.CREATE_NEW_PROCESS_GROUP
 
     return subprocess.Popen(args, **kwargs)
+
+def sub_kill(simulation: subprocess.Popen):
+    """
+    Platform-independent wrapper around `os.kill` and similar functions.
+    Sends an interrupt signal/event to the given simulation.
+    """
+    # Windows-specific interrupt
+    if os.name == "nt":
+        simulation.send_signal(signal.CTRL_BREAK_EVENT)
+    # POSIX interrupt
+    else:
+        os.killpg(simulation.pid, signal.SIGINT)

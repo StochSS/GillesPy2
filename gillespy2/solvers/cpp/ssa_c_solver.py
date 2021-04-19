@@ -206,20 +206,13 @@ class SSACSolver(GillesPySolver):
 
             # Buffer to store the output of the simulation (retrieved from sim_delegate thread).
             buffer = []
-            # Each platform is given their own platform-specific sub_kill() function.
-            # Windows event handling
-            if os.name == "nt":
-                sub_kill = lambda sim: sim.send_signal(signal.CTRL_BREAK_EVENT)
-            # POSIX event handling
-            else:
-                sub_kill = lambda sim: os.killpg(sim.pid, signal.SIGINT)
 
             thread_events = { "timeout": False }
             with platformutils.open_simulation(args, stdout=subprocess.PIPE) as simulation:
                 # Put a timer on in the background, if a timeout was specified.
                 def timeout_kill():
                     thread_events["timeout"] = True
-                    sub_kill(simulation)
+                    platformutils.sub_kill(simulation)
                 timeout_thread = threading.Timer(timeout, timeout_kill)
                 try:
                     return_code = 0
@@ -234,7 +227,7 @@ class SSACSolver(GillesPySolver):
                     while simulation.poll() is None:
                         time.sleep(0.1)
                 except KeyboardInterrupt:
-                    sub_kill(simulation)
+                    platformutils.sub_kill(simulation)
                     pause = True
                     return_code = 33
                 finally:
