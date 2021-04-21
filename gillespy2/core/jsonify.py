@@ -83,7 +83,7 @@ class Jsonify:
         Converts self into a named instance of self.
         """
 
-        # return self.get_translation_table().obj_to_named(self)
+        return self.get_translation_table().obj_to_named(self)
 
         named_json = self.get_translation_table().text_to_named(self.to_json())
         return self.from_json(named_json)
@@ -183,14 +183,10 @@ class TranslationTable(Jsonify):
         self.to_named = dict((v, k) for k, v in list(self.to_anon.items()))
 
     def obj_to_anon(self, obj):
-        # Preprocess the object.
-        processed = []
-        self._preprocess(obj, processed=processed)
-
         return self._recursive_translate(obj, self.to_anon)
 
     def obj_to_named(self, obj):
-        return self._recursive_translate(copy.deepcopy(obj), self.to_named)
+        return self._recursive_translate(obj, self.to_named)
 
     def text_to_anon(self, text):
         return self._translate(text, self.to_anon)
@@ -225,44 +221,38 @@ class TranslationTable(Jsonify):
 
         return "".join(translated)
 
-    # NOTE: This function is technically "deprecated", but the regex translation implementation in TranslationTable is not rubust
+    # NOTE: This function is technically "deprecated", but the regex translation implementation in TranslationTable is not robust
     # enough for me to remove this.
     def _recursive_translate(self, obj, translation_table):
         if isinstance(obj, Jsonify):
-            self._recursive_translate(vars(obj), translation_table)
+            for key in vars(obj).keys():
+                vars(obj)[key] = self._recursive_translate(vars(obj)[key], translation_table)
 
         elif isinstance(obj, list):
             for item in obj:
                 item = self._recursive_translate(item, translation_table)
 
-        #elif isinstance(obj, collections.OrderedDict):
-        #    obj = self._recursive_translate(dict(obj), translation_table)
-
         elif isinstance(obj, dict):
-            for k, v in obj.items():
-                obj[k] = self._recursive_translate(v, translation_table)
+            # Convert the dictionary into a list of tuples. This makes it easier to modify key names.
+            obj = list((k, v) for k, v in obj.items())
+            new_pairs = [ ]
 
-        elif isinstance(obj, Hashable) and obj in translation_table.keys():
-            obj = translation_table.get(obj, obj)
+            for pair in obj:
+                new_pairs.append((
+                    self._recursive_translate(pair[0], translation_table),
+                    self._recursive_translate(pair[1], translation_table)
+                ))
 
-        return obj
+            obj = dict((x[0], x[1]) for x in new_pairs)
 
-    def _preprocess(self, obj=None, processed=[]):
-        # We are calling preprocess on a root-most class.
-        if isinstance(obj, Jsonify):
-            vals = vars(obj)
+        elif isinstance(obj, str):
+            # Assume that obj is a string.
+            # To handle functions, grab all words from the obj.
+            matches = re.finditer("([0-z])+", obj)
 
-            for key, val in vals.items():
-                vals[key] = self._preprocess(val)
-
-            return obj
-
-        elif isinstance(obj, list):
-            return [(self._preprocess(x)) for x in obj]
-
-        elif isinstance(obj, dict):
-            processed.append(obj)
-            return [{ "key": k, "value": self._preprocess(v) } for k, v in obj.items()]
+            for match in matches:
+                group = match.group()
+                obj = obj.replace(group, translation_table.get(group, group))
 
         return obj
 
