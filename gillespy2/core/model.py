@@ -1,3 +1,5 @@
+from ast import Param
+from gillespy2.core.assignmentrule import AssignmentRule
 from gillespy2.core.jsonify import TranslationTable
 from gillespy2.core.reaction import *
 from gillespy2.core.raterule import RateRule
@@ -187,7 +189,9 @@ class Model(SortableObject, Jsonify):
         return print_string
 
     def get_translation_table(self):
+        import re, operator
         from collections import ChainMap
+        from functools import reduce
 
         species = self.listOfSpecies.values()
         reactions = self.listOfReactions.values()
@@ -211,8 +215,6 @@ class Model(SortableObject, Jsonify):
             dict(zip((str(x.name) for x in functions), (f"F_{x}" for x in range(0, len(functions))))),
         ))
 
-        from functools import reduce
-        import re
         def anonymize_function(func): 
             # Grab all strings of numeric and alphabetical characters, stopping at any non-matching boundaries.
             matches = re.finditer("([0-z])+", func)

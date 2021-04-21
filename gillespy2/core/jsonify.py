@@ -178,17 +178,14 @@ class ComplexJsonCoder(JSONEncoder):
         return obj_type.from_json(obj)
 
 class TranslationTable(Jsonify):
-    def __init__(self, to_anon, blocklist={ }):
+    def __init__(self, to_anon):
         self.to_anon = to_anon.copy()
         self.to_named = dict((v, k) for k, v in list(self.to_anon.items()))
-        self.blocklist = blocklist
 
     def obj_to_anon(self, obj):
         # Preprocess the object.
         processed = []
         self._preprocess(obj, processed=processed)
-
-        # print(obj.to_json())
 
         return self._recursive_translate(obj, self.to_anon)
 
