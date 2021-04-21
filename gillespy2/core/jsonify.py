@@ -72,13 +72,18 @@ class Jsonify:
         Converts self into an anonymous instance of self.
         """
 
+        return self.get_translation_table().obj_to_anon(self)
+
         anon_json = self.get_translation_table().text_to_anon(self.to_json())
+        print(anon_json)
         return self.from_json(anon_json)
 
     def to_named(self):
         """
         Converts self into a named instance of self.
         """
+
+        # return self.get_translation_table().obj_to_named(self)
 
         named_json = self.get_translation_table().text_to_named(self.to_json())
         return self.from_json(named_json)
@@ -124,11 +129,13 @@ class ComplexJsonCoder(JSONEncoder):
     :param o: The object that is currently being encoded into JSON.
     """
     def default(self, o):
-        from numpy import ndarray
         from gillespy2.core.model import Model
 
-        if isinstance(o, ndarray):
+        if isinstance(o, numpy.ndarray):
             return NdArrayCoder.to_dict(o)
+
+        if isinstance(o, set):
+            return SetCoder.to_dict(o)
 
         if not isinstance(o, Jsonify):
             return super().default(o)
@@ -143,8 +150,8 @@ class ComplexJsonCoder(JSONEncoder):
             model["_type"] = f"{o.__class__.__module__}.{o.__class__.__name__}"
 
         # If valid, recursively translate keys and values in the current model.
-        if self.translation_table is not None:
-            model = self.recursive_translate(model, self.translation_table.to_anon)
+        #if self.translation_table is not None:
+        #    model = self.recursive_translate(model, self.translation_table.to_anon)
 
         return model
 
@@ -170,41 +177,23 @@ class ComplexJsonCoder(JSONEncoder):
 
         return obj_type.from_json(obj)
 
-    # NOTE: This function is technically "deprecated", but the regex translation implementation in TranslationTable is not rubust
-    # enough for me to remove this.
-    def recursive_translate(self, obj, translation_table):
-        if isinstance(obj, list):
-            for item in obj:
-                item = self.recursive_translate(item, translation_table)
-
-        elif isinstance(obj, dict):
-            # Convert the dictionary into a list of tuples. This makes it easier to modify key names.
-            obj = list((k, v) for k, v in obj.items())
-            new_pairs = [ ]
-
-            for pair in obj:
-                new_pairs.append((
-                    self.recursive_translate(pair[0], translation_table),
-                    self.recursive_translate(pair[1], translation_table)
-                ))
-
-            obj = dict((x[0], x[1]) for x in new_pairs)
-
-        elif isinstance(obj, collections.OrderedDict):
-            obj = self.recursive_translate(dict(obj), translation_table)
-
-        elif isinstance(obj, Hashable) and obj in translation_table.keys():
-            obj = translation_table.get(obj, obj)
-
-        return obj
-
 class TranslationTable(Jsonify):
     def __init__(self, to_anon, blocklist={ }):
         self.to_anon = to_anon.copy()
         self.to_named = dict((v, k) for k, v in list(self.to_anon.items()))
-        self.blocklist = None
+        self.blocklist = blocklist
 
-        print(self.blocklist)
+    def obj_to_anon(self, obj):
+        # Preprocess the object.
+        processed = []
+        self._preprocess(obj, processed=processed)
+
+        # print(obj.to_json())
+
+        return self._recursive_translate(obj, self.to_anon)
+
+    def obj_to_named(self, obj):
+        return self._recursive_translate(copy.deepcopy(obj), self.to_named)
 
     def text_to_anon(self, text):
         return self._translate(text, self.to_anon)
@@ -217,13 +206,18 @@ class TranslationTable(Jsonify):
         # This will grab 1 or more characters between two quotes.
 
         #matches = list(re.finditer("([\_a-zA-Z0-9])+", text))
-        matches = list(re.finditer(r"\"(.*?)\"", text))
+        matches = list(filter(lambda x: x[0] in self.blocklist, re.finditer(r":.\"(.*?)\"", text)))
 
         last = 0
         translated = []
 
         # Iterate through each match, copying last and match boundaries into the list.
         for match in matches:
+            # If the match exists within the blocklist AND is a key value (ends with ":), then ignore it.
+            if match in self.blocklist and text[match.end() + 2] == ":":
+                print("ignoring invalid key value")
+                continue
+
             translated.append(text[last:match.start()])
             translated.append(table.get(text[match.start():match.end()], text[match.start():match.end()]))
 
@@ -233,6 +227,47 @@ class TranslationTable(Jsonify):
         translated.append(text[last:])
 
         return "".join(translated)
+
+    # NOTE: This function is technically "deprecated", but the regex translation implementation in TranslationTable is not rubust
+    # enough for me to remove this.
+    def _recursive_translate(self, obj, translation_table):
+        if isinstance(obj, Jsonify):
+            self._recursive_translate(vars(obj), translation_table)
+
+        elif isinstance(obj, list):
+            for item in obj:
+                item = self._recursive_translate(item, translation_table)
+
+        #elif isinstance(obj, collections.OrderedDict):
+        #    obj = self._recursive_translate(dict(obj), translation_table)
+
+        elif isinstance(obj, dict):
+            for k, v in obj.items():
+                obj[k] = self._recursive_translate(v, translation_table)
+
+        elif isinstance(obj, Hashable) and obj in translation_table.keys():
+            obj = translation_table.get(obj, obj)
+
+        return obj
+
+    def _preprocess(self, obj=None, processed=[]):
+        # We are calling preprocess on a root-most class.
+        if isinstance(obj, Jsonify):
+            vals = vars(obj)
+
+            for key, val in vals.items():
+                vals[key] = self._preprocess(val)
+
+            return obj
+
+        elif isinstance(obj, list):
+            return [(self._preprocess(x)) for x in obj]
+
+        elif isinstance(obj, dict):
+            processed.append(obj)
+            return [{ "key": k, "value": self._preprocess(v) } for k, v in obj.items()]
+
+        return obj
 
 class NdArrayCoder(Jsonify):
     @staticmethod
@@ -245,3 +280,15 @@ class NdArrayCoder(Jsonify):
     @staticmethod
     def from_json(json_object):
         return numpy.array(json_object["data"])
+
+class SetCoder(Jsonify):
+    @staticmethod
+    def to_dict(self):
+        return {
+            "data": list(self),
+            "_type": f"{SetCoder.__module__}.{SetCoder.__name__}"
+        }
+
+    @staticmethod
+    def from_json(json_object):
+        return set(json_object["data"])
