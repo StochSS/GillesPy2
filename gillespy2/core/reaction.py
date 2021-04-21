@@ -345,18 +345,18 @@ class Reaction(SortableObject, Jsonify):
         # objects are not valid key values in the JSON spec. To fix this, we set the Species equal to some key 'key', 
         # and it's value equal to some key 'value'.
 
-        temp["products"] = list({"key": k, "value": v} for k, v in self.products.items())
-        temp["reactants"] = list({"key": k, "value": v} for k, v in self.reactants.items())
+        temp["products"] = list({ "key": k, "value": v} for k, v in self.products.items() )
+        temp["reactants"] = list( {"key": k, "value": v} for k, v in self.reactants.items() )
 
         return temp
 
     @classmethod
-    def from_json(cls, json_object, translation_table=None):
+    def from_json(cls, json_object):
         new = Reaction.__new__(Reaction)
         new.__dict__ = json_object
 
         # Same as in to_dict(), but we need to reverse it back into its original representation.
-        new.products = {x["key"]: x["value"] for x in json_object["products"]}
-        new.reactants = {x["key"]: x["value"] for x in json_object["reactants"]}
+        new.products = { x["key"]: x["value"] for x in json_object["products"] }
+        new.reactants = { x["key"]: x["value"] for x in json_object["reactants"] }
 
         return new
