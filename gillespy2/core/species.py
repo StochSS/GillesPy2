@@ -1,8 +1,9 @@
 from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.gillespyError import *
+from gillespy2.core.jsonify import Jsonify
 import numpy as np
 
-class Species(SortableObject):
+class Species(SortableObject, Jsonify):
     """
     Chemical species. Can be added to Model object to interact with other
     species or time.

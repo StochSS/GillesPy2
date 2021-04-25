@@ -1,6 +1,7 @@
 from gillespy2.core.sortableobject import SortableObject
+from gillespy2.core.jsonify import Jsonify
 
-class FunctionDefinition(SortableObject):
+class FunctionDefinition(SortableObject, Jsonify):
     """
     Object representation defining an evaluable function to be used during
     simulation of a GillesPy2 model
@@ -20,8 +21,10 @@ class FunctionDefinition(SortableObject):
 
         self.name = name
         self.function_string = function
+
         self.args = ', '.join(args)
         self.function = eval('lambda ' + self.args + ': ' + function, eval_globals)
+
         if self.function is None:
             raise TypeError
 
@@ -35,7 +38,7 @@ class FunctionDefinition(SortableObject):
                        reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
-        sanitized_function = self.function
+        sanitized_function = self.function_string
         for id, name in enumerate(names):
             sanitized_function = sanitized_function.replace(name, "{" + str(id) + "}")
         return sanitized_function.format(*replacements)

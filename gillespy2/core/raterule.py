@@ -1,7 +1,8 @@
 from gillespy2.core.sortableobject import SortableObject
+from gillespy2.core.jsonify import Jsonify
 
 
-class RateRule(SortableObject):
+class RateRule(SortableObject, Jsonify):
     """
     A RateRule is used to express equations that determine the rates of change
     of variables. This would correspond to a function in the form of dx/dt=f(W)

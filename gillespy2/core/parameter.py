@@ -1,7 +1,8 @@
 from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.gillespyError import *
+from gillespy2.core.jsonify import Jsonify
 
-class Parameter(SortableObject):
+class Parameter(SortableObject, Jsonify):
     """
     A parameter can be given as an expression (function) or directly
     as a value (scalar). If given an expression, it should be
@@ -74,3 +75,14 @@ class Parameter(SortableObject):
             raise TypeError
 
         self.evaluate()
+
+    def sanitized_expression(self, species_mappings, parameter_mappings):
+        names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
+                       reverse=True)
+        replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
+                        for name in names]
+        sanitized_expression = self.expression
+        for id, name in enumerate(names):
+            sanitized_expression = sanitized_expression.replace(
+                name, "{"+str(id)+"}")
+        return sanitized_expression.format(*replacements)

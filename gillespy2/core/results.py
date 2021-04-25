@@ -1,6 +1,7 @@
 import warnings
 from datetime import datetime
 from gillespy2.core.gillespyError import *
+from gillespy2.core.jsonify import Jsonify
 from collections import UserDict, UserList
 
 # List of 50 hex color values used for plotting graphs
@@ -80,7 +81,7 @@ def _plotplotly_iterate(trajectory, show_labels=True, trace_list=None, line_dict
 
     return trace_list
 
-class Trajectory(UserDict):
+class Trajectory(UserDict, Jsonify):
     """ Trajectory Dict created by a gillespy2 solver containing single trajectory, extends the UserDict object.
 
     :param data: A dictionary of trajectory values created by a solver
@@ -116,7 +117,7 @@ class Trajectory(UserDict):
         raise KeyError(key)
 
 
-class Results(UserList):
+class Results(UserList, Jsonify):
     """
     List of Trajectory objects created by a gillespy2 solver, extends the UserList object.
 

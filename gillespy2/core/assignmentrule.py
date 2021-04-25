@@ -1,7 +1,8 @@
 from gillespy2.core.sortableobject import SortableObject
+from gillespy2.core.jsonify import Jsonify
 
 
-class AssignmentRule(SortableObject):
+class AssignmentRule(SortableObject, Jsonify):
     """
     An AssignmentRule is used to express equations that set the values of
     variables.  This would correspond to a function in the form of x = f(V)
