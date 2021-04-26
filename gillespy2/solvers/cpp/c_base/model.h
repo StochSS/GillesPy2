@@ -30,6 +30,11 @@ namespace Gillespy{
     //Used for hashing into set, for TauLeapingCSolver
     bool operator < (const Species &other) const { return id < other.id; }
   };
+  typedef union
+  {
+    int discrete;
+    double continuous;
+  } hybrid_state;
 
   struct Reaction{
     unsigned int id; //useful for propensity function id associated
