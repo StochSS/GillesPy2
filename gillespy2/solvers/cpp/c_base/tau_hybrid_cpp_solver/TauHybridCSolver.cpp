@@ -102,11 +102,27 @@ namespace Gillespy {
 		for (int s = 0; s < model.number_species; ++s){
 			if (means.count(s) > 0){
 				Species sref = model.species[s];
-				// if (sref.)
-				//need to implement switch_tol and switch_min in species
+				if (sref.switch_min == 0) { // (default value means switch min not set, use switch tol)
+					if (means[s] > 0){
+						cv[s] = sd[s] / means[s];
+					}else{
+						cv[s] = 1;
+					}
+					if (cv[s] < sref.switch_tol){
+						sref.partition_mode == CONTINUOUS;
+					}else{
+						sref.partition_mode == DISCRETE;
+					}
+				}else{
+					if (means[s] > sref.switch_min){
+						sref.partition_mode == CONTINUOUS;
+					}else{
+						sref.partition_mode == DISCRETE;
+					}
+				}
 			}
 		}
-
+		return //TODO;
 	}
 		std::pair<std::map<std::string, int>, double> get_reactions(const Gillespy::Model *model, const std::vector<double> &propensity_values, double tau_step, double current_time, double save_time)
 	{
