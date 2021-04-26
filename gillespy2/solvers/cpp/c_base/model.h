@@ -34,10 +34,10 @@ namespace Gillespy{
     // Tolerance level for considering a dynamic species deterministically, value is compared
     // to an estimated sd/mean population of a species after a given time step.
     //  This value will be used if a switch_min is not provided. The default value is 0.03
-    double switch_tol;
+    double switch_tol = 0.03;
     //Minimum population value at which species will be represented as continuous. 
     // If a value is given, switch_min will be used instead of switch_tol.
-    unsigned int switch_min;
+    unsigned int switch_min = 0;
   };
   typedef union
   {
