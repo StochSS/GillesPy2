@@ -67,9 +67,9 @@ namespace Gillespy {
 		for (int i = 0; i < model.number_species; ++i){
 			if (model.species[i].user_mode == DYNAMIC){
 				if (model.species[i].partition_mode == CONTINUOUS){
-					cv.insert({i, curr_state[i].continuous});
+					means.insert({i, curr_state[i].continuous});
 				}else {
-					cv.insert({i, curr_state[i].discrete});
+					means.insert({i, curr_state[i].discrete});
 				}
 			}
 		}
@@ -80,7 +80,24 @@ namespace Gillespy {
 			}
 		}
 		
-
+		for (int r = 0; r < model.number_reactions; ++r){
+			for (int s = 0; s < model.number_species; ++s){
+				// access list of species by accessing the correct element of the state-change vector (of the reaction)
+				if (model.species[model.reactions[r].species_change[s]].user_mode == DYNAMIC ){
+					// if less than 0, that means this is a reactant
+					if (model.reactions[r].species_change[s] < 0){
+						means[s] -= (tau_step * propensity_values[r] * model.reactions[r].species_change[s]);
+						sd[s] += std::pow((tau_step * propensity_values[r] * model.reactions[r].species_change[s]),2);
+					}
+					// if greater than 0, that means this is a product
+					if (model.reactions[r].species_change[s] > 0){
+						means[s] += (tau_step * propensity_values[r] * model.reactions[r].species_change[s]);
+						sd[s] += std::pow((tau_step * propensity_values[r] * model.reactions[r].species_change[s]),2);
+					}
+				}
+			}
+		}
+		
 	}
 		std::pair<std::map<std::string, int>, double> get_reactions(const Gillespy::Model *model, const std::vector<double> &propensity_values, double tau_step, double current_time, double save_time)
 	{
