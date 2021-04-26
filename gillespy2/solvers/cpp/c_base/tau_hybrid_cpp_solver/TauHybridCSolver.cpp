@@ -79,7 +79,7 @@ namespace Gillespy {
 				sd.insert({i, 0});
 			}
 		}
-		
+		// calculate means and standard deviations for dynamic-mode species involved in reactions
 		for (int r = 0; r < model.number_reactions; ++r){
 			for (int s = 0; s < model.number_species; ++s){
 				// access list of species by accessing the correct element of the state-change vector (of the reaction)
@@ -97,7 +97,16 @@ namespace Gillespy {
 				}
 			}
 		}
+		// calculate coefficient of variation using means and sd
 		
+		for (int s = 0; s < model.number_species; ++s){
+			if (means.count(s) > 0){
+				Species sref = model.species[s];
+				// if (sref.)
+				//need to implement switch_tol and switch_min in species
+			}
+		}
+
 	}
 		std::pair<std::map<std::string, int>, double> get_reactions(const Gillespy::Model *model, const std::vector<double> &propensity_values, double tau_step, double current_time, double save_time)
 	{
