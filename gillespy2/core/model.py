@@ -778,7 +778,7 @@ class Model(SortableObject):
             from gillespy2 import SSACSolver
             return SSACSolver
 
-    def get_best_solver_algo(self, solver, algorithm):
+    def get_best_solver_algo(self, algorithm):
         """
         If user has specified a particular algorithm, we return either the Python or C++ version of that algorithm
         """
@@ -788,7 +788,7 @@ class Model(SortableObject):
         if not can_use_cpp and can_use_numpy:
             raise ModelError("Please install C++ or Numpy to use GillesPy2 solvers.")
 
-        if algorithm == 'Tau-leaping':
+        if algorithm == 'Tau-Leaping':
             if can_use_cpp:
                 from gillespy2 import TauLeapingCSolver
                 return TauLeapingCSolver
