@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
 import subprocess
+from shutil import which
 from example_models import MichaelisMenten, Oregonator
 from gillespy2.core.results import Results, Trajectory
 from gillespy2.core import Species
@@ -54,12 +55,22 @@ class TestPauseResume(unittest.TestCase):
                                                  t=1)
 
     def test_pause(self):
-        args = [['python3', 'pause_model.py', 'NumPySSASolver'], ['python3', 'pause_model.py', 'TauLeapingSolver'],
-                ['python3', 'pause_model.py', 'ODESolver']]
+        py_path = which('python3')
+        if py_path is None:
+            py_path = which('python')
+        model_path = os.path.join(os.path.dirname(__file__), 'pause_model.py')
+        args = [[py_path, model_path, 'NumPySSASolver'],
+                [py_path, model_path, 'TauLeapingSolver'],
+                [py_path, model_path, 'ODESolver']]
         for arg in args:
-            p = subprocess.Popen(arg, start_new_session=True, stdout=subprocess.PIPE)
-            time.sleep(2)
-            os.kill(p.pid, signal.SIGINT)
+            if os.name == 'nt':
+                p = subprocess.Popen(arg, stdout=subprocess.PIPE, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+                time.sleep(2)
+                p.send_signal(signal.CTRL_BREAK_EVENT)
+            else:
+                p = subprocess.Popen(arg, start_new_session=True, stdout=subprocess.PIPE)
+                time.sleep(2)
+                os.kill(p.pid, signal.SIGINT)
             out, err = p.communicate()
             # End time for Oregonator is 5. If indexing into a numpy array using the form:
             # results[0][-1][0] (where .run(show_labels=False), this index being the last time in the index

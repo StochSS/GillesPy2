@@ -1,19 +1,22 @@
 #include "ssa.h"
+#include "platform.h"
 #include <random>//Included for mt19937 random number generator
 #include <cmath>//Included for natural logarithm
 #include <string.h>//Included for memcpy only
 #include <csignal>//Included for timeout signal handling
 
+static volatile bool interrupted = false;
+
+static INTERRUPT_HANDLER signalHandler(INTERRUPT_SIGNUM signum)
+{
+	interrupted = true;
+	INTERRUPT_RETURN;
+}
+
 namespace Gillespy{
 
-  bool interrupted = false ;
-
-  void signalHandler( int signum){
-    interrupted = true ;
-  }
-
   void ssa_direct(Simulation* simulation){
-    signal(SIGINT, signalHandler) ;
+    SET_INTERRUPT_HANDLER(signalHandler);
 
     if(simulation){
       std :: mt19937_64 rng(simulation -> random_seed);

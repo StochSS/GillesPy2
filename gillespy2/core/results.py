@@ -162,6 +162,12 @@ class Results(UserList):
         combined_data = self.data + other.data
         return Results(data=combined_data)
 
+    def __radd__(self, other):
+        if other == 0:
+            return self
+        else:
+            return self.__add__(other)
+
     def _validate_model(self, reference=None):
         is_valid = True
         if reference is not None:
@@ -204,9 +210,9 @@ class Results(UserList):
         results = []
         size1 = len(self.data[0]['time'])
         size2 = len(self.data[0])
-        newArray = np.zeros((size1, size2))
 
         for trajectory in range(0,len(self.data)):
+            newArray = np.zeros((size1, size2))
             for i, key in enumerate(self.data[trajectory]):
                 newArray[:, i] = self.data[trajectory][key]
             results.append(newArray)
@@ -255,7 +261,7 @@ class Results(UserList):
                             this_line.append(trajectory[species][n])
                         csv_writer.writerow(this_line)  # write one line of the CSV file
 
-    def plot(self, index=None, xaxis_label="Time ", xscale='linear', yscale='linear', yaxis_label="Species Population",
+    def plot(self, index=None, xaxis_label="Time", xscale='linear', yscale='linear', yaxis_label="Value",
              style="default", title=None, show_title=False, show_legend=True, multiple_graphs=False,
              included_species_list=[], save_png=False, figsize=(18, 10)):
         """
@@ -339,7 +345,7 @@ class Results(UserList):
             elif save_png:
                 plt.savefig(title)
 
-    def plotplotly(self, index=None, xaxis_label="Time ", yaxis_label="Species Population", title=None,
+    def plotplotly(self, index=None, xaxis_label="Time", yaxis_label="Value", title=None,
                    show_title=False, show_legend=True, multiple_graphs=False, included_species_list=[],
                    return_plotly_figure=False,  **layout_args):
         """ Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.
@@ -535,7 +541,7 @@ class Results(UserList):
         output_results = Results(data=[output_trajectory])  # package output_trajectory in a Results object
         return output_results
 
-    def plotplotly_std_dev_range(self, xaxis_label="Time ", yaxis_label="Species Population", title=None,
+    def plotplotly_std_dev_range(self, xaxis_label="Time", yaxis_label="Value", title=None,
                                  show_title=False, show_legend=True, included_species_list=[],
                                  return_plotly_figure=False, ddof=0, **layout_args):
         """
@@ -653,7 +659,7 @@ class Results(UserList):
         else:
             iplot(fig)
 
-    def plot_std_dev_range(self, xscale='linear', yscale='linear', xaxis_label="Time ", yaxis_label="Species Population"
+    def plot_std_dev_range(self, xscale='linear', yscale='linear', xaxis_label="Time", yaxis_label="Value"
                            , title=None, show_title=False, style="default", show_legend=True, included_species_list=[],
                            ddof=0, save_png=False, figsize=(18, 10)):
         """

@@ -1,11 +1,15 @@
 import gillespy2
 from gillespy2.core import gillespyError, GillesPySolver, log
 from gillespy2.solvers.utilities import solverutils as cutils
-import signal  # for solver timeout implementation
-import os  # for getting directories for C++ files
-import shutil   # for deleting/copying files
-import subprocess  # for calling make and executing c solver
-import tempfile  # for temporary directories
+from gillespy2.solvers.utilities import platformutils
+import signal
+import time #for solver timeout implementation
+import os #for getting directories for C++ files
+import shutil #for deleting/copying files
+import threading # for handling read/write to simulation in the background
+import subprocess #For calling make and executing c solver
+import inspect #for finding the Gillespy2 module path
+import tempfile #for temporary directories
 import numpy as np
 
 GILLESPY_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -185,32 +189,30 @@ class SSACSolver(GillesPySolver):
                     else:
                         raise gillespyError.ModelError("seed must be a positive integer")
 
-            # begin subprocess c simulation with timeout (default timeout=0 will not timeout)
-            with subprocess.Popen(args, stdout=subprocess.PIPE, start_new_session=True) as simulation:
+            with platformutils.open_simulation(args, stdout=subprocess.PIPE) as simulation:
+                return_code = 0
+                reader = platformutils.SimulationReader(simulation, timeout)
                 try:
-                    if timeout > 0:
-                        stdout, stderr = simulation.communicate(timeout=timeout)
-                    else:
-                        stdout, stderr = simulation.communicate()
-                    return_code = simulation.wait()
+                    reader.start()
+                    stdout, return_code = reader.read()
                 except KeyboardInterrupt:
-                    os.killpg(simulation.pid, signal.SIGINT)  # send signal to the process group
-                    stdout, stderr = simulation.communicate()
+                    platformutils.sub_kill(simulation)
+                    stdout, return_code = reader.read()
                     pause = True
                     return_code = 33
-                except subprocess.TimeoutExpired:
-                    os.killpg(simulation.pid, signal.SIGINT)  # send signal to the process group
-                    stdout, stderr = simulation.communicate()
-                    pause = True
-                    return_code = 33
-            # Decode from byte, split by comma into array
-            stdout = stdout.decode('utf-8').split(',')
-            # Parse/return results
+                finally:
+                    # Check if the simulation had been paused
+                    # (Necessary because we can't set pause to True from thread handler)
+                    if reader.timed_out:
+                        pause = True
+                        return_code = 33
 
+            # Decode from byte, split by comma into array
+            stdout = stdout.split(",")
             if return_code in [0, 33]:
                 trajectory_base, timeStopped = cutils.parse_binary_output(number_of_trajectories, number_timesteps,
                                                                           len(model.listOfSpecies), stdout, pause=pause)
-                if model.tspan[2] - model.tspan[1] == 1:
+                if model.tspan[1] - model.tspan[0] == 1:
                     timeStopped = int(timeStopped)
 
                 # Format results

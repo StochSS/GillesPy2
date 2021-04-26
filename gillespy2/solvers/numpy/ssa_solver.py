@@ -261,8 +261,9 @@ class NumPySSASolver(GillesPySolver):
                     break
 
                 cumulative_sum = random.uniform(0, propensity_sum)
-                curr_time[0] += -math.log(random.random()) / propensity_sum
-                total_time[0] += -math.log(random.random()) / propensity_sum
+                rand = random.random()
+                curr_time[0] += -math.log(rand) / propensity_sum
+                total_time[0] += -math.log(rand) / propensity_sum
                 if debug:
                     print('cumulative sum: ', cumulative_sum)
                     print('entry count: ', entry_count)
