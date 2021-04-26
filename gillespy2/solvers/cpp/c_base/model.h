@@ -15,7 +15,11 @@ namespace Gillespy{
     unsigned int id; //useful for index id in arrays
     std :: string name;
     unsigned int initial_population;
-    // Used for hybrid solver
+
+    //Used for hashing into set, for TauLeapingCSolver
+    bool operator < (const Species &other) const { return id < other.id; }
+    
+    // Everything below here used for hybrid solver
     // allows the user to specify if a species' population should definitely be modeled continuously or 
     // discretely
     // CONTINUOUS or DISCRETE
@@ -27,8 +31,13 @@ namespace Gillespy{
     // otherwise, if DYNAMIC is specified, partition_mode will be continually calculated throughout the simulation
     // according to standard deviation and coefficient of variance.
     int partition_mode;
-    //Used for hashing into set, for TauLeapingCSolver
-    bool operator < (const Species &other) const { return id < other.id; }
+    // Tolerance level for considering a dynamic species deterministically, value is compared
+    // to an estimated sd/mean population of a species after a given time step.
+    //  This value will be used if a switch_min is not provided. The default value is 0.03
+    double switch_tol;
+    //Minimum population value at which species will be represented as continuous. 
+    // If a value is given, switch_min will be used instead of switch_tol.
+    unsigned int switch_min;
   };
   typedef union
   {
