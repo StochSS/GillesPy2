@@ -541,7 +541,6 @@ class Results(UserList):
         output_results = Results(data=[output_trajectory])  # package output_trajectory in a Results object
         return output_results
 
-    plotplotly_std_dev_range =  plotplotly_mean_stdev  # for backwards compatability, we need to keep the old name around
 
     def plotplotly_mean_stdev(self, xaxis_label="Time", yaxis_label="Value", title=None,
                                  show_title=False, show_legend=True, included_species_list=[],
@@ -661,7 +660,6 @@ class Results(UserList):
         else:
             iplot(fig)
     
-    plot_std_dev_range = plot_mean_stdev   # for backwards compatability, we need to keep the old name around
 
     def plot_mean_stdev(self, xscale='linear', yscale='linear', xaxis_label="Time", yaxis_label="Value"
                            , title=None, show_title=False, style="default", show_legend=True, included_species_list=[],
@@ -742,3 +740,7 @@ class Results(UserList):
 
         elif save_png:
             plt.savefig(title)
+
+
+    plotplotly_std_dev_range =  plotplotly_mean_stdev  # for backwards compatability, we need to keep the old name around
+    plot_std_dev_range = plot_mean_stdev   # for backwards compatability, we need to keep the old name around
