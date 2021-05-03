@@ -135,7 +135,7 @@ double select(Gillespy::Model &model, TauArgs &tau_args, const double &tau_tol, 
            {
                tau_args.g_i[x.first] = tau_args.g_i_lambdas[x.first](tau_args.g_i[x.first]);
                tau_args.epsilon_i[x.first] = tau_tol / tau_args.g_i[x.first];
-               tau_args.g_i_lambdas.erase(x.first);//MAYBE SHOULDN'T ERASE, may break loop/may be understanding this part wrong
+               tau_args.g_i_lambdas.erase(x.first);
            }
     }
 

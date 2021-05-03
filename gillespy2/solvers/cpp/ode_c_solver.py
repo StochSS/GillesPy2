@@ -16,7 +16,6 @@ CBASE_DIR = os.path.join(GILLESPY_PATH, 'c_base/')
 
 class ODECSolver(GillesPySolver):
     name = "ODECSolver"
-    """TODO"""
 
     def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None, variable=True):
         super(ODECSolver, self).__init__()

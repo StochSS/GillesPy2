@@ -17,7 +17,6 @@ CBASE_DIR = os.path.join(GILLESPY_PATH, 'c_base/')
 
 class TauLeapingCSolver(GillesPySolver):
     name = "TauLeapingCSolver"
-    """TODO"""
 
     def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None, variable=True):
         super(TauLeapingCSolver, self).__init__()
