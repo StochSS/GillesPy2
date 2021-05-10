@@ -189,9 +189,7 @@ class Model(SortableObject, Jsonify):
         return print_string
 
     def get_translation_table(self):
-        import re, operator
         from collections import ChainMap
-        from functools import reduce
 
         species = self.listOfSpecies.values()
         reactions = self.listOfReactions.values()
@@ -206,13 +204,13 @@ class Model(SortableObject, Jsonify):
 
             # Build translation mappings for user-defined variable names.
             dict({ self.name: "Model" }),
-            dict(zip((str(x.name) for x in species), (f"@S{x}" for x in range(0, len(species))))),
-            dict(zip((str(x.name) for x in reactions), (f"@R{x}" for x in range(0, len(reactions))))),
-            dict(zip((str(x.name) for x in parameters), (f"@P{x}" for x in range(0, len(parameters))))),
-            dict(zip((str(x.name) for x in assignments), (f"@AR{x}" for x in range(0, len(assignments))))),
-            dict(zip((str(x.name) for x in rates), (f"@RR{x}" for x in range(0, len(rates))))),
-            dict(zip((str(x.name) for x in events), (f"@E{x}" for x in range(0, len(events))))),
-            dict(zip((str(x.name) for x in functions), (f"@F{x}" for x in range(0, len(functions))))),
+            dict(zip((str(x.name) for x in species), (f"S_{x}" for x in range(100, len(species) + 100)))),
+            dict(zip((str(x.name) for x in reactions), (f"R_{x}" for x in range(100, len(reactions) + 100)))),
+            dict(zip((str(x.name) for x in parameters), (f"P_{x}" for x in range(100, len(parameters) + 100)))),
+            dict(zip((str(x.name) for x in assignments), (f"AR_{x}" for x in range(100, len(assignments) + 100)))),
+            dict(zip((str(x.name) for x in rates), (f"RR_{x}" for x in range(100, len(rates) + 100)))),
+            dict(zip((str(x.name) for x in events), (f"E_{x}" for x in range(100, len(events) + 100)))),
+            dict(zip((str(x.name) for x in functions), (f"F_{x}" for x in range(100, len(functions) + 100)))),
         ))
 
         return TranslationTable(to_anon=translation_table)
