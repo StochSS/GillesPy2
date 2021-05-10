@@ -127,7 +127,7 @@ class TestJsonModels(unittest.TestCase):
         for model in self.models:
             model_1 = model()
 
-            # For each model, check to see if we cab convert its table to and from json accurately.
+            # For each model, check to see if we can convert its table to and from json accurately.
             translation_table = model_1.get_translation_table()
             translation_table_from_json = TranslationTable.from_json(translation_table.to_json())
 
