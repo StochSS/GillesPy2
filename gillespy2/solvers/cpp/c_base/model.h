@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
+#include "./Tau/tau.h"
 
 namespace Gillespy{
   #define CONTINUOUS 0
@@ -84,11 +85,12 @@ namespace Gillespy{
     int type;
     // array representing discrete time steps for the simulation
     double* timeline;
-    // 
+    
     double end_time;
     double current_time;
     int random_seed;
-
+    // for Tau-Leaping and Hybrid simulations
+    TauArgs  tau_args;
     unsigned int number_timesteps;
     unsigned int number_trajectories;
 
