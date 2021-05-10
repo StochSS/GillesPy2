@@ -9,6 +9,7 @@ class Jsonify:
     """
 
     hash_private_vars = False
+    jsonify_translation_table = False
 
     def to_json(self):
         """
@@ -73,14 +74,14 @@ class Jsonify:
         Converts self into an anonymous instance of self.
         """
 
-        return self.get_translation_table().obj_to_anon(self)
+        return self.get_translation_table().obj_to_anon(copy.deepcopy(self))
 
     def to_named(self):
         """
         Converts self into a named instance of self.
         """
 
-        return self.get_translation_table().obj_to_named(self)
+        return self.get_translation_table().obj_to_named(copy.deepcopy(self))
 
     def get_translation_table(self):
         """
@@ -199,6 +200,7 @@ class TranslationTable(Jsonify):
     def _recursive_translate(self, obj, translation_table):
         # Do not translate the translation table, otherwise stuff WILL break.
         if isinstance(obj, TranslationTable):
+            print("Tried to translate the translation table!")
             return obj
 
         if isinstance(obj, Jsonify):
