@@ -7,4 +7,5 @@ from gillespy2.solvers.cpp.tau_hybrid_c_solver import TauHybridCSolver
 from gillespy2.solvers.utilities.cpp_support_test import cpp_support
 can_use_cpp = cpp_support
 
-__all__ = ['SSACSolver', 'ODECSolver', 'TauLeapingCSolver', 'TauHybridCSolver']
+__all__ = ['SSACSolver', 'VariableSSACSolver']
+__all__ = ['SSACSolver', 'ODECSolver', 'TauLeapingCSolver', 'VariableSSACSolver', 'TauHybridSolver']

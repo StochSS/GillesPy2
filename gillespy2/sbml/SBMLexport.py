@@ -90,7 +90,7 @@ def __add_event_assignments(assignment_list, event):
         assign = event.createEventAssignment()
         assign.setVariable(assignment.variable.name)
 
-        exxpression = __get_math(assignment.expression)
+        expression = __get_math(assignment.expression)
         assign.setMath(expression)
 
 def __add_rate_rules(rate_rule_list, model):
