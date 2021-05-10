@@ -1,13 +1,14 @@
-import collections, json, hashlib, re, copy, numpy
+import json, hashlib, re, copy, numpy
 
 from json import JSONEncoder
-from typing import Hashable
 
 
 class Jsonify:
     """
     Interface to allow for instances of arbitrary types to be encoded into json strings and decoded into new objects.
     """
+
+    hash_private_vars = False
 
     def to_json(self):
         """
@@ -74,19 +75,12 @@ class Jsonify:
 
         return self.get_translation_table().obj_to_anon(self)
 
-        anon_json = self.get_translation_table().text_to_anon(self.to_json())
-        print(anon_json)
-        return self.from_json(anon_json)
-
     def to_named(self):
         """
         Converts self into a named instance of self.
         """
 
         return self.get_translation_table().obj_to_named(self)
-
-        named_json = self.get_translation_table().text_to_named(self.to_json())
-        return self.from_json(named_json)
 
     def get_translation_table(self):
         """
@@ -108,7 +102,15 @@ class Jsonify:
         """
         Get the hash of the anonymous json representation of self.
         """
-        return hashlib.md5(str.encode(self.to_json())).hexdigest()
+
+        if self.hash_private_vars:
+            return hashlib.md5(str.encode(self.to_json())).hexdigest()
+
+        # Strip all private variables out of the model.
+        model = copy.deepcopy(self)
+        model.__dict__ = model.public_vars()
+
+        return hashlib.md5(str.encode(model.to_json())).hexdigest()
 
     def __eq__(self, o):
         """
@@ -194,36 +196,11 @@ class TranslationTable(Jsonify):
     def text_to_named(self, text):
         return self._translate(text, self.to_named)
 
-    def _translate(self, text, table):
-        # Grab the indexes of all matching keys via regex.
-        # This will grab 1 or more characters between two quotes.
-
-        #matches = list(re.finditer("([\_a-zA-Z0-9])+", text))
-        matches = list(filter(lambda x: x[0] in self.blocklist, re.finditer(r":.\"(.*?)\"", text)))
-
-        last = 0
-        translated = []
-
-        # Iterate through each match, copying last and match boundaries into the list.
-        for match in matches:
-            # If the match exists within the blocklist AND is a key value (ends with ":), then ignore it.
-            if match in self.blocklist and text[match.end() + 2] == ":":
-                print("ignoring invalid key value")
-                continue
-
-            translated.append(text[last:match.start()])
-            translated.append(table.get(text[match.start():match.end()], text[match.start():match.end()]))
-
-            last = match.end()
-        
-        # Write the last of the text to the buffer.
-        translated.append(text[last:])
-
-        return "".join(translated)
-
-    # NOTE: This function is technically "deprecated", but the regex translation implementation in TranslationTable is not robust
-    # enough for me to remove this.
     def _recursive_translate(self, obj, translation_table):
+        # Do not translate the translation table, otherwise stuff WILL break.
+        if isinstance(obj, TranslationTable):
+            return obj
+
         if isinstance(obj, Jsonify):
             for key in vars(obj).keys():
                 vars(obj)[key] = self._recursive_translate(vars(obj)[key], translation_table)
