@@ -150,6 +150,11 @@ class Model(SortableObject, Jsonify):
         else:
             self.timespan(tspan)
 
+        # Change Jsonify settings to disable private variable
+        # JSON hashing and enable automatic translation table gen.
+        self._hash_private_vars = False
+        self._generate_translation_table = True
+
     def __str__(self):
         divider = '\n**********\n'
 
@@ -188,7 +193,7 @@ class Model(SortableObject, Jsonify):
 
         return print_string
 
-    def get_translation_table(self):
+    def make_translation_table(self):
         from collections import ChainMap
 
         species = self.listOfSpecies.values()
@@ -204,13 +209,13 @@ class Model(SortableObject, Jsonify):
 
             # Build translation mappings for user-defined variable names.
             dict({ self.name: "Model" }),
-            dict(zip((str(x.name) for x in species), (f"S_{x}" for x in range(100, len(species) + 100)))),
-            dict(zip((str(x.name) for x in reactions), (f"R_{x}" for x in range(100, len(reactions) + 100)))),
-            dict(zip((str(x.name) for x in parameters), (f"P_{x}" for x in range(100, len(parameters) + 100)))),
-            dict(zip((str(x.name) for x in assignments), (f"AR_{x}" for x in range(100, len(assignments) + 100)))),
-            dict(zip((str(x.name) for x in rates), (f"RR_{x}" for x in range(100, len(rates) + 100)))),
-            dict(zip((str(x.name) for x in events), (f"E_{x}" for x in range(100, len(events) + 100)))),
-            dict(zip((str(x.name) for x in functions), (f"F_{x}" for x in range(100, len(functions) + 100)))),
+            dict(zip((str(x.name) for x in species), (f"S_{x + 100}" for x in range(0, len(species))))),
+            dict(zip((str(x.name) for x in reactions), (f"R_{x + 100}" for x in range(0, len(reactions))))),
+            dict(zip((str(x.name) for x in parameters), (f"P_{x + 100}" for x in range(0, len(parameters))))),
+            dict(zip((str(x.name) for x in assignments), (f"AR_{x + 100}" for x in range(0, len(assignments))))),
+            dict(zip((str(x.name) for x in rates), (f"RR_{x + 100}" for x in range(0, len(rates))))),
+            dict(zip((str(x.name) for x in events), (f"E_{x + 100}" for x in range(0, len(events))))),
+            dict(zip((str(x.name) for x in functions), (f"F_{x + 100}" for x in range(0, len(functions))))),
         ))
 
         return TranslationTable(to_anon=translation_table)
