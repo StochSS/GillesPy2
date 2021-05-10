@@ -54,7 +54,7 @@ class TestJsonModels(unittest.TestCase):
             target = model()
 
             results = target.run()
-            results.translation_table = target.get_translation_table()
+            results._translation_table = target.get_translation_table()
             results = results.to_anon().to_json()
 
             self.assertEqual(results, Results.from_json(results).to_json())
@@ -138,12 +138,3 @@ class TestJsonModels(unittest.TestCase):
             model_2 = model.from_json(model_1.to_anon().to_json()).to_named()
 
             self.assertEqual(model_1.to_json(), model_2.to_json())
-
-            # Ensure that the JSON hash of model_1 and model_2 are still the same, even though model_2 is anon.
-            model_1 = model()
-            model_2 = model_1.from_json(model_1.to_anon().to_json()).to_named()
-
-            self.assertEqual(model_1.get_json_hash(), model_2.get_json_hash())
-
-
-            
