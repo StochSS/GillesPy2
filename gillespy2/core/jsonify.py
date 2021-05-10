@@ -101,7 +101,7 @@ class Jsonify:
 
     def get_json_hash(self):
         """
-        Get the hash of the anonymous json representation of self.
+        Get the hash of the json representation of self.
         """
 
         if self.hash_private_vars:
@@ -152,10 +152,6 @@ class ComplexJsonCoder(JSONEncoder):
         else:
             model["_type"] = f"{o.__class__.__module__}.{o.__class__.__name__}"
 
-        # If valid, recursively translate keys and values in the current model.
-        #if self.translation_table is not None:
-        #    model = self.recursive_translate(model, self.translation_table.to_anon)
-
         return model
 
     def decode(self, obj):
@@ -190,12 +186,6 @@ class TranslationTable(Jsonify):
 
     def obj_to_named(self, obj):
         return self._recursive_translate(obj, self.to_named)
-
-    def text_to_anon(self, text):
-        return self._translate(text, self.to_anon)
-
-    def text_to_named(self, text):
-        return self._translate(text, self.to_named)
 
     def _recursive_translate(self, obj, translation_table):
         # Do not translate the translation table, otherwise stuff WILL break.
