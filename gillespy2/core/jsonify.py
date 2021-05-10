@@ -1,4 +1,4 @@
-import json, hashlib, re, copy, numpy
+import json, hashlib, re, copy, pydoc, numpy
 
 from json import JSONEncoder
 
@@ -137,6 +137,9 @@ class ComplexJsonCoder(JSONEncoder):
         if isinstance(o, set):
             return SetCoder.to_dict(o)
 
+        if isinstance(o, type):
+            return TypeCoder.to_dict(o)
+
         if not isinstance(o, Jsonify):
             return super().default(o)
 
@@ -152,13 +155,11 @@ class ComplexJsonCoder(JSONEncoder):
         return model
 
     def decode(self, obj):
-        from pydoc import locate
-
         # _type is a field embedded by the encoder to indicate which Jsonify instance will be used to decode the json string.
         if "_type" not in obj:
             return obj
 
-        obj_type = locate(obj["_type"])
+        obj_type = pydoc.locate(obj["_type"])
 
         if obj_type is None:
             raise Exception(f"{obj_type} does not exist.")
@@ -249,3 +250,15 @@ class SetCoder(Jsonify):
     @staticmethod
     def from_json(json_object):
         return set(json_object["data"])
+
+class TypeCoder(Jsonify):
+    @staticmethod
+    def to_dict(self):
+        return {
+            "data": type(self),
+            "_type": f"{TypeCoder.__module__}.{TypeCoder.__name__}"
+        }
+
+    @staticmethod
+    def from_json(json_object):
+        return pydoc.locate(json_object["data"])
