@@ -129,7 +129,7 @@ namespace Gillespy{
           if (type == ODE){
             os<<trajectoriesODE[i][j][k]<<',';
             }
-          else if (type == SSA){
+          else if (type == SSA || type == TAU){
             os<<trajectories[i][j][k]<<',';
           }
           else if (type == HYBRID) {
