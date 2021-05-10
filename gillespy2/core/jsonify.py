@@ -8,8 +8,9 @@ class Jsonify:
     Interface to allow for instances of arbitrary types to be encoded into json strings and decoded into new objects.
     """
 
-    hash_private_vars = False
-    jsonify_translation_table = False
+    _hash_private_vars = False
+    _generate_translation_table = False
+    _translation_table = None
 
     def to_json(self):
         """
@@ -45,16 +46,7 @@ class Jsonify:
         :param self: Instance of the object to convert into a dict.
         """
 
-        vars = self.__dict__.copy()
-
-        # We remove _hash since it's identifiable to the model.
-        if "_hash" in vars:
-            vars.pop("_hash")
-
-        if "translation_table" in vars:
-            vars.pop("translation_table")
-
-        return vars
+        return self.__dict__.copy()
 
     @classmethod
     def from_dict(cls, dict):
@@ -85,13 +77,18 @@ class Jsonify:
 
     def get_translation_table(self):
         """
-        Generate a translation table that describes key:value pairs to convert user-defined data into generic equivalents.
+        Make and/or return the translation table.
         """
-        return self.translation_table
+        if self._translation_table is None:
+            self._translation_table = self.make_translation_table()
 
-    def set_translation_table(self, table):
-        self.translation_table = table
-        return self
+        return self._translation_table
+
+    def make_translation_table(self):
+        """
+        Make a translation table that describes key:value pairs to convert user-define data into generic equivalents.
+        """
+        pass
 
     def public_vars(self):
         """
@@ -104,7 +101,7 @@ class Jsonify:
         Get the hash of the json representation of self.
         """
 
-        if self.hash_private_vars:
+        if self._hash_private_vars:
             return hashlib.md5(str.encode(self.to_json())).hexdigest()
 
         # Strip all private variables out of the model.
@@ -123,7 +120,7 @@ class Jsonify:
 class ComplexJsonCoder(JSONEncoder):
     def __init__(self, translation_table=None, **kwargs):
         super(ComplexJsonCoder, self).__init__(**kwargs)
-        self.translation_table = translation_table
+        self._translation_table = translation_table
 
     """
     This function is called when json.dumps() fires. default() is a bad name for the function,
@@ -157,10 +154,6 @@ class ComplexJsonCoder(JSONEncoder):
     def decode(self, obj):
         from pydoc import locate
 
-        # If a translation_table is present, we need to convert anon values to named.
-        if self.translation_table is not None:
-            obj = self.recursive_translate(obj, self.translation_table.from_anon)
-
         # _type is a field embedded by the encoder to indicate which Jsonify instance will be used to decode the json string.
         if "_type" not in obj:
             return obj
@@ -182,17 +175,25 @@ class TranslationTable(Jsonify):
         self.to_named = dict((v, k) for k, v in list(self.to_anon.items()))
 
     def obj_to_anon(self, obj):
-        return self._recursive_translate(obj, self.to_anon)
+        return self.recursive_translate(obj, self.to_anon)
 
     def obj_to_named(self, obj):
-        return self._recursive_translate(obj, self.to_named)
+        return self.recursive_translate(obj, self.to_named)
+
+    def recursive_translate(self, obj, translation_table):
+        # If a translation table exists on the object, remove and save it.
+        if obj._translation_table is not None:
+            saved_table = obj.__dict__.pop("_translation_table")
+
+        translated = self._recursive_translate(obj, translation_table)
+
+        # Restore the original translation table, if needed.
+        if saved_table is not None:
+            obj._translation_table = saved_table
+
+        return translated
 
     def _recursive_translate(self, obj, translation_table):
-        # Do not translate the translation table, otherwise stuff WILL break.
-        if isinstance(obj, TranslationTable):
-            print("Tried to translate the translation table!")
-            return obj
-
         if isinstance(obj, Jsonify):
             for key in vars(obj).keys():
                 vars(obj)[key] = self._recursive_translate(vars(obj)[key], translation_table)
