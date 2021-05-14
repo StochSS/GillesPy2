@@ -8,7 +8,7 @@
 #include "sundials_types.h"  // defs. of realtype, sunindextype
 #include "sundials_math.h"  // contains the macros ABS, SUNSQR, EXP
 #include "TauHybridCSolver.h"
-#include "model.h"
+#include "HybridModel.h"
 #include "tau.h"
 using namespace Gillespy;
 
@@ -39,6 +39,9 @@ namespace Gillespy {
 	{
 		interrupted = true;
 	}
+	/**************************************
+	 ***** POLICE TAPE : DO NOT CROSS *****
+	 **************************************//*
 	void init_species_mode(const Model &model, Simulation &simulation){
 		int num_species = model.number_species;
 		// int num_det_species = 0;
@@ -130,7 +133,7 @@ namespace Gillespy {
      * Helper Function to get reactions fired from t to t+tau. Affects two values:
      * rxn_count - dict with key=Reaction channel value=number of times fired
      * curr_time - float representing current time
-     */
+     *//*
 
 		if (current_time + tau_step > save_time)
 			tau_step = save_time - current_time;
@@ -150,7 +153,9 @@ namespace Gillespy {
 		values.second = current_time;
 		return values;
 	}
-	
+	/******************************
+	 ***** END OF POLICE TAPE *****
+	 ******************************/
 
 	
 
@@ -167,11 +172,29 @@ namespace Gillespy {
 			TauArgs tau_args = initialize(*(simulation->model),tau_tol);
 			double increment = simulation->timeline[1] - simulation->timeline[0];
 
-			
+
 			//initialize current_state vector to 0 for each species
-			std::vector<hybrid_state> current_state(num_species);
+			// TODO: change back double -> hybrid_state, once we figure out how that works
+			std::vector<double> current_state(num_species);
 			//initialize propensity_values to 0 for each species
 			std::vector<double> propensity_values(num_reactions);
+
+			// Hybrid solver is highly dependent on random numbers.
+			// In order to do this, a URN on the range [0,1) is generated.
+			// log( uniform(rng) ) returns a real number on the range (-inf, 0).
+			// TODO: either assign a seed or set seed to be configurable
+			std::mt19937_64 rng;
+			std::uniform_real_distribution<double> uniform(0, 1);
+
+			// Represents the current "randomized state" for each reaction, used as a
+			//   helper value to determine if/how many stochastic reactions fire.
+			// This gets initialized to a random negative offset, and gets "less negative"
+			//   during the integration step.
+			// After each integration step, the reaction_state is used to count stochastic reactions.
+			std::vector<double> reaction_state(num_reactions);
+			for (int rxn_state = 0; rxn_state < num_reactions; ++rxn_state) {
+				reaction_state[rxn_state] = uniform(rng);
+			}
 
 			//copy initial state for each trajectory
 			for(int s = 0; s < num_species; s++){
@@ -184,66 +207,18 @@ namespace Gillespy {
 					break;
 				}
 
-				for (int s = 0; s < num_species; s++) {
-					if (species[s].user_mode == DISCRETE){
-						current_state[s].discrete = species[s].initial_population;
-					}else {
-						current_state[s].continuous = (double) species[s].initial_population;
-					}
+				// Initialize the species population for the trajectory.
+				unsigned int spec_i;
+				for (spec_i = 0; spec_i < num_species; ++spec_i) {
+					current_state[spec_i] = species[spec_i].initial_population;
 				}
-				simulation->current_time = 0;
-				//what is this?
-				int entry_count = 0;
-				//propensity sum is...
-				double propensity_sum;
-				//save time is...
-				double save_time = 0;
-				// steps rejected is...
-				int steps_rejected = 0;
-				//tau_step is...
-				double tau_step;
-				
-				std::vector<int> prev_curr_state;
-
-				// while (entry_count < simulation->number_timesteps)
 			}
 		}
 	}
 }
 
-static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data) {
-  	// N_VGetArrayPointer returns a pointer to the data in the N_Vector class.
-  	realtype *ydata  = N_VGetArrayPointer(y); // pointer y vector
-  	realtype *dydata = N_VGetArrayPointer(y_dot); // pointer ydot vec
-  	UserData *sim_data;
-  	sim_data = (UserData*) user_data; // void pointer magic
-
-    std::vector <double> curr_state; // create vector of curr_state doubles, sent to propensity_function->ODEEvaluate()
-  	int number_species = sim_data->my_sim->model->number_species; // for readability
-  	int number_reacs = sim_data->my_sim->model->number_reactions; // for readability
-   	std::vector <realtype> propensity; // Vector of propensities of type 'realtypes' (doubles used in SUNDIALS),
-
-  	for (sunindextype i = 0; i < number_species; i++){
-		dydata[i] = 0; // Initialize change in y to '0'
-  		curr_state.push_back(ydata[i]); // add values found in our curr_state vector, 'ydata' to our curr_state <double> vector
-  		// This vector is used for our propensity_function method "evaluate", defined in abstract in 'model.h'
-  	}
-
-  	for (sunindextype rxn = 0; rxn < number_reacs; rxn++){
-		// Calculate propensity for each reaction, at current state
-  		propensity.push_back((sim_data->my_sim)->propensity_function->ODEEvaluate((int)rxn, curr_state));
-
-  	   	for (sunindextype spec = 0; spec < (sim_data->my_sim)->model->number_species; spec++){
-			// if species is a product of this reaction, add propensity fxn
-    			if ((sim_data->my_sim)->model->reactions[rxn].species_change[spec] > 0){
-    				dydata[spec] += propensity[rxn];
-    			}
-    			// else if this species is reactant, subtract propensity fxn
-    			else if ((sim_data->my_sim)->model->reactions[rxn].species_change[spec] < 0){
-				dydata[spec] -= propensity[rxn];
-    			}
-  	  	  }
-  	}
-  return(0);
-}
-
+static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
+{
+	// TODO: implement me!
+	return 0;
+};
