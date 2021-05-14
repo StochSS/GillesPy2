@@ -19,6 +19,7 @@ static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data); // forwar
 struct UserData {
   Gillespy::Simulation *my_sim;
   std::vector<double> reaction_states;
+  std::vector<double> concentrations;
 };
 struct IntegratorOptions{
   // CVODE constants returned if bad output, or success output.
@@ -170,13 +171,13 @@ namespace Gillespy {
 			int num_trajectories = simulation->number_trajectories;
 			Model &model = *(simulation->model);
 			std::unique_ptr<Species[]> &species = model.species;
-			TauArgs tau_args = initialize(*(simulation->model),tau_tol);
+			//TauArgs tau_args = initialize(*(simulation->model),tau_tol);
 			double increment = simulation->timeline[1] - simulation->timeline[0];
 
 
 			// Population/concentration state values for each species.
-			// TODO: change back int -> hybrid_state, once we figure out how that works
-			std::vector<unsigned int> current_state(num_species);
+			// TODO: change back double -> hybrid_state, once we figure out how that works
+			std::vector<double> current_state(num_species);
 			//initialize propensity_values to 0 for each species
 			std::vector<double> propensity_values(num_reactions);
 
@@ -213,25 +214,52 @@ namespace Gillespy {
 					current_state[spec_i] = species[spec_i].initial_population;
 				}
 
+				// Struct acts as container for simulation state.
+				// This gets passed in to the integrator.
+				UserData *data = new UserData {
+					simulation,
+					reaction_state,
+					current_state
+				};
+
+				// Initialize integrator state.
+				N_Vector y0 = N_VNew_Serial(num_species);
+				for (int spec_i = 0; spec_i < num_species; ++spec_i) {
+					NV_Ith_S(y0, spec_i) = species[spec_i].initial_population;
+				}
+
+				// Build the ODE memory object and initialize it.
+				// Accepts initial integrator state y0, start time t0, and RHS f.
+				void *cvode_mem = CVodeCreate(CV_BDF);
+				realtype t0 = 0;
+				int flag = 0;
+				flag = CVodeInit(cvode_mem, f, t0, y0);
+				flag = CVodeSStolerances(cvode_mem, GPY_HYBRID_RELTOL, GPY_HYBRID_ABSTOL);
+
+				// Build the Linear Solver object and initialize it.
+				SUNLinearSolver LS = SUNLinSol_SPGMR(y0, 0, 0);
+				flag = CVodeSetUserData(cvode_mem, data);
+				flag = CVodeSetLinearSolver(cvode_mem, LS, NULL);
+
 				// SIMULATION STEP LOOP
 				double next_time;
-				double tau_step;
+				double tau_step = increment;
+				int save_time = 0;
 				while (simulation->current_time < simulation->end_time) {
-					// INTEGRATE()
-					// TODO: implement me!
-					// For deterministic reactions, the concentrations are updated directly.
-					// For stochastic reactions, integration updates the reaction_states vector.
-					tau_step = increment;
-
 					// Determine what the next time point is.
 					// This will become current_time on the next iteration.
 					// If a retry with a smaller tau_step is deemed necessary, this will change.
 					next_time = simulation->current_time + tau_step;
 
+					// Integration Step
+					// For deterministic reactions, the concentrations are updated directly.
+					// For stochastic reactions, integration updates the reaction_states vector.
+					flag = CVode(cvode_mem, next_time, y0, &next_time, CV_NORMAL);
+
 					// The newly-updated reaction_states vector may need to be reconciled now.
 					// A positive reaction_state means reactions have potentially fired.
 					// NOTE: it is possible for a population to swing negative, where a smaller Tau is needed.
-					for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
+					for (int rxn_i = 0; false && rxn_i < num_reactions; ++rxn_i) {
 						// Temporary variable for the reaction's state.
 						// Does not get updated unless the changes are deemed valid.
 						double rxn_state = reaction_state[rxn_i];
@@ -270,18 +298,71 @@ namespace Gillespy {
 							// Invalid population state detected; try a smaller Tau step.
 							next_time = simulation->current_time;
 							tau_step *= 0.5;
+
+							// TODO: Reset the integrator state to the previous time step.
 						}
 					}
 
+					// Output the results for this time step.
 					simulation->current_time = next_time;
+					
+					while (save_time < next_time) {
+						// Write each species, one at a time (from ODE solution)
+						for (int spec_i; spec_i < num_species; ++spec_i) {
+							simulation->trajectoriesODE[traj][save_time][spec_i] = NV_Ith_S(y0, spec_i);
+						}
+						save_time += increment;
+					}
+					
 				}
+
+				// End of trajectory
+				// Clean up integrator data structures
+				N_VDestroy_Serial(y0);
+				CVodeFree(&cvode_mem);
+				SUNLinSolFree_SPGMR(LS);
+				delete data;
 			}
 		}
 	}
 }
 
-static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
+static int f(realtype t, N_Vector y, N_Vector f, void *user_data)
 {
-	// TODO: implement me!
+	// Get y(t) vector and f(t, y) vector
+	realtype *Y = N_VGetArrayPointer(y);
+	realtype *dydt = N_VGetArrayPointer(f);
+	realtype propensity;
+
+	// Extract simulation data
+	UserData *data = static_cast<UserData*>(user_data);
+	Simulation *sim = data->my_sim;
+	std::vector<double> reaction_states = data->reaction_states;
+	std::vector<double> concentrations = data->concentrations;
+
+	// Populate the current ODE state into the concentrations vector.
+	unsigned int spec_i;
+	for (spec_i = 0; spec_i < sim->model->number_species; ++spec_i) {
+		concentrations[spec_i] = Y[spec_i];
+	}
+
+	// Each species has a "spot" in the y and f(y,t) vector.
+	// For each species, place the result of f(y,t) into Yout vector.
+	unsigned int rxn_i;
+	for (rxn_i = 0; rxn_i < sim->model->number_reactions; ++rxn_i) {
+		propensity = sim->propensity_function->ODEEvaluate(rxn_i, concentrations);
+
+		for (spec_i = 0; spec_i < sim->model->number_species; ++spec_i) {
+			if (sim->model->reactions[rxn_i].species_change[spec_i] == 0)
+				continue;
+			// Use the evaluated propensity to update the concentration levels and reaction state.
+			// Propensity is treated as positive if it's a product, negative if it's a reactant.
+			concentrations[spec_i] += propensity * (
+				sim->model->reactions[rxn_i].species_change[spec_i] > 0
+				? 1 : -1
+			);
+		}
+	}
+
 	return 0;
 };

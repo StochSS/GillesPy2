@@ -4,7 +4,6 @@
 #include <sstream>
 #include <time.h>
 #include <math.h>
-#include "model.h"
 #include "TauHybridCSolver.h"
 using namespace Gillespy;
 

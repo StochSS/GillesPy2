@@ -3,6 +3,9 @@
 
 namespace Gillespy {
 
+    #define GPY_HYBRID_ABSTOL 1e-5
+    #define GPY_HYBRID_RELTOL 1e-5
+
     struct HybridSpecies : Species
     {
         // allows the user to specify if a species' population should definitely be modeled continuously or 
