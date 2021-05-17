@@ -137,8 +137,6 @@ class TauHybridSolver(GillesPySolver):
         for spec in model.listOfSpecies:
             if diff_eqs[model.listOfSpecies[spec]] == '0':
                 del diff_eqs[model.listOfSpecies[spec]]
-        for s, p in diff_eqs.items():
-            print('rr: ', s.name, ' prop: ', p)
         # create a dictionary of compiled gillespy2 rate rules
         for spec, rate in diff_eqs.items():
             rate_rules[spec] = compile(gillespy2.RateRule(spec, rate).formula, '<string>', 'eval')
@@ -454,7 +452,9 @@ class TauHybridSolver(GillesPySolver):
         # TODO: Need a way to exit solve_ivp when timeout is triggered
         loop_count = 0
         sol = LSODA(rhs, curr_time, y0, next_tau)
+        counter = 0
         while sol.t < next_tau:
+            counter += 1
             sol.step()
             # Update states of all species based on changes made to species through
             # ODE processes.  This will update all species whose mode is set to
@@ -463,7 +463,6 @@ class TauHybridSolver(GillesPySolver):
             for spec_name, species in model.listOfSpecies.items():
                 if not species.constant:
                     curr_state[spec_name] = sol.y[y_map[spec_name]]
-
 
         # Search for precise event times
         '''
