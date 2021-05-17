@@ -105,9 +105,12 @@ class TauHybridSolver(GillesPySolver):
         rate_rules = OrderedDict()
 
         # Initialize sample dict
+        rr_vars = {}
+        for n, rr in model.listOfRateRules.items():
+            rr_vars[rr.variable] = n
         for spec in model.listOfSpecies:
-            if spec in model.listOfRateRules:
-                diff_eqs[model.listOfSpecies[spec]] = model.listOfRateRules[spec].formula
+            if spec in rr_vars.keys():
+                diff_eqs[model.listOfSpecies[spec]] = model.listOfRateRules[rr_vars[spec]].formula
             else:
                 diff_eqs[model.listOfSpecies[spec]] = '0'
 
@@ -134,7 +137,8 @@ class TauHybridSolver(GillesPySolver):
         for spec in model.listOfSpecies:
             if diff_eqs[model.listOfSpecies[spec]] == '0':
                 del diff_eqs[model.listOfSpecies[spec]]
-
+        for s, p in diff_eqs.items():
+            print('rr: ', s.name, ' prop: ', p)
         # create a dictionary of compiled gillespy2 rate rules
         for spec, rate in diff_eqs.items():
             rate_rules[spec] = compile(gillespy2.RateRule(spec, rate).formula, '<string>', 'eval')
