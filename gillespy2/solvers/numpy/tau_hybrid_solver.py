@@ -10,7 +10,6 @@ from gillespy2.core import GillesPySolver, log
 from gillespy2.core.gillespyError import *
 
 eval_globals = math.__dict__
-event_states = {}
 
 def __piecewise(*args):
     # Eval entry for piecewise functions
@@ -215,7 +214,6 @@ class TauHybridSolver(GillesPySolver):
         state_change = [0] * len(y_map)
         curr_state['t'] = t
         curr_state['time'] = t
-        event_states[t] = {}
         for item, index in y_map.items():
             if item in assignment_rules:
                 curr_state[assignment_rules[item].variable] = eval(assignment_rules[item].formula,
@@ -232,7 +230,6 @@ class TauHybridSolver(GillesPySolver):
             state_change[y_map[r]] += propensities[r]
         for event in events:
             triggered = eval(event.trigger.expression, {**eval_globals, **curr_state})
-            event_states[t][event] = triggered
             if triggered: 
                 state_change[y_map[event]] = 1
 
