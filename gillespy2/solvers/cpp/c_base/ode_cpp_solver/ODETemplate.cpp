@@ -5,6 +5,7 @@
 #include <time.h>
 #include <math.h>
 #include "model.h"
+#include "BaseTemplate.h"
 #include "ODECSolver.h"
 using namespace Gillespy;
 
@@ -16,23 +17,13 @@ double end_time = 100.0;
 bool seed_time = true;
 double increment = 0;
 
-//Default constants/variables
-__DEFINE_VARIABLES__
-
 class PropensityFunction : public IPropensityFunction{
 public:
-
-double ODEEvaluate(int reaction_number, const std::vector <double> &S){
-  switch(reaction_number){
-
-__DEFINE_PROPENSITY__
-
-    default: //Error
-      return -1;
-    }
+  double ODEEvaluate(int reaction_number, const std::vector <double> &S){
+    map_ode_propensity(reaction_number, S);
   }
-    double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S){return 1.0;}
-    double evaluate(unsigned int reaction_number, unsigned int* S){return 1.0;}
+  double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S){return 1.0;}
+  double evaluate(unsigned int reaction_number, unsigned int* S){return 1.0;}
 };
 
 int main(int argc, char* argv[]){
@@ -41,11 +32,9 @@ int main(int argc, char* argv[]){
   std :: vector<std :: string> reaction_names(r_names, r_names + sizeof(r_names)/sizeof(std :: string));
 
   Model model(species_names, species_populations, reaction_names);
-
-  //Begin reaction species changes
-__DEFINE_REACTIONS_
-  //End reaction species changes
-  model.update_affected_reactions();
+  // Reactions are defined via macros in the user-defined template.
+  // Effectively translates from a 2d array to the model's internal data structure.
+  add_reactions(model);
 
   //Parse command line arguments
  std :: string arg;
