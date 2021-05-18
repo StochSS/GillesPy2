@@ -19,7 +19,6 @@ static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data); // forwar
 struct UserData {
   Gillespy::Simulation *my_sim;
   std::vector<double> reaction_states;
-  std::vector<double> concentrations;
 };
 struct IntegratorOptions{
   // CVODE constants returned if bad output, or success output.
@@ -218,8 +217,7 @@ namespace Gillespy {
 				// This gets passed in to the integrator.
 				UserData *data = new UserData {
 					simulation,
-					reaction_state,
-					current_state
+					reaction_state
 				};
 
 				// Initialize integrator state.
@@ -306,9 +304,9 @@ namespace Gillespy {
 					// Output the results for this time step.
 					simulation->current_time = next_time;
 					
-					while (save_time < next_time) {
+					while (save_time <= next_time) {
 						// Write each species, one at a time (from ODE solution)
-						for (int spec_i; spec_i < num_species; ++spec_i) {
+						for (int spec_i = 0; spec_i < num_species; ++spec_i) {
 							simulation->trajectoriesODE[traj][save_time][spec_i] = NV_Ith_S(y0, spec_i);
 						}
 						save_time += increment;
@@ -327,27 +325,33 @@ namespace Gillespy {
 	}
 }
 
-static int f(realtype t, N_Vector y, N_Vector f, void *user_data)
+/**
+ * Integrator function for ODE linear solver.
+ * This gets passed directly to the Sundials ODE solver once initialized.
+ */
+static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 {
 	// Get y(t) vector and f(t, y) vector
 	realtype *Y = N_VGetArrayPointer(y);
-	realtype *dydt = N_VGetArrayPointer(f);
+	realtype *dydt = N_VGetArrayPointer(ydot);
 	realtype propensity;
 
 	// Extract simulation data
 	UserData *data = static_cast<UserData*>(user_data);
 	Simulation *sim = data->my_sim;
 	std::vector<double> reaction_states = data->reaction_states;
-	std::vector<double> concentrations = data->concentrations;
+	std::vector<double> concentrations(sim->model->number_species);
 
 	// Populate the current ODE state into the concentrations vector.
+	// dy/dt results are initialized to zero, and become the change in propensity.
 	unsigned int spec_i;
 	for (spec_i = 0; spec_i < sim->model->number_species; ++spec_i) {
 		concentrations[spec_i] = Y[spec_i];
+		dydt[spec_i] = 0;
 	}
 
 	// Each species has a "spot" in the y and f(y,t) vector.
-	// For each species, place the result of f(y,t) into Yout vector.
+	// For each species, place the result of f(y,t) into dydt vector.
 	unsigned int rxn_i;
 	for (rxn_i = 0; rxn_i < sim->model->number_reactions; ++rxn_i) {
 		propensity = sim->propensity_function->ODEEvaluate(rxn_i, concentrations);
@@ -357,7 +361,7 @@ static int f(realtype t, N_Vector y, N_Vector f, void *user_data)
 				continue;
 			// Use the evaluated propensity to update the concentration levels and reaction state.
 			// Propensity is treated as positive if it's a product, negative if it's a reactant.
-			concentrations[spec_i] += propensity * (
+			dydt[spec_i] += propensity * (
 				sim->model->reactions[rxn_i].species_change[spec_i] > 0
 				? 1 : -1
 			);
