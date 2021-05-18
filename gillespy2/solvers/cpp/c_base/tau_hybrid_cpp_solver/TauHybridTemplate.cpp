@@ -91,7 +91,7 @@ __DEFINE_REACTIONS_
   simulation.propensity_function = propFun;
   simulationINIT(&model, simulation);
   // Perform ODE  //
-  // TauHybridCSolver(&simulation,);
+  TauHybridCSolver(&simulation, 0.05);
   simulation.output_results_buffer(std :: cout);
   delete propFun;
   return 0;

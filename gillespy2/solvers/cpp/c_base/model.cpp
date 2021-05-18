@@ -133,12 +133,13 @@ namespace Gillespy{
             os<<trajectories[i][j][k]<<',';
           }
           else if (type == HYBRID) {
-            if (trajectoriesHYBRID[i][j][k] == CONTINUOUS){
-              os << trajectoriesODE[i][j][k] << ',';
-            }
-            else if (trajectoriesHYBRID[i][j][k] == DISCRETE){
-              os << trajectories[i][j][k] << ',';
-            }
+            // if (trajectoriesHYBRID[i][j][k] == CONTINUOUS){
+            //   os << trajectoriesODE[i][j][k] << ',';
+            // }
+            // else if (trajectoriesHYBRID[i][j][k] == DISCRETE){
+            //   os << trajectories[i][j][k] << ',';
+            // }
+            os << trajectoriesODE[i][j][k] << ',';
           }
         }
       }

@@ -200,7 +200,7 @@ namespace Gillespy {
 
 			//copy initial state for each trajectory
 			for(int s = 0; s < num_species; s++){
-				simulation->trajectories[0][0][s] = species[s].initial_population;
+				simulation->trajectoriesODE[0][0][s] = species[s].initial_population;
 				current_state[s] = species[s].initial_population;
 			}
 			//Simulate for each trajectory

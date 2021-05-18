@@ -3,7 +3,7 @@
 #include "model.h"
 
 namespace Gillespy {
-    void TauHybridSolver(Gillespy::Simulation* simulation, const double tau_tol);
+    void TauHybridCSolver(Gillespy::Simulation* simulation, const double tau_tol);
 }
 
 #endif 
