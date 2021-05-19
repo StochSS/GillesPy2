@@ -5,7 +5,7 @@
 #include <time.h>
 #include <math.h>
 #include "model.h"
-#include "ssa.h"
+#include "tau_leaper.h"
 using namespace Gillespy;
 
 //Default values, replaced with command line args
@@ -14,20 +14,24 @@ unsigned int number_timesteps = 0;
 int random_seed = 0;
 double end_time = 0;
 bool seed_time = true;
+double tau_tol = 0.03;
 
-//Default constants
+//Default constants/variables
 __DEFINE_VARIABLES__
 
 class PropensityFunction : public IPropensityFunction{
 public:
-  double evaluate(unsigned int reaction_number, unsigned int* S){
+
+  double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S){
     switch(reaction_number){
 __DEFINE_PROPENSITY__
-
     default: //Error
       return -1;
     }
   }
+  double evaluate(unsigned int reaction_number, unsigned int* state){return 1.0;}
+  double ODEEvaluate(int reaction_number, const std::vector <double> &S){return 1.0;}
+
 };
 
 int main(int argc, char* argv[]){
@@ -55,9 +59,11 @@ __DEFINE_PARAMETER_UPDATES__
        break;
      case 't':
        if(arg[2] == 'r'){
-	 arg_stream >> number_trajectories;
+         arg_stream >> number_trajectories;
        }else if(arg[2] == 'i'){
-	 arg_stream >> number_timesteps;
+         arg_stream >> number_timesteps;
+       }else if (arg[2] == 'a'){ // '-tau_tol'
+           arg_stream >> tau_tol;
        }
        break;
      }
@@ -75,13 +81,24 @@ __DEFINE_REACTIONS_
   //End reaction species changes
   model.update_affected_reactions();
  
- if(seed_time){
+  if(seed_time){
    random_seed = time(NULL);
  }
+
   IPropensityFunction *propFun = new PropensityFunction();
-  Simulation simulation(&model, number_trajectories, number_timesteps, end_time, propFun, random_seed,simulation.current_time);
-  ssa_direct(&simulation);
-  //std :: cout << simulation << std :: endl;
+  // Simulation INIT
+  Simulation simulation;
+  Model* modelptr;
+  modelptr = &model;
+  simulation.model = modelptr;
+  simulation.end_time = end_time;
+  simulation.random_seed = random_seed;
+  simulation.number_timesteps = number_timesteps;
+  simulation.number_trajectories = number_trajectories;
+  simulation.propensity_function = propFun;
+  simulationSSAINIT(&model, simulation);
+  // Perform Tau Leaping  //
+  tau_leaper(&simulation, tau_tol);
   simulation.output_results_buffer(std :: cout);
   delete propFun;
   return 0;
