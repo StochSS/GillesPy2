@@ -23,6 +23,12 @@ namespace Gillespy {
         r_names,
         r_names + sizeof(r_names) / sizeof(std::string));
 
+    #define VARIABLE(name, value) static double (name) = (value);
+    #define CONSTANT(name, value) static const double (name) = (value);
+    GPY_PARAMETER_VALUES
+    #undef CONSTANT
+    #undef VARIABLE
+
     double map_propensity(int reaction_id, std::vector<unsigned int> S) {
         switch (reaction_id) {
             #define PROPENSITY(id, func) case(id): return(func);

@@ -80,4 +80,15 @@
  *   Sets the volume of the solution.
  *   Intended to be used by certain mass-action rates or propensities.
  *   Only required for models where volume V is required for the model.
+ * 
+ **********************************************************
+ *** GPY_PARAMETER_VALUES: parameter value definitions. ***
+ * 
+ *   Example:
+ *     #define GPY_PARAMETER_VALUES VARIABLE(P1, 0.05) CONSTANT(P2, 1.4)
+ * 
+ *   Runtime values which are used during evaluation.
+ *   The only difference between the two is that CONSTANT values are marked const,
+ *     while VARIABLE values aren't.
+ * 
  */
