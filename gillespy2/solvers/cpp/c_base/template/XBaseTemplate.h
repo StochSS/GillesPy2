@@ -21,10 +21,10 @@ namespace Gillespy {
         }
     }
 
-    inline double map_ode_propensity(int reaction_number, const std::vector<double> state)
+    inline double map_ode_propensity(int reaction_id, const std::vector<double> state)
     {
-        switch (reaction_number) {
-            #define RATE(id, func)
+        switch (reaction_id) {
+            #define RATE(id, func) case(id): return(func)
             GPY_RATES
             #undef RATE(id, func)
         }
