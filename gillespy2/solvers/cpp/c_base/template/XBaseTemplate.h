@@ -3,14 +3,25 @@
 #include <vector>
 #include <string>
 
-#include "../model.h"
+#include "model.h"
+#include "template.h"
 #include "XTemplateDefinitions.h"
 
 unsigned int populations[GPY_NUM_SPECIES] = GPY_INIT_POPULATIONS;
+std::vector<unsigned int> species_populations(
+    populations,
+    populations + sizeof(populations) / sizeof(unsigned int));
+
 std::string s_names[GPY_NUM_SPECIES] = GPY_SPECIES_NAMES;
+std::vector<std::string> species_names(
+    s_names,
+    s_names + sizeof(s_names) / sizeof(std::string));
 
 int reactions[GPY_NUM_REACTIONS][GPY_NUM_SPECIES] = GPY_REACTIONS;
 std::string r_names[GPY_NUM_REACTIONS] = GPY_REACTION_NAMES;
+std::vector<std::string> reaction_names(
+    r_names,
+    r_names + sizeof(r_names) / sizeof(std::string));
 
 namespace Gillespy {
     inline double map_propensity(int reaction_id, std::vector<unsigned int> state) {

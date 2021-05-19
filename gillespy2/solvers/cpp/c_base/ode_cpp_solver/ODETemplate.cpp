@@ -5,8 +5,9 @@
 #include <time.h>
 #include <math.h>
 #include "model.h"
-#include "BaseTemplate.h"
 #include "ODECSolver.h"
+#include "template.h" // User-defined simulation parameters
+
 using namespace Gillespy;
 
 //Default values, replaced with command line args
@@ -27,10 +28,6 @@ public:
 };
 
 int main(int argc, char* argv[]){
-  std :: vector<std :: string> species_names(s_names, s_names + sizeof(s_names)/sizeof(std :: string));
-  std :: vector<unsigned int> species_populations(populations, populations + sizeof(populations)/sizeof(populations[0]));
-  std :: vector<std :: string> reaction_names(r_names, r_names + sizeof(r_names)/sizeof(std :: string));
-
   Model model(species_names, species_populations, reaction_names);
   // Reactions are defined via macros in the user-defined template.
   // Effectively translates from a 2d array to the model's internal data structure.
