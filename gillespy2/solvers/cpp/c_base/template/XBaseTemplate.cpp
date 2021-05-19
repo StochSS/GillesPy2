@@ -3,6 +3,7 @@
 
 #include "model.h"
 #include "XTemplateDefinitions.h"
+#include "XTemplateDefaults.h"
 
 namespace Gillespy {
 
@@ -22,10 +23,10 @@ namespace Gillespy {
         r_names,
         r_names + sizeof(r_names) / sizeof(std::string));
 
-    double map_propensity(int reaction_id, std::vector<unsigned int> state) {
+    double map_propensity(int reaction_id, std::vector<unsigned int> S) {
         switch (reaction_id) {
-            #define PROPENSITY(id, func) case(id): return(func)
-            GPY_PROPENSITIES
+            #define PROPENSITY(id, func) case(id): return(func);
+            GPY_ODE_PROPENSITIES
             #undef PROPENSITY
 
             default:
@@ -33,12 +34,12 @@ namespace Gillespy {
         }
     }
 
-    double map_ode_propensity(int reaction_id, const std::vector<double> state)
+    double map_ode_propensity(int reaction_id, const std::vector<double> S)
     {
         switch (reaction_id) {
-            #define RATE(id, func) case(id): return(func)
-            GPY_RATES
-            #undef RATE
+            #define PROPENSITY(id, func) case(id): return(func);
+            GPY_PROPENSITIES
+            #undef PROPENSITY
 
             default:
                 return -1.0;
