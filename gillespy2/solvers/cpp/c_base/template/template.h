@@ -8,14 +8,13 @@
 
 namespace Gillespy
 {
+
     extern std::vector<unsigned int> species_populations;
     extern std::vector<std::string> species_names;
-
-    extern int *reactions[];
     extern std::vector<std::string> reaction_names;
 
-    extern inline double map_propensity(int reaction_id, std::vector<unsigned int> state);
-    extern inline double map_ode_propensity(int reaction_id, std::vector<double> state);
-    extern inline void add_reactions(Model &model);
+    double map_propensity(int reaction_id, std::vector<unsigned int> state);
+    double map_ode_propensity(int reaction_id, std::vector<double> state);
+    void add_reactions(Model &model);
 
 }

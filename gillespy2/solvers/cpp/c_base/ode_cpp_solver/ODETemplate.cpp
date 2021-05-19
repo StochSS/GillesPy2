@@ -4,7 +4,6 @@
 #include <sstream>
 #include <time.h>
 #include <math.h>
-#include "model.h"
 #include "ODECSolver.h"
 #include "template.h" // User-defined simulation parameters
 
