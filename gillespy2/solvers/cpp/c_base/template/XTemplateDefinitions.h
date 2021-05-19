@@ -1,11 +1,17 @@
 #pragma once
 
+// To set propensities: 
+// g++ -D GPY_PROPENSITIES='PROPENSITY(0, x) PROPENSITY(1, x + 1) PROPENSITY(2, x + 2)'
+
+// To set rate rules:
+// g++ -D GPY_RATES='RATE(0, x) RATE(1, x + 1) RATE(2, x + 2)'
+
 #ifndef GPY_PROPENSITIES
-#define GPY_PROPENSITIES PROPENSITY(0, x)
+#error "GPY_PROPENSITIES must be defined."
 #endif
 
 #ifndef GPY_RATES
-#define GPU_RATES RATE(0, x)
+#error "GPY_RATES must be defined."
 #endif
 
 #ifndef GPY_INIT_POPULATIONS
