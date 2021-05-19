@@ -1,6 +1,6 @@
 import random, math, sys, warnings
 from collections import OrderedDict
-from scipy.integrate import ode, solve_ivp, LSODA
+from scipy.integrate import ode, LSODA
 import heapq
 import numpy as np
 import threading
@@ -415,7 +415,7 @@ class TauHybridSolver(GillesPySolver):
                     event_sensitivity, tau_step, pure_ode):
         """ 
         Helper function to perform the ODE integration of one step.  This
-        method uses scipy.integrate.solve_ivp to get simulation data, and
+        method uses scipy.integrate.LSODA to get simulation data, and
         determines the next stopping point of the simulation. The state is
         updated and returned to __simulate along with curr_time and the
         solution object. 
@@ -446,7 +446,6 @@ class TauHybridSolver(GillesPySolver):
         curr_state['time'] = curr_time
 
         # Integrate until end or tau is reached
-        # TODO: Need a way to exit solve_ivp when timeout is triggered
         loop_count = 0
         sol = LSODA(rhs, curr_time, y0, next_tau)
         counter = 0
@@ -537,7 +536,7 @@ class TauHybridSolver(GillesPySolver):
         :type save_times: list
         :return curr_state, curr_time, save_times, sol
 
-        sol - Python object returned from solve_ivp which contains all solution
+        sol - Python object returned from LSODA which contains all solution
         data.
         """
 
@@ -773,14 +772,9 @@ class TauHybridSolver(GillesPySolver):
         steps/save points for event detection
         :type event_sensitivity: int
 
-        :param integrator: integrator method to be used form scipy.integrate.solve_ivp. Options include 'RK45', 'RK23',
-        'Radau', 'BDF', and 'LSODA'.
-        For more details, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html
-        :type integrator: str
-
         :param integrator_options:  contains options to the scipy integrator. by default, this includes
         rtol=1e-9 and atol=1e-12.  for a list of options,
-        see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html.
+        see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.LSODA.html.
         Example use: {max_step : 0, rtol : .01}
         :type integrator_options: dict
 
