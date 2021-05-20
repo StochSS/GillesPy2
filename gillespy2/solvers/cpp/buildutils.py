@@ -16,7 +16,7 @@ def template_def_variables(parameters: list[Parameter], sanitized_names = list[s
     for param_id, parameter in parameters:
         name = sanitized_names[param_id]
 
-        parameter_set.append(f"{parameter_type}({name}{parameter.value})")
+        parameter_set.append(f"{parameter_type}({name},{parameter.value})")
 
     return [
         ("GPY_PARAMETER_VALUES", " ".join(parameter_set))
@@ -35,7 +35,7 @@ def template_def_species(species: list[Species], sanitized_names: list[str]) -> 
 
     # Species names, parsed and formatted
     species_names = f"{{{','.join(sanitized_names)}}}"
-    populations = f"{{{','.join(sanitized_names)}}}"
+    populations = f"{{{','.join(populations)}}}"
     num_species = str(len(populations))
 
     # Match each parameter with its macro definition name
