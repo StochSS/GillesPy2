@@ -1,7 +1,7 @@
 from typing import OrderedDict
 from gillespy2.core import Species, Reaction, Parameter, Model
 
-def template_def_variables(parameters: list[Parameter], sanitized_names = list[str], variable=False) -> list[tuple[str, str]]:
+def template_def_variables(parameters: list[Parameter], sanitized_names = list[str], variable=False) -> dict[str, str]:
     """
     Formats the relevant parameters to be passed to a C++ simulation template.
     Passed dictionaries/lists are assumed to be sanitized and sorted,
@@ -18,11 +18,11 @@ def template_def_variables(parameters: list[Parameter], sanitized_names = list[s
 
         parameter_set.append(f"{parameter_type}({name},{parameter.value})")
 
-    return [
-        ("GPY_PARAMETER_VALUES", " ".join(parameter_set))
-    ]
+    return {
+        "GPY_PARAMETER_VALUES": " ".join(parameter_set)
+    }
 
-def template_def_species(species: list[Species], sanitized_names: list[str]) -> list[tuple[str, str]]:
+def template_def_species(species: list[Species], sanitized_names: list[str]) -> dict[str, str]:
     """
     Passed dictionaries/lists are assumed to be sanitized and sorted.
     species[i] should map to sanitized_names[i].
@@ -39,13 +39,13 @@ def template_def_species(species: list[Species], sanitized_names: list[str]) -> 
     num_species = str(len(populations))
 
     # Match each parameter with its macro definition name
-    return [
-        ("GPY_INIT_POPULATIONS", populations),
-        ("GPY_NUM_SPECIES", num_species),
-        ("GPY_SPECIES_NAMES", species_names),
-    ]
+    return {
+        "GPY_INIT_POPULATIONS": populations,
+        "GPY_NUM_SPECIES": num_species,
+        "GPY_SPECIES_NAMES": species_names
+    }
 
-def template_def_reactions(reactions: list[Reaction], sanitized_names: list[str], species_map: OrderedDict[str, Species]) -> list[tuple[str, str]]:
+def template_def_reactions(reactions: list[Reaction], sanitized_names: list[str], species_map: OrderedDict[str, Species]) -> dict[str, str]:
     """
     Passed dictionaries/lists are assumed to be sanitized and sorted.
     Formats the relevant reactions and propensities to be passed to a C++ simulation template.
@@ -74,8 +74,8 @@ def template_def_reactions(reactions: list[Reaction], sanitized_names: list[str]
     reaction_set = f"{{{','.join(reaction_set)}}}"
     reaction_names = f"{{{','.join(reaction_names)}}}"
 
-    return [
-        ("GPY_NUM_REACTIONS", num_reactions),
-        ("GPY_REACTIONS", reaction_set),
-        ("GPY_REACTION_NAMES", reaction_names),
-    ]
+    return {
+        "GPY_NUM_REACTIONS": num_reactions,
+        "GPY_REACTIONS": reaction_set,
+        "GPY_REACTION_NAMES": reaction_names
+    }
