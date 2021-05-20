@@ -13,7 +13,7 @@ def template_def_variables(parameters: list[Parameter], sanitized_names = list[s
     parameter_type = "VARIABLE" if variable else "CONSTANT"
     # Parameter entries, parsed and formatted
     parameter_set = []
-    for param_id, parameter in parameters:
+    for param_id, parameter in enumerate(parameters):
         name = sanitized_names[param_id]
 
         parameter_set.append(f"{parameter_type}({name},{parameter.value})")
@@ -32,11 +32,11 @@ def template_def_species(species: list[Species], sanitized_names: list[str]) -> 
     """
     # Parse and format species initial populations
     populations = [str(specimen.initial_value) for specimen in species]
+    num_species = str(len(populations))
 
     # Species names, parsed and formatted
     species_names = f"{{{','.join(sanitized_names)}}}"
     populations = f"{{{','.join(populations)}}}"
-    num_species = str(len(populations))
 
     # Match each parameter with its macro definition name
     return {
@@ -95,4 +95,17 @@ def template_def_reactions(reactions: list[Reaction], sanitized_names: list[str]
         "GPY_NUM_REACTIONS": num_reactions,
         "GPY_REACTIONS": reaction_set,
         "GPY_REACTION_NAMES": reaction_names
+    }
+
+def template_def_propensities(sanitized_propensities: list[str], ode=False):
+    """
+    """
+    def_keyword = "ODE_PROPENSITIES" if ode else "PROPENSITIES"
+    propensities = []
+
+    for prop_id, prop in enumerate(sanitized_propensities):
+        propensities.append(f"PROPENSITY({prop_id},{prop})")
+
+    return {
+        f"GPY_{def_keyword}": " ".join(propensities)
     }
