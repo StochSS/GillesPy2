@@ -1,7 +1,7 @@
 from typing import OrderedDict
 from gillespy2.core import Species, Reaction, Parameter, Model
 
-def template_def_variables(parameters: list[Parameter], sanitized_names = list[str], variable=False):
+def template_def_variables(parameters: list[Parameter], sanitized_names = list[str], variable=False) -> list[tuple[str, str]]:
     """
     Formats the relevant parameters to be passed to a C++ simulation template.
     Passed dictionaries/lists are assumed to be sanitized and sorted,
@@ -13,16 +13,16 @@ def template_def_variables(parameters: list[Parameter], sanitized_names = list[s
     parameter_type = "VARIABLE" if variable else "CONSTANT"
     # Parameter entries, parsed and formatted
     parameter_set = []
-    for param_id, parameter in enumerate(parameters):
+    for param_id, parameter in parameters:
         name = sanitized_names[param_id]
-        parameter_value = "{0}({1},{2})".format(parameter_type, name, parameter.value)
-        parameter_set.append(parameter_value)
+
+        parameter_set.append(f"{parameter_type}({name}{parameter.value})")
 
     return [
         ("GPY_PARAMETER_VALUES", " ".join(parameter_set))
     ]
 
-def template_def_species(species: list[Species], sanitized_names: list[str]):
+def template_def_species(species: list[Species], sanitized_names: list[str]) -> list[tuple[str, str]]:
     """
     Passed dictionaries/lists are assumed to be sanitized and sorted.
     species[i] should map to sanitized_names[i].
@@ -34,8 +34,8 @@ def template_def_species(species: list[Species], sanitized_names: list[str]):
     populations = [str(specimen.initial_value) for specimen in species]
 
     # Species names, parsed and formatted
-    species_names = "{{{0}}}".format(",".join(sanitized_names))
-    populations = "{{{0}}}".format(",".format(populations))
+    species_names = f"{{{','.join(sanitized_names)}}}"
+    populations = f"{{{','.join(sanitized_names)}}}"
     num_species = str(len(populations))
 
     # Match each parameter with its macro definition name
@@ -45,7 +45,7 @@ def template_def_species(species: list[Species], sanitized_names: list[str]):
         ("GPY_SPECIES_NAMES", species_names),
     ]
 
-def template_def_reactions(reactions: list[Reaction], sanitized_names: list[str], species_map: OrderedDict[str, Species]):
+def template_def_reactions(reactions: list[Reaction], sanitized_names: list[str], species_map: OrderedDict[str, Species]) -> list[tuple[str, str]]:
     """
     Passed dictionaries/lists are assumed to be sanitized and sorted.
     Formats the relevant reactions and propensities to be passed to a C++ simulation template.
@@ -57,7 +57,7 @@ def template_def_reactions(reactions: list[Reaction], sanitized_names: list[str]
     reaction_set = []
     reaction_names = []
 
-    for rxn_id, reaction in enumerate(reactions):
+    for rxn_id, reaction in reactions:
         name = sanitized_names[rxn_id]
         reaction_names.append(name)
         # TODO: get stoichiometry matrix of reaction, turn into string, append to reacton_set
@@ -71,8 +71,8 @@ def template_def_reactions(reactions: list[Reaction], sanitized_names: list[str]
 
         reaction_set.append(species_change)
 
-    reaction_set = "{{{0}}}".format(",".join(reaction_set))
-    reaction_names = "{{{0}}}".format(",".join(reaction_names))
+    reaction_set = f"{{{','.join(reaction_set)}}}"
+    reaction_names = f"{{{','.join(reaction_names)}}}"
 
     return [
         ("GPY_NUM_REACTIONS", num_reactions),
