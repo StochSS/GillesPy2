@@ -45,31 +45,48 @@ def template_def_species(species: list[Species], sanitized_names: list[str]) -> 
         "GPY_SPECIES_NAMES": species_names
     }
 
-def template_def_reactions(reactions: list[Reaction], sanitized_names: list[str], species_map: OrderedDict[str, Species]) -> dict[str, str]:
+def template_def_reactions(reactions: list[Reaction], sanitized_names: list[str], species_map: OrderedDict[str, int]) -> dict[str, str]:
     """
     Passed dictionaries/lists are assumed to be sanitized and sorted.
     Formats the relevant reactions and propensities to be passed to a C++ simulation template.
 
+    :param reactions: Ordered list of reactions.
+    The reaction's index in this list should correspond to its reaction id.
+    For example, the reaction at reactions[3] has id 3.
+    :type reactions: list[Reaction]
+
+    :param sanitized_names: Ordered list of sanitized names for the reactions.
+    The name's index in this list should match its corresponding reaction.
+    sanitized_names[i] is matched to reactions[i].
+    :type sanitized_names: list[str]
+
+    :param species_map: Ordered dictionary mapping an unsanitized species name to its id.
+    :type species_map: OrderedDict[str, int]
+
     Returns the result as a list of tuples containing key-value pairs to be templated.
     """
-    # TODO
-    num_reactions = str(0)
+    num_reactions = str(len(reactions))
     reaction_set = []
     reaction_names = []
 
-    for rxn_id, reaction in reactions:
+    for rxn_id, reaction in enumerate(reactions):
         name = sanitized_names[rxn_id]
         reaction_names.append(name)
-        # TODO: get stoichiometry matrix of reaction, turn into string, append to reacton_set
-        species_change = ""
+        # Get stoichiometry matrix of reaction, turn into string, append to reacton_set
+        species_change = [0] * len(species_map)
 
-        for reactant in reaction.reactants:
-            pass
+        for reactant, stoich in reaction.reactants.items():
+            spec_id = species_map[reactant.name]
+            species_change[spec_id] -= stoich
 
-        for product in reaction.products:
-            pass
+        for product, stoich in reaction.products.items():
+            spec_id = species_map[product.name]
+            species_change[spec_id] += stoich
 
-        reaction_set.append(species_change)
+        # Format the species changes as a stoichiometry set
+        species_change = [str(dx) for dx in species_change]
+        stoich = ",".join(species_change)
+        reaction_set.append(f"{{{stoich}}}")
 
     reaction_set = f"{{{','.join(reaction_set)}}}"
     reaction_names = f"{{{','.join(reaction_names)}}}"
