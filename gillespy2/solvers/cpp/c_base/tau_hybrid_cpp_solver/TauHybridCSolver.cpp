@@ -18,7 +18,6 @@ static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data); // forwar
 
 struct UserData {
   Gillespy::Simulation *my_sim;
-  std::vector<double> reaction_states;
 };
 struct IntegratorOptions{
   // CVODE constants returned if bad output, or success output.
@@ -187,16 +186,6 @@ namespace Gillespy {
 			std::mt19937_64 rng;
 			std::uniform_real_distribution<double> uniform(0, 1);
 
-			// Represents the current "randomized state" for each reaction, used as a
-			//   helper value to determine if/how many stochastic reactions fire.
-			// This gets initialized to a random negative offset, and gets "less negative"
-			//   during the integration step.
-			// After each integration step, the reaction_state is used to count stochastic reactions.
-			std::vector<double> reaction_state(num_reactions);
-			for (int rxn_state = 0; rxn_state < num_reactions; ++rxn_state) {
-				reaction_state[rxn_state] = uniform(rng);
-			}
-
 			//copy initial state for each trajectory
 			for(int s = 0; s < num_species; s++){
 				simulation->trajectoriesODE[0][0][s] = species[s].initial_population;
@@ -217,14 +206,34 @@ namespace Gillespy {
 				// This gets passed in to the integrator.
 				UserData *data = new UserData {
 					simulation,
-					reaction_state
 				};
 
-				// Initialize integrator state.
+				// INITIALIZE INTEGRATOR STATE
+                // Integrator is used to integrate two variable sets separately:
+                //   - concentrations for deterministic reactions
+                //   - reaction offsets for stochastic reactions
+                // [ --- concentrations --- | --- rxn_offsets --- ]
+                // concentrations: bounded by [0, num_species)
+                // rxn_offsets:    bounded by [num_species, num_species + num_reactions)
+                int rxn_offset_boundary  = num_species + num_reactions;
+
+                // The first half of the integration vector is used for integrating species concentrations.
+                // [ --- concentrations --- | ...
 				N_Vector y0 = N_VNew_Serial(num_species);
 				for (int spec_i = 0; spec_i < num_species; ++spec_i) {
 					NV_Ith_S(y0, spec_i) = species[spec_i].initial_population;
 				}
+
+                // The second half represents the current "randomized state" for each reaction.
+                // ... | --- rxn_offsets --- ]
+                for (int rxn_i = num_species; rxn_i < rxn_offset_boundary; ++rxn_i) {
+                    // Represents the current "randomized state" for each reaction, used as a
+                    //   helper value to determine if/how many stochastic reactions fire.
+                    // This gets initialized to a random negative offset, and gets "less negative"
+                    //   during the integration step.
+                    // After each integration step, the reaction_state is used to count stochastic reactions.
+                    NV_Ith_S(y0, rxn_i) = log(uniform(rng));
+                }
 
 				// Build the ODE memory object and initialize it.
 				// Accepts initial integrator state y0, start time t0, and RHS f.
@@ -243,6 +252,10 @@ namespace Gillespy {
 				double next_time;
 				double tau_step = increment;
 				int save_time = 0;
+
+                // Temporary array to store changes to dependent species.
+                // Should be 0-initialized each time it's used.
+                int *population_changes = new int[num_species];
 				while (simulation->current_time < simulation->end_time) {
 					// Determine what the next time point is.
 					// This will become current_time on the next iteration.
@@ -251,30 +264,36 @@ namespace Gillespy {
 
 					// Integration Step
 					// For deterministic reactions, the concentrations are updated directly.
-					// For stochastic reactions, integration updates the reaction_states vector.
+					// For stochastic reactions, integration updates the rxn_offsets vector.
 					flag = CVode(cvode_mem, next_time, y0, &next_time, CV_NORMAL);
+
+                    // "Extract" the different partitions of the vector.
+                    // [ --- concentrations --- | --- rxn_offsets --- ]
+                    // concentrations: bounded by [0, num_species)
+                    // rxn_offsets:    bounded by [num_species, num_species + num_reactions)
+                    realtype *concentrations = NV_DATA_S(y0);
+                    realtype *rxn_offsets    = NV_DATA_S(y0) + num_species;
 
 					// The newly-updated reaction_states vector may need to be reconciled now.
 					// A positive reaction_state means reactions have potentially fired.
 					// NOTE: it is possible for a population to swing negative, where a smaller Tau is needed.
-					for (int rxn_i = 0; false && rxn_i < num_reactions; ++rxn_i) {
+					for (int rxn_i = num_species; false && rxn_i < rxn_offset_boundary; ++rxn_i) {
 						// Temporary variable for the reaction's state.
 						// Does not get updated unless the changes are deemed valid.
-						double rxn_state = reaction_state[rxn_i];
+						double rxn_state = rxn_offsets[rxn_i];
 
-						// Temporary array to store changes to dependent species, 0-initialized.
-						unsigned int population_changes[num_species];
+						// 0-initialize our population_changes array.
 						for (int p_i = 0; p_i < num_species; ++p_i)
 							population_changes[p_i] = 0;
 
 						// Use the current reaction_state to count the number of firings.
 						// If a negative population is detected, then the loop breaks prematurely.
-						while (rxn_state > 0) {
+						while (rxn_state >= 0) {
 							// "Fire" a reaction by recording changes in dependent species.
 							// If a negative value is detected, break without saving changes.
 							for (int spec_i = 0; spec_i < num_species; ++spec_i) {
 								population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i];
-								if (population_changes[spec_i] < 0) {
+								if (current_state[spec_i] + population_changes[spec_i] < 0) {
 									break;
 								}
 							}
@@ -286,11 +305,13 @@ namespace Gillespy {
 
 						// Positive reaction state means a negative population was detected.
 						// Only update state with the given population changes if valid.
-						if (rxn_state <= 0) {
+						if (rxn_state < 0) {
 							for (int p_i = 0; p_i < num_species; ++p_i) {
 								current_state[p_i] += population_changes[p_i];
 							}
-							reaction_state[rxn_i] = rxn_state;
+
+                            // "Permanently" update the rxn_state in the integrator.
+                            rxn_offsets[rxn_i] = rxn_state;
 						}
 						else {
 							// Invalid population state detected; try a smaller Tau step.
@@ -320,6 +341,7 @@ namespace Gillespy {
 				CVodeFree(&cvode_mem);
 				SUNLinSolFree_SPGMR(LS);
 				delete data;
+                delete[] population_changes;
 			}
 		}
 	}
@@ -339,7 +361,11 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 	// Extract simulation data
 	UserData *data = static_cast<UserData*>(user_data);
 	Simulation *sim = data->my_sim;
-	std::vector<double> reaction_states = data->reaction_states;
+    unsigned int num_species = sim->model->number_species;
+    unsigned int num_reactions = sim->model->number_reactions;
+
+    realtype *rxn_offsets = &Y[num_species];
+    int rxn_offset_boundary = num_species + num_reactions;
 	std::vector<double> concentrations(sim->model->number_species);
 
 	// Populate the current ODE state into the concentrations vector.
@@ -353,9 +379,18 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 	// Each species has a "spot" in the y and f(y,t) vector.
 	// For each species, place the result of f(y,t) into dydt vector.
 	unsigned int rxn_i;
+    unsigned int rxn_offset_i;
 	int species_change;
 	for (rxn_i = 0; rxn_i < sim->model->number_reactions; ++rxn_i) {
+        // Index to the reaction's offset state in the integrator.
+        rxn_offset_i = rxn_i + num_species;
+
+        // NOTE: we may need to evaluate ODE and Tau propensities separately.
+        // At the moment, it's unsure whether or not that's required.
 		propensity = sim->propensity_function->ODEEvaluate(rxn_i, concentrations);
+
+        // Integrate this reaction's rxn_offset forward using the propensity.
+        rxn_offsets[rxn_offset_i] = Y[rxn_offset_i] + propensity;
 
 		for (spec_i = 0; spec_i < sim->model->number_species; ++spec_i) {
 			// Use the evaluated propensity to update the concentration levels and reaction state.
@@ -367,7 +402,6 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 			// The product on the right evaluates to 1 if species_change is positive,
 			//    and -1 if it's negative.
 			// This is a branchless alternative to using an if-statement.
-			// Saw a performance gain of ~20% by using this branchless method.
 			dydt[spec_i] += propensity * (-1 + 2 * (species_change > 0));
 		}
 	}
