@@ -64,10 +64,11 @@
  *** GPY_REACTION_NAMES: list of strings representing names of reactions. ***
  * 
  *   Example:
- *     #define GPY_SPECIES_NAMES { "S_1", "S_2", "S_3" }
- *     #define GPY_REACTION_NAMES { "R_1", "R_2", "R_3" }
+ *     #define GPY_SPECIES_NAMES SPECIES_NAME(S_1) SPECIES_NAME(S_2) SPECIES_NAME(S_3)
+ *     #define GPY_REACTION_NAMES REACTION_NAME(R_1) REACTION_NAME(R_2) REACTION_NAME(R_3)
  * 
- *   Both definitions are 1D array initializers and are required for all models.
+ *   Both definitions are initializers and are required for all models.
+ *   Contents of each *_NAME() definition are automatically quoted.
  *   In this list, the reaction/species at index i will map to their respective
  *     reaction/species defined in GPY_REACTIONS and GPY_INIT_POPULATIONS.
  * 

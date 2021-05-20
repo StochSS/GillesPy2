@@ -33,9 +33,9 @@
 #endif
 
 #ifndef GPY_SPECIES_NAMES
-#define GPY_SPECIES_NAMES {"x"}
+#define GPY_SPECIES_NAMES
 #endif
 
 #ifndef GPY_REACTION_NAMES
-#define GPY_REACTION_NAMES {"r"}
+#define GPY_REACTION_NAMES
 #endif

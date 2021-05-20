@@ -12,13 +12,22 @@ namespace Gillespy {
         populations,
         populations + sizeof(populations) / sizeof(unsigned int));
 
-    std::string s_names[GPY_NUM_SPECIES] = GPY_SPECIES_NAMES;
+    std::string s_names[GPY_NUM_SPECIES] = {
+        #define SPECIES_NAME(name) #name,
+        GPY_SPECIES_NAMES
+        #undef SPECIES_NAME
+    };
     std::vector<std::string> species_names(
         s_names,
         s_names + sizeof(s_names) / sizeof(std::string));
 
     int reactions[GPY_NUM_REACTIONS][GPY_NUM_SPECIES] = GPY_REACTIONS;
-    std::string r_names[GPY_NUM_REACTIONS] = GPY_REACTION_NAMES;
+    // std::string r_names[GPY_NUM_REACTIONS] = GPY_REACTION_NAMES;
+    std::string r_names[GPY_NUM_REACTIONS] = {
+        #define REACTION_NAME(name) #name,
+        GPY_REACTION_NAMES
+        #undef REACTION_NAME
+    };
     std::vector<std::string> reaction_names(
         r_names,
         r_names + sizeof(r_names) / sizeof(std::string));
