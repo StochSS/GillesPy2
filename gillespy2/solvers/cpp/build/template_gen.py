@@ -2,7 +2,25 @@ from typing import OrderedDict
 from gillespy2.core import Species, Reaction, Parameter, Model
 
 def write_template(path: str, model: Model, variable=False):
-    pass
+    """
+    Write template definitions to a specified path. If the file does not exist, one is created.
+    Definitions are written in `#define KEY VALUES` format.
+
+    :param model: Model to get the macro definitions of.
+    :type model: gillespy2.Model
+
+    :param variable: Set to true to allow for non-constant parameter values.
+    :type variable: bool
+    """
+
+    # Get a dictionary of model defines and transform into a list of strings in
+    # `#define KEY VALUE` format.
+    defines = get_model_defines(model, variable)
+    template_lines = [(f"#define {key} {value}") for key, value in defines.items()]
+
+    # Write generated lines to the template file.
+    with open(path) as template_file:
+        template_file.writelines(template_lines)
 
 def get_model_defines(model: Model, variable=False) -> dict[str, str]:
     """
