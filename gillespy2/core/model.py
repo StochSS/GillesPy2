@@ -216,6 +216,16 @@ class Model(SortableObject):
             return ModelError('Name "{}" is unavailable. A species with that name exists.'.format(name))
         if name in self.listOfParameters:
             return ModelError('Name "{}" is unavailable. A parameter with that name exists.'.format(name))
+        if name in self.listOfReactions:
+            return ModelError('Name "{}" is unavailable. A reaction with that name exists.'.format(name))
+        if name in self.listOfEvents:
+            return ModelError('Name "{}" is unavailable. An event with that name exists.'.format(name))
+        if name in self.listOfRateRules:
+            return ModelError('Name "{}" is unavailable. A rate rule with that name exists.'.format(name))
+        if name in self.listOfAssignmentRules:
+            return ModelError('Name "{}" is unavailable. An assignment rule with that name exists.'.format(name))
+        if name in self.listOfFunctionDefinitions:
+            return ModelError('Name "{}" is unavailable. A function definition with that name exists.'.format(name))
         if name.isdigit():
             return ModelError('Name "{}" is unavailable. Names must not be numeric strings.'.format(name))
         for special_character in Model.special_characters:
@@ -419,6 +429,9 @@ class Model(SortableObject):
                 self.add_reaction(r)
         else:
             try:
+                problem = self.problem_with_name(reactions.name)
+                if problem is not None:
+                    raise problem
                 reactions.verify()
                 self.validate_reactants_and_products(reactions)
                 if reactions.name is None or reactions.name == '':
@@ -458,6 +471,9 @@ class Model(SortableObject):
                 self.add_rate_rule(rr)
         else:
             try:
+                problem = self.problem_with_name(rate_rules.name)
+                if problem is not None:
+                    raise problem
                 if len(self.listOfAssignmentRules) != 0:
                     for i in self.listOfAssignmentRules.values():
                         if rate_rules.variable == i.variable:
@@ -499,6 +515,9 @@ class Model(SortableObject):
                 self.add_event(e)
         else:
             try:
+                problem = self.problem_with_name(event.name)
+                if problem is not None:
+                    raise problem
                 if event.trigger is None or not hasattr(event.trigger, 'expression'):
                     raise ModelError(
                         'An Event must contain a valid trigger.')
@@ -522,6 +541,9 @@ class Model(SortableObject):
                 self.add_function_definition(fd)
         else:
             try:
+                problem = self.problem_with_name(function_definitions.name)
+                if problem is not None:
+                    raise problem
                 self.listOfFunctionDefinitions[function_definitions.name] = function_definitions
             except Exception as e:
                 raise ParameterError(
@@ -538,6 +560,9 @@ class Model(SortableObject):
                 self.add_assignment_rule(ar)
         else:
             try:
+                problem = self.problem_with_name(assignment_rules.name)
+                if problem is not None:
+                    raise problem
                 if len(self.listOfRateRules) != 0:
                     for i in self.listOfRateRules.values():
                         if assignment_rules.variable == i.variable:
