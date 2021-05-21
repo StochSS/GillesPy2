@@ -1,6 +1,9 @@
 from typing import OrderedDict
 from gillespy2.core import Species, Reaction, Parameter, Model
 
+def write_template(path: str, model: Model, variable=False):
+    pass
+
 def get_model_defines(model: Model, variable=False) -> dict[str, str]:
     """
     Creates a dictionary of C++ macro definitions from the given model.
