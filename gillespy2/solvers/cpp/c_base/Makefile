@@ -41,7 +41,9 @@ ODECSolver.o: $(ODE_SOLVER_PATH)/ODECSolver.cpp
 ODESimulation.o: ODECSolver.o $(ODE_SOLVER_PATH)/ODETemplate.cpp
 	$(CC) -c -o $(OBJ_DIR)/ODESimulation.o $(ODE_SOLVER_PATH)/ODETemplate.cpp $(INCLUDES)
 
-ODESimulation: ODESimulation.o model.o ODECSolver.o $(SUNOBJ)
+prebuild: ODECSolver.o ODESimulation.o $(SUNOBJ)
+
+ODESimulation: ODESimulation.o model.o ODECSolver.o $(SUNOBJ_PATHS)
 	$(CC) -o $(OUTPUT_FILE) $(SUNOBJ_PATHS) $(TEMPLATE_CPP) $(OBJ_DIR)/model.o $(OBJ_DIR)/ODESimulation.o $(OBJ_DIR)/ODECSolver.o $(INCLUDES)
 
 clean:
