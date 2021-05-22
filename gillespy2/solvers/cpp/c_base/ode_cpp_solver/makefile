@@ -24,7 +24,7 @@ model.o:
 ODESimulation.o:
 	$(CC) -c -o ODESimulation.o ODESimulation.cpp $(CFLAGS) -I$(CBASE_DIR) -I$(GILLESPY_C_ODE_DIR)
 
-ODECSolver.o:
+ODESolver.o:
 	$(CC) -c -o ODESolver.o $(GILLESPY_C_ODE_DIR)/ODESolver.cpp $(CFLAGS) -I$(CBASE_DIR) -I$(SRCDIR) -I$(INCDIR)
 
 ODESimulation: ODESolver.o ODESimulation.o $(SUNOBJ) model.o
