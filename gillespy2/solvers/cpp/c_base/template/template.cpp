@@ -2,8 +2,8 @@
 #include <string>
 
 #include "model.h"
-#include "XTemplateDefinitions.h"
-#include "XTemplateDefaults.h"
+#include "template_definitions.h"
+#include "template_defaults.h"
 
 namespace Gillespy {
 

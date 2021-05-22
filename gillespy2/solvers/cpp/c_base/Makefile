@@ -6,7 +6,7 @@ CFLAGS = -std=c++14 -Wall -O3
 ### Input directories ###
 CBASE_DIR ?= .
 TEMPLATE_DIR ?= $(CBASE_DIR)/template
-TEMPLATE_CPP := $(TEMPLATE_DIR)/XBaseTemplate.cpp
+TEMPLATE_CPP := $(TEMPLATE_DIR)/template.cpp
 SUNDIALS_SRC := $(CBASE_DIR)/Sundials/src
 SUNDIALS_INC := $(CBASE_DIR)/Sundials/include
 ODE_SOLVER_PATH := $(CBASE_DIR)/ode_cpp_solver
@@ -21,7 +21,7 @@ INCLUDES := -I$(CBASE_DIR) -I$(SUNDIALS_INC) -I$(TEMPLATE_DIR)
 ##########################
 
 SUNDEPS = cvode_ls.h cvode_proj.h sundials_matrix.h sunmatrix_band.h sunmatrix_dense.h sundials_iterative.h sundials_nonlinearsolver.h \
-sunnonlinsol_newton.h sundials_nvector.h nvector_serial.h sundials_linearsolver.h ODECSolver.h cvode.h cvode_spils.h \
+sunnonlinsol_newton.h sundials_nvector.h nvector_serial.h sundials_linearsolver.h ODESolver.h cvode.h cvode_spils.h \
 sundials_types.h sundials_math.h sunlinsol_spgmr.h
 
 SUNOBJ = cvode_nls.o cvode_io.o sundials_iterative.o cvode_proj.o sundials_matrix.o sunmatrix_band.o sunmatrix_dense.o cvode_ls.o \
@@ -35,16 +35,19 @@ model.o:
 %.o: $(SUNDIALS_SRC)/%.c
 	$(CC) -c -o $(SUNDIALS_OBJ)/$@ $< $(CFLAGS) -I$(SUNDIALS_INC)
 
-ODECSolver.o: $(ODE_SOLVER_PATH)/ODECSolver.cpp 
-	$(CC) -c -o $(OBJ_DIR)/ODECSolver.o $(ODE_SOLVER_PATH)/ODECSolver.cpp $(INCLUDES)
+ODESolver.o: $(ODE_SOLVER_PATH)/ODESolver.cpp 
+	$(CC) -c -o $(OBJ_DIR)/ODESolver.o $(ODE_SOLVER_PATH)/ODESolver.cpp $(INCLUDES)
 
-ODESimulation.o: ODECSolver.o $(ODE_SOLVER_PATH)/ODETemplate.cpp
-	$(CC) -c -o $(OBJ_DIR)/ODESimulation.o $(ODE_SOLVER_PATH)/ODETemplate.cpp $(INCLUDES)
+ODESimulation.o: ODESolver.o $(ODE_SOLVER_PATH)/ODESimulation.cpp
+	$(CC) -c -o $(OBJ_DIR)/ODESimulation.o $(ODE_SOLVER_PATH)/ODESimulation.cpp $(INCLUDES)
 
-prebuild: ODECSolver.o ODESimulation.o $(SUNOBJ)
+prebuild: ODESolver.o ODESimulation.o $(SUNOBJ)
 
-ODESimulation: ODESimulation.o model.o ODECSolver.o $(SUNOBJ_PATHS)
-	$(CC) -o $(OUTPUT_FILE) $(SUNOBJ_PATHS) $(TEMPLATE_CPP) $(OBJ_DIR)/model.o $(OBJ_DIR)/ODESimulation.o $(OBJ_DIR)/ODECSolver.o $(INCLUDES)
+ODESimulation: ODESimulation.o model.o ODESolver.o $(SUNOBJ_PATHS)
+	$(CC) -o $(OUTPUT_FILE) $(SUNOBJ_PATHS) $(TEMPLATE_CPP) $(OBJ_DIR)/model.o $(OBJ_DIR)/ODESimulation.o $(OBJ_DIR)/ODESolver.o $(INCLUDES)
 
 clean:
+	rm -rf $(OUTPUT_DIR)/*.out
+
+clean_all:
 	rm -rf $(OBJ_DIR)/*.o $(SUNDIALS_OBJ)/*.o $(OUTPUT_DIR)/*.out

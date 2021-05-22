@@ -5,7 +5,7 @@
 #include <time.h>
 #include <math.h>
 #include "model.h"
-#include "ODECSolver.h"
+#include "ODESolver.h"
 using namespace Gillespy;
 
 //Default values, replaced with command line args

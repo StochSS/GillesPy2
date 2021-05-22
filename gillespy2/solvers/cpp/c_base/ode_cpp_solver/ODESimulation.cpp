@@ -4,7 +4,7 @@
 #include <sstream>
 #include <time.h>
 #include <math.h>
-#include "ODECSolver.h"
+#include "ODESolver.h"
 #include "template.h" // User-defined simulation parameters
 
 using namespace Gillespy;

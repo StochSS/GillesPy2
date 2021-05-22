@@ -63,7 +63,7 @@ class ODECSolver(GillesPySolver):
         if self.variable:
             template_file = "VariableODETemplate.cpp"
         else:
-            template_file = "ODETemplate.cpp"
+            template_file = "ODESimulation.cpp"
 
         with open(os.path.join(GILLESPY_C_ODE_DIR, template_file), 'r') as template:
             # Write simulation C++ file.
