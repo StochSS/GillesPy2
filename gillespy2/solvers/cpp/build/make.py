@@ -1,6 +1,7 @@
 import logging
 import os, subprocess
 
+from pathlib import Path
 from gillespy2.core import gillespyError, logging
 
 # cmd = ["make", "-C", self.output_directory, '-f', MAKE_FILE,
@@ -9,34 +10,50 @@ from gillespy2.core import gillespyError, logging
 
 class Make():
     def __init__(self, makefile: str, output_dir: str):
-        self.makefile = os.path.abspath(makefile)
-        self.self_dir = os.path.dirname(os.path.abspath(__file__))
+        self.makefile = Path(makefile).resolve()
+        self.self_dir = Path(__file__).parent
 
-        self.cbase_dir = os.path.join(self.self_dir, "../c_base")
-        self.obj_dir = os.path.join(self.cbase_dir, "obj")
-        self.cache_dir = os.path.join(self.cbase_dir, "cache")
-        self.output_dir = os.path.abspath(output_dir)
+        self.cbase_dir = self.self_dir.joinpath("../c_base").resolve()
+        self.obj_dir = self.cbase_dir.joinpath("obj").resolve()
+        self.output_dir = Path(output_dir).resolve()
 
-        if not os.path.isdir(self.cache_dir):
-            os.makedirs(self.cache_dir)
+        if not self.output_dir.is_dir():
+            self.output_dir.mkdir()
 
-        if not os.path.isdir(self.output_dir):
-            os.makedirs(self.output_dir)
+        if not self.obj_dir.is_dir():
+            self.obj_dir.mkdir()
 
     def prebuild(self):
-        self.__execute("prebuild", obj_dir=self.cache_dir)
+        self.__execute("prebuild")
+
+    def build_solver(self, solver_name: str):
+        self.__execute(solver_name)
+
+    def clean(self):
+        self.__execute("clean")
+
+    def clean_all(self):
+        self.__execute("clean_all")
 
     def __execute(self, target: str, **kwargs):        
-        # This is the default make arguments. This needs to be merged with kwargs, keys to uppercase, and then formatted.
-        make_args = {
-            "cbase_dir": self.cbase_dir,
-            "obj_dir": self.obj_dir,
-            "output_dir": self.output_dir
+        # Default make arguments.
+        args_dict = {
+            "cbase_dir": self.cbase_dir.resolve(),
+            "obj_dir": self.obj_dir.resolve(),
+            "output_dir": self.output_dir.resolve()
         }
-        make_args = [(f"{key.upper()}={value}") for key, value in make_args.items()]
+
+        # Overwrite keys supplied in **kwargs.
+        for key, value in kwargs.items():
+            args_dict[key] = value
+
+        # Create the emake arguments. Note, arguments are UPPERCASE.
+        make_args = [(f"{key.upper()}={value}") for key, value in args_dict.items()]
 
         # Create the make command.
         make_cmd = ["make", "-C", self.cbase_dir, "-f", self.makefile, target] + make_args
+
+        print(make_cmd)
 
         try:
             result = subprocess.run(make_cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
@@ -51,6 +68,3 @@ class Make():
             f"Return code: {result.returncode}"
             f"- stdout: {result.stdout.decode('utf-8')}\n"
             f"- stderr: {result.stderr.decode('utf-8')}\n")
-
-make = Make("gillespy2/solvers/cpp/c_base/Makefile", "gillespy2/solvers/cpp/c_base/output")
-make.prebuild()
