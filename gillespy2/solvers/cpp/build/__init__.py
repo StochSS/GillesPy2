@@ -38,36 +38,40 @@ class BuildEngine():
 
         shutil.rmtree(self.temp_dir)
 
-    def prepare(self):
+    def prepare(self, model: Model, variable=False):
         """
-        Copy the template directory to the temp directory.
+        Prepare the template directory for compilation.
+        The following operations will be performed:
+            1. If no cached object files are found, prebuild them.
+            2. Copy the C++ template directory into a new temp directory.
+            3. Remove the sample template_definitions.h file.
+            4. Generate and write a template_definitions.h file from the model.
+
+        :param model: A GillesPy2 model who's template definitions will be generated.
+        :type model: gillespy2.Model
+
+        :param variable: A template_gen argument requirement which enables support for non-constant param values.
+        :type variable: bool
         """
 
         # If object files haven't been compiled yet, go ahead and compile them with make.
         self.make.prebuild()
 
+        # Copy the C++ template directory to the temp directory and remove the sample template_definitions header.
         shutil.copytree(self.template_dir, self.temp_dir, dirs_exist_ok=True)
         self.temp_dir.joinpath(self.template_definitions_name).unlink()
 
-    def write_template(self, model: Model, variable=False):
-        """
-        Write model definitions to the template file. If the file does not exist, one is created.
-
-        :param model: The model who's definitions will be written.
-        :type model: gillespy2.Model
-
-        :param variable: Set true to allow for non-constant parameter values.
-        :type variable: bool
-        """
-
+        # Build the template and write it to the temp directory.
         template_gen.write_template(self.temp_dir.joinpath(self.template_definitions_name), model, variable)
 
-    def build_solver(self, solver_name: str):
+    def build_solver(self, solver_name: str) -> str:
         """
         Build the solver to the temp directory.
 
         :param solver_name: The name of the solver to build. For example, ODESolver.
         :type solver_name: str
+
+        :return: The path of the newly build solver executable.
         """
 
         self.make.build_solver(solver_name, template_dir=self.template_dir)
