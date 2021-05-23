@@ -8,24 +8,25 @@ from gillespy2.core import Model
 class BuildEngine():
     template_definitions_name = "template_definitions.h"
 
-    def __init__(self, debug: bool = False):
+    def __init__(self, debug: bool = False, temp_dir: str = None):
         self.self_dir = Path(__file__).parent
         self.cpp_dir = self.self_dir.joinpath("../c_base").resolve()
         self.template_dir = self.cpp_dir.joinpath("template")
+        self.makefile = self.cpp_dir.joinpath("Makefile")
+        self.temp_dir = Path(temp_dir)
+
         self.debug = debug
 
-        self.makefile = self.cpp_dir.joinpath("Makefile")
-
-
     def __enter__(self):
-        if self.debug:
-            self.temp_dir = Path(self.cpp_dir.joinpath("build"))
+        # If the temp dir is not set, create one.
+        if self.temp_dir is None:
+            self.temp_dir = Path(tempfile.mktemp())
 
-        else:
-            self.temp_dir = Path(tempfile.mkdtemp())
+        # If the temp dir is set ensure that it exists, if not, create it.
+        elif not self.temp_dir.is_dir():
+            self.temp_dir.mkdir()
 
         self.make = Make(self.makefile, self.temp_dir)
-
         return self
 
     def __exit__(self, type, value, traceback):
@@ -33,6 +34,7 @@ class BuildEngine():
         Delete the temp directory and all other associated build artifacts.
         """
 
+        # If debug is True do nothing.
         if self.debug:
             return
 
@@ -64,15 +66,14 @@ class BuildEngine():
         # Build the template and write it to the temp directory.
         template_gen.write_template(self.temp_dir.joinpath(self.template_definitions_name), model, variable)
 
-    def build_solver(self, solver_name: str) -> str:
+    def build_simulation(self, simulation_name: str) -> str:
         """
         Build the solver to the temp directory.
 
-        :param solver_name: The name of the solver to build. For example, ODESolver.
-        :type solver_name: str
+        :param simulation_name: The name of the simulation to build. For example, ODESimulation.
+        :type simulation_name: str
 
         :return: The path of the newly build solver executable.
         """
 
-        self.make.build_solver(solver_name, template_dir=self.template_dir)
-
+        self.make.build_solver(simulation_name, template_dir=self.template_dir)
