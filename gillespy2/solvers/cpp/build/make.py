@@ -2,6 +2,8 @@ import logging
 import os, subprocess
 
 from pathlib import Path
+
+from numpy import std
 from gillespy2.core import gillespyError, logging
 
 # cmd = ["make", "-C", self.output_directory, '-f', MAKE_FILE,
@@ -26,8 +28,8 @@ class Make():
     def prebuild(self):
         self.__execute("prebuild")
 
-    def build_solver(self, solver_name: str):
-        self.__execute(solver_name)
+    def build_solver(self, solver_name: str, **kwargs):
+        self.__execute(solver_name, **kwargs)
 
     def clean(self):
         self.__execute("clean")
@@ -66,5 +68,4 @@ class Make():
 
         raise gillespyError.BuildError(f"Error encountered during execution of Makefile target: '{target}'.\n"
             f"Return code: {result.returncode}"
-            f"- stdout: {result.stdout.decode('utf-8')}\n"
-            f"- stderr: {result.stderr.decode('utf-8')}\n")
+            f"- stdout: {result.stdout.decode('utf-8')}\n")
