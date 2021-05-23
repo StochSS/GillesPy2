@@ -1,9 +1,6 @@
-import logging
-import os, subprocess
-
+import logging, subprocess
 from pathlib import Path
 
-from numpy import std
 from gillespy2.core import gillespyError, logging
 
 # cmd = ["make", "-C", self.output_directory, '-f', MAKE_FILE,
@@ -28,8 +25,8 @@ class Make():
     def prebuild(self):
         self.__execute("prebuild")
 
-    def build_solver(self, solver_name: str, **kwargs):
-        self.__execute(solver_name, **kwargs)
+    def build_simulation(self, simulation_name: str, **kwargs):
+        self.__execute(simulation_name, **kwargs)
 
     def clean(self):
         self.__execute("clean")
