@@ -16,10 +16,10 @@ def write_template(path: str, model: Model, variable=False):
     # Get a dictionary of model defines and transform into a list of strings in
     # `#define KEY VALUE` format.
     defines = get_model_defines(model, variable)
-    template_lines = [(f"#define {key} {value}") for key, value in defines.items()]
+    template_lines = [(f"#define {key} {value}\n") for key, value in defines.items()]
 
     # Write generated lines to the template file.
-    with open(path) as template_file:
+    with open(path, "w") as template_file:
         template_file.writelines(template_lines)
 
 def get_model_defines(model: Model, variable=False) -> dict[str, str]:
