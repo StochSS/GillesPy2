@@ -1,11 +1,7 @@
-import logging, subprocess
+import logging, subprocess, os
 from pathlib import Path
 
 from gillespy2.core import gillespyError, logging
-
-# cmd = ["make", "-C", self.output_directory, '-f', MAKE_FILE,
-#         'ODESimulation', 'GILLESPY_C_ODE_DIR='+GILLESPY_C_ODE_DIR, 'CBASE_DIR='+CBASE_DIR,
-#         'SUNDIALS_DIR='+SUNDIALS_DIR]
 
 class Make():
     def __init__(self, makefile: str, output_dir: str):
@@ -21,6 +17,11 @@ class Make():
 
         if not self.obj_dir.is_dir():
             self.obj_dir.mkdir()
+
+        self.output_file = "Simulation.out"
+
+        if os.name == "nt":
+            self.output_file = "Simulation.exe"
 
     def prebuild(self):
         self.__execute("prebuild")
@@ -39,7 +40,8 @@ class Make():
         args_dict = {
             "cbase_dir": self.cbase_dir.resolve(),
             "obj_dir": self.obj_dir.resolve(),
-            "output_dir": self.output_dir.resolve()
+            "output_dir": self.output_dir.resolve(),
+            "output_file": self.output_dir.joinpath(self.output_file).resolve()
         }
 
         # Overwrite keys supplied in **kwargs.
