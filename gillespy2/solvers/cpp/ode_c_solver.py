@@ -15,3 +15,5 @@ class ODECSolver(GillesPySolver, CSimulation):
             increment=0.05, seed=None, debug=False, profile=False, variables={}, resume=None, **kwargs):
 
         pause = False
+
+        # ... After some checks and setup, execute the simulation.
