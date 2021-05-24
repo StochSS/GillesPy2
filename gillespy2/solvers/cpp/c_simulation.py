@@ -1,4 +1,3 @@
-from enum import Enum
 import os
 import subprocess
 import signal
@@ -6,10 +5,9 @@ import threading
 
 from enum import Enum
 from concurrent.futures import Future, ThreadPoolExecutor
-from turtle import done
-from gillespy2.solvers.cpp.c_encoder import SimDecoder
 
 from gillespy2.core import Model
+from gillespy2.solvers.cpp.c_decoder import SimDecoder
 from gillespy2.solvers.cpp.build.build_engine import BuildEngine
 
 class SimulationReturnCode(Enum):

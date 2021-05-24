@@ -1,5 +1,6 @@
-from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder, SimDecoder
+from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
 from gillespy2.core import GillesPySolver
+
 from .c_simulation import CSimulation, SimulationReturnCode
 from ..utilities import cutils
 
