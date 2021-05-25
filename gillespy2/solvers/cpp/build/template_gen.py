@@ -22,7 +22,7 @@ def write_template(path: str, model: Model, variable=False):
     with open(path, "w") as template_file:
         template_file.writelines(template_lines)
 
-def get_model_defines(model: Model, variable=False) -> dict[str, str]:
+def get_model_defines(model: Model, variable=False) -> "dict[str, str]":
     """
     Creates a dictionary of C++ macro definitions from the given model.
     The keys of the dictionary contain the name of the macro definition.
@@ -82,7 +82,7 @@ def get_model_defines(model: Model, variable=False) -> dict[str, str]:
 
     return results
 
-def template_def_variables(parameters: list[Parameter], sanitized_names = list[str], variable=False) -> dict[str, str]:
+def template_def_variables(parameters: "list[Parameter]", sanitized_names: "list[str]", variable=False) -> "dict[str, str]":
     """
     Formats the relevant parameters to be passed to a C++ simulation template.
     Passed dictionaries/lists are assumed to be sanitized and sorted.
@@ -109,7 +109,7 @@ def template_def_variables(parameters: list[Parameter], sanitized_names = list[s
         "GPY_PARAMETER_VALUES": " ".join(parameter_set)
     }
 
-def template_def_species(species: list[Species], sanitized_names: list[str]) -> dict[str, str]:
+def template_def_species(species: "list[Species]", sanitized_names: "list[str]") -> "dict[str, str]":
     """
     Passed dictionaries/lists are assumed to be sanitized and sorted.
     Formats the relevant species data to be passed to a C++ simulation template.
@@ -138,7 +138,7 @@ def template_def_species(species: list[Species], sanitized_names: list[str]) -> 
         "GPY_SPECIES_NAMES": " ".join(sanitized_names)
     }
 
-def template_def_reactions(reactions: list[Reaction], sanitized_names: list[str], species_map: OrderedDict[str, int]) -> dict[str, str]:
+def template_def_reactions(reactions: "list[Reaction]", sanitized_names: "list[str]", species_map: "OrderedDict[str, int]") -> "dict[str, str]":
     """
     Passed dictionaries/lists are assumed to be sanitized and sorted.
     Formats the relevant reactions and propensities to be passed to a C++ simulation template.
@@ -190,7 +190,7 @@ def template_def_reactions(reactions: list[Reaction], sanitized_names: list[str]
         "GPY_REACTION_NAMES": reaction_names
     }
 
-def template_def_propensities(sanitized_propensities: list[str], ode=False) -> dict[str, str]:
+def template_def_propensities(sanitized_propensities: "list[str]", ode=False) -> "dict[str, str]":
     """
     Formats the given list of pre-sorted, pre-sanitized propensities.
 

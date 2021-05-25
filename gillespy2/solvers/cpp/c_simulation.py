@@ -68,7 +68,7 @@ class CSimulation:
         # Compile the simulation, returning the path of the executable.
         return self.build_engine.build_simulation(simulation_name)
 
-    def _run_async(self, sim_exec: str, sim_args: list[str], decoder: SimDecoder, timeout: int = 0) -> Future[int]:
+    def _run_async(self, sim_exec: str, sim_args: "list[str]", decoder: SimDecoder, timeout: int = 0) -> "Future[int]":
         """
         Run the target executable simulation as async.
 
@@ -81,7 +81,7 @@ class CSimulation:
         executor = ThreadPoolExecutor()
         return executor.submit(self._run, sim_exec, sim_args, decoder, timeout)
 
-    def _run(self, sim_exec: str, sim_args: list[str], decoder: SimDecoder, timeout: int = 0) -> int:
+    def _run(self, sim_exec: str, sim_args: "list[str]", decoder: SimDecoder, timeout: int = 0) -> int:
         """
         Run the target executable simulation.
 
@@ -147,7 +147,7 @@ class CSimulation:
 
                 return SimulationReturnCode.DONE
 
-    def _make_args(self, args_dict: dict[str, str]) -> list[str]:
+    def _make_args(self, args_dict: "dict[str, str]") -> "list[str]":
         args_list = []
 
         for key, value in args_dict.items():
