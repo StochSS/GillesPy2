@@ -7,6 +7,7 @@ from enum import Enum
 from concurrent.futures import Future, ThreadPoolExecutor
 
 from gillespy2.core import Model
+from gillespy2.core import gillespyError
 from gillespy2.solvers.cpp.c_decoder import SimDecoder
 from gillespy2.solvers.cpp.build.build_engine import BuildEngine
 
@@ -21,6 +22,18 @@ class CSimulation:
         self.model = model
         self.resume = resume
         self.variable = variable
+
+        # Validate output_directory, ensure that it doesn't already exist
+        if isinstance(output_directory, str):
+            output_directory = os.path.abspath(output_directory)
+
+            if os.path.exists(output_directory):
+                raise gillespyError.DirectoryError(
+                    f"Could not write to specified output directory: {output_directory}"
+                    " (already exists)"
+                )
+            self.output_directory = output_directory
+            self.delete_directory = delete_directory
 
         if self.model is None:
             return
