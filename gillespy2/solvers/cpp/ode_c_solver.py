@@ -59,5 +59,11 @@ class ODECSolver(GillesPySolver, CSimulation):
         sim_exec = self._build(model, "ODESimulation", self.variable, False)
         sim_status = self._run(sim_exec, args, decoder, timeout)
 
-        if sim_status == SimulationReturnCode.DONE:
-            return decoder.get_output(), 0
+        if sim_status == SimulationReturnCode.FAILED:
+            raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:\n"
+                f"Return code: {int(sim_status)}.\n")
+
+        trajectories, time_stopped = decoder.get_output()
+        formatted_trajectories = self._format_output(trajectories)
+
+        return formatted_trajectories, int(sim_status)
