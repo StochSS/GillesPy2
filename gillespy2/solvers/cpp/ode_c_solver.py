@@ -54,7 +54,7 @@ class ODECSolver(GillesPySolver, CSimulation):
 
 
         args = self._make_args(args)
-        decoder = BasicSimDecoder(numpy.ndarray((number_of_trajectories, number_of_trajectories, len(self.species))))
+        decoder = BasicSimDecoder(numpy.empty((number_of_trajectories, number_of_trajectories, len(self.species) + 1)))
 
         sim_exec = self._build(model, "ODESimulation", self.variable, False)
         sim_status = self._run(sim_exec, args, decoder, timeout)
