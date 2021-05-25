@@ -19,8 +19,10 @@ class BuildEngine():
         # If the temp_dir is None, make one. Else, ensure it exists.
         if output_dir is None:
             self.temp_dir = Path(tempfile.mktemp())
-        
-        elif not self.temp_dir.is_dir():
+        else:
+            self.temp_dir = Path(output_dir)
+
+        if not self.temp_dir.is_dir():
             self.temp_dir.mkdir()
 
         self.make = Make(self.makefile, self.temp_dir)

@@ -34,8 +34,9 @@ class CSimulation:
                     f"Could not write to specified output directory: {output_directory}"
                     " (already exists)"
                 )
-            self.output_directory = output_directory
-            self.delete_directory = delete_directory
+        self.output_directory = output_directory
+        self.delete_directory = delete_directory
+        self.build_engine = None
 
         if self.model is None:
             return
@@ -61,11 +62,11 @@ class CSimulation:
         """
 
         # Prepare the build workspace.
-        build_engine = BuildEngine(debug=debug)
-        build_engine.prepare(model, variable)
+        self.build_engine = BuildEngine(debug=debug, output_dir=self.output_directory)
+        self.build_engine.prepare(model, variable)
 
         # Compile the simulation, returning the path of the executable.
-        return build_engine.build_simulation(simulation_name)
+        return self.build_engine.build_simulation(simulation_name)
 
     def _run_async(self, sim_exec: str, sim_args: list[str], decoder: SimDecoder, timeout: int = 0) -> Future[int]:
         """
@@ -136,6 +137,10 @@ class CSimulation:
                     return SimulationReturnCode.PAUSED
 
                 print(return_code)
+
+                # Clean up if specified to do so by the user
+                if self.build_engine is not None and self.delete_directory:
+                    self.build_engine.clean()
 
                 if return_code not in [0, 33]:
                     return SimulationReturnCode.FAILED
