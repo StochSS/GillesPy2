@@ -11,9 +11,9 @@ from gillespy2.solvers.cpp.c_decoder import SimDecoder
 from gillespy2.solvers.cpp.build.build_engine import BuildEngine
 
 class SimulationReturnCode(Enum):
-    DONE = 1
-    PAUSED = 2
-    FAILED = 3
+    DONE = 0
+    PAUSED = 33
+    FAILED = -1
 
 class CSimulation:
     def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None, variable=True):
@@ -63,7 +63,7 @@ class CSimulation:
         """
 
         executor = ThreadPoolExecutor()
-        return executor.submit(self._run, sim_exec, sim_args, decoder)
+        return executor.submit(self._run, sim_exec, sim_args, decoder, timeout)
 
     def _run(self, sim_exec: str, sim_args: list[str], decoder: SimDecoder, timeout: int = 0) -> int:
         """
@@ -77,6 +77,7 @@ class CSimulation:
 
         # Prefix the executable to the sim arguments.
         sim_args = [sim_exec] + sim_args
+        print(sim_args)
 
         if os.name == "nt":
             proc_kill = lambda sim: sim.send_signal(signal.CTRL_BREAK_EVENT)
@@ -98,8 +99,9 @@ class CSimulation:
                 timeout_event[0] = True
                 proc_kill(simulation)
 
+            timeout_thread = threading.Timer(timeout, timeout_kill)
+
             if timeout > 0:
-                timeout_thread = threading.Timer(timeout, timeout_kill)
                 timeout_thread.start()
 
             try:
@@ -117,6 +119,8 @@ class CSimulation:
                 if timeout_event[0]:
                     return SimulationReturnCode.PAUSED
 
+                print(return_code)
+
                 if return_code not in [0, 33]:
                     return SimulationReturnCode.FAILED
 
@@ -126,6 +130,6 @@ class CSimulation:
         args_list = []
 
         for key, value in args_dict.items():
-            args_list.extend([f"-{key}", value])
+            args_list.extend([f"-{key}", str(value)])
 
         return args_list
