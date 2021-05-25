@@ -114,7 +114,8 @@ class TauLeapingCSolver(GillesPySolver):
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
     def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
-            increment=0.05, seed=None, debug=False, profile=False, resume=None, tau_step=.03, variables={}, **kwargs):
+            increment=0.05, seed=None, debug=False, profile=False, resume=None,
+            tau_step=.03, variables={}, tau_tol=0.03, **kwargs):
 
         pause = False
         if resume is not None:
@@ -163,7 +164,8 @@ class TauLeapingCSolver(GillesPySolver):
 
             # Execute simulation.
             args = [os.path.join(self.output_directory, 'TauSimulation'), '-trajectories', str(number_of_trajectories),
-                    '-timesteps', str(number_timesteps), '-tau_step', str(tau_step), '-end', str(t)]
+                    '-timesteps', str(number_timesteps), '-tau_step', str(tau_step), '-end', str(t),
+                    '-tau_tol', str(tau_tol)]
 
             if self.variable:  # Is a variable simulation
                 populations = cutils.update_species_init_values(model.listOfSpecies, self.species, variables, resume)
