@@ -47,9 +47,9 @@ class BasicSimDecoder(SimDecoder):
     """
     Simple decoder which returns the results as a complete string.
     """
-    def __init__(self):
-        super(BasicSimDecoder, self).__init__()
-        self.buffer = []
+    # def __init__(self):
+    #     super(BasicSimDecoder, self).__init__()
+    #     self.buffer = []
 
     def __read_next(self, output: io.BufferedReader):
         """
