@@ -63,7 +63,7 @@ class BuildEngine():
         :return: The path of the newly build solver executable.
         """
 
-        self.make.build_simulation(simulation_name, template_dir=self.template_dir)
+        self.make.build_simulation(simulation_name, template_dir=self.temp_dir)
         return self.make.output_file
 
     def clean(self):

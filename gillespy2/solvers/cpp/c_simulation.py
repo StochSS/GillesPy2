@@ -19,7 +19,7 @@ class SimulationReturnCode(IntEnum):
     FAILED = -1
 
 class CSimulation:
-    def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None, variable=True):
+    def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None, variable=False):
         self.delete_directory = False
         self.model = model
         self.resume = resume

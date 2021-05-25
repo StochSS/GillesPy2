@@ -31,6 +31,14 @@ class SimDecoder(ABC):
         self.trajectories = trajectories
         self.num_trajectories, self.num_timesteps, self.num_species = trajectories.shape
 
+    @classmethod
+    def create_default(cls, num_trajectories: int, num_timesteps: int, num_species: int):
+        """
+        Creates a new instance of the calling class, using a NumPy array with a predefined shape.
+        Calling this method is preferred over calling the constructor directly.
+        """
+        return cls(numpy.zeros((num_trajectories, num_timesteps, num_species + 1)))
+
     @abc.abstractmethod
     def read(self, output: io.BufferedReader):
         pass

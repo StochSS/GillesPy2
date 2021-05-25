@@ -1,6 +1,7 @@
 #include <vector>
 #include <string>
 
+#include "template.h"
 #include "model.h"
 #include "template_definitions.h"
 #include "template_defaults.h"
@@ -38,10 +39,10 @@ namespace Gillespy {
     #undef CONSTANT
     #undef VARIABLE
 
-    double map_propensity(int reaction_id, std::vector<unsigned int> S) {
+    double map_propensity(int reaction_id, const std::vector<unsigned int> &S) {
         switch (reaction_id) {
             #define PROPENSITY(id, func) case(id): return(func);
-            GPY_ODE_PROPENSITIES
+            GPY_PROPENSITIES
             #undef PROPENSITY
 
             default:
@@ -49,11 +50,11 @@ namespace Gillespy {
         }
     }
 
-    double map_ode_propensity(int reaction_id, const std::vector<double> S)
+    double map_ode_propensity(int reaction_id, const std::vector<double> &S)
     {
         switch (reaction_id) {
             #define PROPENSITY(id, func) case(id): return(func);
-            GPY_PROPENSITIES
+            GPY_ODE_PROPENSITIES
             #undef PROPENSITY
 
             default:
@@ -65,6 +66,11 @@ namespace Gillespy {
     {
         unsigned int rxn_i;
         unsigned int spec_i;
+
+        // This is not ideal; creates an unintended side-effect!
+        // Replace this with some method of "initializing" a simulation object.
+        model.number_reactions = GPY_NUM_REACTIONS;
+        model.number_species   = GPY_NUM_SPECIES;
 
         for (rxn_i = 0; rxn_i < GPY_NUM_REACTIONS; ++rxn_i) {
             for (spec_i = 0; spec_i < GPY_NUM_SPECIES; ++spec_i) {
