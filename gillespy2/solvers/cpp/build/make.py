@@ -23,6 +23,8 @@ class Make():
         if os.name == "nt":
             self.output_file = "Simulation.exe"
 
+        self.output_file = Path(self.output_dir, self.output_file)
+
     def prebuild(self):
         self.__execute("prebuild")
 
