@@ -1,11 +1,13 @@
+import numpy
+
 from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
-from gillespy2.core import GillesPySolver
+from gillespy2.solvers.utilities import solverutils as cutils
+from gillespy2.core import GillesPySolver, gillespyError, Model
 
 from .c_simulation import CSimulation, SimulationReturnCode
-from ..utilities import cutils
 
 class ODECSolver(GillesPySolver, CSimulation):
-    type = "ODESimulation"
+    type = "ODECSolver"
 
     def get_solver_settings(self):
         """
@@ -13,12 +15,16 @@ class ODECSolver(GillesPySolver, CSimulation):
         """
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
-    def run(self=None, model=None, t=20, number_of_trajectories=1, timeout=0,
+    def run(self=None, model: Model = None, t=20, number_of_trajectories=1, timeout=0,
             increment=0.05, seed=None, debug=False, profile=False, variables={}, resume=None, **kwargs):
 
-        t = abs(t - int(resume["time"][-1]))
+        if self is None or self.model is None:
+            self = ODECSolver(model, resume=resume)
+
+        if resume is not None:
+            t = abs(t - int(resume["time"][-1]))
+
         number_timesteps = int(round(t / increment + 1))
-        seed = int(seed)
 
         args = {
             "trajectories": number_of_trajectories,
@@ -37,10 +43,22 @@ class ODECSolver(GillesPySolver, CSimulation):
                 "parameters": parameter_values
             })
 
-        args = self._make_args(args)
-        decoder = BasicSimDecoder()
+        if seed is not None:
+            seed = int(seed)
 
-        sim_status = self._run(self.type, args, decoder, timeout)
+            if seed <= 0:
+                raise gillespyError.ModelError("Seed must be a postive integer.")
+
+            args.update({
+                "seed": seed
+            })
+
+
+        args = self._make_args(args)
+        decoder = BasicSimDecoder(numpy.ndarray((number_of_trajectories, number_of_trajectories, len(self.species))))
+
+        sim_exec = self._build(model, "ODESimulation", self.variable, False)
+        sim_status = self._run(sim_exec, args, decoder, timeout)
 
         if sim_status == SimulationReturnCode.DONE:
             return decoder.get_output(), 0
