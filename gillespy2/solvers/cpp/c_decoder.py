@@ -47,9 +47,9 @@ class BasicSimDecoder(SimDecoder):
     """
     Simple decoder which returns the results as a complete string.
     """
-    # def __init__(self):
-    #     super(BasicSimDecoder, self).__init__()
-    #     self.buffer = []
+    def __init__(self, trajectories: numpy.ndarray):
+        super(BasicSimDecoder, self).__init__(trajectories)
+        self.buffer = []
 
     def __read_next(self, output: io.BufferedReader):
         """
@@ -73,11 +73,42 @@ class BasicSimDecoder(SimDecoder):
         return bytes_read
 
     def get_output(self):
-        return super().get_output()
+        """
+        Returns the fully-populated NumPy array containing the completed simulation data.
+        Assumes that the subprocess has already completed.
+
+        :return: Tuple containing the 3D NumPy array of results, and the time stopped.
+        """
+        stdout = "".join(self.buffer).split(",")
+        # The last number written to stdout from C++ sim is always the stop time.
+        time_stopped = stdout.pop()
+
+        # Assumed layout of NumPy array:
+        #  1D: index to each simulation trajectory
+        #  2D: index to each timestep of that directory
+        #  3D: index to each species of that timestep
+        # Buffer is a flat 1D list, which gets mapped into the NumPy array.
+        for traj_number, trajectory in enumerate(self.trajectories):
+            # traj_i is this trajectory's offset into the 1D list.
+            # Each trajectory has a "stride" equal to the total number of timesteps.
+            traj_i = traj_number * self.num_timesteps
+
+            for ts_number, timestep in enumerate(trajectory):
+                # time_i is this timestep's offset into the 1D list.
+                # Each timestep has a "stride" equal to the total number of timesteps.
+                time_i = ts_number * self.num_species
+
+                for spec_i in range(timestep.size):
+                    # Output is a 1-dimensional list with the assumed layout.
+                    # This species's offset is relative to the offset of the current timestep.
+                    current_index = traj_i + time_i + spec_i
+                    timestep[spec_i] = stdout[current_index]
+
+        return self.trajectories, time_stopped
 
     def get_live_output(self):
+        """
+        Returns an iterator to iterate over the solver results as they come in.
+        NOT YET IMPLEMENTED!
+        """
         return super().get_live_output()
-
-if __name__ == "__main__":
-    test = BasicSimDecoder()
-    print(test)
