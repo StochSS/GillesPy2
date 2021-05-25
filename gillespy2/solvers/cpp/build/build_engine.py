@@ -14,11 +14,10 @@ class BuildEngine():
         self.template_dir = self.cpp_dir.joinpath("template")
         self.makefile = self.cpp_dir.joinpath("Makefile")
 
-        self.temp_dir = Path(output_dir)
         self.debug = debug
 
         # If the temp_dir is None, make one. Else, ensure it exists.
-        if self.temp_dir is None:
+        if output_dir is None:
             self.temp_dir = Path(tempfile.mktemp())
         
         elif not self.temp_dir.is_dir():
