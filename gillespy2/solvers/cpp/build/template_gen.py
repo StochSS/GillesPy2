@@ -1,4 +1,4 @@
-from typing import OrderedDict
+from collections import OrderedDict
 from gillespy2.core import Species, Reaction, Parameter, Model
 
 def write_template(path: str, model: Model, variable=False):
