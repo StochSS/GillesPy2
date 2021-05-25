@@ -5,7 +5,7 @@ import threading
 
 import numpy
 
-from enum import Enum
+from enum import IntEnum
 from concurrent.futures import Future, ThreadPoolExecutor
 
 from gillespy2.core import Model
@@ -13,7 +13,7 @@ from gillespy2.core import gillespyError
 from gillespy2.solvers.cpp.c_decoder import SimDecoder
 from gillespy2.solvers.cpp.build.build_engine import BuildEngine
 
-class SimulationReturnCode(Enum):
+class SimulationReturnCode(IntEnum):
     DONE = 0
     PAUSED = 33
     FAILED = -1
@@ -157,7 +157,6 @@ class CSimulation:
 
         # The trajectory count is the first dimention of the input ndarray.
         trajectory_count = trajectories.shape[0]
-
         simulation_data = [ ]
 
         # Begin iterating through the trajectories, copying each dimension into simulation_data.
