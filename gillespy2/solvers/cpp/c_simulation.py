@@ -3,10 +3,12 @@ import subprocess
 import signal
 import threading
 
+import numpy
+
 from enum import Enum
 from concurrent.futures import Future, ThreadPoolExecutor
 
-from gillespy2.core import Model
+from gillespy2.core import Model, gillespyError
 from gillespy2.solvers.cpp.c_decoder import SimDecoder
 from gillespy2.solvers.cpp.build.build_engine import BuildEngine
 
@@ -79,6 +81,7 @@ class CSimulation:
         sim_args = [sim_exec] + sim_args
         print(sim_args)
 
+        # nt and *nix require different methods to force shutdown a running process.
         if os.name == "nt":
             proc_kill = lambda sim: sim.send_signal(signal.CTRL_BREAK_EVENT)
             platform_args = {
@@ -133,3 +136,27 @@ class CSimulation:
             args_list.extend([f"-{key}", str(value)])
 
         return args_list
+
+    def _format_output(self, trajectories: numpy.ndarray):
+        # Check the dimensionality of the input trajectory.
+        if not len(trajectories.shape) == 3:
+            raise gillespyError.ValidationError("Could not format trajectories, input numpy.ndarray is not 3-dimensional.")
+
+        # The trajectory count is the first dimention of the input ndarray.
+        trajectory_count = trajectories.shape[0]
+
+        simulation_data = [ ]
+
+        # Begin iterating through the trajectories, copying each dimension into simulation_data.
+        for trajectory in range(trajectory_count):
+            # Copy the first index of the third-dimension into the simulation_data dictionary.
+            data = {
+                "time": trajectories[trajectory, :, 0]
+            }
+
+            for i in range(len(self.species)):
+                data[self.species[i]] = trajectories[trajectory, :, i + 1]
+
+            simulation_data.append(data)
+
+        return simulation_data
