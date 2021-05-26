@@ -27,38 +27,46 @@ public:
 };
 
 int main(int argc, char* argv[]){
-  Model model(species_names, species_populations, reaction_names);
-  // Reactions are defined via macros in the user-defined template.
-  // Effectively translates from a 2d array to the model's internal data structure.
-  add_reactions(model);
-
   //Parse command line arguments
  std :: string arg;
  for(int i = 1; i < argc - 1; i++){
    arg = argv[i];
-   if(argc > i+1 && arg.size() > 1 && arg[0] == '-'){
-     std :: stringstream arg_stream(argv[i+1]);
-     switch(arg[1]){
-     case 's':
-       arg_stream >> random_seed;
-       seed_time = false;
-       break;
-     case 'e':
-       arg_stream >> end_time;
-       break;
-     case 'i':
-        arg_stream >> increment;
-        break;
-     case 't':
-       if(arg[2] == 'r'){
-         arg_stream >> number_trajectories;
-       }else if(arg[2] == 'i'){
-         arg_stream >> number_timesteps;
-       }
-       break;
-     }
+    if(argc > i+1 && arg.size() > 1 && arg[0] == '-'){
+        std :: stringstream arg_stream(argv[i+1]);
+        switch(arg[1]){
+        case 's':
+            arg_stream >> random_seed;
+            seed_time = false;
+            break;
+        case 'e':
+            arg_stream >> end_time;
+            break;
+        case 'i':
+            if (arg[3] == 'c') {
+                arg_stream >> increment;
+            }
+            else if (arg[3] == 'i') {
+                map_variable_populations(arg_stream);
+            }
+            break;
+        case 'p':
+            map_variable_parameters(arg_stream);
+            break;
+        case 't':
+            if(arg[2] == 'r'){
+                arg_stream >> number_trajectories;
+            }else if(arg[2] == 'i'){
+                arg_stream >> number_timesteps;
+            }
+            break;
+        }
    }
  }
+
+  Model model(species_names, species_populations, reaction_names);
+  // Reactions are defined via macros in the user-defined template.
+  // Effectively translates from a 2d array to the model's internal data structure.
+  add_reactions(model);
 
  if(seed_time){
    random_seed = time(NULL);

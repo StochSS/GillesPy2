@@ -25,7 +25,7 @@ class ODECSolver(GillesPySolver, CSimulation):
         self._validate_type(variables, dict, "'variables' argument must be a dictionary.")
 
         self._validate_resume(t, resume)
-        self._validate_kwargs(kwargs)
+        self._validate_kwargs(**kwargs)
         self._validate_sbml_features({
             "Rate Rules": len(model.listOfRateRules),
             "Assignment Rules": len(model.listOfAssignmentRules),

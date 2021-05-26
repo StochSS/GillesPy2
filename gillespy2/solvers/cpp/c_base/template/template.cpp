@@ -1,5 +1,6 @@
 #include <vector>
 #include <string>
+#include <sstream>
 
 #include "template.h"
 #include "model.h"
@@ -59,6 +60,22 @@ namespace Gillespy {
 
             default:
                 return -1.0;
+        }
+    }
+
+    void map_variable_parameters(std::stringstream &stream)
+    {
+        #define VARIABLE(name, value) stream >> (name);
+        #define CONSTANT(name, value)
+        GPY_PARAMETER_VALUES
+        #undef CONSTANT
+        #undef VARIABLE
+    }
+
+    void map_variable_populations(std::stringstream &stream)
+    {
+        for (int spec_id = 0; spec_id < GPY_NUM_SPECIES; ++spec_id) {
+            stream >> species_populations[spec_id];
         }
     }
 

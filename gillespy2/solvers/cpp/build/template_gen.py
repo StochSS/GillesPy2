@@ -42,6 +42,11 @@ def get_model_defines(model: Model, variable=False) -> "dict[str, str]":
     parameter_mappings = model.sanitized_parameter_names()
     parameters = []
     parameter_names = []
+    # System volume needs to be added manually.
+    # It is assumed to ALWAYS be the first parameter.
+    if model.volume:
+        parameters.append(Parameter(name="V", expression=model.volume))
+        parameter_names.append("V")
     for p_name, param in model.get_all_parameters().items():
         parameters.append(param)
         parameter_names.append(parameter_mappings[p_name])

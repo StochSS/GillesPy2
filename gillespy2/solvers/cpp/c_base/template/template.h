@@ -17,4 +17,7 @@ namespace Gillespy
     double map_ode_propensity(int reaction_id, const std::vector<double> &state);
     void add_reactions(Model &model);
 
+    void map_variable_parameters(std::stringstream &stream);
+    void map_variable_populations(std::stringstream &stream);
+
 }
