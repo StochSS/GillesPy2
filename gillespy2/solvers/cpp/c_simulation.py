@@ -1,3 +1,4 @@
+import logging
 import os
 import subprocess
 import signal
@@ -19,7 +20,7 @@ class SimulationReturnCode(IntEnum):
     FAILED = -1
 
 class CSimulation:
-    def __init__(self, model=None, output_directory=None, delete_directory=True, resume=None, variable=False):
+    def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable: bool = False):
         self.delete_directory = False
         self.model = model
         self.resume = resume
@@ -177,3 +178,33 @@ class CSimulation:
             simulation_data.append(data)
 
         return simulation_data
+
+    def _validate_resume(self, t: int, resume):
+        if resume is None:
+            return
+
+        if t < resume["time"][-1]:
+            raise gillespyError.ExecutionError(
+                "'t' must be greater than previous simulations end time, or set in the run() method as the "
+                "simulations next end time"
+            )
+
+    def _validate_kwargs(self, **kwargs):
+        if len(kwargs) == 0:
+            return
+
+        for key, val in kwargs.items():
+            logging.warn(f"Unsupported keyword argument for solver {self.name}: {key}")
+
+    def _validate_sbml_features(self, unsupported_features: "dict[str, str]"):
+        detected = [ ]
+        for feature_name, count in unsupported_features.items():
+            if count:
+                detected.append(feature_name)
+
+        if len(detected):
+            raise gillespyError.ModelError(f"Could not run Model.  SBML Feature: {detected} not supported by SSACSolver.")
+
+    def _validate_type(self, value, typeof: type, message: str):
+        if not type(value) == typeof:
+            raise gillespyError.SimulationError(message)
