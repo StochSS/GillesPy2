@@ -15,11 +15,23 @@ class ODECSolver(GillesPySolver, CSimulation):
         """
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
-    def run(self=None, model: Model = None, t=20, number_of_trajectories=1, timeout=0,
-            increment=0.05, seed=None, debug=False, profile=False, variables={}, resume=None, **kwargs):
+    def run(self=None, model: Model = None, t: int = 20, number_of_trajectories: int = 1, timeout: int = 0,
+            increment: int = 0.05, seed: int = None, debug: bool = False, profile: bool = False, variables={}, resume=None, **kwargs):
 
         if self is None or self.model is None:
             self = ODECSolver(model, resume=resume)
+
+        # Validate parameters prior to running the model.
+        self._validate_type(variables, dict, "'variables' argument must be a dictionary.")
+
+        self._validate_resume(t, resume)
+        self._validate_kwargs(kwargs)
+        self._validate_sbml_features({
+            "Rate Rules": len(model.listOfRateRules),
+            "Assignment Rules": len(model.listOfAssignmentRules),
+            "Events": len(model.listOfEvents),
+            "Function Definitions": len(model.listOfFunctionDefinitions)
+        })
 
         if resume is not None:
             t = abs(t - int(resume["time"][-1]))
