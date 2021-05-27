@@ -89,7 +89,7 @@ class BasicSimDecoder(SimDecoder):
         """
         stdout = "".join(self.buffer).split(",")
         # The last number written to stdout from C++ sim is always the stop time.
-        time_stopped = stdout.pop()
+        time_stopped = int(stdout.pop())
 
         # Assumed layout of NumPy array:
         #  1D: index to each simulation trajectory

@@ -59,7 +59,7 @@ class Make():
         print(make_cmd)
 
         try:
-            result = subprocess.run(make_cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+            result = subprocess.run(make_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         except KeyboardInterrupt:
             logging.warn(f"Makefile was interrupted during execution of target: '{target}', unexpected behavior may occur.")
@@ -69,4 +69,5 @@ class Make():
 
         raise gillespyError.BuildError(f"Error encountered during execution of Makefile target: '{target}'.\n"
             f"Return code: {result.returncode}"
-            f"- stdout: {result.stdout.decode('utf-8')}\n")
+            f"- stdout: {result.stdout.decode('utf-8')}\n"
+            f"- stderr: {result.stderr.decode('utf-8')}\n")

@@ -23,7 +23,7 @@ def find_time(array, value):
     :type value: float
     :return: Integer index, the index of the closest value to 'value' parameter.
     """
-    index = np.searchsorted(array, value, side="left")
+    index = np.searchsorted(array, float(value), side="left")
     return index
 
 
@@ -181,6 +181,7 @@ def c_solver_resume(timeStopped, simulation_data, t, resume=None):
     by the CPP simulation.
     :param simulation_data: The current simulation data, attained after parsing the results in the VariableSSACSolver or
     SSACSolver.
+    :type simulation_data: list[numpy.ndarray]
     :param t: The end time for the resume simulation, originally set in model.run(t=...)
     :param resume: The previous simulations data
     :type resume: gillespy2.core.result object
@@ -193,8 +194,6 @@ def c_solver_resume(timeStopped, simulation_data, t, resume=None):
         if cutoff == 0 or cutoff == 1:
             log.warning('You have paused the simulation too early, and no points have been calculated past'
                         ' initial values. A graphic display will not produce expected results.')
-        else:
-            cutoff -= 1
         for i in simulation_data[0]:
             simulation_data[0][i] = simulation_data[0][i][:cutoff]
 

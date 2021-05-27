@@ -83,7 +83,7 @@ SSASimulation: SSASimulation.o model.o SSASolver.o
 	$(CC) $(COMPILATION_ARGS) $(OBJ_DIR)/SSASimulation.o $(OBJ_DIR)/SSASolver.o
 
 TauLeapingSimulation: TauLeapingSimulation.o model.o TauLeapingSolver.o
-	$(CC) $(COMPILATION_ARGS) $(OBJ_DIR)/TauLeapingSimulation.o $(OBJ_DIR)/SSASolver.o
+	$(CC) $(COMPILATION_ARGS) $(OBJ_DIR)/TauLeapingSimulation.o $(OBJ_DIR)/TauLeapingSolver.o
 
 clean:
 	rm -rf $(OUTPUT_DIR)/*.out

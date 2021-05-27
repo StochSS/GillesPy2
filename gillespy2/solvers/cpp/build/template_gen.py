@@ -175,11 +175,11 @@ def template_def_reactions(reactions: "list[Reaction]", sanitized_names: "list[s
 
         for reactant, stoich in reaction.reactants.items():
             spec_id = species_map[reactant.name]
-            species_change[spec_id] -= stoich
+            species_change[spec_id] -= int(stoich)
 
         for product, stoich in reaction.products.items():
             spec_id = species_map[product.name]
-            species_change[spec_id] += stoich
+            species_change[spec_id] += int(stoich)
 
         # Format the species changes as a stoichiometry set
         species_change = [str(dx) for dx in species_change]

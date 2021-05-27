@@ -8,7 +8,7 @@ from .c_simulation import CSimulation, SimulationReturnCode
 
 class TauLeapingCSolver(GillesPySolver, CSimulation):
     name = "TauLeapingCSolver"
-    type = "TauSimulation"
+    type = "TauLeapingSimulation"
 
     def get_solver_settings(self):
         """
@@ -66,7 +66,7 @@ class TauLeapingCSolver(GillesPySolver, CSimulation):
         args = self._make_args(args)
         decoder = BasicSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
 
-        sim_exec = self._build(model, self.name, self.variable, False)
+        sim_exec = self._build(model, self.type, self.variable, False)
         sim_status = self._run(sim_exec, args, decoder, timeout)
 
         if sim_status == SimulationReturnCode.FAILED:

@@ -48,6 +48,7 @@ class CSimulation:
         self.parameter_mappings = self.model.sanitized_parameter_names()
         self.parameters = list(self.parameter_mappings.keys())
         self.reactions = list(self.model.listOfReactions.keys())
+        self.simulation_data = []
 
     def _build(self, model: Model, simulation_name: str, variable: bool, debug: bool = False) -> str:
         """
@@ -173,7 +174,7 @@ class CSimulation:
 
         # The trajectory count is the first dimention of the input ndarray.
         trajectory_count = trajectories.shape[0]
-        simulation_data = [ ]
+        self.simulation_data = []
 
         # Begin iterating through the trajectories, copying each dimension into simulation_data.
         for trajectory in range(trajectory_count):
@@ -185,9 +186,9 @@ class CSimulation:
             for i in range(len(self.species)):
                 data[self.species[i]] = trajectories[trajectory, :, i + 1]
 
-            simulation_data.append(data)
+            self.simulation_data.append(data)
 
-        return simulation_data
+        return self.simulation_data
 
     def _make_resume_data(self, time_stopped: int, simulation_data: numpy.ndarray, t: int, resume):
         """
@@ -195,7 +196,7 @@ class CSimulation:
         In the event the simulation was not paused, no data is changed.
         """
 
-        if resume is None or time_stopped != 0:
+        if resume is not None or time_stopped != 0:
             return solverutils.c_solver_resume(time_stopped, simulation_data, t, resume=resume)
 
         return simulation_data
