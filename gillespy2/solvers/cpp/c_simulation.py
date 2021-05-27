@@ -1,3 +1,4 @@
+from gillespy2.solvers.utilities import solverutils
 import logging
 import os
 import subprocess
@@ -149,6 +150,15 @@ class CSimulation:
                 return SimulationReturnCode.DONE
 
     def _make_args(self, args_dict: "dict[str, str]") -> "list[str]":
+        """
+        Convert a dictionary of key, value pairs into a valid Popen argument list.
+        Note: Do not prefix a key with `-` as this will be handled automatically.
+
+        :param args_dict: A dictionary of named arguments.
+
+        :returns: A formatted list of arguments.
+        """
+
         args_list = []
 
         for key, value in args_dict.items():
@@ -179,7 +189,22 @@ class CSimulation:
 
         return simulation_data
 
+    def _make_resume_data(self, time_stopped: int, simulation_data: numpy.ndarray, t: int, resume):
+        """
+        If the simulation was paused then the output data needs to be trimmed to allow for resume.
+        In the event the simulation was not paused, no data is changed.
+        """
+
+        if resume is None or time_stopped != 0:
+            return solverutils.c_solver_resume(time_stopped, simulation_data, t, resume=resume)
+
+        return simulation_data
+
     def _validate_resume(self, t: int, resume):
+        """
+        Validate `resume`. An exception will be thrown if resume['time'][-1] is > t.
+        """
+
         if resume is None:
             return
 
@@ -190,6 +215,10 @@ class CSimulation:
             )
 
     def _validate_kwargs(self, **kwargs):
+        """
+        Validate any additional kwargs passed to the model. If any exist, warn the user.
+        """
+
         if len(kwargs) == 0:
             return
 
@@ -204,6 +233,19 @@ class CSimulation:
 
         if len(detected):
             raise gillespyError.ModelError(f"Could not run Model.  SBML Feature: {detected} not supported by SSACSolver.")
+
+    def _validate_seed(self, seed: int):
+        if seed is None:
+            return None
+
+        if not isinstance(seed, int):
+            seed = int(seed)
+
+        if seed <= 0:
+            raise gillespyError.ModelError("`seed` must be a postive integer.")
+
+        return seed
+        
 
     def _validate_type(self, value, typeof: type, message: str):
         if not type(value) == typeof:
