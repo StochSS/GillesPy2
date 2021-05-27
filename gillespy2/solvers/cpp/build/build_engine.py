@@ -23,6 +23,10 @@ class BuildEngine():
         self.makefile = self.cpp_dir.joinpath("Makefile")
 
         self.debug = debug
+        # TODO: add cache detection logic.
+        # For now, asusme the cache is never enabled.
+        self.cache_enabled = False
+        self.cache_dir: Path = None
 
         if not self.temp_dir.is_dir():
             self.temp_dir.mkdir()
@@ -59,7 +63,10 @@ class BuildEngine():
         """
 
         # If object files haven't been compiled yet, go ahead and compile them with make.
-        self.make.prebuild()
+        # Precompilation only happens if the cache is enabled but hasn't been built yet.
+        # Make target for individual simulation will still succeed if prebuild() isn't called.
+        if self.cache_enabled and self.cache_dir is None:
+            self.make.prebuild()
 
         # Output files are rooted relative to the output directory.
         # Template files get placed in <output>/template.

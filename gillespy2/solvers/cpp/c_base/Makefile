@@ -76,7 +76,7 @@ prebuild: prebuild_solvers prebuild_simulations $(SUNOBJ)
 ### FINAL COMPILATIONS ###
 COMPILATION_ARGS := $(CXXFLAGS) -o $(OUTPUT_FILE) $(TEMPLATE_CPP) $(OBJ_DIR)/model.o $(INCLUDES)
 
-ODESimulation: ODESimulation.o model.o ODESolver.o $(SUNOBJ_PATHS)
+ODESimulation: ODESimulation.o model.o ODESolver.o $(SUNOBJ)
 	$(CC) $(COMPILATION_ARGS) $(SUNOBJ_PATHS) $(OBJ_DIR)/ODESimulation.o $(OBJ_DIR)/ODESolver.o
 
 SSASimulation: SSASimulation.o model.o SSASolver.o

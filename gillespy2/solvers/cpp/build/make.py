@@ -4,13 +4,20 @@ from pathlib import Path
 from gillespy2.core import gillespyError, logging
 
 class Make():
-    def __init__(self, makefile: str, output_dir: str):
+    def __init__(self, makefile: str, output_dir: str, obj_dir: str = None):
         self.makefile = Path(makefile).resolve()
         self.self_dir = Path(__file__).parent
 
         self.cbase_dir = self.self_dir.joinpath("../c_base").resolve()
-        self.obj_dir = self.cbase_dir.joinpath("obj").resolve()
         self.output_dir = Path(output_dir).resolve()
+
+        # obj_dir is, presumably, only supplied if caching is enabled.
+        # If not supplied, it should be assumed ethereal and cleaned up
+        #  with the rest of the tmp directory.
+        if obj_dir is None:
+            self.obj_dir = self.output_dir.joinpath("obj").resolve()
+        else:
+            self.obj_dir = Path(obj_dir).resolve()
 
         if not self.output_dir.is_dir():
             self.output_dir.mkdir()
