@@ -1,4 +1,4 @@
-#include "tau_leaper.h"
+#include "TauLeapingSolver.h"
 #include <random>//Included for mt19937 random number generator, poisson distribution
 #include <cmath>//Included for natural logarithm
 #include <csignal>//Included for timeout signal handling

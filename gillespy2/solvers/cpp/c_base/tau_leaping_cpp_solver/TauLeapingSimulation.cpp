@@ -4,8 +4,9 @@
 #include <sstream>
 #include <time.h>
 #include <math.h>
-#include "SSASolver.h"
+#include "TauLeapingSolver.h"
 #include "template.h"
+
 using namespace Gillespy;
 
 //Default values, replaced with command line args
@@ -14,24 +15,27 @@ unsigned int number_timesteps = 0;
 int random_seed = 0;
 double end_time = 0;
 bool seed_time = true;
+double tau_tol = 0.03;
 
-class PropensityFunction : public IPropensityFunction {
+class PropensityFunction : public IPropensityFunction{
 public:
-    double evaluate(unsigned int reaction_number, unsigned int* S) {
+
+    double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S) {
         return map_propensity(reaction_number, S);
     }
-    double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S){return 1.0;}
+    double evaluate(unsigned int reaction_number, unsigned int* state){return 1.0;}
     double ODEEvaluate(int reaction_number, const std::vector <double> &S){return 1.0;}
 
 };
-int main(int argc, char* argv[]) {
+
+int main(int argc, char* argv[]){
     //Parse command line arguments
     std :: string arg;
-    for(int i = 1; i < argc - 1; i++) {
+    for(int i = 1; i < argc - 1; i++){
         arg = argv[i];
-        if(argc > i+1 && arg.size() > 1 && arg[0] == '-') {
+        if(argc > i+1 && arg.size() > 1 && arg[0] == '-'){
             std :: stringstream arg_stream(argv[i+1]);
-            switch(arg[1]) {
+            switch(arg[1]){
             case 's':
                 arg_stream >> random_seed;
                 seed_time = false;
@@ -46,22 +50,25 @@ int main(int argc, char* argv[]) {
                 map_variable_parameters(arg_stream);
                 break;
             case 't':
-                if(arg[2] == 'r') {
+                if(arg[2] == 'r'){
                     arg_stream >> number_trajectories;
-                } else if(arg[2] == 'i') {
+                }else if(arg[2] == 'i'){
                     arg_stream >> number_timesteps;
+                }else if (arg[2] == 'a'){ // '-tau_tol'
+                    arg_stream >> tau_tol;
                 }
                 break;
             }
         }
     }
-
     Model model(species_names, species_populations, reaction_names);
     add_reactions(model);
+
 
     if(seed_time){
         random_seed = time(NULL);
     }
+
     IPropensityFunction *propFun = new PropensityFunction();
     // Simulation INIT
     Simulation simulation;
@@ -74,9 +81,8 @@ int main(int argc, char* argv[]) {
     simulation.number_trajectories = number_trajectories;
     simulation.propensity_function = propFun;
     simulationSSAINIT(&model, simulation);
-    // Perform SSA  //
-
-    ssa_direct(&simulation);
+    // Perform Tau Leaping  //
+    tau_leaper(&simulation, tau_tol);
     simulation.output_results_buffer(std :: cout);
     delete propFun;
     return 0;

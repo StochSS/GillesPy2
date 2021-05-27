@@ -40,7 +40,7 @@ namespace Gillespy {
     #undef CONSTANT
     #undef VARIABLE
 
-    double map_propensity(int reaction_id, const std::vector<unsigned int> &S)
+    double map_propensity(int reaction_id, const std::vector<int> &S)
     {
         switch (reaction_id) {
             #define PROPENSITY(id, func) case(id): return(func);
