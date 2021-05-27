@@ -100,7 +100,7 @@ class CSimulation:
         if os.name == "nt":
             proc_kill = lambda sim: sim.send_signal(signal.CTRL_BREAK_EVENT)
             platform_args = {
-                "creationargs": subprocess.CREATE_NEW_PROCESS_GROUP,
+                "creationflags": subprocess.CREATE_NEW_PROCESS_GROUP,
                 "start_new_session": True
             }
 
