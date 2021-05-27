@@ -7,7 +7,8 @@ from gillespy2.core import GillesPySolver, gillespyError, Model
 from .c_simulation import CSimulation, SimulationReturnCode
 
 class ODECSolver(GillesPySolver, CSimulation):
-    type = "ODECSolver"
+    name = "ODECSolver"
+    type = "ODESimulation"
 
     def get_solver_settings(self):
         """
@@ -54,12 +55,8 @@ class ODECSolver(GillesPySolver, CSimulation):
                 "parameters": parameter_values
             })
 
+        seed = self._validate_seed(seed)
         if seed is not None:
-            seed = int(seed)
-
-            if seed <= 0:
-                raise gillespyError.ModelError("Seed must be a postive integer.")
-
             args.update({
                 "seed": seed
             })
@@ -68,7 +65,7 @@ class ODECSolver(GillesPySolver, CSimulation):
         args = self._make_args(args)
         decoder = BasicSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
 
-        sim_exec = self._build(model, "ODESimulation", self.variable, False)
+        sim_exec = self._build(model, self.type, self.variable, False)
         sim_status = self._run(sim_exec, args, decoder, timeout)
 
         if sim_status == SimulationReturnCode.FAILED:
@@ -76,6 +73,8 @@ class ODECSolver(GillesPySolver, CSimulation):
                 f"Return code: {int(sim_status)}.\n")
 
         trajectories, time_stopped = decoder.get_output()
-        formatted_trajectories = self._format_output(trajectories)
 
-        return formatted_trajectories, int(sim_status)
+        simulation_data = self._format_output(trajectories)
+        simulation_data = self._make_resume_data(time_stopped, simulation_data, t, resume)
+
+        return simulation_data, int(sim_status)
