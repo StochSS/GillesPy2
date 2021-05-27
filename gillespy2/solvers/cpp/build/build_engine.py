@@ -2,6 +2,8 @@ import shutil, tempfile
 import os
 from pathlib import Path
 
+from pexpect import which
+
 from . import template_gen
 from .make import Make
 from gillespy2.core import Model
@@ -28,6 +30,19 @@ class BuildEngine():
             self.temp_dir.mkdir()
 
         self.make = Make(str(self.makefile), str(self.temp_dir))
+
+    @classmethod
+    def get_missing_dependencies(cls):
+        """
+        Determine which dependencies are missing on the system, if any.
+
+        :returns: A list of missing dependencies.
+        """
+
+        dependencies = ["g++", "make"]
+        missing = [(dep) for dep in dependencies if shutil.which(dep) is None]
+
+        return missing
 
     def prepare(self, model: Model, variable=False):
         """
