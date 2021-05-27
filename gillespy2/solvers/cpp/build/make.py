@@ -40,10 +40,10 @@ class Make():
     def __execute(self, target: str, **kwargs):        
         # Default make arguments.
         args_dict = {
-            "cbase_dir": self.cbase_dir.resolve(),
-            "obj_dir": self.obj_dir.resolve(),
-            "output_dir": self.output_dir.resolve(),
-            "output_file": self.output_dir.joinpath(self.output_file).resolve()
+            "cbase_dir": str(self.cbase_dir.resolve()),
+            "obj_dir": str(self.obj_dir.resolve()),
+            "output_dir": str(self.output_dir.resolve()),
+            "output_file": str(self.output_dir.joinpath(self.output_file).resolve())
         }
 
         # Overwrite keys supplied in **kwargs.
@@ -54,7 +54,7 @@ class Make():
         make_args = [(f"{key.upper()}={value}") for key, value in args_dict.items()]
 
         # Create the make command.
-        make_cmd = ["make", "-C", self.cbase_dir, "-f", self.makefile, target] + make_args
+        make_cmd = ["make", "-C", str(self.cbase_dir), "-f", str(self.makefile), target] + make_args
 
         print(make_cmd)
 

@@ -1,6 +1,6 @@
 ### Compiler configuration/settings ###
 CC=g++
-CFLAGS = -std=c++14 -Wall -O3
+CXXFLAGS = -std=c++14 -Wall -O3
 #######################################
 
 ### Input directories ###
@@ -30,21 +30,21 @@ sundials_nvector.o nvector_serial.o cvode.o cvode_spils.o sundials_math.o sunlin
 SUNOBJ_PATHS := $(SUNOBJ:%.o=$(SUNDIALS_OBJ)/%.o)
 
 model.o:
-	$(CC) -c -o $(OBJ_DIR)/model.o $(CBASE_DIR)/model.cpp $(CFLAGS) -I$(CBASE_DIR)
+	$(CC) $(CXXFLAGS) -c -o $(OBJ_DIR)/model.o $(CBASE_DIR)/model.cpp -I$(CBASE_DIR)
 
 %.o: $(SUNDIALS_SRC)/%.c
-	$(CC) -c -o $(SUNDIALS_OBJ)/$@ $< $(CFLAGS) -I$(SUNDIALS_INC)
+	$(CC) -c -o $(SUNDIALS_OBJ)/$@ $< $(CXXFLAGS) -I$(SUNDIALS_INC)
 
 ODESolver.o: $(ODE_SOLVER_PATH)/ODESolver.cpp 
-	$(CC) -c -o $(OBJ_DIR)/ODESolver.o $(ODE_SOLVER_PATH)/ODESolver.cpp $(INCLUDES)
+	$(CC) $(CXXFLAGS) -c -o $(OBJ_DIR)/ODESolver.o $(ODE_SOLVER_PATH)/ODESolver.cpp  $(INCLUDES)
 
 ODESimulation.o: ODESolver.o $(ODE_SOLVER_PATH)/ODESimulation.cpp
-	$(CC) -c -o $(OBJ_DIR)/ODESimulation.o $(ODE_SOLVER_PATH)/ODESimulation.cpp $(INCLUDES)
+	$(CC) $(CXXFLAGS) -c -o $(OBJ_DIR)/ODESimulation.o $(ODE_SOLVER_PATH)/ODESimulation.cpp $(INCLUDES)
 
 prebuild: ODESolver.o ODESimulation.o $(SUNOBJ)
 
 ODESimulation: ODESimulation.o model.o ODESolver.o $(SUNOBJ_PATHS)
-	$(CC) -o $(OUTPUT_FILE) $(SUNOBJ_PATHS) $(TEMPLATE_CPP) $(OBJ_DIR)/model.o $(OBJ_DIR)/ODESimulation.o $(OBJ_DIR)/ODESolver.o $(INCLUDES)
+	$(CC) $(CXXFLAGS) -o $(OUTPUT_FILE) $(SUNOBJ_PATHS) $(TEMPLATE_CPP) $(OBJ_DIR)/model.o $(OBJ_DIR)/ODESimulation.o $(OBJ_DIR)/ODESolver.o $(INCLUDES)
 
 clean:
 	rm -rf $(OUTPUT_DIR)/*.out
