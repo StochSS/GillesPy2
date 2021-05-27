@@ -14,6 +14,7 @@ namespace Gillespy
     extern std::vector<std::string> reaction_names;
 
     double map_propensity(int reaction_id, const std::vector<unsigned int> &state);
+    double map_propensity(int reaction_id, unsigned int *S);
     double map_ode_propensity(int reaction_id, const std::vector<double> &state);
     void add_reactions(Model &model);
 
