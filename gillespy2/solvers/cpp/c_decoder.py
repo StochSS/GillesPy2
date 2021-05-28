@@ -32,7 +32,7 @@ class SimDecoder(ABC):
         self.num_trajectories, self.num_timesteps, self.num_species = trajectories.shape
 
     @classmethod
-    def create_default(cls, num_trajectories: int, num_timesteps: int, num_species: int):
+    def create_default(cls, num_trajectories: int, num_timesteps: int, num_species: int) -> "type[SimDecoder]":
         """
         Creates a new instance of the calling class, using a NumPy array with a predefined shape.
         Calling this method is preferred over calling the constructor directly.
@@ -44,7 +44,7 @@ class SimDecoder(ABC):
         pass
 
     @abc.abstractmethod
-    def get_output(self):
+    def get_output(self) -> "tuple[numpy.ndarray, int]":
         pass
 
     @abc.abstractmethod
