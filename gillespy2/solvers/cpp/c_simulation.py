@@ -26,6 +26,7 @@ class CSimulation:
         self.model = model
         self.resume = resume
         self.variable = variable
+        self.build_engine = None
 
         # Validate output_directory, ensure that it doesn't already exist
         if isinstance(output_directory, str):
@@ -38,7 +39,6 @@ class CSimulation:
                 )
         self.output_directory = output_directory
         self.delete_directory = delete_directory
-        self.build_engine = None
 
         if self.model is None:
             return
