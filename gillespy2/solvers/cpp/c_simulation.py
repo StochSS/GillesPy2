@@ -96,7 +96,6 @@ class CSimulation:
 
         # Prefix the executable to the sim arguments.
         sim_args = [sim_exec] + sim_args
-        print(sim_args)
 
         # nt and *nix require different methods to force shutdown a running process.
         if os.name == "nt":
@@ -138,8 +137,6 @@ class CSimulation:
 
                 if timeout_event[0]:
                     return SimulationReturnCode.PAUSED
-
-                print(return_code)
 
                 # Clean up if specified to do so by the user
                 if self.build_engine is not None and self.delete_directory:
