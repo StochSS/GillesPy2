@@ -1,5 +1,5 @@
-import shutil, tempfile
-import os
+import shutil
+import tempfile
 from pathlib import Path
 
 from . import template_gen
@@ -23,6 +23,7 @@ class BuildEngine():
         self.makefile = self.cpp_dir.joinpath("Makefile")
 
         self.debug = debug
+
         # TODO: add cache detection logic.
         # For now, asusme the cache is never enabled.
         self.cache_enabled = False
@@ -79,6 +80,18 @@ class BuildEngine():
         template_file = self.template_dir.joinpath(self.template_definitions_name)
         template_file.unlink()
         template_gen.write_template(str(template_file), model, variable)
+
+    def build_cache(self, cache_dir: str, force_rebuild: bool = False):
+        """
+        Build object dependencies and cache into directory for later use.
+
+        :param cache_dir: The directory to use as a cache.
+        :type cache_dir: str
+
+        :param force_rebuild: Delete and rebuild the cache directory.
+        :type bool:
+        """
+        pass
 
     def build_simulation(self, simulation_name: str) -> str:
         """
