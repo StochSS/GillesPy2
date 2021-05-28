@@ -91,7 +91,7 @@ class Reaction(SortableObject):
                 self.marate = None
             else:
                 self.marate = rate
-                self.__create_mass_action()
+                self.create_mass_action()
         else:
             self.type = "customized"
 
@@ -230,7 +230,7 @@ class Reaction(SortableObject):
         if len(self.reactants) == 0 and len(self.products) == 0:
             raise ReactionError("You must have a non-zero number of reactants or products.")
 
-    def __create_mass_action(self):
+    def create_mass_action(self):
         """
         Initializes the mass action propensity function given
         self.reactants and a single parameter value.
