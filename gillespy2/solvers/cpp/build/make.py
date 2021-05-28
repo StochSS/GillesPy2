@@ -1,7 +1,11 @@
-import logging, subprocess, os
+import os
+import logging
+import subprocess
+
 from pathlib import Path
 
-from gillespy2.core import gillespyError, logging
+from gillespy2.core import logging
+from gillespy2.core import gillespyError
 
 class Make():
     def __init__(self, makefile: str, output_dir: str, obj_dir: str = None):
