@@ -252,7 +252,7 @@ class CSolver:
     def _validate_variables_in_set(self, variables, set):
         for var in variables.keys():
             if var not in set:
-                raise gillespyError.SimulationErrorp(f"Argument to variable '{var}' is not a valid variable. Variables must be model species or parameters.")
+                raise gillespyError.SimulationError(f"Argument to variable '{var}' is not a valid variable. Variables must be model species or parameters.")
 
     def _validate_type(self, value, typeof: type, message: str):
         if not type(value) == typeof:
