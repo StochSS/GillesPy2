@@ -51,8 +51,13 @@ class CSimulation:
         self.simulation_data = []
 
     def __del__(self):
-        if self.delete_directory:
-            self.build_engine.clean()
+        if self.build_engine is None:
+            return
+
+        if not self.delete_directory:
+            return
+
+        self.build_engine.clean()
 
     def _build(self, model: Model, simulation_name: str, variable: bool, debug: bool = False) -> str:
         """
