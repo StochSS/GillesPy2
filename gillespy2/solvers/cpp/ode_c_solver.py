@@ -4,9 +4,9 @@ from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
 from gillespy2.solvers.utilities import solverutils as cutils
 from gillespy2.core import GillesPySolver, gillespyError, Model
 
-from .c_simulation import CSimulation, SimulationReturnCode
+from .c_solver import CSolver, SimulationReturnCode
 
-class ODECSolver(GillesPySolver, CSimulation):
+class ODECSolver(GillesPySolver, CSolver):
     name = "ODECSolver"
     type = "ODESimulation"
 
