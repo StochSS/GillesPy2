@@ -211,7 +211,12 @@ def __get_reactions(sbml_model, gillespy_model, errors):
 def __get_rules(sbml_model, gillespy_model, errors):
     for i in range(sbml_model.getNumRules()):
         rule = sbml_model.getRule(i)
-        rule_name = rule.getId()
+
+        # If the SBML object does not contain an ID attribute create a unique rule_name from the variable name.
+        rule_name = rule.getIdAttribute()
+        if rule_name == "":
+            rule_name = f"ar_{rule.getId()}"
+
         rule_variable = rule.getVariable()
         rule_string = __get_math(rule.getMath())
         if rule_variable in gillespy_model.listOfParameters:
