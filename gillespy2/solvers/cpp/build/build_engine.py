@@ -114,4 +114,5 @@ class BuildEngine():
         if self.debug:
             return
 
-        shutil.rmtree(self.temp_dir)
+        if self.temp_dir.exists():
+            shutil.rmtree(self.temp_dir)

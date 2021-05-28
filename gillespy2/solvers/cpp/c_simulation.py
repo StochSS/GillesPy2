@@ -50,6 +50,10 @@ class CSimulation:
         self.reactions = list(self.model.listOfReactions.keys())
         self.simulation_data = []
 
+    def __del__(self):
+        if self.delete_directory:
+            self.build_engine.clean()
+
     def _build(self, model: Model, simulation_name: str, variable: bool, debug: bool = False) -> str:
         """
         Generate and build the simulation from the specified Model and solver_name into the output_dir.
@@ -137,10 +141,6 @@ class CSimulation:
 
                 if timeout_event[0]:
                     return SimulationReturnCode.PAUSED
-
-                # Clean up if specified to do so by the user
-                if self.build_engine is not None and self.delete_directory:
-                    self.build_engine.clean()
 
                 if return_code not in [0, 33]:
                     return SimulationReturnCode.FAILED
