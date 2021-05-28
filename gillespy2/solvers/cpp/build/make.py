@@ -63,8 +63,6 @@ class Make():
         # Create the make command.
         make_cmd = ["make", "-C", str(self.cbase_dir), "-f", str(self.makefile), target] + make_args
 
-        print(make_cmd)
-
         try:
             result = subprocess.run(make_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
