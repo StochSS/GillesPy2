@@ -23,14 +23,17 @@ class Make():
         else:
             self.obj_dir = Path(obj_dir).resolve()
 
-        if not self.output_dir.is_dir():
-            self.output_dir.mkdir()
+        for path in [self.output_dir, self.obj_dir]:
+            if path.is_file():
+                raise gillespyError.DirectoryError(
+                    f"Error while attempting to open directory:\n"
+                    f"- {path} is actually a file."
+                )
 
-        if not self.obj_dir.is_dir():
-            self.obj_dir.mkdir()
+            if not path.is_dir():
+                path.mkdir()
 
         self.output_file = "Simulation.out"
-
         if os.name == "nt":
             self.output_file = "Simulation.exe"
 
