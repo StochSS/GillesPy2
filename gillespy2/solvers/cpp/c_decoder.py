@@ -89,28 +89,23 @@ class BasicSimDecoder(SimDecoder):
         """
         stdout = "".join(self.buffer).split(",")
         # The last number written to stdout from C++ sim is always the stop time.
-        time_stopped = int(stdout.pop())
+        time_stopped = stdout.pop()
+        time_stopped = int(time_stopped) if time_stopped.isdigit() else 0
 
         # Assumed layout of NumPy array:
         #  1D: index to each simulation trajectory
         #  2D: index to each timestep of that directory
         #  3D: index to each species of that timestep
         # Buffer is a flat 1D list, which gets mapped into the NumPy array.
-        for traj_number, trajectory in enumerate(self.trajectories):
-            # traj_i is this trajectory's offset into the 1D list.
+        for entry_i, entry in enumerate(stdout):
+            spec_num = entry_i % self.num_species
+            entry_i //= self.num_species
+            # Each timestep has a "stride" equal to the total number of species.
+            ts_num = entry_i  % self.num_timesteps
             # Each trajectory has a "stride" equal to the total number of timesteps.
-            traj_i = traj_number * self.num_timesteps
+            traj_num = entry_i // self.num_timesteps
 
-            for ts_number, timestep in enumerate(trajectory):
-                # time_i is this timestep's offset into the 1D list.
-                # Each timestep has a "stride" equal to the total number of timesteps.
-                time_i = ts_number * self.num_species
-
-                for spec_i in range(timestep.size):
-                    # Output is a 1-dimensional list with the assumed layout.
-                    # This species's offset is relative to the offset of the current timestep.
-                    current_index = traj_i + time_i + spec_i
-                    timestep[spec_i] = stdout[current_index]
+            self.trajectories[traj_num][ts_num][spec_num] = entry
 
         return self.trajectories, time_stopped
 
