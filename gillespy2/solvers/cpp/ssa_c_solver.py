@@ -6,7 +6,7 @@ from .c_solver import CSolver, SimulationReturnCode
 
 class SSACSolver(GillesPySolver, CSolver):
     name = "SSACSolver"
-    type = "SSASimulation"
+    type = "ssa"
 
     def get_solver_settings(self):
         """

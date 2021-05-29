@@ -6,7 +6,7 @@ from .c_solver import CSolver, SimulationReturnCode
 
 class TauLeapingCSolver(GillesPySolver, CSolver):
     name = "TauLeapingCSolver"
-    type = "TauLeapingSimulation"
+    type = "tau_leap"
 
     def get_solver_settings(self):
         """

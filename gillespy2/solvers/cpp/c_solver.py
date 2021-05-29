@@ -142,11 +142,9 @@ class CSolver:
                 proc_kill(simulation)
 
             finally:
+                timeout_thread.cancel()
                 return_code = simulation.wait()
                 reader_thread.join()
-
-                if timeout_thread.is_alive():
-                    timeout_thread.cancel()
 
                 if timeout_event[0]:
                     return SimulationReturnCode.PAUSED

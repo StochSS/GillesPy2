@@ -6,7 +6,7 @@ from .c_solver import CSolver, SimulationReturnCode
 
 class ODECSolver(GillesPySolver, CSolver):
     name = "ODECSolver"
-    type = "ODESimulation"
+    type = "ode"
 
     def get_solver_settings(self):
         """
