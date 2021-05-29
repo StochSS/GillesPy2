@@ -128,18 +128,22 @@ class CSolver:
                 proc_kill(simulation)
 
             timeout_thread = threading.Timer(timeout, timeout_kill)
+            reader_thread = threading.Thread(target=decoder.read,
+                                             args=(simulation.stdout,))
 
             if timeout > 0:
                 timeout_thread.start()
 
             try:
-                decoder.read(simulation.stdout)
+                reader_thread.start()
+                reader_thread.join()
             
             except KeyboardInterrupt:
                 proc_kill(simulation)
 
             finally:
                 return_code = simulation.wait()
+                reader_thread.join()
 
                 if timeout_thread.is_alive():
                     timeout_thread.cancel()
