@@ -9,13 +9,14 @@ from gillespy2.core import Model
 class BuildEngine():
     template_definitions_name = "template_definitions.h"
 
-    def __init__(self, debug: bool = False, output_dir: str = None):
+    def __init__(self, debug: bool = False, output_dir: str = None, no_output_dir: bool = False):
         # If the temp_dir is None, make one. Else, ensure it exists.
         # Output files are all rooted relative to the temp_dir.
-        if output_dir is None:
-            self.temp_dir = Path(tempfile.mkdtemp())
-        else:
-            self.temp_dir = Path(output_dir)
+        if not no_output_dir:
+            if output_dir is None:
+                self.temp_dir = Path(tempfile.mkdtemp())
+            else:
+                self.temp_dir = Path(output_dir)
 
         self.self_dir = Path(__file__).parent
         self.cpp_dir = self.self_dir.joinpath("../c_base").resolve()

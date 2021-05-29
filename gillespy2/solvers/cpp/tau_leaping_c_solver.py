@@ -16,7 +16,7 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
 
     def run(self=None, model: Model = None, t: int = 20, number_of_trajectories: int = 1, timeout: int = 0,
             increment: int = 0.05, seed: int = None, debug: bool = False, profile: bool = False, variables={}, 
-            resume=None, tau_step: int = .03, **kwargs):
+            resume=None, tau_step: int = .03, tau_tol=0.03, **kwargs):
 
         if self is None or self.model is None:
             self = TauLeapingCSolver(model, resume=resume)
@@ -42,6 +42,7 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
             "trajectories": number_of_trajectories,
             "timesteps": number_timesteps,
             "tau_step": tau_step,
+            "tau_tol": tau_tol,
             "end": t
         }
 
