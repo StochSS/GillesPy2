@@ -1,11 +1,26 @@
 import unittest
+from unittest.case import expectedFailure
 import numpy
 import io
+import example_models
 from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
+from gillespy2.solvers.cpp import SSACSolver, ODECSolver, TauLeapingCSolver
 
 class TestCSolvers(unittest.TestCase):
     """
     """
+
+    test_model = example_models.Dimerization()
+    solvers = [
+        SSACSolver(model=test_model),
+        ODECSolver(model=test_model),
+        TauLeapingCSolver(model=test_model),
+    ]
+    solvers_variable = [
+        SSACSolver(model=test_model, variable=True),
+        ODECSolver(model=test_model, variable=True),
+        TauLeapingCSolver(model=test_model, variable=True),
+    ]
     
     def test_c_decoder(self):
         """
@@ -33,3 +48,15 @@ class TestCSolvers(unittest.TestCase):
         # Test both the passed-in trajectory list and the returned trajectories.
         self.assertTrue(numpy.all(result == expected_result))
 
+    @expectedFailure
+    def test_solver_build(self):
+        """
+        Build each solver and ensure that they build properly.
+        """
+        expected_time = numpy.arange(100)
+        print(expected_time)
+        for solver in self.solvers:
+            with self.subTest(solver=solver):
+                results = self.test_model.run(solver=solver, number_of_trajectories=2)
+                for trajectory in results:
+                    self.assertTrue(trajectory["time"] == expected_time) 
