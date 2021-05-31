@@ -1,3 +1,4 @@
+from pathlib import Path
 import unittest
 import shutil
 import os
@@ -41,9 +42,9 @@ class TestBuildEngine(unittest.TestCase):
         template_dir = self.build_engine.template_dir
         obj_dir = self.build_engine.cache_dir
 
-        self.assertTrue(template_dir.is_relative_to(self.tmp_dir),
+        self.assertTrue(str(template_dir.resolve()).startswith(str(Path(self.tmp_dir).resolve())),
                         "Template directory was not placed in temp directory when cache is disabled")
-        self.assertTrue(obj_dir.is_relative_to(self.tmp_dir),
+        self.assertTrue(str(obj_dir.resolve()).startswith(str(Path(self.tmp_dir).resolve())),
                         "Dependency obj directory was not placed in temp directory when cache is disabled")
 
         # Ensure that the dependencies are cleaned up when .clean() is called.
@@ -69,6 +70,12 @@ class TestBuildEngine(unittest.TestCase):
                         self.build_engine.template_definitions_name)
         self.build_engine.prepare(self.test_model, variable=False)
         self.assertTrue(template_file.exists(), "Simulation template header file could not be found")
+
+        # Test to ensure the contents of the output template_file contains ONLY macro definitions,
+        # nothing else.
+        with open(template_file) as template:
+            for line in template.readlines():
+                self.assertTrue(line.startswith("#"), "Output template file contains an invalid definition.")
 
     def test_build_output(self):
         """
