@@ -26,14 +26,19 @@ class BuildEngine():
         self.debug = debug
 
         # TODO: add cache detection logic.
-        # For now, asusme the cache is never enabled.
+        # For now, assume the cache is never enabled.
         self.cache_enabled = False
-        self.cache_dir: Path = None
+        if self.cache_enabled:
+            pass
+        else:
+            # If the cache is disabled, dependencies get compiled into
+            #   a subdirectory of the temp dir, and gets cleaned up.
+            self.cache_dir: Path = self.temp_dir.joinpath("obj")
 
         if not self.temp_dir.is_dir():
             self.temp_dir.mkdir()
 
-        self.make = Make(str(self.makefile), str(self.temp_dir))
+        self.make = Make(str(self.makefile), str(self.temp_dir), str(self.cache_dir))
 
     @classmethod
     def get_missing_dependencies(cls):
@@ -67,7 +72,7 @@ class BuildEngine():
         # If object files haven't been compiled yet, go ahead and compile them with make.
         # Precompilation only happens if the cache is enabled but hasn't been built yet.
         # Make target for individual simulation will still succeed if prebuild() isn't called.
-        if self.cache_enabled and self.cache_dir is None:
+        if self.cache_enabled:
             self.make.prebuild()
 
         # Output files are rooted relative to the output directory.
