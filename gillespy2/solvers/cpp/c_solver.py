@@ -232,15 +232,11 @@ class CSolver:
         resume_time = float(resume["time"][-1])
         increment = resume_time - float(resume["time"][-2])
         # Replace the simulation's timespan to continue where the Results object left off.
-        simulation_data[-1]["time"] = numpy.arange(start=0,
+        simulation_data[-1]["time"] = numpy.arange(start=(resume_time + increment),
                                                    stop=(resume_time + time_stopped + increment),
                                                    step=increment)
 
         for entry_name, entry_data in simulation_data[-1].items():
-            # We've already updated the time entry above.
-            if entry_name == "time":
-                continue
-
             # The results of the current simulation is treated as an "extension" of the resume data.
             # As such, the new simulation output is formed by joining the two end to end.
             new_data = numpy.concatenate((resume[entry_name], entry_data), axis=None)

@@ -6,7 +6,7 @@ from .c_solver import CSolver, SimulationReturnCode
 
 class SSACSolver(GillesPySolver, CSolver):
     name = "SSACSolver"
-    type = "ssa"
+    target = "ssa"
 
     def get_solver_settings(self):
         """
@@ -62,7 +62,7 @@ class SSACSolver(GillesPySolver, CSolver):
         args = self._make_args(args)
         decoder = BasicSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
 
-        sim_exec = self._build(model, self.type, self.variable, False)
+        sim_exec = self._build(model, self.target, self.variable, False)
         sim_status = self._run(sim_exec, args, decoder, timeout)
 
         if sim_status == SimulationReturnCode.FAILED:

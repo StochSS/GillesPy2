@@ -1,26 +1,30 @@
 import unittest
-from unittest.case import expectedFailure
 import numpy
 import io
+import os
 import example_models
 from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
 from gillespy2.solvers.cpp import SSACSolver, ODECSolver, TauLeapingCSolver
 
 class TestCSolvers(unittest.TestCase):
     """
+    Run tests to ensure the setup process is valid for each C++ solver.
+    Does not actually run any simulations, just validates their construction.
+    Effectively an "integration test" for each C++ solver, making sure they
+      play nice with the build engine and template gen.
     """
 
     test_model = example_models.Dimerization()
-    solvers = [
-        SSACSolver(model=test_model),
-        ODECSolver(model=test_model),
-        TauLeapingCSolver(model=test_model),
-    ]
-    solvers_variable = [
-        SSACSolver(model=test_model, variable=True),
-        ODECSolver(model=test_model, variable=True),
-        TauLeapingCSolver(model=test_model, variable=True),
-    ]
+    solvers = {
+        SSACSolver.target: SSACSolver(model=test_model),
+        ODECSolver.target: ODECSolver(model=test_model),
+        TauLeapingCSolver.target: TauLeapingCSolver(model=test_model),
+    }
+    solvers_variable = {
+        SSACSolver.target: SSACSolver(model=test_model, variable=True),
+        ODECSolver.target: ODECSolver(model=test_model, variable=True),
+        TauLeapingCSolver.target: TauLeapingCSolver(model=test_model, variable=True),
+    }
     
     def test_c_decoder(self):
         """
@@ -52,10 +56,27 @@ class TestCSolvers(unittest.TestCase):
         """
         Build each solver and ensure that they build properly.
         """
-        expected_time = numpy.linspace(0, 100, 101)
-        print(expected_time)
-        for solver in self.solvers:
-            with self.subTest(solver=solver):
-                results = self.test_model.run(solver=solver, number_of_trajectories=2)
-                for trajectory in results:
-                    self.assertTrue(numpy.all(trajectory["time"] == expected_time))
+        # Test builds for non-variable solvers
+        for solver_name, solver in self.solvers.items():
+            with self.subTest(solver=solver_name):
+                exe = solver._build(model=self.test_model,
+                                    simulation_name=solver_name,
+                                    variable=False,
+                                    debug=False)
+                print(exe)
+                solver.build_engine.clean()
+
+        # Test builds for variable solvers
+        for solver_name, solver in self.solvers_variable.items():
+            with self.subTest(solver=solver_name):
+                exe = solver._build(model=self.test_model,
+                                    simulation_name=solver_name,
+                                    variable=True,
+                                    debug=False)
+                self.assertTrue(os.path.isfile(exe),
+                                "Built simulation output could not be found or is a directory.")
+                self.assertTrue(os.access(exe, os.X_OK),
+                                "Built simulation binaries are not executable.")
+                solver.build_engine.clean()
+                self.assertFalse(os.path.exists(exe),
+                                 "Simulation output not cleaned up after call to .clean().")

@@ -99,9 +99,11 @@ class BasicSimDecoder(SimDecoder):
         # Buffer is a flat 1D list, which gets mapped into the NumPy array.
         for entry_i, entry in enumerate(stdout):
             spec_num = entry_i % self.num_species
-            entry_i //= self.num_species
+
             # Each timestep has a "stride" equal to the total number of species.
-            ts_num = entry_i  % self.num_timesteps
+            entry_i //= self.num_species
+            ts_num = entry_i % self.num_timesteps
+
             # Each trajectory has a "stride" equal to the total number of timesteps.
             traj_num = entry_i // self.num_timesteps
 
