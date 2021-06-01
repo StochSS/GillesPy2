@@ -18,6 +18,8 @@ if __name__ == '__main__':
         sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
     import test_empty_model
+    import test_build_engine
+    import test_c_solvers
     import test_model
     import test_ode_solver
     import test_ode_c_solver
@@ -37,6 +39,8 @@ if __name__ == '__main__':
 
     modules = [
         test_empty_model,
+        test_build_engine,
+        test_c_solvers,
         test_model,
         test_ode_solver,
         test_ode_c_solver,

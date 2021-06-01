@@ -48,15 +48,14 @@ class TestCSolvers(unittest.TestCase):
         # Test both the passed-in trajectory list and the returned trajectories.
         self.assertTrue(numpy.all(result == expected_result))
 
-    @expectedFailure
     def test_solver_build(self):
         """
         Build each solver and ensure that they build properly.
         """
-        expected_time = numpy.arange(100)
+        expected_time = numpy.linspace(0, 100, 101)
         print(expected_time)
         for solver in self.solvers:
             with self.subTest(solver=solver):
                 results = self.test_model.run(solver=solver, number_of_trajectories=2)
                 for trajectory in results:
-                    self.assertTrue(trajectory["time"] == expected_time) 
+                    self.assertTrue(numpy.all(trajectory["time"] == expected_time))

@@ -10,6 +10,8 @@ from enum import IntEnum
 from concurrent.futures import Future, ThreadPoolExecutor
 
 from gillespy2.core import Model
+from gillespy2.core import Results
+from gillespy2.core import log
 from gillespy2.core import gillespyError
 from gillespy2.solvers.utilities import solverutils
 from gillespy2.solvers.cpp.c_decoder import SimDecoder
@@ -194,14 +196,55 @@ class CSolver:
 
         return self.simulation_data
 
-    def _make_resume_data(self, time_stopped: int, simulation_data: numpy.ndarray, t: int, resume):
+    def _make_resume_data(self, time_stopped: int, simulation_data: numpy.ndarray, t: int):
         """
         If the simulation was paused then the output data needs to be trimmed to allow for resume.
         In the event the simulation was not paused, no data is changed.
         """
+        # No need to create resume data if the simulation completed without interruption.
+        # Note that, currently, some C++ solvers write 0 out as the "time stopped" by default.
+        # This is likely to change in the future.
+        if not time_stopped < t or time_stopped == 0:
+            return simulation_data
 
-        if resume is not None or time_stopped != 0:
-            return solverutils.c_solver_resume(time_stopped, simulation_data, t, resume=resume)
+        # Find the index of the time step value which is closest to the time stopped.
+        cutoff = numpy.searchsorted(simulation_data[-1]["time"], float(time_stopped))
+        if cutoff < 2:
+            log.warning('You have paused the simulation too early, and no points have been calculated past'
+                        ' initial values. A graphic display will not produce expected results.')
+
+        # Break off any extraneous data which goes past the cutoff time.
+        # Any data in this case is assumed to be untrusted.
+        for entry_name, entry_data in simulation_data[-1].items():
+            simulation_data[-1][entry_name] = entry_data[:cutoff]
+
+        return simulation_data
+
+    def _update_resume_data(self, resume: Results, simulation_data: "list[dict[str, numpy.ndarray]]", time_stopped: int):
+        """
+        Modify the simulation output to continue from a previous Results object.
+        Does not handle the case where the simulation was interrupted again.
+        """
+        # No need to update the resume data if there is no previous data, or not enough.
+        if resume is None or len(resume["time"]) < 2:
+            return simulation_data
+
+        resume_time = float(resume["time"][-1])
+        increment = resume_time - float(resume["time"][-2])
+        # Replace the simulation's timespan to continue where the Results object left off.
+        simulation_data[-1]["time"] = numpy.arange(start=0,
+                                                   stop=(resume_time + time_stopped + increment),
+                                                   step=increment)
+
+        for entry_name, entry_data in simulation_data[-1].items():
+            # We've already updated the time entry above.
+            if entry_name == "time":
+                continue
+
+            # The results of the current simulation is treated as an "extension" of the resume data.
+            # As such, the new simulation output is formed by joining the two end to end.
+            new_data = numpy.concatenate((resume[entry_name], entry_data), axis=None)
+            simulation_data[-1][entry_name] = new_data
 
         return simulation_data
 

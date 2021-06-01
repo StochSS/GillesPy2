@@ -73,6 +73,10 @@ class ODECSolver(GillesPySolver, CSolver):
         trajectories, time_stopped = decoder.get_output()
 
         simulation_data = self._format_output(trajectories)
-        simulation_data = self._make_resume_data(time_stopped, simulation_data, t, resume)
+        if sim_status == SimulationReturnCode.PAUSED:
+            simulation_data = self._make_resume_data(time_stopped, simulation_data, t)
+        if resume is not None:
+            simulation_data = self._update_resume_data(resume, simulation_data, time_stopped)
+        self.simulation_data = simulation_data
 
         return simulation_data, int(sim_status)
