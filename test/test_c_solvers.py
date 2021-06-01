@@ -63,8 +63,14 @@ class TestCSolvers(unittest.TestCase):
                                     simulation_name=solver_name,
                                     variable=False,
                                     debug=False)
-                print(exe)
+
+                self.assertTrue(os.path.isfile(exe),
+                                "Built simulation output could not be found or is a directory.")
+                self.assertTrue(os.access(exe, os.X_OK),
+                                "Built simulation binaries are not executable.")
                 solver.build_engine.clean()
+                self.assertFalse(os.path.exists(exe),
+                                 "Simulation output not cleaned up after call to .clean().")
 
         # Test builds for variable solvers
         for solver_name, solver in self.solvers_variable.items():
