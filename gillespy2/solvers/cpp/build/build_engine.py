@@ -1,47 +1,44 @@
+import os
 import shutil
 import tempfile
 from pathlib import Path
 
+import gillespy2
+from gillespy2.core import Model, gillespyError
+
 from . import template_gen
 from .make import Make
-from gillespy2.core import Model
 
 class BuildEngine():
     template_definitions_name = "template_definitions.h"
 
     def __init__(self, debug: bool = False, output_dir: str = None, no_output_dir: bool = False):
-        # If the temp_dir is None, make one. Else, ensure it exists.
-        # Output files are all rooted relative to the temp_dir.
-        if not no_output_dir:
-            if output_dir is None:
-                self.temp_dir = Path(tempfile.mkdtemp())
-            else:
-                self.temp_dir = Path(output_dir)
-
         self.self_dir = Path(__file__).parent
         self.cpp_dir = self.self_dir.joinpath("../c_base").resolve()
-        self.template_dir = self.temp_dir.joinpath("template")
         self.makefile = self.cpp_dir.joinpath("Makefile")
+        self.src_template_dir = self.cpp_dir.joinpath("template")
+        self.output_dir = output_dir
 
         self.debug = debug
 
-        # TODO: add cache detection logic.
-        # For now, assume the cache is never enabled.
-        self.cache_enabled = False
-        if self.cache_enabled:
-            pass
-        else:
-            # If the cache is disabled, dependencies get compiled into
-            #   a subdirectory of the temp dir, and gets cleaned up.
-            self.cache_dir: Path = self.temp_dir.joinpath("obj")
+        # The output_dir will be generated if it does not exist on prepare().
+        # Output files are all rooted relative to the output_dir.
+        if self.output_dir is not None:
+            self.output_dir = Path(output_dir)
 
-        if not self.temp_dir.is_dir():
-            self.temp_dir.mkdir()
+            if not self.output_dir.is_dir():
+                self.output_dir.mkdir(parents=True)
 
-        self.make = Make(str(self.makefile), str(self.temp_dir), str(self.cache_dir))
+    def __get_cache_dir(self) -> Path:
+        cache_dir = gillespy2._global_cache
+
+        if not cache_dir.is_dir() or not os.access(str(cache_dir), os.R_OK):
+            cache_dir = Path(os.path.expanduser("~"), ".gillespy2", "cache")
+
+        return cache_dir
 
     @classmethod
-    def get_missing_dependencies(cls):
+    def get_missing_dependencies(cls) -> "list[str]":
         """
         Determine which dependencies are missing on the system, if any.
 
@@ -69,23 +66,32 @@ class BuildEngine():
         :type variable: bool
         """
 
+        # If the output directory is None, create and set it to a temporary directory.
+        if self.output_dir is None:
+            self.output_dir = Path(tempfile.mkdtemp())
+
         # If object files haven't been compiled yet, go ahead and compile them with make.
         # Precompilation only happens if the cache is enabled but hasn't been built yet.
         # Make target for individual simulation will still succeed if prebuild() isn't called.
-        if self.cache_enabled:
-            self.make.prebuild()
+        self.obj_dir = self.output_dir.joinpath("obj")
+        self.template_dir = self.output_dir.joinpath("template")
 
-        # Output files are rooted relative to the output directory.
-        # Template files get placed in <output>/template.
-        src_template_dir = self.cpp_dir.joinpath("template")
+        if gillespy2.cache_enabled:
+            self.obj_dir = self.__get_cache_dir()
+
+        if not self.obj_dir.is_dir():
+            self.obj_dir.mkdir(parents=True)
 
         # Copy the C++ template directory to the temp directory.
-        shutil.copytree(src_template_dir, self.template_dir)
+        shutil.copytree(self.src_template_dir, self.template_dir)
 
         # Build the template and write it to the temp directory and remove the sample template_definitions header.
         template_file = self.template_dir.joinpath(self.template_definitions_name)
         template_file.unlink()
         template_gen.write_template(str(template_file), model, variable)
+
+        # With all required information gathered, create a Make instance.
+        self.make = Make(str(self.makefile), str(self.output_dir), str(self.obj_dir))
 
     def build_cache(self, cache_dir: str, force_rebuild: bool = False):
         """
@@ -97,7 +103,9 @@ class BuildEngine():
         :param force_rebuild: Delete and rebuild the cache directory.
         :type bool:
         """
-        pass
+
+        make = Make(self.makefile, cache_dir, cache_dir)
+        make.prebuild()
 
     def build_simulation(self, simulation_name: str) -> str:
         """
@@ -108,6 +116,12 @@ class BuildEngine():
 
         :return: The path of the newly build solver executable.
         """
+
+        if self.make is None:
+            raise gillespyError.BuildError(
+                "Failed to build the simulation. The build environment has not yet been prepared.\n"
+                "To fix, call `BuildEngine.prepare()` prior to attempting to build the simulation."
+            )
 
         self.make.build_simulation(simulation_name, template_dir=str(self.template_dir))
         return str(self.make.output_file)
@@ -120,5 +134,5 @@ class BuildEngine():
         if self.debug:
             return
 
-        if self.temp_dir.exists():
-            shutil.rmtree(self.temp_dir)
+        if self.output_dir.exists():
+            shutil.rmtree(self.output_dir)
