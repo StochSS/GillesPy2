@@ -409,9 +409,9 @@ class Results(UserList):
 
         if multiple_graphs:
 
-            from plotly import tools
+            from plotly import subplots
 
-            fig = tools.make_subplots(print_grid=False, rows=int(number_of_trajectories/2) +
+            fig = subplots.make_subplots(print_grid=False, rows=int(number_of_trajectories/2) +
                                                              int(number_of_trajectories % 2), cols=2)
 
             for i, trajectory in enumerate(trajectory_list):

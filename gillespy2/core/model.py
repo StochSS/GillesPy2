@@ -1181,7 +1181,7 @@ class StochMLDocument():
                         reaction.marate = model.listOfParameters[
                             generated_rate_name]
 
-                    reaction.__create_mass_action()
+                    reaction.create_mass_action()
                 except Exception as e:
                     raise
             elif type == 'customized':
