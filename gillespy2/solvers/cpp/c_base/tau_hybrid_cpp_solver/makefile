@@ -1,8 +1,8 @@
 # SUNDIALS_DIR = ../Sundials
 # CBASE_DIR = ../
 
-CC=g++
-CFLAGS = -c  -std=c++14 -Wall -O3
+CXX=g++
+CXXFLAGS = -c  -std=c++14 -Wall -O3
 LINKFLAGS = -L. -std=c++14 -Wall -O3
 SRCDIR = $(SUNDIALS_DIR)/src
 INCDIR = $(SUNDIALS_DIR)/include
@@ -21,19 +21,19 @@ sundials_nvector.o nvector_serial.o cvode.o cvode_spils.o sundials_math.o sunlin
 all: model.o TauHybridCSolver.o TauHybridSimulation.o TauHybridSimulation
 
 model.o:
-	$(CC) -c -o model.o $(CBASE_DIR)/model.cpp $(CFLAGS) -I$(CBASE_DIR) -I$(INCDIR)
+	$(CXX) -c -o model.o $(CBASE_DIR)/model.cpp $(CXXFLAGS) -I$(CBASE_DIR) -I$(INCDIR)
 
 %.o: $(SRCDIR)/%.c
-	$(CC) -c -o $@ $< $(CFLAGS) -I$(INCDIR)
+	$(CXX) -c -o $@ $< $(CXXFLAGS) -I$(INCDIR)
 
 TauHybridCSolver.o:
-	$(CC) -c -o TauHybridCSolver.o $(GILLESPY_CPP_TAU_HYBRID_DIR)/TauHybridCSolver.cpp $(CFLAGS) -I$(CBASE_DIR) -I$(SRCDIR) -I$(INCDIR) -I$(CBASE_DIR)/Tau
+	$(CXX) -c -o TauHybridCSolver.o $(GILLESPY_CPP_TAU_HYBRID_DIR)/TauHybridCSolver.cpp $(CXXFLAGS) -I$(CBASE_DIR) -I$(SRCDIR) -I$(INCDIR) -I$(CBASE_DIR)/Tau
 
 TauHybridSimulation.o:
-	$(CC) -c -o TauHybridSimulation.o TauHybridSimulation.cpp $(CFLAGS) -I$(CBASE_DIR) -I$(GILLESPY_CPP_TAU_HYBRID_DIR)
+	$(CXX) -c -o TauHybridSimulation.o TauHybridSimulation.cpp $(CXXFLAGS) -I$(CBASE_DIR) -I$(GILLESPY_CPP_TAU_HYBRID_DIR)
 
 TauHybridSimulation: TauHybridSimulation.o TauHybridCSolver.o $(SUNOBJ) model.o
-	$(CC) -o TauHybridSimulation TauHybridCSolver.o TauHybridSimulation.o $(SUNOBJ) model.o $(LINKFLAGS)
+	$(CXX) -o TauHybridSimulation TauHybridCSolver.o TauHybridSimulation.o $(SUNOBJ) model.o $(LINKFLAGS)
 
 cleanSimulationODE:
 	rm -f TauHybridSimulation

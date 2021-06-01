@@ -9,7 +9,7 @@
 #include "sundials_math.h"  // contains the macros ABS, SUNSQR, EXP
 #include "TauHybridCSolver.h"
 #include "HybridModel.h"
-#include "statistics.h"
+// #include "statistics.h"
 #include "tau.h"
 using namespace Gillespy;
 
@@ -101,7 +101,7 @@ namespace Gillespy::TauHybrid {
 
                 // The first half of the integration vector is used for integrating species concentrations.
                 // [ --- concentrations --- | ...
-				N_Vector y0 = N_VNew_Serial(num_species);
+				N_Vector y0 = N_VNew_Serial(rxn_offset_boundary);
 				for (int spec_i = 0; spec_i < num_species; ++spec_i) {
 					NV_Ith_S(y0, spec_i) = species[spec_i].initial_population;
 				}
@@ -207,13 +207,13 @@ namespace Gillespy::TauHybrid {
 					// Output the results for this time step.
 					simulation->current_time = next_time;
 					
-					while (save_time <= next_time) {
-						// Write each species, one at a time (from ODE solution)
-						for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-							simulation->trajectoriesODE[traj][save_time][spec_i] = NV_Ith_S(y0, spec_i);
-						}
-						save_time += increment;
-					}
+					// while (save_time <= next_time) {
+					// 	// Write each species, one at a time (from ODE solution)
+					// 	for (int spec_i = 0; spec_i < num_species; ++spec_i) {
+					// 		simulation->trajectoriesODE[traj][save_time][spec_i] = NV_Ith_S(y0, spec_i);
+					// 	}
+					// 	save_time += increment;
+					// }
 					
 				}
 
@@ -263,7 +263,7 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 	unsigned int rxn_i;
     unsigned int rxn_offset_i;
 	int species_change;
-	for (rxn_i = 0; rxn_i < sim->model->number_reactions; ++rxn_i) {
+	for (rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
         // Index to the reaction's offset state in the integrator.
         rxn_offset_i = rxn_i + num_species;
 
@@ -272,9 +272,9 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 		propensity = sim->propensity_function->ODEEvaluate(rxn_i, concentrations);
 
         // Integrate this reaction's rxn_offset forward using the propensity.
-        rxn_offsets[rxn_offset_i] = Y[rxn_offset_i] + propensity;
+        dydt[rxn_offset_i] = rxn_offsets[rxn_i] + propensity;
 
-		for (spec_i = 0; spec_i < sim->model->number_species; ++spec_i) {
+		for (spec_i = 0; spec_i < num_species; ++spec_i) {
 			// Use the evaluated propensity to update the concentration levels and reaction state.
 			// Propensity is treated as positive if it's a product, negative if it's a reactant.
 			species_change = sim->model->reactions[rxn_i].species_change[spec_i];

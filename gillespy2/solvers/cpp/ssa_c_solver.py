@@ -214,6 +214,7 @@ class SSACSolver(GillesPySolver):
                 platform_args = { "start_new_session": True }
 
             thread_events = { "timeout": False }
+            return_code = 0
             with subprocess.Popen(args, stdout=subprocess.PIPE, **platform_args) as simulation:
                 # Put a timer on in the background, if a timeout was specified.
                 def timeout_kill():
@@ -237,12 +238,12 @@ class SSACSolver(GillesPySolver):
                 finally:
                     # Check if the simulation had been paused
                     # (Necessary because we can't set pause to True from thread handler)
-                    if reader.timed_out:
+                    if thread_events["timeout"]:
                         pause = True
                         return_code = 33
 
             # Decode from byte, split by comma into array
-            stdout = stdout.split(",")
+            stdout = "".join(buffer).split(",")
             if return_code in [0, 33]:
                 trajectory_base, timeStopped = cutils.parse_binary_output(number_of_trajectories, number_timesteps,
                                                                           len(model.listOfSpecies), stdout, pause=pause)
