@@ -1,4 +1,5 @@
 import os
+from re import U
 import shutil
 import tempfile
 from pathlib import Path
@@ -50,7 +51,7 @@ class BuildEngine():
 
         return missing
 
-    def prepare(self, model: Model, variable=False):
+    def prepare(self, model: Model, variable=False) -> str:
         """
         Prepare the template directory for compilation.
         The following operations will be performed:
@@ -64,6 +65,8 @@ class BuildEngine():
 
         :param variable: A template_gen argument requirement which enables support for non-constant param values.
         :type variable: bool
+
+        :returns: The path of the output directory.
         """
 
         # If the output directory is None, create and set it to a temporary directory.
@@ -92,6 +95,8 @@ class BuildEngine():
 
         # With all required information gathered, create a Make instance.
         self.make = Make(str(self.makefile), str(self.output_dir), str(self.obj_dir))
+
+        return self.output_dir
 
     def build_cache(self, cache_dir: str, force_rebuild: bool = False):
         """
@@ -132,6 +137,9 @@ class BuildEngine():
         """
 
         if self.debug:
+            return
+
+        if self.output_dir is None:
             return
 
         if self.output_dir.exists():
