@@ -1,9 +1,9 @@
 #ifndef TAUHYBRIDCSOLVER_H
 #define TAUHYBRIDCSOLVER_H
-#include "model.h"
+#include "HybridModel.h"
 
 namespace Gillespy::TauHybrid {
-    void TauHybridCSolver(Gillespy::Simulation* simulation, const double tau_tol);
+    void TauHybridCSolver(HybridSimulation* simulation, const double tau_tol);
 }
 
 #endif 

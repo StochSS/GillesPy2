@@ -41,13 +41,19 @@ namespace Gillespy{
     }
   }
 
-  void simulationSSAINIT(Model* model, Simulation &simulation){
+  void init_timeline(Simulation &simulation)
+  {
   	simulation.timeline = new double[simulation.number_timesteps];
     double timestep_size = simulation.end_time/(simulation.number_timesteps-1);
     for(unsigned int i = 0; i < simulation.number_timesteps; i++){
     	simulation.timeline[i] = timestep_size * i;
     }
- 	  unsigned int trajectory_size = simulation.number_timesteps * (model -> number_species);
+  }
+
+  void simulationSSAINIT(Model* model, Simulation &simulation){
+    init_timeline(simulation);
+
+ 	unsigned int trajectory_size = simulation.number_timesteps * (model -> number_species);
     simulation.trajectories_1D = new unsigned int[simulation.number_trajectories * trajectory_size];
     simulation.trajectories = new unsigned int**[simulation.number_trajectories];
     for(unsigned int i = 0; i < simulation.number_trajectories; i++){
@@ -60,11 +66,8 @@ namespace Gillespy{
 
 // initialize timeline, 
   void simulationODEINIT(Model* model, Simulation &simulation){
-    simulation.timeline = new double[simulation.number_timesteps];
-    double timestep_size = simulation.end_time/(simulation.number_timesteps-1);
-    for(unsigned int i = 0; i < simulation.number_timesteps; i++){
-      simulation.timeline[i] = timestep_size * i;
-    }
+    init_timeline(simulation);
+
     unsigned int trajectory_size = simulation.number_timesteps * (model -> number_species);
     simulation.trajectories_1DODE = new double[simulation.number_trajectories * trajectory_size];
     simulation.trajectoriesODE = new double**[simulation.number_trajectories];
@@ -90,14 +93,14 @@ namespace Gillespy{
   Simulation :: ~Simulation(){
     int type = this->type;
     delete timeline;
-    if (type == ODE || type == HYBRID){
+    if (type == ODE){
       delete trajectories_1DODE;
       for(unsigned int i = 0; i < number_trajectories; i++){
         delete trajectoriesODE[i];
       }
       delete trajectoriesODE;
     }
-    else if (type == SSA || type == TAU || type == HYBRID){
+    else if (type == SSA || type == TAU){
       delete trajectories_1D;
       for(unsigned int i = 0; i < number_trajectories; i++){
         delete trajectories[i];
@@ -131,15 +134,6 @@ namespace Gillespy{
             }
           else if (type == SSA || type == TAU){
             os<<trajectories[i][j][k]<<',';
-          }
-          else if (type == HYBRID) {
-            // if (trajectoriesHYBRID[i][j][k] == CONTINUOUS){
-            //   os << trajectoriesODE[i][j][k] << ',';
-            // }
-            // else if (trajectoriesHYBRID[i][j][k] == DISCRETE){
-            //   os << trajectories[i][j][k] << ',';
-            // }
-            os << trajectoriesODE[i][j][k] << ',';
           }
         }
       }

@@ -7,9 +7,6 @@
 #include <cmath>
 
 namespace Gillespy{
-  #define CONTINUOUS 0
-  #define DISCRETE 1
-  #define DYNAMIC 2
   //Represents info for a chemical reactant/product
   struct Species{
     unsigned int id; //useful for index id in arrays
@@ -82,13 +79,13 @@ namespace Gillespy{
     // this is essentially just an array that tracks whether or not a given species was computed continuously or discretely for a given timestep and trajectory (iteration of simulation)
     // CONTINUOUS 0
     // DISCRETE 1
-    int*** trajectoriesHYBRID;
 
     IPropensityFunction *propensity_function;
     friend std :: ostream& operator<<(std :: ostream& os, const Simulation& simulation);
     void output_results_buffer(std :: ostream& os);
   };
   //Trajectory initializers for ODE and SSA solvers
+  void init_timeline(Simulation &simulation);
   // void simulationODEINIT(Model* model, Simulation &simulation);
   // void simulationSSAINIT(Model* model, Simulation &simulation);
   void simulationINIT(Model* model, Simulation &simulation);

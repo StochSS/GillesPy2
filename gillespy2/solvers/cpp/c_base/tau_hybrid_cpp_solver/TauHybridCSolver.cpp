@@ -41,7 +41,51 @@ namespace Gillespy::TauHybrid {
 		interrupted = true;
 	}
 
-	void TauHybridCSolver(Gillespy::Simulation *simulation, const double tau_tol)
+    void simulation_hybrid_init(HybridSimulation &simulation)
+    {
+        Model *model = simulation.model;
+        init_timeline(simulation);
+        simulation.type = HYBRID;
+
+        unsigned int trajectory_size = simulation.number_timesteps * (model -> number_species);
+        /* 1-dimensional arrays might be unnecessary; look into mapping 3D array directly */
+        simulation.trajectories_hybrid1D = new hybrid_state[simulation.number_trajectories * trajectory_size];
+        simulation.trajectories_hybrid = new hybrid_state**[simulation.number_trajectories];
+
+        for(unsigned int i = 0; i < simulation.number_trajectories; i++){
+            simulation.trajectories_hybrid[i] = new hybrid_state*[simulation.number_timesteps];
+            for(unsigned int j = 0; j < simulation.number_timesteps; j++){
+                simulation.trajectories_hybrid[i][j] = &(simulation.trajectories_hybrid1D[i * trajectory_size + j *  (model -> number_species)]);
+            }
+        }
+    }
+
+    void HybridSimulation::output_hybrid_results(std::ostream &os)
+    {
+        for (int i = 0 ; i < number_trajectories; i++){
+            for (int j = 0; j < number_timesteps; j++){
+                os << timeline[j] << ',';
+
+                for (int k = 0; k < model->number_species; k++) {
+                    os << trajectories_hybrid[i][j][k].continuous << ',';
+                }
+            }
+
+            os<<(int)current_time;
+        }
+    }
+
+    HybridSimulation::~HybridSimulation()
+    {
+        if (type == HYBRID) {
+            for(unsigned int i = 0; i < number_trajectories; i++){
+                delete trajectories_hybrid[i];
+            }
+            delete trajectories_hybrid;
+        }
+    }
+
+	void TauHybridCSolver(HybridSimulation *simulation, const double tau_tol)
 	{
 		//timeouts not supported right now??
 		signal(SIGINT, signalHandler);
@@ -70,7 +114,7 @@ namespace Gillespy::TauHybrid {
 
 			//copy initial state for each trajectory
 			for(int s = 0; s < num_species; s++){
-				simulation->trajectoriesODE[0][0][s] = species[s].initial_population;
+				simulation->trajectories_hybrid[0][0][s].continuous = species[s].initial_population;
 				current_state[s] = species[s].initial_population;
 			}
 			//Simulate for each trajectory
@@ -138,6 +182,7 @@ namespace Gillespy::TauHybrid {
                 // Temporary array to store changes to dependent species.
                 // Should be 0-initialized each time it's used.
                 int *population_changes = new int[num_species];
+                simulation->current_time = 0;
 				while (simulation->current_time < simulation->end_time) {
 					// Determine what the next time point is.
 					// This will become current_time on the next iteration.
@@ -207,13 +252,13 @@ namespace Gillespy::TauHybrid {
 					// Output the results for this time step.
 					simulation->current_time = next_time;
 					
-					// while (save_time <= next_time) {
-					// 	// Write each species, one at a time (from ODE solution)
-					// 	for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-					// 		simulation->trajectoriesODE[traj][save_time][spec_i] = NV_Ith_S(y0, spec_i);
-					// 	}
-					// 	save_time += increment;
-					// }
+					while (save_time <= next_time) {
+						// Write each species, one at a time (from ODE solution)
+						for (int spec_i = 0; spec_i < num_species; ++spec_i) {
+							simulation->trajectories_hybrid[traj][save_time][spec_i].continuous = NV_Ith_S(y0, spec_i);
+						}
+						save_time += increment;
+					}
 					
 				}
 

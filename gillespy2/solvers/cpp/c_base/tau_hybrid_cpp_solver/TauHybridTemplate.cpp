@@ -79,7 +79,7 @@ __DEFINE_REACTIONS_
  }
   IPropensityFunction *propFun = new PropensityFunction();
    //Simulation INIT
-  Simulation simulation;
+  TauHybrid::HybridSimulation simulation;
   Model* modelptr;
   modelptr = &model;
   simulation.type = HYBRID;
@@ -89,10 +89,10 @@ __DEFINE_REACTIONS_
   simulation.number_timesteps = number_timesteps;
   simulation.number_trajectories = number_trajectories;
   simulation.propensity_function = propFun;
-  simulationINIT(&model, simulation);
+  TauHybrid::simulation_hybrid_init(simulation);
   // Perform ODE  //
   TauHybrid::TauHybridCSolver(&simulation, 0.05);
-  simulation.output_results_buffer(std :: cout);
+  simulation.output_hybrid_results(std :: cout);
   delete propFun;
   return 0;
 }
