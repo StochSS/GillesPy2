@@ -18,7 +18,7 @@ using namespace Gillespy;
 static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data); // forward declare function to be used to solve RHS of ODE
 
 struct UserData {
-  Gillespy::Simulation *my_sim;
+  Gillespy::TauHybrid::HybridSimulation *my_sim;
 };
 struct IntegratorOptions{
   // CVODE constants returned if bad output, or success output.
@@ -88,7 +88,7 @@ namespace Gillespy::TauHybrid {
 	void TauHybridCSolver(HybridSimulation *simulation, const double tau_tol)
 	{
 		//timeouts not supported right now??
-		signal(SIGINT, signalHandler);
+		// signal(SIGINT, signalHandler);
 		if (simulation) {
 			int num_species = (simulation->model)->number_species;
 			int num_reactions = (simulation->model)->number_reactions;
@@ -287,37 +287,41 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 
 	// Extract simulation data
 	UserData *data = static_cast<UserData*>(user_data);
-	Simulation *sim = data->my_sim;
+	Gillespy::TauHybrid::HybridSimulation *sim = data->my_sim;
     unsigned int num_species = sim->model->number_species;
     unsigned int num_reactions = sim->model->number_reactions;
 
     realtype *rxn_offsets = &Y[num_species];
+    realtype *dydt_offsets = &dydt[num_species];
     int rxn_offset_boundary = num_species + num_reactions;
-	std::vector<double> concentrations(sim->model->number_species);
+	std::vector<double> concentrations(num_species);
+    std::vector<int> populations(num_species);
 
 	// Populate the current ODE state into the concentrations vector.
 	// dy/dt results are initialized to zero, and become the change in propensity.
 	unsigned int spec_i;
 	for (spec_i = 0; spec_i < sim->model->number_species; ++spec_i) {
-		concentrations[spec_i] = Y[spec_i];
+		populations[spec_i] = concentrations[spec_i] = Y[spec_i];
 		dydt[spec_i] = 0;
 	}
 
+    // Populate the current stochastic state into the root offset vector.
+    // dy/dt results are initialized to zero, and become the change in offset.
+    unsigned int rxn_i;
+    for (rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
+        dydt_offsets[rxn_i] = 0;
+    }
+
 	// Each species has a "spot" in the y and f(y,t) vector.
 	// For each species, place the result of f(y,t) into dydt vector.
-	unsigned int rxn_i;
-    unsigned int rxn_offset_i;
 	int species_change;
-	for (rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
-        // Index to the reaction's offset state in the integrator.
-        rxn_offset_i = rxn_i + num_species;
 
+    // Process deterministic propensity state
+    // These updates get written directly to the integrator's concentration state
+	for (rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
         // NOTE: we may need to evaluate ODE and Tau propensities separately.
         // At the moment, it's unsure whether or not that's required.
 		propensity = sim->propensity_function->ODEEvaluate(rxn_i, concentrations);
-
-        // Integrate this reaction's rxn_offset forward using the propensity.
-        dydt[rxn_offset_i] = rxn_offsets[rxn_i] + propensity;
 
 		for (spec_i = 0; spec_i < num_species; ++spec_i) {
 			// Use the evaluated propensity to update the concentration levels and reaction state.
@@ -331,6 +335,12 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 			// This is a branchless alternative to using an if-statement.
 			dydt[spec_i] += propensity * (-1 + 2 * (species_change > 0));
 		}
+
+        // Process stochastic reaction state by updating the root offset for each reaction.
+        propensity = sim->hybrid_propensity(rxn_i, concentrations);
+
+        // Integrate this reaction's rxn_offset forward using the propensity.
+        dydt_offsets[rxn_i] += rxn_offsets[rxn_i] + propensity;
 	}
 
 	return 0;

@@ -39,6 +39,7 @@ namespace Gillespy::TauHybrid {
         unsigned int switch_min = 0;
     };
 
+
     union hybrid_state
     {
         unsigned int discrete;
@@ -51,6 +52,7 @@ namespace Gillespy::TauHybrid {
         hybrid_state ***trajectories_hybrid;
 
         void output_hybrid_results(std::ostream &os);
+        double hybrid_propensity(int reaction_id, std::vector<double> &current_state);
 
         ~HybridSimulation();
     };
