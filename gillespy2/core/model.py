@@ -62,7 +62,7 @@ def export_SBML(gillespy_model, filename=None):
     return export(gillespy_model, path=filename)
 
 
-def export_StochSS(gillespy_model, filename=None):
+def export_StochSS(gillespy_model, filename=None, return_stochss_model=False):
     """
     GillesPy model to StochSS converter
 
@@ -77,7 +77,7 @@ def export_StochSS(gillespy_model, filename=None):
     except ImportError:
         raise ImportError('StochSS export conversion not imported successfully')
 
-    return export(gillespy_model, path=filename)
+    return export(gillespy_model, path=filename, return_stochss_model=return_stochss_model)
 
 
 class Model(SortableObject):
