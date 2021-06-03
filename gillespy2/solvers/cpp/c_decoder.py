@@ -36,19 +36,41 @@ class SimDecoder(ABC):
         """
         Creates a new instance of the calling class, using a NumPy array with a predefined shape.
         Calling this method is preferred over calling the constructor directly.
+
+        :param num_trajectories: Number of trajectories expected in the simulation output.
+        :type num_trajectories: int
+
+        :param num_timesteps: Number of timesteps expected in the simulation output.
+        :type num_timesteps: int
+
+        :param num_species: Number of species expected in the simulation output.
+        :type num_species: int
+
+        :return: An instance of the decoder object, automatically populated with a valid output array.
         """
         return cls(numpy.zeros((num_trajectories, num_timesteps, num_species + 1)))
 
     @abc.abstractmethod
     def read(self, output: io.BufferedReader):
+        """
+        Accepts a buffered reader from stdout of a subprocess.
+        Contents of the given reader are processed and made available through get_output().
+
+        Blocks until the output of the buffered reader has been read completely.
+
+        :param output: Reader provided from the stdout member of an open Popen class.
+        :type output: io.BufferedReader
+        """
         pass
 
     @abc.abstractmethod
     def get_output(self) -> "tuple[numpy.ndarray, int]":
-        pass
+        """
+        Returns the fully-populated NumPy array containing the completed simulation data.
+        Assumes that the subprocess has already completed.
 
-    @abc.abstractmethod
-    def get_live_output(self):
+        :return: Tuple containing the 3D NumPy array of results, and the time stopped.
+        """
         pass
 
 class BasicSimDecoder(SimDecoder):
@@ -63,6 +85,11 @@ class BasicSimDecoder(SimDecoder):
         """
         Reads the next block from the simulation output.
         Returns the length of the string read.
+
+        :param output: Reader provided from the stdout member of an open Popen object.
+        :type output: io.BufferedReader
+
+        :return: Integer representing the number of characters read.
         """
         line = output.read().decode("utf-8")
         ln = len(line)
@@ -71,8 +98,6 @@ class BasicSimDecoder(SimDecoder):
         return ln
 
     def read(self, output: io.BufferedReader):
-        """
-        """
         bytes_read = 0
         page_size = self.__read_next(output)
         while page_size > 0 and not output.closed:
@@ -81,12 +106,6 @@ class BasicSimDecoder(SimDecoder):
         return bytes_read
 
     def get_output(self):
-        """
-        Returns the fully-populated NumPy array containing the completed simulation data.
-        Assumes that the subprocess has already completed.
-
-        :return: Tuple containing the 3D NumPy array of results, and the time stopped.
-        """
         stdout = "".join(self.buffer).split(",")
         # The last number written to stdout from C++ sim is always the stop time.
         time_stopped = stdout.pop()
@@ -110,10 +129,3 @@ class BasicSimDecoder(SimDecoder):
             self.trajectories[traj_num][ts_num][spec_num] = entry
 
         return self.trajectories, time_stopped
-
-    def get_live_output(self):
-        """
-        Returns an iterator to iterate over the solver results as they come in.
-        NOT YET IMPLEMENTED!
-        """
-        return super().get_live_output()
