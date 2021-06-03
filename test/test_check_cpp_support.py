@@ -3,12 +3,12 @@ Test to determine if the behavior exhibited by the new check_cpp_support() funct
 what is expected by the previous try/catch implementation.
 """
 
-import unittest;
+import unittest
+from gillespy2.solvers.cpp.build.build_engine import BuildEngine
 
 class TestCheckCPPSupport(unittest.TestCase):
     def test_check_cpp_support(self):
-        from gillespy2.solvers.utilities.cpp_support_test import check_cpp_support
-        self.assertEqual(check_cpp_support(), self.old_check_cpp_support())
+        self.assertEqual(not len(BuildEngine.get_missing_dependencies()), self.old_check_cpp_support())
 
     def old_check_cpp_support(self):
         from gillespy2.solvers.cpp.example_models import Example

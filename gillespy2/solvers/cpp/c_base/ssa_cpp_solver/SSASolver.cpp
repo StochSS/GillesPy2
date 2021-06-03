@@ -1,4 +1,4 @@
-#include "ssa.h"
+#include "SSASolver.h"
 #include <random>//Included for mt19937 random number generator
 #include <cmath>//Included for natural logarithm
 #include <string.h>//Included for memcpy only
