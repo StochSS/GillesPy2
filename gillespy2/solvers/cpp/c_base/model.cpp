@@ -2,11 +2,6 @@
 
 namespace Gillespy{
 
-    template class Simulation<double>;
-    template class Simulation<unsigned int>;
-    template void init_simulation<double>(Model *model, Simulation<double> &simulation);
-    template void init_simulation<unsigned int>(Model *model, Simulation<unsigned int> &simulation);
-
   Model :: Model(std :: vector<std :: string> species_names, std :: vector<unsigned int> species_populations, std :: vector<std :: string> reaction_names):
     number_species(species_names.size()),
     number_reactions(reaction_names.size())
@@ -116,4 +111,10 @@ namespace Gillespy{
 
 		os<<(int)current_time;
 	}
+
+    template struct Simulation<double>;
+    template struct Simulation<unsigned int>;
+    template void init_simulation<double>(Model *model, Simulation<double> &simulation);
+    template void init_simulation<unsigned int>(Model *model, Simulation<unsigned int> &simulation);
+
 }
