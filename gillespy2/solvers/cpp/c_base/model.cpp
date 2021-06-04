@@ -2,6 +2,8 @@
 
 namespace Gillespy{
 
+    template class Simulation<double>;
+    template class Simulation<unsigned int>;
     template void init_simulation<double>(Model *model, Simulation<double> &simulation);
     template void init_simulation<unsigned int>(Model *model, Simulation<unsigned int> &simulation);
 

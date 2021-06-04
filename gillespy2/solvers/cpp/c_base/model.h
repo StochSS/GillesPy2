@@ -72,8 +72,8 @@ namespace Gillespy{
 	void init_simulation(Model *model, Simulation<TNum> &simulation);
 
 	// Explicitly instantiate each needed type of simulation
-	template struct Simulation<double>;
-	template struct Simulation<unsigned int>;
+	extern template struct Simulation<double>;
+	extern template struct Simulation<unsigned int>;
 	extern template void init_simulation<double>(Model *model, Simulation<double> &simulation);
 	extern template void init_simulation<unsigned int>(Model *model, Simulation<unsigned int> &simulation);
 
