@@ -23,7 +23,7 @@ namespace Gillespy{
     interrupted = true ;
   }
 
-  void ssa_direct(Simulation* simulation){
+  void ssa_direct(Simulation<unsigned int>* simulation){
     #ifdef _WIN32
     SetConsoleCtrlHandler(eventHandler, TRUE);
     #else

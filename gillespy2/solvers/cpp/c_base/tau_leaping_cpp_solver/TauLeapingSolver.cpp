@@ -211,7 +211,7 @@ std::pair<std::map<std::string,int>,double> get_reactions(const Gillespy::Model 
     return values;
 }
 
-void tau_leaper(Gillespy::Simulation* simulation, const double tau_tol){
+void tau_leaper(Gillespy::Simulation<unsigned int> *simulation, const double tau_tol){
     signal(SIGINT, signalHandler);
     if(simulation){
         //Initialize your tau args

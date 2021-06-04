@@ -3,7 +3,7 @@
 #include "model.h"
 
 namespace Gillespy{
-void tau_leaper(Gillespy::Simulation* simulation, const double tau_tol);
+    void tau_leaper(Gillespy::Simulation<unsigned int> *simulation, const double tau_tol);
 }
 
 #endif // TAU_LEAPER_H

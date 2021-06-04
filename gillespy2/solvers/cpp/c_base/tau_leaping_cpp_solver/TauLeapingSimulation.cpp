@@ -71,7 +71,7 @@ int main(int argc, char* argv[]){
 
     IPropensityFunction *propFun = new PropensityFunction();
     // Simulation INIT
-    Simulation simulation;
+    Simulation<unsigned int> simulation;
     Model* modelptr;
     modelptr = &model;
     simulation.model = modelptr;
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]){
     simulation.number_timesteps = number_timesteps;
     simulation.number_trajectories = number_trajectories;
     simulation.propensity_function = propFun;
-    simulationSSAINIT(&model, simulation);
+    init_simulation(&model, simulation);
     // Perform Tau Leaping  //
     tau_leaper(&simulation, tau_tol);
     simulation.output_results_buffer(std :: cout);
