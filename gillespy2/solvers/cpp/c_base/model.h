@@ -60,7 +60,7 @@ namespace Gillespy{
 		PType ***trajectories;
 
 		IPropensityFunction *propensity_function;
-		friend std :: ostream& operator<<(std :: ostream& os, const Simulation<PType> &simulation);
+		template<class T> friend std :: ostream& operator<<(std :: ostream& os, const Simulation<T> &simulation);
 		void output_results_buffer(std :: ostream& os);
 	};
 

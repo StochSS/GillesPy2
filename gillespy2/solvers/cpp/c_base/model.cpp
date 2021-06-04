@@ -73,14 +73,14 @@ namespace Gillespy{
 
 	template <typename TNum>
 	Simulation<TNum>::~Simulation(){
-		delete timeline;
-		delete trajectories_1D;
+		delete[] timeline;
+		delete[] trajectories_1D;
 
 		for (unsigned int i = 0; i < number_trajectories; i++) {
-			delete trajectories[i];
+			delete[] trajectories[i];
 		}
 
-		delete trajectories;
+		delete[] trajectories;
 	}
 
 	template <typename TNum>
