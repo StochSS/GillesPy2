@@ -112,8 +112,8 @@ namespace Gillespy{
 	  }//Finished checking for which reaction fired at this time
 	}//Simulation has reached end time
       }//Finished simulating all trajectories
-      delete propensity_values;
-      delete current_state;
+      delete[] propensity_values;
+      delete[] current_state;
     }//end if simulation pointer not null
   }//end ssa_direct
 }//end namespace
