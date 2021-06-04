@@ -73,17 +73,16 @@ int main(int argc, char* argv[]){
  }
   IPropensityFunction *propFun = new PropensityFunction();
    //Simulation INIT
-  Simulation simulation;
+  Simulation<double> simulation;
   Model* modelptr;
   modelptr = &model;
-  simulation.ISODE=1;
   simulation.model = modelptr;
   simulation.end_time = end_time;
   simulation.random_seed = random_seed;
   simulation.number_timesteps = number_timesteps;
   simulation.number_trajectories = number_trajectories;
   simulation.propensity_function = propFun;
-  simulationODEINIT(&model, simulation);
+  init_simulation(&model, simulation);
   // Perform ODE  //
   ODESolver(&simulation,increment);
   simulation.output_results_buffer(std :: cout);

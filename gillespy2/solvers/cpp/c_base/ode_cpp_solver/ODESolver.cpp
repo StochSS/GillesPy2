@@ -14,10 +14,10 @@ using namespace Gillespy;
 static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data); // forward declare function to be used to solve RHS of ODE
 
 struct UserData {
-  Gillespy::Simulation *my_sim;
+  Gillespy::Simulation<double> *my_sim;
 };
 
-void ODESolver(Gillespy::Simulation* simulation, double increment){
+void ODESolver(Gillespy::Simulation<double> *simulation, double increment){
 	int flag; // CVODE constants returned if bad output, or success output.
 	// Constants: CV_SUCCESS,
 	// CV_MEM_NULL: CVODE memory block not initialized through call to CVodeCreate
@@ -42,7 +42,7 @@ void ODESolver(Gillespy::Simulation* simulation, double increment){
 
 	for(unsigned int species_number = 0; species_number < ((simulation -> model) -> number_species); species_number++){
 		NV_Ith_S(y0, species_number) = (simulation -> model) -> species[species_number].initial_population;
-		simulation -> trajectoriesODE[0][0][species_number] = (simulation -> model) -> species[species_number].initial_population;
+		simulation -> trajectories[0][0][species_number] = (simulation -> model) -> species[species_number].initial_population;
 	} // Add species initial conditions to 'y0', our "current state vector"
 	//Initialize CVODE solver object
 	void* cvode_mem = NULL; // create cvode object ptr
@@ -88,7 +88,7 @@ void ODESolver(Gillespy::Simulation* simulation, double increment){
 		flag = CVode(cvode_mem, tout, y0, &tret, CV_NORMAL);
 		curr_time+=1;
 		for (sunindextype species = 0; species < N; species++){
-			simulation->trajectoriesODE[0][curr_time][(int)species] = NV_Ith_S(y0,species);
+			simulation->trajectories[0][curr_time][(int)species] = NV_Ith_S(y0,species);
         	}
 	}
 
