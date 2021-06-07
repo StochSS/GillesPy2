@@ -20,10 +20,12 @@ if __name__ == '__main__':
     import test_empty_model
     import test_model
     import test_ode_solver
+    import test_ode_c_solver
     import test_hybrid_solver
     import test_simple_model
     import test_ssa_c_solver
-    import test_variable_ssa_c_solver
+    import test_variable_solvers
+    import test_tau_leaping_c_solver
     import test_SBML
     import test_example_models
     import test_all_solvers
@@ -38,10 +40,12 @@ if __name__ == '__main__':
         test_empty_model,
         test_model,
         test_ode_solver,
+        test_ode_c_solver,
+        test_tau_leaping_c_solver,
         test_hybrid_solver,
         test_simple_model,
         test_ssa_c_solver,
-        test_variable_ssa_c_solver,
+        test_variable_solvers,
         test_pause_resume,
         test_SBML,
         test_example_models,

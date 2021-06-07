@@ -261,6 +261,16 @@ class Model(SortableObject, Jsonify):
             return ModelError('Name "{}" is unavailable. A species with that name exists.'.format(name))
         if name in self.listOfParameters:
             return ModelError('Name "{}" is unavailable. A parameter with that name exists.'.format(name))
+        if name in self.listOfReactions:
+            return ModelError('Name "{}" is unavailable. A reaction with that name exists.'.format(name))
+        if name in self.listOfEvents:
+            return ModelError('Name "{}" is unavailable. An event with that name exists.'.format(name))
+        if name in self.listOfRateRules:
+            return ModelError('Name "{}" is unavailable. A rate rule with that name exists.'.format(name))
+        if name in self.listOfAssignmentRules:
+            return ModelError('Name "{}" is unavailable. An assignment rule with that name exists.'.format(name))
+        if name in self.listOfFunctionDefinitions:
+            return ModelError('Name "{}" is unavailable. A function definition with that name exists.'.format(name))
         if name.isdigit():
             return ModelError('Name "{}" is unavailable. Names must not be numeric strings.'.format(name))
         for special_character in Model.special_characters:
@@ -464,6 +474,9 @@ class Model(SortableObject, Jsonify):
                 self.add_reaction(r)
         else:
             try:
+                problem = self.problem_with_name(reactions.name)
+                if problem is not None:
+                    raise problem
                 reactions.verify()
                 self.validate_reactants_and_products(reactions)
                 if reactions.name is None or reactions.name == '':
@@ -503,6 +516,9 @@ class Model(SortableObject, Jsonify):
                 self.add_rate_rule(rr)
         else:
             try:
+                problem = self.problem_with_name(rate_rules.name)
+                if problem is not None:
+                    raise problem
                 if len(self.listOfAssignmentRules) != 0:
                     for i in self.listOfAssignmentRules.values():
                         if rate_rules.variable == i.variable:
@@ -544,6 +560,9 @@ class Model(SortableObject, Jsonify):
                 self.add_event(e)
         else:
             try:
+                problem = self.problem_with_name(event.name)
+                if problem is not None:
+                    raise problem
                 if event.trigger is None or not hasattr(event.trigger, 'expression'):
                     raise ModelError(
                         'An Event must contain a valid trigger.')
@@ -567,6 +586,9 @@ class Model(SortableObject, Jsonify):
                 self.add_function_definition(fd)
         else:
             try:
+                problem = self.problem_with_name(function_definitions.name)
+                if problem is not None:
+                    raise problem
                 self.listOfFunctionDefinitions[function_definitions.name] = function_definitions
             except Exception as e:
                 raise ParameterError(
@@ -583,6 +605,9 @@ class Model(SortableObject, Jsonify):
                 self.add_assignment_rule(ar)
         else:
             try:
+                problem = self.problem_with_name(assignment_rules.name)
+                if problem is not None:
+                    raise problem
                 if len(self.listOfRateRules) != 0:
                     for i in self.listOfRateRules.values():
                         if assignment_rules.variable == i.variable:
@@ -784,13 +809,12 @@ class Model(SortableObject, Jsonify):
         return 'Element not found!'
 
 
-    def get_best_solver(self, precompile=True):
+    def get_best_solver(self):
         """
         Finds best solver for the users simulation. Currently, AssignmentRules, RateRules, FunctionDefinitions,
         Events, and Species with a dynamic, or continuous population must use the TauHybridSolver.
         :param precompile: If True, and the model contains no AssignmentRules, RateRules, FunctionDefinitions, Events,
-        or Species with a dynamic or continuous population, the get_best_solver will choose the VariableSSACSolver, else
-        it will choose SSACSolver
+        or Species with a dynamic or continuous population, it will choose SSACSolver
         :type precompile: bool
         :return: gillespy2.gillespySolver
         """
@@ -821,14 +845,48 @@ class Model(SortableObject, Jsonify):
             return NumPySSASolver
 
         else:
-            if precompile:
-                from gillespy2 import VariableSSACSolver
-                return VariableSSACSolver
+            from gillespy2 import SSACSolver
+            return SSACSolver
+
+    def get_best_solver_algo(self, algorithm):
+        """
+        If user has specified a particular algorithm, we return either the Python or C++ version of that algorithm
+        """
+        from gillespy2.solvers.cpp import can_use_cpp
+        from gillespy2.solvers.numpy import can_use_numpy
+
+        if not can_use_cpp and can_use_numpy:
+            raise ModelError("Please install C++ or Numpy to use GillesPy2 solvers.")
+
+        if algorithm == 'Tau-Leaping':
+            if can_use_cpp:
+                from gillespy2 import TauLeapingCSolver
+                return TauLeapingCSolver
             else:
+                from gillespy2 import TauLeapingSolver
+                return TauLeapingSolver
+
+        elif algorithm == 'SSA':
+            if can_use_cpp:
                 from gillespy2 import SSACSolver
                 return SSACSolver
+            else:
+                from gillespy2 import NumPySSASolver
+                return NumPySSASolver
 
-    def run(self, solver=None, timeout=0, t=None, show_labels=True, cpp_support=False, **solver_args):
+        elif algorithm == 'ODE':
+            if can_use_cpp:
+                from gillespy2 import ODECSolver
+                return ODECSolver
+            else:
+                from gillespy2 import ODESolver
+                return ODESolver
+        else:
+            raise ModelError("Invalid value for the argument 'algorithm' entered. "
+                             "Please enter 'SSA', 'ODE', or 'Tau-leaping'.")
+
+    def run(self, solver=None, timeout=0, t=None, increment=None, show_labels=True, cpp_support=False, algorithm=None,
+            **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -843,6 +901,7 @@ class Model(SortableObject, Jsonify):
 
         :param t: End time of simulation
         :type t: int
+
         :param solver_args: Solver-specific arguments to be passed to solver.run()
 
         :param cpp_support: INTERNAL USE ONLY, flag for whether or not a computer has the capability to compile a
@@ -852,6 +911,9 @@ class Model(SortableObject, Jsonify):
         :return  If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is
         True,returns a Results object that inherits UserList and contains one or more Trajectory objects that
         inherit UserDict. Results object supports graphing and csv export.
+
+        :param algorithm: Specify algorithm ('ODE', 'Tau-Leaping', or 'SSA') for GillesPy2 to automatically pick best solver using that algorithm.
+        :type algorithm: str
 
         To pause a simulation and retrieve data before the simulation, keyboard interrupt the simulation by pressing
         control+c or pressing stop on a jupyter notebook. To resume a simulation, pass your previously ran results
@@ -867,17 +929,20 @@ class Model(SortableObject, Jsonify):
             t = self.tspan[-1]
 
         if solver is None:
-            solver = self.get_best_solver()
-
+            if algorithm is not None:
+                solver = self.get_best_solver_algo(algorithm)
+            else:
+                solver = self.get_best_solver()
+        if increment is None:
+            increment = self.tspan[-1] - self.tspan[-2]
         try:
-            solver_results, rc = solver.run(model=self, t=t, increment=self.tspan[-1] - self.tspan[-2],
-                                            timeout=timeout, **solver_args)
+            solver_results, rc = solver.run(model=self, t=t, increment=increment, timeout=timeout, **solver_args)
         except Exception as e:
             # If user has specified the SSACSolver, but they don't actually have a g++ compiler,
             # This will throw an error and throw log. IF a user specifies cpp_support == True and don't have a compiler
             # They would bypass this log.warning and just recieve an error
             if cpp_support is False and not isinstance(solver, str):
-                if solver.name == 'SSACSolver' or solver.name == 'VariableSSACSolver':
+                if solver.name == 'SSACSolver':
                     from gillespy2.core import log
                     log.warning("Please install/configure 'g++' and 'make' on your"
                                 " system, to ensure that GillesPy2 C solvers will"
@@ -891,17 +956,6 @@ class Model(SortableObject, Jsonify):
 
         if hasattr(solver_results[0], 'shape'):
             return solver_results
-
-        if len(solver_results) > 0:
-            results_list = []
-            for i in range(0, len(solver_results)):
-                temp = Trajectory(data=solver_results[i], model=self, solver_name=solver.name, rc=rc)
-                results_list.append(temp)
-
-            results = Results(results_list)
-            if show_labels == False:
-                results = results.to_array()
-            return results
 
         if len(solver_results) > 0:
             results_list = []
@@ -1172,7 +1226,7 @@ class StochMLDocument():
                         reaction.marate = model.listOfParameters[
                             generated_rate_name]
 
-                    reaction.__create_mass_action()
+                    reaction.create_mass_action()
                 except Exception as e:
                     raise
             elif type == 'customized':

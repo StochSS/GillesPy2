@@ -14,19 +14,8 @@ class TestSBML(unittest.TestCase):
         except ImportError:
             return
 
-        try:
-            from urllib2 import urlopen
-
-        except ImportError:
-            from urllib.request import urlopen
-
-        sbml_file = 'https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000028.2?filename=BIOMD0000000028_url.xml'
-        response = urlopen(sbml_file)
-        tmp = tempfile.NamedTemporaryFile(delete=False)
-        tmp.write(response.read())
-        tmp.close()
-        sbml_model, errors = import_SBML(tmp.name)
-        os.remove(tmp.name)
+        model_path = os.path.join(os.path.dirname(__file__), "assets", "test_sbml.xml")
+        sbml_model, errors = import_SBML(model_path)
         sbml_results = sbml_model.run(solver=ODESolver)
 
     def test_sbml_export_conversion(self):
