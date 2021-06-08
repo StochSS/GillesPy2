@@ -12,10 +12,11 @@ namespace Gillespy {
     // Helper method to flag reactions that can be processed deterministically (continuous change)
     // without exceeding the user-supplied tolerance
 
-    std::set<Reaction> flag_det_rxns(const Model &model, 
-                                                         const std::map<int, bool> det_species,
-                                                         std::map<int, bool> det_rxns, 
-                                                         std::map<int, std::set<int>> dependent_species){
+    std::set<int> flag_det_rxns(const Model &model, 
+                                                         const std::vector<bool> det_species,
+                                                         std::vector<bool> det_rxns, 
+                                                         std::vector<std::set<int>> dependent_species){
+
         int number_rxns = model.number_reactions;
         for (int rxn = 0; rxn < number_rxns; ++rxn){
             // start with the assumption that reaction is determinstic
