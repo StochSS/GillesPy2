@@ -1,10 +1,9 @@
-import pstats
-import cProfile
 import unittest
 
 from unittest import TestCase
 
 from test.example_models import MichaelisMenten
+from test.perf import python_profiler
 from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver
 from gillespy2.solvers.numpy.tau_hybrid_solver import TauHybridSolver
 
@@ -27,17 +26,7 @@ class TestPythonSolverPerf(TestCase):
             model = runnable[0]
             solver = runnable[1]
 
-            print(f"Profiling solver: {type(solver)} with model: {type(model)}...")
-
-            profiler = cProfile.Profile()
-            profiler.enable()
-
-            solver.run(model=model, number_of_trajectories=100, timeout=100)
-
-            profiler.disable()
-
-            stats = pstats.Stats(profiler).sort_stats("ncalls")
-            stats.print_stats()
+            python_profiler.run_profiler(model, solver)
 
 if __name__ == "__main__":
     unittest.main()
