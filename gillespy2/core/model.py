@@ -62,6 +62,24 @@ def export_SBML(gillespy_model, filename=None):
     return export(gillespy_model, path=filename)
 
 
+def export_StochSS(gillespy_model, filename=None, return_stochss_model=False):
+    """
+    GillesPy model to StochSS converter
+
+    :param gillespy_model: GillesPy model to be converted to StochSS
+    :type gillespy_model: gillespy.Model
+
+    :param filename: Path to the StochSS file for conversion
+    :type filename: str
+    """
+    try:
+        from gillespy2.stochss.StochSSexport import export
+    except ImportError:
+        raise ImportError('StochSS export conversion not imported successfully')
+
+    return export(gillespy_model, path=filename, return_stochss_model=return_stochss_model)
+
+
 class Model(SortableObject):
     # reserved names for model species/parameter names, volume, and operators.
     reserved_names = ['vol']
