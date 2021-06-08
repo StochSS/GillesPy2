@@ -1,4 +1,9 @@
-import json, hashlib, re, copy, pydoc, numpy
+import re
+import copy
+import json
+import pydoc
+import numpy
+import hashlib
 
 from json import JSONEncoder
 
@@ -9,7 +14,6 @@ class Jsonify:
     """
 
     _hash_private_vars = False
-    _generate_translation_table = False
     _translation_table = None
 
     def to_json(self):
@@ -23,7 +27,7 @@ class Jsonify:
     @classmethod
     def from_json(cls, json_object):
         """
-        Convert some json_object into a decoded Python type. This function should return a __new__ instance of the type.
+        Convert some json_object into a decoded Python type. This function should return a new instance of the type.
 
         :param json_object: A json str to be converted into a new type instance.
         :param translation_table: A dictionary used to translate anonymous names back into user-defined.
@@ -72,7 +76,6 @@ class Jsonify:
         """
         Converts self into a named instance of self.
         """
-
         return self.get_translation_table().obj_to_named(copy.deepcopy(self))
 
     def get_translation_table(self):
@@ -88,7 +91,7 @@ class Jsonify:
         """
         Make a translation table that describes key:value pairs to convert user-define data into generic equivalents.
         """
-        pass
+        raise NotImplementedError("make_translation_table() has not been implemented.")
 
     def public_vars(self):
         """
@@ -101,6 +104,7 @@ class Jsonify:
         Get the hash of the json representation of self.
         """
 
+        # If _hash_private_vars is set, hash ALL properties on the object.
         if self._hash_private_vars:
             return hashlib.md5(str.encode(self.to_json())).hexdigest()
 
@@ -122,35 +126,37 @@ class ComplexJsonCoder(JSONEncoder):
         super(ComplexJsonCoder, self).__init__(**kwargs)
         self._translation_table = translation_table
 
-    """
-    This function is called when json.dumps() fires. default() is a bad name for the function,
-    but anything else makes JSONEncoder freak out.
+    def default(self, obj):
+        """
+        This function is called when json.dumps() fires. default() is a bad name for the function,
+        but anything else makes JSONEncoder freak out.
 
-    :param o: The object that is currently being encoded into JSON.
-    """
-    def default(self, o):
+        :param obj: The object that is currently being encoded into JSON.
+        """
+
         from gillespy2.core.model import Model
 
-        if isinstance(o, numpy.ndarray):
-            return NdArrayCoder.to_dict(o)
+        # If obj is of matching type, use a custom coder.
+        if isinstance(obj, numpy.ndarray):
+            return NdArrayCoder.to_dict(obj)
 
-        if isinstance(o, set):
-            return SetCoder.to_dict(o)
+        if isinstance(obj, set):
+            return SetCoder.to_dict(obj)
 
-        if isinstance(o, type):
-            return TypeCoder.to_dict(o)
+        if isinstance(obj, type):
+            return TypeCoder.to_dict(obj)
 
-        if not isinstance(o, Jsonify):
-            return super().default(o)
+        if not isinstance(obj, Jsonify):
+            return super().default(obj)
 
-        model = o.to_dict()
+        model = obj.to_dict()
 
         # If the model is some subclass of gillespy2.core.model.Model, then manually set its type.
-        if issubclass(o.__class__, Model):
+        if issubclass(obj.__class__, Model):
             model["_type"] = f"{Model.__module__}.{Model.__name__}"
 
         else:
-            model["_type"] = f"{o.__class__.__module__}.{o.__class__.__name__}"
+            model["_type"] = f"{obj.__class__.__module__}.{obj.__class__.__name__}"
 
         return model
 
@@ -195,6 +201,8 @@ class TranslationTable(Jsonify):
         return translated
 
     def _recursive_translate(self, obj, translation_table):
+        # The obj is a class if it's an instance of Jsonify. Class property names *cannot*
+        # be changed, so translate just the values.
         if isinstance(obj, Jsonify):
             for key in vars(obj).keys():
                 vars(obj)[key] = self._recursive_translate(vars(obj)[key], translation_table)
@@ -216,11 +224,13 @@ class TranslationTable(Jsonify):
 
             obj = dict((x[0], x[1]) for x in new_pairs)
 
+        # If the obj is a string, translate it via a regex replace. 
+        # Note: mathematical functions contain additional characters that should not be translated.
         elif isinstance(obj, str):
-            # Assume that obj is a string.
-            # To handle functions, grab all words from the obj.
+            # To handle functions, grab all complete words from the string.
             matches = re.finditer("([0-z])+", obj)
 
+            # For each match, translate the group.
             for match in matches:
                 group = match.group()
                 obj = obj.replace(group, translation_table.get(group, group))
