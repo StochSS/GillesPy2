@@ -1,6 +1,7 @@
 ### Compiler configuration/settings ###
 CC=g++
 CXXFLAGS = -std=c++14 -Wall -O3
+GPY_SOLVER ?= ssa
 #######################################
 
 ### Input directories ###
@@ -20,6 +21,8 @@ TAU_HYBRID_SOLVER_PATH := $(CBASE_DIR)/tau_hybrid_cpp_solver
 OBJ_DIR ?= $(CBASE_DIR)
 OUTPUT_DIR ?= $(CBASE_DIR)
 OUTPUT_FILE ?= $(OUTPUT_DIR)/Simulation.out
+EXE_CMD ?= ./
+EXE_ARGS ?= -trajectories 1 -end 10 -timesteps 11 -increment 1
 SUNDIALS_OBJ ?= $(OBJ_DIR)
 INCLUDES := -I$(CBASE_DIR) -I$(SUNDIALS_INC) -I$(TEMPLATE_DIR) -I$(TAU_DIR)
 ##########################
@@ -87,7 +90,7 @@ prebuild: prebuild_solvers prebuild_simulations sundials ;
 
 ##########################
 ### FINAL COMPILATIONS ###
-COMPILATION_ARGS := $(CXXFLAGS) -o $(OUTPUT_FILE) $(TEMPLATE_CPP) $(OBJ_DIR)/model.o $(INCLUDES)
+COMPILATION_ARGS = $(CXXFLAGS) -o $(OUTPUT_FILE) $(TEMPLATE_CPP) $(OBJ_DIR)/model.o $(INCLUDES)
 
 ode: ODESimulation.o ODESolver.o sundials model $(TEMPLATE_CPP)
 	$(CC) $(COMPILATION_ARGS) $(SUNOBJ_PATHS) $(OBJ_DIR)/ODESimulation.o $(OBJ_DIR)/ODESolver.o
@@ -100,6 +103,15 @@ tau_leap: TauLeapingSimulation.o TauLeapingSolver.o model $(TEMPLATE_CPP)
 
 hybrid: TauHybridSimulation.o TauHybridSolver.o model sundials $(TEMPLATE_CPP)
 	$(CC) $(COMPILATION_ARGS) $(SUNOBJ_PATHS) $(OBJ_DIR)/TauHybridSimulation.o $(OBJ_DIR)/TauHybridSolver.o
+
+build: $(GPY_SOLVER);
+debug: CXXFLAGS = -std=c++14 -Wall -g
+debug: build;
+
+run: build
+	./$(OUTPUT_FILE) $(EXE_ARGS)
+gdb: debug
+	gdb --args $(OUTPUT_FILE) $(EXE_ARGS)
 
 clean:
 	rm -rf $(OUTPUT_DIR)/*.out
