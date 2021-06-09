@@ -235,7 +235,7 @@ namespace Gillespy::TauHybrid {
 					// The newly-updated reaction_states vector may need to be reconciled now.
 					// A positive reaction_state means reactions have potentially fired.
 					// NOTE: it is possible for a population to swing negative, where a smaller Tau is needed.
-					for (int rxn_i = num_species; false && rxn_i < rxn_offset_boundary; ++rxn_i) {
+					for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
 						// Temporary variable for the reaction's state.
 						// Does not get updated unless the changes are deemed valid.
 						double rxn_state = rxn_offsets[rxn_i];
@@ -246,13 +246,15 @@ namespace Gillespy::TauHybrid {
 
 						// Use the current reaction_state to count the number of firings.
 						// If a negative population is detected, then the loop breaks prematurely.
-						while (rxn_state >= 0) {
+						bool invalid_state = false;
+						while (rxn_state >= 0 && !invalid_state) {
 							// "Fire" a reaction by recording changes in dependent species.
 							// If a negative value is detected, break without saving changes.
 							for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-								population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i];
+								population_changes[spec_i] +=
+									model.reactions[rxn_i].species_change[spec_i];
 								if (current_state[spec_i] + population_changes[spec_i] < 0) {
-									break;
+									invalid_state = true;
 								}
 							}
 
@@ -263,21 +265,16 @@ namespace Gillespy::TauHybrid {
 
 						// Positive reaction state means a negative population was detected.
 						// Only update state with the given population changes if valid.
-						if (rxn_state < 0) {
-							for (int p_i = 0; p_i < num_species; ++p_i) {
-								current_state[p_i] += population_changes[p_i];
-							}
-
-							// "Permanently" update the rxn_state in the integrator.
-							rxn_offsets[rxn_i] = rxn_state;
+						if (invalid_state) {
+							// TODO: invalidate reaction timestep, reset integrator state, try again
+							continue;
 						}
-						else {
-							// Invalid population state detected; try a smaller Tau step.
-							next_time = simulation->current_time;
-							tau_step *= 0.5;
 
-							// TODO: Reset the integrator state to the previous time step.
+						// "Permanently" update the rxn_state and populations.
+						for (int p_i = 0; p_i < num_species; ++p_i) {
+							current_state[p_i] += population_changes[p_i];
 						}
+						rxn_offsets[rxn_i] = rxn_state;
 					}
 
 					// Output the results for this time step.
@@ -286,7 +283,8 @@ namespace Gillespy::TauHybrid {
 					while (save_time <= next_time) {
 						// Write each species, one at a time (from ODE solution)
 						for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-							simulation->trajectories_hybrid[traj][save_time][spec_i].continuous = NV_Ith_S(y0, spec_i);
+							current_state[spec_i] += NV_Ith_S(y0, spec_i);
+							simulation->trajectories_hybrid[traj][save_time][spec_i].continuous = current_state[spec_i];
 						}
 						save_time += increment;
 					}
@@ -378,7 +376,7 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 		propensity = sim->hybrid_propensity(rxn_i, concentrations);
 
 		// Integrate this reaction's rxn_offset forward using the propensity.
-		dydt_offsets[rxn_i] += rxn_offsets[rxn_i] + propensity;
+		dydt_offsets[rxn_i] += propensity;
 	}
 
 	return 0;
