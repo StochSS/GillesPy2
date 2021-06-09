@@ -12,25 +12,23 @@ MAKEFILE_PATH = Path(os.path.dirname(__file__)).joinpath("Makefile")
 
 
 class PerformanceEntry:
-    perf_time: float = 0.0
-    percent: float = 0.0
-
     def __init__(self, t=0.0, percent=0.0):
         self.perf_time = float(t) * 1000
         self.percent = float(percent)
 
 
 class PerformanceData:
-    perf_time: float = -1.0
-    call_time: float = -1.0
-    call_list: "dict[str, PerformanceEntry]" = {}
-    worst_entry: "tuple[str, PerformanceEntry]" = ("unknown", PerformanceEntry())
+    def __init__(self):
+        self.perf_time: float = -1.0
+        self.call_time: float = -1.0
+        self.call_list: "dict[str, PerformanceEntry]" = {}
+        self.worst_entry: "tuple[str, PerformanceEntry]" = ("unknown", PerformanceEntry())
 
     def __str__(self):
-        string = f"Total time: {round(self.perf_time, 6)}ms ({self.call_time}ms sampled)\n"
+        formatted_str = f"Total time: {round(self.perf_time, 6)}ms ({self.call_time}ms sampled)\n"
         for call_key, call_entry in self.call_list.items():
-            string += f"[{call_key}]: {call_entry.perf_time}ms ({call_entry.percent}%)\n"
-        return string
+            formatted_str += f"[{call_key}]: {call_entry.perf_time}ms ({call_entry.percent}%)\n"
+        return formatted_str
 
 def parse_gprof_output(output: str):
     # For each line, attempt to parse it as 3-6 floats and a name.
@@ -72,7 +70,7 @@ def parse_gprof_output(output: str):
     return results
 
 
-def run_profiler(model: Model, solver: CSolver, trajectories=4, timesteps=101):
+def run_profiler(model: Model, solver: CSolver, trajectories=4, timesteps=101, end_time=100):
     """
     Run low-level performance tests on the specified solver.
     Profiling is performed with a system-level profiling tool.
@@ -80,10 +78,11 @@ def run_profiler(model: Model, solver: CSolver, trajectories=4, timesteps=101):
 
     Output is automatically parsed and formatted.
     """
-    performance_time = 0
-
     # The simulation is built without running the solver directly.
-    build: BuildEngine = BuildEngine()
+    # "Steal" the solver's build engine if it exists, otherwise make one.
+    build: BuildEngine = solver.build_engine \
+        if isinstance(solver, CSolver) and solver.build_engine is not None \
+        else BuildEngine()
 
     try:
         build.makefile = MAKEFILE_PATH
@@ -105,7 +104,8 @@ def run_profiler(model: Model, solver: CSolver, trajectories=4, timesteps=101):
             exe,
             "-trajectories", str(trajectories),
             "-timesteps", str(timesteps),
-            "-end", "100"
+            "-end", str(end_time),
+            "-increment", str(end_time / (timesteps - 1))
         ]
         start = time.perf_counter()
         subprocess.check_call(args=process_args, stdout=subprocess.DEVNULL, env=gmon_env)
@@ -115,10 +115,10 @@ def run_profiler(model: Model, solver: CSolver, trajectories=4, timesteps=101):
         # Gprof will always append `.{pid}` to the end of {GMON_OUT_PREFIX}
         # As such, data is located by finding the file in the output dir
         #   which contains the matching prefix defined above.
-        gprof_data: str = None
+        gprof_data: Path = None
         for n in build.output_dir.iterdir():
             if n.stem == "profile":
-                gprof_data = str(build.output_dir.joinpath(n.name))
+                gprof_data = build.output_dir.joinpath(n.name)
                 break
         if gprof_data is None:
             raise EnvironmentError("Profiler data was not found in the current environment; aborting")
@@ -126,13 +126,14 @@ def run_profiler(model: Model, solver: CSolver, trajectories=4, timesteps=101):
         # Run gprof to process the profiler output.
         # -b = brief, shows minimal output
         # -p = flat profile, discards call graph data
-        gprof_args = ["gprof", "-bp", exe, gprof_data]
+        gprof_args = ["gprof", "-bp", exe, str(gprof_data)]
         perf_out = subprocess.check_output(gprof_args).decode("utf-8")
+        gprof_data.unlink(missing_ok=True)
 
         # Parse the resulting output
         performance_results = parse_gprof_output(perf_out)
         performance_results.perf_time = (stop - start) * 1000
+
+        return performance_results
     finally:
         build.clean()
-
-    return performance_results
