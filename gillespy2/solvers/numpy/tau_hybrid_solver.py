@@ -150,8 +150,13 @@ class TauHybridSolver(GillesPySolver):
         # Determine if each rxn would be deterministic apart from other reactions
         prev_state = det_rxn.copy()
         for rxn in model.listOfReactions:
+            # assume it is deterministic
             det_rxn[rxn] = True
+            # iterate through the dependent species of this reaction
             for species in dependencies[rxn]:
+                # if any of the dependencies are discrete or (dynamic AND the 
+                # species itself has not been flagged as deterministic)
+                # then allow it to be modelled discretely
                 if model.listOfSpecies[species].mode == 'discrete':
                     det_rxn[rxn] = False
                     break
