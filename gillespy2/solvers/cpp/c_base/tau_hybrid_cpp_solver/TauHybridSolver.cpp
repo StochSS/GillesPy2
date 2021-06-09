@@ -21,6 +21,7 @@ struct UserData {
 	Gillespy::TauHybrid::HybridSimulation *my_sim;
 	Gillespy::TauHybrid::HybridSpecies *species_state;
 	Gillespy::TauHybrid::HybridReaction *reaciton_state;
+    std::vector<double> propensities;
 };
 struct IntegratorOptions{
 	// CVODE constants returned if bad output, or success output.
@@ -69,7 +70,7 @@ namespace Gillespy::TauHybrid {
 				os << timeline[j] << ',';
 
 				for (int k = 0; k < model->number_species; k++) {
-					os << trajectories_hybrid[i][j][k].continuous << ',';
+					os << trajectories_hybrid[i][j][k].discrete << ',';
 				}
 			}
 
@@ -121,6 +122,9 @@ namespace Gillespy::TauHybrid {
 			HybridReaction reaction_state[num_reactions];
 			HybridSpecies species_state[num_species];
 
+            // Tau selector initialization. Used to select a valid tau step.
+            TauArgs tau_args = initialize(model, tau_tol);
+
 			for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
 				reaction_state[rxn_i].base_reaction = &model.reactions[rxn_i];
 			}
@@ -130,7 +134,7 @@ namespace Gillespy::TauHybrid {
 
 			// Population/concentration state values for each species.
 			// TODO: change back double -> hybrid_state, once we figure out how that works
-			std::vector<double> current_state(num_species);
+			std::vector<int> current_state(num_species);
 			//initialize propensity_values to 0 for each species
 			std::vector<double> propensity_values(num_reactions);
 
@@ -162,7 +166,8 @@ namespace Gillespy::TauHybrid {
 				UserData *data = new UserData {
 					simulation,
 					species_state,
-					reaction_state
+					reaction_state,
+                    propensity_values
 				};
 
 				// INITIALIZE INTEGRATOR STATE
@@ -207,7 +212,7 @@ namespace Gillespy::TauHybrid {
 
 				// SIMULATION STEP LOOP
 				double next_time;
-				double tau_step = increment;
+				double tau_step = 0.0;
 				int save_time = 0;
 
 				// Temporary array to store changes to dependent species.
@@ -215,6 +220,17 @@ namespace Gillespy::TauHybrid {
 				int *population_changes = new int[num_species];
 				simulation->current_time = 0;
 				while (simulation->current_time < simulation->end_time) {
+                    // Expected tau step is determined.
+                    tau_step = select(
+                        model,
+                        tau_args,
+                        tau_tol,
+                        simulation->current_time,
+                        save_time,
+                        propensity_values,
+                        current_state
+                    );
+
 					// Determine what the next time point is.
 					// This will become current_time on the next iteration.
 					// If a retry with a smaller tau_step is deemed necessary, this will change.
@@ -283,8 +299,8 @@ namespace Gillespy::TauHybrid {
 					while (save_time <= next_time) {
 						// Write each species, one at a time (from ODE solution)
 						for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-							current_state[spec_i] += NV_Ith_S(y0, spec_i);
-							simulation->trajectories_hybrid[traj][save_time][spec_i].continuous = current_state[spec_i];
+							// current_state[spec_i] += NV_Ith_S(y0, spec_i);
+							simulation->trajectories_hybrid[traj][save_time][spec_i].discrete = current_state[spec_i];
 						}
 						save_time += increment;
 					}
@@ -320,6 +336,7 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 	HybridSimulation *sim = data->my_sim;
 	HybridSpecies *species = data->species_state;
 	HybridReaction *reactions = data->reaciton_state;
+    std::vector<double> propensities = data->propensities;
 	unsigned int num_species = sim->model->number_species;
 	unsigned int num_reactions = sim->model->number_reactions;
 
@@ -374,6 +391,7 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 
 		// Process stochastic reaction state by updating the root offset for each reaction.
 		propensity = sim->hybrid_propensity(rxn_i, concentrations);
+        propensities[rxn_i] = propensity;
 
 		// Integrate this reaction's rxn_offset forward using the propensity.
 		dydt_offsets[rxn_i] += propensity;

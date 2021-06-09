@@ -101,8 +101,8 @@ ssa: SSASimulation.o SSASolver.o model $(TEMPLATE_CPP)
 tau_leap: TauLeapingSimulation.o TauLeapingSolver.o model $(TEMPLATE_CPP)
 	$(CC) $(COMPILATION_ARGS) $(OBJ_DIR)/TauLeapingSimulation.o $(OBJ_DIR)/TauLeapingSolver.o
 
-hybrid: TauHybridSimulation.o TauHybridSolver.o model sundials $(TEMPLATE_CPP)
-	$(CC) $(COMPILATION_ARGS) $(SUNOBJ_PATHS) $(OBJ_DIR)/TauHybridSimulation.o $(OBJ_DIR)/TauHybridSolver.o
+hybrid: TauHybridSimulation.o TauHybridSolver.o model sundials $(TAU_DIR)/tau.cpp $(TEMPLATE_CPP)
+	$(CC) $(COMPILATION_ARGS) $(SUNOBJ_PATHS) $(TAU_DIR)/tau.cpp $(OBJ_DIR)/TauHybridSimulation.o $(OBJ_DIR)/TauHybridSolver.o
 
 build: $(GPY_SOLVER);
 debug: CXXFLAGS = -std=c++14 -Wall -g
