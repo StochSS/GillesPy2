@@ -7,7 +7,7 @@
 #include "cvode_spils.h" // access to CVSpils interface
 #include "sundials_types.h"  // defs. of realtype, sunindextype
 #include "sundials_math.h"  // contains the macros ABS, SUNSQR, EXP
-#include "TauHybridCSolver.h"
+#include "TauHybridSolver.h"
 #include "HybridModel.h"
 // #include "statistics.h"
 #include "tau.h"
