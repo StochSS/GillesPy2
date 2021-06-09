@@ -1,9 +1,9 @@
 import unittest
-
 from unittest import TestCase
 
-from test.example_models import MichaelisMenten
-from test.perf import python_profiler
+from perf import python_profiler
+from example_models import MichaelisMenten
+
 from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver
 from gillespy2.solvers.numpy.tau_hybrid_solver import TauHybridSolver
 
@@ -14,8 +14,7 @@ class TestPythonSolverPerf(TestCase):
         ]
 
         self.solvers = [
-            NumPySSASolver(),
-            TauHybridSolver()
+            NumPySSASolver
         ]
 
         # Generate all possible permutations of self.models and self.solvers.
