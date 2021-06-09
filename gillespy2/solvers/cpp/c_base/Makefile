@@ -106,7 +106,7 @@ hybrid: TauHybridSimulation.o TauHybridSolver.o model sundials $(TAU_DIR)/tau.cp
 
 build: $(GPY_SOLVER);
 debug: CXXFLAGS = -std=c++14 -Wall -g
-debug: build;
+debug: clean_all build;
 
 run: build
 	./$(OUTPUT_FILE) $(EXE_ARGS)

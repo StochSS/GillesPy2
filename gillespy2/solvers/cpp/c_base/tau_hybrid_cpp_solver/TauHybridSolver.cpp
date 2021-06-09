@@ -20,8 +20,10 @@ static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data); // forwar
 struct UserData {
 	Gillespy::TauHybrid::HybridSimulation *my_sim;
 	Gillespy::TauHybrid::HybridSpecies *species_state;
-	Gillespy::TauHybrid::HybridReaction *reaciton_state;
-    std::vector<double> propensities;
+	Gillespy::TauHybrid::HybridReaction *reaction_state;
+	std::vector<double> concentrations;
+	std::vector<int> populations;
+	std::vector<double> propensities;
 };
 struct IntegratorOptions{
 	// CVODE constants returned if bad output, or success output.
@@ -122,8 +124,8 @@ namespace Gillespy::TauHybrid {
 			HybridReaction reaction_state[num_reactions];
 			HybridSpecies species_state[num_species];
 
-            // Tau selector initialization. Used to select a valid tau step.
-            TauArgs tau_args = initialize(model, tau_tol);
+			// Tau selector initialization. Used to select a valid tau step.
+			TauArgs tau_args = initialize(model, tau_tol);
 
 			for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
 				reaction_state[rxn_i].base_reaction = &model.reactions[rxn_i];
@@ -135,6 +137,10 @@ namespace Gillespy::TauHybrid {
 			// Population/concentration state values for each species.
 			// TODO: change back double -> hybrid_state, once we figure out how that works
 			std::vector<int> current_state(num_species);
+			// Populations and concentrations vectors are used by the integrator.
+			// Kept distinct so that deterministic and stochastic propensities may be evaluated separately.
+			std::vector<int> populations(num_species);
+			std::vector<double> concentrations(num_species);
 			//initialize propensity_values to 0 for each species
 			std::vector<double> propensity_values(num_reactions);
 
@@ -158,7 +164,10 @@ namespace Gillespy::TauHybrid {
 
 				// Initialize the species population for the trajectory.
 				for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-					current_state[spec_i] = species[spec_i].initial_population;
+					populations[spec_i]
+						= concentrations[spec_i]
+						= current_state[spec_i]
+						= species[spec_i].initial_population;
 				}
 
 				// Struct acts as container for simulation state.
@@ -167,7 +176,9 @@ namespace Gillespy::TauHybrid {
 					simulation,
 					species_state,
 					reaction_state,
-                    propensity_values
+					concentrations,
+					populations,
+					propensity_values
 				};
 
 				// INITIALIZE INTEGRATOR STATE
@@ -220,16 +231,16 @@ namespace Gillespy::TauHybrid {
 				int *population_changes = new int[num_species];
 				simulation->current_time = 0;
 				while (simulation->current_time < simulation->end_time) {
-                    // Expected tau step is determined.
-                    tau_step = select(
-                        model,
-                        tau_args,
-                        tau_tol,
-                        simulation->current_time,
-                        save_time,
-                        propensity_values,
-                        current_state
-                    );
+					// Expected tau step is determined.
+					tau_step = select(
+						model,
+						tau_args,
+						tau_tol,
+						simulation->current_time,
+						save_time,
+						propensity_values,
+						populations
+					);
 
 					// Determine what the next time point is.
 					// This will become current_time on the next iteration.
@@ -283,6 +294,7 @@ namespace Gillespy::TauHybrid {
 						// Only update state with the given population changes if valid.
 						if (invalid_state) {
 							// TODO: invalidate reaction timestep, reset integrator state, try again
+							std::cerr << "Integration step failed; RIP" << std::endl;
 							continue;
 						}
 
@@ -329,14 +341,18 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 	// Get y(t) vector and f(t, y) vector
 	realtype *Y = N_VGetArrayPointer(y);
 	realtype *dydt = N_VGetArrayPointer(ydot);
-	realtype propensity;
+	realtype propensity_ode, propensity_tau;
 
 	// Extract simulation data
 	UserData *data = static_cast<UserData*>(user_data);
 	HybridSimulation *sim = data->my_sim;
 	HybridSpecies *species = data->species_state;
-	HybridReaction *reactions = data->reaciton_state;
-    std::vector<double> propensities = data->propensities;
+	HybridReaction *reactions = data->reaction_state;
+	std::vector<double> &propensities = data->propensities;
+	// Concentrations and reactions are both used for their respective propensity evaulations.
+	// They both should, roughly, reflect the same data, but tau selection requires both.
+	std::vector<double> &concentrations = data->concentrations;
+	std::vector<int> &populations = data->populations;
 	unsigned int num_species = sim->model->number_species;
 	unsigned int num_reactions = sim->model->number_reactions;
 
@@ -345,8 +361,6 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 	realtype *rxn_offsets = &Y[num_species];
 	realtype *dydt_offsets = &dydt[num_species];
 	int rxn_offset_boundary = num_species + num_reactions;
-	std::vector<double> concentrations(num_species);
-	std::vector<int> populations(num_species);
 
 	// Populate the current ODE state into the concentrations vector.
 	// dy/dt results are initialized to zero, and become the change in propensity.
@@ -374,7 +388,7 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 		current_rxn = reactions[rxn_i].base_reaction;
 		// NOTE: we may need to evaluate ODE and Tau propensities separately.
 		// At the moment, it's unsure whether or not that's required.
-		propensity = sim->propensity_function->ODEEvaluate(rxn_i, concentrations);
+		propensity_ode = sim->propensity_function->ODEEvaluate(rxn_i, concentrations);
 
 		for (spec_i = 0; spec_i < num_species; ++spec_i) {
 			// Use the evaluated propensity to update the concentration levels and reaction state.
@@ -386,15 +400,15 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 			// The product on the right evaluates to 1 if species_change is positive,
 			//    and -1 if it's negative.
 			// This is a branchless alternative to using an if-statement.
-			dydt[spec_i] += propensity * (-1 + 2 * (species_change > 0));
+			dydt[spec_i] += propensity_ode * (-1 + 2 * (species_change > 0));
 		}
 
 		// Process stochastic reaction state by updating the root offset for each reaction.
-		propensity = sim->hybrid_propensity(rxn_i, concentrations);
-        propensities[rxn_i] = propensity;
-
+		propensity_tau = sim->propensity_function->TauEvaluate(rxn_i, populations);
 		// Integrate this reaction's rxn_offset forward using the propensity.
-		dydt_offsets[rxn_i] += propensity;
+		dydt_offsets[rxn_i] += propensity_tau;
+		// Propensity vector is only used for tau selection, so only Tau propensity is used.
+		propensities[rxn_i] = propensity_tau;
 	}
 
 	return 0;
