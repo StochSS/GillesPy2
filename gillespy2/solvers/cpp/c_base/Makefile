@@ -104,14 +104,16 @@ tau_leap: TauLeapingSimulation.o TauLeapingSolver.o model $(TEMPLATE_CPP)
 hybrid: TauHybridSimulation.o TauHybridSolver.o model sundials $(TAU_DIR)/tau.cpp $(TEMPLATE_CPP)
 	$(CC) $(COMPILATION_ARGS) $(SUNOBJ_PATHS) $(TAU_DIR)/tau.cpp $(OBJ_DIR)/TauHybridSimulation.o $(OBJ_DIR)/TauHybridSolver.o
 
-build: $(GPY_SOLVER);
-debug: CXXFLAGS = -std=c++14 -Wall -g
-debug: clean_all build;
+build: $(SOLVER);
 
 run: build
 	./$(OUTPUT_FILE) $(EXE_ARGS)
-gdb: debug
+
+debug: CXXFLAGS = -std=c++14 -Wall -g
+debug: clean_all build;
 	gdb --args $(OUTPUT_FILE) $(EXE_ARGS)
+
+all: prebuild
 
 clean:
 	rm -rf $(OUTPUT_DIR)/*.out
