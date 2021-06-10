@@ -16,12 +16,12 @@ class Jsonify:
     _hash_private_vars = False
     _translation_table = None
 
-    def to_json(self):
+    def to_json(self, encode_private=True):
         """
         Convert self into a json string.
         """
 
-        encoder = ComplexJsonCoder()
+        encoder = ComplexJsonCoder(encode_private=encode_private)
         return json.dumps(copy.deepcopy(self), indent=4, sort_keys=True, default=encoder.default)
 
     @classmethod
@@ -76,12 +76,14 @@ class Jsonify:
         """
         Converts self into a named instance of self.
         """
+
         return self.get_translation_table().obj_to_named(copy.deepcopy(self))
 
     def get_translation_table(self):
         """
         Make and/or return the translation table.
         """
+
         if self._translation_table is None:
             self._translation_table = self.make_translation_table()
 
@@ -105,14 +107,7 @@ class Jsonify:
         """
 
         # If _hash_private_vars is set, hash ALL properties on the object.
-        if self._hash_private_vars:
-            return hashlib.md5(str.encode(self.to_json())).hexdigest()
-
-        # Strip all private variables out of the model.
-        model = copy.deepcopy(self)
-        model.__dict__ = model.public_vars()
-
-        return hashlib.md5(str.encode(model.to_json())).hexdigest()
+        return hashlib.md5(str.encode(self.to_json(encode_private=self._hash_private_vars))).hexdigest()
 
     def __eq__(self, o):
         """
@@ -122,21 +117,22 @@ class Jsonify:
         return self.get_json_hash() == o.get_json_hash()
 
 class ComplexJsonCoder(JSONEncoder):
-    def __init__(self, translation_table=None, **kwargs):
+    def __init__(self, translation_table=None, encode_private=True, **kwargs):
         super(ComplexJsonCoder, self).__init__(**kwargs)
         self._translation_table = translation_table
+        self._encode_private = encode_private
 
     def default(self, obj):
         """
         This function is called when json.dumps() fires. default() is a bad name for the function,
         but anything else makes JSONEncoder freak out.
 
-        :param obj: The object that is currently being encoded into JSON.
+        :param o: The object that is currently being encoded into JSON.
         """
 
         from gillespy2.core.model import Model
 
-        # If obj is of matching type, use a custom coder.
+        # If o is of matching type, use a custom coder.
         if isinstance(obj, numpy.ndarray):
             return NdArrayCoder.to_dict(obj)
 
@@ -149,7 +145,18 @@ class ComplexJsonCoder(JSONEncoder):
         if not isinstance(obj, Jsonify):
             return super().default(obj)
 
-        model = obj.to_dict()
+        if self._encode_private:
+            model = obj.to_dict()
+
+        else:
+            # Strip private variables from the object.
+            model = {}
+
+            for key, val in obj.to_dict().items():
+                if key.startswith("_") and not key.startswith("__"):
+                    continue
+
+                model[key] = val
 
         # If the model is some subclass of gillespy2.core.model.Model, then manually set its type.
         if issubclass(obj.__class__, Model):

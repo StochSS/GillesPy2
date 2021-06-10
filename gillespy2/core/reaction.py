@@ -341,7 +341,7 @@ class Reaction(SortableObject, Jsonify):
     def to_dict(self):
         temp = vars(self).copy()
 
-        # This to_dict overload is needed because, while Species is hashable (thanks to it's inheretence),
+        # This to_dict overload is needed because, while Species is hashable (thanks to its inheretence),
         # objects are not valid key values in the JSON spec. To fix this, we set the Species equal to some key 'key', 
         # and it's value equal to some key 'value'.
 
