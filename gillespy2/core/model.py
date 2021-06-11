@@ -1,5 +1,3 @@
-from ast import Param
-from gillespy2.core.assignmentrule import AssignmentRule
 from gillespy2.core.jsonify import TranslationTable
 from gillespy2.core.reaction import *
 from gillespy2.core.raterule import RateRule
