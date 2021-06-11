@@ -1,7 +1,18 @@
 import unittest
-from test.example_models import Tyson2StateOscillator, VilarOscillator, Oregonator
-from gillespy2.solvers.cpp import SSACSolver, ODECSolver, TauLeapingCSolver
-from test.perf.gprof import run_profiler
+import os
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+from profiling import c_profiler
+
+from example_models import Oregonator 
+from example_models import VilarOscillator
+from example_models import Tyson2StateOscillator 
+
+from gillespy2.solvers.cpp import SSACSolver
+from gillespy2.solvers.cpp import ODECSolver
+from gillespy2.solvers.cpp import TauLeapingCSolver
 
 
 class MyTestCase(unittest.TestCase):
@@ -9,7 +20,7 @@ class MyTestCase(unittest.TestCase):
         for solver, models in self.solvers.items():
             print(f"=== === === Solver: {solver.name} === === ===")
             for model in models:
-                perf_results = run_profiler(model, solver(model=model))
+                perf_results = c_profiler.run_profiler(model, solver(model=model))
                 print(f"  === === Model: {model.name} === ===")
                 print(perf_results)
         print(f"=== === === === === === === === === === === === ===")
