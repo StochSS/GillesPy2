@@ -70,6 +70,8 @@ namespace Gillespy {
 		PType *trajectories_1D;
 		PType ***trajectories;
 
+		Model *model;
+
 		IPropensityFunction *propensity_function;
 
 		template <class T> friend std::ostream& operator << (std::ostream &os, const Simulation<T> &simulation);

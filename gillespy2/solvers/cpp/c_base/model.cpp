@@ -53,7 +53,7 @@ namespace Gillespy {
 		simulation.timeline = new double[simulation.number_timesteps];
 
 		for (unsigned int i = 0; i < simulation.number_timesteps; ++i) {
-			simulation.timeline[i] = timestep_size * i
+			simulation.timeline[i] = timestep_size * i;
 		}
 	}
 
@@ -92,17 +92,17 @@ namespace Gillespy {
 		for (unsigned int timestep = 0; timestep < simulation.number_timesteps; timestep++) {
 			os << simulation.timeline[timestep] << ' ';
 
-			for (unsigned int trajectory = 0; trajectory < simulation.number_trajectores; trajectory++) {
-				for (unsigned int species = 0; species < simulation.model->number_species, species++) {
+			for (unsigned int trajectory = 0; trajectory < simulation.number_trajectories; trajectory++) {
+				for (unsigned int species = 0; species < simulation.model->number_species; species++) {
 					os << simulation.trajectories[trajectory][timestep][species] << ' ';
 				}
 			}
 
-			os << simulation.timeline[i] << ' ';
+			os << simulation.timeline[timestep] << ' ';
 			os << '\n';
 		}
 
-		return os
+		return os;
 	}
 
 	template <typename TNum>
