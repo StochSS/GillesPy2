@@ -1,33 +1,43 @@
 #include <string>
 #include <vector>
-#include <iostream>
 #include <sstream>
+#include <iostream>
+
 #include <time.h>
 #include <math.h>
+
 #include "ODESolver.h"
-#include "template.h" // User-defined simulation parameters
+#include "template.h"
 
 using namespace Gillespy;
 
-//Default values, replaced with command line args
+bool seed_time = true;
+
+int random_seed = 0;
 unsigned int number_trajectories = 0;
 unsigned int number_timesteps = 0;
-int random_seed = 0;
+
 double end_time = 100.0;
-bool seed_time = true;
 double increment = 0;
 
-class PropensityFunction : public IPropensityFunction{
+class PropensityFunction : public IPropensityFunction {
 public:
-  double ODEEvaluate(int reaction_number, const std::vector <double> &S){
-    return map_ode_propensity(reaction_number, S);
-  }
-  double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S){return 1.0;}
-  double evaluate(unsigned int reaction_number, unsigned int* S){return 1.0;}
+	double evaluate(unsigned int reaction_number, unsigned int *S) {
+		return 1.0;
+	}
+
+	double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S) {
+		return 1.0;
+	}
+
+	double ODEEvaluate(int reaction_number, const std::vector<double> &S) {
+		return map_ode_propensity(reaction_number, S);
+	}
 };
 
-int main(int argc, char* argv[]){
-  //Parse command line arguments
+int main(int argc, char *argv[]) {
+//Parse command line arguments
+// TODO: NEEDS REPLACEMENT.
  std :: string arg;
  for(int i = 1; i < argc - 1; i++){
    arg = argv[i];
@@ -63,29 +73,29 @@ int main(int argc, char* argv[]){
    }
  }
 
-  Model model(species_names, species_populations, reaction_names);
-  // Reactions are defined via macros in the user-defined template.
-  // Effectively translates from a 2d array to the model's internal data structure.
-  add_reactions(model);
+	Model model(species_names, species_populations, reaction_names);
+	add_reactions(model);
 
- if(seed_time){
-   random_seed = time(NULL);
+	if (seed_time) {
+		random_seed = time(NULL);
+	}
+
+	IPropensityFunction *propensity_function = new PropensityFunction();
+	Simulation<double> simulation;
+
+	simulation.model = &model;
+	simulation.end_time = end_time;
+	simulation.random_seed = random_seed;
+	simulation.number_timesteps = number_timesteps;
+	simulation.number_trajectories = number_trajectories;
+	simulation.propensity_function = propensity_function;
+
+	init_simulation(&model, simulation);
+
+	ODESolver(&simulation, increment);
+	simulation.output_results_buffer(std::cout);
+
+	delete propensity_function;
+
+	return 0;
  }
-  IPropensityFunction *propFun = new PropensityFunction();
-   //Simulation INIT
-  Simulation<double> simulation;
-  Model* modelptr;
-  modelptr = &model;
-  simulation.model = modelptr;
-  simulation.end_time = end_time;
-  simulation.random_seed = random_seed;
-  simulation.number_timesteps = number_timesteps;
-  simulation.number_trajectories = number_trajectories;
-  simulation.propensity_function = propFun;
-  init_simulation(&model, simulation);
-  // Perform ODE  //
-  ODESolver(&simulation,increment);
-  simulation.output_results_buffer(std :: cout);
-  delete propFun;
-  return 0;
-}
