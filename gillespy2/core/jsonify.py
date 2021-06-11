@@ -2,66 +2,72 @@ import re
 import copy
 import json
 import pydoc
-import numpy
 import hashlib
 
 from json import JSONEncoder
 
+import numpy
+import gillespy2
 
 class Jsonify:
     """
-    Interface to allow for instances of arbitrary types to be encoded into json strings and decoded into new objects.
+    Interface to allow for instances of arbitrary types to be encoded into json strings
+    and decoded into new objects.
     """
 
     _hash_private_vars = False
     _translation_table = None
 
-    def to_json(self, encode_private=True):
+    def to_json(self, encode_private=True) -> str:
         """
         Convert self into a json string.
+
+        :param encode_private: If True all private (prefixed of '_') will be encoded. None if False.
+        :returns: The JSON representation of self.
         """
 
         encoder = ComplexJsonCoder(encode_private=encode_private)
         return json.dumps(copy.deepcopy(self), indent=4, sort_keys=True, default=encoder.default)
 
     @classmethod
-    def from_json(cls, json_object):
+    def from_json(cls, json_str: str) -> object:
         """
-        Convert some json_object into a decoded Python type. This function should return a new instance of the type.
+        Convert some json_str into a decoded Python type. This function should
+        return a new instance of the type.
 
-        :param json_object: A json str to be converted into a new type instance.
-        :param translation_table: A dictionary used to translate anonymous names back into user-defined.
+        :param json_str: A json str to be converted into a new type instance.
         """
 
-        # If the json_object is actually a dict, it means we've decoded as much as possible.
-        if type(json_object) is dict:
-            return cls.from_dict(json_object)
+        # If the json_str is actually a dict, it means we've decoded as much as possible.
+        if isinstance(json_str, dict):
+            return cls.from_dict(json_str)
 
         decoder = ComplexJsonCoder()
-        return json.loads(json_object, object_hook=decoder.decode)
+        return json.loads(json_str, object_hook=decoder.decode)
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         """
         Convert the object into a dictionary ready for json encoding.
         Note: Complex types that inherit from Jsonify do not need to be manually encoded.
 
         By default, this function will return a dictionary of the object's public types.
 
-        :param self: Instance of the object to convert into a dict.
+        :returns: The backing var dictionary of the object.
         """
 
         return self.__dict__.copy()
 
     @classmethod
-    def from_dict(cls, dict):
+    def from_dict(cls, src_dict: dict) -> object:
         """
-        Convert some dict into a new instance of a python type. This function will return a __new__ instance of the tupe.
+        Convert some dict into a new instance of a python type.
+        This function will return a __new__ instance of the type.
 
         :param dict: The dictionary to apply onto the new instance.
         """
 
         new = cls.__new__(cls)
-        new.__dict__ = dict.copy()
+        new.__dict__ = src_dict.copy()
 
         return new
 
@@ -79,9 +85,11 @@ class Jsonify:
 
         return self.get_translation_table().obj_to_named(copy.deepcopy(self))
 
-    def get_translation_table(self):
+    def get_translation_table(self) -> "TranslationTable":
         """
         Make and/or return the translation table.
+
+        :returns: A TranslationTable instance.
         """
 
         if self._translation_table is None:
@@ -89,40 +97,52 @@ class Jsonify:
 
         return self._translation_table
 
-    def make_translation_table(self):
+    def make_translation_table(self) -> "TranslationTable":
         """
-        Make a translation table that describes key:value pairs to convert user-define data into generic equivalents.
+        Make a translation table that describes key:value pairs to convert
+        user-define data into generic equivalents.
+
+        :returns: A newly generated TranslationTable instance.
         """
         raise NotImplementedError("make_translation_table() has not been implemented.")
 
-    def public_vars(self):
+    def public_vars(self) -> dict:
         """
         Gets a dictionary of public vars that exist on self. Keys starting with '_' are ignored.
+
+        :returns: A dictionary containing all public ('_'-prefixed) variables on the object.
         """
         return {k: v for k, v in vars(self).items() if not k.startswith("_")}
 
-    def get_json_hash(self):
+    def get_json_hash(self) -> str:
         """
         Get the hash of the json representation of self.
+
+        :returns: An MD5 hash of the object's sorted JSON representation.
         """
 
         # If _hash_private_vars is set, hash ALL properties on the object.
-        return hashlib.md5(str.encode(self.to_json(encode_private=self._hash_private_vars))).hexdigest()
+        encoded_json = str.encode(self.to_json(encode_private=self._hash_private_vars))
+        return hashlib.md5(encoded_json).hexdigest()
 
-    def __eq__(self, o):
+    def __eq__(self, o: "Jsonify"):
         """
-        Overload to compare the json of two objects that derive from Jsonify. This method will not do any 
-        additional translation.
+        Overload to compare the json of two objects that derive from Jsonify.
+        This method will not do any additional translation.
         """
         return self.get_json_hash() == o.get_json_hash()
 
 class ComplexJsonCoder(JSONEncoder):
+    """
+    This class delegates the encoding and decoding of objects to one or more implementees.
+    """
+
     def __init__(self, translation_table=None, encode_private=True, **kwargs):
-        super(ComplexJsonCoder, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self._translation_table = translation_table
         self._encode_private = encode_private
 
-    def default(self, obj):
+    def default(self, o: object):
         """
         This function is called when json.dumps() fires. default() is a bad name for the function,
         but anything else makes JSONEncoder freak out.
@@ -130,84 +150,116 @@ class ComplexJsonCoder(JSONEncoder):
         :param o: The object that is currently being encoded into JSON.
         """
 
-        from gillespy2.core.model import Model
-
         # If o is of matching type, use a custom coder.
-        if isinstance(obj, numpy.ndarray):
-            return NdArrayCoder.to_dict(obj)
+        if isinstance(o, numpy.ndarray):
+            return NdArrayCoder.to_dict(o)
 
-        if isinstance(obj, set):
-            return SetCoder.to_dict(obj)
+        if isinstance(o, set):
+            return SetCoder.to_dict(o)
 
-        if isinstance(obj, type):
-            return TypeCoder.to_dict(obj)
+        if isinstance(o, type):
+            return TypeCoder.to_dict(o)
 
-        if not isinstance(obj, Jsonify):
-            return super().default(obj)
+        if not isinstance(o, Jsonify):
+            return super().default(o)
 
         if self._encode_private:
-            model = obj.to_dict()
+            model = o.to_dict()
 
         else:
             # Strip private variables from the object.
             model = {}
 
-            for key, val in obj.to_dict().items():
+            for key, val in o.to_dict().items():
                 if key.startswith("_") and not key.startswith("__"):
                     continue
 
                 model[key] = val
 
         # If the model is some subclass of gillespy2.core.model.Model, then manually set its type.
-        if issubclass(obj.__class__, Model):
-            model["_type"] = f"{Model.__module__}.{Model.__name__}"
+        if issubclass(o.__class__, gillespy2.core.Model):
+            model["_type"] = f"{gillespy2.core.Model.__module__}.{gillespy2.core.Model.__name__}"
 
         else:
-            model["_type"] = f"{obj.__class__.__module__}.{obj.__class__.__name__}"
+            model["_type"] = f"{o.__class__.__module__}.{o.__class__.__name__}"
 
         return model
 
-    def decode(self, obj):
-        # _type is a field embedded by the encoder to indicate which Jsonify instance will be used to decode the json string.
-        if "_type" not in obj:
-            return obj
+    def decode(self, json_dict: dict):
+        """
+        Decode the JSON dictionary into a valid Python object.
 
-        obj_type = pydoc.locate(obj["_type"])
+        :param json_dict: The JSON dictionary to decode.
+        :returns: The decoded form of the JSON dictionary.
+        """
 
-        if obj_type is None:
-            raise Exception(f"{obj_type} does not exist.")
+        # _type is a field embedded by the encoder to indicate which
+        # Jsonify instance will be used to decode the json string.
+        if "_type" not in json_dict:
+            return json_dict
 
-        # If the type is not a subclass of Jsonify, throw an exception. We do this to prevent the execution of arbitrary code.
-        if not issubclass(obj_type, Jsonify):
-            raise Exception(f"{obj_type}")
+        json_type = pydoc.locate(json_dict["_type"])
 
-        return obj_type.from_json(obj)
+        if json_type is None:
+            raise Exception(f"{json_type} does not exist.")
+
+        # If the type is not a subclass of Jsonify, throw an exception.
+        # We do this to prevent the execution of arbitrary code.
+        if not issubclass(json_type, Jsonify):
+            raise Exception(f"{json_type}")
+
+        return json_type.from_json(json_dict)
 
 class TranslationTable(Jsonify):
-    def __init__(self, to_anon):
+    """
+    This class contains functions to enable arbitrary object trees to be "translated" to anonymous
+    and named objects. This behavior is defined by a map of 'named' and 'anon' key values.
+    """
+
+    def __init__(self, to_anon: "dict[str, str]"):
         self.to_anon = to_anon.copy()
         self.to_named = dict((v, k) for k, v in list(self.to_anon.items()))
 
-    def obj_to_anon(self, obj):
+    def obj_to_anon(self, obj: object):
+        """
+        Recursively anonymise all named properties on the object.
+
+        :returns: An anonymized instance of self.
+        """
+
         return self.recursive_translate(obj, self.to_anon)
 
     def obj_to_named(self, obj):
+        """
+        Recursively identify all anonymous properties on the object.
+
+        :returns: A named instance of self.
+        """
+
         return self.recursive_translate(obj, self.to_named)
 
-    def recursive_translate(self, obj, translation_table):
+    def recursive_translate(self, obj: object, translation_table: "dict[str, str]"):
+        """
+        Recursively search through the object tree searching for property value matches in the
+        translation table. If a match is found, substitute.
+
+        :param obj: The object that will be translated.
+        :param translation_table: The mapping to translate by.
+        """
+
         # If a translation table exists on the object, remove and save it.
-        if obj._translation_table is not None:
+        if "_translation_table" in obj.__dict__:
             saved_table = obj.__dict__.pop("_translation_table")
 
         translated = self._recursive_translate(obj, translation_table)
 
         # Restore the original translation table, if needed.
         if saved_table is not None:
-            obj._translation_table = saved_table
+            obj.__dict__["_translation_table"] = saved_table
 
         return translated
 
-    def _recursive_translate(self, obj, translation_table):
+    def _recursive_translate(self, obj: object, translation_table: "dict[str, str]"):
         # The obj is a class if it's an instance of Jsonify. Class property names *cannot*
         # be changed, so translate just the values.
         if isinstance(obj, Jsonify):
@@ -219,7 +271,8 @@ class TranslationTable(Jsonify):
                 item = self._recursive_translate(item, translation_table)
 
         elif isinstance(obj, dict):
-            # Convert the dictionary into a list of tuples. This makes it easier to modify key names.
+            # Convert the dictionary into a list of tuples.
+            # This makes it easier to modify key names.
             obj = list((k, v) for k, v in obj.items())
             new_pairs = [ ]
 
@@ -231,7 +284,7 @@ class TranslationTable(Jsonify):
 
             obj = dict((x[0], x[1]) for x in new_pairs)
 
-        # If the obj is a string, translate it via a regex replace. 
+        # If the obj is a string, translate it via a regex replace.
         # Note: mathematical functions contain additional characters that should not be translated.
         elif isinstance(obj, str):
             # To handle functions, grab all complete words from the string.
@@ -245,37 +298,43 @@ class TranslationTable(Jsonify):
         return obj
 
 class NdArrayCoder(Jsonify):
+    """ This JSON coder enables support for  the `numpy.ndarray` type. """
+
     @staticmethod
-    def to_dict(self):
+    def to_dict(obj):
         return {
-            "data": self.tolist(),
+            "data": obj.tolist(),
             "_type": f"{NdArrayCoder.__module__}.{NdArrayCoder.__name__}"
         }
 
     @staticmethod
-    def from_json(json_object):
-        return numpy.array(json_object["data"])
+    def from_json(obj):
+        return numpy.array(obj["data"])
 
 class SetCoder(Jsonify):
+    """ This JSON coder enables support for the `set` type. """
+
     @staticmethod
-    def to_dict(self):
+    def to_dict(obj):
         return {
-            "data": list(self),
+            "data": list(obj),
             "_type": f"{SetCoder.__module__}.{SetCoder.__name__}"
         }
 
     @staticmethod
-    def from_json(json_object):
-        return set(json_object["data"])
+    def from_json(obj):
+        return set(obj["data"])
 
 class TypeCoder(Jsonify):
+    """ This JSON coder enables support for the 'type' type. """
+
     @staticmethod
-    def to_dict(self):
+    def to_dict(obj):
         return {
-            "data": type(self),
+            "data": type(obj),
             "_type": f"{TypeCoder.__module__}.{TypeCoder.__name__}"
         }
 
     @staticmethod
-    def from_json(json_object):
-        return pydoc.locate(json_object["data"])
+    def from_json(obj):
+        return pydoc.locate(obj["data"])
