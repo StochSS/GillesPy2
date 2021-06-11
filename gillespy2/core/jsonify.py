@@ -125,7 +125,7 @@ class Jsonify:
 
         # If ignore_whitespace is set, strip out all whitespace characters.
         if ignore_whitespace:
-            model_json = re.sub(f"\s+", "", model_json)
+            model_json = re.sub(r"\s+", "", model_json)
 
         return hashlib.md5(str.encode(model_json)).hexdigest()
 
@@ -146,6 +146,12 @@ class ComplexJsonCoder(JSONEncoder):
         self._translation_table = translation_table
         self._encode_private = encode_private
 
+        self._delegation_table = {
+            numpy.ndarray: NdArrayCoder,
+            set: SetCoder,
+            type: TypeCoder
+        }
+
     def default(self, o: object):
         """
         This function is called when json.dumps() fires. default() is a bad name for the function,
@@ -155,14 +161,9 @@ class ComplexJsonCoder(JSONEncoder):
         """
 
         # If o is of matching type, use a custom coder.
-        if isinstance(o, numpy.ndarray):
-            return NdArrayCoder.to_dict(o)
-
-        if isinstance(o, set):
-            return SetCoder.to_dict(o)
-
-        if isinstance(o, type):
-            return TypeCoder.to_dict(o)
+        for obj_type, coder in self._delegation_table.items():
+            if isinstance(o, obj_type):
+                return coder.to_dict(o)
 
         if not isinstance(o, Jsonify):
             return super().default(o)
