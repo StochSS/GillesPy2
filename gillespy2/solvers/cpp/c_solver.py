@@ -1,4 +1,3 @@
-import logging
 import os
 import subprocess
 import signal
@@ -7,13 +6,12 @@ import threading
 import numpy
 
 from enum import IntEnum
-from concurrent.futures import Future, ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 
 from gillespy2.core import Model
 from gillespy2.core import Results
 from gillespy2.core import log
 from gillespy2.core import gillespyError
-from gillespy2.solvers.utilities import solverutils
 from gillespy2.solvers.cpp.c_decoder import SimDecoder
 from gillespy2.solvers.cpp.build.build_engine import BuildEngine
 
@@ -82,7 +80,7 @@ class CSolver:
         # Compile the simulation, returning the path of the executable.
         return self.build_engine.build_simulation(simulation_name)
 
-    def _run_async(self, sim_exec: str, sim_args: "list[str]", decoder: SimDecoder, timeout: int = 0) -> "Future[int]":
+    def _run_async(self, sim_exec: str, sim_args: "list[str]", decoder: SimDecoder, timeout: int = 0):
         """
         Run the target executable simulation as async.
 
@@ -267,7 +265,7 @@ class CSolver:
             return
 
         for key, val in kwargs.items():
-            logging.warn(f"Unsupported keyword argument for solver {self.name}: {key}")
+            log.warning(f"Unsupported keyword argument for solver {self.name}: {key}")
 
     def _validate_sbml_features(self, unsupported_features: "dict[str, str]"):
         detected = [ ]
@@ -290,9 +288,9 @@ class CSolver:
 
         return seed
         
-    def _validate_variables_in_set(self, variables, set):
+    def _validate_variables_in_set(self, variables, values):
         for var in variables.keys():
-            if var not in set:
+            if var not in values:
                 raise gillespyError.SimulationError(f"Argument to variable '{var}' is not a valid variable. Variables must be model species or parameters.")
 
     def _validate_type(self, value, typeof: type, message: str):

@@ -1,5 +1,4 @@
 import os
-from re import U
 import shutil
 import tempfile
 from pathlib import Path
@@ -13,7 +12,7 @@ from .make import Make
 class BuildEngine():
     template_definitions_name = "template_definitions.h"
 
-    def __init__(self, debug: bool = False, output_dir: str = None, no_output_dir: bool = False):
+    def __init__(self, debug: bool = False, output_dir: str = None):
         self.self_dir = Path(__file__).parent
         self.cpp_dir = self.self_dir.joinpath("../c_base").resolve()
         self.makefile = self.cpp_dir.joinpath("Makefile")

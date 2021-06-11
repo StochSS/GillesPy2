@@ -1,10 +1,9 @@
 import os
-import logging
 import subprocess
 
 from pathlib import Path
 
-from gillespy2.core import logging
+from gillespy2.core import log
 from gillespy2.core import gillespyError
 
 class Make():
@@ -74,7 +73,7 @@ class Make():
             result = subprocess.run(make_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         except KeyboardInterrupt:
-            logging.warn(f"Makefile was interrupted during execution of target: '{target}', unexpected behavior may occur.")
+            log.warning(f"Makefile was interrupted during execution of target: '{target}', unexpected behavior may occur.")
 
         if result.returncode == 0:
             return
