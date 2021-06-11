@@ -15,7 +15,6 @@ class Jsonify:
     and decoded into new objects.
     """
 
-    _hash_private_vars = False
     _translation_table = None
 
     def to_json(self, encode_private=True) -> str:
@@ -114,7 +113,7 @@ class Jsonify:
         """
         return {k: v for k, v in vars(self).items() if not k.startswith("_")}
 
-    def get_json_hash(self) -> str:
+    def get_json_hash(self, ignore_whitespace=True, hash_private_vals=False) -> str:
         """
         Get the hash of the json representation of self.
 
@@ -122,8 +121,13 @@ class Jsonify:
         """
 
         # If _hash_private_vars is set, hash ALL properties on the object.
-        encoded_json = str.encode(self.to_json(encode_private=self._hash_private_vars))
-        return hashlib.md5(encoded_json).hexdigest()
+        model_json = self.to_json(encode_private=hash_private_vals)
+
+        # If ignore_whitespace is set, strip out all whitespace characters.
+        if ignore_whitespace:
+            model_json = re.sub(f"\s+", "", model_json)
+
+        return hashlib.md5(str.encode(model_json)).hexdigest()
 
     def __eq__(self, o: "Jsonify"):
         """
