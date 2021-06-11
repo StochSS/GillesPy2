@@ -812,7 +812,9 @@ class Model(SortableObject):
                              'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
                              'Please install Numpy.')
         
-        from gillespy2.solvers.cpp import can_use_cpp
+        from gillespy2.solvers.cpp.build.build_engine import BuildEngine
+        can_use_cpp = not len(BuildEngine.get_missing_dependencies())
+
         if can_use_cpp is False and can_use_numpy and not hybrid_check:
             from gillespy2 import NumPySSASolver
             return NumPySSASolver

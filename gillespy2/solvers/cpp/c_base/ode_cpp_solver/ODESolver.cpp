@@ -5,7 +5,7 @@
 #include "cvode_spils.h" // access to CVSpils interface
 #include "sundials_types.h"  // defs. of realtype, sunindextype
 #include "sundials_math.h"  // contains the macros ABS, SUNSQR, EXP
-#include "ODECSolver.h"
+#include "ODESolver.h"
 #include "model.h"
 using namespace Gillespy;
 
