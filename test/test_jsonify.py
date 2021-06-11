@@ -1,4 +1,6 @@
 import sys
+import random
+
 import unittest
 
 sys.path.append("..")
@@ -25,7 +27,7 @@ class TestJsonModels(unittest.TestCase):
         Schlogl
     ]
 
-    def test_non_anon_model_norun(self):
+    def test_equality_of_named_models(self):
         """
         Test that a model can be converted to JSON and back.
         """
@@ -38,7 +40,7 @@ class TestJsonModels(unittest.TestCase):
                 model.from_json(target.to_json())
             )
 
-    def test_anon_model_norun(self):
+    def test_equality_of_anon_models(self):
         """
         Test that an anonymous model can be converted to JSON and back.
         """
@@ -52,7 +54,7 @@ class TestJsonModels(unittest.TestCase):
                 model.from_json(anon_target.to_json())
             )
 
-    def test_non_anon_model_run(self):
+    def test_equality_of_named_results(self):
         """
         Test that Model simulation results can be converted to JSON and back.
         """
@@ -65,7 +67,7 @@ class TestJsonModels(unittest.TestCase):
 
             self.assertEquals(results.to_json(), results_from.to_json())
 
-    def test_anon_model_runs(self):
+    def test_equality_of_named_results(self):
         """
         Test that anonymous Model simulation results can be converted to JSON and back.
         """
@@ -79,16 +81,17 @@ class TestJsonModels(unittest.TestCase):
 
             self.assertEqual(results, Results.from_json(results).to_json())
 
-    def test_model_hash(self):
+    def test_model_hash_accuracy(self):
         """
         Test the accuracy of the JSON hash.
         """
 
         for model in self.models:
-            # Simple test to see if two identical models will return the same hash.
+            # Create two two instances of the 'model' type.
             model_1 = model()
             model_2 = model()
 
+            # Assert that the hash of the anonymized models are the same.
             self.assertEqual(
                 model_1.to_anon().get_json_hash(), 
                 model_2.to_anon().get_json_hash()
@@ -105,41 +108,45 @@ class TestJsonModels(unittest.TestCase):
             model_2.var2 = "world"
             model_2.var1 = "Hello"
 
+            # Generate the first model's translation table.
             translation_table = model_1.get_translation_table()
 
-            # Test to ensure that the JSON output and JSON hash are equal.
+            # Assert that the JSON of the anonymized models are still the same.
             self.assertEqual(
                 model_1.to_anon().to_json(), 
                 model_2.to_anon().to_json()
             )
 
+            # Assert that the hash of the anonymized models are still the same.
             self.assertEqual(
                 model_1.to_anon().get_json_hash(),
                 model_2.to_anon().get_json_hash()
             )
 
-            # Test to ensure that the translation table for both models is identical.
+            # Assert that the translation table is the same.
             self.assertEqual(
                 model_1.get_translation_table().to_json(), 
                 model_2.get_translation_table().to_json()
             )
 
-            # Test to ensure that model_1's JSON is equivalent to model_2 -> anon -> json -> object -> named -> json.
+            # Assert that model_1's JSON is equivalent to model_2 -> anon -> json -> object -> named -> json.
             self.assertEqual(
                 model_1.to_json(), 
                 Model.from_json(model_2.to_anon().to_json()).to_named().to_json()
             )
 
-            # Test to ensure that model_2's anon JSON hash is equivalent to model_2 -> anon -> json -> object -> json hash.
+            # Assert that model_2's anon JSON hash is equivalent to model_2 -> anon -> json -> object -> json hash.
             self.assertEqual(
                 model_1.to_anon().get_json_hash(), 
                 Model.from_json(model_2.to_anon().to_json()).get_json_hash()
             )
 
-    def test_model_hash_chaos(self):
-        import random
-
+    def test_model_hash_accuracy_chaos(self):
         for model in self.models:
+            # Set the seed of the RNG.
+            seed = random.randint(0, 100)
+            random.seed(seed)
+
             model_1 = model()
             model_2 = model()
 
@@ -163,23 +170,98 @@ class TestJsonModels(unittest.TestCase):
 
             # At this point, model_1 and model_2 contain the same data, but it was entered in a different order.
             # The json hash function should ensure that they are still equivalent.
-            self.assertEqual(model_1.to_anon().get_json_hash(), model_2.to_anon().get_json_hash())
+            self.assertEqual(
+                model_1.to_anon().get_json_hash(), 
+                model_2.to_anon().get_json_hash(),
+                msg=f"RNG seed: '{seed}'"
+            )
 
             # The translation table for model_1 and model_2 should also be the same.
-            self.assertEqual(model_1.get_translation_table().to_json(), model_2.get_translation_table().to_json())
+            self.assertEqual(
+                model_1.get_translation_table().to_json(), 
+                model_2.get_translation_table().to_json(),
+                msg=f"RNG seed: '{seed}'"
+            )
 
-    def test_anon_conversion(self):
+    def test_named_to_anon_accuracy(self):
         for model in self.models:
             model_1 = model()
 
             # For each model, check to see if we can convert its table to and from json accurately.
+            # For each model, generate its translation table and convert it to JSON.
             translation_table = model_1.get_translation_table()
-            translation_table_from_json = TranslationTable.from_json(translation_table.to_json())
+            translation_table_json = translation_table.to_json()
 
-            self.assertEqual(translation_table.to_json(), translation_table_from_json.to_json())
+            # Convert the JSON back into a TranslationTable object.
+            translation_table_from_json = TranslationTable.from_json(translation_table_json)
 
-            # For each model, ensure that the anonymized version is still equivalent to the original when converted back.
+            # Assert that the two tables are still identical.
+            self.assertEqual(translation_table, translation_table_from_json)
+
+            # Anonymize and convert model_1 to JSON.
             model_1 = model()
-            model_2 = model.from_json(model_1.to_anon().to_json()).to_named()
+            model_1_json = model_1.to_anon().to_json()
 
-            self.assertEqual(model_1.to_json(), model_2.to_json())
+            # Convert the JSON back into a Model object.
+            model_2 = model.from_json(model_1_json)
+
+            # Assert that the anonymized model_1 and the new model_2 are identical.
+            self.assertEquals(
+                model_1.to_anon().to_json(),
+                model_2.to_json()
+            )
+
+            # Convert the new model_2 to named.
+            model_2 = model_2.to_named()
+
+            # Assert that model_1 and model_2 are still the same.
+            self.assertEquals(
+                model_1.to_json(),
+                model_2.to_json()
+            )
+
+    def test_model_hash_whitespace_accuracy(self):
+        """ Test that differences in whitespace do not change the hash of a model. """
+        model_no_whitespace = MichaelisMenten()
+        model_with_whitespace = MichaelisMenten()
+
+         
+        X = Species(name="X", initial_value=int(0.65609071 * 300.0))
+        Y = Species(name="Y", initial_value=int(0.85088331 * 300.0))
+
+        model_no_whitespace.add_species([X, Y])
+        model_with_whitespace.add_species([X, Y])
+
+        # Up to this point the JSON hash of the two models should be the same.
+        self.assertEquals(model_no_whitespace.get_json_hash(), model_with_whitespace.get_json_hash())
+
+        # Add a custom reaction to both models, differing the amount of whitespace in the 
+        # propensity functions.
+        reaction_no_whitespace = Reaction(
+            name="X production", 
+            reactants={}, 
+            products={X: 1},
+            propensity_function="300*1.0/(1.0+(Y*Y/(300*300)))"
+        )
+
+        reaction_with_whitespace = Reaction(
+            name="X production", 
+            reactants={}, 
+            products={X: 1},
+            propensity_function="300      * 1.0 / (1.0 + (Y  *Y         /   (300  * 300)))"
+        )
+
+        model_no_whitespace.add_reaction(reaction_no_whitespace)
+        model_with_whitespace.add_reaction(reaction_with_whitespace)
+
+        # The hash of these two models should NOT be the same if whitespaces are not stripped.
+        self.assertNotEqual(
+            model_no_whitespace.get_json_hash(ignore_whitespace=False),
+            model_with_whitespace.get_json_hash(ignore_whitespace=False)
+        )
+
+        # If ignore_whitespace is True, then these two models should be equal.
+        self.assertEquals(
+            model_no_whitespace.get_json_hash(ignore_whitespace=True),
+            model_with_whitespace.get_json_hash(ignore_whitespace=True)
+        )
