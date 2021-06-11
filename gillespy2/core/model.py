@@ -65,6 +65,24 @@ def export_SBML(gillespy_model, filename=None):
     return export(gillespy_model, path=filename)
 
 
+def export_StochSS(gillespy_model, filename=None, return_stochss_model=False):
+    """
+    GillesPy model to StochSS converter
+
+    :param gillespy_model: GillesPy model to be converted to StochSS
+    :type gillespy_model: gillespy.Model
+
+    :param filename: Path to the StochSS file for conversion
+    :type filename: str
+    """
+    try:
+        from gillespy2.stochss.StochSSexport import export
+    except ImportError:
+        raise ImportError('StochSS export conversion not imported successfully')
+
+    return export(gillespy_model, path=filename, return_stochss_model=return_stochss_model)
+
+
 class Model(SortableObject, Jsonify):
     # reserved names for model species/parameter names, volume, and operators.
     reserved_names = ['vol']
@@ -839,7 +857,9 @@ class Model(SortableObject, Jsonify):
                              'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
                              'Please install Numpy.')
         
-        from gillespy2.solvers.cpp import can_use_cpp
+        from gillespy2.solvers.cpp.build.build_engine import BuildEngine
+        can_use_cpp = not len(BuildEngine.get_missing_dependencies())
+
         if can_use_cpp is False and can_use_numpy and not hybrid_check:
             from gillespy2 import NumPySSASolver
             return NumPySSASolver
