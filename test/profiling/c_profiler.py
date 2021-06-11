@@ -4,31 +4,15 @@ import subprocess
 import time
 from pathlib import Path
 
+from profiling import PerformanceData
+from profiling import PerformanceEntry
+
 from gillespy2.core import Model
 from gillespy2.solvers.cpp.c_solver import CSolver
 from gillespy2.solvers.cpp.build.build_engine import BuildEngine
 
 MAKEFILE_PATH = Path(os.path.dirname(__file__)).joinpath("Makefile")
 
-
-class PerformanceEntry:
-    def __init__(self, t=0.0, percent=0.0):
-        self.perf_time = float(t) * 1000
-        self.percent = float(percent)
-
-
-class PerformanceData:
-    def __init__(self):
-        self.perf_time: float = -1.0
-        self.call_time: float = -1.0
-        self.call_list: "dict[str, PerformanceEntry]" = {}
-        self.worst_entry: "tuple[str, PerformanceEntry]" = ("unknown", PerformanceEntry())
-
-    def __str__(self):
-        formatted_str = f"Total time: {round(self.perf_time, 6)}ms ({self.call_time}ms sampled)\n"
-        for call_key, call_entry in self.call_list.items():
-            formatted_str += f"[{call_key}]: {call_entry.perf_time}ms ({call_entry.percent}%)\n"
-        return formatted_str
 
 def parse_gprof_output(output: str):
     # For each line, attempt to parse it as 3-6 floats and a name.
@@ -39,6 +23,7 @@ def parse_gprof_output(output: str):
         # Check to make sure we have an expected number of entries.
         if len(block) < 4:
             return "", None, 0
+
         # Check to make sure each entry is parsable as a float
         elif not all(n.replace(".", "", 1).isnumeric() for n in block[:3]):
             return "", None, 0
@@ -56,17 +41,23 @@ def parse_gprof_output(output: str):
     results = PerformanceData()
     total_time = 0
     worst_time = -1
+
     for gprof_line in output.splitlines():
         gprof_key, gprof_block, cumulative_time = parse_line(gprof_line)
+
         if gprof_block is None:
             continue
+
         results.call_list[gprof_key] = gprof_block
         total_time = max(total_time, cumulative_time)
+
         if gprof_block.perf_time > worst_time:
             worst_time = gprof_block.perf_time
             results.worst_entry = gprof_key, gprof_block
+
     results.call_time = total_time * 1000
     results.perf_time = total_time * 1000
+
     return results
 
 
@@ -116,24 +107,29 @@ def run_profiler(model: Model, solver: CSolver, trajectories=4, timesteps=101, e
         # As such, data is located by finding the file in the output dir
         #   which contains the matching prefix defined above.
         gprof_data: Path = None
+
         for n in build.output_dir.iterdir():
             if n.stem == "profile":
                 gprof_data = build.output_dir.joinpath(n.name)
                 break
+
         if gprof_data is None:
-            raise EnvironmentError("Profiler data was not found in the current environment; aborting")
+            raise EnvironmentError(
+                "Profiler data was not found in the current environment; aborting"
+            )
 
         # Run gprof to process the profiler output.
         # -b = brief, shows minimal output
         # -p = flat profile, discards call graph data
         gprof_args = ["gprof", "-bp", exe, str(gprof_data)]
         perf_out = subprocess.check_output(gprof_args).decode("utf-8")
-        gprof_data.unlink(missing_ok=True)
+        gprof_data.unlink()
 
         # Parse the resulting output
         performance_results = parse_gprof_output(perf_out)
         performance_results.perf_time = (stop - start) * 1000
 
         return performance_results
+
     finally:
         build.clean()
