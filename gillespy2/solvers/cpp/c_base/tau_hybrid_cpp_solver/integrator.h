@@ -1,7 +1,11 @@
 #pragma once
 
-#include <vector>
 #include "HybridModel.h"
+#include "cvode.h"
+#include "sunlinsol_spgmr.h"
+#include "sundials_types.h"
+#include "nvector_serial.h"
+#include <vector>
 
 namespace Gillespy::TauHybrid
 {
@@ -18,7 +22,35 @@ namespace Gillespy::TauHybrid
 
 		IntegratorData(HybridSimulation *simulation);
 		IntegratorData(HybridSimulation *simulation, int num_species, int num_reactions);
+		IntegratorData(IntegratorData &prev_data);
 		~IntegratorData();
+	};
+
+	// [ --- concentrations --- | --- rxn_offsets --- ]
+	struct IntegrationResults
+	{
+		// concentrations: bounded by [0, num_species)
+		realtype *concentrations;
+		// reactions:      bounded by [num_species, num_species + num_reactions)
+		realtype *reactions;
+	};
+
+	class Integrator
+	{
+	private:
+		void *cvode_mem;
+		SUNLinearSolver solver;
+		int num_species;
+		int num_reactions;
+	public:
+		N_Vector y;
+		realtype t;
+		IntegrationResults integrate(double &t);
+		IntegratorData data;
+
+		Integrator(HybridSimulation *simulation);
+		Integrator(HybridSimulation *simulation, N_Vector y0, double reltol, double abstol);
+		~Integrator();
 	};
 
 }

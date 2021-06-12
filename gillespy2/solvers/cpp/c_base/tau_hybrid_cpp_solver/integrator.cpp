@@ -1,4 +1,7 @@
 #include "integrator.h"
+#include "rhs.h"
+
+static bool validate(int retcode);
 
 using namespace Gillespy::TauHybrid;
 
@@ -26,13 +29,49 @@ IntegratorData::IntegratorData(HybridSimulation *simulation)
 	: IntegratorData(
 		simulation,
 		simulation->model->number_species,
-		simulation->model->number_reactions)
-{
-	// Empty constructor body
-}
+		simulation->model->number_reactions) {}
 
 IntegratorData::~IntegratorData()
 {
 	delete[] species_state;
 	delete[] reaction_state;
+}
+
+Integrator::Integrator(HybridSimulation *simulation, N_Vector y0, double reltol, double abstol)
+	: y(y0),
+	  data(simulation),
+	  num_reactions(simulation->model->number_reactions),
+	  num_species(simulation->model->number_species)
+{
+	cvode_mem = CVodeCreate(CV_BDF);
+	validate(CVodeInit(cvode_mem, rhs, t, y));
+	validate(CVodeSStolerances(cvode_mem, reltol, abstol));
+
+	solver = SUNLinSol_SPGMR(y, 0, 0);
+	validate(CVodeSetUserData(cvode_mem, &data));
+	validate(CVodeSetLinearSolver(cvode_mem, solver, NULL));
+}
+
+Integrator::~Integrator()
+{
+	N_VDestroy_Serial(y);
+	CVodeFree(&cvode_mem);
+	SUNLinSolFree_SPGMR(solver);
+}
+
+IntegrationResults Integrator::integrate(double &t)
+{
+	if (!validate(CVode(cvode_mem, t, y, &t, CV_NORMAL))) {
+		return { nullptr, nullptr };
+	}
+
+	return {
+		NV_DATA_S(y), // NV_DATA_S instead?
+		NV_DATA_S(y) + num_species
+	};
+}
+
+bool validate(int retcode)
+{
+	return true;
 }
