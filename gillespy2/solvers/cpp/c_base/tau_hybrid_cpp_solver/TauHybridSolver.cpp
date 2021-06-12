@@ -9,6 +9,7 @@
 #include "sundials_math.h"  // contains the macros ABS, SUNSQR, EXP
 #include "TauHybridSolver.h"
 #include "HybridModel.h"
+#include "integrator.h"
 // #include "statistics.h"
 #include "tau.h"
 using namespace Gillespy;
@@ -17,14 +18,6 @@ using namespace Gillespy;
 
 static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data); // forward declare function to be used to solve RHS of ODE
 
-struct UserData {
-	Gillespy::TauHybrid::HybridSimulation *my_sim;
-	Gillespy::TauHybrid::HybridSpecies *species_state;
-	Gillespy::TauHybrid::HybridReaction *reaction_state;
-	std::vector<double> concentrations;
-	std::vector<int> populations;
-	std::vector<double> propensities;
-};
 struct IntegratorOptions{
 	// CVODE constants returned if bad output, or success output.
 	// Constants: CV_SUCCESS,
@@ -119,30 +112,12 @@ namespace Gillespy::TauHybrid {
 			//TauArgs tau_args = initialize(*(simulation->model),tau_tol);
 			double increment = simulation->timeline[1] - simulation->timeline[0];
 
-			// Initialize the hybrid solver reaction state.
-			// Hybrid-specific state is localized within a set of custom structs.
-			HybridReaction reaction_state[num_reactions];
-			HybridSpecies species_state[num_species];
-
 			// Tau selector initialization. Used to select a valid tau step.
 			TauArgs tau_args = initialize(model, tau_tol);
-
-			for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
-				reaction_state[rxn_i].base_reaction = &model.reactions[rxn_i];
-			}
-			for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-				species_state[spec_i].base_species = &model.species[spec_i];
-			}
 
 			// Population/concentration state values for each species.
 			// TODO: change back double -> hybrid_state, once we figure out how that works
 			std::vector<int> current_state(num_species);
-			// Populations and concentrations vectors are used by the integrator.
-			// Kept distinct so that deterministic and stochastic propensities may be evaluated separately.
-			std::vector<int> populations(num_species);
-			std::vector<double> concentrations(num_species);
-			//initialize propensity_values to 0 for each species
-			std::vector<double> propensity_values(num_reactions);
 
 			// Hybrid solver is highly dependent on random numbers.
 			// In order to do this, a URN on the range [0,1) is generated.
@@ -162,24 +137,17 @@ namespace Gillespy::TauHybrid {
 					break;
 				}
 
+				// Struct acts as container for simulation state.
+				// This gets passed in to the integrator.
+				IntegratorData *data = new IntegratorData(simulation);
+
 				// Initialize the species population for the trajectory.
 				for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-					populations[spec_i]
-						= concentrations[spec_i]
+					data->populations[spec_i]
+						= data->concentrations[spec_i]
 						= current_state[spec_i]
 						= species[spec_i].initial_population;
 				}
-
-				// Struct acts as container for simulation state.
-				// This gets passed in to the integrator.
-				UserData *data = new UserData {
-					simulation,
-					species_state,
-					reaction_state,
-					concentrations,
-					populations,
-					propensity_values
-				};
 
 				// INITIALIZE INTEGRATOR STATE
 				// Integrator is used to integrate two variable sets separately:
@@ -238,8 +206,8 @@ namespace Gillespy::TauHybrid {
 						tau_tol,
 						simulation->current_time,
 						save_time,
-						propensity_values,
-						populations
+						data->propensities,
+						data->populations
 					);
 
 					// Determine what the next time point is.
@@ -344,8 +312,8 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 	realtype propensity_ode, propensity_tau;
 
 	// Extract simulation data
-	UserData *data = static_cast<UserData*>(user_data);
-	HybridSimulation *sim = data->my_sim;
+	IntegratorData *data = static_cast<IntegratorData*>(user_data);
+	HybridSimulation *sim = data->simulation;
 	HybridSpecies *species = data->species_state;
 	HybridReaction *reactions = data->reaction_state;
 	std::vector<double> &propensities = data->propensities;
