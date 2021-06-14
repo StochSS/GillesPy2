@@ -6,6 +6,7 @@
 #include "sundials_types.h"
 #include "nvector_serial.h"
 #include <vector>
+#include <random>
 
 namespace Gillespy::TauHybrid
 {
@@ -52,5 +53,18 @@ namespace Gillespy::TauHybrid
 		Integrator(HybridSimulation *simulation, N_Vector y0, double reltol, double abstol);
 		~Integrator();
 	};
+
+	struct URNGenerator
+	{
+	private:
+		std::uniform_real_distribution<double> uniform;
+		std::mt19937_64 rng;
+	public:
+		double next();
+		URNGenerator();
+		URNGenerator(double seed);
+	};
+
+	N_Vector init_model_vector(Model &model, URNGenerator urn);
 
 }
