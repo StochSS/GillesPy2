@@ -4,8 +4,8 @@ import subprocess
 import time
 from pathlib import Path
 
-from profiling import PerformanceData
-from profiling import PerformanceEntry
+from performance_data import PerformanceData
+from performance_data import PerformanceEntry
 
 from gillespy2.core import Model
 from gillespy2.solvers.cpp.c_solver import CSolver

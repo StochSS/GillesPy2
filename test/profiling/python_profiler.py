@@ -3,8 +3,8 @@ import cProfile
 import pstats
 from pstats import SortKey
 
-from profiling import PerformanceData
-from profiling import PerformanceEntry
+from performance_data import PerformanceData
+from performance_data import PerformanceEntry
 
 from gillespy2.core import Model
 from gillespy2.core import GillesPySolver
@@ -37,7 +37,7 @@ def run_profiler(model: Model, solver: GillesPySolver, trajectories=4, timesteps
     (cc, nc, tt, ct, callers) = stats.stats[worst_func]
     perf_data.worst_entry = (
         worst_func, 
-        PerformanceEntry(round(tt, 3), round((tt / stats.total_tt) * 100))
+        PerformanceEntry(tt, round((tt / stats.total_tt) * 100))
     )
 
     for func in stats.fcn_list:
