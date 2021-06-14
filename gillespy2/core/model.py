@@ -236,15 +236,6 @@ class Model(SortableObject, Jsonify):
 
         return TranslationTable(to_anon=translation_table)
 
-    def remote_solver_hash(self):
-        """ Creates an md5 hash of an anonymized version of the model to be used for caching """
-
-        import hashlib
-
-        json_string = self.to_json()
-        mdfive = hashlib.md5(json_string.encode())
-        return mdfive.hexdigest()
-
     def serialize(self):
         """ Serializes the Model object to valid StochML. """
         self.resolve_parameters()

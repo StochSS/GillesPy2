@@ -38,7 +38,7 @@ class FunctionDefinition(SortableObject, Jsonify):
                        reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
-        sanitized_function = self.function_string
+        sanitized_function = self.function
         for id, name in enumerate(names):
             sanitized_function = sanitized_function.replace(name, "{" + str(id) + "}")
         return sanitized_function.format(*replacements)
