@@ -4,8 +4,8 @@ import subprocess
 import time
 from pathlib import Path
 
-from performance_data import PerformanceData
-from performance_data import PerformanceEntry
+from .performance_data import PerformanceData
+from .performance_data import PerformanceEntry
 
 from gillespy2.core import Model
 from gillespy2.solvers.cpp.c_solver import CSolver
@@ -55,8 +55,8 @@ def parse_gprof_output(output: str):
             worst_time = gprof_block.perf_time
             results.worst_entry = gprof_key, gprof_block
 
-    results.call_time = total_time * 1000
-    results.perf_time = total_time * 1000
+    results.sample_time = total_time * 1000
+    results.execution_time = total_time * 1000
 
     return results
 
@@ -127,7 +127,7 @@ def run_profiler(model: Model, solver: CSolver, trajectories=4, timesteps=101, e
 
         # Parse the resulting output
         performance_results = parse_gprof_output(perf_out)
-        performance_results.perf_time = (stop - start) * 1000
+        performance_results.execution_time = (stop - start) * 1000
 
         return performance_results
 

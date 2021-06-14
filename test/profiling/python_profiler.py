@@ -30,8 +30,8 @@ def run_profiler(model: Model, solver: GillesPySolver, trajectories=4, timesteps
     stats = pstats.Stats(profiler).strip_dirs().sort_stats(SortKey.TIME)
 
     perf_data = PerformanceData()
-    perf_data.perf_time = stats.total_tt
-    perf_data.call_time = 0
+    perf_data.execution_time = stats.total_tt
+    perf_data.sample_time = 0
     
     worst_func = stats.fcn_list[0]
     (cc, nc, tt, ct, callers) = stats.stats[worst_func]
@@ -48,6 +48,6 @@ def run_profiler(model: Model, solver: GillesPySolver, trajectories=4, timesteps
         parent = func[0] if func[0] != "~" else "python"
         perf_data.call_list[f"{parent}:{func[2]}"] = perf_entry
 
-        perf_data.call_time += ct
+        perf_data.sample_time += ct
 
     return perf_data
