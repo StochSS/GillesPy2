@@ -49,7 +49,10 @@ int main(int argc, char* argv[]){
 				arg_stream >> end_time;
 				break;
 			case 'i':
-				map_variable_populations(arg_stream);
+				if (arg[2] == 'c')
+					arg_stream >> increment;
+				else if (arg[2] == 'i')
+					map_variable_populations(arg_stream);
 				break;
 			case 'p':
 				map_variable_parameters(arg_stream);

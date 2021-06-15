@@ -47,16 +47,17 @@ namespace Gillespy::TauHybrid
 	{
 	private:
 		void *cvode_mem;
+		N_Vector y0;
 		SUNLinearSolver solver;
 		int num_species;
 		int num_reactions;
 	public:
 		N_Vector y;
 		realtype t;
+		void reset(double t_back);
 		IntegrationResults integrate(double *t);
 		IntegratorData data;
 
-		Integrator(HybridSimulation *simulation);
 		Integrator(HybridSimulation *simulation, N_Vector y0, double reltol, double abstol);
 		~Integrator();
 	};

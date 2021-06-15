@@ -13,7 +13,7 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	// Get y(t) vector and f(t, y) vector
 	realtype *Y = N_VGetArrayPointer(y);
 	realtype *dydt = N_VGetArrayPointer(ydot);
-	realtype propensity_ode, propensity_tau;
+	realtype propensity;
 
 	// Extract simulation data
 	IntegratorData *data = static_cast<IntegratorData*>(user_data);
@@ -57,14 +57,14 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	// Process deterministic propensity state
 	// These updates get written directly to the integrator's concentration state
 	for (rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
-		propensity_tau = propensity_ode = 0.0;
+		propensity = 0.0;
 		current_rxn = reactions[rxn_i].base_reaction;
 		// NOTE: we may need to evaluate ODE and Tau propensities separately.
 		// At the moment, it's unsure whether or not that's required.
 
 		switch (reactions[rxn_i].mode) {
 		case SimulationState::CONTINUOUS:
-			propensity_ode = sim->propensity_function->ODEEvaluate(rxn_i, concentrations);
+			propensity = sim->propensity_function->ODEEvaluate(rxn_i, data->concentrations);
 
 			for (spec_i = 0; spec_i < num_species; ++spec_i) {
 				// Use the evaluated propensity to update the concentration levels and reaction state.
@@ -76,20 +76,18 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 				// The product on the right evaluates to 1 if species_change is positive,
 				//    and -1 if it's negative.
 				// This is a branchless alternative to using an if-statement.
-				dydt[spec_i] += propensity_ode * (-1 + 2 * (species_change > 0));
+				dydt[spec_i] += propensity * (-1 + 2 * (species_change > 0));
 			}
+			break;
 		case SimulationState::DISCRETE:
 			// Process stochastic reaction state by updating the root offset for each reaction.
-			propensity_tau = sim->propensity_function->TauEvaluate(rxn_i, populations);
+			propensity = sim->propensity_function->TauEvaluate(rxn_i, data->populations);
+			dydt_offsets[rxn_i] += propensity;
+			propensities[rxn_i] = propensity;
 			break;
 		default:
 			break;
 		}
-
-		// Integrate this reaction's rxn_offset forward using the propensity.
-		dydt_offsets[rxn_i] += propensity_tau;
-		// Propensity vector is only used for tau selection, so only Tau propensity is used.
-		propensities[rxn_i] = propensity_tau;
 	}
 
 	return 0;

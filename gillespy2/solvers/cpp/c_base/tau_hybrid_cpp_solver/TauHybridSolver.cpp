@@ -14,19 +14,6 @@
 #include "tau.h"
 using namespace Gillespy;
 
-struct IntegratorOptions{
-	// CVODE constants returned if bad output, or success output.
-	// Constants: CV_SUCCESS,
-	// CV_MEM_NULL: CVODE memory block not initialized through call to CVodeCreate
-	// CV_NO_MALLOC: The allocation function CVodeInit not called
-	// CV_ILL_Input: An input tolerance was negative
-	int flag;
-	// absolute tolerace of a system
-	realtype abstol;
-	// relative tolerance of system
-	realtype reltol;
-	// double max_step;
-};
 namespace Gillespy::TauHybrid {
 	bool interrupted = false;
 
@@ -61,7 +48,7 @@ namespace Gillespy::TauHybrid {
 				os << timeline[j] << ',';
 
 				for (int k = 0; k < model->number_species; k++) {
-					os << trajectories_hybrid[i][j][k].discrete << ',';
+					os << trajectories_hybrid[i][j][k].continuous << ',';
 				}
 			}
 
@@ -97,8 +84,6 @@ namespace Gillespy::TauHybrid {
 
 	void TauHybridCSolver(HybridSimulation *simulation, const double tau_tol)
 	{
-		//timeouts not supported right now??
-		// signal(SIGINT, signalHandler);
 		if (simulation == NULL) {
 			return;
 		}
@@ -108,28 +93,25 @@ namespace Gillespy::TauHybrid {
 		int num_reactions = model.number_reactions;
 		int num_trajectories = simulation->number_trajectories;
 		std::unique_ptr<Species[]> &species = model.species;
-		//TauArgs tau_args = initialize(*(simulation->model),tau_tol);
 		double increment = simulation->timeline[1] - simulation->timeline[0];
 
 		// Tau selector initialization. Used to select a valid tau step.
 		TauArgs tau_args = initialize(model, tau_tol);
 
-		// Population/concentration state values for each species.
-		// TODO: change back double -> hybrid_state, once we figure out how that works
-		std::vector<double> current_state(num_species);
-
 		//copy initial state for each trajectory
 		for(int s = 0; s < num_species; s++){
 			simulation->trajectories_hybrid[0][0][s].continuous = species[s].initial_population;
-			current_state[s] = species[s].initial_population;
 		}
+
 		//Simulate for each trajectory
 		for(int traj = 0; traj < num_trajectories; traj++){
-			if (interrupted){
-				break;
-			}
+			// Population/concentration state values for each species.
+			// TODO: change back double -> hybrid_state, once we figure out how that works
+			std::vector<double> current_state(num_species);
 
 			URNGenerator urn;
+			// The contents of y0 are "stolen" by the integrator.
+			// Do not attempt to directly use y0 after being passed to sol!
 			N_Vector y0 = init_model_vector(model, urn);
 			Integrator sol(simulation, y0, GPY_HYBRID_RELTOL, GPY_HYBRID_ABSTOL);
 
@@ -138,7 +120,7 @@ namespace Gillespy::TauHybrid {
 				current_state[spec_i] = species[spec_i].initial_population;
 			}
 
-			// INITIALIZE INTEGRATOR STATE
+			// Represents the largest valid index of the output vector(s), y (and y0).
 			int rxn_offset_boundary  = num_species + num_reactions;
 
 			// SIMULATION STEP LOOP
@@ -184,9 +166,15 @@ namespace Gillespy::TauHybrid {
 					// Use the current reaction_state to count the number of firings.
 					// If a negative population is detected, then the loop breaks prematurely.
 					bool invalid_state = false;
+
+					// Start with the species concentration as a baseline value.
+					// Stochastic reactions will update populations relative to their concentrations.
+					for (int spec_i = 0; spec_i < num_species; ++spec_i) {
+						current_state[spec_i] = result.concentrations[spec_i];
+					}
+
 					switch (sol.data.reaction_state[rxn_i].mode) {
 					case SimulationState::DISCRETE:
-
 						// 0-initialize our population_changes array.
 						for (int p_i = 0; p_i < num_species; ++p_i)
 							population_changes[p_i] = 0;
@@ -222,9 +210,6 @@ namespace Gillespy::TauHybrid {
 
 					case SimulationState::CONTINUOUS:
 					default:
-						for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-							current_state[spec_i] += result.concentrations[spec_i];
-						}
 						break;
 					}
 				}

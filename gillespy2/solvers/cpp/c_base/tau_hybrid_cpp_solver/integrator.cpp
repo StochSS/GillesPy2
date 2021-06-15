@@ -40,11 +40,18 @@ IntegratorData::~IntegratorData()
 
 
 Integrator::Integrator(HybridSimulation *simulation, N_Vector y0, double reltol, double abstol)
-	: y(y0),
+	: y0(y0),
+	  y(N_VClone_Serial(y0)),
 	  data(simulation),
 	  num_reactions(simulation->model->number_reactions),
 	  num_species(simulation->model->number_species)
 {
+	// y0 is the initial state, y is updated during integration.
+	// N_VClone_Serial() does not clone *contents*, we have to do that explicitly.
+	for (int mem_i = 0; mem_i < num_reactions + num_species; ++mem_i) {
+		NV_Ith_S(y, mem_i) = NV_Ith_S(this->y0, mem_i);
+	}
+
 	for (int spec_i = 0; spec_i < num_species; ++spec_i) {
 		data.populations[spec_i]
 			= data.concentrations[spec_i]
@@ -60,6 +67,12 @@ Integrator::Integrator(HybridSimulation *simulation, N_Vector y0, double reltol,
 	validate(CVodeSetLinearSolver(cvode_mem, solver, NULL));
 }
 
+void Integrator::reset(double t_back)
+{
+	validate(CVodeReInit(cvode_mem, t_back, y0));
+	t = t_back;
+}
+
 Integrator::~Integrator()
 {
 	N_VDestroy_Serial(y);
@@ -69,7 +82,7 @@ Integrator::~Integrator()
 
 IntegrationResults Integrator::integrate(double *t)
 {
-	if (!validate(CVode(cvode_mem, *t, y, t, CV_NORMAL))) {
+	if (!validate(CVode(cvode_mem, *t, y, &this->t, CV_NORMAL))) {
 		return { nullptr, nullptr };
 	}
 
