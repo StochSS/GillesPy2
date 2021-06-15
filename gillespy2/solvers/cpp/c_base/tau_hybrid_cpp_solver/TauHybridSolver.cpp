@@ -14,10 +14,6 @@
 #include "tau.h"
 using namespace Gillespy;
 
-// #define NV_Ith_S(v,i) (NV_DATA_S(v)[i]) // Access to individual components of data array, of N len vector
-
-static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data); // forward declare function to be used to solve RHS of ODE
-
 struct IntegratorOptions{
 	// CVODE constants returned if bad output, or success output.
 	// Constants: CV_SUCCESS,
@@ -120,15 +116,7 @@ namespace Gillespy::TauHybrid {
 
 		// Population/concentration state values for each species.
 		// TODO: change back double -> hybrid_state, once we figure out how that works
-		std::vector<int> current_state(num_species);
-
-		// Hybrid solver is highly dependent on random numbers.
-		// In order to do this, a URN on the range [0,1) is generated.
-		// log( uniform(rng) ) returns a real number on the range (-inf, 0).
-		// TODO: either assign a seed or set seed to be configurable
-		std::mt19937_64 rng;
-		std::uniform_real_distribution<double> uniform(0, 1);
-
+		std::vector<double> current_state(num_species);
 
 		//copy initial state for each trajectory
 		for(int s = 0; s < num_species; s++){
@@ -141,9 +129,6 @@ namespace Gillespy::TauHybrid {
 				break;
 			}
 
-			// Struct acts as container for simulation state.
-			// This gets passed in to the integrator.
-			IntegratorData *data = new IntegratorData(simulation);
 			URNGenerator urn;
 			N_Vector y0 = init_model_vector(model, urn);
 			Integrator sol(simulation, y0, GPY_HYBRID_RELTOL, GPY_HYBRID_ABSTOL);
@@ -159,7 +144,7 @@ namespace Gillespy::TauHybrid {
 			// SIMULATION STEP LOOP
 			double next_time;
 			double tau_step = 0.0;
-			int save_time = 0;
+			int save_time = simulation->timeline[1];
 
 			// Temporary array to store changes to dependent species.
 			// Should be 0-initialized each time it's used.
@@ -173,8 +158,8 @@ namespace Gillespy::TauHybrid {
 					tau_tol,
 					simulation->current_time,
 					save_time,
-					data->propensities,
-					data->populations
+					sol.data.propensities,
+					sol.data.populations
 				);
 
 				// Determine what the next time point is.
@@ -186,7 +171,7 @@ namespace Gillespy::TauHybrid {
 				// For deterministic reactions, the concentrations are updated directly.
 				// For stochastic reactions, integration updates the rxn_offsets vector.
 				// flag = CVode(cvode_mem, next_time, y0, &next_time, CV_NORMAL);
-				IntegrationResults result = sol.integrate(next_time);
+				IntegrationResults result = sol.integrate(&next_time);
 
 				// The newly-updated reaction_states vector may need to be reconciled now.
 				// A positive reaction_state means reactions have potentially fired.
@@ -196,40 +181,52 @@ namespace Gillespy::TauHybrid {
 					// Does not get updated unless the changes are deemed valid.
 					double rxn_state = result.reactions[rxn_i];
 
-					// 0-initialize our population_changes array.
-					for (int p_i = 0; p_i < num_species; ++p_i)
-						population_changes[p_i] = 0;
-
 					// Use the current reaction_state to count the number of firings.
 					// If a negative population is detected, then the loop breaks prematurely.
 					bool invalid_state = false;
-					while (rxn_state >= 0 && !invalid_state) {
-						// "Fire" a reaction by recording changes in dependent species.
-						// If a negative value is detected, break without saving changes.
-						for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-							population_changes[spec_i] +=
-								model.reactions[rxn_i].species_change[spec_i];
-							if (current_state[spec_i] + population_changes[spec_i] < 0) {
-								invalid_state = true;
+					switch (sol.data.reaction_state[rxn_i].mode) {
+					case SimulationState::DISCRETE:
+
+						// 0-initialize our population_changes array.
+						for (int p_i = 0; p_i < num_species; ++p_i)
+							population_changes[p_i] = 0;
+
+						while (rxn_state >= 0 && !invalid_state) {
+							// "Fire" a reaction by recording changes in dependent species.
+							// If a negative value is detected, break without saving changes.
+							for (int spec_i = 0; spec_i < num_species; ++spec_i) {
+								population_changes[spec_i] +=
+									model.reactions[rxn_i].species_change[spec_i];
+								if (current_state[spec_i] + population_changes[spec_i] < 0) {
+									invalid_state = true;
+								}
 							}
+
+							rxn_state += log(urn.next());
 						}
 
-						rxn_state += log(urn.next());
-					}
+						// Positive reaction state means a negative population was detected.
+						// Only update state with the given population changes if valid.
+						if (invalid_state) {
+							// TODO: invalidate reaction timestep, reset integrator state, try again
+							std::cerr << "Integration step failed; RIP" << std::endl;
+							continue;
+						}
 
-					// Positive reaction state means a negative population was detected.
-					// Only update state with the given population changes if valid.
-					if (invalid_state) {
-						// TODO: invalidate reaction timestep, reset integrator state, try again
-						std::cerr << "Integration step failed; RIP" << std::endl;
-						// continue;
-					}
+						// "Permanently" update the rxn_state and populations.
+						for (int p_i = 0; p_i < num_species; ++p_i) {
+							current_state[p_i] += population_changes[p_i];
+						}
+						result.reactions[rxn_i] = rxn_state;
+						break;
 
-					// "Permanently" update the rxn_state and populations.
-					for (int p_i = 0; p_i < num_species; ++p_i) {
-						current_state[p_i] += population_changes[p_i];
+					case SimulationState::CONTINUOUS:
+					default:
+						for (int spec_i = 0; spec_i < num_species; ++spec_i) {
+							current_state[spec_i] += result.concentrations[spec_i];
+						}
+						break;
 					}
-					result.reactions[rxn_i] = rxn_state;
 				}
 
 				// Output the results for this time step.
@@ -238,15 +235,13 @@ namespace Gillespy::TauHybrid {
 				while (save_time <= next_time) {
 					// Write each species, one at a time (from ODE solution)
 					for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-						// current_state[spec_i] += result.concentrations[spec_i];
-						simulation->trajectories_hybrid[traj][save_time][spec_i].discrete = current_state[spec_i];
+						simulation->trajectories_hybrid[traj][save_time][spec_i].continuous = current_state[spec_i];
 					}
 					save_time += increment;
 				}
 			}
 
 			// End of trajectory
-			delete data;
 			delete[] population_changes;
 		}
 	}

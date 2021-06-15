@@ -5,6 +5,7 @@ static bool validate(int retcode);
 
 using namespace Gillespy::TauHybrid;
 
+
 IntegratorData::IntegratorData(
 	HybridSimulation *simulation,
 	int num_species,
@@ -37,6 +38,7 @@ IntegratorData::~IntegratorData()
 	delete[] reaction_state;
 }
 
+
 Integrator::Integrator(HybridSimulation *simulation, N_Vector y0, double reltol, double abstol)
 	: y(y0),
 	  data(simulation),
@@ -65,9 +67,9 @@ Integrator::~Integrator()
 	SUNLinSolFree_SPGMR(solver);
 }
 
-IntegrationResults Integrator::integrate(double &t)
+IntegrationResults Integrator::integrate(double *t)
 {
-	if (!validate(CVode(cvode_mem, t, y, &t, CV_NORMAL))) {
+	if (!validate(CVode(cvode_mem, *t, y, t, CV_NORMAL))) {
 		return { nullptr, nullptr };
 	}
 
@@ -77,12 +79,14 @@ IntegrationResults Integrator::integrate(double &t)
 	};
 }
 
+
 URNGenerator::URNGenerator()
 	: uniform(0, 1) {}
 
 URNGenerator::URNGenerator(double seed)
 	: uniform(0, 1),
 	  rng(seed) {}
+
 
 /* Generate a new random floating-point number on the range [0,1).
  * Uses a uniform distribution to generate.
@@ -91,6 +95,7 @@ double URNGenerator::next()
 {
 	return uniform(rng);
 }
+
 
 /* Initialize a SUNDials N_Vector based on information provided in the model.
  * 

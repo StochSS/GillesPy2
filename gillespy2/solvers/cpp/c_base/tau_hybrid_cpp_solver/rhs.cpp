@@ -57,26 +57,35 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	// Process deterministic propensity state
 	// These updates get written directly to the integrator's concentration state
 	for (rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
+		propensity_tau = propensity_ode = 0.0;
 		current_rxn = reactions[rxn_i].base_reaction;
 		// NOTE: we may need to evaluate ODE and Tau propensities separately.
 		// At the moment, it's unsure whether or not that's required.
-		propensity_ode = sim->propensity_function->ODEEvaluate(rxn_i, concentrations);
 
-		for (spec_i = 0; spec_i < num_species; ++spec_i) {
-			// Use the evaluated propensity to update the concentration levels and reaction state.
-			// Propensity is treated as positive if it's a product, negative if it's a reactant.
-			species_change = current_rxn->species_change[spec_i];
-			if (species_change == 0)
-				continue;
+		switch (reactions[rxn_i].mode) {
+		case SimulationState::CONTINUOUS:
+			propensity_ode = sim->propensity_function->ODEEvaluate(rxn_i, concentrations);
 
-			// The product on the right evaluates to 1 if species_change is positive,
-			//    and -1 if it's negative.
-			// This is a branchless alternative to using an if-statement.
-			dydt[spec_i] += propensity_ode * (-1 + 2 * (species_change > 0));
+			for (spec_i = 0; spec_i < num_species; ++spec_i) {
+				// Use the evaluated propensity to update the concentration levels and reaction state.
+				// Propensity is treated as positive if it's a product, negative if it's a reactant.
+				species_change = current_rxn->species_change[spec_i];
+				if (species_change == 0)
+					continue;
+
+				// The product on the right evaluates to 1 if species_change is positive,
+				//    and -1 if it's negative.
+				// This is a branchless alternative to using an if-statement.
+				dydt[spec_i] += propensity_ode * (-1 + 2 * (species_change > 0));
+			}
+		case SimulationState::DISCRETE:
+			// Process stochastic reaction state by updating the root offset for each reaction.
+			propensity_tau = sim->propensity_function->TauEvaluate(rxn_i, populations);
+			break;
+		default:
+			break;
 		}
 
-		// Process stochastic reaction state by updating the root offset for each reaction.
-		propensity_tau = sim->propensity_function->TauEvaluate(rxn_i, populations);
 		// Integrate this reaction's rxn_offset forward using the propensity.
 		dydt_offsets[rxn_i] += propensity_tau;
 		// Propensity vector is only used for tau selection, so only Tau propensity is used.

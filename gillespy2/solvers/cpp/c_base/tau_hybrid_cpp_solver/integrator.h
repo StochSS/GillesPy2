@@ -27,7 +27,14 @@ namespace Gillespy::TauHybrid
 		~IntegratorData();
 	};
 
-	// [ --- concentrations --- | --- rxn_offsets --- ]
+	/* :IntegrationResults:
+	 * Organized data structure for accessing the integrator's output vector.
+	 * Contents are MUTABLE! Updating the values in any containing pointers
+	 *   will be permanently reflected in the integrator's vector.
+	 * 
+	 * All pointers in the structure point to different regions of the same vector.
+	 * N_Vector: [ --- concentrations --- | ---- rxn_offsets ---- ]
+	 */
 	struct IntegrationResults
 	{
 		// concentrations: bounded by [0, num_species)
@@ -46,7 +53,7 @@ namespace Gillespy::TauHybrid
 	public:
 		N_Vector y;
 		realtype t;
-		IntegrationResults integrate(double &t);
+		IntegrationResults integrate(double *t);
 		IntegratorData data;
 
 		Integrator(HybridSimulation *simulation);
