@@ -7,6 +7,9 @@ class ArgParser
 {
 private:
     std::map<char*, int> args; 
+    std::map<char*, char*> parameters;
+    std::vector<int> init_pop;
+    // int init_pop[];
 public:
     int get(char* arg) {
         return args[arg];
@@ -26,6 +29,8 @@ ArgParser::ArgParser(const int argc, char* argv[])
             {"seed", required_argument, 0, 's'},
             {"trajectories", required_argument, 0, 'T'},
             {"increment", required_argument, 0, 'i'},
+            {"tau_tol", required_argument, 0, 0},
+            {"switch_tol", required_argument, 0, 'S'},
             {"initpop", required_argument, 0, 'I'},
             {"parameters", required_argument, 0, 'P'},
             {0,0,0,0}
@@ -37,6 +42,9 @@ ArgParser::ArgParser(const int argc, char* argv[])
         
         switch (opt)
         {
+        case 0:
+            args.insert(std::pair<char *, int>("tau_tol", atoi(optarg)));
+            break;
         case 't':
             args.insert(std::pair<char *, int>("timesteps", atoi(optarg)));
             break;
@@ -51,6 +59,8 @@ ArgParser::ArgParser(const int argc, char* argv[])
             break;
         case 'i':
             args.insert(std::pair<char *, int>("increment", atoi(optarg)));
+            break;
+        case 'S':
             break;
         case 'I':
             // args.insert(std::pair<char *, int>("initpop", atoi(optarg)));
