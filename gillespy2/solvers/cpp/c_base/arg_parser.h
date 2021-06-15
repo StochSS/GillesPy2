@@ -73,15 +73,7 @@ ArgParser::ArgParser(const int argc, char* argv[])
             break;
         }
     }
-    // std::cout << "hello";
-    // while ((opt = getopt_long(argc, argv, "t:")) != -1) {
-    //     switch (opt) {
-    //         case 't' || "timesteps":
-    //             timesteps = optarg;
-    //             // std::cout << time << std::endl;
-    //             args.insert(std::pair<char*, int>("time", atoi(time)));
-    //     }
-    // }
+
 }
 
 ArgParser::~ArgParser()
