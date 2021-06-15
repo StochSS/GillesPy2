@@ -35,7 +35,7 @@ ArgParser::ArgParser(const int argc, char* argv[])
             {"parameters", required_argument, 0, 'P'},
             {0,0,0,0}
         };
-        opt = getopt_long(argc, argv, "t:",long_options, NULL);
+        opt = getopt_long(argc, argv, "t:e:s:T:i:0:S:I:P:",long_options, NULL);
         // std::cout << opt;
         if (opt == -1)
             break;
