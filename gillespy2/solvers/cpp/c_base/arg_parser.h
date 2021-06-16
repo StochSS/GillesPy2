@@ -9,6 +9,17 @@
 class ArgParser
 {
 private:
+    std::string usage = "\
+usage: [simulation.out] [-t|--timesteps] <int>\
+[-e|--end] <int|double> \
+[-s|--seed] <int> \
+[-S|--switch_tol] <double> \
+[-i|--increment] <int|double> \
+[-I|--init_pop] <int>... \
+[-p|--parameters] <int|double>... \
+[-T|--trajectories] <int>... \
+[--tau_tol] <double> \
+";
     char match_arg(char* opt)
     {
         if (!strcmp(opt, "timesteps"))
@@ -65,7 +76,7 @@ public:
     ~ArgParser();
 };
 
-ArgParser::ArgParser(int argc, char* argv[]):    
+ArgParser::ArgParser(int argc, char* argv[])    
 {
     int opt;
     for (int i = 1; i < argc; ++i){
@@ -109,6 +120,7 @@ ArgParser::ArgParser(int argc, char* argv[]):
                 tau_tol = strtod(argv[i + 1], 0);
                 break;
             default:
+                std::cerr << usage();
                 break;
         }        
     }
