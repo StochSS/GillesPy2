@@ -10,7 +10,8 @@ class ArgParser
 {
 private:
     std::string usage = "\
-usage: [simulation.out] [-t|--timesteps] <int>\
+usage: [simulation.out] \
+[-t|--timesteps] <int>\
 [-e|--end] <int|double> \
 [-s|--seed] <int> \
 [-S|--switch_tol] <double> \
@@ -18,7 +19,7 @@ usage: [simulation.out] [-t|--timesteps] <int>\
 [-I|--init_pop] <int>... \
 [-p|--parameters] <int|double>... \
 [-T|--trajectories] <int>... \
-[--tau_tol] <double> \
+[--tau_tol] <double> \n\
 ";
     char match_arg(char* opt)
     {
@@ -42,15 +43,15 @@ usage: [simulation.out] [-t|--timesteps] <int>\
             return 0;      
     };
 public:
-    int trajectories;
-    int timesteps;
-    double end;
-    int seed;
-    double increment;
-    double switch_tol;
-    double tau_tol;
-    std::vector<int> init_pop;
-    std::vector<double> parameters;
+    int trajectories = 0;
+    int timesteps = 0;
+    double end = 0.0;
+    int seed = -1;
+    double increment = 0.0;
+    double switch_tol = 0.0;
+    double tau_tol = 0.0;
+    std::vector<int> init_pop = std::vector<int>();
+    std::vector<double> parameters = std::vector<double>();
     // int get(char* arg) {
     //     if (!strcmp(arg, "timesteps"))
     //         return 't';
@@ -120,7 +121,7 @@ ArgParser::ArgParser(int argc, char* argv[])
                 tau_tol = strtod(argv[i + 1], 0);
                 break;
             default:
-                std::cerr << usage();
+                std::cerr << usage;
                 break;
         }        
     }
