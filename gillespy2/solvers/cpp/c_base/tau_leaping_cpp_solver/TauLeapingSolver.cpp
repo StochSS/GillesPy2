@@ -35,6 +35,7 @@ namespace Gillespy {
 	TauArgs initialize(Gillespy::Model &model, double tau_tol) {
 		TauArgs tau_args;
 
+		// Initialize highest order reactions to 0.
 		for (int species_index = 0; species_index < model.number_species; species_index++) {
 			tau_args.HOR[model.species[species_index].name] = 0;
 		}
@@ -59,6 +60,7 @@ namespace Gillespy {
 				continue;
 			}
 
+			// If this reaction's order is higher than the previous, initialize and set.
 			for (auto const &reactant : tau_args.reactions_reactants[reaction_index]) {
 				if (reaction_order <= tau_args.HOR[model.species[reactant].name]) {
 					continue;
@@ -111,8 +113,14 @@ namespace Gillespy {
 		bool critical = false;
 
 		int v;
+
+		// Tau time to step.
 		double tau;
+
+		// Smallest tau time for critical reactions.
 		double critical_tau = 0;
+
+		// Smallest tau time for non-critical reactions.
 		double non_critical_tau = 0;
 
 		std::map<std::string, double> critical_taus;
@@ -124,6 +132,7 @@ namespace Gillespy {
 			sigma_i[model.species[species_index].name] = 0;
 		}
 
+		// Determine if there are any critical reactions and, if true, update mu_i and sigma_i.
 		for (int reaction_index; reaction_index < model.number_reactions; reaction_index++) {
 			for (auto const &reactant : tau_args.reactions_reactants[reaction_index]) {
 				if (model.reactions[reaction_index].species_change[reactant] >= 0) {
@@ -136,11 +145,14 @@ namespace Gillespy {
 				}
 
 				int consumed = std::abs(model.reactions[reaction_index].species_change[reactant]);
+
+				// Cao, Gillespie, Petzold 32a.
 				mu_i[model.species[reactant].name] += consumed * propensity_values[reaction_index];
 				sigma_i[model.species[reactant].name] += std::pow(consumed, 2) * propensity_values[reaction_index];
 			}
 		}
 
+		// If a critical reaction is present, estimate tau for a single firing of each with a propensity > 0, taking the smallest tau.
 		if (critical == true) {
 			for (int reaction_index = 0; reaction_index < model.number_reactions; reaction_index++) {
 				if (propensity_values[reaction_index] > 0) {
@@ -148,6 +160,7 @@ namespace Gillespy {
 				}
 			}
 
+			// Find the minimum of the critical taus.
 			std::pair<std::string, double> min;
 			min = *min_element(critical_taus.begin(), critical_taus.end(), [](const auto &lhs, const auto &rhs) {
 				return lhs.second < rhs.second;
@@ -164,6 +177,7 @@ namespace Gillespy {
 			}
 		}
 
+		// Mapping of non-critical taus to be evaluated.
 		std::map<std::string, double> tau_i;
 
 		for (const auto &reactant : tau_args.reactants) {
@@ -177,11 +191,12 @@ namespace Gillespy {
 		}
 
 		if (tau_i.size() > 0) {
+			// Find the minimum of tau_i.
 			std::pair<std::string, double> min;
-
 			min = *min_element(tau_i.begin(), tau_i.end(), [](const auto &lhs, const auto &rhs) {
 				return lhs.second < rhs.second;
 			});
+
 			non_critical_tau = min.second;
 		}
 
@@ -222,6 +237,12 @@ namespace Gillespy {
 		double tau_step,
 		double current_time,
 		double save_time) {
+
+		/* 
+		 * Helper function to get reactions fired from t to t + tau. Effects two values:
+		 * - reaction_count: Map of items with key = reaction channel value and value = number of times fired.
+		 * - current_time: A float value representing the current time.
+		*/
 		
 		if (current_time + tau_step > save_time) {
 			tau_step = save_time - current_time;
@@ -230,6 +251,9 @@ namespace Gillespy {
 		std::map<std::string, int> reaction_count;
 		std::random_device rd;
 		std::mt19937_64 generator(rd());
+
+		// Value pairs to be returned.
+		// The first is a map of times where the reaction fired, the second is the current time.
 		std::pair<std::map<std::string, int>, double> values;
 
 		for (int reaction_index = 0; reaction_index < model->number_reactions; reaction_index++) {
@@ -279,7 +303,10 @@ namespace Gillespy {
 			int steps_rejected = 0;
 			unsigned int entry_count = 0;
 			
+			// Will be assigned to later with tau::select().
 			double tau_step;
+
+			// Propensity sum initialization, will be added to later.
 			double propensity_sum;
 			double save_time = 0;
 
@@ -332,12 +359,16 @@ namespace Gillespy {
 							// Determine which species have been modified, and if valid, the resulting change in state.
 							for (auto const &species : tau_args.reactions_reactants[reaction_index]) {
 								species_modified[species] = true;
+
+								// Add for both reactants and products because current_state is represented with negative number changes for reactants, positive for products.
 								current_state[species] += 
 									simulation->model->reactions[reaction_index].species_change[species] * reaction_count[simulation->model->reactions[reaction_index].name];
 							}
 
 							for (auto const &species : tau_args.products[reaction_index]) {
 								species_modified[species] = true;
+
+								// Ditto.
 								current_state[species] += 
 									simulation->model->reactions[reaction_index].species_change[species] * reaction_count[simulation->model->reactions[reaction_index].name];
 							}
