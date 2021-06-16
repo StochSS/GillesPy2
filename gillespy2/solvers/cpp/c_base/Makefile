@@ -32,6 +32,12 @@ sundials_linearsolver.o sundials_nonlinearsolver.o sundials_nvector_senswrapper.
 sundials_nvector.o nvector_serial.o cvode.o cvode_spils.o sundials_math.o sunlinsol_spgmr.o
 SUNOBJ_PATHS := $(SUNOBJ:%.o=$(SUNDIALS_OBJ)/%.o)
 
+TAU_DEPENDENCIES = tau.o
+TAU_DEPS_PATHS := $(TAU_DEPENDENCIES:%.o=$(OBJ_DIR)/%.o)
+
+TAU_HYBRID_DEPENDENCIES = HybridModel.o rhs.o integrator.o
+TAU_HYBRID_DEPS_PATHS := $(TAU_HYBRID_DEPENDENCIES:%.o=$(OBJ_DIR)/%.o)
+
 ###################################
 ### SOLVER DEPENDENCIES COMPILE ###
 $(OBJ_DIR)/model.o: $(CBASE_DIR)/model.cpp $(CBASE_DIR)/model.h
@@ -40,7 +46,15 @@ model: $(OBJ_DIR)/model.o ;
 
 $(SUNOBJ_PATHS): $(SUNDIALS_OBJ)/%.o: $(SUNDIALS_SRC)/%.c
 	$(CC) -c -o $@ $< $(CXXFLAGS) -I$(SUNDIALS_INC)
-sundials: $(SUNOBJ_PATHS) ;
+sundials: $(SUNOBJ_PATHS);
+
+$(TAU_DEPS_PATHS): $(OBJ_DIR)/%.o: $(TAU_DIR)/%.cpp
+	$(CC) -c -o $@ $< $(CXXFLAGS) $(INCLUDES)
+tau_deps: $(TAU_DEPS_PATHS);
+
+$(TAU_HYBRID_DEPS_PATHS): $(OBJ_DIR)/%.o: $(TAU_HYBRID_SOLVER_PATH)/%.cpp
+	$(CC) -c -o $@ $< $(CXXFLAGS) $(INCLUDES)
+hybrid_deps: $(TAU_HYBRID_DEPS_PATHS);
 
 Tau.o: $(TAU_DIR)/tau.cpp $(TAU_DIR)/tau.h
 	$(CC) $(CXXFLAGS) -c -o Tau.o $(TAU_DIR)/tau.cpp $(INCLUDES)
@@ -101,8 +115,8 @@ ssa: SSASimulation.o SSASolver.o model $(TEMPLATE_CPP)
 tau_leap: TauLeapingSimulation.o TauLeapingSolver.o model $(TEMPLATE_CPP)
 	$(CC) $(COMPILATION_ARGS) $(OBJ_DIR)/TauLeapingSimulation.o $(OBJ_DIR)/TauLeapingSolver.o
 
-hybrid: TauHybridSimulation.o TauHybridSolver.o model sundials $(TAU_DIR)/tau.cpp $(TAU_HYBRID_SOLVER_PATH)/integrator.cpp $(TAU_HYBRID_SOLVER_PATH)/rhs.cpp $(TEMPLATE_CPP)
-	$(CC) $(COMPILATION_ARGS) $(SUNOBJ_PATHS) $(TAU_HYBRID_SOLVER_PATH)/integrator.cpp $(TAU_HYBRID_SOLVER_PATH)/rhs.cpp $(TAU_DIR)/tau.cpp $(OBJ_DIR)/TauHybridSimulation.o $(OBJ_DIR)/TauHybridSolver.o
+hybrid: TauHybridSimulation.o TauHybridSolver.o model sundials tau_deps hybrid_deps $(TEMPLATE_CPP)
+	$(CC) $(COMPILATION_ARGS) $(SUNOBJ_PATHS) $(TAU_HYBRID_DEPS_PATHS) $(TAU_DEPS_PATHS) $(OBJ_DIR)/TauHybridSimulation.o  $(OBJ_DIR)/TauHybridSolver.o
 
 build: $(SOLVER);
 
