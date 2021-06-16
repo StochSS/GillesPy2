@@ -95,64 +95,64 @@ namespace Gillespy::TauHybrid {
 				// flag = CVode(cvode_mem, next_time, y0, &next_time, CV_NORMAL);
 				IntegrationResults result = sol.integrate(&next_time);
 
-				// The newly-updated reaction_states vector may need to be reconciled now.
-				// A positive reaction_state means reactions have potentially fired.
-				// NOTE: it is possible for a population to swing negative, where a smaller Tau is needed.
-				for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
-					// Temporary variable for the reaction's state.
-					// Does not get updated unless the changes are deemed valid.
-					double rxn_state = result.reactions[rxn_i];
+				// Start with the species concentration as a baseline value.
+				// Stochastic reactions will update populations relative to their concentrations.
 
-					// Use the current reaction_state to count the number of firings.
-					// If a negative population is detected, then the loop breaks prematurely.
-					bool invalid_state = false;
-
-					// Start with the species concentration as a baseline value.
-					// Stochastic reactions will update populations relative to their concentrations.
+				bool invalid_state = false;
+				do {
 					for (int spec_i = 0; spec_i < num_species; ++spec_i) {
 						current_state[spec_i] = result.concentrations[spec_i];
 					}
+					// The newly-updated reaction_states vector may need to be reconciled now.
+					// A positive reaction_state means reactions have potentially fired.
+					// NOTE: it is possible for a population to swing negative, where a smaller Tau is needed.
+					for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
+						// Temporary variable for the reaction's state.
+						// Does not get updated unless the changes are deemed valid.
+						double rxn_state = result.reactions[rxn_i];
 
-					switch (sol.data.reaction_state[rxn_i].mode) {
-					case SimulationState::DISCRETE:
-						// 0-initialize our population_changes array.
-						for (int p_i = 0; p_i < num_species; ++p_i)
-							population_changes[p_i] = 0;
+						switch (sol.data.reaction_state[rxn_i].mode) {
+						case SimulationState::DISCRETE:
+							// 0-initialize our population_changes array.
+							for (int p_i = 0; p_i < num_species; ++p_i)
+								population_changes[p_i] = 0;
 
-						while (rxn_state >= 0 && !invalid_state) {
-							// "Fire" a reaction by recording changes in dependent species.
-							// If a negative value is detected, break without saving changes.
-							for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-								population_changes[spec_i] +=
-									model.reactions[rxn_i].species_change[spec_i];
-								if (current_state[spec_i] + population_changes[spec_i] < 0) {
-									invalid_state = true;
+							while (rxn_state >= 0 && !invalid_state) {
+								// "Fire" a reaction by recording changes in dependent species.
+								// If a negative value is detected, break without saving changes.
+								for (int spec_i = 0; spec_i < num_species; ++spec_i) {
+									population_changes[spec_i] +=
+										model.reactions[rxn_i].species_change[spec_i];
+									if (current_state[spec_i] + population_changes[spec_i] < 0) {
+										invalid_state = true;
+									}
 								}
+
+								rxn_state += log(urn.next());
 							}
+							result.reactions[rxn_i] = rxn_state;
+							break;
 
-							rxn_state += log(urn.next());
+						case SimulationState::CONTINUOUS:
+						default:
+							break;
 						}
+					}
 
-						// Positive reaction state means a negative population was detected.
-						// Only update state with the given population changes if valid.
-						if (invalid_state) {
-							// TODO: invalidate reaction timestep, reset integrator state, try again
-							std::cerr << "Integration step failed; RIP" << std::endl;
-							continue;
-						}
-
+					// Positive reaction state means a negative population was detected.
+					// Only update state with the given population changes if valid.
+					if (invalid_state) {
+						// TODO: invalidate reaction timestep, reset integrator state, try again
+						std::cerr << "Integration step failed; RIP" << std::endl;
+						invalid_state = false;
+					}
+					else {
 						// "Permanently" update the rxn_state and populations.
 						for (int p_i = 0; p_i < num_species; ++p_i) {
 							current_state[p_i] += population_changes[p_i];
 						}
-						result.reactions[rxn_i] = rxn_state;
-						break;
-
-					case SimulationState::CONTINUOUS:
-					default:
-						break;
 					}
-				}
+				} while (invalid_state);
 
 				// Output the results for this time step.
 				simulation->current_time = next_time;
@@ -160,7 +160,7 @@ namespace Gillespy::TauHybrid {
 				while (save_time <= next_time) {
 					// Write each species, one at a time (from ODE solution)
 					for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-						simulation->trajectories_hybrid[traj][save_time][spec_i].continuous = current_state[spec_i];
+						simulation->trajectories_hybrid[traj][save_time][spec_i].discrete = current_state[spec_i];
 					}
 					save_time += increment;
 				}

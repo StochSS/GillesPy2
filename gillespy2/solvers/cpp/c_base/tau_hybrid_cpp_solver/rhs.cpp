@@ -63,6 +63,12 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 		// At the moment, it's unsure whether or not that's required.
 
 		switch (reactions[rxn_i].mode) {
+		case SimulationState::DISCRETE:
+			// Process stochastic reaction state by updating the root offset for each reaction.
+			propensity = sim->propensity_function->TauEvaluate(rxn_i, data->populations);
+			dydt_offsets[rxn_i] += propensity;
+			propensities[rxn_i] = propensity;
+			// break; left out on purpose, continuous results happen no matter what
 		case SimulationState::CONTINUOUS:
 			propensity = sim->propensity_function->ODEEvaluate(rxn_i, data->concentrations);
 
@@ -78,12 +84,6 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 				// This is a branchless alternative to using an if-statement.
 				dydt[spec_i] += propensity * (-1 + 2 * (species_change > 0));
 			}
-			break;
-		case SimulationState::DISCRETE:
-			// Process stochastic reaction state by updating the root offset for each reaction.
-			propensity = sim->propensity_function->TauEvaluate(rxn_i, data->populations);
-			dydt_offsets[rxn_i] += propensity;
-			propensities[rxn_i] = propensity;
 			break;
 		default:
 			break;
