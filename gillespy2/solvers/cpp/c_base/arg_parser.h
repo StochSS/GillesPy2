@@ -4,12 +4,14 @@
 #include <iostream>
 // #include <getopt.h>
 #include <string.h>
-#include <stdlib.h>
+// #include <stdlib.h>
+
+#include "template.h"
 
 class ArgParser
 {
 private:
-    std::string usage = "\
+    char* usage = "\
 usage: [simulation.out] \
 [-t|--timesteps] <int>\
 [-e|--end] <int|double> \
@@ -43,7 +45,7 @@ usage: [simulation.out] \
             return 0;
         else
         {
-            std::cerr << usage;
+            printf(usage);
         }
               
     };
@@ -55,8 +57,8 @@ public:
     double increment = 0.0;
     double switch_tol = 0.0;
     double tau_tol = 0.0;
-    std::vector<int> init_pop = std::vector<int>();
-    std::vector<double> parameters = std::vector<double>();
+    // std::vector<int> init_pop = std::vector<int>();
+    // std::vector<double> parameters = std::vector<double>();
 
     ArgParser(const int argc, char *argv[]);
     ~ArgParser();
@@ -75,38 +77,41 @@ ArgParser::ArgParser(int argc, char* argv[])
         else {
             continue;
         }
+        std :: stringstream arg_stream(argv[i+1]);
         switch(opt) {
             case 't':
-                timesteps = atoi(argv[i+1]);
+                arg_stream >> timesteps;
+                //  = atoi(argv[i+1]);
                 break;
             case 'e':
-                end = strtod(argv[i+1],0);
+                arg_stream >> end;
+                // end = strtod(argv[i+1],0);
                 break;
             case 's':
-                seed = atoi(argv[i+1]);
+                arg_stream >> seed;
+                // seed = atoi(argv[i+1]);
                 break;
             case 'S':
-                switch_tol = strtod(argv[i+1],0);
+                arg_stream >> switch_tol;
+                // switch_tol = strtod(argv[i+1],0);
                 break;
             case 'i':
-                increment = strtod(argv[i + 1], 0);
+                arg_stream >> increment;
+                // increment = strtod(argv[i + 1], 0);
                 break;
             case 'I':
-                for (int j = i+1; argv[j][0]!= '-'; ++j){
-                    init_pop.push_back(atoi(argv[j]));
-                }
+                Gillespy::map_variable_populations(arg_stream);
                 break;
             case 'p':
-                for (int j = i + 1; argv[j][0] != '-'; ++j)
-                {
-                    parameters.push_back(strtod(argv[j], 0));
-                }
+                Gillespy::map_variable_parameters(arg_stream);
                 break;
             case 'T':
-                trajectories = atoi(argv[i+1]);
+                arg_stream >> trajectories;
+                // trajectories = atoi(argv[i+1]);
                 break;
             case 0:
-                tau_tol = strtod(argv[i + 1], 0);
+                arg_stream >> tau_tol;
+                // tau_tol = strtod(argv[i + 1], 0);
                 break;
             default:
                 std::cerr << "error in option matching" << std::endl;
