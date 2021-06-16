@@ -91,6 +91,13 @@ namespace Gillespy {
             stream >> species_populations[spec_id];
         }
     }
+    // void map_variable_populations(std::vector<int> &init_pop)
+    // {
+    //     for (int spec_id = 0; spec_id < GPY_NUM_SPECIES; ++spec_id)
+    //     {
+    //         species_populations[spec_id] = init_pop[spec_id];
+    //     }
+    // }
 
     void add_reactions(Model &model)
     {

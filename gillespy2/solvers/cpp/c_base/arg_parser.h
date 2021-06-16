@@ -40,7 +40,12 @@ usage: [simulation.out] \
         if (!strcmp(opt, "trajectories"))
             return 'T';
         if (!strcmp(opt, "tau_tol"))
-            return 0;      
+            return 0;
+        else
+        {
+            std::cerr << usage;
+        }
+              
     };
 public:
     int trajectories = 0;
@@ -52,27 +57,7 @@ public:
     double tau_tol = 0.0;
     std::vector<int> init_pop = std::vector<int>();
     std::vector<double> parameters = std::vector<double>();
-    // int get(char* arg) {
-    //     if (!strcmp(arg, "timesteps"))
-    //         return 't';
-    //     if (!strcmp(arg, "end"))
-    //         return 'e';
-    //     if (!strcmp(arg, "seed"))
-    //         return 's';
-    //     if (!strcmp(arg, "switch_tol"))
-    //         return 'S';
-    //     if (!strcmp(arg, "increment")) //double
-    //         return 'i';
-    //     if (!strcmp(arg, "init_pop"))
-    //         return 'I';
-    //     if (!strcmp(arg, "parameters"))
-    //         return 'p';
-    //     if (!strcmp(arg, "trajectories"))
-    //         return 'T';
-    //     if (!strcmp(arg, "tau_tol"))
-    //         return 0;
-    //     return args[arg];
-    // };
+
     ArgParser(const int argc, char *argv[]);
     ~ArgParser();
 };
@@ -84,8 +69,11 @@ ArgParser::ArgParser(int argc, char* argv[])
         if (argv[i][0] == '-' && argv[i][1] != '-') {
             opt = argv[i][1];
         }
-        if (argv[i][0] == '-' && argv[i][1] == '-') {
+        else if (argv[i][0] == '-' && argv[i][1] == '-') {
             opt = match_arg((char*)argv[i][2]);
+        }
+        else {
+            continue;
         }
         switch(opt) {
             case 't':
@@ -121,7 +109,7 @@ ArgParser::ArgParser(int argc, char* argv[])
                 tau_tol = strtod(argv[i + 1], 0);
                 break;
             default:
-                std::cerr << usage;
+                std::cerr << "error in option matching" << std::endl;
                 break;
         }        
     }
