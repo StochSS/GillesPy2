@@ -8,6 +8,7 @@
 
 #include "SSASolver.h"
 #include "template.h"
+#include "arg_parser.h"
 
 using namespace Gillespy;
 
@@ -36,36 +37,18 @@ public:
 
 int main(int argc, char* argv[]) {
     //Parse command line arguments
-	// TODO: NEEDS REPLACEMENT
-    std :: string arg;
-    for(int i = 1; i < argc - 1; i++) {
-        arg = argv[i];
-        if(argc > i+1 && arg.size() > 1 && arg[0] == '-') {
-            std :: stringstream arg_stream(argv[i+1]);
-            switch(arg[1]) {
-            case 's':
-                arg_stream >> random_seed;
-                seed_time = false;
-                break;
-            case 'e':
-                arg_stream >> end_time;
-                break;
-            case 'i':
-                map_variable_populations(arg_stream);
-                break;
-            case 'p':
-                map_variable_parameters(arg_stream);
-                break;
-            case 't':
-                if(arg[2] == 'r') {
-                    arg_stream >> number_trajectories;
-                } else if(arg[2] == 'i') {
-                    arg_stream >> number_timesteps;
-                }
-                break;
-            }
-        }
+
+    ArgParser parser = ArgParser(argc, argv);
+
+    random_seed = parser.seed;
+    if (random_seed == -1)
+    {
+        seed_time = false;
     }
+
+    end_time = parser.end;
+    number_trajectories = parser.trajectories;
+    number_timesteps = parser.timesteps;
 
     Model model(species_names, species_populations, reaction_names);
     add_reactions(model);
