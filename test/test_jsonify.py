@@ -1,6 +1,4 @@
 import sys
-import random
-
 import unittest
 
 sys.path.append("..")
@@ -139,48 +137,6 @@ class TestJsonModels(unittest.TestCase):
             self.assertEqual(
                 model_1.to_anon().get_json_hash(), 
                 Model.from_json(model_2.to_anon().to_json()).get_json_hash()
-            )
-
-    def test_model_hash_accuracy_chaos(self):
-        for model in self.models:
-            # Set the seed of the RNG.
-            seed = random.randint(0, 100)
-            random.seed(seed)
-
-            model_1 = model()
-            model_2 = model()
-
-            # Generate lists of random parameters, species, and reactions. Each will then be added to model_1 and model_2 in random order.
-            parameters = [Parameter(name=bytes(random.sample(range(97, 123), 10)).decode(), expression=random.randint(0, 10)) for x in range(5)]
-            model_1.add_parameter(random.sample(parameters, len(parameters)))
-            model_2.add_parameter(random.sample(parameters, len(parameters)))
-
-            species = [Species(name=bytes(random.sample(range(97, 123), 10)).decode(), initial_value=random.randint(0, 10)) for x in range(5)]
-            model_1.add_species(random.sample(species, len(species)))
-            model_2.add_species(random.sample(species, len(species)))
-
-            reactions = [Reaction(
-                name=bytes(random.sample(range(97, 123), 10)).decode(), 
-                reactants={ species[random.randint(0, len(species) - 1)].name: random.randint(0, 5) },
-                products={ species[random.randint(0, len(species) - 1)].name: random.randint(0, 5) },
-                propensity_function=parameters[random.randint(0, len(parameters) - 1)].name) for x in range(5)]
-
-            model_1.add_reaction(random.sample(reactions, len(reactions)))
-            model_2.add_reaction(random.sample(reactions, len(reactions)))
-
-            # At this point, model_1 and model_2 contain the same data, but it was entered in a different order.
-            # The json hash function should ensure that they are still equivalent.
-            self.assertEqual(
-                model_1.to_anon().get_json_hash(), 
-                model_2.to_anon().get_json_hash(),
-                msg=f"RNG seed: '{seed}'"
-            )
-
-            # The translation table for model_1 and model_2 should also be the same.
-            self.assertEqual(
-                model_1.get_translation_table().to_json(), 
-                model_2.get_translation_table().to_json(),
-                msg=f"RNG seed: '{seed}'"
             )
 
     def test_named_to_anon_accuracy(self):
