@@ -49,7 +49,7 @@ class ODECSolver(GillesPySolver, CSolver):
             parameter_values = cutils.change_param_values(model.listOfParameters, self.parameters, model.volume, variables)
 
             args.update({
-                "initial_values": populations,
+                "init_pop": populations,
                 "parameters": parameter_values
             })
 
