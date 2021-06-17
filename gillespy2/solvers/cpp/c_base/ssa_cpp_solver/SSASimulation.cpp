@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     ArgParser parser = ArgParser(argc, argv);
 
     random_seed = parser.seed;
-    if (random_seed == -1)
+    if (random_seed != -1)
     {
         seed_time = false;
     }
