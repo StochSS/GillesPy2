@@ -42,7 +42,7 @@ usage: [simulation.out] \
         if (!strcmp(opt, "--trajectories"))
             return 'T';
         if (!strcmp(opt, "--tau_tol"))
-            return 0;
+            return 'l';
         else{
             printf(usage);
         }
@@ -102,7 +102,7 @@ ArgParser::ArgParser(int argc, char* argv[])
             case 'T':
                 arg_stream >> trajectories;
                 break;
-            case 0:
+            case 'l':
                 arg_stream >> tau_tol;
                 break;
             default:
