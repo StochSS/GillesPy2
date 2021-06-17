@@ -20,30 +20,38 @@ unsigned int number_timesteps = 0;
 double end_time = 0;
 double tau_tol = 0.03;
 
-class PropensityFunction : public IPropensityFunction {
+class PropensityFunction : public IPropensityFunction
+{
 public:
-	double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S) {
+	double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S)
+	{
 		return map_propensity(reaction_number, S);
 	}
 
-	double evaluate(unsigned int reaction_number, unsigned int *state) {
+	double evaluate(unsigned int reaction_number, unsigned int *state)
+	{
 		return 1.0;
 	}
 
-	double ODEEvaluate(int reaction_number, const std::vector<double> &S) {
+	double ODEEvaluate(int reaction_number, const std::vector<double> &S)
+	{
 		return 1.0;
 	}
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 	//Parse command line arguments
 	// TODO: NEEDS REPLACEMENT
 	std::string arg;
-	for (int i = 1; i < argc - 1; i++) {
+	for (int i = 1; i < argc - 1; i++)
+	{
 		arg = argv[i];
-		if (argc > i + 1 && arg.size() > 1 && arg[0] == '-') {
+		if (argc > i + 1 && arg.size() > 1 && arg[0] == '-')
+		{
 			std::stringstream arg_stream(argv[i + 1]);
-			switch (arg[1]) {
+			switch (arg[1])
+			{
 			case 's':
 				arg_stream >> random_seed;
 				seed_time = false;
@@ -58,14 +66,17 @@ int main(int argc, char *argv[]) {
 				map_variable_parameters(arg_stream);
 				break;
 			case 't':
-				if (arg[2] == 'r') {
+				if (arg[2] == 'r')
+				{
 					arg_stream >> number_trajectories;
 				}
-				else if (arg[2] == 'i') {
+				else if (arg[2] == 'i')
+				{
 					arg_stream >> number_timesteps;
-				}				
+				}
 
-				else if (arg[2] == 'a') { // '-tau_tol'
+				else if (arg[2] == 'a')
+				{ // '-tau_tol'
 					arg_stream >> tau_tol;
 				}
 				break;
@@ -76,7 +87,8 @@ int main(int argc, char *argv[]) {
 	Model model(species_names, species_populations, reaction_names);
 	add_reactions(model);
 
-	if (seed_time) {
+	if (seed_time)
+	{
 		random_seed = time(NULL);
 	}
 

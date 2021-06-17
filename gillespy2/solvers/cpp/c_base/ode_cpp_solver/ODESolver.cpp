@@ -12,14 +12,17 @@
 /* Used to access individual components of a length N vector. */
 #define NV_Ith_s(v, i) (NV_DATA_S(v)[i])
 
-namespace Gillespy {
+namespace Gillespy
+{
 	static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data);
 
-	struct UserData {
+	struct UserData
+	{
 		Simulation<double> *my_sim;
 	};
 
-	void ODESolver(Simulation<double> *simulation, double increment) {
+	void ODESolver(Simulation<double> *simulation, double increment)
+	{
 		// CVODE constants are returned on every success or failure.
 		// CV_SUCCESS: Operation was successful.
 		// CV_MEM_NULL: CVODE memory block was not initialized with CVodeCreate.
@@ -42,7 +45,8 @@ namespace Gillespy {
 		Model *simulation_model = simulation->model;
 
 		// Add species initial conditions to the current state vectory `y0`.
-		for (unsigned int species_index = 0; species_index < simulation_model->number_species; species_index++) {
+		for (unsigned int species_index = 0; species_index < simulation_model->number_species; species_index++)
+		{
 			unsigned int initial_population = simulation_model->species[species_index].initial_population;
 
 			NV_Ith_S(y0, species_index) = initial_population;
@@ -87,7 +91,8 @@ namespace Gillespy {
 		realtype tret = 0;
 
 		int current_time = 0;
-		for (tout = step_length; tout <= end_time; tout += step_length) {
+		for (tout = step_length; tout <= end_time; tout += step_length)
+		{
 			// CV_NORMAL causes the solver to take internal steps until it has reached or just passed the `tout`
 			// parameter. The solver interpolates in order to return an approximate value of `y(tout)`.
 			// CVode() returns a vector `y0` (or `y(tout)`), and corresponding variable value `t` = `tret` (return time).
@@ -95,7 +100,8 @@ namespace Gillespy {
 			flag = CVode(cvode_mem, tout, y0, &tret, CV_NORMAL);
 			current_time++;
 
-			for (sunindextype species = 0; species < N; species++) {
+			for (sunindextype species = 0; species < N; species++)
+			{
 				simulation->trajectories[0][current_time][(int)species] = NV_Ith_S(y0, species);
 			}
 		}
@@ -110,7 +116,8 @@ namespace Gillespy {
 		SUNLinSolFree(linear_solver);
 	}
 
-	static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data) {
+	static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data)
+	{
 		UserData *sim_data = (UserData *)user_data;
 		Simulation<double> *simulation = sim_data->my_sim;
 		Model *model = simulation->model;
@@ -125,23 +132,28 @@ namespace Gillespy {
 		std::vector<double> current_state;
 		std::vector<realtype> propensity;
 
-		for (sunindextype species_index = 0; species_index < number_species; species_index++) {
+		for (sunindextype species_index = 0; species_index < number_species; species_index++)
+		{
 			dydata[species_index] = 0;
 			current_state.push_back(ydata[species_index]);
 		}
 
-		for (sunindextype reaction_index = 0; reaction_index < number_reactions; reaction_index++) {
+		for (sunindextype reaction_index = 0; reaction_index < number_reactions; reaction_index++)
+		{
 			// Calculate propensity for each reaction at the current state.
 			propensity.push_back(simulation->propensity_function->ODEEvaluate((int)reaction_index, current_state));
 
-			for (sunindextype species_index = 0; species_index < number_species; species_index++) {
+			for (sunindextype species_index = 0; species_index < number_species; species_index++)
+			{
 				// If the species is a product of this reaction, add the propensity function.
-				if (model->reactions[reaction_index].species_change[species_index] > 0) {
+				if (model->reactions[reaction_index].species_change[species_index] > 0)
+				{
 					dydata[species_index] += propensity[reaction_index];
 				}
 
 				// If the species is a reactant, subtract the propensity function.
-				else if (model->reactions[reaction_index].species_change[species_index] < 0) {
+				else if (model->reactions[reaction_index].species_change[species_index] < 0)
+				{
 					dydata[species_index] -= propensity[reaction_index];
 				}
 			}
