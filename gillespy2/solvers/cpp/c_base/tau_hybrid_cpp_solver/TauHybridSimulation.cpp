@@ -22,7 +22,9 @@ public:
 	double ODEEvaluate(int reaction_number, const std::vector <double> &S){
 		return map_ode_propensity(reaction_number, S);
 	}
-    double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S){return 1.0;}
+    double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S) {
+		return map_propensity(reaction_number, S);
+	}
     double evaluate(unsigned int reaction_number, unsigned int* S){return 1.0;}
 };
 

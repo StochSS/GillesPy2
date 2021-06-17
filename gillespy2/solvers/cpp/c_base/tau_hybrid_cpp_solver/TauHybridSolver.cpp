@@ -48,6 +48,7 @@ namespace Gillespy::TauHybrid {
 			// Population/concentration state values for each species.
 			// TODO: change back double -> hybrid_state, once we figure out how that works
 			std::vector<double> current_state(num_species);
+			std::vector<int> current_populations(num_species);
 
 			URNGenerator urn;
 			// The contents of y0 are "stolen" by the integrator.
@@ -58,6 +59,7 @@ namespace Gillespy::TauHybrid {
 			// Initialize the species population for the trajectory.
 			for (int spec_i = 0; spec_i < num_species; ++spec_i) {
 				current_state[spec_i] = species[spec_i].initial_population;
+				current_populations[spec_i] = species[spec_i].initial_population;
 			}
 
 			// Represents the largest valid index of the output vector(s), y (and y0).
@@ -66,7 +68,7 @@ namespace Gillespy::TauHybrid {
 			// SIMULATION STEP LOOP
 			double next_time;
 			double tau_step = 0.0;
-			int save_time = simulation->timeline[1];
+			double save_time = simulation->timeline[1];
 
 			// Temporary array to store changes to dependent species.
 			// Should be 0-initialized each time it's used.
@@ -81,8 +83,13 @@ namespace Gillespy::TauHybrid {
 					simulation->current_time,
 					save_time,
 					sol.data.propensities,
-					sol.data.populations
+					current_populations
 				);
+
+				// 0-initialize our population_changes array.
+				for (int p_i = 0; p_i < num_species; ++p_i) {
+					population_changes[p_i] = 0;
+				}
 
 				// Determine what the next time point is.
 				// This will become current_time on the next iteration.
@@ -94,15 +101,14 @@ namespace Gillespy::TauHybrid {
 				// For stochastic reactions, integration updates the rxn_offsets vector.
 				// flag = CVode(cvode_mem, next_time, y0, &next_time, CV_NORMAL);
 				IntegrationResults result = sol.integrate(&next_time);
-
-				// Start with the species concentration as a baseline value.
-				// Stochastic reactions will update populations relative to their concentrations.
-
 				bool invalid_state = false;
 				do {
+					// Start with the species concentration as a baseline value.
+					// Stochastic reactions will update populations relative to their concentrations.
 					for (int spec_i = 0; spec_i < num_species; ++spec_i) {
 						current_state[spec_i] = result.concentrations[spec_i];
 					}
+
 					// The newly-updated reaction_states vector may need to be reconciled now.
 					// A positive reaction_state means reactions have potentially fired.
 					// NOTE: it is possible for a population to swing negative, where a smaller Tau is needed.
@@ -113,11 +119,7 @@ namespace Gillespy::TauHybrid {
 
 						switch (sol.data.reaction_state[rxn_i].mode) {
 						case SimulationState::DISCRETE:
-							// 0-initialize our population_changes array.
-							for (int p_i = 0; p_i < num_species; ++p_i)
-								population_changes[p_i] = 0;
-
-							while (rxn_state >= 0 && !invalid_state) {
+							while (rxn_state >= 0) {
 								// "Fire" a reaction by recording changes in dependent species.
 								// If a negative value is detected, break without saving changes.
 								for (int spec_i = 0; spec_i < num_species; ++spec_i) {
@@ -150,17 +152,20 @@ namespace Gillespy::TauHybrid {
 						// "Permanently" update the rxn_state and populations.
 						for (int p_i = 0; p_i < num_species; ++p_i) {
 							current_state[p_i] += population_changes[p_i];
+							current_populations[p_i] = current_state[p_i];
+							result.concentrations[p_i] = current_state[p_i];
 						}
 					}
 				} while (invalid_state);
 
 				// Output the results for this time step.
+				sol.reset(next_time);
 				simulation->current_time = next_time;
 				
 				while (save_time <= next_time) {
 					// Write each species, one at a time (from ODE solution)
 					for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-						simulation->trajectoriesODE[traj][save_time][spec_i] = current_state[spec_i];
+						simulation->trajectoriesODE[traj][(int) save_time][spec_i] = current_state[spec_i];
 					}
 					save_time += increment;
 				}

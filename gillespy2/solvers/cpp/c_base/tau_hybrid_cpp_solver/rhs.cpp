@@ -38,7 +38,8 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	// dy/dt results are initialized to zero, and become the change in propensity.
 	unsigned int spec_i;
 	for (spec_i = 0; spec_i < num_species; ++spec_i) {
-		populations[spec_i] = concentrations[spec_i] = Y[spec_i];
+		concentrations[spec_i] = Y[spec_i];
+		populations[spec_i] = Y[spec_i];
 		dydt[spec_i] = 0;
 	}
 
@@ -57,7 +58,6 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	// Process deterministic propensity state
 	// These updates get written directly to the integrator's concentration state
 	for (rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
-		propensity = 0.0;
 		current_rxn = reactions[rxn_i].base_reaction;
 		// NOTE: we may need to evaluate ODE and Tau propensities separately.
 		// At the moment, it's unsure whether or not that's required.
@@ -65,12 +65,12 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 		switch (reactions[rxn_i].mode) {
 		case SimulationState::DISCRETE:
 			// Process stochastic reaction state by updating the root offset for each reaction.
-			propensity = sim->propensity_function->TauEvaluate(rxn_i, data->populations);
+			propensity = sim->propensity_function->TauEvaluate(rxn_i, populations);
 			dydt_offsets[rxn_i] += propensity;
-			propensities[rxn_i] = propensity;
 			// break; left out on purpose, continuous results happen no matter what
 		case SimulationState::CONTINUOUS:
-			propensity = sim->propensity_function->ODEEvaluate(rxn_i, data->concentrations);
+			propensity = sim->propensity_function->ODEEvaluate(rxn_i, concentrations);
+			propensities[rxn_i] = propensity;
 
 			for (spec_i = 0; spec_i < num_species; ++spec_i) {
 				// Use the evaluated propensity to update the concentration levels and reaction state.

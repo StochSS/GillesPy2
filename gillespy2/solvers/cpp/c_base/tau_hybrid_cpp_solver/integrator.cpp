@@ -69,7 +69,7 @@ Integrator::Integrator(HybridSimulation *simulation, N_Vector y0, double reltol,
 
 void Integrator::reset(double t_back)
 {
-	validate(CVodeReInit(cvode_mem, t_back, y0));
+	validate(CVodeReInit(cvode_mem, t_back, y));
 	t = t_back;
 }
 
