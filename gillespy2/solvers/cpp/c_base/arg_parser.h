@@ -44,7 +44,7 @@ usage: [simulation.out] \
             return 'T';
         }
         
-        if (!strcmp(opt, "tau_tol"))
+        if (!strcmp(opt, "--tau_tol"))
             return 0;
         else
         {
