@@ -6,9 +6,7 @@
 
 #include "model.h"
 
-namespace Gillespy
-{
-
+namespace Gillespy {
     extern std::vector<unsigned int> species_populations;
     extern std::vector<std::string> species_names;
     extern std::vector<std::string> reaction_names;

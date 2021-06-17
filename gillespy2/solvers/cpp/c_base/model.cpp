@@ -4,8 +4,8 @@ namespace Gillespy {
 	Model::Model(
 		std::vector<std::string> species_names,
 		std::vector<unsigned int> species_populations,
-		std::vector<std::string> reaction_names): 
-		number_species(species_names.size()), 
+		std::vector<std::string> reaction_names) :
+		number_species(species_names.size()),
 		number_reactions(reaction_names.size()) {
 
 		species = std::make_unique<Species[]>(number_species);
@@ -61,15 +61,15 @@ namespace Gillespy {
 	void init_simulation(Model *model, Simulation<TNum> &simulation) {
 		init_timeline(model, simulation);
 
-		unsigned int trajectory_size = simulation.number_timesteps * (model -> number_species);
+		unsigned int trajectory_size = simulation.number_timesteps * (model->number_species);
 		simulation.trajectories_1D = new TNum[simulation.number_trajectories * trajectory_size];
-		simulation.trajectories = new TNum**[simulation.number_trajectories];
+		simulation.trajectories = new TNum * *[simulation.number_trajectories];
 
-		for(unsigned int trajectory = 0; trajectory < simulation.number_trajectories; trajectory++) {
-			simulation.trajectories[trajectory] = new TNum*[simulation.number_timesteps];
+		for (unsigned int trajectory = 0; trajectory < simulation.number_trajectories; trajectory++) {
+			simulation.trajectories[trajectory] = new TNum * [simulation.number_timesteps];
 
-			for(unsigned int timestep = 0; timestep < simulation.number_timesteps; timestep++) {
-				simulation.trajectories[trajectory][timestep] = 
+			for (unsigned int timestep = 0; timestep < simulation.number_timesteps; timestep++) {
+				simulation.trajectories[trajectory][timestep] =
 					&(simulation.trajectories_1D[trajectory * trajectory_size + timestep * (model->number_species)]);
 			}
 		}
@@ -88,7 +88,7 @@ namespace Gillespy {
 	}
 
 	template <typename TNum>
-	std::ostream& operator << (std::ostream& os, const Simulation<TNum> &simulation) {
+	std::ostream &operator << (std::ostream &os, const Simulation<TNum> &simulation) {
 		for (unsigned int timestep = 0; timestep < simulation.number_timesteps; timestep++) {
 			os << simulation.timeline[timestep] << ' ';
 
@@ -106,7 +106,7 @@ namespace Gillespy {
 	}
 
 	template <typename TNum>
-	void Simulation<TNum>::output_results_buffer(std::ostream& os) {
+	void Simulation<TNum>::output_results_buffer(std::ostream &os) {
 		for (int trajectory = 0; trajectory < number_trajectories; trajectory++) {
 			for (int timestep = 0; timestep < number_timesteps; timestep++) {
 				os << timeline[timestep] << ',';
@@ -120,9 +120,9 @@ namespace Gillespy {
 		os << (int)current_time;
 	}
 
-    template struct Simulation<double>;
-    template struct Simulation<unsigned int>;
+	template struct Simulation<double>;
+	template struct Simulation<unsigned int>;
 
-    template void init_simulation<double>(Model *model, Simulation<double> &simulation);
-    template void init_simulation<unsigned int>(Model *model, Simulation<unsigned int> &simulation);
+	template void init_simulation<double>(Model *model, Simulation<double> &simulation);
+	template void init_simulation<unsigned int>(Model *model, Simulation<unsigned int> &simulation);
 }

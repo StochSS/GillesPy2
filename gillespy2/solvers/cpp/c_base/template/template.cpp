@@ -19,6 +19,7 @@ namespace Gillespy {
         GPY_SPECIES_NAMES
         #undef SPECIES_NAME
     };
+
     std::vector<std::string> species_names(
         s_names,
         s_names + sizeof(s_names) / sizeof(std::string));
@@ -40,8 +41,7 @@ namespace Gillespy {
     #undef CONSTANT
     #undef VARIABLE
 
-    double map_propensity(int reaction_id, const std::vector<int> &S)
-    {
+    double map_propensity(int reaction_id, const std::vector<int> &S) {
         switch (reaction_id) {
             #define PROPENSITY(id, func) case(id): return(func);
             GPY_PROPENSITIES
@@ -52,8 +52,7 @@ namespace Gillespy {
         }
     }
 
-    double map_propensity(int reaction_id, unsigned int *S)
-    {
+    double map_propensity(int reaction_id, unsigned int *S) {
         switch (reaction_id) {
             #define PROPENSITY(id, func) case(id): return(func);
             GPY_PROPENSITIES
@@ -64,8 +63,7 @@ namespace Gillespy {
         }
     }
 
-    double map_ode_propensity(int reaction_id, const std::vector<double> &S)
-    {
+    double map_ode_propensity(int reaction_id, const std::vector<double> &S) {
         switch (reaction_id) {
             #define PROPENSITY(id, func) case(id): return(func);
             GPY_ODE_PROPENSITIES
@@ -76,8 +74,7 @@ namespace Gillespy {
         }
     }
 
-    void map_variable_parameters(std::stringstream &stream)
-    {
+    void map_variable_parameters(std::stringstream &stream) {
         #define VARIABLE(name, value) stream >> (name);
         #define CONSTANT(name, value)
         GPY_PARAMETER_VALUES
@@ -85,15 +82,13 @@ namespace Gillespy {
         #undef VARIABLE
     }
 
-    void map_variable_populations(std::stringstream &stream)
-    {
+    void map_variable_populations(std::stringstream &stream) {
         for (int spec_id = 0; spec_id < GPY_NUM_SPECIES; ++spec_id) {
             stream >> species_populations[spec_id];
         }
     }
 
-    void add_reactions(Model &model)
-    {
+    void add_reactions(Model &model) {
         unsigned int rxn_i;
         unsigned int spec_i;
 
