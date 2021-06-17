@@ -21,7 +21,7 @@ usage: [simulation.out] \
 [-I|--init_pop] <int>... \
 [-p|--parameters] <int|double>... \
 [-T|--trajectories] <int>... \
-[--tau_tol] <double> \n\
+[-l|--tau_tol] <double> \n\
 ";
     char match_arg(char* opt)
     {
@@ -63,20 +63,24 @@ public:
 
 ArgParser::ArgParser(int argc, char* argv[])    
 {
-    int opt;
+    char opt;
 
-    for (int i = 1; i < argc; ++i){
-        if (strlen(argv[i]) > 1 && argv[i][0] == '-' && argv[i][1] != '-') {
-            opt = argv[i][1];
-        }
-        else if (strlen(argv[i]) > 1 && argv[i][0] == '-' && argv[i][1] == '-')
+    std :: stringstream arg_stream(argv[1]);
+    char * token;
+    // for (int i = 1; i < argc; ++i){
+    while (arg_stream >> token) {
+        printf("%s\n", token);
+        if (strlen(token) > 1 && token[0] == '-' && token[1] != '-')
         {
-            opt = match_arg(argv[i]);
+            opt = token[1];
+        }
+        else if (strlen(token) > 1 && token[0] == '-' && token[1] == '-')
+        {
+            opt = match_arg(token);
         }
         else {
             continue;
         }
-        std :: stringstream arg_stream(argv[i+1]);
         switch(opt) {
             case 't':
                 arg_stream >> timesteps;
