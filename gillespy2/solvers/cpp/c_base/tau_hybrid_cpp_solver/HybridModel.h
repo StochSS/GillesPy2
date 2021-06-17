@@ -63,12 +63,9 @@ namespace Gillespy::TauHybrid {
 		hybrid_state *trajectories_hybrid1D;
 		hybrid_state ***trajectories_hybrid;
 
-		void output_hybrid_results(std::ostream &os);
 		double hybrid_propensity(int reaction_id, std::vector<double> &current_state);
 
 		~HybridSimulation();
 	};
-
-	void simulation_hybrid_init(HybridSimulation &simulation);
 
 }

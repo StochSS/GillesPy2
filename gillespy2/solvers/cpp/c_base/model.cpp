@@ -129,7 +129,7 @@ namespace Gillespy{
       for (int j = 0; j < number_timesteps; j++){
         os<<timeline[j]<<',';
         for (int k = 0; k < model->number_species; k++){
-          if (type == ODE){
+          if (type == ODE || type == HYBRID){
             os<<trajectoriesODE[i][j][k]<<',';
             }
           else if (type == SSA || type == TAU){

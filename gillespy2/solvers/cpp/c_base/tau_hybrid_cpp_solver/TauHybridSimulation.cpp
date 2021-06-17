@@ -86,10 +86,10 @@ int main(int argc, char* argv[]){
 	simulation.number_timesteps = number_timesteps;
 	simulation.number_trajectories = number_trajectories;
 	simulation.propensity_function = propFun;
-	TauHybrid::simulation_hybrid_init(simulation);
+	simulationINIT(&model, simulation);
 	// Perform ODE  //
 	TauHybrid::TauHybridCSolver(&simulation, tau_tol);
-	simulation.output_hybrid_results(std :: cout);
+	simulation.output_results_buffer(std::cout);
 	delete propFun;
 	return 0;
 }

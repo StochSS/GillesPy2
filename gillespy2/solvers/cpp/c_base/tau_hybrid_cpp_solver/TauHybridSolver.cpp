@@ -40,7 +40,7 @@ namespace Gillespy::TauHybrid {
 
 		//copy initial state for each trajectory
 		for(int s = 0; s < num_species; s++){
-			simulation->trajectories_hybrid[0][0][s].continuous = species[s].initial_population;
+			simulation->trajectoriesODE[0][0][s] = species[s].initial_population;
 		}
 
 		//Simulate for each trajectory
@@ -160,7 +160,7 @@ namespace Gillespy::TauHybrid {
 				while (save_time <= next_time) {
 					// Write each species, one at a time (from ODE solution)
 					for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-						simulation->trajectories_hybrid[traj][save_time][spec_i].discrete = current_state[spec_i];
+						simulation->trajectoriesODE[traj][save_time][spec_i] = current_state[spec_i];
 					}
 					save_time += increment;
 				}
