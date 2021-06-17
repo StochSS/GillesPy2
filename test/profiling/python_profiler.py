@@ -3,8 +3,8 @@ import cProfile
 import pstats
 from pstats import SortKey
 
-from performance_data import PerformanceData
-from performance_data import PerformanceEntry
+from .performance_data import PerformanceData
+from .performance_data import PerformanceEntry
 
 from gillespy2.core import Model
 from gillespy2.core import GillesPySolver
@@ -48,6 +48,7 @@ def run_profiler(model: Model, solver: GillesPySolver, trajectories=4, timesteps
         parent = func[0] if func[0] != "~" else "python"
         perf_data.call_list[f"{parent}:{func[2]}"] = perf_entry
 
-        perf_data.sample_time += (ct * 1000)
+        perf_data.sample_time += ct
 
+    perf_data.sample_time *= 1000
     return perf_data
