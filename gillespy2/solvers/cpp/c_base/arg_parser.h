@@ -25,22 +25,25 @@ usage: [simulation.out] \
 ";
     char match_arg(char* opt)
     {
-        if (!strcmp(opt, "timesteps"))
+        if (!strcmp(opt, "--timesteps"))
             return 't';
-        if (!strcmp(opt, "end"))
+        if (!strcmp(opt, "--end"))
             return 'e';
-        if (!strcmp(opt, "seed"))
+        if (!strcmp(opt, "--seed"))
             return 's';
-        if (!strcmp(opt, "switch_tol"))
+        if (!strcmp(opt, "--switch_tol"))
             return 'S';
-        if (!strcmp(opt, "increment")) //double
+        if (!strcmp(opt, "--increment")) //double
             return 'i';
-        if (!strcmp(opt, "init_pop"))
+        if (!strcmp(opt, "--init_pop"))
             return 'I';
-        if (!strcmp(opt, "parameters"))
+        if (!strcmp(opt, "--parameters"))
             return 'p';
-        if (!strcmp(opt, "trajectories"))
+        if (!strcmp(opt, "--trajectories")){
+            // printf("match");
             return 'T';
+        }
+        
         if (!strcmp(opt, "tau_tol"))
             return 0;
         else
@@ -67,24 +70,31 @@ public:
 ArgParser::ArgParser(int argc, char* argv[])    
 {
     int opt;
+    // printf("hello2\n");
+    // std::cerr << "SUP";
     for (int i = 1; i < argc; ++i){
-        if (argv[i][0] == '-' && argv[i][1] != '-') {
+        // printf("%s strlen(argv[%d]): %d\n",argv[i],i,strlen(argv[i]));
+        if (strlen(argv[i]) > 1 && argv[i][0] == '-' && argv[i][1] != '-') {
             opt = argv[i][1];
         }
-        else if (argv[i][0] == '-' && argv[i][1] == '-') {
-            opt = match_arg((char*)argv[i][2]);
+        else if (strlen(argv[i]) > 1 && argv[i][0] == '-' && argv[i][1] == '-')
+        {
+            // printf("long\n");
+            opt = match_arg(argv[i]);
         }
         else {
             continue;
         }
+        // printf("%c\n", opt);
         std :: stringstream arg_stream(argv[i+1]);
         switch(opt) {
             case 't':
                 arg_stream >> timesteps;
-                //  = atoi(argv[i+1]);
+                // printf("timesteps: %d\n", timesteps);
                 break;
             case 'e':
                 arg_stream >> end;
+                // printf("end: %f\n", end);
                 // end = strtod(argv[i+1],0);
                 break;
             case 's':
@@ -107,6 +117,7 @@ ArgParser::ArgParser(int argc, char* argv[])
                 break;
             case 'T':
                 arg_stream >> trajectories;
+                // printf("trajectories: %d\n", trajectories);
                 // trajectories = atoi(argv[i+1]);
                 break;
             case 0:
