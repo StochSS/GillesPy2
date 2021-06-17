@@ -1,4 +1,4 @@
-name: Test GillesPy2
+name: Run GillesPy2 Tests
 
 on: [push]
 
