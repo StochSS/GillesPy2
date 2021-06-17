@@ -64,9 +64,10 @@ public:
 ArgParser::ArgParser(int argc, char* argv[])    
 {
     char opt;
-
-    std :: stringstream arg_stream(argv[1]);
+    printf("hello");
+    std :: stringstream arg_stream(argv);
     char * token;
+    // printf(arg_stream.str());
     // for (int i = 1; i < argc; ++i){
     while (arg_stream >> token) {
         printf("%s\n", token);
