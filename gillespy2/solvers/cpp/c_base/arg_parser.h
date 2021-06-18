@@ -2,31 +2,28 @@
 #include <string>
 #include <vector>
 #include <iostream>
-// #include <getopt.h>
 #include <string.h>
-// #include <stdlib.h>
 
 #include "template.h"
 
 class ArgParser
 {
 private:
-    char* usage = "\
-usage: [simulation.out] \
-[-t|--timesteps] <int>\
-[-e|--end] <int|double> \
-[-s|--seed] <int> \
-[-S|--switch_tol] <double> \
-[-i|--increment] <int|double> \
-[-I|--init_pop] <int>... \
-[-p|--parameters] <int|double>... \
-[-T|--trajectories] <int>... \
-[-l|--tau_tol] <double> \n\
-";
+    std::string usage = "\
+        usage: [simulation.out] \
+        [-t|--timesteps] <int>\
+        [-e|--end] <int|double> \
+        [-s|--seed] <int> \
+        [-S|--switch_tol] <double> \
+        [-i|--increment] <int|double> \
+        [-I|--init_pop] <int>... \
+        [-p|--parameters] <int|double>... \
+        [-T|--trajectories] <int>... \
+        [-l|--tau_tol] <double> \n\
+        ";
+
     char match_arg(std::string &opt)
     {
-        // printf(opt.c_str());
-        // fflush(0);
         if (!opt.compare("--timesteps"))
             return 't';
         if (!opt.compare("--end"))
@@ -48,7 +45,7 @@ usage: [simulation.out] \
         if (!opt.compare("--tau_tol"))
             return 'l';
         else{
-            printf(usage);
+            std::cout << usage << std::endl;
         }
               
     };
@@ -77,7 +74,7 @@ ArgParser::ArgParser(std::stringstream &arg_stream)
     // for (int i = 1; i < argc; ++i){
     while (arg_stream >> token) {
         // printf("hey");
-        printf("%d\n", token.length());
+        std::cout << token.length() << std::endl;
         // fflush(0);
         // printf(token.c_str());
         // fflush(0);
@@ -117,14 +114,15 @@ ArgParser::ArgParser(std::stringstream &arg_stream)
                 break;
             case 'T':
                 arg_stream >> trajectories;
-                printf("%d\n", trajectories);
+                std::cout << trajectories << std::endl;
+
                 fflush(0);
                 break;
             case 'l':
                 arg_stream >> tau_tol;
                 break;
             default:
-                printf(usage);
+                std::cout << usage << std::endl;
                 break;
         }        
     }
