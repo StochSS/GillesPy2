@@ -1,8 +1,4 @@
-#include <map>
-#include <string>
-#include <vector>
-#include <iostream>
-#include <string.h>
+#pragma once
 
 #include "template.h"
 
@@ -10,122 +6,30 @@ class ArgParser
 {
 private:
     std::string usage = "\
-        usage: [simulation.out] \
-        [-t|--timesteps] <int>\
-        [-e|--end] <int|double> \
-        [-s|--seed] <int> \
-        [-S|--switch_tol] <double> \
-        [-i|--increment] <int|double> \
-        [-I|--init_pop] <int>... \
-        [-p|--parameters] <int|double>... \
-        [-T|--trajectories] <int>... \
+        usage: [simulation.out] \n\
+        [-t|--timesteps] <int> \n\
+        [-e|--end] <int|double> \n\
+        [-s|--seed] <int> \n\
+        [-S|--switch_tol] <double> \n\
+        [-i|--increment] <int|double> \n\
+        [-I|--init_pop] <int>... \n\
+        [-p|--parameters] <int|double>... \n\
+        [-T|--trajectories] <int>... \n\
         [-l|--tau_tol] <double> \n\
         ";
 
-    char match_arg(std::string &opt)
-    {
-        if (!opt.compare("--timesteps"))
-            return 't';
-        if (!opt.compare("--end"))
-            return 'e';
-        if (!opt.compare("--seed"))
-            return 's';
-        if (!opt.compare("--switch_tol"))
-            return 'S';
-        if (!opt.compare("--increment")) //double
-            return 'i';
-        if (!opt.compare("--init_pop"))
-            return 'I';
-        if (!opt.compare("--parameters"))
-            return 'p';
-        if (!opt.compare("--trajectories"))
-            // printf(opt.c_str());
-            // fflush(0);
-            return 'T';
-        if (!opt.compare("--tau_tol"))
-            return 'l';
-        else
-        {
-            std::cout << usage << std::endl;
-        }
+    char match_arg(std::string &token);
 
-    };
 public:
-    int trajectories = 0;
-    int timesteps = 0;
-    double end = 0.0;
     int seed = -1;
+    int timesteps = 0;
+    int trajectories = 0;
+
+    double end = 0.0;
     double increment = 0.0;
     double switch_tol = 0.0;
     double tau_tol = 0.0;
 
-    ArgParser::ArgParser(int argc, char *argv[]);
+    ArgParser(int argc, char *argv[]);
     ~ArgParser();
 };
-
-ArgParser::ArgParser(int argc, char *argv[])
-{
-    char opt;
-    std::stringstream arg_stream(argv[1]);
-
-    std::string token;
-    while (arg_stream >> token)
-    {
-        std::cout << token.length() << std::endl;
-
-        if (token.length() > 1 && token.at(0) == '-' && token.at(1) != '-')
-        {
-            opt = token.at(1);
-        }
-        else if (token.length() > 1 && token.at(0) == '-' && token.at(1) == '-')
-        {
-
-            opt = match_arg(token);
-        }
-        else
-        {
-            continue;
-        }
-        switch (opt)
-        {
-        case 't':
-            arg_stream >> timesteps;
-            break;
-        case 'e':
-            arg_stream >> end;
-            break;
-        case 's':
-            arg_stream >> seed;
-            break;
-        case 'S':
-            arg_stream >> switch_tol;
-            break;
-        case 'i':
-            arg_stream >> increment;
-            break;
-        case 'I':
-            Gillespy::map_variable_populations(arg_stream);
-            break;
-        case 'p':
-            Gillespy::map_variable_parameters(arg_stream);
-            break;
-        case 'T':
-            arg_stream >> trajectories;
-            std::cout << trajectories << std::endl;
-
-            fflush(0);
-            break;
-        case 'l':
-            arg_stream >> tau_tol;
-            break;
-        default:
-            std::cout << usage << std::endl;
-            break;
-        }
-    }
-
-}
-
-ArgParser::~ArgParser()
-{
-}
