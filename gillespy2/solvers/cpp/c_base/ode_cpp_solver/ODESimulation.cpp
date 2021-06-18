@@ -41,20 +41,18 @@ public:
 };
 
 int main(int argc, char *argv[]) {
-    // Parse command line arguments
-    ArgParser parser = ArgParser(argc, argv);
+	ArgParser parser = ArgParser(argc, argv);
 
-    random_seed = parser.seed;
+	random_seed = parser.seed;
 
-    if (random_seed != -1) {
-        seed_time = false;
-    }
-    // printf("%d\n", random_seed);
+	if (random_seed != -1) {
+		seed_time = false;
+	}
 
-    end_time = parser.end;
-    number_trajectories = parser.trajectories;
-    number_timesteps = parser.timesteps;
-    increment = parser.increment;
+	end_time = parser.end;
+	number_trajectories = parser.trajectories;
+	number_timesteps = parser.timesteps;
+	increment = parser.increment;
 
 	Model model(species_names, species_populations, reaction_names);
 	add_reactions(model);

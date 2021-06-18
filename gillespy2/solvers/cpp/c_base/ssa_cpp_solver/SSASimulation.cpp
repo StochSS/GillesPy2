@@ -39,42 +39,44 @@ public:
 	}
 };
 
-int main(int argc, char* argv[]) {
-    //Parse command line arguments
-    ArgParser parser = ArgParser(argc, argv);
-
-    random_seed = parser.seed;
-    if (random_seed != -1)
-    {
-        seed_time = false;
-    }
-
-    end_time = parser.end;
-    number_trajectories = parser.trajectories;
-    number_timesteps = parser.timesteps;
-
-    Model model(species_names, species_populations, reaction_names);
-    add_reactions(model);
-
-    if(seed_time){
-        random_seed = time(NULL);
-    }
-
-    IPropensityFunction *propensity_function = new PropensityFunction();
-    Simulation<unsigned int> simulation;
-
-    simulation.model = &model;
-    simulation.end_time = end_time;
-    simulation.random_seed = random_seed;
-    simulation.number_timesteps = number_timesteps;
-    simulation.number_trajectories = number_trajectories;
-    simulation.propensity_function = propensity_function;
-
-    init_simulation(&model, simulation);
-
-    ssa_direct(&simulation);
-    simulation.output_results_buffer(std :: cout);
-
-    delete propensity_function;
-    return 0;
+int main(int argc, char *argv[])
+{
+	//Parse command line arguments
+	ArgParser parser = ArgParser(argc, argv);
+	
+	random_seed = parser.seed;
+	if (random_seed != -1)
+	{
+		seed_time = false;
+	}
+	
+	end_time = parser.end;
+	number_trajectories = parser.trajectories;
+	number_timesteps = parser.timesteps;
+	
+	Model model(species_names, species_populations, reaction_names);
+	add_reactions(model);
+	
+	if (seed_time)    
+	{
+		random_seed = time(NULL);
+	}
+	
+	IPropensityFunction *propensity_function = new PropensityFunction();
+	Simulation<unsigned int> simulation;
+	
+	simulation.model = &model;
+	simulation.end_time = end_time;
+	simulation.random_seed = random_seed;
+	simulation.number_timesteps = number_timesteps;
+	simulation.number_trajectories = number_trajectories;
+	simulation.propensity_function = propensity_function;
+	
+	init_simulation(&model, simulation);
+	
+	ssa_direct(&simulation);
+	simulation.output_results_buffer(std::cout);
+	
+	delete propensity_function;
+	return 0;
 }
