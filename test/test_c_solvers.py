@@ -15,6 +15,11 @@ class TestCSolvers(unittest.TestCase):
     """
 
     test_model = example_models.Dimerization()
+    base_solvers = [
+        SSACSolver,
+        ODECSolver,
+        TauLeapingCSolver,
+    ]
     solvers = {
         SSACSolver.target: SSACSolver(model=test_model),
         ODECSolver.target: ODECSolver(model=test_model),
@@ -86,3 +91,17 @@ class TestCSolvers(unittest.TestCase):
                 solver.build_engine.clean()
                 self.assertFalse(os.path.exists(exe),
                                  "Simulation output not cleaned up after call to .clean().")
+
+    def test_solver_precompile(self):
+        """
+        Ensure that a pre-built C++ solver actually builds the simulation before running.
+        """
+        for solver in self.base_solvers:
+            with self.subTest(solver=solver.name):
+                base_solver = solver(model=self.test_model)
+                self.assertIsNotNone(base_solver.build_engine, 
+                                     "Build engine not created at solver's construction")
+                self.assertIsNotNone(base_solver.build_engine.get_executable_path(),
+                                     "Build engine has no associated executable")
+                self.assertTrue(os.access(base_solver.build_engine.get_executable_path(), os.X_OK),
+                                "Solver executable invalid or missing at solver's construction")
