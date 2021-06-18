@@ -1,3 +1,4 @@
+from gillespy2.core.jsonify import TranslationTable
 from gillespy2.core.reaction import *
 from gillespy2.core.raterule import RateRule
 from gillespy2.core.parameter import Parameter
@@ -80,7 +81,7 @@ def export_StochSS(gillespy_model, filename=None, return_stochss_model=False):
     return export(gillespy_model, path=filename, return_stochss_model=return_stochss_model)
 
 
-class Model(SortableObject):
+class Model(SortableObject, Jsonify):
     # reserved names for model species/parameter names, volume, and operators.
     reserved_names = ['vol']
     special_characters = ['[', ']', '+', '-', '*', '/', '.', '^']
@@ -124,6 +125,7 @@ class Model(SortableObject):
         self.listOfParameters = OrderedDict()
         self.listOfSpecies = OrderedDict()
         self.listOfReactions = OrderedDict()
+
         self.listOfAssignmentRules = OrderedDict()
         self.listOfRateRules = OrderedDict()
         self.listOfEvents = OrderedDict()
@@ -164,6 +166,11 @@ class Model(SortableObject):
         else:
             self.timespan(tspan)
 
+        # Change Jsonify settings to disable private variable
+        # JSON hashing and enable automatic translation table gen.
+        self._hash_private_vars = False
+        self._generate_translation_table = True
+
     def __str__(self):
         divider = '\n**********\n'
 
@@ -201,6 +208,33 @@ class Model(SortableObject):
                 print_string += '\n' + str(fd)
 
         return print_string
+
+    def make_translation_table(self):
+        from collections import ChainMap
+
+        species = self.listOfSpecies.values()
+        reactions = self.listOfReactions.values()
+        parameters = self.listOfParameters.values()
+        assignments = self.listOfAssignmentRules.values()
+        rates = self.listOfRateRules.values()
+        events = self.listOfEvents.values()
+        functions = self.listOfFunctionDefinitions.values()
+
+        # A translation table is used to anonymize user-defined variable names and formulas into generic counterparts.
+        translation_table = dict(ChainMap(
+
+            # Build translation mappings for user-defined variable names.
+            dict({ self.name: "Model" }),
+            dict(zip((str(x.name) for x in species), (f"S_{x + 100}" for x in range(0, len(species))))),
+            dict(zip((str(x.name) for x in reactions), (f"R_{x + 100}" for x in range(0, len(reactions))))),
+            dict(zip((str(x.name) for x in parameters), (f"P_{x + 100}" for x in range(0, len(parameters))))),
+            dict(zip((str(x.name) for x in assignments), (f"AR_{x + 100}" for x in range(0, len(assignments))))),
+            dict(zip((str(x.name) for x in rates), (f"RR_{x + 100}" for x in range(0, len(rates))))),
+            dict(zip((str(x.name) for x in events), (f"E_{x + 100}" for x in range(0, len(events))))),
+            dict(zip((str(x.name) for x in functions), (f"F_{x + 100}" for x in range(0, len(functions))))),
+        ))
+
+        return TranslationTable(to_anon=translation_table)
 
     def serialize(self):
         """ Serializes the Model object to valid StochML. """
@@ -565,7 +599,7 @@ class Model(SortableObject):
                 self.listOfFunctionDefinitions[function_definitions.name] = function_definitions
             except Exception as e:
                 raise ParameterError(
-                    "Error using {} as a Function Definition. Reason given: ".format(function_definitions, e))
+                    "Error using {} as a Function Definition. Reason given: {}".format(function_definitions, e))
 
     def add_assignment_rule(self, assignment_rules):
         """
@@ -599,7 +633,7 @@ class Model(SortableObject):
 
                 self.listOfAssignmentRules[assignment_rules.name] = assignment_rules
             except Exception as e:
-                raise ParameterError("Error using {} as a Assignment Rule. Reason given: ".format(assignment_rules, e))
+                raise ParameterError("Error using {} as a Assignment Rule. Reason given: {}".format(assignment_rules, e))
 
     def timespan(self, time_span):
         """
