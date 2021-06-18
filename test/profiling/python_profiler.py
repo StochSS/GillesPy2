@@ -3,8 +3,8 @@ import cProfile
 import pstats
 from pstats import SortKey
 
-from performance_data import PerformanceData
-from performance_data import PerformanceEntry
+from .performance_data import PerformanceData
+from .performance_data import PerformanceEntry
 
 from gillespy2.core import Model
 from gillespy2.core import GillesPySolver
@@ -30,7 +30,7 @@ def run_profiler(model: Model, solver: GillesPySolver, trajectories=4, timesteps
     stats = pstats.Stats(profiler).strip_dirs().sort_stats(SortKey.TIME)
 
     perf_data = PerformanceData()
-    perf_data.execution_time = stats.total_tt
+    perf_data.execution_time = stats.total_tt * 1000
     perf_data.sample_time = 0
     
     worst_func = stats.fcn_list[0]
@@ -43,11 +43,12 @@ def run_profiler(model: Model, solver: GillesPySolver, trajectories=4, timesteps
     for func in stats.fcn_list:
         (cc, nc, tt, ct, callers) = stats.stats[func]
 
-        perf_entry = PerformanceEntry(t=round(tt, 3), percent=round((tt / stats.total_tt) * 100, 3))
+        perf_entry = PerformanceEntry(t=tt, percent=round((tt / stats.total_tt) * 100, 3))
 
         parent = func[0] if func[0] != "~" else "python"
         perf_data.call_list[f"{parent}:{func[2]}"] = perf_entry
 
         perf_data.sample_time += ct
 
+    perf_data.sample_time *= 1000
     return perf_data
