@@ -130,6 +130,18 @@ class BuildEngine():
         self.make.build_simulation(simulation_name, template_dir=str(self.template_dir))
         return str(self.make.output_file)
 
+    def get_executable_path(self) -> str:
+        """
+        Resolves the filepath of the simulation executable.
+        Only valid after the simulation has been built.
+
+        :return: String containing path to executable.
+        None if no executable exists.
+        """
+        if not os.path.exists(self.make.output_file):
+            return None
+        return str(self.make.output_file)
+
     def clean(self):
         """
         Delete the output directory and all other associated build artifacts.
