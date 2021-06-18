@@ -48,13 +48,36 @@ namespace Gillespy::TauHybrid
 	private:
 		void *cvode_mem;
 		N_Vector y0;
+		double t0;
 		SUNLinearSolver solver;
 		int num_species;
 		int num_reactions;
 	public:
 		N_Vector y;
 		realtype t;
-		void reset(double t_back);
+
+		/* save_state()
+		 * Creates a duplicate copy of the integrator's current solution vector.
+		 * Contents of the most recent duplicate will be restored when restore_state() is called.
+		 * 
+		 * Returns the time value of the integrator's saved state.
+		 */
+		double save_state();
+
+		/* restore_state()
+		 * Loads the most recent duplicated copy of the solution vector.
+		 * 
+		 * Returns the time value that the integrator was restored to.
+		 */
+		double restore_state();
+
+		/* refresh_state()
+		 * Loads any new changes to the solution vector without changing previous output.
+		 * Any new values assigned to the public N_Vector y will be recognized by the integrator.
+		 * The current time value remains the same. To change this, modify `t`.
+		 */
+		void refresh_state();
+
 		IntegrationResults integrate(double *t);
 		IntegratorData data;
 

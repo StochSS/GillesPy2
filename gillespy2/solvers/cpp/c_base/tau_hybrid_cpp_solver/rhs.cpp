@@ -67,7 +67,8 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 			// Process stochastic reaction state by updating the root offset for each reaction.
 			propensity = sim->propensity_function->TauEvaluate(rxn_i, populations);
 			dydt_offsets[rxn_i] += propensity;
-			// break; left out on purpose, continuous results happen no matter what
+			break;
+
 		case SimulationState::CONTINUOUS:
 			propensity = sim->propensity_function->ODEEvaluate(rxn_i, concentrations);
 			propensities[rxn_i] = propensity;

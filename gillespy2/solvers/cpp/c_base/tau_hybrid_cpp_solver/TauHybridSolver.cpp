@@ -86,23 +86,28 @@ namespace Gillespy::TauHybrid {
 					current_populations
 				);
 
-				// 0-initialize our population_changes array.
-				for (int p_i = 0; p_i < num_species; ++p_i) {
-					population_changes[p_i] = 0;
-				}
-
 				// Determine what the next time point is.
 				// This will become current_time on the next iteration.
 				// If a retry with a smaller tau_step is deemed necessary, this will change.
 				next_time = simulation->current_time + tau_step;
 
-				// Integration Step
-				// For deterministic reactions, the concentrations are updated directly.
-				// For stochastic reactions, integration updates the rxn_offsets vector.
-				// flag = CVode(cvode_mem, next_time, y0, &next_time, CV_NORMAL);
-				IntegrationResults result = sol.integrate(&next_time);
-				bool invalid_state = false;
+				// The integration loop continues until a valid solution is found.
+				// Any invalid Tau steps (which cause negative populations) are discarded.
+				sol.save_state();
+				bool invalid_state;
 				do {
+					invalid_state = false;
+					// Integration Step
+					// For deterministic reactions, the concentrations are updated directly.
+					// For stochastic reactions, integration updates the rxn_offsets vector.
+					// flag = CVode(cvode_mem, next_time, y0, &next_time, CV_NORMAL);
+					IntegrationResults result = sol.integrate(&next_time);
+
+					// 0-initialize our population_changes array.
+					for (int p_i = 0; p_i < num_species; ++p_i) {
+						population_changes[p_i] = 0;
+					}
+
 					// Start with the species concentration as a baseline value.
 					// Stochastic reactions will update populations relative to their concentrations.
 					for (int spec_i = 0; spec_i < num_species; ++spec_i) {
@@ -144,9 +149,8 @@ namespace Gillespy::TauHybrid {
 					// Positive reaction state means a negative population was detected.
 					// Only update state with the given population changes if valid.
 					if (invalid_state) {
-						// TODO: invalidate reaction timestep, reset integrator state, try again
-						std::cerr << "Integration step failed; RIP" << std::endl;
-						invalid_state = false;
+						sol.restore_state();
+						next_time = simulation->current_time + (tau_step / 2);
 					}
 					else {
 						// "Permanently" update the rxn_state and populations.
@@ -159,7 +163,7 @@ namespace Gillespy::TauHybrid {
 				} while (invalid_state);
 
 				// Output the results for this time step.
-				sol.reset(next_time);
+				sol.refresh_state();
 				simulation->current_time = next_time;
 				
 				while (save_time <= next_time) {

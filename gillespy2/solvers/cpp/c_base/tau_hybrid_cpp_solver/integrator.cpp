@@ -67,10 +67,31 @@ Integrator::Integrator(HybridSimulation *simulation, N_Vector y0, double reltol,
 	validate(CVodeSetLinearSolver(cvode_mem, solver, NULL));
 }
 
-void Integrator::reset(double t_back)
+double Integrator::save_state()
 {
-	validate(CVodeReInit(cvode_mem, t_back, y));
-	t = t_back;
+	int max_offset = num_reactions + num_species;
+	for (int mem_i = 0; mem_i < max_offset; ++mem_i) {
+		NV_Ith_S(y0, mem_i) = NV_Ith_S(y, mem_i);
+	}
+
+	t0 = t;
+	return t0;
+}
+
+double Integrator::restore_state()
+{
+	int max_offset = num_reactions + num_species;
+	for (int mem_i = 0; mem_i < max_offset; ++mem_i) {
+		NV_Ith_S(y, mem_i) = NV_Ith_S(y0, mem_i);
+	}
+	validate(CVodeReInit(cvode_mem, t0, y0));
+
+	return t0;
+}
+
+void Integrator::refresh_state()
+{
+	validate(CVodeReInit(cvode_mem, t, y));
 }
 
 Integrator::~Integrator()
