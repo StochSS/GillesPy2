@@ -23,25 +23,29 @@ usage: [simulation.out] \
 [-T|--trajectories] <int>... \
 [-l|--tau_tol] <double> \n\
 ";
-    char match_arg(char* opt)
+    char match_arg(std::string &opt)
     {
-        if (!strcmp(opt, "--timesteps"))
+        // printf(opt.c_str());
+        // fflush(0);
+        if (!opt.compare("--timesteps"))
             return 't';
-        if (!strcmp(opt, "--end"))
+        if (!opt.compare("--end"))
             return 'e';
-        if (!strcmp(opt, "--seed"))
+        if (!opt.compare("--seed"))
             return 's';
-        if (!strcmp(opt, "--switch_tol"))
+        if (!opt.compare("--switch_tol"))
             return 'S';
-        if (!strcmp(opt, "--increment")) //double
+        if (!opt.compare("--increment")) //double
             return 'i';
-        if (!strcmp(opt, "--init_pop"))
+        if (!opt.compare("--init_pop"))
             return 'I';
-        if (!strcmp(opt, "--parameters"))
+        if (!opt.compare("--parameters"))
             return 'p';
-        if (!strcmp(opt, "--trajectories"))
+        if (!opt.compare("--trajectories"))
+            // printf(opt.c_str());
+            // fflush(0);
             return 'T';
-        if (!strcmp(opt, "--tau_tol"))
+        if (!opt.compare("--tau_tol"))
             return 'l';
         else{
             printf(usage);
@@ -57,26 +61,33 @@ public:
     double switch_tol = 0.0;
     double tau_tol = 0.0;
 
-    ArgParser(const int argc, char *argv[]);
+    ArgParser(std::stringstream &arg_stream);
     ~ArgParser();
 };
 
-ArgParser::ArgParser(int argc, char* argv[])    
+ArgParser::ArgParser(std::stringstream &arg_stream)    
 {
     char opt;
-    printf("hello");
-    std :: stringstream arg_stream(argv);
-    char * token;
+    // printf("hello");
+    // fflush(0);
+
+    // std :: stringstream arg_stream(argv[1]);
+    std::string token;
     // printf(arg_stream.str());
     // for (int i = 1; i < argc; ++i){
     while (arg_stream >> token) {
-        printf("%s\n", token);
-        if (strlen(token) > 1 && token[0] == '-' && token[1] != '-')
+        // printf("hey");
+        printf("%d\n", token.length());
+        // fflush(0);
+        // printf(token.c_str());
+        // fflush(0);
+        if (token.length() > 1 && token.at(0) == '-' && token.at(1) != '-')
         {
-            opt = token[1];
+            opt = token.at(1);
         }
-        else if (strlen(token) > 1 && token[0] == '-' && token[1] == '-')
+        else if (token.length() > 1 && token.at(0) == '-' && token.at(1) == '-')
         {
+            
             opt = match_arg(token);
         }
         else {
@@ -106,6 +117,8 @@ ArgParser::ArgParser(int argc, char* argv[])
                 break;
             case 'T':
                 arg_stream >> trajectories;
+                printf("%d\n", trajectories);
+                fflush(0);
                 break;
             case 'l':
                 arg_stream >> tau_tol;
