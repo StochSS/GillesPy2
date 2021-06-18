@@ -21,17 +21,21 @@ unsigned int number_timesteps = 0;
 double end_time = 100.0;
 double increment = 0;
 
-class PropensityFunction : public IPropensityFunction {
+class PropensityFunction : public IPropensityFunction
+{
 public:
-	double evaluate(unsigned int reaction_number, unsigned int *S) {
+	double evaluate(unsigned int reaction_number, unsigned int *S)
+	{
 		return 1.0;
 	}
 
-	double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S) {
+	double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S)
+	{
 		return 1.0;
 	}
 
-	double ODEEvaluate(int reaction_number, const std::vector<double> &S) {
+	double ODEEvaluate(int reaction_number, const std::vector<double> &S)
+	{
 		return map_ode_propensity(reaction_number, S);
 	}
 };
@@ -55,7 +59,8 @@ int main(int argc, char *argv[]) {
 	Model model(species_names, species_populations, reaction_names);
 	add_reactions(model);
 
-	if (seed_time) {
+	if (seed_time)
+	{
 		random_seed = time(NULL);
 	}
 
@@ -77,4 +82,4 @@ int main(int argc, char *argv[]) {
 	delete propensity_function;
 
 	return 0;
- }
+}

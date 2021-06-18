@@ -20,17 +20,21 @@ unsigned int number_timesteps = 0;
 
 double end_time = 0;
 
-class PropensityFunction : public IPropensityFunction {
+class PropensityFunction : public IPropensityFunction
+{
 public:
-    double evaluate(unsigned int reaction_number, unsigned int* S) {
-        return map_propensity(reaction_number, S);
-    }
+	double evaluate(unsigned int reaction_number, unsigned int *S)
+	{
+		return map_propensity(reaction_number, S);
+	}
 
-    double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S) {
+	double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S)
+	{
 		return 1.0;
 	}
 
-    double ODEEvaluate(int reaction_number, const std::vector <double> &S) {
+	double ODEEvaluate(int reaction_number, const std::vector <double> &S)
+	{
 		return 1.0;
 	}
 };

@@ -42,18 +42,18 @@ namespace Gillespy {
 		Model(
 			std::vector<std::string> species_names,
 			std::vector<unsigned int> species_populations,
-			std::vector<std::string> reaction_names 
+			std::vector<std::string> reaction_names
 		);
 	};
-  
+
 	class IPropensityFunction {
-		public:
-			virtual double evaluate(unsigned int reaction_number, unsigned int *state) = 0;
+	public:
+		virtual double evaluate(unsigned int reaction_number, unsigned int *state) = 0;
 
-			virtual double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S) = 0;
-			virtual double ODEEvaluate(int reaction_number, const std::vector<double> &S) = 0;
+		virtual double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S) = 0;
+		virtual double ODEEvaluate(int reaction_number, const std::vector<double> &S) = 0;
 
-			virtual ~IPropensityFunction() {};
+		virtual ~IPropensityFunction() {};
 	};
 
 	template <typename PType>
@@ -74,7 +74,7 @@ namespace Gillespy {
 
 		IPropensityFunction *propensity_function;
 
-		template <class T> friend std::ostream& operator << (std::ostream &os, const Simulation<T> &simulation);
+		template <class T> friend std::ostream &operator << (std::ostream &os, const Simulation<T> &simulation);
 
 		void output_results_buffer(std::ostream &os);
 		~Simulation();

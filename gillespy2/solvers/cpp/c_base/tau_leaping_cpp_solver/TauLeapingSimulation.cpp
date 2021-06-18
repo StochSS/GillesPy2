@@ -1,7 +1,8 @@
 #include <string>
 #include <vector>
-#include <iostream>
 #include <sstream>
+#include <iostream>
+
 #include <time.h>
 #include <math.h>
 
@@ -11,23 +12,32 @@
 
 using namespace Gillespy;
 
-//Default values, replaced with command line args
+bool seed_time = true;
+
+int random_seed = 0;
 unsigned int number_trajectories = 0;
 unsigned int number_timesteps = 0;
-int random_seed = 0;
+
 double end_time = 0;
-bool seed_time = true;
 double tau_tol = 0.03;
 
-class PropensityFunction : public IPropensityFunction{
+class PropensityFunction : public IPropensityFunction
+{
 public:
+	double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S)
+	{
+		return map_propensity(reaction_number, S);
+	}
 
-    double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S) {
-        return map_propensity(reaction_number, S);
-    }
-    double evaluate(unsigned int reaction_number, unsigned int* state){return 1.0;}
-    double ODEEvaluate(int reaction_number, const std::vector <double> &S){return 1.0;}
+	double evaluate(unsigned int reaction_number, unsigned int *state)
+	{
+		return 1.0;
+	}
 
+	double ODEEvaluate(int reaction_number, const std::vector<double> &S)
+	{
+		return 1.0;
+	}
 };
 
 int main(int argc, char* argv[]){
