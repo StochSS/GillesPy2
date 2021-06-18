@@ -1,9 +1,7 @@
-#ifndef ODECESOLVER_H
-#define ODECESOLVER_H
+#pragma once
 #include "model.h"
 
-using namespace Gillespy;
-void ODESolver(Gillespy::Simulation* simulation, double increment);
-
-
-#endif // TAU_LEAPER_H
+namespace Gillespy
+{
+	void ODESolver(Gillespy::Simulation<double> *simulation, double increment);
+}
