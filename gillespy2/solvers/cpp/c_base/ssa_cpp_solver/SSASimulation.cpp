@@ -41,8 +41,7 @@ public:
 
 int main(int argc, char* argv[]) {
     //Parse command line arguments
-    std ::stringstream arg_stream(argv[1]);
-    ArgParser parser = ArgParser(arg_stream);
+    ArgParser parser = ArgParser(argc, argv);
 
     random_seed = parser.seed;
     if (random_seed != -1)

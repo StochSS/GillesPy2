@@ -44,10 +44,11 @@ private:
             return 'T';
         if (!opt.compare("--tau_tol"))
             return 'l';
-        else{
+        else
+        {
             std::cout << usage << std::endl;
         }
-              
+
     };
 public:
     int trajectories = 0;
@@ -58,76 +59,73 @@ public:
     double switch_tol = 0.0;
     double tau_tol = 0.0;
 
-    ArgParser(std::stringstream &arg_stream);
+    ArgParser::ArgParser(int argc, char *argv[]);
     ~ArgParser();
 };
 
-ArgParser::ArgParser(std::stringstream &arg_stream)    
+ArgParser::ArgParser(int argc, char *argv[])
 {
     char opt;
-    // printf("hello");
-    // fflush(0);
+    std::stringstream arg_stream(argv[1]);
 
-    // std :: stringstream arg_stream(argv[1]);
     std::string token;
-    // printf(arg_stream.str());
-    // for (int i = 1; i < argc; ++i){
-    while (arg_stream >> token) {
-        // printf("hey");
+    while (arg_stream >> token)
+    {
         std::cout << token.length() << std::endl;
-        // fflush(0);
-        // printf(token.c_str());
-        // fflush(0);
+
         if (token.length() > 1 && token.at(0) == '-' && token.at(1) != '-')
         {
             opt = token.at(1);
         }
         else if (token.length() > 1 && token.at(0) == '-' && token.at(1) == '-')
         {
-            
+
             opt = match_arg(token);
         }
-        else {
+        else
+        {
             continue;
         }
-        switch(opt) {
-            case 't':
-                arg_stream >> timesteps;
-                break;
-            case 'e':
-                arg_stream >> end;
-                break;
-            case 's':
-                arg_stream >> seed;
-                break;
-            case 'S':
-                arg_stream >> switch_tol;
-                break;
-            case 'i':
-                arg_stream >> increment;
-                break;
-            case 'I':
-                Gillespy::map_variable_populations(arg_stream);
-                break;
-            case 'p':
-                Gillespy::map_variable_parameters(arg_stream);
-                break;
-            case 'T':
-                arg_stream >> trajectories;
-                std::cout << trajectories << std::endl;
+        switch (opt)
+        {
+        case 't':
+            arg_stream >> timesteps;
+            break;
+        case 'e':
+            arg_stream >> end;
+            break;
+        case 's':
+            arg_stream >> seed;
+            break;
+        case 'S':
+            arg_stream >> switch_tol;
+            break;
+        case 'i':
+            arg_stream >> increment;
+            break;
+        case 'I':
+            Gillespy::map_variable_populations(arg_stream);
+            break;
+        case 'p':
+            Gillespy::map_variable_parameters(arg_stream);
+            break;
+        case 'T':
+            arg_stream >> trajectories;
+            std::cout << trajectories << std::endl;
 
-                fflush(0);
-                break;
-            case 'l':
-                arg_stream >> tau_tol;
-                break;
-            default:
-                std::cout << usage << std::endl;
-                break;
-        }        
+            fflush(0);
+            break;
+        case 'l':
+            arg_stream >> tau_tol;
+            break;
+        default:
+            std::cout << usage << std::endl;
+            break;
+        }
     }
 
 }
 
-ArgParser::~ArgParser(){
+ArgParser::~ArgParser()
+{
 }
