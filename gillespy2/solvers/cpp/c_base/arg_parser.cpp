@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iostream>
 
+#include "template.h"
 #include "arg_parser.h"
 
 char ArgParser::match_arg(std::string &token)
