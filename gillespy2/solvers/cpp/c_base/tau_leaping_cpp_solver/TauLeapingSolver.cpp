@@ -15,6 +15,7 @@
 namespace Gillespy
 {
 	bool interrupted = false;
+	std::mt19937_64 generator;
 
 	void signalHandler(int signum)
 	{
@@ -289,8 +290,6 @@ namespace Gillespy
 		}
 
 		std::map<std::string, int> rxn_count; // map of how many times reaction is fired
-		std::random_device rd;
-		std::mt19937 generator(rd());
 		std::pair<std::map<std::string, int>, double> values; // value pair to be returned, map of times {map of times reaction fired, current time}
 
 		for (int i = 0; i < model->number_reactions; i++)
@@ -319,6 +318,9 @@ namespace Gillespy
 		TauArgs tau_args = initialize(*(simulation->model), tau_tol);
 
 		double increment = simulation->timeline[1] - simulation->timeline[0];
+
+		// Instantiate the RNG.
+		generator = std::mt19937_64(simulation->random_seed);
 
 		//Initialize current_state variables, propensity_values
 		std::vector<int> current_state(simulation->model->number_species);
