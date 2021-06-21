@@ -60,6 +60,8 @@ char ArgParser::match_arg(std::string &token)
 
 ArgParser::ArgParser(int argc, char *argv[])
 {
+	std::stringstream arg_stream;
+
 	for (int i = 1; i < argc; i++) 
 	{
 		char arg_key;
@@ -84,6 +86,7 @@ ArgParser::ArgParser(int argc, char *argv[])
 		}
 
 		// Create a stringstream for datatype parsing.
+		arg_stream << argv[i + 1];
 		std::stringstream arg_stream(argv[i + 1]);
 
 		switch (arg_key) 
