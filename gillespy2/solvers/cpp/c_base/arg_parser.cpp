@@ -132,6 +132,10 @@ ArgParser::ArgParser(int argc, char *argv[])
 				exit(0);
 		}
 	}
+
+	// Negative or 0 increment is invalid.
+	// If such an increment is provided, compute a valid increment manually.
+	increment = increment > 0 ? increment : end / (timesteps - 1);
 }
 
 ArgParser::~ArgParser()
