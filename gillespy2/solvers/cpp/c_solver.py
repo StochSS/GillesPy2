@@ -171,7 +171,7 @@ class CSolver:
         args_list = []
 
         for key, value in args_dict.items():
-            args_list.extend([f"-{key}", str(value)])
+            args_list.extend([f"--{key}", str(value)])
 
         return args_list
 
