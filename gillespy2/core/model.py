@@ -255,7 +255,7 @@ class Model(SortableObject, Jsonify):
         :return: the dictionary mapping user species names to their internal GillesPy notation.
         """
         species_name_mapping = OrderedDict([])
-        for i, name in enumerate(sorted(self.listOfSpecies.keys())):
+        for i, name in enumerate(self.listOfSpecies.keys()):
             species_name_mapping[name] = 'S[{}]'.format(i)
         return species_name_mapping
 
@@ -361,7 +361,7 @@ class Model(SortableObject, Jsonify):
         """
         parameter_name_mapping = OrderedDict()
         parameter_name_mapping['vol'] = 'V'
-        for i, name in enumerate(sorted(self.listOfParameters.keys())):
+        for i, name in enumerate(self.listOfParameters.keys()):
             if name not in parameter_name_mapping:
                 parameter_name_mapping[name] = 'P{}'.format(i)
         return parameter_name_mapping
