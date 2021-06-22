@@ -861,8 +861,9 @@ class Model(SortableObject, Jsonify):
         """
         If user has specified a particular algorithm, we return either the Python or C++ version of that algorithm
         """
-        from gillespy2.solvers.cpp import can_use_cpp
         from gillespy2.solvers.numpy import can_use_numpy
+        from gillespy2.solvers.cpp.build.build_engine import BuildEngine
+        can_use_cpp = not len(BuildEngine.get_missing_dependencies())
 
         if not can_use_cpp and can_use_numpy:
             raise ModelError("Please install C++ or Numpy to use GillesPy2 solvers.")
