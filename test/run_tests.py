@@ -18,6 +18,8 @@ if __name__ == '__main__':
         sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
     import test_empty_model
+    import test_build_engine
+    import test_c_solvers
     import test_model
     import test_ode_solver
     import test_ode_c_solver
@@ -34,9 +36,12 @@ if __name__ == '__main__':
     import test_propensity_parser
     import test_pause_resume
     import test_check_cpp_support
+    import test_jsonify
 
     modules = [
         test_empty_model,
+        test_build_engine,
+        test_c_solvers,
         test_model,
         test_ode_solver,
         test_ode_c_solver,
@@ -52,7 +57,8 @@ if __name__ == '__main__':
         test_sys_init,
         test_results,
         test_propensity_parser,
-        test_check_cpp_support
+        test_check_cpp_support,
+        test_jsonify
     ]
 
     for module in modules:

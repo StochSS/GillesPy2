@@ -42,7 +42,6 @@ class TestVariableSolvers(unittest.TestCase):
     def test_change_parameter(self):
         initial_expression = self.model.listOfParameters['k1'].expression
         for solver in self.solverlist:
-            print(solver.name)
             results = self.model.run(solver=solver, variables={'k1':0})
             with self.subTest(msg='Test changed parameter simulation'):
                 self.assertEqual(results['Sp'][-1], results['Sp'][0])

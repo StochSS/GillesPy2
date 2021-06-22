@@ -1,3 +1,4 @@
+from gillespy2.core.jsonify import TranslationTable
 from gillespy2.core.reaction import *
 from gillespy2.core.raterule import RateRule
 from gillespy2.core.parameter import Parameter
@@ -62,7 +63,25 @@ def export_SBML(gillespy_model, filename=None):
     return export(gillespy_model, path=filename)
 
 
-class Model(SortableObject):
+def export_StochSS(gillespy_model, filename=None, return_stochss_model=False):
+    """
+    GillesPy model to StochSS converter
+
+    :param gillespy_model: GillesPy model to be converted to StochSS
+    :type gillespy_model: gillespy.Model
+
+    :param filename: Path to the StochSS file for conversion
+    :type filename: str
+    """
+    try:
+        from gillespy2.stochss.StochSSexport import export
+    except ImportError:
+        raise ImportError('StochSS export conversion not imported successfully')
+
+    return export(gillespy_model, path=filename, return_stochss_model=return_stochss_model)
+
+
+class Model(SortableObject, Jsonify):
     # reserved names for model species/parameter names, volume, and operators.
     reserved_names = ['vol']
     special_characters = ['[', ']', '+', '-', '*', '/', '.', '^']
@@ -106,6 +125,7 @@ class Model(SortableObject):
         self.listOfParameters = OrderedDict()
         self.listOfSpecies = OrderedDict()
         self.listOfReactions = OrderedDict()
+
         self.listOfAssignmentRules = OrderedDict()
         self.listOfRateRules = OrderedDict()
         self.listOfEvents = OrderedDict()
@@ -146,6 +166,11 @@ class Model(SortableObject):
         else:
             self.timespan(tspan)
 
+        # Change Jsonify settings to disable private variable
+        # JSON hashing and enable automatic translation table gen.
+        self._hash_private_vars = False
+        self._generate_translation_table = True
+
     def __str__(self):
         divider = '\n**********\n'
 
@@ -184,6 +209,33 @@ class Model(SortableObject):
 
         return print_string
 
+    def make_translation_table(self):
+        from collections import ChainMap
+
+        species = self.listOfSpecies.values()
+        reactions = self.listOfReactions.values()
+        parameters = self.listOfParameters.values()
+        assignments = self.listOfAssignmentRules.values()
+        rates = self.listOfRateRules.values()
+        events = self.listOfEvents.values()
+        functions = self.listOfFunctionDefinitions.values()
+
+        # A translation table is used to anonymize user-defined variable names and formulas into generic counterparts.
+        translation_table = dict(ChainMap(
+
+            # Build translation mappings for user-defined variable names.
+            dict({ self.name: "Model" }),
+            dict(zip((str(x.name) for x in species), (f"S_{x + 100}" for x in range(0, len(species))))),
+            dict(zip((str(x.name) for x in reactions), (f"R_{x + 100}" for x in range(0, len(reactions))))),
+            dict(zip((str(x.name) for x in parameters), (f"P_{x + 100}" for x in range(0, len(parameters))))),
+            dict(zip((str(x.name) for x in assignments), (f"AR_{x + 100}" for x in range(0, len(assignments))))),
+            dict(zip((str(x.name) for x in rates), (f"RR_{x + 100}" for x in range(0, len(rates))))),
+            dict(zip((str(x.name) for x in events), (f"E_{x + 100}" for x in range(0, len(events))))),
+            dict(zip((str(x.name) for x in functions), (f"F_{x + 100}" for x in range(0, len(functions))))),
+        ))
+
+        return TranslationTable(to_anon=translation_table)
+
     def serialize(self):
         """ Serializes the Model object to valid StochML. """
         self.resolve_parameters()
@@ -203,7 +255,7 @@ class Model(SortableObject):
         :return: the dictionary mapping user species names to their internal GillesPy notation.
         """
         species_name_mapping = OrderedDict([])
-        for i, name in enumerate(sorted(self.listOfSpecies.keys())):
+        for i, name in enumerate(self.listOfSpecies.keys()):
             species_name_mapping[name] = 'S[{}]'.format(i)
         return species_name_mapping
 
@@ -309,7 +361,7 @@ class Model(SortableObject):
         """
         parameter_name_mapping = OrderedDict()
         parameter_name_mapping['vol'] = 'V'
-        for i, name in enumerate(sorted(self.listOfParameters.keys())):
+        for i, name in enumerate(self.listOfParameters.keys()):
             if name not in parameter_name_mapping:
                 parameter_name_mapping[name] = 'P{}'.format(i)
         return parameter_name_mapping
@@ -547,7 +599,7 @@ class Model(SortableObject):
                 self.listOfFunctionDefinitions[function_definitions.name] = function_definitions
             except Exception as e:
                 raise ParameterError(
-                    "Error using {} as a Function Definition. Reason given: ".format(function_definitions, e))
+                    "Error using {} as a Function Definition. Reason given: {}".format(function_definitions, e))
 
     def add_assignment_rule(self, assignment_rules):
         """
@@ -581,7 +633,7 @@ class Model(SortableObject):
 
                 self.listOfAssignmentRules[assignment_rules.name] = assignment_rules
             except Exception as e:
-                raise ParameterError("Error using {} as a Assignment Rule. Reason given: ".format(assignment_rules, e))
+                raise ParameterError("Error using {} as a Assignment Rule. Reason given: {}".format(assignment_rules, e))
 
     def timespan(self, time_span):
         """
@@ -794,7 +846,9 @@ class Model(SortableObject):
                              'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
                              'Please install Numpy.')
         
-        from gillespy2.solvers.cpp import can_use_cpp
+        from gillespy2.solvers.cpp.build.build_engine import BuildEngine
+        can_use_cpp = not len(BuildEngine.get_missing_dependencies())
+
         if can_use_cpp is False and can_use_numpy and not hybrid_check:
             from gillespy2 import NumPySSASolver
             return NumPySSASolver

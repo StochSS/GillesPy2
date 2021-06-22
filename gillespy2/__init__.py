@@ -13,3 +13,4 @@ from gillespy2.solvers import *
 from gillespy2.core import *
 import gillespy2.sbml
 
+cache_enabled = False

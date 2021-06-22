@@ -1,6 +1,7 @@
 from gillespy2.core.sortableobject import SortableObject
+from gillespy2.core.jsonify import Jsonify
 
-class FunctionDefinition(SortableObject):
+class FunctionDefinition(SortableObject, Jsonify):
     """
     Object representation defining an evaluable function to be used during
     simulation of a GillesPy2 model
@@ -20,8 +21,10 @@ class FunctionDefinition(SortableObject):
 
         self.name = name
         self.function_string = function
+
         self.args = ', '.join(args)
         self.function = eval('lambda ' + self.args + ': ' + function, eval_globals)
+
         if self.function is None:
             raise TypeError
 
