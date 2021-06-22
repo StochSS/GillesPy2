@@ -77,13 +77,24 @@ def get_model_defines(model: Model, variable=False) -> "dict[str, str]":
     
     # Get definitions for propensities
     stoch_propensities = []
+    ode_propensities = []
     for rxn in reactions:
+        # ODE and non-ODE propensities can sometimes differ.
+        # As a result, each one needs to be sanitized and evaluated separately.
         stoch_propensity = rxn.sanitized_propensity_function(
             model.sanitized_species_names(),
-            model.sanitized_parameter_names())
+            model.sanitized_parameter_names(),
+            ode=False)
+        ode_propensity = rxn.sanitized_propensity_function(
+            model.sanitized_species_names(),
+            model.sanitized_parameter_names(),
+            ode=True)
         stoch_propensities.append(stoch_propensity)
-    stoch_propensity_definitions = template_def_propensities(stoch_propensities)
+        ode_propensities.append(ode_propensity)
+    stoch_propensity_definitions = template_def_propensities(stoch_propensities, ode=False)
+    ode_propensity_definitions = template_def_propensities(ode_propensities, ode=True)
     results.update(stoch_propensity_definitions)
+    results.update(ode_propensity_definitions)
 
     return results
 
