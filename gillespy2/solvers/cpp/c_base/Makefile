@@ -129,7 +129,7 @@ run: build
 	./$(OUTPUT_FILE) $(EXE_ARGS)
 
 debug: CXXFLAGS = -std=c++14 -Wall -g
-debug: clean_all build;
+debug: build;
 	gdb --args $(OUTPUT_FILE) $(EXE_ARGS)
 
 all: prebuild

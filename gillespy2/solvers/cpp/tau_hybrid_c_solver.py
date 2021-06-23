@@ -41,7 +41,6 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         args = {
             "trajectories": number_of_trajectories,
             "timesteps": number_timesteps,
-            "tau_step": tau_step,
             "tau_tol": tau_tol,
             "end": t
         }

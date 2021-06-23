@@ -66,9 +66,10 @@ namespace Gillespy::TauHybrid {
 			int rxn_offset_boundary  = num_species + num_reactions;
 
 			// SIMULATION STEP LOOP
+			int save_idx = 1;
 			double next_time;
 			double tau_step = 0.0;
-			double save_time = simulation->timeline[1];
+			double save_time = simulation->timeline[save_idx];
 
 			// Temporary array to store changes to dependent species.
 			// Should be 0-initialized each time it's used.
@@ -150,7 +151,8 @@ namespace Gillespy::TauHybrid {
 					// Only update state with the given population changes if valid.
 					if (invalid_state) {
 						sol.restore_state();
-						next_time = simulation->current_time + (tau_step / 2);
+						tau_step /= 2;
+						next_time = simulation->current_time + tau_step;
 					}
 					else {
 						// "Permanently" update the rxn_state and populations.
@@ -165,13 +167,14 @@ namespace Gillespy::TauHybrid {
 				// Output the results for this time step.
 				sol.refresh_state();
 				simulation->current_time = next_time;
-				
-				while (save_time <= next_time) {
-					// Write each species, one at a time (from ODE solution)
+
+				// Seek forward, writing out any values on the timeline which are on current timestep range.
+				// 
+				while (save_idx < simulation->number_timesteps && save_time <= next_time) {
 					for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-						simulation->trajectories[traj][(int) save_time][spec_i] = current_state[spec_i];
+						simulation->trajectories[traj][save_idx][spec_i] = current_state[spec_i];
 					}
-					save_time += increment;
+					save_time = simulation->timeline[++save_idx];
 				}
 			}
 
