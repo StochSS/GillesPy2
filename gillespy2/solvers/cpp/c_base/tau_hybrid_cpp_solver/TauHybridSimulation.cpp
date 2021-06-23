@@ -36,6 +36,20 @@ double Gillespy::TauHybrid::HybridSimulation::hybrid_propensity(
 	return map_ode_propensity(reaction_id, S);
 }
 
+double Gillespy::TauHybrid::HybridReaction::ode_propensity(
+	ReactionId reaction_number,
+	std::vector<double> &state)
+{
+	return map_ode_propensity(reaction_number, state);
+}
+
+double Gillespy::TauHybrid::HybridReaction::ssa_propensity(
+	ReactionId reaction_number,
+	std::vector<int> &state)
+{
+	return map_propensity(reaction_number, state);
+}
+
 int main(int argc, char* argv[]){
 	ArgParser parser(argc, argv);
 	random_seed = parser.seed;

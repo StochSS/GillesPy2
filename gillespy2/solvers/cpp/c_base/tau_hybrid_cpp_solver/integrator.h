@@ -14,8 +14,8 @@ namespace Gillespy::TauHybrid
 	struct IntegratorData
 	{
 		HybridSimulation *simulation;
-		HybridSpecies *species_state;
-		HybridReaction *reaction_state;
+		std::vector<HybridSpecies> species_state;
+		std::vector<HybridReaction> reaction_state;
 
 		std::vector<double> concentrations;
 		std::vector<int> populations;
@@ -24,7 +24,6 @@ namespace Gillespy::TauHybrid
 		IntegratorData(HybridSimulation *simulation);
 		IntegratorData(HybridSimulation *simulation, int num_species, int num_reactions);
 		IntegratorData(IntegratorData &prev_data);
-		~IntegratorData();
 	};
 
 	/* :IntegrationResults:

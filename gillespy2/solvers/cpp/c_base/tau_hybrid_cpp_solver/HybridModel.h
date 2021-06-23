@@ -1,12 +1,29 @@
 #pragma once
 
 #include <variant>
+#include <functional>
 #include "model.h"
 
 #define GPY_HYBRID_ABSTOL 1e-5
 #define GPY_HYBRID_RELTOL 1e-5
 
 namespace Gillespy::TauHybrid {
+
+	typedef int ReactionId;
+
+	/* Gillespy::TauHybrid::DiffEquation
+	 * A vector containing evaluable functions, which accept integrator state and return propensities.
+	 * 
+	 * The vector is understood to be an arbitrarily sized collection of propensity evaluations,
+	 *   each weighted by some individual, constant factor.
+	 * The sum of evaulations of all collected functions is interpreted to be the dydt of that state.
+	 */
+	struct DifferentialEquation
+	{
+	public:
+		std::vector<std::function<double(std::vector<double>&, std::vector<int>&)>> formulas;
+		double evaluate(std::vector<double> &ode_state, std::vector<int> &ssa_state);
+	};
 
 	enum SimulationState
 	{
@@ -41,6 +58,8 @@ namespace Gillespy::TauHybrid {
 		// If a value is given, switch_min will be used instead of switch_tol.
 		unsigned int switch_min = 0;
 
+		DifferentialEquation diff_equation;
+
 		HybridSpecies();
 	};
 
@@ -50,6 +69,9 @@ namespace Gillespy::TauHybrid {
 		SimulationState mode : 1;
 
 		HybridReaction();
+
+		double ode_propensity(ReactionId reaction_number, std::vector<double> &state);
+		double ssa_propensity(ReactionId reaction_number, std::vector<int> &state);
 	};
 
 	union hybrid_state
@@ -67,5 +89,10 @@ namespace Gillespy::TauHybrid {
 
 		HybridSimulation();
 	};
+
+
+	void create_differential_equations(
+		std::vector<HybridSpecies> &species,
+		std::vector<HybridReaction> &reactions);
 
 }

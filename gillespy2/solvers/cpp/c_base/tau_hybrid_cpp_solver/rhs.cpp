@@ -18,8 +18,8 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	// Extract simulation data
 	IntegratorData *data = static_cast<IntegratorData*>(user_data);
 	HybridSimulation *sim = data->simulation;
-	HybridSpecies *species = data->species_state;
-	HybridReaction *reactions = data->reaction_state;
+	std::vector<HybridSpecies> &species = data->species_state;
+	std::vector<HybridReaction> &reactions = data->reaction_state;
 	std::vector<double> &propensities = data->propensities;
 	// Concentrations and reactions are both used for their respective propensity evaulations.
 	// They both should, roughly, reflect the same data, but tau selection requires both.
@@ -55,6 +55,13 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	int species_change;
 	Gillespy::Reaction *current_rxn;
 
+	// Deterministic reactions generally are "evaluated" by generating dy/dt functions
+	//   for each of their dependent species.
+	// To handle these, we will go ahead and evaluate each species' differential equations.
+	for (spec_i = 0; spec_i < num_species; ++spec_i) {
+		dydt[spec_i] += species[spec_i].diff_equation.evaluate(concentrations, populations);
+	}
+
 	// Process deterministic propensity state
 	// These updates get written directly to the integrator's concentration state
 	for (rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
@@ -70,22 +77,6 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 			break;
 
 		case SimulationState::CONTINUOUS:
-			propensity = sim->propensity_function->ODEEvaluate(rxn_i, concentrations);
-			propensities[rxn_i] = propensity;
-
-			for (spec_i = 0; spec_i < num_species; ++spec_i) {
-				// Use the evaluated propensity to update the concentration levels and reaction state.
-				// Propensity is treated as positive if it's a product, negative if it's a reactant.
-				species_change = current_rxn->species_change[spec_i];
-				if (species_change == 0)
-					continue;
-
-				// The product on the right evaluates to 1 if species_change is positive,
-				//    and -1 if it's negative.
-				// This is a branchless alternative to using an if-statement.
-				dydt[spec_i] += propensity * (-1 + 2 * (species_change > 0));
-			}
-			break;
 		default:
 			break;
 		}
