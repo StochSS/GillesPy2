@@ -328,12 +328,12 @@ class Reaction(SortableObject, Jsonify):
         """
         self.annotation = annotation
 
-    def sanitized_propensity_function(self, species_mappings, parameter_mappings):
+    def sanitized_propensity_function(self, species_mappings, parameter_mappings, ode=False):
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
                        reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
-        sanitized_propensity = self.propensity_function
+        sanitized_propensity = self.ode_propensity_function if ode else self.propensity_function
         for id, name in enumerate(names):
             sanitized_propensity = sanitized_propensity.replace(name, "{" + str(id) + "}")
         return sanitized_propensity.format(*replacements)
