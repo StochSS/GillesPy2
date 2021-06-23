@@ -19,14 +19,10 @@ namespace Gillespy::TauHybrid
 		// Empty constructor body
 	}
 
-	HybridSimulation::~HybridSimulation()
+	HybridSimulation::HybridSimulation()
+		: Simulation<double>()
 	{
-		if (type == HYBRID) {
-			for(unsigned int i = 0; i < number_trajectories; i++){
-				delete trajectoriesODE[i];
-			}
-			delete trajectoriesODE;
-		}
+		// Empty constructor body
 	}
 
 }

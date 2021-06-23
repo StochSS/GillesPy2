@@ -58,14 +58,14 @@ namespace Gillespy::TauHybrid {
 		double continuous;
 	};
 
-	struct HybridSimulation : Simulation
+	struct HybridSimulation : Simulation<double>
 	{
 		hybrid_state *trajectories_hybrid1D;
 		hybrid_state ***trajectories_hybrid;
 
 		double hybrid_propensity(int reaction_id, std::vector<double> &current_state);
 
-		~HybridSimulation();
+		HybridSimulation();
 	};
 
 }
