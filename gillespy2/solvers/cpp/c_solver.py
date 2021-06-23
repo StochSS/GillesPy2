@@ -43,6 +43,7 @@ class CSolver:
         if self.model is None:
             return
 
+        self._build(model, self.target, variable, False)
         self.species_mappings = self.model.sanitized_species_names()
         self.species = list(self.species_mappings.keys())
         self.parameter_mappings = self.model.sanitized_parameter_names()
@@ -74,11 +75,14 @@ class CSolver:
         """
 
         # Prepare the build workspace.
-        self.build_engine = BuildEngine(debug=debug, output_dir=self.output_directory)
-        self.build_engine.prepare(model, variable)
+        if self.build_engine is None or self.build_engine.get_executable_path() is None:
+            self.build_engine = BuildEngine(debug=debug, output_dir=self.output_directory)
+            self.build_engine.prepare(model, variable)
+            # Compile the simulation, returning the path of the executable.
+            return self.build_engine.build_simulation(simulation_name)
 
-        # Compile the simulation, returning the path of the executable.
-        return self.build_engine.build_simulation(simulation_name)
+        # Assume that the simulation has already been built.
+        return self.build_engine.get_executable_path()
 
     def _run_async(self, sim_exec: str, sim_args: "list[str]", decoder: SimDecoder, timeout: int = 0):
         """
@@ -167,7 +171,7 @@ class CSolver:
         args_list = []
 
         for key, value in args_dict.items():
-            args_list.extend([f"-{key}", str(value)])
+            args_list.extend([f"--{key}", str(value)])
 
         return args_list
 

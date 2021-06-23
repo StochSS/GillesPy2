@@ -1,143 +1,128 @@
 #include "model.h"
 
-namespace Gillespy{
+namespace Gillespy {
+	Model::Model(
+		std::vector<std::string> species_names,
+		std::vector<unsigned int> species_populations,
+		std::vector<std::string> reaction_names) :
+		number_species(species_names.size()),
+		number_reactions(reaction_names.size()) {
 
+		species = std::make_unique<Species[]>(number_species);
+		reactions = std::make_unique<Reaction[]>(number_reactions);
 
-  Model :: Model(std :: vector<std :: string> species_names, std :: vector<unsigned int> species_populations, std :: vector<std :: string> reaction_names):
-    number_species(species_names.size()),
-    number_reactions(reaction_names.size())
-  {
-    species = std :: make_unique<Species[]>(number_species);
-    for(unsigned int i = 0; i < number_species; i++){
-      species[i].id = i;
-      species[i].initial_population = species_populations[i];
-      species[i].name = species_names[i];
-    }
-    reactions = std :: make_unique<Reaction[]>(number_reactions);
-    for(unsigned int i = 0; i < number_reactions; i++){
-      reactions[i].name = reaction_names[i];
-      reactions[i].species_change = std :: make_unique<int[]>(number_species);
-      for(unsigned int j = 0; j < number_species; j++){
-	      reactions[i].species_change[j] = 0;
-      }
-      reactions[i].affected_reactions = std :: vector<unsigned int>();
-    }
-  }
+		for (unsigned int i = 0; i < number_species; i++) {
+			species[i].id = i;
+			species[i].initial_population = species_populations[i];
+			species[i].name = species_names[i];
+		}
 
-  void Model :: update_affected_reactions(){
-    //Clear affected_reactions for each reaction
-    for(unsigned int i = 0; i < number_reactions; i++){
-      reactions[i].affected_reactions.clear();
-    }
-    //Check all reactions for common species changes -> affected reactions
-    for(unsigned int r1 = 0; r1 < number_reactions; r1++){
-      for(unsigned int r2 = 0; r2 < number_reactions; r2++){
-	    for(unsigned int s = 0; s < number_species; s++){
-	        if(reactions[r2].species_change[s] != 0){
-                reactions[r1].affected_reactions.push_back(r2);
-	        }
-	    }
-      }
-    }
-  }
+		for (unsigned int reaction = 0; reaction < number_reactions; reaction++) {
+			reactions[reaction].name = reaction_names[reaction];
+			reactions[reaction].species_change = std::make_unique<int[]>(number_species);
 
-  void init_timeline(Simulation &simulation)
-  {
-  	simulation.timeline = new double[simulation.number_timesteps];
-    double timestep_size = simulation.end_time/(simulation.number_timesteps-1);
-    for(unsigned int i = 0; i < simulation.number_timesteps; i++){
-    	simulation.timeline[i] = timestep_size * i;
-    }
-  }
+			for (unsigned int species = 0; species < number_species; species++) {
+				reactions[reaction].species_change[species] = 0;
+			}
 
-  void simulationSSAINIT(Model* model, Simulation &simulation){
-    init_timeline(simulation);
+			reactions[reaction].affected_reactions = std::vector<unsigned int>();
+		}
+	}
 
- 	unsigned int trajectory_size = simulation.number_timesteps * (model -> number_species);
-    simulation.trajectories_1D = new unsigned int[simulation.number_trajectories * trajectory_size];
-    simulation.trajectories = new unsigned int**[simulation.number_trajectories];
-    for(unsigned int i = 0; i < simulation.number_trajectories; i++){
-    	simulation.trajectories[i] = new unsigned int*[simulation.number_timesteps];
-    	for(unsigned int j = 0; j < simulation.number_timesteps; j++){
-    		simulation.trajectories[i][j] = &(simulation.trajectories_1D[i * trajectory_size + j *  (model -> number_species)]);
-      }
-    }
-  }
+	void Model::update_affected_reactions() {
+		// Clear affected_reactions for each reaction.
+		for (unsigned int i = 0; i < number_reactions; i++) {
+			reactions[i].affected_reactions.clear();
+		}
 
-// initialize timeline, 
-  void simulationODEINIT(Model* model, Simulation &simulation){
-    init_timeline(simulation);
+		// Check all reactions for commong species changes -> affected reactions.
+		for (unsigned int r1 = 0; r1 < number_reactions; r1++) {
+			for (unsigned int r2 = 0; r2 < number_reactions; r2++) {
+				for (unsigned int s = 0; s < number_species; s++) {
+					if (reactions[r2].species_change[s] != 0) {
+						reactions[r1].affected_reactions.push_back(r2);
+					}
+				}
+			}
+		}
+	}
 
-    unsigned int trajectory_size = simulation.number_timesteps * (model -> number_species);
-    simulation.trajectories_1DODE = new double[simulation.number_trajectories * trajectory_size];
-    simulation.trajectoriesODE = new double**[simulation.number_trajectories];
-    for(unsigned int i = 0; i < simulation.number_trajectories; i++){
-      simulation.trajectoriesODE[i] = new double*[simulation.number_timesteps];
-      for(unsigned int j = 0; j < simulation.number_timesteps; j++){
-	      simulation.trajectoriesODE[i][j] = &(simulation.trajectories_1DODE[i * trajectory_size + j *  (model -> number_species)]);
-      }
-    }
-  }
+	template <typename TNum>
+	void init_timeline(Model *model, Simulation<TNum> &simulation) {
+		double timestep_size = simulation.end_time / (simulation.number_timesteps - 1);
+		simulation.timeline = new double[simulation.number_timesteps];
 
-  void simulationINIT(Model* model, Simulation &sim) {
-    int type = sim.type;
-    if (type == ODE || type == HYBRID) {
-      simulationODEINIT(model, sim);
-    }
-    else if (type == SSA || type == TAU || type == HYBRID){
-      simulationSSAINIT(model, sim);
-  }
-  }
+		for (unsigned int i = 0; i < simulation.number_timesteps; ++i) {
+			simulation.timeline[i] = timestep_size * i;
+		}
+	}
 
+	template <typename TNum>
+	void init_simulation(Model *model, Simulation<TNum> &simulation) {
+		init_timeline(model, simulation);
 
-  Simulation :: ~Simulation(){
-    int type = this->type;
-    delete timeline;
-    if (type == ODE){
-      delete trajectories_1DODE;
-      for(unsigned int i = 0; i < number_trajectories; i++){
-        delete trajectoriesODE[i];
-      }
-      delete trajectoriesODE;
-    }
-    else if (type == SSA || type == TAU){
-      delete trajectories_1D;
-      for(unsigned int i = 0; i < number_trajectories; i++){
-        delete trajectories[i];
-      }
-      delete trajectories;
-    }
-  }
+		unsigned int trajectory_size = simulation.number_timesteps * (model->number_species);
+		simulation.trajectories_1D = new TNum[simulation.number_trajectories * trajectory_size];
+		simulation.trajectories = new TNum * *[simulation.number_trajectories];
 
+		for (unsigned int trajectory = 0; trajectory < simulation.number_trajectories; trajectory++) {
+			simulation.trajectories[trajectory] = new TNum * [simulation.number_timesteps];
 
-  std :: ostream& operator<<(std :: ostream& os, const Simulation& simulation){
-    for(unsigned int i = 0; i < simulation.number_timesteps; i++){
-      os << simulation.timeline[i] << " ";
-      for(unsigned int trajectory = 0; trajectory < simulation.number_trajectories; trajectory++){
-	      for(unsigned int j = 0; j < simulation.model -> number_species; j++){
-	        if (simulation.type==ODE){os << simulation.trajectoriesODE[trajectory][i][j] <<  " ";}
-	        else{os << simulation.trajectories[trajectory][i][j] <<  " ";}
-	      }
-      }
-      os << "\n";
-    }
-    return os;
-  }
+			for (unsigned int timestep = 0; timestep < simulation.number_timesteps; timestep++) {
+				simulation.trajectories[trajectory][timestep] =
+					&(simulation.trajectories_1D[trajectory * trajectory_size + timestep * (model->number_species)]);
+			}
+		}
+	}
 
-  void Simulation :: output_results_buffer(std::ostream& os){
-    for (int i = 0 ; i < number_trajectories; i++){
-      for (int j = 0; j < number_timesteps; j++){
-        os<<timeline[j]<<',';
-        for (int k = 0; k < model->number_species; k++){
-          if (type == ODE || type == HYBRID){
-            os<<trajectoriesODE[i][j][k]<<',';
-            }
-          else if (type == SSA || type == TAU){
-            os<<trajectories[i][j][k]<<',';
-          }
-        }
-      }
-    }
-    os<<(int)current_time;
-    }
+	template <typename TNum>
+	Simulation<TNum>::~Simulation() {
+		delete[] timeline;
+		delete[] trajectories_1D;
+
+		for (unsigned int trajectory = 0; trajectory < number_trajectories; trajectory++) {
+			delete[] trajectories[trajectory];
+		}
+
+		delete[] trajectories;
+	}
+
+	template <typename TNum>
+	std::ostream &operator << (std::ostream &os, const Simulation<TNum> &simulation) {
+		for (unsigned int timestep = 0; timestep < simulation.number_timesteps; timestep++) {
+			os << simulation.timeline[timestep] << ' ';
+
+			for (unsigned int trajectory = 0; trajectory < simulation.number_trajectories; trajectory++) {
+				for (unsigned int species = 0; species < simulation.model->number_species; species++) {
+					os << simulation.trajectories[trajectory][timestep][species] << ' ';
+				}
+			}
+
+			os << simulation.timeline[timestep] << ' ';
+			os << '\n';
+		}
+
+		return os;
+	}
+
+	template <typename TNum>
+	void Simulation<TNum>::output_results_buffer(std::ostream &os) {
+		for (int trajectory = 0; trajectory < number_trajectories; trajectory++) {
+			for (int timestep = 0; timestep < number_timesteps; timestep++) {
+				os << timeline[timestep] << ',';
+
+				for (int species = 0; species < model->number_species; species++) {
+					os << trajectories[trajectory][timestep][species] << ',';
+				}
+			}
+		}
+
+		os << (int)current_time;
+	}
+
+	template struct Simulation<double>;
+	template struct Simulation<unsigned int>;
+
+	template void init_simulation<double>(Model *model, Simulation<double> &simulation);
+	template void init_simulation<unsigned int>(Model *model, Simulation<unsigned int> &simulation);
 }
