@@ -93,7 +93,11 @@ class Reaction(SortableObject, Jsonify):
             if rate is None:
                 self.marate = None
             else:
-                self.marate = rate
+                rtype = type(rate).__name__
+                if rtype == 'instance':
+                    self.marate = rate.name
+                else:
+                    self.marate = rate
                 self.create_mass_action()
         else:
             self.type = "customized"
@@ -252,8 +256,12 @@ class Reaction(SortableObject, Jsonify):
 
         # Case EmptySet -> Y
 
-        propensity_function = self.marate.name
-        ode_propensity_function = self.marate.name
+        if isinstance(self.marate, str):
+            propensity_function = self.marate
+            ode_propensity_function = self.marate
+        else:
+            propensity_function = self.marate.name
+            ode_propensity_function = self.marate.name
 
         # There are only three ways to get 'total_stoch==2':
         for r in sorted(self.reactants):
