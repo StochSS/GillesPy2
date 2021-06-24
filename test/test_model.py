@@ -1,4 +1,5 @@
 import unittest
+from example_models import RumseyReactor
 from gillespy2.core import Model, Species, Reaction, Parameter
 from gillespy2.core.gillespyError import *
 import numpy as np
@@ -307,6 +308,18 @@ class TestModel(unittest.TestCase):
         sp2 = Species('B',initial_value=5,mode='discrete')
         with self.assertRaises(SpeciesError):
             sp2.set_initial_value(.5)
+
+    def test_robust_model(self):
+        try:
+            RumseyReactor()
+        except Exception as e:
+            self.fail(f"Failed to instantiate RumseyReactor: {e}")
+
+        model = RumseyReactor()
+        try:
+            model.run()
+        except Exception as e:
+            self.fail(f"Failed to run RumseyReactor model: {e}")
 
 if __name__ == '__main__':
     unittest.main()
