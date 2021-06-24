@@ -16,6 +16,13 @@ def write_template(path: str, model: Model, variable=False):
     # Get a dictionary of model defines and transform into a list of strings in
     # `#define KEY VALUE` format.
     defines = get_model_defines(model, variable)
+    write_definitions(path, defines)
+
+def write_definitions(path: str, defines: "dict[str, str]"):
+    """
+    """
+    # Definition dict is transformed into a list of C++ macro definitions, with:
+    # `#define KEY VALUE` format.
     template_lines = [(f"#define {key} {value}\n") for key, value in defines.items()]
 
     # Write generated lines to the template file.

@@ -10,6 +10,7 @@
 #include "TauHybridSolver.h"
 #include "HybridModel.h"
 #include "integrator.h"
+#include "hybrid_template.h"
 // #include "statistics.h"
 #include "tau.h"
 using namespace Gillespy;
@@ -55,6 +56,9 @@ namespace Gillespy::TauHybrid {
 			// Do not attempt to directly use y0 after being passed to sol!
 			N_Vector y0 = init_model_vector(model, urn);
 			Integrator sol(simulation, y0, GPY_HYBRID_RELTOL, GPY_HYBRID_ABSTOL);
+
+			// Inject user-defined species modes into the solver.
+			map_species_modes(sol.data.species_state);
 
 			// Initialize the species population for the trajectory.
 			for (int spec_i = 0; spec_i < num_species; ++spec_i) {

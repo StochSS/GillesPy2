@@ -11,6 +11,7 @@ from .make import Make
 
 class BuildEngine():
     template_definitions_name = "template_definitions.h"
+    template_options_name = "template_opts.h"
 
     def __init__(self, debug: bool = False, output_dir: str = None):
         self.self_dir = Path(__file__).parent
@@ -96,6 +97,13 @@ class BuildEngine():
         self.make = Make(str(self.makefile), str(self.output_dir), str(self.obj_dir))
 
         return self.output_dir
+
+    def prepare_options(self, custom_definitions: "dict[str, str]"):
+        """
+        """
+        template_dir = self.output_dir.joinpath("template")
+        template_opts_path = template_dir.joinpath(self.template_options_name)
+        template_gen.write_definitions(str(template_opts_path), custom_definitions)
 
     def build_cache(self, cache_dir: str, force_rebuild: bool = False):
         """

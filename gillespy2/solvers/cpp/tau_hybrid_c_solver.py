@@ -1,8 +1,30 @@
+import gillespy2
 from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
 from gillespy2.solvers.utilities import solverutils as cutils
 from gillespy2.core import GillesPySolver, gillespyError, Model
 
 from .c_solver import CSolver, SimulationReturnCode
+
+def template_def_hybrid_species(species: "list[gillespy2.Species]"):
+    """
+    Populates the given list of species modes into a set of template macro definitions.
+    Expected values of 
+    """
+    species_mode_map = {
+        "continuous": "CONTINUOUS_MODE",
+        "discrete": "DISCRETE_MODE",
+        "dynamic": "DYNAMIC_MODE",
+    }
+
+    species_mode_list = []
+    for spec_id, spec in enumerate(species):
+        # Continuous by default
+        mode_keyword = species_mode_map.get(spec.mode, species_mode_map["continuous"])
+        species_mode_list.append(f"SPECIES_MODE({spec_id},{mode_keyword})")
+
+    return {
+        f"GPY_HYBRID_SPECIES_MODES": " ".join(species_mode_list)
+    }
 
 class TauHybridCSolver(GillesPySolver, CSolver):
     name = "TauHybridCSolver"
@@ -65,6 +87,8 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         decoder = BasicSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
 
         sim_exec = self._build(model, self.target, self.variable, False)
+        hybrid_options = template_def_hybrid_species([model.listOfSpecies[spec] for spec in self.species])
+        self.build_engine.prepare_options(hybrid_options)
         sim_status = self._run(sim_exec, args, decoder, timeout)
 
         if sim_status == SimulationReturnCode.FAILED:
