@@ -40,41 +40,24 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	for (spec_i = 0; spec_i < num_species; ++spec_i) {
 		concentrations[spec_i] = Y[spec_i];
 		populations[spec_i] = Y[spec_i];
-		dydt[spec_i] = 0;
 	}
-
-	// Populate the current stochastic state into the root offset vector.
-	// dy/dt results are initialized to zero, and become the change in offset.
-	unsigned int rxn_i;
-	for (rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
-		dydt_offsets[rxn_i] = 0;
-	}
-
-	// Each species has a "spot" in the y and f(y,t) vector.
-	// For each species, place the result of f(y,t) into dydt vector.
-	int species_change;
-	Gillespy::Reaction *current_rxn;
 
 	// Deterministic reactions generally are "evaluated" by generating dy/dt functions
 	//   for each of their dependent species.
 	// To handle these, we will go ahead and evaluate each species' differential equations.
 	for (spec_i = 0; spec_i < num_species; ++spec_i) {
-		if (species[spec_i].partition_mode == SimulationState::CONTINUOUS)
-			dydt[spec_i] = species[spec_i].diff_equation.evaluate(concentrations, populations);
+		dydt[spec_i] = species[spec_i].diff_equation.evaluate(concentrations, populations);
 	}
 
 	// Process deterministic propensity state
 	// These updates get written directly to the integrator's concentration state
-	for (rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
-		current_rxn = reactions[rxn_i].base_reaction;
-		// NOTE: we may need to evaluate ODE and Tau propensities separately.
-		// At the moment, it's unsure whether or not that's required.
-
+	for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
 		switch (reactions[rxn_i].mode) {
 		case SimulationState::DISCRETE:
 			// Process stochastic reaction state by updating the root offset for each reaction.
 			propensity = reactions[rxn_i].ssa_propensity(rxn_i, populations);
-			dydt_offsets[rxn_i] += propensity;
+			dydt_offsets[rxn_i] = propensity;
+			propensities[rxn_i] = propensity;
 			break;
 
 		case SimulationState::CONTINUOUS:
