@@ -311,15 +311,17 @@ class TestModel(unittest.TestCase):
 
     def test_robust_model(self):
         try:
-            RumseyReactor()
-        except Exception as e:
-            self.fail(f"Failed to instantiate RumseyReactor: {e}")
-
-        model = RumseyReactor()
-        try:
+            model = RumseyReactor()
             model.run()
-        except Exception as e:
+        
+        except ModelError as e:
+            self.fail(f"Failed to instantiate RumseyReactor model: {e}")
+        
+        except SolverError as e:
             self.fail(f"Failed to run RumseyReactor model: {e}")
+
+        except Exception as e:
+            self.fail(f"An unknown exception occured while testing the RumseyReactor model: {e}")
 
 if __name__ == '__main__':
     unittest.main()

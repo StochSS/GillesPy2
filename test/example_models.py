@@ -1,8 +1,15 @@
-from gillespy2.core.raterule import RateRule
-from gillespy2.core.assignmentrule import AssignmentRule
-from gillespy2.core import Model, Species, Reaction, Parameter
-from gillespy2.core.functiondefinition import FunctionDefinition
-from gillespy2.core.events import EventAssignment, EventTrigger, Event
+from gillespy2.core import (
+    Event,
+    Model,
+    Species,
+    Reaction,
+    RateRule,
+    Parameter,
+    EventTrigger,
+    AssignmentRule,
+    EventAssignment,
+	FunctionDefinition
+)
 
 import numpy as np
 
