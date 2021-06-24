@@ -48,7 +48,7 @@ namespace Gillespy::TauHybrid
 		// For now, differential equations are generated from scratch.
 		// It may be more efficient to determine which formulas need to change.
 		// Until then, the compound formulas in every species are cleared.
-		for (HybridSpecies spec : species) {
+		for (HybridSpecies &spec : species) {
 			spec.diff_equation.formulas.clear();
 		}
 
