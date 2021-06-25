@@ -1,4 +1,5 @@
 import unittest
+from example_models import RobustModel
 from gillespy2.core import Model, Species, Reaction, Parameter
 from gillespy2.core.gillespyError import *
 import numpy as np
@@ -307,6 +308,20 @@ class TestModel(unittest.TestCase):
         sp2 = Species('B',initial_value=5,mode='discrete')
         with self.assertRaises(SpeciesError):
             sp2.set_initial_value(.5)
+
+    def test_robust_model(self):
+        try:
+            model = RobustModel()
+            model.run()
+        
+        except ModelError as e:
+            self.fail(f"Failed to instantiate the RobustModel: {e}")
+        
+        except SolverError as e:
+            self.fail(f"Failed to run the RobustModel: {e}")
+
+        except Exception as e:
+            self.fail(f"An unknown exception occured while testing the RobustModel: {e}")
 
 if __name__ == '__main__':
     unittest.main()
