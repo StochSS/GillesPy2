@@ -1,5 +1,5 @@
 import unittest
-from example_models import RumseyReactor
+from example_models import RobustModel
 from gillespy2.core import Model, Species, Reaction, Parameter
 from gillespy2.core.gillespyError import *
 import numpy as np
@@ -311,17 +311,17 @@ class TestModel(unittest.TestCase):
 
     def test_robust_model(self):
         try:
-            model = RumseyReactor()
+            model = RobustModel()
             model.run()
         
         except ModelError as e:
-            self.fail(f"Failed to instantiate RumseyReactor model: {e}")
+            self.fail(f"Failed to instantiate the RobustModel: {e}")
         
         except SolverError as e:
-            self.fail(f"Failed to run RumseyReactor model: {e}")
+            self.fail(f"Failed to run the RobustModel: {e}")
 
         except Exception as e:
-            self.fail(f"An unknown exception occured while testing the RumseyReactor model: {e}")
+            self.fail(f"An unknown exception occured while testing the RobustModel: {e}")
 
 if __name__ == '__main__':
     unittest.main()

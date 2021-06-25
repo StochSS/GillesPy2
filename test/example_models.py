@@ -437,7 +437,7 @@ class Oregonator(Model):
           # Set timespan of model
           self.timespan(np.linspace(0, 5, 501))
 
-class RumseyReactor(Model):
+class RobustModel(Model):
     def __init__(self, parameter_values=None):
         Model.__init__(self, name="test1")
         self.volume = 1
