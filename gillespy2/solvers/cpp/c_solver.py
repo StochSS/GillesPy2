@@ -21,12 +21,13 @@ class SimulationReturnCode(IntEnum):
     FAILED = -1
 
 class CSolver:
-    def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable: bool = False):
+    def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable: bool = False, custom_definitions: "dict[str,str]" = None):
         self.delete_directory = False
         self.model = model
         self.resume = resume
         self.variable = variable
-        self.build_engine = None
+        self.build_engine: BuildEngine = None
+        self.custom_definitions = custom_definitions
 
         # Validate output_directory, ensure that it doesn't already exist
         if isinstance(output_directory, str):
@@ -43,7 +44,7 @@ class CSolver:
         if self.model is None:
             return
 
-        self._build(model, self.target, variable, False)
+        self._build(model, self.target, variable, False, custom_definitions)
         self.species_mappings = self.model.sanitized_species_names()
         self.species = list(self.species_mappings.keys())
         self.parameter_mappings = self.model.sanitized_parameter_names()
@@ -60,7 +61,7 @@ class CSolver:
 
         self.build_engine.clean()
 
-    def _build(self, model: Model, simulation_name: str, variable: bool, debug: bool = False) -> str:
+    def _build(self, model: Model, simulation_name: str, variable: bool, debug: bool = False, custom_definitions: "dict[str, str]" = None) -> str:
         """
         Generate and build the simulation from the specified Model and solver_name into the output_dir.
 
@@ -77,7 +78,7 @@ class CSolver:
         # Prepare the build workspace.
         if self.build_engine is None or self.build_engine.get_executable_path() is None:
             self.build_engine = BuildEngine(debug=debug, output_dir=self.output_directory)
-            self.build_engine.prepare(model, variable)
+            self.build_engine.prepare(model, variable, custom_definitions)
             # Compile the simulation, returning the path of the executable.
             return self.build_engine.build_simulation(simulation_name)
 
