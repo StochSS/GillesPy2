@@ -935,8 +935,19 @@ class Model(SortableObject, Jsonify):
             from gillespy2.core import log
             log.warning('show_labels = False is deprecated. Future releases '
                         'of GillesPy2 may not support this feature.')
+
         if t is None:
             t = self.tspan[-1]
+
+        if increment is not None and self.timespan is not None:
+            raise ModelError(
+                """
+                Failed while preparing to run the model. Both increment and timespan are set.
+
+                To continue either remove your `timespan` definition from your Model or remove the 
+                `increment` argument from this `model.run()` call.               
+                """
+            )
 
         if solver is None:
             if algorithm is not None:
