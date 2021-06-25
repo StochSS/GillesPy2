@@ -1,5 +1,5 @@
 import unittest
-from example_models import RobustModel
+from example_models import RobustModel, Example
 from gillespy2.core import Model, Species, Reaction, Parameter
 from gillespy2.core.gillespyError import *
 import numpy as np
@@ -94,6 +94,21 @@ class TestModel(unittest.TestCase):
         model.add_reaction(reaction1)
         with self.assertRaises(ModelError):
             model.add_reaction(reaction2)
+
+    def test_model_run_with_both_increment_and_timespan(self):
+        model = Example()
+
+        try:
+            model.run(increment=4)
+
+        except ModelError as e:
+            return
+
+        self.fail(
+            """
+            Failed while testing Model.run() behavior when both `timespan` and `increment` are set.
+            """
+        )
 
     def test_valid_initial_value_float(self):
         species = Species('A', initial_value=1.5, mode='continuous')
