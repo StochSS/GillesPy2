@@ -6,10 +6,13 @@ class AssignmentRule(SortableObject, Jsonify):
     """
     An AssignmentRule is used to express equations that set the values of
     variables.  This would correspond to a function in the form of x = f(V)
+
     :param name: Name of the Rule
     :type name: str
+
     :param variable: Target Species/Parameter to be modified by rule
     :type variable: str
+
     :param formula: String representation of formula to be evaluated
     :type formula: str
     """
