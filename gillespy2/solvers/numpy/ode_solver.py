@@ -29,12 +29,14 @@ class ODESolver(GillesPySolver):
     def __f(t, y, curr_state, model, c_prop):
         """
         The right hand side of the differential equation, uses scipy.integrate ode
+
         :param t: time as a numpy array
         :param y: species pops as a list
         :param curr_state: dictionary of eval variables
         :param model: model being simulated
         :param c_prop: precompiled reaction propensity function
-        :return: integration step
+
+        :returns: integration step
         """
         curr_state[0]['t'] = t
         state_change =  OrderedDict()
@@ -54,7 +56,7 @@ class ODESolver(GillesPySolver):
     @classmethod
     def get_solver_settings(self):
         """
-        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'integrator', 'integrator_options',
                 'timeout')
@@ -63,27 +65,27 @@ class ODESolver(GillesPySolver):
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, show_labels=True, integrator='lsoda',
             integrator_options={}, live_output=None, live_output_options={}, timeout=None, resume=None, **kwargs):
         """
-
         :param model: gillespy2.model class object
         :param t: end time of simulation
         :param number_of_trajectories: Should be 1.
             This is deterministic and will always have same results
         :param increment: time step increment for plotting
         :param integrator: integrator to be used form scipy.integrate.ode. Options include 'vode', 'zvode', 'lsoda',
-        'dopri5', and 'dop835'.  For more details,
-        see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html
+            'dopri5', and 'dop835'.  For more details,
+            see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html
 
         :param integrator_options: a dictionary containing options to the scipy integrator. for a list of options,
-        see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.
+            see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.
             Example use: {max_step : 0, rtol : .01}
 
         :param timeout: If set, if simulation takes longer than timeout, will exit.
         :type timeout: int
+
         :param resume: Result of a previously run simulation, to be resumed
-        :param live_output : str The type of output to be displayed by solver. Can be "progress", "text", or "graph".
-        :param live_output_options : dictionary contains options for live_output. By default {"interval":1}.
-                    "interval" specifies seconds between displaying.
-                    "clear_output" specifies if display should be refreshed with each displa
+        :param live_output: str The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+        :param live_output_options: dictionary contains options for live_output. By default {"interval":1}.
+            "interval" specifies seconds between displaying.
+            "clear_output" specifies if display should be refreshed with each displa
         """
         if isinstance(self, type):
             self = ODESolver()
