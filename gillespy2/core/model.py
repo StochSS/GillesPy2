@@ -1,3 +1,4 @@
+from gillespy2.core.jsonify import TranslationTable
 from gillespy2.core.reaction import *
 from gillespy2.core.raterule import RateRule
 from gillespy2.core.parameter import Parameter
@@ -44,7 +45,43 @@ def import_SBML(filename, name=None, gillespy_model=None):
     return convert(filename, model_name=name, gillespy_model=gillespy_model)
 
 
-class Model(SortableObject):
+def export_SBML(gillespy_model, filename=None):
+    """
+    GillesPy model to SBML converter
+
+    :param gillespy_model: GillesPy model to be converted to SBML
+    :type gillespy_model: gillespy.Model
+
+    :param filename: Path to the SBML file for conversion
+    :type filename: str
+    """
+    try:
+        from gillespy2.sbml.SBMLexport import export
+    except ImportError:
+        raise ImportError('SBML export conversion not imported successfully')
+
+    return export(gillespy_model, path=filename)
+
+
+def export_StochSS(gillespy_model, filename=None, return_stochss_model=False):
+    """
+    GillesPy model to StochSS converter
+
+    :param gillespy_model: GillesPy model to be converted to StochSS
+    :type gillespy_model: gillespy.Model
+
+    :param filename: Path to the StochSS file for conversion
+    :type filename: str
+    """
+    try:
+        from gillespy2.stochss.StochSSexport import export
+    except ImportError:
+        raise ImportError('StochSS export conversion not imported successfully')
+
+    return export(gillespy_model, path=filename, return_stochss_model=return_stochss_model)
+
+
+class Model(SortableObject, Jsonify):
     # reserved names for model species/parameter names, volume, and operators.
     reserved_names = ['vol']
     special_characters = ['[', ']', '+', '-', '*', '/', '.', '^']
@@ -88,6 +125,7 @@ class Model(SortableObject):
         self.listOfParameters = OrderedDict()
         self.listOfSpecies = OrderedDict()
         self.listOfReactions = OrderedDict()
+
         self.listOfAssignmentRules = OrderedDict()
         self.listOfRateRules = OrderedDict()
         self.listOfEvents = OrderedDict()
@@ -128,6 +166,11 @@ class Model(SortableObject):
         else:
             self.timespan(tspan)
 
+        # Change Jsonify settings to disable private variable
+        # JSON hashing and enable automatic translation table gen.
+        self._hash_private_vars = False
+        self._generate_translation_table = True
+
     def __str__(self):
         divider = '\n**********\n'
 
@@ -159,7 +202,39 @@ class Model(SortableObject):
             print_string += decorate('Rate Rules')
             for rr in sorted(self.listOfRateRules.values()):
                 print_string += '\n' + str(rr)
+        if len(self.listOfFunctionDefinitions):
+            print_string += decorate('Function Definitions')
+            for fd in sorted(self.listOfFunctionDefinitions.values()):
+                print_string += '\n' + str(fd)
+
         return print_string
+
+    def make_translation_table(self):
+        from collections import ChainMap
+
+        species = self.listOfSpecies.values()
+        reactions = self.listOfReactions.values()
+        parameters = self.listOfParameters.values()
+        assignments = self.listOfAssignmentRules.values()
+        rates = self.listOfRateRules.values()
+        events = self.listOfEvents.values()
+        functions = self.listOfFunctionDefinitions.values()
+
+        # A translation table is used to anonymize user-defined variable names and formulas into generic counterparts.
+        translation_table = dict(ChainMap(
+
+            # Build translation mappings for user-defined variable names.
+            dict({ self.name: "Model" }),
+            dict(zip((str(x.name) for x in species), (f"S_{x + 100}" for x in range(0, len(species))))),
+            dict(zip((str(x.name) for x in reactions), (f"R_{x + 100}" for x in range(0, len(reactions))))),
+            dict(zip((str(x.name) for x in parameters), (f"P_{x + 100}" for x in range(0, len(parameters))))),
+            dict(zip((str(x.name) for x in assignments), (f"AR_{x + 100}" for x in range(0, len(assignments))))),
+            dict(zip((str(x.name) for x in rates), (f"RR_{x + 100}" for x in range(0, len(rates))))),
+            dict(zip((str(x.name) for x in events), (f"E_{x + 100}" for x in range(0, len(events))))),
+            dict(zip((str(x.name) for x in functions), (f"F_{x + 100}" for x in range(0, len(functions))))),
+        ))
+
+        return TranslationTable(to_anon=translation_table)
 
     def serialize(self):
         """ Serializes the Model object to valid StochML. """
@@ -180,7 +255,7 @@ class Model(SortableObject):
         :return: the dictionary mapping user species names to their internal GillesPy notation.
         """
         species_name_mapping = OrderedDict([])
-        for i, name in enumerate(sorted(self.listOfSpecies.keys())):
+        for i, name in enumerate(self.listOfSpecies.keys()):
             species_name_mapping[name] = 'S[{}]'.format(i)
         return species_name_mapping
 
@@ -193,6 +268,16 @@ class Model(SortableObject):
             return ModelError('Name "{}" is unavailable. A species with that name exists.'.format(name))
         if name in self.listOfParameters:
             return ModelError('Name "{}" is unavailable. A parameter with that name exists.'.format(name))
+        if name in self.listOfReactions:
+            return ModelError('Name "{}" is unavailable. A reaction with that name exists.'.format(name))
+        if name in self.listOfEvents:
+            return ModelError('Name "{}" is unavailable. An event with that name exists.'.format(name))
+        if name in self.listOfRateRules:
+            return ModelError('Name "{}" is unavailable. A rate rule with that name exists.'.format(name))
+        if name in self.listOfAssignmentRules:
+            return ModelError('Name "{}" is unavailable. An assignment rule with that name exists.'.format(name))
+        if name in self.listOfFunctionDefinitions:
+            return ModelError('Name "{}" is unavailable. A function definition with that name exists.'.format(name))
         if name.isdigit():
             return ModelError('Name "{}" is unavailable. Names must not be numeric strings.'.format(name))
         for special_character in Model.special_characters:
@@ -276,7 +361,7 @@ class Model(SortableObject):
         """
         parameter_name_mapping = OrderedDict()
         parameter_name_mapping['vol'] = 'V'
-        for i, name in enumerate(sorted(self.listOfParameters.keys())):
+        for i, name in enumerate(self.listOfParameters.keys()):
             if name not in parameter_name_mapping:
                 parameter_name_mapping[name] = 'P{}'.format(i)
         return parameter_name_mapping
@@ -396,6 +481,9 @@ class Model(SortableObject):
                 self.add_reaction(r)
         else:
             try:
+                problem = self.problem_with_name(reactions.name)
+                if problem is not None:
+                    raise problem
                 reactions.verify()
                 self.validate_reactants_and_products(reactions)
                 if reactions.name is None or reactions.name == '':
@@ -435,6 +523,9 @@ class Model(SortableObject):
                 self.add_rate_rule(rr)
         else:
             try:
+                problem = self.problem_with_name(rate_rules.name)
+                if problem is not None:
+                    raise problem
                 if len(self.listOfAssignmentRules) != 0:
                     for i in self.listOfAssignmentRules.values():
                         if rate_rules.variable == i.variable:
@@ -476,6 +567,9 @@ class Model(SortableObject):
                 self.add_event(e)
         else:
             try:
+                problem = self.problem_with_name(event.name)
+                if problem is not None:
+                    raise problem
                 if event.trigger is None or not hasattr(event.trigger, 'expression'):
                     raise ModelError(
                         'An Event must contain a valid trigger.')
@@ -499,10 +593,13 @@ class Model(SortableObject):
                 self.add_function_definition(fd)
         else:
             try:
+                problem = self.problem_with_name(function_definitions.name)
+                if problem is not None:
+                    raise problem
                 self.listOfFunctionDefinitions[function_definitions.name] = function_definitions
             except Exception as e:
                 raise ParameterError(
-                    "Error using {} as a Function Definition. Reason given: ".format(function_definitions, e))
+                    "Error using {} as a Function Definition. Reason given: {}".format(function_definitions, e))
 
     def add_assignment_rule(self, assignment_rules):
         """
@@ -515,6 +612,9 @@ class Model(SortableObject):
                 self.add_assignment_rule(ar)
         else:
             try:
+                problem = self.problem_with_name(assignment_rules.name)
+                if problem is not None:
+                    raise problem
                 if len(self.listOfRateRules) != 0:
                     for i in self.listOfRateRules.values():
                         if assignment_rules.variable == i.variable:
@@ -533,21 +633,21 @@ class Model(SortableObject):
 
                 self.listOfAssignmentRules[assignment_rules.name] = assignment_rules
             except Exception as e:
-                raise ParameterError("Error using {} as a Assignment Rule. Reason given: ".format(assignment_rules, e))
+                raise ParameterError("Error using {} as a Assignment Rule. Reason given: {}".format(assignment_rules, e))
 
     def timespan(self, time_span):
         """
         Set the time span of simulation. StochKit does not support non-uniform
-        timespans.
+        timespans. 
 
         :param time_span: Evenly-spaced list of times at which to sample the species
-        populations during the simulation.
+        populations during the simulation. Best to use the form np.linspace(<start time>, <end time>, <number of time-points, inclusive>)
         :type time_span: numpy ndarray
         """
-
-        items = np.diff(time_span)
-        items = np.array([round(item, 10) for item in items])
-        isuniform = (len(set(items)) == 1)
+        
+        first_diff = time_span[1] - time_span[0]
+        other_diff = time_span[2:] - time_span[1:-1]
+        isuniform = np.isclose(other_diff, first_diff).all()
 
         if isuniform:
             self.tspan = time_span
@@ -716,13 +816,12 @@ class Model(SortableObject):
         return 'Element not found!'
 
 
-    def get_best_solver(self, precompile=True):
+    def get_best_solver(self):
         """
         Finds best solver for the users simulation. Currently, AssignmentRules, RateRules, FunctionDefinitions,
         Events, and Species with a dynamic, or continuous population must use the TauHybridSolver.
         :param precompile: If True, and the model contains no AssignmentRules, RateRules, FunctionDefinitions, Events,
-        or Species with a dynamic or continuous population, the get_best_solver will choose the VariableSSACSolver, else
-        it will choose SSACSolver
+        or Species with a dynamic or continuous population, it will choose SSACSolver
         :type precompile: bool
         :return: gillespy2.gillespySolver
         """
@@ -746,21 +845,58 @@ class Model(SortableObject):
             raise ModelError('TauHybridSolver is the only solver currently that supports '
                              'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
                              'Please install Numpy.')
-        from gillespy2.solvers.utilities.cpp_support_test import cpp_support
+        
+        from gillespy2.solvers.cpp.build.build_engine import BuildEngine
+        can_use_cpp = not len(BuildEngine.get_missing_dependencies())
 
-        if cpp_support is False and can_use_numpy and not hybrid_check:
+        if can_use_cpp is False and can_use_numpy and not hybrid_check:
             from gillespy2 import NumPySSASolver
             return NumPySSASolver
 
         else:
-            if precompile:
-                from gillespy2 import VariableSSACSolver
-                return VariableSSACSolver
+            from gillespy2 import SSACSolver
+            return SSACSolver
+
+    def get_best_solver_algo(self, algorithm):
+        """
+        If user has specified a particular algorithm, we return either the Python or C++ version of that algorithm
+        """
+        from gillespy2.solvers.numpy import can_use_numpy
+        from gillespy2.solvers.cpp.build.build_engine import BuildEngine
+        can_use_cpp = not len(BuildEngine.get_missing_dependencies())
+
+        if not can_use_cpp and can_use_numpy:
+            raise ModelError("Please install C++ or Numpy to use GillesPy2 solvers.")
+
+        if algorithm == 'Tau-Leaping':
+            if can_use_cpp:
+                from gillespy2 import TauLeapingCSolver
+                return TauLeapingCSolver
             else:
+                from gillespy2 import TauLeapingSolver
+                return TauLeapingSolver
+
+        elif algorithm == 'SSA':
+            if can_use_cpp:
                 from gillespy2 import SSACSolver
                 return SSACSolver
+            else:
+                from gillespy2 import NumPySSASolver
+                return NumPySSASolver
 
-    def run(self, solver=None, timeout=0, t=None, increment=None, show_labels=True, cpp_support=False, **solver_args):
+        elif algorithm == 'ODE':
+            if can_use_cpp:
+                from gillespy2 import ODECSolver
+                return ODECSolver
+            else:
+                from gillespy2 import ODESolver
+                return ODESolver
+        else:
+            raise ModelError("Invalid value for the argument 'algorithm' entered. "
+                             "Please enter 'SSA', 'ODE', or 'Tau-leaping'.")
+
+    def run(self, solver=None, timeout=0, t=None, increment=None, show_labels=True, cpp_support=False, algorithm=None,
+            **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -775,6 +911,7 @@ class Model(SortableObject):
 
         :param t: End time of simulation
         :type t: int
+
         :param solver_args: Solver-specific arguments to be passed to solver.run()
 
         :param cpp_support: INTERNAL USE ONLY, flag for whether or not a computer has the capability to compile a
@@ -784,6 +921,9 @@ class Model(SortableObject):
         :return  If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is
         True,returns a Results object that inherits UserList and contains one or more Trajectory objects that
         inherit UserDict. Results object supports graphing and csv export.
+
+        :param algorithm: Specify algorithm ('ODE', 'Tau-Leaping', or 'SSA') for GillesPy2 to automatically pick best solver using that algorithm.
+        :type algorithm: str
 
         To pause a simulation and retrieve data before the simulation, keyboard interrupt the simulation by pressing
         control+c or pressing stop on a jupyter notebook. To resume a simulation, pass your previously ran results
@@ -799,7 +939,10 @@ class Model(SortableObject):
             t = self.tspan[-1]
 
         if solver is None:
-            solver = self.get_best_solver()
+            if algorithm is not None:
+                solver = self.get_best_solver_algo(algorithm)
+            else:
+                solver = self.get_best_solver()
         if increment is None:
             increment = self.tspan[-1] - self.tspan[-2]
         try:
@@ -809,7 +952,7 @@ class Model(SortableObject):
             # This will throw an error and throw log. IF a user specifies cpp_support == True and don't have a compiler
             # They would bypass this log.warning and just recieve an error
             if cpp_support is False and not isinstance(solver, str):
-                if solver.name == 'SSACSolver' or solver.name == 'VariableSSACSolver':
+                if solver.name == 'SSACSolver':
                     from gillespy2.core import log
                     log.warning("Please install/configure 'g++' and 'make' on your"
                                 " system, to ensure that GillesPy2 C solvers will"
@@ -823,17 +966,6 @@ class Model(SortableObject):
 
         if hasattr(solver_results[0], 'shape'):
             return solver_results
-
-        if len(solver_results) > 0:
-            results_list = []
-            for i in range(0, len(solver_results)):
-                temp = Trajectory(data=solver_results[i], model=self, solver_name=solver.name, rc=rc)
-                results_list.append(temp)
-
-            results = Results(results_list)
-            if show_labels == False:
-                results = results.to_array()
-            return results
 
         if len(solver_results) > 0:
             results_list = []
@@ -1104,7 +1236,7 @@ class StochMLDocument():
                         reaction.marate = model.listOfParameters[
                             generated_rate_name]
 
-                    reaction.__create_mass_action()
+                    reaction.create_mass_action()
                 except Exception as e:
                     raise
             elif type == 'customized':
@@ -1198,7 +1330,7 @@ class StochMLDocument():
 
         for reactant, stoichiometry in R.reactants.items():
             srElement = eTree.Element('SpeciesReference')
-            srElement.set('id', str(reactant))
+            srElement.set('id', str(reactant.name))
             srElement.set('stoichiometry', str(stoichiometry))
             reactants.append(srElement)
 
@@ -1207,7 +1339,7 @@ class StochMLDocument():
         products = eTree.Element('Products')
         for product, stoichiometry in R.products.items():
             srElement = eTree.Element('SpeciesReference')
-            srElement.set('id', str(product))
+            srElement.set('id', str(product.name))
             srElement.set('stoichiometry', str(stoichiometry))
             products.append(srElement)
         e.append(products)

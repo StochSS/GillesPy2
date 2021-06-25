@@ -1,63 +1,91 @@
-#ifndef GILLESPY_MODEL
-#define GILLESPY_MODEL
+#pragma once
+
+#include <cmath>
 #include <memory>
 #include <string>
 #include <vector>
 #include <iostream>
-#include <cmath>
 
-namespace Gillespy{
+namespace Gillespy {
+	struct Species {
+		unsigned int id;
+		unsigned int initial_population;
 
-  //Represents info for a chemical reactant/product
-  struct Species{
-    unsigned int id; //useful for index id in arrays
-    std :: string name;
-    unsigned int initial_population;
-  };
-  
-  struct Reaction{
-    unsigned int id; //useful for propensity function id associated
-    std :: string name;
-    std :: unique_ptr<int[]> species_change; //list of changes to species with this reaction firing
-    std :: vector<unsigned int> affected_reactions; //list of which reactions have propensities that would change with this reaction firing 
-  };
-  
-  //Represents a model of reactions and species
-  struct Model{
-      void update_affected_reactions();
+		std::string name;
 
-    unsigned int number_species;
-    std :: unique_ptr<Species[]> species;
-    unsigned int number_reactions;
-    std :: unique_ptr<Reaction[]> reactions;
-    Model(std :: vector<std :: string> species_names, std :: vector<unsigned int> species_populations, std :: vector<std :: string> reaction_names);
-  };
-  
-  //Interface class to represent container for propensity functions
-  class IPropensityFunction{
-  public:
-    virtual double evaluate(unsigned int reaction_number, unsigned int* state) = 0;
-    virtual ~IPropensityFunction() {}; 
-  };
+		// Needed by TauLeapingCSolver to hash into a set.
+		bool operator < (const Species &other) const {
+			return id < other.id;
+		};
+	};
 
-  
-  //Represents simulation return data
-  struct Simulation{
-    Model* model;
-    ~Simulation();
+	struct Reaction {
+		unsigned int id;
+		std::string name;
 
-    double* timeline;
-    double end_time;
-    double current_time;
-    int random_seed;
-    unsigned int number_timesteps;
-    unsigned int number_trajectories;
-    unsigned int* trajectories_1D;
-    unsigned int*** trajectories;
-    IPropensityFunction *propensity_function;
-    Simulation(Model* model, unsigned int number_trajectories, unsigned int number_timesteps, double end_time, IPropensityFunction* propensity_function, int random_seed, double current_time);
-    friend std :: ostream& operator<<(std :: ostream& os, const Simulation& simulation);
-    void output_results_buffer(std :: ostream& os);
-  };
+		// List of species that will change when this reaction fires.
+		std::vector<unsigned int> affected_reactions;
+
+		// List of reactions who's propensities will change when this reaction fires.
+		std::unique_ptr<int[]> species_change;
+	};
+
+	struct Model {
+		unsigned int number_species;
+		unsigned int number_reactions;
+
+		std::unique_ptr<Species[]> species;
+		std::unique_ptr<Reaction[]> reactions;
+
+		void update_affected_reactions();
+
+		Model(
+			std::vector<std::string> species_names,
+			std::vector<unsigned int> species_populations,
+			std::vector<std::string> reaction_names
+		);
+	};
+
+	class IPropensityFunction {
+	public:
+		virtual double evaluate(unsigned int reaction_number, unsigned int *state) = 0;
+
+		virtual double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S) = 0;
+		virtual double ODEEvaluate(int reaction_number, const std::vector<double> &S) = 0;
+
+		virtual ~IPropensityFunction() {};
+	};
+
+	template <typename PType>
+	struct Simulation {
+		int random_seed;
+
+		unsigned int number_timesteps;
+		unsigned int number_trajectories;
+
+		double current_time;
+		double end_time;
+		double *timeline;
+
+		PType *trajectories_1D;
+		PType ***trajectories;
+
+		Model *model;
+
+		IPropensityFunction *propensity_function;
+
+		template <class T> friend std::ostream &operator << (std::ostream &os, const Simulation<T> &simulation);
+
+		void output_results_buffer(std::ostream &os);
+		~Simulation();
+	};
+
+	template <typename TNum>
+	void init_simulation(Model *model, Simulation<TNum> &simulation);
+
+	extern template struct Simulation<double>;
+	extern template void init_simulation<double>(Model *model, Simulation<double> &simulation);
+
+	extern template struct Simulation<unsigned int>;
+	extern template void init_simulation<unsigned int>(Model *model, Simulation<unsigned int> &simulation);
 }
-#endif

@@ -1,6 +1,7 @@
 import warnings
 from datetime import datetime
 from gillespy2.core.gillespyError import *
+from gillespy2.core.jsonify import Jsonify
 from collections import UserDict, UserList
 
 # List of 50 hex color values used for plotting graphs
@@ -80,7 +81,7 @@ def _plotplotly_iterate(trajectory, show_labels=True, trace_list=None, line_dict
 
     return trace_list
 
-class Trajectory(UserDict):
+class Trajectory(UserDict, Jsonify):
     """ Trajectory Dict created by a gillespy2 solver containing single trajectory, extends the UserDict object.
 
     :param data: A dictionary of trajectory values created by a solver
@@ -116,7 +117,7 @@ class Trajectory(UserDict):
         raise KeyError(key)
 
 
-class Results(UserList):
+class Results(UserList, Jsonify):
     """
     List of Trajectory objects created by a gillespy2 solver, extends the UserList object.
 
@@ -162,6 +163,12 @@ class Results(UserList):
         combined_data = self.data + other.data
         return Results(data=combined_data)
 
+    def __radd__(self, other):
+        if other == 0:
+            return self
+        else:
+            return self.__add__(other)
+
     def _validate_model(self, reference=None):
         is_valid = True
         if reference is not None:
@@ -204,9 +211,9 @@ class Results(UserList):
         results = []
         size1 = len(self.data[0]['time'])
         size2 = len(self.data[0])
-        newArray = np.zeros((size1, size2))
 
         for trajectory in range(0,len(self.data)):
+            newArray = np.zeros((size1, size2))
             for i, key in enumerate(self.data[trajectory]):
                 newArray[:, i] = self.data[trajectory][key]
             results.append(newArray)
@@ -255,7 +262,7 @@ class Results(UserList):
                             this_line.append(trajectory[species][n])
                         csv_writer.writerow(this_line)  # write one line of the CSV file
 
-    def plot(self, index=None, xaxis_label="Time ", xscale='linear', yscale='linear', yaxis_label="Species Population",
+    def plot(self, index=None, xaxis_label="Time", xscale='linear', yscale='linear', yaxis_label="Value",
              style="default", title=None, show_title=False, show_legend=True, multiple_graphs=False,
              included_species_list=[], save_png=False, figsize=(18, 10)):
         """
@@ -339,7 +346,7 @@ class Results(UserList):
             elif save_png:
                 plt.savefig(title)
 
-    def plotplotly(self, index=None, xaxis_label="Time ", yaxis_label="Species Population", title=None,
+    def plotplotly(self, index=None, xaxis_label="Time", yaxis_label="Value", title=None,
                    show_title=False, show_legend=True, multiple_graphs=False, included_species_list=[],
                    return_plotly_figure=False,  **layout_args):
         """ Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.
@@ -403,9 +410,9 @@ class Results(UserList):
 
         if multiple_graphs:
 
-            from plotly import tools
+            from plotly import subplots
 
-            fig = tools.make_subplots(print_grid=False, rows=int(number_of_trajectories/2) +
+            fig = subplots.make_subplots(print_grid=False, rows=int(number_of_trajectories/2) +
                                                              int(number_of_trajectories % 2), cols=2)
 
             for i, trajectory in enumerate(trajectory_list):
@@ -535,11 +542,12 @@ class Results(UserList):
         output_results = Results(data=[output_trajectory])  # package output_trajectory in a Results object
         return output_results
 
-    def plotplotly_std_dev_range(self, xaxis_label="Time ", yaxis_label="Species Population", title=None,
+
+    def plotplotly_mean_stdev(self, xaxis_label="Time", yaxis_label="Value", title=None,
                                  show_title=False, show_legend=True, included_species_list=[],
                                  return_plotly_figure=False, ddof=0, **layout_args):
         """
-        Plot a plotly graph depicting standard deviation and the mean graph of a results object
+        Plot a plotly graph depicting the mean and standard deviation of a results object
 
         :param xaxis_label: The label for the x-axis
         :type xaxis_label: str
@@ -580,10 +588,10 @@ class Results(UserList):
         init_notebook_mode(connected=True)
 
         if not show_title:
-            title = 'Standard Deviation Range'
+            title = 'Mean and Standard Deviation'
         else:
             if title is None:
-                title = (self._validate_title(show_title) + " - Standard Deviation Range")
+                title = (self._validate_title(show_title) + " - Mean and Standard Deviation")
 
         trace_list = []
         for species in average_trajectory:
@@ -652,12 +660,13 @@ class Results(UserList):
             return fig
         else:
             iplot(fig)
+    
 
-    def plot_std_dev_range(self, xscale='linear', yscale='linear', xaxis_label="Time ", yaxis_label="Species Population"
+    def plot_mean_stdev(self, xscale='linear', yscale='linear', xaxis_label="Time", yaxis_label="Value"
                            , title=None, show_title=False, style="default", show_legend=True, included_species_list=[],
                            ddof=0, save_png=False, figsize=(18, 10)):
         """
-            Plot a matplotlib graph depicting standard deviation and the mean graph of a results object
+            Plot a matplotlib graph depicting mean and standard deviation of a results object
 
         :param xaxis_label: The label for the x-axis
         :type xaxis_label: str
@@ -712,10 +721,10 @@ class Results(UserList):
             plt.plot(average_result['time'], average_result[species], label=species)
 
         if not show_title:
-            title = 'Standard Deviation Range'
+            title = 'Mean and Standard Deviation'
         else:
             if title is None:
-                title = (self._validate_title(show_title) + " - Standard Deviation Range")
+                title = (self._validate_title(show_title) + " - Mean and Standard Deviation")
 
         plt.title(title, fontsize=18)
         plt.xlabel(xaxis_label)
@@ -732,3 +741,7 @@ class Results(UserList):
 
         elif save_png:
             plt.savefig(title)
+
+
+    plotplotly_std_dev_range =  plotplotly_mean_stdev  # for backwards compatability, we need to keep the old name around
+    plot_std_dev_range = plot_mean_stdev   # for backwards compatability, we need to keep the old name around

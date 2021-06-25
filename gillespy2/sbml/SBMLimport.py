@@ -46,7 +46,7 @@ def __read_sbml_model(filename):
 def __get_math(math):
     math_str = libsbml.formulaToL3String(math)
     replacements = {
-        'ln': 'log',
+        '\bln\b': 'log',
         '^': '**',
         '&&': 'and',
         '||': 'or'
@@ -120,9 +120,12 @@ def __get_compartments(sbml_model, gillespy_model):
         name = compartment.getId()
         value = compartment.getSize()
 
-        gillespy_parameter = gillespy2.Parameter(name=name, expression=value)
-        init_state[name] = value
-        gillespy_model.add_parameter([gillespy_parameter])
+        if name == "vol":
+            gillespy_model.volume = value
+        else:
+            gillespy_parameter = gillespy2.Parameter(name=name, expression=value)
+            init_state[name] = value
+            gillespy_model.add_parameter([gillespy_parameter])
 
     '''
     for i in range(sbml_model.getNumCompartments()):
@@ -208,7 +211,12 @@ def __get_reactions(sbml_model, gillespy_model, errors):
 def __get_rules(sbml_model, gillespy_model, errors):
     for i in range(sbml_model.getNumRules()):
         rule = sbml_model.getRule(i)
-        rule_name = rule.getId()
+
+        # If the SBML object does not contain an ID attribute create a unique rule_name from the variable name.
+        rule_name = rule.getIdAttribute()
+        if rule_name == "":
+            rule_name = f"ar_{rule.getId()}"
+
         rule_variable = rule.getVariable()
         rule_string = __get_math(rule.getMath())
         if rule_variable in gillespy_model.listOfParameters:

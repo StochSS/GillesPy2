@@ -1,11 +1,14 @@
+from gillespy2.core.species import Species
+from json.encoder import JSONEncoder
 from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.gillespyError import *
+from gillespy2.core.jsonify import Jsonify
 import numpy as np
 import uuid
 import ast
 
 
-class Reaction(SortableObject):
+class Reaction(SortableObject, Jsonify):
     """
     Models a single reaction. A reaction has its own dicts of species
     (reactants and products) and parameters. The reaction's propensity
@@ -90,8 +93,12 @@ class Reaction(SortableObject):
             if rate is None:
                 self.marate = None
             else:
-                self.marate = rate
-                self.__create_mass_action()
+                rtype = type(rate).__name__
+                if rtype == 'instance':
+                    self.marate = rate.name
+                else:
+                    self.marate = rate
+                self.create_mass_action()
         else:
             self.type = "customized"
 
@@ -125,6 +132,7 @@ class Reaction(SortableObject):
                             return nameToConstant
                         return node
 
+                self.verify()
                 expr = self.propensity_function
                 expr = expr.replace('^', '**')
                 expr = ast.parse(expr, mode='eval')
@@ -193,19 +201,26 @@ class Reaction(SortableObject):
             self.propensity_function = __customPropParser()
 
     def __str__(self):
+        self.verify()
         print_string = self.name
         if len(self.reactants):
             print_string += '\n\tReactants'
             for r, stoich in self.reactants.items():
                 try:
-                    print_string += '\n\t\t' + r.name + ': ' + str(stoich)
+                    if isinstance(r, str):
+                        print_string += '\n\t\t' + r + ': ' + str(stoich)
+                    else:
+                        print_string += '\n\t\t' + r.name + ': ' + str(stoich)
                 except Exception as e:
                     print_string += '\n\t\t' + r + ': ' + 'INVALID - ' + str(e)
         if len(self.products):
             print_string += '\n\tProducts'
             for p, stoich in self.products.items():
                 try:
-                    print_string += '\n\t\t' + p.name + ': ' + str(stoich)
+                    if isinstance(p, str):
+                        print_string += '\n\t\t' + p + ': ' + str(stoich)
+                    else:
+                        print_string += '\n\t\t' + p.name + ': ' + str(stoich)
                 except Exception as e:
                     print_string += '\n\t\t' + p + ': ' + 'INVALID - ' + str(e)
         print_string += '\n\tPropensity Function: ' + self.propensity_function
@@ -216,10 +231,13 @@ class Reaction(SortableObject):
         Does nothing on sucesss, raises and error on failure."""
         if self.marate is None and self.propensity_function is None:
             raise ReactionError("You must specify either a mass-action rate or a propensity function")
+        if self.marate is None and self.propensity_function is not None:
+            if self.propensity_function.strip() == '':
+                raise ReactionError("Propensity Function cannot be empty string.")
         if len(self.reactants) == 0 and len(self.products) == 0:
             raise ReactionError("You must have a non-zero number of reactants or products.")
 
-    def __create_mass_action(self):
+    def create_mass_action(self):
         """
         Initializes the mass action propensity function given
         self.reactants and a single parameter value.
@@ -238,8 +256,12 @@ class Reaction(SortableObject):
 
         # Case EmptySet -> Y
 
-        propensity_function = self.marate.name
-        ode_propensity_function = self.marate.name
+        if isinstance(self.marate, str):
+            propensity_function = self.marate
+            ode_propensity_function = self.marate
+        else:
+            propensity_function = self.marate.name
+            ode_propensity_function = self.marate.name
 
         # There are only three ways to get 'total_stoch==2':
         for r in sorted(self.reactants):
@@ -314,12 +336,35 @@ class Reaction(SortableObject):
         """
         self.annotation = annotation
 
-    def sanitized_propensity_function(self, species_mappings, parameter_mappings):
+    def sanitized_propensity_function(self, species_mappings, parameter_mappings, ode=False):
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
                        reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
-        sanitized_propensity = self.propensity_function
+        sanitized_propensity = self.ode_propensity_function if ode else self.propensity_function
         for id, name in enumerate(names):
             sanitized_propensity = sanitized_propensity.replace(name, "{" + str(id) + "}")
         return sanitized_propensity.format(*replacements)
+
+    def to_dict(self):
+        temp = vars(self).copy()
+
+        # This to_dict overload is needed because, while Species is hashable (thanks to its inheretence),
+        # objects are not valid key values in the JSON spec. To fix this, we set the Species equal to some key 'key', 
+        # and it's value equal to some key 'value'.
+
+        temp["products"] = list({ "key": k, "value": v} for k, v in self.products.items() )
+        temp["reactants"] = list( {"key": k, "value": v} for k, v in self.reactants.items() )
+
+        return temp
+
+    @classmethod
+    def from_json(cls, json_object):
+        new = Reaction.__new__(Reaction)
+        new.__dict__ = json_object
+
+        # Same as in to_dict(), but we need to reverse it back into its original representation.
+        new.products = { x["key"]: x["value"] for x in json_object["products"] }
+        new.reactants = { x["key"]: x["value"] for x in json_object["reactants"] }
+
+        return new

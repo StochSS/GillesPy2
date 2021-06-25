@@ -1,8 +1,4 @@
-include gillespy2/solvers/cpp/c_base/*
-include gillespy2/solvers/cpp/c_base/*.cpp
-include gillespy2/solvers/cpp/c_base/*.h
-include gillespy2/solvers/cpp/c_base/MakeFile
-include gillespy2/solvers/cython/*.pyx
+recursive-include gillespy2/solvers/cpp/c_base/ *
 include requirements.txt
 include LICENSE
 include COPYRIGHT
