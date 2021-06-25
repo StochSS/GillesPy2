@@ -36,7 +36,7 @@ SUNOBJ_PATHS := $(SUNOBJ:%.o=$(SUNDIALS_OBJ)/%.o)
 TAU_DEPENDENCIES = tau.o
 TAU_DEPS_PATHS := $(TAU_DEPENDENCIES:%.o=$(OBJ_DIR)/%.o)
 
-TAU_HYBRID_DEPENDENCIES = HybridModel.o rhs.o integrator.o hybrid_template.o
+TAU_HYBRID_DEPENDENCIES = HybridModel.o rhs.o integrator.o hybrid_template.o hybridutils.o
 TAU_HYBRID_DEPS_PATHS := $(TAU_HYBRID_DEPENDENCIES:%.o=$(OBJ_DIR)/%.o)
 
 ###################################

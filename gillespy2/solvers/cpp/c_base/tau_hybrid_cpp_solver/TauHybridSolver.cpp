@@ -11,7 +11,7 @@
 #include "HybridModel.h"
 #include "integrator.h"
 #include "hybrid_template.h"
-// #include "statistics.h"
+#include "hybridutils.h"
 #include "tau.h"
 using namespace Gillespy;
 
