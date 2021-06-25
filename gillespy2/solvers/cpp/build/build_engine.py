@@ -102,13 +102,6 @@ class BuildEngine():
 
         return self.output_dir
 
-    def prepare_options(self, custom_definitions: "dict[str, str]"):
-        """
-        """
-        template_dir = self.output_dir.joinpath("template")
-        template_opts_path = template_dir.joinpath(self.template_options_name)
-        template_gen.write_definitions(str(template_opts_path), custom_definitions)
-
     def build_cache(self, cache_dir: str, force_rebuild: bool = False):
         """
         Build object dependencies and cache into directory for later use.

@@ -10,10 +10,6 @@ class TauHybridCSolver(GillesPySolver, CSolver):
     target = "hybrid"
 
     def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable=False):
-        # if model is None:
-        #     options = None
-        # else:
-        #     options = TauHybridCSolver.__create_template_options(list(model.listOfSpecies.values()))
         options = None if model is None else TauHybridCSolver.__create_template_options(list(model.listOfSpecies.values()))
         super().__init__(model, output_directory, delete_directory, resume, variable, options)
 
@@ -21,6 +17,11 @@ class TauHybridCSolver(GillesPySolver, CSolver):
     def __create_template_options(cls, species: "list[gillespy2.Species]"):
         """
         Populate the given list of species modes into a set of template macro definitions.
+        Generated options are specific to the Tau Hybrid solver,
+          and get passed as custom definitons to the build engine.
+
+        :param species: Ordered list of GillesPy2 species to generate options for.
+        :return: Dictionary containing key-value pairs representing macro definitions.
         """
         species_mode_map = {
             "continuous": "CONTINUOUS_MODE",
