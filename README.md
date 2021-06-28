@@ -146,7 +146,7 @@ With a few additional Python matplotlib commands to create figure labels and suc
 Getting help
 ------------
 
-GillesPy2's [online documentation](https://gillespy2.readthedocs.io/en/latest/) provides more details about using the software.  If you find any problem with GillesPy2 or the documentation, please report it using the [GitHub issue tracker](https://github.com/StochSS/GillesPy2/issues) for this repository.  You can also contact Dr. [Brian Drawert](http://www.cs.unca.edu/~drawert) directly with questions and suggestions.
+GillesPy2's [online documentation](https://stochss.github.io/GillesPy2) provides more details about using the software.  If you find any problem with GillesPy2 or the documentation, please report it using the [GitHub issue tracker](https://github.com/StochSS/GillesPy2/issues) for this repository.  You can also contact Dr. [Brian Drawert](http://www.cs.unca.edu/~drawert) directly with questions and suggestions.
 
 Contributing
 ------------
