@@ -19,13 +19,17 @@ GillesPy2 is a Python 3 package for stochastic simulation of biochemical systems
 Table of contents
 -----------------
 
-* [Installation](#installation)
-* [Usage](#usage)
-* [Getting help](#getting-help)
-* [Contributing](#contributing)
-* [License](#license)
-* [Authors and history](#authors-and-history)
-* [Acknowledgments](#acknowledgments)
+- [Table of contents](#table-of-contents)
+- [Installation](#installation)
+  - [_Using PyPI_](#using-pypi)
+  - [_Using the source code repository_](#using-the-source-code-repository)
+- [Usage](#usage)
+  - [_Simple example to illustrate the use of GillesPy2_](#simple-example-to-illustrate-the-use-of-gillespy2)
+- [Getting help](#getting-help)
+- [Contributing](#contributing)
+- [License](#license)
+- [Authors and history](#authors-and-history)
+- [Acknowledgments](#acknowledgments)
 
 Installation
 ------------
@@ -142,12 +146,12 @@ With a few additional Python matplotlib commands to create figure labels and suc
 Getting help
 ------------
 
-GillesPy2's [online documentation](https://stochss.github.io/GillesPy2/) provides more details about using the software.  If you find any problem with GillesPy2 or the documentation, please report it using the [GitHub issue tracker](https://github.com/StochSS/GillesPy2/issues) for this repository.  You can also contact Dr. [Brian Drawert](http://www.cs.unca.edu/~drawert) directly with questions and suggestions.
+GillesPy2's [online documentation](https://gillespy2.readthedocs.io/en/latest/) provides more details about using the software.  If you find any problem with GillesPy2 or the documentation, please report it using the [GitHub issue tracker](https://github.com/StochSS/GillesPy2/issues) for this repository.  You can also contact Dr. [Brian Drawert](http://www.cs.unca.edu/~drawert) directly with questions and suggestions.
 
 Contributing
 ------------
 
-We would be happy to receive your help and participation with enhancing GillesPy2!  The [UML class diagram](UML_CLASS_DIAGRAM.md) and [Pynsource](https://pynsource.com/) [UML class model](docs/getting_started/basic_usage/gillespy2-UML-class-model.pyns) may help you familiarize yourself with the existing code. Please follow the guidelines described in [CONTRIBUTING.md](https://github.com/StochSS/GillesPy2/tree/main/CONTRIBUTING.md).
+We would be happy to receive your help and participation with enhancing GillesPy2!  The [UML class diagram](UML_CLASS_DIAGRAM.md) and [Pynsource](https://pynsource.com/) [UML class model](gillespy2-UML-class-model.pyns) may help you familiarize yourself with the existing code. Please follow the guidelines described in [CONTRIBUTING.md](https://github.com/StochSS/GillesPy2/tree/main/CONTRIBUTING.md).
 
 New developments happen primarily in the [`develop`](https://github.com/StochSS/GillesPy2/commits/develop) branch.  New releases are put in the `main` branch.
 
