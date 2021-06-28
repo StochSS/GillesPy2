@@ -1,0 +1,55 @@
+@font-face {
+  font-family: 'fira-code';
+  src: url('../fonts/FiraCode-Retina.ttf');
+}
+
+@font-face {
+  font-family: 'roboto';
+  src: url('../fonts/Roboto-Regular.ttf');
+}
+
+body {
+  font-family: 'roboto';
+}
+
+.sig {
+  font-family: 'fira-code' !important;
+}
+
+p.logo {
+  padding-bottom: 2em !important;
+}
+
+h1 {
+  font-family: 'fira-code' !important;
+  font-size: 220% !important;
+}
+
+h1.logo {
+  display: none
+}
+
+h2 {
+  font-family: 'roboto' !important;
+  font-size: 150% !important;
+}
+
+h3 {
+  font-family: 'roboto' !important;
+}
+
+/* Egregious hack to get rid of "Navigation" text in sidebar.
+   This should be done by changing the template, but figuring
+   out how to create the right template would take me 100x longer.
+*/
+div.sphinxsidebarwrapper > h3 {
+  display: none;
+}
+
+div.sphinxsidebarwrapper p.caption {
+  font-size: 175%;
+}
+
+#searchbox {
+  padding-top: 2em;
+}

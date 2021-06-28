@@ -1,0 +1,281 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>gillespy2.solvers.utilities package &#8212; GillesPy2 1.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/gillespy2_alabaster_customizations.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="gillespy2.stochss package" href="gillespy2.stochss.html" />
+    <link rel="prev" title="gillespy2.solvers.stochkit package" href="gillespy2.solvers.stochkit.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../_static/img/gillespy2-logo.svg" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/img/gillespy2-logo.svg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=GillesPy2&repo=GillesPy2&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/installation/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/basic_usage/basic_usage.html">Basic usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/tut_toggle_switch/tut_toggle_switch.html">Tutorial: ODE vs. SSA</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="gillespy2.html">gillespy2 package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="gillespy2.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html">gillespy2.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.sbml.html">gillespy2.sbml package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="gillespy2.solvers.html">gillespy2.solvers package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.stochss.html">gillespy2.stochss package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.html#module-gillespy2">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="gillespy2.html">gillespy2 package</a><ul>
+  <li><a href="gillespy2.solvers.html">gillespy2.solvers package</a><ul>
+      <li>Previous: <a href="gillespy2.solvers.stochkit.html" title="previous chapter">gillespy2.solvers.stochkit package</a></li>
+      <li>Next: <a href="gillespy2.stochss.html" title="next chapter">gillespy2.stochss package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="gillespy2-solvers-utilities-package">
+<h1>gillespy2.solvers.utilities package<a class="headerlink" href="#gillespy2-solvers-utilities-package" title="Permalink to this headline">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-gillespy2.solvers.utilities.Tau">
+<span id="gillespy2-solvers-utilities-tau-module"></span><h2>gillespy2.solvers.utilities.Tau module<a class="headerlink" href="#module-gillespy2.solvers.utilities.Tau" title="Permalink to this headline">¶</a></h2>
+<p>This Python module contains the initialization and selection methods for the Tau-Leaping method described in Cao, Y.;
+Gillespie, D. T.; Petzold, L. R. (2006). “Efficient step size selection for the tau-leaping simulation method” (PDF).
+The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151.
+This module is for use in the basic_tau_leaping_solver and basic_tau_hybrid solver only.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="gillespy2.solvers.utilities.Tau.initialize">
+<span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.utilities.Tau.</span></span><span class="sig-name descname"><span class="pre">initialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/utilities/Tau.html#initialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.utilities.Tau.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method initailizes the state for tau-leaping selections to be made.
+Based on Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006). “Efficient step size selection for the tau-leaping
+simulation method” (PDF).
+The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gillespy2.solvers.utilities.Tau.select">
+<span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.utilities.Tau.</span></span><span class="sig-name descname"><span class="pre">select</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">tau_args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/utilities/Tau.html#select"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.utilities.Tau.select" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tau Selection method based on Cao, Y.; Gillespie, D. T.; Petzold, L. R. (2006).
+“Efficient step size selection for the tau-leaping simulation method” (PDF).
+The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151</p>
+</dd></dl>
+
+</section>
+<section id="module-gillespy2.solvers.utilities.cpp_support_test">
+<span id="gillespy2-solvers-utilities-cpp-support-test-module"></span><h2>gillespy2.solvers.utilities.cpp_support_test module<a class="headerlink" href="#module-gillespy2.solvers.utilities.cpp_support_test" title="Permalink to this headline">¶</a></h2>
+<p>This file contains a function and variable for testing a machines support of GillesPy2 C++ solvers.
+Used in model.py</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="gillespy2.solvers.utilities.cpp_support_test.check_cpp_support">
+<span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.utilities.cpp_support_test.</span></span><span class="sig-name descname"><span class="pre">check_cpp_support</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/utilities/cpp_support_test.html#check_cpp_support"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.utilities.cpp_support_test.check_cpp_support" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-gillespy2.solvers.utilities.solverutils">
+<span id="gillespy2-solvers-utilities-solverutils-module"></span><h2>gillespy2.solvers.utilities.solverutils module<a class="headerlink" href="#module-gillespy2.solvers.utilities.solverutils" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="gillespy2.solvers.utilities.solverutils.change_param_values">
+<span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.utilities.solverutils.</span></span><span class="sig-name descname"><span class="pre">change_param_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">listOfParameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volume</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/utilities/solverutils.html#change_param_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.utilities.solverutils.change_param_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gillespy2.solvers.utilities.solverutils.dependency_grapher">
+<span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.utilities.solverutils.</span></span><span class="sig-name descname"><span class="pre">dependency_grapher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reactions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/utilities/solverutils.html#dependency_grapher"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.utilities.solverutils.dependency_grapher" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns a dependency graph for a models reactions in the form of a
+dictionary containing {species name: {‘dependencies’}:[list of reaction names]}.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – Model to used to create a reaction dependency graph</p></li>
+<li><p><strong>reactions</strong> – list[model.listOfReactions]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dependency graph dictionary</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gillespy2.solvers.utilities.solverutils.numpy_initialization">
+<span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.utilities.solverutils.</span></span><span class="sig-name descname"><span class="pre">numpy_initialization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/utilities/solverutils.html#numpy_initialization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.utilities.solverutils.numpy_initialization" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gillespy2.solvers.utilities.solverutils.numpy_resume">
+<span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.utilities.solverutils.</span></span><span class="sig-name descname"><span class="pre">numpy_resume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeStopped</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/utilities/solverutils.html#numpy_resume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.utilities.solverutils.numpy_resume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function for when resuming a simulation in a numpy based solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>timeStopped</strong> – The time in which the simulation was stopped.</p></li>
+<li><p><strong>simulation_data</strong> – The current models simulation data, after being parsed in the numpy solver of choice.</p></li>
+<li><p><strong>resume</strong> (<a class="reference internal" href="gillespy2.core.html#gillespy2.core.Results" title="gillespy2.core.Results"><em>gillespy2.core.Results</em></a>) – The previous simulations data, that is being resumed</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Combined simulation data, the old resume data and the current simulation data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gillespy2.solvers.utilities.solverutils.numpy_trajectory_base_initialization">
+<span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.utilities.solverutils.</span></span><span class="sig-name descname"><span class="pre">numpy_trajectory_base_initialization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_trajectories</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/utilities/solverutils.html#numpy_trajectory_base_initialization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.utilities.solverutils.numpy_trajectory_base_initialization" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gillespy2.solvers.utilities.solverutils.species_parse">
+<span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.utilities.solverutils.</span></span><span class="sig-name descname"><span class="pre">species_parse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_prop_fun</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/utilities/solverutils.html#species_parse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.utilities.solverutils.species_parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function uses Pythons AST module to parse custom propensity function, looking for Species in a model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – Model to be checked for species</p></li>
+<li><p><strong>custom_prop_fun</strong> – The custom propensity function to be parsed</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of species objects that are found in a custom propensity function</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gillespy2.solvers.utilities.solverutils.update_species_init_values">
+<span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.utilities.solverutils.</span></span><span class="sig-name descname"><span class="pre">update_species_init_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">listOfSpecies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/utilities/solverutils.html#update_species_init_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.utilities.solverutils.update_species_init_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-gillespy2.solvers.utilities">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-gillespy2.solvers.utilities" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+
+
+          </div>
+              <div class="related bottom">
+                &nbsp;
+  <nav id="rellinks">
+    <ul>
+        <li>
+          &larr;
+          <a href="gillespy2.solvers.stochkit.html" title="Previous document">gillespy2.solvers.stochkit package</a>
+        </li>
+        <li>
+          <a href="gillespy2.stochss.html" title="Next document">gillespy2.stochss package</a>
+          &rarr;
+        </li>
+    </ul>
+  </nav>
+              </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;Copyright (C) 2017-2021.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/classes/gillespy2.solvers.utilities.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/GillesPy2/GillesPy2" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

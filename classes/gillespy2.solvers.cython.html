@@ -1,0 +1,174 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>gillespy2.solvers.cython package &#8212; GillesPy2 1.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/gillespy2_alabaster_customizations.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="gillespy2.solvers.numpy package" href="gillespy2.solvers.numpy.html" />
+    <link rel="prev" title="gillespy2.solvers.cpp.build package" href="gillespy2.solvers.cpp.build.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../_static/img/gillespy2-logo.svg" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/img/gillespy2-logo.svg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=GillesPy2&repo=GillesPy2&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/installation/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/basic_usage/basic_usage.html">Basic usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/tut_toggle_switch/tut_toggle_switch.html">Tutorial: ODE vs. SSA</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="gillespy2.html">gillespy2 package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="gillespy2.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html">gillespy2.core package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.sbml.html">gillespy2.sbml package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="gillespy2.solvers.html">gillespy2.solvers package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.stochss.html">gillespy2.stochss package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.html#module-gillespy2">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="gillespy2.html">gillespy2 package</a><ul>
+  <li><a href="gillespy2.solvers.html">gillespy2.solvers package</a><ul>
+      <li>Previous: <a href="gillespy2.solvers.cpp.build.html" title="previous chapter">gillespy2.solvers.cpp.build package</a></li>
+      <li>Next: <a href="gillespy2.solvers.numpy.html" title="next chapter">gillespy2.solvers.numpy package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="gillespy2-solvers-cython-package">
+<h1>gillespy2.solvers.cython package<a class="headerlink" href="#gillespy2-solvers-cython-package" title="Permalink to this headline">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="gillespy2-solvers-cython-cython-ssa-solver-module">
+<h2>gillespy2.solvers.cython.cython_ssa_solver module<a class="headerlink" href="#gillespy2-solvers-cython-cython-ssa-solver-module" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-gillespy2.solvers.cython">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-gillespy2.solvers.cython" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+
+
+          </div>
+              <div class="related bottom">
+                &nbsp;
+  <nav id="rellinks">
+    <ul>
+        <li>
+          &larr;
+          <a href="gillespy2.solvers.cpp.build.html" title="Previous document">gillespy2.solvers.cpp.build package</a>
+        </li>
+        <li>
+          <a href="gillespy2.solvers.numpy.html" title="Next document">gillespy2.solvers.numpy package</a>
+          &rarr;
+        </li>
+    </ul>
+  </nav>
+              </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;Copyright (C) 2017-2021.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/classes/gillespy2.solvers.cython.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/GillesPy2/GillesPy2" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>
