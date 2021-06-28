@@ -3,6 +3,7 @@ import tempfile
 import os
 from example_models import Example
 from gillespy2.core.model import import_SBML, export_SBML
+from gillespy2.core import gillespyError
 from gillespy2 import ODESolver
 
 
@@ -32,6 +33,21 @@ class TestSBML(unittest.TestCase):
             error_id = document.getError(0).getErrorId()
             file_errors = [libsbml.XMLFileUnreadable, libsbml.XMLFileOperationError]
             assert error_id not in file_errors
+
+    def test_sbml_model_without_propensities(self):
+        try:
+            import libsbml
+        except ImportError:
+            return
+
+        model_path = os.path.join(os.path.dirname(__file__), "assets", "model_without_propensities.xml")
+
+        try:
+            import_SBML(model_path)
+        except gillespyError.InvalidModelError:
+            return
+
+        self.fail()
 
 
 if __name__ == '__main__':
