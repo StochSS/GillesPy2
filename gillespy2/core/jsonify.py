@@ -22,6 +22,8 @@ class Jsonify:
         Convert self into a json string.
 
         :param encode_private: If True all private (prefixed of '_') will be encoded. None if False.
+        :type encode_private: bool
+
         :returns: The JSON representation of self.
         """
 
@@ -35,6 +37,9 @@ class Jsonify:
         return a new instance of the type.
 
         :param json_str: A json str to be converted into a new type instance.
+        :type json_str: str
+
+        :returns: A decoded object.
         """
 
         # If the json_str is actually a dict, it means we've decoded as much as possible.
@@ -62,7 +67,10 @@ class Jsonify:
         Convert some dict into a new instance of a python type.
         This function will return a __new__ instance of the type.
 
-        :param dict: The dictionary to apply onto the new instance.
+        :param src_dict: The dictionary to apply onto the new instance.
+        :type src_dict: dict
+
+        :returns: A new object with its backing __dict__ set to a copy of src_dict.
         """
 
         new = cls.__new__(cls)
@@ -117,6 +125,14 @@ class Jsonify:
         """
         Get the hash of the json representation of self.
 
+        :param ignore_whitespace: If set to True all whitespace will be stripped from the JSON
+            prior to being hashed.
+        :type ignore_whitespace: bool
+
+        :param hash_private_vals: If set to True all private and non-private variables will 
+            be included in the hash.
+        :type hash_private_vals: bool
+
         :returns: An MD5 hash of the object's sorted JSON representation.
         """
 
@@ -133,12 +149,25 @@ class Jsonify:
         """
         Overload to compare the json of two objects that derive from Jsonify.
         This method will not do any additional translation.
+
+        :param o: The Jsonify object to compare against.
+        :type o: Jsonify
+
+        :returns: True if equal, False if not.
         """
         return self.get_json_hash() == o.get_json_hash()
 
 class ComplexJsonCoder(JSONEncoder):
     """
     This class delegates the encoding and decoding of objects to one or more implementees.
+
+    :param translation_table: A TranslationTable instance that will be used to
+        translate objects.
+    :type translation_table: TranslationTable
+
+    :param encode_private: If set to True then all private and public variables will
+        be converted to JSON. If False, only public.
+    :type encode_private: bool
     """
 
     def __init__(self, translation_table=None, encode_private=True, **kwargs):
@@ -195,6 +224,8 @@ class ComplexJsonCoder(JSONEncoder):
         Decode the JSON dictionary into a valid Python object.
 
         :param json_dict: The JSON dictionary to decode.
+        :type json_dict: dict
+
         :returns: The decoded form of the JSON dictionary.
         """
 
@@ -219,6 +250,10 @@ class TranslationTable(Jsonify):
     """
     This class contains functions to enable arbitrary object trees to be "translated" to anonymous
     and named objects. This behavior is defined by a map of 'named' and 'anon' key values.
+
+    :param to_anon: A mapping of 'named' to 'anonymous' strings to be used when converting
+        user-defined names to anon.
+    :type to_anon: dict[str, str]
     """
 
     def __init__(self, to_anon: "dict[str, str]"):
@@ -229,6 +264,9 @@ class TranslationTable(Jsonify):
         """
         Recursively anonymise all named properties on the object.
 
+        :param obj: The object to anonymize.
+        :type obj: object
+
         :returns: An anonymized instance of self.
         """
 
@@ -237,6 +275,9 @@ class TranslationTable(Jsonify):
     def obj_to_named(self, obj):
         """
         Recursively identify all anonymous properties on the object.
+
+        :param obj: The object that will be converted to named.
+        :type obj: object
 
         :returns: A named instance of self.
         """
@@ -249,7 +290,10 @@ class TranslationTable(Jsonify):
         translation table. If a match is found, substitute.
 
         :param obj: The object that will be translated.
+        :type obj: object
+
         :param translation_table: The mapping to translate by.
+        :type translation_table: TranslationTable
         """
 
         # If a translation table exists on the object, remove and save it.

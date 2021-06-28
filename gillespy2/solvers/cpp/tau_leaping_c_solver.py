@@ -10,7 +10,7 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
 
     def get_solver_settings(self):
         """
-        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
         """
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
