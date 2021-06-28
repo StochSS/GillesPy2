@@ -1,0 +1,480 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>gillespy2.core.jsonify &#8212; GillesPy2 1.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/css/gillespy2_alabaster_customizations.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../../../_static/img/gillespy2-logo.svg" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/img/gillespy2-logo.svg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=GillesPy2&repo=GillesPy2&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/installation/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/basic_usage/basic_usage.html">Basic usage</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/tut_toggle_switch/tut_toggle_switch.html">Tutorial: ODE vs. SSA</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../classes/gillespy2.html">gillespy2 package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for gillespy2.core.jsonify</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">pydoc</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+
+<span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">JSONEncoder</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">gillespy2</span>
+
+<div class="viewcode-block" id="Jsonify"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.Jsonify">[docs]</a><span class="k">class</span> <span class="nc">Jsonify</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Interface to allow for instances of arbitrary types to be encoded into json strings</span>
+<span class="sd">    and decoded into new objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_translation_table</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Jsonify.to_json"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.Jsonify.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encode_private</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert self into a json string.</span>
+
+<span class="sd">        :param encode_private: If True all private (prefixed of &#39;_&#39;) will be encoded. None if False.</span>
+<span class="sd">        :returns: The JSON representation of self.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">encoder</span> <span class="o">=</span> <span class="n">ComplexJsonCoder</span><span class="p">(</span><span class="n">encode_private</span><span class="o">=</span><span class="n">encode_private</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">encoder</span><span class="o">.</span><span class="n">default</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Jsonify.from_json"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.Jsonify.from_json">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">json_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert some json_str into a decoded Python type. This function should</span>
+<span class="sd">        return a new instance of the type.</span>
+
+<span class="sd">        :param json_str: A json str to be converted into a new type instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># If the json_str is actually a dict, it means we&#39;ve decoded as much as possible.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">json_str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
+
+        <span class="n">decoder</span> <span class="o">=</span> <span class="n">ComplexJsonCoder</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_str</span><span class="p">,</span> <span class="n">object_hook</span><span class="o">=</span><span class="n">decoder</span><span class="o">.</span><span class="n">decode</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Jsonify.to_dict"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.Jsonify.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert the object into a dictionary ready for json encoding.</span>
+<span class="sd">        Note: Complex types that inherit from Jsonify do not need to be manually encoded.</span>
+
+<span class="sd">        By default, this function will return a dictionary of the object&#39;s public types.</span>
+
+<span class="sd">        :returns: The backing var dictionary of the object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Jsonify.from_dict"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.Jsonify.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">src_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert some dict into a new instance of a python type.</span>
+<span class="sd">        This function will return a __new__ instance of the type.</span>
+
+<span class="sd">        :param dict: The dictionary to apply onto the new instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">=</span> <span class="n">src_dict</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">new</span></div>
+
+<div class="viewcode-block" id="Jsonify.to_anon"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.Jsonify.to_anon">[docs]</a>    <span class="k">def</span> <span class="nf">to_anon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Converts self into an anonymous instance of self.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_translation_table</span><span class="p">()</span><span class="o">.</span><span class="n">obj_to_anon</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Jsonify.to_named"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.Jsonify.to_named">[docs]</a>    <span class="k">def</span> <span class="nf">to_named</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Converts self into a named instance of self.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_translation_table</span><span class="p">()</span><span class="o">.</span><span class="n">obj_to_named</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Jsonify.get_translation_table"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.Jsonify.get_translation_table">[docs]</a>    <span class="k">def</span> <span class="nf">get_translation_table</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TranslationTable&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make and/or return the translation table.</span>
+
+<span class="sd">        :returns: A TranslationTable instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_translation_table</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_translation_table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_translation_table</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_translation_table</span></div>
+
+<div class="viewcode-block" id="Jsonify.make_translation_table"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.Jsonify.make_translation_table">[docs]</a>    <span class="k">def</span> <span class="nf">make_translation_table</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TranslationTable&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make a translation table that describes key:value pairs to convert</span>
+<span class="sd">        user-define data into generic equivalents.</span>
+
+<span class="sd">        :returns: A newly generated TranslationTable instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;make_translation_table() has not been implemented.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Jsonify.public_vars"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.Jsonify.public_vars">[docs]</a>    <span class="k">def</span> <span class="nf">public_vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets a dictionary of public vars that exist on self. Keys starting with &#39;_&#39; are ignored.</span>
+
+<span class="sd">        :returns: A dictionary containing all public (&#39;_&#39;-prefixed) variables on the object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)}</span></div>
+
+<div class="viewcode-block" id="Jsonify.get_json_hash"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.Jsonify.get_json_hash">[docs]</a>    <span class="k">def</span> <span class="nf">get_json_hash</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ignore_whitespace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">hash_private_vals</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the hash of the json representation of self.</span>
+
+<span class="sd">        :returns: An MD5 hash of the object&#39;s sorted JSON representation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># If _hash_private_vars is set, hash ALL properties on the object.</span>
+        <span class="n">model_json</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">encode_private</span><span class="o">=</span><span class="n">hash_private_vals</span><span class="p">)</span>
+
+        <span class="c1"># If ignore_whitespace is set, strip out all whitespace characters.</span>
+        <span class="k">if</span> <span class="n">ignore_whitespace</span><span class="p">:</span>
+            <span class="n">model_json</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\s+&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">model_json</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">model_json</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span> <span class="s2">&quot;Jsonify&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overload to compare the json of two objects that derive from Jsonify.</span>
+<span class="sd">        This method will not do any additional translation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_json_hash</span><span class="p">()</span> <span class="o">==</span> <span class="n">o</span><span class="o">.</span><span class="n">get_json_hash</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ComplexJsonCoder"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.ComplexJsonCoder">[docs]</a><span class="k">class</span> <span class="nc">ComplexJsonCoder</span><span class="p">(</span><span class="n">JSONEncoder</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class delegates the encoding and decoding of objects to one or more implementees.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">translation_table</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">encode_private</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_translation_table</span> <span class="o">=</span> <span class="n">translation_table</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_encode_private</span> <span class="o">=</span> <span class="n">encode_private</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_delegation_table</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span> <span class="n">NdArrayCoder</span><span class="p">,</span>
+            <span class="nb">set</span><span class="p">:</span> <span class="n">SetCoder</span><span class="p">,</span>
+            <span class="nb">type</span><span class="p">:</span> <span class="n">TypeCoder</span>
+        <span class="p">}</span>
+
+<div class="viewcode-block" id="ComplexJsonCoder.default"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.ComplexJsonCoder.default">[docs]</a>    <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function is called when json.dumps() fires. default() is a bad name for the function,</span>
+<span class="sd">        but anything else makes JSONEncoder freak out.</span>
+
+<span class="sd">        :param o: The object that is currently being encoded into JSON.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># If o is of matching type, use a custom coder.</span>
+        <span class="k">for</span> <span class="n">obj_type</span><span class="p">,</span> <span class="n">coder</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delegation_table</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">obj_type</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">coder</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">Jsonify</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_encode_private</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Strip private variables from the object.</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">o</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;__&quot;</span><span class="p">):</span>
+                    <span class="k">continue</span>
+
+                <span class="n">model</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+        <span class="c1"># If the model is some subclass of gillespy2.core.model.Model, then manually set its type.</span>
+        <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="n">gillespy2</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+            <span class="n">model</span><span class="p">[</span><span class="s2">&quot;_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gillespy2</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">Model</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">gillespy2</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">Model</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">model</span><span class="p">[</span><span class="s2">&quot;_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">o</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">o</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="k">return</span> <span class="n">model</span></div>
+
+<div class="viewcode-block" id="ComplexJsonCoder.decode"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.ComplexJsonCoder.decode">[docs]</a>    <span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Decode the JSON dictionary into a valid Python object.</span>
+
+<span class="sd">        :param json_dict: The JSON dictionary to decode.</span>
+<span class="sd">        :returns: The decoded form of the JSON dictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># _type is a field embedded by the encoder to indicate which</span>
+        <span class="c1"># Jsonify instance will be used to decode the json string.</span>
+        <span class="k">if</span> <span class="s2">&quot;_type&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">json_dict</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">json_dict</span>
+
+        <span class="n">json_type</span> <span class="o">=</span> <span class="n">pydoc</span><span class="o">.</span><span class="n">locate</span><span class="p">(</span><span class="n">json_dict</span><span class="p">[</span><span class="s2">&quot;_type&quot;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">json_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">json_type</span><span class="si">}</span><span class="s2"> does not exist.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># If the type is not a subclass of Jsonify, throw an exception.</span>
+        <span class="c1"># We do this to prevent the execution of arbitrary code.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">json_type</span><span class="p">,</span> <span class="n">Jsonify</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">json_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">json_type</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json_dict</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="TranslationTable"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.TranslationTable">[docs]</a><span class="k">class</span> <span class="nc">TranslationTable</span><span class="p">(</span><span class="n">Jsonify</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class contains functions to enable arbitrary object trees to be &quot;translated&quot; to anonymous</span>
+<span class="sd">    and named objects. This behavior is defined by a map of &#39;named&#39; and &#39;anon&#39; key values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">to_anon</span><span class="p">:</span> <span class="s2">&quot;dict[str, str]&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">to_anon</span> <span class="o">=</span> <span class="n">to_anon</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">to_named</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">v</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_anon</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+
+<div class="viewcode-block" id="TranslationTable.obj_to_anon"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.TranslationTable.obj_to_anon">[docs]</a>    <span class="k">def</span> <span class="nf">obj_to_anon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Recursively anonymise all named properties on the object.</span>
+
+<span class="sd">        :returns: An anonymized instance of self.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">recursive_translate</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_anon</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TranslationTable.obj_to_named"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.TranslationTable.obj_to_named">[docs]</a>    <span class="k">def</span> <span class="nf">obj_to_named</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Recursively identify all anonymous properties on the object.</span>
+
+<span class="sd">        :returns: A named instance of self.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">recursive_translate</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_named</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TranslationTable.recursive_translate"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.TranslationTable.recursive_translate">[docs]</a>    <span class="k">def</span> <span class="nf">recursive_translate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">translation_table</span><span class="p">:</span> <span class="s2">&quot;dict[str, str]&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Recursively search through the object tree searching for property value matches in the</span>
+<span class="sd">        translation table. If a match is found, substitute.</span>
+
+<span class="sd">        :param obj: The object that will be translated.</span>
+<span class="sd">        :param translation_table: The mapping to translate by.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># If a translation table exists on the object, remove and save it.</span>
+        <span class="k">if</span> <span class="s2">&quot;_translation_table&quot;</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">:</span>
+            <span class="n">saved_table</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;_translation_table&quot;</span><span class="p">)</span>
+
+        <span class="n">translated</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_recursive_translate</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">translation_table</span><span class="p">)</span>
+
+        <span class="c1"># Restore the original translation table, if needed.</span>
+        <span class="k">if</span> <span class="n">saved_table</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">obj</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s2">&quot;_translation_table&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">saved_table</span>
+
+        <span class="k">return</span> <span class="n">translated</span></div>
+
+    <span class="k">def</span> <span class="nf">_recursive_translate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">translation_table</span><span class="p">:</span> <span class="s2">&quot;dict[str, str]&quot;</span><span class="p">):</span>
+        <span class="c1"># The obj is a class if it&#39;s an instance of Jsonify. Class property names *cannot*</span>
+        <span class="c1"># be changed, so translate just the values.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Jsonify</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="nb">vars</span><span class="p">(</span><span class="n">obj</span><span class="p">)[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_recursive_translate</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">obj</span><span class="p">)[</span><span class="n">key</span><span class="p">],</span> <span class="n">translation_table</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
+                <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_recursive_translate</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">translation_table</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="c1"># Convert the dictionary into a list of tuples.</span>
+            <span class="c1"># This makes it easier to modify key names.</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="nb">list</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+            <span class="n">new_pairs</span> <span class="o">=</span> <span class="p">[</span> <span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
+                <span class="n">new_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_recursive_translate</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">translation_table</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_recursive_translate</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">translation_table</span><span class="p">)</span>
+                <span class="p">))</span>
+
+            <span class="n">obj</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">new_pairs</span><span class="p">)</span>
+
+        <span class="c1"># If the obj is a string, translate it via a regex replace.</span>
+        <span class="c1"># Note: mathematical functions contain additional characters that should not be translated.</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="c1"># To handle functions, grab all complete words from the string.</span>
+            <span class="n">matches</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="s2">&quot;([0-z])+&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+
+            <span class="c1"># For each match, translate the group.</span>
+            <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
+                <span class="n">group</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()</span>
+                <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">translation_table</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">group</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">obj</span></div>
+
+<div class="viewcode-block" id="NdArrayCoder"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.NdArrayCoder">[docs]</a><span class="k">class</span> <span class="nc">NdArrayCoder</span><span class="p">(</span><span class="n">Jsonify</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This JSON coder enables support for  the `numpy.ndarray` type. &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="NdArrayCoder.to_dict"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.NdArrayCoder.to_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="s2">&quot;_type&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">NdArrayCoder</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">NdArrayCoder</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="NdArrayCoder.from_json"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.NdArrayCoder.from_json">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span></div></div>
+
+<div class="viewcode-block" id="SetCoder"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.SetCoder">[docs]</a><span class="k">class</span> <span class="nc">SetCoder</span><span class="p">(</span><span class="n">Jsonify</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This JSON coder enables support for the `set` type. &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SetCoder.to_dict"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.SetCoder.to_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span>
+            <span class="s2">&quot;_type&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">SetCoder</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">SetCoder</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="SetCoder.from_json"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.SetCoder.from_json">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span></div></div>
+
+<div class="viewcode-block" id="TypeCoder"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.TypeCoder">[docs]</a><span class="k">class</span> <span class="nc">TypeCoder</span><span class="p">(</span><span class="n">Jsonify</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This JSON coder enables support for the &#39;type&#39; type. &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TypeCoder.to_dict"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.TypeCoder.to_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span>
+            <span class="s2">&quot;_type&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">TypeCoder</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">TypeCoder</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="TypeCoder.from_json"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.TypeCoder.from_json">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pydoc</span><span class="o">.</span><span class="n">locate</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span></div></div>
+</pre></div>
+
+          </div>
+              <div class="related bottom">
+                &nbsp;
+  <nav id="rellinks">
+    <ul>
+    </ul>
+  </nav>
+              </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;Copyright (C) 2017-2021.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+    <a href="https://github.com/GillesPy2/GillesPy2" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

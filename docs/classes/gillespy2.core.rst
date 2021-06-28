@@ -44,6 +44,14 @@ gillespy2.core.gillespySolver module
    :undoc-members:
    :show-inheritance:
 
+gillespy2.core.jsonify module
+-----------------------------
+
+.. automodule:: gillespy2.core.jsonify
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 gillespy2.core.liveGraphing module
 ----------------------------------
 
@@ -107,7 +115,6 @@ gillespy2.core.species module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

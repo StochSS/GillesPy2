@@ -1,18 +1,18 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.core.results &#8212; GillesPy2 1.5.2 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>gillespy2.core.results &#8212; GillesPy2 1.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/gillespy2_alabaster_customizations.css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -101,9 +101,10 @@
             
   <h1>Source code for gillespy2.core.results</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">UserDict</span><span class="p">,</span> <span class="n">UserList</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.jsonify</span> <span class="kn">import</span> <span class="n">Jsonify</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">UserDict</span><span class="p">,</span> <span class="n">UserList</span>
 
 <span class="c1"># List of 50 hex color values used for plotting graphs</span>
 <div class="viewcode-block" id="common_rgb_values"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.common_rgb_values">[docs]</a><span class="k">def</span> <span class="nf">common_rgb_values</span><span class="p">():</span>
@@ -144,7 +145,7 @@
 
     <span class="kn">import</span> <span class="nn">plotly.graph_objs</span> <span class="k">as</span> <span class="nn">go</span>
 
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">species</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trajectory</span><span class="o">.</span><span class="n">data</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trajectory</span><span class="o">.</span><span class="n">data</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">species</span> <span class="o">!=</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span>
 
             <span class="k">if</span> <span class="n">species</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">included_species_list</span> <span class="ow">and</span> <span class="n">included_species_list</span><span class="p">:</span>
@@ -163,7 +164,8 @@
                         <span class="n">y</span><span class="o">=</span><span class="n">trajectory</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">species</span><span class="p">],</span>
                         <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">,</span>
                         <span class="n">name</span><span class="o">=</span><span class="n">species</span><span class="p">,</span>
-                        <span class="n">line</span> <span class="o">=</span> <span class="n">line_dict</span>
+                        <span class="n">line</span><span class="o">=</span><span class="n">line_dict</span><span class="p">,</span>
+                        <span class="n">legendgroup</span><span class="o">=</span><span class="n">species</span>
                     <span class="p">)</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -174,13 +176,14 @@
                         <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">,</span>
                         <span class="n">name</span><span class="o">=</span><span class="n">species</span><span class="p">,</span>
                         <span class="n">line</span><span class="o">=</span><span class="n">line_dict</span><span class="p">,</span>
+                        <span class="n">legendgroup</span><span class="o">=</span><span class="n">species</span><span class="p">,</span>
                         <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span>
                     <span class="p">)</span>
                 <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">trace_list</span>
 
-<div class="viewcode-block" id="Trajectory"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Trajectory">[docs]</a><span class="k">class</span> <span class="nc">Trajectory</span><span class="p">(</span><span class="n">UserDict</span><span class="p">):</span>
+<div class="viewcode-block" id="Trajectory"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Trajectory">[docs]</a><span class="k">class</span> <span class="nc">Trajectory</span><span class="p">(</span><span class="n">UserDict</span><span class="p">,</span> <span class="n">Jsonify</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Trajectory Dict created by a gillespy2 solver containing single trajectory, extends the UserDict object.</span>
 
 <span class="sd">    :param data: A dictionary of trajectory values created by a solver</span>
@@ -194,7 +197,7 @@
 <span class="sd">    :param status: The solver status (&#39;Success&#39;,&#39;Timed out&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">solver_name</span><span class="o">=</span><span class="s2">&quot;Undefined solver name&quot;</span><span class="p">,</span> <span class="n">rc</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">solver_name</span><span class="o">=</span><span class="s2">&quot;Undefined solver name&quot;</span><span class="p">,</span> <span class="n">rc</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
@@ -204,7 +207,7 @@
         <span class="n">status_list</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;Success&#39;</span><span class="p">,</span> <span class="mi">33</span><span class="p">:</span> <span class="s1">&#39;Timed Out&#39;</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">status_list</span><span class="p">[</span><span class="n">rc</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Trajectory is of type dictionary. Use trajectory[&#39;species&#39;] instead of &quot;</span>
                           <span class="s2">&quot;trajectory[0][&#39;species&#39;] &quot;</span><span class="p">)</span>
@@ -216,7 +219,7 @@
         <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Results"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results">[docs]</a><span class="k">class</span> <span class="nc">Results</span><span class="p">(</span><span class="n">UserList</span><span class="p">):</span>
+<div class="viewcode-block" id="Results"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results">[docs]</a><span class="k">class</span> <span class="nc">Results</span><span class="p">(</span><span class="n">UserList</span><span class="p">,</span> <span class="n">Jsonify</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    List of Trajectory objects created by a gillespy2 solver, extends the UserList object.</span>
 
@@ -224,10 +227,10 @@
 <span class="sd">    :type data: UserList</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
 
-    <span class="k">def</span> <span class="nf">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;model&#39;</span> <span class="ow">or</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;solver_name&#39;</span> <span class="ow">or</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;rc&#39;</span> <span class="ow">or</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;status&#39;</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Results is of type list. Use results[i][&#39;model&#39;] instead of results[&#39;model&#39;] &quot;</span><span class="p">)</span>
@@ -235,7 +238,7 @@
         <span class="k">else</span><span class="p">:</span> 
             <span class="k">return</span> <span class="n">UserList</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;data&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">UserList</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span> <span class="ow">and</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;data&#39;</span><span class="p">:</span>
@@ -246,7 +249,7 @@
             <span class="k">return</span><span class="p">(</span><span class="n">UserList</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">))</span>
         <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="n">combined_data</span> <span class="o">=</span> <span class="n">Results</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
         <span class="n">consistent_solver</span> <span class="o">=</span> <span class="n">combined_data</span><span class="o">.</span><span class="n">_validate_solver</span><span class="p">()</span>
         <span class="n">consistent_model</span> <span class="o">=</span> <span class="n">combined_data</span><span class="o">.</span><span class="n">_validate_model</span><span class="p">()</span>
@@ -261,6 +264,12 @@
 
         <span class="n">combined_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span>
         <span class="k">return</span> <span class="n">Results</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">combined_data</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__add__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_validate_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">is_valid</span> <span class="o">=</span> <span class="kc">True</span>
@@ -304,9 +313,9 @@
         <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">size1</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;time&#39;</span><span class="p">])</span>
         <span class="n">size2</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">newArray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">size1</span><span class="p">,</span> <span class="n">size2</span><span class="p">))</span>
 
         <span class="k">for</span> <span class="n">trajectory</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)):</span>
+            <span class="n">newArray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">size1</span><span class="p">,</span> <span class="n">size2</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">trajectory</span><span class="p">]):</span>
                 <span class="n">newArray</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">trajectory</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
             <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newArray</span><span class="p">)</span>
@@ -355,7 +364,7 @@
                             <span class="n">this_line</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trajectory</span><span class="p">[</span><span class="n">species</span><span class="p">][</span><span class="n">n</span><span class="p">])</span>
                         <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">this_line</span><span class="p">)</span>  <span class="c1"># write one line of the CSV file</span></div>
 
-<div class="viewcode-block" id="Results.plot"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xaxis_label</span><span class="o">=</span><span class="s2">&quot;Time &quot;</span><span class="p">,</span> <span class="n">xscale</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">yscale</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="s2">&quot;Species Population&quot;</span><span class="p">,</span>
+<div class="viewcode-block" id="Results.plot"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xaxis_label</span><span class="o">=</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span> <span class="n">xscale</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">yscale</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span>
              <span class="n">style</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_title</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">multiple_graphs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
              <span class="n">included_species_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">save_png</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span> <span class="mi">10</span><span class="p">)):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -381,7 +390,7 @@
 <span class="sd">        :type figsize: tuple of ints (x,y)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-        <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Iterable</span>
+        <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Iterable</span>
         <span class="n">trajectory_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">index</span><span class="p">:</span>
@@ -439,7 +448,7 @@
             <span class="k">elif</span> <span class="n">save_png</span><span class="p">:</span>
                 <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">title</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Results.plotplotly"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.plotplotly">[docs]</a>    <span class="k">def</span> <span class="nf">plotplotly</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xaxis_label</span><span class="o">=</span><span class="s2">&quot;Time &quot;</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="s2">&quot;Species Population&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="Results.plotplotly"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.plotplotly">[docs]</a>    <span class="k">def</span> <span class="nf">plotplotly</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xaxis_label</span><span class="o">=</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                    <span class="n">show_title</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">multiple_graphs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">included_species_list</span><span class="o">=</span><span class="p">[],</span>
                    <span class="n">return_plotly_figure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="o">**</span><span class="n">layout_args</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.</span>
@@ -468,7 +477,7 @@
 <span class="sd">        :type **layout_args: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="kn">from</span> <span class="nn">plotly.offline</span> <span class="k">import</span> <span class="n">init_notebook_mode</span><span class="p">,</span> <span class="n">iplot</span>
+        <span class="kn">from</span> <span class="nn">plotly.offline</span> <span class="kn">import</span> <span class="n">init_notebook_mode</span><span class="p">,</span> <span class="n">iplot</span>
         <span class="kn">import</span> <span class="nn">plotly.graph_objs</span> <span class="k">as</span> <span class="nn">go</span>
 
         <span class="c1"># Backwards compatibility with xaxis_label argument (which duplicates plotly&#39;s xaxis_title argument)</span>
@@ -481,7 +490,7 @@
 
         <span class="n">init_notebook_mode</span><span class="p">(</span><span class="n">connected</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Iterable</span>
+        <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Iterable</span>
         <span class="n">trajectory_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">index</span><span class="p">:</span>
@@ -503,9 +512,9 @@
 
         <span class="k">if</span> <span class="n">multiple_graphs</span><span class="p">:</span>
 
-            <span class="kn">from</span> <span class="nn">plotly</span> <span class="k">import</span> <span class="n">tools</span>
+            <span class="kn">from</span> <span class="nn">plotly</span> <span class="kn">import</span> <span class="n">subplots</span>
 
-            <span class="n">fig</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">make_subplots</span><span class="p">(</span><span class="n">print_grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">number_of_trajectories</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">subplots</span><span class="o">.</span><span class="n">make_subplots</span><span class="p">(</span><span class="n">print_grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">number_of_trajectories</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span>
                                                              <span class="nb">int</span><span class="p">(</span><span class="n">number_of_trajectories</span> <span class="o">%</span> <span class="mi">2</span><span class="p">),</span> <span class="n">cols</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">trajectory</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trajectory_list</span><span class="p">):</span>
@@ -533,6 +542,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">trace_list</span> <span class="o">=</span> <span class="n">_plotplotly_iterate</span><span class="p">(</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">trace_list</span><span class="o">=</span><span class="n">trace_list</span><span class="p">,</span> <span class="n">included_species_list</span><span class="o">=</span>
                     <span class="n">included_species_list</span><span class="p">)</span>
+
 
             <span class="n">layout</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span>
                 <span class="n">showlegend</span><span class="o">=</span><span class="n">show_legend</span><span class="p">,</span>
@@ -596,7 +606,7 @@
 <span class="sd">        :type ddof: int</span>
 <span class="sd">        :return: the Results object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">sqrt</span>
+        <span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span>
 
         <span class="n">trajectory_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
         <span class="n">number_of_trajectories</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">trajectory_list</span><span class="p">)</span>
@@ -634,11 +644,12 @@
         <span class="n">output_results</span> <span class="o">=</span> <span class="n">Results</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="n">output_trajectory</span><span class="p">])</span>  <span class="c1"># package output_trajectory in a Results object</span>
         <span class="k">return</span> <span class="n">output_results</span></div>
 
-<div class="viewcode-block" id="Results.plotplotly_std_dev_range"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.plotplotly_std_dev_range">[docs]</a>    <span class="k">def</span> <span class="nf">plotplotly_std_dev_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xaxis_label</span><span class="o">=</span><span class="s2">&quot;Time &quot;</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="s2">&quot;Species Population&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+
+<div class="viewcode-block" id="Results.plotplotly_mean_stdev"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.plotplotly_mean_stdev">[docs]</a>    <span class="k">def</span> <span class="nf">plotplotly_mean_stdev</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xaxis_label</span><span class="o">=</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                  <span class="n">show_title</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">included_species_list</span><span class="o">=</span><span class="p">[],</span>
                                  <span class="n">return_plotly_figure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">layout_args</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot a plotly graph depicting standard deviation and the mean graph of a results object</span>
+<span class="sd">        Plot a plotly graph depicting the mean and standard deviation of a results object</span>
 
 <span class="sd">        :param xaxis_label: The label for the x-axis</span>
 <span class="sd">        :type xaxis_label: str</span>
@@ -673,16 +684,16 @@
 
         <span class="n">average_trajectory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">average_ensemble</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">stddev_trajectory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stddev_ensemble</span><span class="p">(</span><span class="n">ddof</span><span class="o">=</span><span class="n">ddof</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="kn">from</span> <span class="nn">plotly.offline</span> <span class="k">import</span> <span class="n">init_notebook_mode</span><span class="p">,</span> <span class="n">iplot</span>
+        <span class="kn">from</span> <span class="nn">plotly.offline</span> <span class="kn">import</span> <span class="n">init_notebook_mode</span><span class="p">,</span> <span class="n">iplot</span>
         <span class="kn">import</span> <span class="nn">plotly.graph_objs</span> <span class="k">as</span> <span class="nn">go</span>
 
         <span class="n">init_notebook_mode</span><span class="p">(</span><span class="n">connected</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">show_title</span><span class="p">:</span>
-            <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Standard Deviation Range&#39;</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Mean and Standard Deviation&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">title</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_validate_title</span><span class="p">(</span><span class="n">show_title</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; - Standard Deviation Range&quot;</span><span class="p">)</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_validate_title</span><span class="p">(</span><span class="n">show_title</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; - Mean and Standard Deviation&quot;</span><span class="p">)</span>
 
         <span class="n">trace_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">average_trajectory</span><span class="p">:</span>
@@ -751,12 +762,13 @@
             <span class="k">return</span> <span class="n">fig</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">iplot</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span></div>
+    
 
-<div class="viewcode-block" id="Results.plot_std_dev_range"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.plot_std_dev_range">[docs]</a>    <span class="k">def</span> <span class="nf">plot_std_dev_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xscale</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">yscale</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">xaxis_label</span><span class="o">=</span><span class="s2">&quot;Time &quot;</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="s2">&quot;Species Population&quot;</span>
+<div class="viewcode-block" id="Results.plot_mean_stdev"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.plot_mean_stdev">[docs]</a>    <span class="k">def</span> <span class="nf">plot_mean_stdev</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xscale</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">yscale</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">xaxis_label</span><span class="o">=</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="s2">&quot;Value&quot;</span>
                            <span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_title</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">included_species_list</span><span class="o">=</span><span class="p">[],</span>
                            <span class="n">ddof</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">save_png</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span> <span class="mi">10</span><span class="p">)):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            Plot a matplotlib graph depicting standard deviation and the mean graph of a results object</span>
+<span class="sd">            Plot a matplotlib graph depicting mean and standard deviation of a results object</span>
 
 <span class="sd">        :param xaxis_label: The label for the x-axis</span>
 <span class="sd">        :type xaxis_label: str</span>
@@ -811,10 +823,10 @@
             <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">average_result</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">average_result</span><span class="p">[</span><span class="n">species</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">show_title</span><span class="p">:</span>
-            <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Standard Deviation Range&#39;</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Mean and Standard Deviation&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">title</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_validate_title</span><span class="p">(</span><span class="n">show_title</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; - Standard Deviation Range&quot;</span><span class="p">)</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_validate_title</span><span class="p">(</span><span class="n">show_title</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; - Mean and Standard Deviation&quot;</span><span class="p">)</span>
 
         <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="n">xaxis_label</span><span class="p">)</span>
@@ -830,7 +842,11 @@
             <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save_png</span><span class="p">)</span>
 
         <span class="k">elif</span> <span class="n">save_png</span><span class="p">:</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">title</span><span class="p">)</span></div></div>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">title</span><span class="p">)</span></div>
+
+
+    <span class="n">plotplotly_std_dev_range</span> <span class="o">=</span>  <span class="n">plotplotly_mean_stdev</span>  <span class="c1"># for backwards compatability, we need to keep the old name around</span>
+    <span class="n">plot_std_dev_range</span> <span class="o">=</span> <span class="n">plot_mean_stdev</span>   <span class="c1"># for backwards compatability, we need to keep the old name around</span></div>
 </pre></div>
 
           </div>
@@ -847,10 +863,10 @@
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;Copyright (C) 2017-2020.
+      &copy;Copyright (C) 2017-2021.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

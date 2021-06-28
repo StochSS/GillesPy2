@@ -1,18 +1,19 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2 package &#8212; GillesPy2 1.5.2 documentation</title>
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>gillespy2 package &#8212; GillesPy2 1.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/gillespy2_alabaster_customizations.css" />
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="gillespy2.core package" href="gillespy2.core.html" />
@@ -68,6 +69,7 @@
 <li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html">gillespy2.core package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="gillespy2.sbml.html">gillespy2.sbml package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="gillespy2.solvers.html">gillespy2.solvers package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.stochss.html">gillespy2.stochss package</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-gillespy2">Module contents</a></li>
@@ -110,9 +112,9 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="gillespy2-package">
+  <section id="gillespy2-package">
 <h1>gillespy2 package<a class="headerlink" href="#gillespy2-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="subpackages">
+<section id="subpackages">
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
@@ -123,6 +125,7 @@
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.functiondefinition">gillespy2.core.functiondefinition module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.gillespyError">gillespy2.core.gillespyError module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.gillespySolver">gillespy2.core.gillespySolver module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.jsonify">gillespy2.core.jsonify module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.liveGraphing">gillespy2.core.liveGraphing module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.model">gillespy2.core.model module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.parameter">gillespy2.core.parameter module</a></li>
@@ -136,23 +139,29 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="gillespy2.sbml.html">gillespy2.sbml package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.sbml.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.sbml.html#module-gillespy2.sbml.SBMLimport">gillespy2.sbml.SBMLimport module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.sbml.html#gillespy2-sbml-sbmlexport-module">gillespy2.sbml.SBMLexport module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.sbml.html#gillespy2-sbml-sbmlimport-module">gillespy2.sbml.SBMLimport module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.sbml.html#module-gillespy2.sbml">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="gillespy2.solvers.html">gillespy2.solvers package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.solvers.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="gillespy2.solvers.cpp.html">gillespy2.solvers.cpp package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.cpp.html#subpackages">Subpackages</a></li>
 <li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.cpp.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.cpp.html#module-gillespy2.solvers.cpp.c_decoder">gillespy2.solvers.cpp.c_decoder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.cpp.html#module-gillespy2.solvers.cpp.c_solver">gillespy2.solvers.cpp.c_solver module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.cpp.html#module-gillespy2.solvers.cpp.example_models">gillespy2.solvers.cpp.example_models module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.cpp.html#module-gillespy2.solvers.cpp.ode_c_solver">gillespy2.solvers.cpp.ode_c_solver module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.cpp.html#module-gillespy2.solvers.cpp.ssa_c_solver">gillespy2.solvers.cpp.ssa_c_solver module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.cpp.html#module-gillespy2.solvers.cpp.tau_leaping_c_solver">gillespy2.solvers.cpp.tau_leaping_c_solver module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.cpp.html#module-gillespy2.solvers.cpp.variable_ssa_c_solver">gillespy2.solvers.cpp.variable_ssa_c_solver module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.cpp.html#module-gillespy2.solvers.cpp">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="gillespy2.solvers.cython.html">gillespy2.solvers.cython package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.cython.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.cython.html#module-gillespy2.solvers.cython.cython_ssa_solver">gillespy2.solvers.cython.cython_ssa_solver module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.cython.html#gillespy2-solvers-cython-cython-ssa-solver-module">gillespy2.solvers.cython.cython_ssa_solver module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.cython.html#module-gillespy2.solvers.cython">Module contents</a></li>
 </ul>
 </li>
@@ -187,14 +196,20 @@
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.solvers.html#module-gillespy2.solvers">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="gillespy2.stochss.html">gillespy2.stochss package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.stochss.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.stochss.html#module-gillespy2.stochss.StochSSexport">gillespy2.stochss.StochSSexport module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.stochss.html#module-gillespy2.stochss">Module contents</a></li>
+</ul>
+</li>
 </ul>
 </div>
-</div>
-<div class="section" id="module-gillespy2">
+</section>
+<section id="module-gillespy2">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-gillespy2" title="Permalink to this headline">¶</a></h2>
 <p>GillesPy2: Modeling toolkit for biochemical simulation</p>
-</div>
-</div>
+</section>
+</section>
 
 
           </div>
@@ -219,10 +234,10 @@
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;Copyright (C) 2017-2020.
+      &copy;Copyright (C) 2017-2021.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
