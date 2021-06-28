@@ -7,6 +7,8 @@ try:
 except ImportError:
     raise ImportError('libsbml is required to convert SBML files for GillesPy.')
 
+from gillespy2.core import gillespyError
+
 
 init_state = {'INF': np.inf, 'NaN': np.nan}
 postponed_evals = {}
@@ -150,6 +152,12 @@ def traverse_math(node, old_id, new_id):
 
 def __get_kinetic_law(sbml_model, gillespy_model, reaction):
     kinetic_law = reaction.getKineticLaw()
+
+    if kinetic_law is None:
+        raise gillespyError.InvalidModelError(
+            f"Failed to load SBML model: Reaction '{reaction}' is missing its propensity function."
+        )
+
     tree = kinetic_law.getMath()
     params = kinetic_law.getListOfParameters()
     local_params = kinetic_law.getListOfLocalParameters()

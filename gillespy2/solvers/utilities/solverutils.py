@@ -37,12 +37,15 @@ def numpy_trajectory_base_initialization(model, number_of_trajectories, timeline
 
 def numpy_resume(timeStopped, simulation_data, resume=None):
     """
-    Helper function for when resuming a simulation in a numpy based solver
+    Helper function for when resuming a simulation in a numpy based solver.
+
     :param timeStopped: The time in which the simulation was stopped.
     :param simulation_data: The current models simulation data, after being parsed in the numpy solver of choice.
+
     :param resume: The previous simulations data, that is being resumed
-    :type resume: gillespy2.core.results object
-    :return: Combined simulation data, the old resume data and the current simulation data.
+    :type resume: gillespy2.core.Results
+
+    :returns: Combined simulation data, the old resume data and the current simulation data.
     """
     if timeStopped != 0:
         if timeStopped != simulation_data[0]['time'][-1]:
@@ -104,17 +107,19 @@ def change_param_values(listOfParameters, parameters, volume, variables):
         else:
             parameter_values += '{}'.format(listOfParameters[parameters[-1]].expression)
     return parameter_values
+
 """
 Below are two functions used for creating dependency graphs in the C solvers, and Numpy Solvers.
 """
 
-
 def species_parse(model, custom_prop_fun):
     """
     This function uses Pythons AST module to parse custom propensity function, looking for Species in a model
+
     :param model: Model to be checked for species
     :param custom_prop_fun: The custom propensity function to be parsed
-    :return: List of species objects that are found in a custom propensity function
+
+    :returns: List of species objects that are found in a custom propensity function
     """
     parsed_species = []
 
@@ -133,9 +138,11 @@ def dependency_grapher(model, reactions):
     """
     This function returns a dependency graph for a models reactions in the form of a
     dictionary containing {species name: {'dependencies'}:[list of reaction names]}.
+
     :param model: Model to used to create a reaction dependency graph
-    :param reactions: list(model.listOfReactions)
-    :return: Dependency graph dictionary
+    :param reactions: list[model.listOfReactions]
+
+    :returns: Dependency graph dictionary
     """
     dependent_rxns = {}
     for i in reactions:

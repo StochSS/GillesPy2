@@ -105,7 +105,7 @@ class BuildEngine():
         :type cache_dir: str
 
         :param force_rebuild: Delete and rebuild the cache directory.
-        :type bool:
+        :type force_rebuild: bool
         """
 
         make = Make(self.makefile, cache_dir, cache_dir)
@@ -136,7 +136,7 @@ class BuildEngine():
         Only valid after the simulation has been built.
 
         :return: String containing path to executable.
-        None if no executable exists.
+            None if no executable exists.
         """
         if not os.path.exists(self.make.output_file):
             return None

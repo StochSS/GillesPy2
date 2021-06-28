@@ -23,7 +23,7 @@ class NumPySSASolver(GillesPySolver):
 
     def get_solver_settings(self):
         """
-        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'timeout')
 
@@ -33,20 +33,22 @@ class NumPySSASolver(GillesPySolver):
 
         """
         Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
+
         :param model: The model on which the solver will operate.
         :param t: The end time of the solver.
         :param number_of_trajectories: The number of times to sample the chemical master equation. Each
-        trajectory will be returned at the end of the simulation.
+            trajectory will be returned at the end of the simulation.
         :param increment: The time step of the solution.
         :param seed: The random seed for the simulation. Defaults to None.
         :param debug: Set to True to provide additional debug information about the
-        simulation.
+            simulation.
         :param resume: Result of a previously run simulation, to be resumed
-        :param live_output : str The type of output to be displayed by solver. Can be "progress", "text", or "graph".
-        :param live_output_options : dictionary contains options for live_output. By default {"interval":1}.
-                    "interval" specifies seconds between displaying.
-                    "clear_output" specifies if display should be refreshed with each display
-        :return: a list of each trajectory simulated.
+        :param live_output: str The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+        :param live_output_options: dictionary contains options for live_output. By default {"interval":1}.
+            "interval" specifies seconds between displaying.
+            "clear_output" specifies if display should be refreshed with each display
+
+        :returns: a list of each trajectory simulated.
         """
 
         if isinstance(self, type):

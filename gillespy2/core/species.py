@@ -10,31 +10,38 @@ class Species(SortableObject, Jsonify):
 
     :param name: The name by which this species will be called in reactions and within the model.
     :type name: str
+
     :param initial_value: Initial population of this species. If this is not provided as an int,
-    the type will be changed when it is added by numpy.int
+        the type will be changed when it is added by numpy.int
     :type initial_value: int >= 0
+
     :param constant: If true, the value of the species cannot be changed (currently TauHybridSolver only)
     :type constant: bool
+
     :param boundary_condition: If true, species can be changed by events and rate rules, but not by reactions.
-    (TauHybridSolver only)
+        (TauHybridSolver only)
     :type boundary_condition: bool
+
     :param mode: ***FOR USE WITH BasicTauHybridSolver ONLY***
-    Sets the mode of representation of this species for the TauHybridSolver,
-    can be discrete, continuous, or dynamic.
-    mode='dynamic' - Allows a species to be represented as either discrete or continuous
-    mode='continuous' - Species will only be represented as continuous
-    mode='discrete' - Species will only be represented as discrete
+        Sets the mode of representation of this species for the TauHybridSolver,
+        can be discrete, continuous, or dynamic.
+        mode='dynamic' - Allows a species to be represented as either discrete or continuous
+        mode='continuous' - Species will only be represented as continuous
+        mode='discrete' - Species will only be represented as discrete
     :type mode: str
+
     :param allow_negative_populations: If true, population can be reduces below 0.
     :type allow_negative_populations: bool
+
     :param switch_tol: ***FOR USE WITH BasicTauHybridSolver ONLY***
-    Tolerance level for considering a dynamic species deterministically, value is compared to an estimated sd/mean
-    population of a species after a given time step. This value will be used if a switch_min is not provided.
-    The default value is 0.03
+        Tolerance level for considering a dynamic species deterministically, value is compared to an estimated sd/mean
+        population of a species after a given time step. This value will be used if a switch_min is not provided.
+        The default value is 0.03
     :type switch_tol: float
+
     :param switch_min:  ***FOR USE WITH BasicTauHybridSolver ONLY***
-    Minimum population value at which species will be represented as continuous. If a value is given, switch_min will be
-    used instead of switch_tol
+        Minimum population value at which species will be represented as continuous. If a value is given, switch_min will be
+        used instead of switch_tol
     :type switch_min: float
     """
 
@@ -83,6 +90,7 @@ class Species(SortableObject, Jsonify):
     def set_initial_value(self, num):
         """
         Setter method for initial_value of a population
+
         :param num: Integer to set initial species population
         :raises SpeciesError: If num is non-negative or a decimal number
         """

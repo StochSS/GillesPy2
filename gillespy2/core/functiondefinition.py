@@ -8,10 +8,12 @@ class FunctionDefinition(SortableObject, Jsonify):
 
     :param name: Name of the function to be made and called
     :type name: str
+
     :param function: Defined function body of operation to be performed.
     :type function: str
+
     :param variables: String names of Variables to be used as arguments to function.
-    :type variables: list of strings
+    :type variables: list[str]
     """
 
     def __init__(self, name="", function=None, args=[]):
