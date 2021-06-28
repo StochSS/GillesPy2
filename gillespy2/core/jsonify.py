@@ -293,7 +293,7 @@ class TranslationTable(Jsonify):
         :type obj: object
 
         :param translation_table: The mapping to translate by.
-        :param translation_table: TranslationTable
+        :type translation_table: TranslationTable
         """
 
         # If a translation table exists on the object, remove and save it.
