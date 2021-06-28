@@ -137,7 +137,7 @@
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>cache_dir</strong> (<em>str</em>) – The directory to use as a cache.</p></li>
-<li><p><strong>force_rebuild</strong> – Delete and rebuild the cache directory.</p></li>
+<li><p><strong>force_rebuild</strong> (<em>bool</em>) – Delete and rebuild the cache directory.</p></li>
 </ul>
 </dd>
 </dl>
@@ -170,10 +170,10 @@
 Only valid after the simulation has been built.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>String containing path to executable.</p>
+<dd class="field-odd"><p>String containing path to executable.
+None if no executable exists.</p>
 </dd>
 </dl>
-<p>None if no executable exists.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -279,15 +279,12 @@ The values of the dictionary are the values their corresponding macro should be 
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>sanitized_propensities</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Ordered list of strings containing propensity functions.</p></li>
-<li><p><strong>ode</strong> – Boolean indicating whether the provided propensities are stochastic or deterministic.</p></li>
+<li><p><strong>ode</strong> (<em>bool</em>) – Boolean indicating whether the provided propensities are stochastic or deterministic.
+If set to True, then propensities will be assumed to be ODE propensities.</p></li>
 </ul>
 </dd>
-</dl>
-<p>If set to True, then propensities will be assumed to be ODE propensities.
-:type ode: bool</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Dictionary containing propensity macro definitions.</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dictionary containing propensity macro definitions.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -299,23 +296,15 @@ The values of the dictionary are the values their corresponding macro should be 
 Formats the relevant reactions and propensities to be passed to a C++ simulation template.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>reactions</strong> – Ordered list of reactions.</p>
-</dd>
-</dl>
-<p>The reaction’s index in this list should correspond to its reaction id.
-For example, the reaction at reactions[3] has id 3.
-:type reactions: list[Reaction]</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>sanitized_names</strong> – Ordered list of sanitized names for the reactions.</p>
-</dd>
-</dl>
-<p>The name’s index in this list should match its corresponding reaction.
-sanitized_names[i] is matched to reactions[i].
-:type sanitized_names: list[str]</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>species_map</strong> (<a class="reference internal" href="gillespy2.core.html#gillespy2.core.OrderedDict" title="gillespy2.core.OrderedDict"><em>OrderedDict</em></a><em>[</em><em>str</em><em>, </em><em>int</em><em>]</em>) – Ordered dictionary mapping an unsanitized species name to its id.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reactions</strong> (<em>list</em><em>[</em><a class="reference internal" href="gillespy2.core.html#gillespy2.core.reaction.Reaction" title="gillespy2.core.reaction.Reaction"><em>Reaction</em></a><em>]</em>) – Ordered list of reactions.
+The reaction’s index in this list should correspond to its reaction id.
+For example, the reaction at reactions[3] has id 3.</p></li>
+<li><p><strong>sanitized_names</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Ordered list of sanitized names for the reactions.
+The name’s index in this list should match its corresponding reaction.
+sanitized_names[i] is matched to reactions[i].</p></li>
+<li><p><strong>species_map</strong> (<a class="reference internal" href="gillespy2.core.html#gillespy2.core.OrderedDict" title="gillespy2.core.OrderedDict"><em>OrderedDict</em></a><em>[</em><em>str</em><em>, </em><em>int</em><em>]</em>) – Ordered dictionary mapping an unsanitized species name to its id.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Dictionary of macro definitions for reactions.</p>
@@ -332,15 +321,12 @@ Formats the relevant species data to be passed to a C++ simulation template.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>species</strong> (<em>gillespy2.Species</em>) – Ordered list of species.</p></li>
-<li><p><strong>sanitized_names</strong> – Ordered list of names corresponding to species.</p></li>
+<li><p><strong>sanitized_names</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Ordered list of names corresponding to species.
+sanitized_names[i] should map to species[i].</p></li>
 </ul>
 </dd>
-</dl>
-<p>sanitized_names[i] should map to species[i].
-:type sanitized_names: list[str]</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Dictionary of macro definitions for species and data related to species.</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dictionary of macro definitions for species and data related to species.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -354,13 +340,14 @@ Passed dictionaries/lists are assumed to be sanitized and sorted.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>parameters</strong> (<em>list</em><em>[</em><em>gillespy2.Parameter</em><em>]</em>) – Ordered list of runtime parameters.</p></li>
-<li><p><strong>sanitized_names</strong> – Ordered list of names for their corresponding runtime parameters.</p></li>
+<li><p><strong>sanitized_names</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Ordered list of names for their corresponding runtime parameters.
+sanitized_names[i] should match parameters[i].</p></li>
 </ul>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The result as a list of tuples containing key-value pairs to be templated.</p>
+</dd>
 </dl>
-<p>sanitized_names[i] should match parameters[i].
-:type sanitized_names: list[str]</p>
-<p>Returns the result as a list of tuples containing key-value pairs to be templated.</p>
 </dd></dl>
 
 <dl class="py function">

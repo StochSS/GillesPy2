@@ -111,18 +111,18 @@
 <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">ModelError</span><span class="p">,</span> <span class="n">ExecutionError</span>
 
 <div class="viewcode-block" id="TauLeapingSolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.TauLeapingSolver">[docs]</a><span class="k">class</span> <span class="nc">TauLeapingSolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;TauLeapingSolver&#39;</span>
-    <span class="n">rc</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">stop_event</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">pause_event</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A Tau Leaping Solver for GillesPy2 models.  This solver uses an algorithm calculates</span>
 <span class="sd">    multiple reactions in a single step over a given tau step size.  The change in propensities</span>
 <span class="sd">    over this step are bounded by bounding the relative change in state, yielding greatly improved</span>
 <span class="sd">    run-time performance with very little trade-off in accuracy.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;TauLeapingSolver&quot;</span>
+    <span class="n">rc</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">stop_event</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">pause_event</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;TauLeapingSolver&quot;</span>
@@ -135,10 +135,11 @@
 
     <span class="k">def</span> <span class="nf">__get_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">save_time</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">reactions</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Helper Function to get reactions fired from t to t+tau.  Returns three values:</span>
-<span class="sd">        rxn_count - dict with key=Reaction channel value=number of times fired</span>
-<span class="sd">        curr_state - dict containing all state variables for system at current time</span>
-<span class="sd">        curr_time - float representing current time</span>
+<span class="sd">        Helper Function to get reactions fired from t to t+tau.  </span>
+<span class="sd">        :returns: Three values:</span>
+<span class="sd">            rxn_count - dict with key=Reaction channel value=number of times fired</span>
+<span class="sd">            curr_state - dict containing all state variables for system at current time</span>
+<span class="sd">            curr_time - float representing current time</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">curr_time</span> <span class="o">+</span> <span class="n">step</span> <span class="o">&gt;</span> <span class="n">save_time</span><span class="p">:</span>
@@ -165,7 +166,7 @@
 <div class="viewcode-block" id="TauLeapingSolver.get_solver_settings"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.TauLeapingSolver.get_solver_settings">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_solver_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.</span>
+<span class="sd">        :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;number_of_trajectories&#39;</span><span class="p">,</span> <span class="s1">&#39;increment&#39;</span><span class="p">,</span> <span class="s1">&#39;seed&#39;</span><span class="p">,</span> <span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;profile&#39;</span><span class="p">,</span><span class="s1">&#39;timeout&#39;</span><span class="p">,</span> <span class="s1">&#39;tau_tol&#39;</span><span class="p">)</span></div>
 
@@ -181,29 +182,39 @@
 
 <span class="sd">            :param model: GillesPy2 model object to simulate</span>
 <span class="sd">            :type model: gillespy2.Model</span>
+
 <span class="sd">            :param t: Simulation run time</span>
 <span class="sd">            :type t: int</span>
+
 <span class="sd">            :param number_of_trajectories: Number of trajectories to simulate</span>
 <span class="sd">            :type number_of_trajectories: int</span>
+
 <span class="sd">            :param increment: Save point increment for recording data</span>
 <span class="sd">            :type increment: float</span>
+
 <span class="sd">            :param seed: The random seed for the simulation. Optional, defaults to None</span>
 <span class="sd">            :type seed: int</span>
+
 <span class="sd">            :param debug: Set to True to provide additional debug information about the simulation</span>
 <span class="sd">            :type debug: bool</span>
+
 <span class="sd">            :param profile: Set to True to provide information about step size (tau) taken at each step.</span>
 <span class="sd">            :type profile: bool</span>
+
 <span class="sd">            :param live_output: The type of output to be displayed by solver. Can be &quot;progress&quot;, &quot;text&quot;, or &quot;graph&quot;.</span>
 <span class="sd">            :type live_output: str</span>
+
 <span class="sd">            :param live_output_options: COntains options for live_output. By default {&quot;interval&quot;:1}. &quot;interval&quot;</span>
-<span class="sd">            specifies seconds between displaying. &quot;clear_output&quot; specifies if display should be refreshed with each</span>
-<span class="sd">            display.</span>
+<span class="sd">                specifies seconds between displaying. &quot;clear_output&quot; specifies if display should be refreshed with each</span>
+<span class="sd">                display.</span>
 <span class="sd">            :type live_output_options: dict</span>
+
 <span class="sd">            :param timeout:</span>
 <span class="sd">            :param resume:</span>
 <span class="sd">            :param tau_tol:</span>
 <span class="sd">            :param kwargs:</span>
-<span class="sd">            :return:</span>
+
+<span class="sd">            :returns:</span>
 <span class="sd">            &quot;&quot;&quot;</span>
 
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>

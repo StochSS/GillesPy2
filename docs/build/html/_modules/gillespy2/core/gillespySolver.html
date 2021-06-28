@@ -104,39 +104,40 @@
 
 
 <div class="viewcode-block" id="GillesPySolver"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver">[docs]</a><span class="k">class</span> <span class="nc">GillesPySolver</span><span class="p">:</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;GillesPySolver&quot;</span>
     <span class="sd">&quot;&quot;&quot; </span>
-<span class="sd">    Abstract class for a solver. This is generally called from within a</span>
-<span class="sd">    gillespy Model through the Model.run function. Returns simulation </span>
-<span class="sd">    trajectories.</span>
-
-<span class="sd">    :param model: The model on which the solver will operate.</span>
-<span class="sd">    :type model: gillespy.Model</span>
-<span class="sd">    </span>
-<span class="sd">    :param t: The end time of the solver</span>
-<span class="sd">    :type t: int</span>
-<span class="sd">    </span>
-<span class="sd">    :param number_of_trajectories: The number of times to sample the chemical master equation. Each</span>
-<span class="sd">    trajectory will be returned at the end of the simulation.</span>
-<span class="sd">    :type number_of_trajectories: int</span>
-
-<span class="sd">    :param increment: The time step of the solution</span>
-<span class="sd">    :type increment: float</span>
-<span class="sd">   </span>
-<span class="sd">    :param seed: The random seed for the simulation. Defaults to None. </span>
-<span class="sd">    :type seed: int</span>
-<span class="sd">    </span>
-<span class="sd">    :param debug: Set to True to provide additional debug information about the     </span>
-<span class="sd">    simulation.</span>
-<span class="sd">    :type debug: bool</span>
-<span class="sd">    </span>
-<span class="sd">    :param show_labels: Use names of species as index of result object rather than position numbers.</span>
-<span class="sd">    :type show_labels: bool</span>
+<span class="sd">    Abstract class for a solver.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;GillesPySolver&quot;</span>
+
 <div class="viewcode-block" id="GillesPySolver.run"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; </span>
 <span class="sd">        Call out and run the solver. Collect the results.</span>
+
+<span class="sd">        :param model: The model on which the solver will operate.</span>
+<span class="sd">        :type model: gillespy.Model</span>
+<span class="sd">        </span>
+<span class="sd">        :param t: The end time of the solver</span>
+<span class="sd">        :type t: int</span>
+<span class="sd">        </span>
+<span class="sd">        :param number_of_trajectories: The number of times to sample the chemical master equation. Each</span>
+<span class="sd">            trajectory will be returned at the end of the simulation.</span>
+<span class="sd">        :type number_of_trajectories: int</span>
+
+<span class="sd">        :param increment: The time step of the solution</span>
+<span class="sd">        :type increment: float</span>
+<span class="sd">    </span>
+<span class="sd">        :param seed: The random seed for the simulation. Defaults to None. </span>
+<span class="sd">        :type seed: int</span>
+<span class="sd">        </span>
+<span class="sd">        :param debug: Set to True to provide additional debug information about the simulation.</span>
+<span class="sd">        :type debug: bool</span>
+<span class="sd">        </span>
+<span class="sd">        :param show_labels: Use names of species as index of result object rather than position numbers.</span>
+<span class="sd">        :type show_labels: bool</span>
+
+<span class="sd">        :returns: Simulation trajectories.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="s2">&quot;This abstract solver class cannot be used directly.&quot;</span><span class="p">)</span></div>
 

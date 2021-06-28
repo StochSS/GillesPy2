@@ -131,12 +131,14 @@
     <span class="k">def</span> <span class="nf">__f</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">c_prop</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The right hand side of the differential equation, uses scipy.integrate ode</span>
+
 <span class="sd">        :param t: time as a numpy array</span>
 <span class="sd">        :param y: species pops as a list</span>
 <span class="sd">        :param curr_state: dictionary of eval variables</span>
 <span class="sd">        :param model: model being simulated</span>
 <span class="sd">        :param c_prop: precompiled reaction propensity function</span>
-<span class="sd">        :return: integration step</span>
+
+<span class="sd">        :returns: integration step</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">curr_state</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">t</span>
         <span class="n">state_change</span> <span class="o">=</span>  <span class="n">OrderedDict</span><span class="p">()</span>
@@ -156,7 +158,7 @@
 <div class="viewcode-block" id="ODESolver.get_solver_settings"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.ODESolver.get_solver_settings">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_solver_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.</span>
+<span class="sd">        :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;number_of_trajectories&#39;</span><span class="p">,</span> <span class="s1">&#39;increment&#39;</span><span class="p">,</span> <span class="s1">&#39;integrator&#39;</span><span class="p">,</span> <span class="s1">&#39;integrator_options&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;timeout&#39;</span><span class="p">)</span></div>
@@ -165,27 +167,27 @@
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="s1">&#39;lsoda&#39;</span><span class="p">,</span>
             <span class="n">integrator_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">live_output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">live_output_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-
 <span class="sd">        :param model: gillespy2.model class object</span>
 <span class="sd">        :param t: end time of simulation</span>
 <span class="sd">        :param number_of_trajectories: Should be 1.</span>
 <span class="sd">            This is deterministic and will always have same results</span>
 <span class="sd">        :param increment: time step increment for plotting</span>
 <span class="sd">        :param integrator: integrator to be used form scipy.integrate.ode. Options include &#39;vode&#39;, &#39;zvode&#39;, &#39;lsoda&#39;,</span>
-<span class="sd">        &#39;dopri5&#39;, and &#39;dop835&#39;.  For more details,</span>
-<span class="sd">        see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html</span>
+<span class="sd">            &#39;dopri5&#39;, and &#39;dop835&#39;.  For more details,</span>
+<span class="sd">            see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html</span>
 
 <span class="sd">        :param integrator_options: a dictionary containing options to the scipy integrator. for a list of options,</span>
-<span class="sd">        see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.</span>
+<span class="sd">            see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.</span>
 <span class="sd">            Example use: {max_step : 0, rtol : .01}</span>
 
 <span class="sd">        :param timeout: If set, if simulation takes longer than timeout, will exit.</span>
 <span class="sd">        :type timeout: int</span>
+
 <span class="sd">        :param resume: Result of a previously run simulation, to be resumed</span>
-<span class="sd">        :param live_output : str The type of output to be displayed by solver. Can be &quot;progress&quot;, &quot;text&quot;, or &quot;graph&quot;.</span>
-<span class="sd">        :param live_output_options : dictionary contains options for live_output. By default {&quot;interval&quot;:1}.</span>
-<span class="sd">                    &quot;interval&quot; specifies seconds between displaying.</span>
-<span class="sd">                    &quot;clear_output&quot; specifies if display should be refreshed with each displa</span>
+<span class="sd">        :param live_output: str The type of output to be displayed by solver. Can be &quot;progress&quot;, &quot;text&quot;, or &quot;graph&quot;.</span>
+<span class="sd">        :param live_output_options: dictionary contains options for live_output. By default {&quot;interval&quot;:1}.</span>
+<span class="sd">            &quot;interval&quot; specifies seconds between displaying.</span>
+<span class="sd">            &quot;clear_output&quot; specifies if display should be refreshed with each displa</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
             <span class="bp">self</span> <span class="o">=</span> <span class="n">ODESolver</span><span class="p">()</span>

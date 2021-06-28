@@ -184,10 +184,6 @@
 
 
 <div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">SortableObject</span><span class="p">,</span> <span class="n">Jsonify</span><span class="p">):</span>
-    <span class="c1"># reserved names for model species/parameter names, volume, and operators.</span>
-    <span class="n">reserved_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;vol&#39;</span><span class="p">]</span>
-    <span class="n">special_characters</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;^&#39;</span><span class="p">]</span>
-
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Representation of a well mixed biochemical model. Contains reactions,</span>
 <span class="sd">    parameters, species.</span>
@@ -196,24 +192,27 @@
 <span class="sd">    :type name: str</span>
 <span class="sd">    </span>
 <span class="sd">    :param population: The type of model being described. A discrete stochastic model is a</span>
-<span class="sd">    population model (True), a deterministic model is a concentration model</span>
-<span class="sd">    (False). Automatic conversion from population to concentration models</span>
-<span class="sd">    may be used, by setting the volume parameter.</span>
-<span class="sd">    Attributes</span>
+<span class="sd">        population model (True), a deterministic model is a concentration model</span>
+<span class="sd">        (False). Automatic conversion from population to concentration models</span>
+<span class="sd">        may be used, by setting the volume parameter.</span>
 <span class="sd">    :type population: bool</span>
 
 <span class="sd">    :param volume: The volume of the system matters when converting to from population to</span>
-<span class="sd">    concentration form. This will also set a parameter &quot;vol&quot; for use in</span>
-<span class="sd">    custom (i.e. non-mass-action) propensity functions.  </span>
+<span class="sd">        concentration form. This will also set a parameter &quot;vol&quot; for use in</span>
+<span class="sd">        custom (i.e. non-mass-action) propensity functions.  </span>
 <span class="sd">    :type volume: float   </span>
 <span class="sd">    </span>
 <span class="sd">    :param tspan: The timepoints at which the model should be simulated. If None, a</span>
-<span class="sd">    default timespan is added. May be set later, see Model.timespan</span>
+<span class="sd">        default timespan is added. May be set later, see Model.timespan</span>
 <span class="sd">    :type tspan: numpy ndarray</span>
 <span class="sd">    </span>
 <span class="sd">    :param annotation: Option further description of model</span>
 <span class="sd">    :type annotation: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># reserved names for model species/parameter names, volume, and operators.</span>
+    <span class="n">reserved_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;vol&#39;</span><span class="p">]</span>
+    <span class="n">special_characters</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;^&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">population</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">volume</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">tspan</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="s2">&quot;model&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Create an empty model. &quot;&quot;&quot;</span>
@@ -354,7 +353,8 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate a dictionary mapping user chosen species names to simplified formats which will be used</span>
 <span class="sd">        later on by GillesPySolvers evaluating reaction propensity functions.</span>
-<span class="sd">        :return: the dictionary mapping user species names to their internal GillesPy notation.</span>
+
+<span class="sd">        :returns: the dictionary mapping user species names to their internal GillesPy notation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">species_name_mapping</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([])</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
@@ -399,8 +399,8 @@
 
 <div class="viewcode-block" id="Model.get_all_species"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.get_all_species">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_species</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns a dict of all species in the model, of the form:</span>
-<span class="sd">        {name : species object}</span>
+<span class="sd">        :returns: A dict of all species in the model, of the form:</span>
+<span class="sd">            {name : species object}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span></div>
 
@@ -459,7 +459,8 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate a dictionary mapping user chosen parameter names to simplified formats which will be used</span>
 <span class="sd">        later on by GillesPySolvers evaluating reaction propensity functions.</span>
-<span class="sd">        :return: the dictionary mapping user parameter names to their internal GillesPy notation.</span>
+
+<span class="sd">        :returns: the dictionary mapping user parameter names to their internal GillesPy notation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">parameter_name_mapping</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="n">parameter_name_mapping</span><span class="p">[</span><span class="s1">&#39;vol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span>
@@ -482,8 +483,8 @@
 
 <div class="viewcode-block" id="Model.get_all_parameters"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.get_all_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns a dict of all parameters in the model, of the form:</span>
-<span class="sd">        {name : parameter object}</span>
+<span class="sd">        :returns: A dict of all parameters in the model, of the form:</span>
+<span class="sd">            {name : parameter object}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span></div>
 
@@ -526,7 +527,7 @@
 <span class="sd">        :type p_name: str</span>
 
 <span class="sd">        :param expression: String that may be executed in C, describing the value of the</span>
-<span class="sd">        parameter. May reference other parameters by name. (e.g. &quot;k1*4&quot;)</span>
+<span class="sd">            parameter. May reference other parameters by name. (e.g. &quot;k1*4&quot;)</span>
 <span class="sd">        :type expression: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -573,7 +574,7 @@
 <span class="sd">        Adds a reaction, or list of reactions to the model.</span>
 
 <span class="sd">        :param reactions: The reaction or list of reaction objects to be added to the model</span>
-<span class="sd">        object.</span>
+<span class="sd">            object.</span>
 <span class="sd">        :type reactions: Reaction, or list of Reactions</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -660,6 +661,7 @@
 <div class="viewcode-block" id="Model.add_event"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.add_event">[docs]</a>    <span class="k">def</span> <span class="nf">add_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds an event, or list of events to the model.</span>
+
 <span class="sd">        :param event: The event or list of event objects to be added to the model object.</span>
 <span class="sd">        :type event: Event, or list of Events</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -686,8 +688,9 @@
 <div class="viewcode-block" id="Model.add_function_definition"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.add_function_definition">[docs]</a>    <span class="k">def</span> <span class="nf">add_function_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">function_definitions</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add FunctionDefinition or list of FunctionDefinitions</span>
+
 <span class="sd">        :param function_definitions: The FunctionDefinition, or list of FunctionDefinitions to be added to the model</span>
-<span class="sd">        object.</span>
+<span class="sd">            object.</span>
 <span class="sd">        :type function_definitions: FunctionDefinition or list of FunctionDefinitions.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">function_definitions</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -706,6 +709,7 @@
 <div class="viewcode-block" id="Model.add_assignment_rule"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.add_assignment_rule">[docs]</a>    <span class="k">def</span> <span class="nf">add_assignment_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">assignment_rules</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add AssignmentRule or list of AssignmentRules to the model object.</span>
+
 <span class="sd">        :param assignment_rules: The AssignmentRule or list of AssignmentRules to be added to the model object.</span>
 <span class="sd">        :type assignment_rules: AssignmentRule or list of AssignmentRules</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -742,8 +746,8 @@
 <span class="sd">        Set the time span of simulation. StochKit does not support non-uniform</span>
 <span class="sd">        timespans. </span>
 
-<span class="sd">        :param time_span: Evenly-spaced list of times at which to sample the species</span>
-<span class="sd">        populations during the simulation. Best to use the form np.linspace(&lt;start time&gt;, &lt;end time&gt;, &lt;number of time-points, inclusive&gt;)</span>
+<span class="sd">        :param time_span: Evenly-spaced list of times at which to sample the species populations during the simulation. </span>
+<span class="sd">            Best to use the form np.linspace(&lt;start time&gt;, &lt;end time&gt;, &lt;number of time-points, inclusive&gt;)</span>
 <span class="sd">        :type time_span: numpy ndarray</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
@@ -759,13 +763,13 @@
 <div class="viewcode-block" id="Model.get_reaction"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.get_reaction">[docs]</a>    <span class="k">def</span> <span class="nf">get_reaction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rname</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param rname: name of reaction to return</span>
-<span class="sd">        :return: Reaction object</span>
+<span class="sd">        :returns: Reaction object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">rname</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="Model.get_all_reactions"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.get_all_reactions">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :return: dict of all Reaction objects</span>
+<span class="sd">        :returns: dict of all Reaction objects</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span></div>
 
@@ -786,19 +790,20 @@
 <div class="viewcode-block" id="Model.get_event"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.get_event">[docs]</a>    <span class="k">def</span> <span class="nf">get_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ename</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param ename: Name of Event to get</span>
-<span class="sd">        :return: Event object</span>
+<span class="sd">        :returns: Event object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfEvents</span><span class="p">[</span><span class="n">ename</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="Model.get_all_events"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.get_all_events">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_events</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :return: dict of all Event objects</span>
+<span class="sd">        :returns: dict of all Event objects</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfEvents</span></div>
 
 <div class="viewcode-block" id="Model.delete_event"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.delete_event">[docs]</a>    <span class="k">def</span> <span class="nf">delete_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ename</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Removes specified Event from model</span>
+
 <span class="sd">        :param ename: Name of Event to be removed</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">listOfEvents</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">ename</span><span class="p">)</span>
@@ -814,13 +819,13 @@
 <div class="viewcode-block" id="Model.get_rate_rule"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.get_rate_rule">[docs]</a>    <span class="k">def</span> <span class="nf">get_rate_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rname</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param rname: Name of Rate Rule to get</span>
-<span class="sd">        :return: RateRule object</span>
+<span class="sd">        :returns: RateRule object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfRateRules</span><span class="p">[</span><span class="n">rname</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="Model.get_all_rate_rules"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.get_all_rate_rules">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_rate_rules</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :return: dict of all Rate Rule objects</span>
+<span class="sd">        :returns: dict of all Rate Rule objects</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfRateRules</span></div>
 
@@ -842,19 +847,20 @@
 <div class="viewcode-block" id="Model.get_assignment_rule"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.get_assignment_rule">[docs]</a>    <span class="k">def</span> <span class="nf">get_assignment_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aname</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param aname: Name of Assignment Rule to get</span>
-<span class="sd">        :return: Assignment Rule object</span>
+<span class="sd">        :returns: Assignment Rule object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfAssignmentRules</span><span class="p">[</span><span class="n">aname</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="Model.get_all_assignment_rules"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.get_all_assignment_rules">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_assignment_rules</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :return: dict of models Assignment Rules</span>
+<span class="sd">        :returns: dict of models Assignment Rules</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfAssignmentRules</span></div>
 
 <div class="viewcode-block" id="Model.delete_assignment_rule"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.delete_assignment_rule">[docs]</a>    <span class="k">def</span> <span class="nf">delete_assignment_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aname</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Removes an assignment rule from a model</span>
+
 <span class="sd">        :param aname: Name of AssignmentRule object to be removed from model</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">listOfAssignmentRules</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">aname</span><span class="p">)</span>
@@ -870,19 +876,20 @@
 <div class="viewcode-block" id="Model.get_function_definition"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.get_function_definition">[docs]</a>    <span class="k">def</span> <span class="nf">get_function_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param fname: name of Function to get</span>
-<span class="sd">        :return: FunctionDefinition object</span>
+<span class="sd">        :returns: FunctionDefinition object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfFunctionDefinitions</span><span class="p">[</span><span class="n">fname</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="Model.get_all_function_definitions"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.get_all_function_definitions">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_function_definitions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :return: Dict of models function definitions</span>
+<span class="sd">        :returns: Dict of models function definitions</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfFunctionDefinitions</span></div>
 
 <div class="viewcode-block" id="Model.delete_function_definition"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.delete_function_definition">[docs]</a>    <span class="k">def</span> <span class="nf">delete_function_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Removes specified Function Definition from model</span>
+
 <span class="sd">        :param fname: Name of Function Definition to be removed</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">listOfFunctionDefinitions</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
@@ -897,9 +904,10 @@
 
 <div class="viewcode-block" id="Model.get_element"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.get_element">[docs]</a>    <span class="k">def</span> <span class="nf">get_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ename</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        get element specified by name</span>
+<span class="sd">        Get element specified by name.</span>
+
 <span class="sd">        :param ename: name of element to search for</span>
-<span class="sd">        :return:value of element, or &#39;element not found&#39;</span>
+<span class="sd">        :returns: value of element, or &#39;element not found&#39;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">ename</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_reaction</span><span class="p">(</span><span class="n">ename</span><span class="p">)</span>
@@ -922,10 +930,12 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Finds best solver for the users simulation. Currently, AssignmentRules, RateRules, FunctionDefinitions,</span>
 <span class="sd">        Events, and Species with a dynamic, or continuous population must use the TauHybridSolver.</span>
+
 <span class="sd">        :param precompile: If True, and the model contains no AssignmentRules, RateRules, FunctionDefinitions, Events,</span>
-<span class="sd">        or Species with a dynamic or continuous population, it will choose SSACSolver</span>
+<span class="sd">            or Species with a dynamic or continuous population, it will choose SSACSolver</span>
 <span class="sd">        :type precompile: bool</span>
-<span class="sd">        :return: gillespy2.gillespySolver</span>
+
+<span class="sd">        :returns: gillespy2.gillespySolver</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">gillespy2.solvers.numpy</span> <span class="kn">import</span> <span class="n">can_use_numpy</span>
         <span class="n">hybrid_check</span> <span class="o">=</span> <span class="kc">False</span>
@@ -1004,8 +1014,7 @@
 <span class="sd">        parameters to be set here.</span>
 
 <span class="sd">        :param solver: The solver by which to simulate the model. This solver object may</span>
-<span class="sd">        be initialized separately to specify an algorithm. Optional,</span>
-<span class="sd">        defaults to ssa solver.</span>
+<span class="sd">            be initialized separately to specify an algorithm. Optional, defaults to ssa solver.</span>
 <span class="sd">        :type solver: gillespy.GillesPySolver</span>
 
 <span class="sd">        :param timeout: Allows a time_out value in seconds to be sent to a signal handler, restricting simulation run-time</span>
@@ -1017,20 +1026,21 @@
 <span class="sd">        :param solver_args: Solver-specific arguments to be passed to solver.run()</span>
 
 <span class="sd">        :param cpp_support: INTERNAL USE ONLY, flag for whether or not a computer has the capability to compile a</span>
-<span class="sd">        C++ program.</span>
+<span class="sd">            C++ program.</span>
 <span class="sd">        :type cpp_support: bool</span>
-
-<span class="sd">        :return  If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is</span>
-<span class="sd">        True,returns a Results object that inherits UserList and contains one or more Trajectory objects that</span>
-<span class="sd">        inherit UserDict. Results object supports graphing and csv export.</span>
 
 <span class="sd">        :param algorithm: Specify algorithm (&#39;ODE&#39;, &#39;Tau-Leaping&#39;, or &#39;SSA&#39;) for GillesPy2 to automatically pick best solver using that algorithm.</span>
 <span class="sd">        :type algorithm: str</span>
 
+<span class="sd">        :returns:  If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is</span>
+<span class="sd">            True,returns a Results object that inherits UserList and contains one or more Trajectory objects that</span>
+<span class="sd">            inherit UserDict. Results object supports graphing and csv export.</span>
+
 <span class="sd">        To pause a simulation and retrieve data before the simulation, keyboard interrupt the simulation by pressing</span>
 <span class="sd">        control+c or pressing stop on a jupyter notebook. To resume a simulation, pass your previously ran results</span>
 <span class="sd">        into the run method, and set t = to the time you wish the resuming simulation to end (run(resume=results, t=x)).</span>
-<span class="sd">        Pause/Resume is only supported for SINGLE TRAJECTORY simulations. T MUST BE SET OR UNEXPECTED BEHAVIOR MAY OCCUR.</span>
+<span class="sd">        </span>
+<span class="sd">        **Pause/Resume is only supported for SINGLE TRAJECTORY simulations. T MUST BE SET OR UNEXPECTED BEHAVIOR MAY OCCUR.**</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">show_labels</span><span class="p">:</span>
@@ -1096,21 +1106,26 @@
 <div class="viewcode-block" id="StochMLDocument.from_model"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.StochMLDocument.from_model">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_model</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Creates an StochKit XML document from an exisiting Mdoel object.</span>
+<span class="sd">        Creates an StochKit XML document from an exisiting Model object.</span>
 <span class="sd">        This method assumes that all the parameters in the model are already</span>
 <span class="sd">        resolved to scalar floats (see Model.resolveParamters).</span>
 
-<span class="sd">        Note, this method is intended to be used interanally by the models</span>
+<span class="sd">        Note, this method is intended to be used internally by the models</span>
 <span class="sd">        &#39;serialization&#39; function, which performs additional operations and</span>
-<span class="sd">        tests on the model prior to writing out the XML file. You should NOT \</span>
-<span class="sd">        do:</span>
+<span class="sd">        tests on the model prior to writing out the XML file. </span>
+<span class="sd">        </span>
+<span class="sd">        You should NOT do:</span>
 
-<span class="sd">        document = StochMLDocument.fromModel(model)</span>
-<span class="sd">        print document.toString()</span>
+<span class="sd">        .. code-block:: python</span>
 
-<span class="sd">        You SHOULD do</span>
+<span class="sd">            document = StochMLDocument.fromModel(model)</span>
+<span class="sd">            print document.toString()</span>
 
-<span class="sd">        print model.serialize()</span>
+<span class="sd">        You SHOULD do:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            print model.serialize()</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 

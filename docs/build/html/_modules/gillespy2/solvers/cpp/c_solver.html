@@ -123,6 +123,24 @@
     <span class="n">FAILED</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span></div>
 
 <div class="viewcode-block" id="CSolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.c_solver.CSolver">[docs]</a><span class="k">class</span> <span class="nc">CSolver</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class implements base behavior that will be needed for C++ solver implementees.</span>
+
+<span class="sd">    :param model: The Model to simulate.</span>
+<span class="sd">    :type model: Model</span>
+
+<span class="sd">    :param output_directory: The working output directory.</span>
+<span class="sd">    :type output_directory: str</span>
+
+<span class="sd">    :param delete_directory: If True then the output_directory will be deleted upon completetion.</span>
+<span class="sd">    :type delete_directory: bool</span>
+
+<span class="sd">    :param resume: Resume data from a previous simulation run.</span>
+
+<span class="sd">    :param variable: Indicates whether the simulation should be variable.</span>
+<span class="sd">    :type variable: bool</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">delete_directory</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delete_directory</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
@@ -169,11 +187,14 @@
 <span class="sd">        :param model: The Model to simulate.</span>
 <span class="sd">        :type model: gillespy2.Model</span>
 
-<span class="sd">        :param solver_name: The name of the simulation to execute.</span>
-<span class="sd">        :type str:</span>
+<span class="sd">        :param simulation_name: The name of the simulation to execute.</span>
+<span class="sd">        :type simulation_name: str</span>
 
-<span class="sd">        :param output_directory: The directory to output the simulation executable.</span>
-<span class="sd">        :type str:</span>
+<span class="sd">        :param variable: If True the simulation will be variable, False if not.</span>
+<span class="sd">        :type variable: bool</span>
+
+<span class="sd">        :param debug: Enables or disables debug behavior.</span>
+<span class="sd">        :type debug: bool</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Prepare the build workspace.</span>
@@ -193,6 +214,12 @@
 <span class="sd">        :param sim_exec: The executable simulation to run.</span>
 <span class="sd">        :type sim_exec: str</span>
 
+<span class="sd">        :param sim_args: The arguments to pass on simulation run.</span>
+<span class="sd">        :type sim_args: list[str]</span>
+
+<span class="sd">        :param decoder: The SimDecoder instance that will handle simulation output.</span>
+<span class="sd">        :type decoder: SimDecoder</span>
+
 <span class="sd">        :returns: A future which represents the currently executing run_simulation job.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -205,6 +232,12 @@
 
 <span class="sd">        :param sim_exec: The executable simulation to run.</span>
 <span class="sd">        :type sim_exec: str</span>
+
+<span class="sd">        :param sim_args: The arguments to pass on simulation run.</span>
+<span class="sd">        :type sim_args: list[str]</span>
+
+<span class="sd">        :param decoder: The SimDecoder instance that will handle simulation output.</span>
+<span class="sd">        :type decoder: SimDecoder</span>
 
 <span class="sd">        :returns: The return_code of the simulation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -266,6 +299,7 @@
 <span class="sd">        Note: Do not prefix a key with `-` as this will be handled automatically.</span>
 
 <span class="sd">        :param args_dict: A dictionary of named arguments.</span>
+<span class="sd">        :type args_dict: dict[str, str]</span>
 
 <span class="sd">        :returns: A formatted list of arguments.</span>
 <span class="sd">        &quot;&quot;&quot;</span>

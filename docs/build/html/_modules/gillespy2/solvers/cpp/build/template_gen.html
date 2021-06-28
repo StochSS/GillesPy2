@@ -136,7 +136,7 @@
 <span class="sd">    :param variable: Set to true to allow for non-constant parameter values.</span>
 <span class="sd">    :type variable: bool</span>
 
-<span class="sd">    :return: Dictionary of fully-formatted macro definitions.</span>
+<span class="sd">    :returns: Dictionary of fully-formatted macro definitions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
 
@@ -209,10 +209,10 @@
 <span class="sd">    :type parameters: list[gillespy2.Parameter]</span>
 
 <span class="sd">    :param sanitized_names: Ordered list of names for their corresponding runtime parameters.</span>
-<span class="sd">    sanitized_names[i] should match parameters[i].</span>
+<span class="sd">        sanitized_names[i] should match parameters[i].</span>
 <span class="sd">    :type sanitized_names: list[str]</span>
 
-<span class="sd">    Returns the result as a list of tuples containing key-value pairs to be templated.</span>
+<span class="sd">    :returns: The result as a list of tuples containing key-value pairs to be templated.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Entries get defined as constant if variable is set to true.</span>
     <span class="n">parameter_type</span> <span class="o">=</span> <span class="s2">&quot;VARIABLE&quot;</span> <span class="k">if</span> <span class="n">variable</span> <span class="k">else</span> <span class="s2">&quot;CONSTANT&quot;</span>
@@ -236,10 +236,10 @@
 <span class="sd">    :type species: gillespy2.Species</span>
 
 <span class="sd">    :param sanitized_names: Ordered list of names corresponding to species.</span>
-<span class="sd">    sanitized_names[i] should map to species[i].</span>
+<span class="sd">        sanitized_names[i] should map to species[i].</span>
 <span class="sd">    :type sanitized_names: list[str]</span>
 
-<span class="sd">    :return: Dictionary of macro definitions for species and data related to species.</span>
+<span class="sd">    :returns: Dictionary of macro definitions for species and data related to species.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Parse and format species initial populations</span>
     <span class="n">populations</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">specimen</span><span class="o">.</span><span class="n">initial_value</span><span class="p">)</span> <span class="k">for</span> <span class="n">specimen</span> <span class="ow">in</span> <span class="n">species</span><span class="p">]</span>
@@ -262,19 +262,19 @@
 <span class="sd">    Formats the relevant reactions and propensities to be passed to a C++ simulation template.</span>
 
 <span class="sd">    :param reactions: Ordered list of reactions.</span>
-<span class="sd">    The reaction&#39;s index in this list should correspond to its reaction id.</span>
-<span class="sd">    For example, the reaction at reactions[3] has id 3.</span>
+<span class="sd">        The reaction&#39;s index in this list should correspond to its reaction id.</span>
+<span class="sd">        For example, the reaction at reactions[3] has id 3.</span>
 <span class="sd">    :type reactions: list[Reaction]</span>
 
 <span class="sd">    :param sanitized_names: Ordered list of sanitized names for the reactions.</span>
-<span class="sd">    The name&#39;s index in this list should match its corresponding reaction.</span>
-<span class="sd">    sanitized_names[i] is matched to reactions[i].</span>
+<span class="sd">        The name&#39;s index in this list should match its corresponding reaction.</span>
+<span class="sd">        sanitized_names[i] is matched to reactions[i].</span>
 <span class="sd">    :type sanitized_names: list[str]</span>
 
 <span class="sd">    :param species_map: Ordered dictionary mapping an unsanitized species name to its id.</span>
 <span class="sd">    :type species_map: OrderedDict[str, int]</span>
 
-<span class="sd">    :return: Dictionary of macro definitions for reactions.</span>
+<span class="sd">    :returns: Dictionary of macro definitions for reactions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">num_reactions</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">reactions</span><span class="p">))</span>
     <span class="n">reaction_set</span> <span class="o">=</span> <span class="p">[]</span>
@@ -316,10 +316,10 @@
 <span class="sd">    :type sanitized_propensities: list[str]</span>
 
 <span class="sd">    :param ode: Boolean indicating whether the provided propensities are stochastic or deterministic.</span>
-<span class="sd">    If set to True, then propensities will be assumed to be ODE propensities.</span>
+<span class="sd">        If set to True, then propensities will be assumed to be ODE propensities.</span>
 <span class="sd">    :type ode: bool</span>
 
-<span class="sd">    :return: Dictionary containing propensity macro definitions.</span>
+<span class="sd">    :returns: Dictionary containing propensity macro definitions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">def_keyword</span> <span class="o">=</span> <span class="s2">&quot;ODE_PROPENSITIES&quot;</span> <span class="k">if</span> <span class="n">ode</span> <span class="k">else</span> <span class="s2">&quot;PROPENSITIES&quot;</span>
     <span class="n">propensities</span> <span class="o">=</span> <span class="p">[]</span>

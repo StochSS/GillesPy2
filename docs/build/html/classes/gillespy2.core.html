@@ -126,13 +126,16 @@
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">gillespy2.core.assignmentrule.</span></span><span class="sig-name descname"><span class="pre">AssignmentRule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formula</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/assignmentrule.html#AssignmentRule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.assignmentrule.AssignmentRule" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#gillespy2.core.sortableobject.SortableObject" title="gillespy2.core.sortableobject.SortableObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.sortableobject.SortableObject</span></code></a>, <a class="reference internal" href="#gillespy2.core.jsonify.Jsonify" title="gillespy2.core.jsonify.Jsonify"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.jsonify.Jsonify</span></code></a></p>
 <p>An AssignmentRule is used to express equations that set the values of
-variables.  This would correspond to a function in the form of x = f(V)
-:param name: Name of the Rule
-:type name: str
-:param variable: Target Species/Parameter to be modified by rule
-:type variable: str
-:param formula: String representation of formula to be evaluated
-:type formula: str</p>
+variables.  This would correspond to a function in the form of x = f(V)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the Rule</p></li>
+<li><p><strong>variable</strong> (<em>str</em>) – Target Species/Parameter to be modified by rule</p></li>
+<li><p><strong>formula</strong> (<em>str</em>) – String representation of formula to be evaluated</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.assignmentrule.AssignmentRule.sanitized_formula">
 <span class="sig-name descname"><span class="pre">sanitized_formula</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species_mappings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameter_mappings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/assignmentrule.html#AssignmentRule.sanitized_formula"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.assignmentrule.AssignmentRule.sanitized_formula" title="Permalink to this definition">¶</a></dt>
@@ -155,36 +158,26 @@ understood as evaluable in the namespace of a parent Model.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – The name by which this Event is called or referenced in reactions.</p></li>
 <li><p><strong>assignments</strong> (<em>str</em>) – List of EventAssignments to be executed at trigger or delay</p></li>
-<li><p><strong>trigger</strong> – contains math expression which can be evaluated to</p></li>
+<li><p><strong>trigger</strong> (<a class="reference internal" href="#gillespy2.core.events.EventTrigger" title="gillespy2.core.events.EventTrigger"><em>EventTrigger</em></a>) – contains math expression which can be evaluated to
+a boolean result.  Upon the transition from ‘False’ to ‘True’,
+event assignments may be executed immediately, or after a
+designated delay.</p></li>
+<li><p><strong>delay</strong> (<em>str</em>) – contains math expression evaluable within model namespace.
+This expression designates a delay between the trigger of
+an event and the execution of its assignments.</p></li>
+<li><p><strong>priority</strong> (<em>str</em>) – Contains math expression evaluable within model namespace.</p></li>
 </ul>
 </dd>
 </dl>
-<p>a boolean result.  Upon the transition from ‘False’ to ‘True’,
-event assignments may be executed immediately, or after a
-designated delay.
-:type trigger: EventTrigger</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>delay</strong> – contains math expression evaluable within model namespace.</p>
-</dd>
-</dl>
-<p>This expression designates a delay between the trigger of
-an event and the execution of its assignments.
-:type delay: str</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>priority</strong> (<em>str</em>) – Contains math expression evaluable within model namespace.</p>
-</dd>
-</dl>
-<p>:param use_values_from_trigger_time
-:type use_values_from_trigger_time: bool</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.events.Event.add_assignment">
 <span class="sig-name descname"><span class="pre">add_assignment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">assignment</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/events.html#Event.add_assignment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.events.Event.add_assignment" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds an eventAssignment or a list of eventAssignments.
-:param assignment: EventAssignment or a list of EventAssignments
-The event or list of events to be added to this event.
-:type assignment: EventAssignment or list of EventAssignments</p>
+<dd><p>Adds an EventAssignment or a list of EventAssignment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>assignment</strong> (<a class="reference internal" href="#gillespy2.core.events.EventAssignment" title="gillespy2.core.events.EventAssignment"><em>EventAssignment</em></a><em> or </em><em>list</em><em>[</em><a class="reference internal" href="#gillespy2.core.events.EventAssignment" title="gillespy2.core.events.EventAssignment"><em>EventAssignment</em></a><em>]</em>) – The event or list of events to be added to this event.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -199,20 +192,16 @@ associated trigger changes from false to true, or after a specified delay,
 depending on how the Event to which it is assigned is configured.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>variable</strong> – Target model component to be modified by the EventAssignment</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variable</strong> (<em>gillespy2.Species</em><em>, </em><em>gillespy2.Parameter</em>) – Target model component to be modified by the EventAssignment
+expression. Valid target variables include gillespy2 Species,
+Parameters, and Compartments.</p></li>
+<li><p><strong>expression</strong> (<em>str</em>) – String to be evaluated when the event is fired.  This expression must
+be evaluable within the model namespace, and the results of it’s
+evaluation will be assigned to the EventAssignment variable.</p></li>
+</ul>
 </dd>
 </dl>
-<p>expression. Valid target variables include gillespy2 Species,
-Parameters, and Compartments.
-:type variable: gillespy2.Species, gillespy2.Parameter</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>expression</strong> – String to be evaluated when the event is fired.  This expression must</p>
-</dd>
-</dl>
-<p>be evaluable within the model namespace, and the results of it’s
-evaluation will be assigned to the EventAssignment variable.
-:type expression: str</p>
 </dd></dl>
 
 <dl class="py class">
@@ -227,14 +216,9 @@ execution of an event’s list of assignments if no delay is present, otherwise,
 the delay evaluation will be initialized.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>expression</strong> – String for a function calculating EventTrigger values. Should be evaluable</p>
-</dd>
-</dl>
-<p>in namespace of Model.
-:type expression: str</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>expression</strong> (<em>str</em>) – String for a function calculating EventTrigger values. Should be evaluable
+in namespace of Model.</p></li>
 <li><p><strong>value</strong> (<em>bool</em>) – Value of EventTrigger at simulation start, with time t=0</p></li>
 <li><p><strong>persistent</strong> (<em>bool</em>) – Determines if trigger condition is persistent or not</p></li>
 </ul>
@@ -261,7 +245,7 @@ simulation of a GillesPy2 model</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the function to be made and called</p></li>
 <li><p><strong>function</strong> (<em>str</em>) – Defined function body of operation to be performed.</p></li>
-<li><p><strong>variables</strong> (<em>list of strings</em>) – String names of Variables to be used as arguments to function.</p></li>
+<li><p><strong>variables</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – String names of Variables to be used as arguments to function.</p></li>
 </ul>
 </dd>
 </dl>
@@ -378,6 +362,7 @@ simulation of a GillesPy2 model</p>
 <dt class="sig sig-object py" id="gillespy2.core.gillespySolver.GillesPySolver">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">gillespy2.core.gillespySolver.</span></span><span class="sig-name descname"><span class="pre">GillesPySolver</span></span><a class="reference internal" href="../_modules/gillespy2/core/gillespySolver.html#GillesPySolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.gillespySolver.GillesPySolver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Abstract class for a solver.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.gillespySolver.GillesPySolver.get_solver_settings">
 <span class="sig-name descname"><span class="pre">get_solver_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespySolver.html#GillesPySolver.get_solver_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.gillespySolver.GillesPySolver.get_solver_settings" title="Permalink to this definition">¶</a></dt>
@@ -386,42 +371,29 @@ simulation of a GillesPy2 model</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.core.gillespySolver.GillesPySolver.name">
 <span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'GillesPySolver'</span></em><a class="headerlink" href="#gillespy2.core.gillespySolver.GillesPySolver.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstract class for a solver. This is generally called from within a
-gillespy Model through the Model.run function. Returns simulation
-trajectories.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>gillespy.Model</em>) – The model on which the solver will operate.</p></li>
-<li><p><strong>t</strong> (<em>int</em>) – The end time of the solver</p></li>
-<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each</p></li>
-</ul>
-</dd>
-</dl>
-<p>trajectory will be returned at the end of the simulation.
-:type number_of_trajectories: int</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
-<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
-<li><p><strong>debug</strong> – Set to True to provide additional debug information about the</p></li>
-</ul>
-</dd>
-</dl>
-<p>simulation.
-:type debug: bool</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>show_labels</strong> (<em>bool</em>) – Use names of species as index of result object rather than position numbers.</p>
-</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.gillespySolver.GillesPySolver.run">
 <span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_trajectories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespySolver.html#GillesPySolver.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.gillespySolver.GillesPySolver.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call out and run the solver. Collect the results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>gillespy.Model</em>) – The model on which the solver will operate.</p></li>
+<li><p><strong>t</strong> (<em>int</em>) – The end time of the solver</p></li>
+<li><p><strong>number_of_trajectories</strong> (<em>int</em>) – The number of times to sample the chemical master equation. Each
+trajectory will be returned at the end of the simulation.</p></li>
+<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
+<li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation.</p></li>
+<li><p><strong>show_labels</strong> (<em>bool</em>) – Use names of species as index of result object rather than position numbers.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Simulation trajectories.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -434,13 +406,23 @@ trajectories.</p>
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">gillespy2.core.jsonify.</span></span><span class="sig-name descname"><span class="pre">ComplexJsonCoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">translation_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encode_private</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/jsonify.html#ComplexJsonCoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.jsonify.ComplexJsonCoder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#gillespy2.core.JSONEncoder" title="json.encoder.JSONEncoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">json.encoder.JSONEncoder</span></code></a></p>
 <p>This class delegates the encoding and decoding of objects to one or more implementees.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>translation_table</strong> (<a class="reference internal" href="#gillespy2.core.jsonify.TranslationTable" title="gillespy2.core.jsonify.TranslationTable"><em>TranslationTable</em></a>) – A TranslationTable instance that will be used to
+translate objects.</p></li>
+<li><p><strong>encode_private</strong> (<em>bool</em>) – If set to True then all private and public variables will
+be converted to JSON. If False, only public.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.jsonify.ComplexJsonCoder.decode">
 <span class="sig-name descname"><span class="pre">decode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">json_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/jsonify.html#ComplexJsonCoder.decode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.jsonify.ComplexJsonCoder.decode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decode the JSON dictionary into a valid Python object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>json_dict</strong> – The JSON dictionary to decode.</p>
+<dd class="field-odd"><p><strong>json_dict</strong> (<em>dict</em>) – The JSON dictionary to decode.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>The decoded form of the JSON dictionary.</p>
@@ -475,7 +457,10 @@ and decoded into new objects.</p>
 This function will return a __new__ instance of the type.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>dict</strong> – The dictionary to apply onto the new instance.</p>
+<dd class="field-odd"><p><strong>src_dict</strong> (<em>dict</em>) – The dictionary to apply onto the new instance.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A new object with its backing __dict__ set to a copy of src_dict.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -487,7 +472,10 @@ This function will return a __new__ instance of the type.</p>
 return a new instance of the type.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>json_str</strong> – A json str to be converted into a new type instance.</p>
+<dd class="field-odd"><p><strong>json_str</strong> (<em>str</em>) – A json str to be converted into a new type instance.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A decoded object.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -497,8 +485,16 @@ return a new instance of the type.</p>
 <span class="sig-name descname"><span class="pre">get_json_hash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ignore_whitespace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hash_private_vals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">str</span><a class="reference internal" href="../_modules/gillespy2/core/jsonify.html#Jsonify.get_json_hash"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.jsonify.Jsonify.get_json_hash" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the hash of the json representation of self.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>An MD5 hash of the object’s sorted JSON representation.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ignore_whitespace</strong> (<em>bool</em>) – If set to True all whitespace will be stripped from the JSON
+prior to being hashed.</p></li>
+<li><p><strong>hash_private_vals</strong> (<em>bool</em>) – If set to True all private and non-private variables will
+be included in the hash.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An MD5 hash of the object’s sorted JSON representation.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -562,7 +558,7 @@ Note: Complex types that inherit from Jsonify do not need to be manually encoded
 <dd><p>Convert self into a json string.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>encode_private</strong> – If True all private (prefixed of ‘_’) will be encoded. None if False.</p>
+<dd class="field-odd"><p><strong>encode_private</strong> (<em>bool</em>) – If True all private (prefixed of ‘_’) will be encoded. None if False.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>The JSON representation of self.</p>
@@ -590,7 +586,10 @@ Note: Complex types that inherit from Jsonify do not need to be manually encoded
 return a new instance of the type.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>json_str</strong> – A json str to be converted into a new type instance.</p>
+<dd class="field-odd"><p><strong>json_str</strong> (<em>str</em>) – A json str to be converted into a new type instance.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A decoded object.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -622,7 +621,10 @@ Note: Complex types that inherit from Jsonify do not need to be manually encoded
 return a new instance of the type.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>json_str</strong> – A json str to be converted into a new type instance.</p>
+<dd class="field-odd"><p><strong>json_str</strong> (<em>str</em>) – A json str to be converted into a new type instance.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A decoded object.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -648,13 +650,22 @@ Note: Complex types that inherit from Jsonify do not need to be manually encoded
 <dd><p>Bases: <a class="reference internal" href="#gillespy2.core.jsonify.Jsonify" title="gillespy2.core.jsonify.Jsonify"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.jsonify.Jsonify</span></code></a></p>
 <p>This class contains functions to enable arbitrary object trees to be “translated” to anonymous
 and named objects. This behavior is defined by a map of ‘named’ and ‘anon’ key values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>to_anon</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em>) – A mapping of ‘named’ to ‘anonymous’ strings to be used when converting
+user-defined names to anon.</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.jsonify.TranslationTable.obj_to_anon">
 <span class="sig-name descname"><span class="pre">obj_to_anon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/jsonify.html#TranslationTable.obj_to_anon"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.jsonify.TranslationTable.obj_to_anon" title="Permalink to this definition">¶</a></dt>
 <dd><p>Recursively anonymise all named properties on the object.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>An anonymized instance of self.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obj</strong> (<em>object</em>) – The object to anonymize.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An anonymized instance of self.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -664,8 +675,11 @@ and named objects. This behavior is defined by a map of ‘named’ and ‘anon�
 <span class="sig-name descname"><span class="pre">obj_to_named</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/jsonify.html#TranslationTable.obj_to_named"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.jsonify.TranslationTable.obj_to_named" title="Permalink to this definition">¶</a></dt>
 <dd><p>Recursively identify all anonymous properties on the object.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A named instance of self.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obj</strong> (<em>object</em>) – The object that will be converted to named.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A named instance of self.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -678,8 +692,8 @@ translation table. If a match is found, substitute.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>obj</strong> – The object that will be translated.</p></li>
-<li><p><strong>translation_table</strong> – The mapping to translate by.</p></li>
+<li><p><strong>obj</strong> (<em>object</em>) – The object that will be translated.</p></li>
+<li><p><strong>translation_table</strong> (<a class="reference internal" href="#gillespy2.core.jsonify.TranslationTable" title="gillespy2.core.jsonify.TranslationTable"><em>TranslationTable</em></a>) – The mapping to translate by.</p></li>
 </ul>
 </dd>
 </dl>
@@ -699,7 +713,10 @@ translation table. If a match is found, substitute.</p>
 return a new instance of the type.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>json_str</strong> – A json str to be converted into a new type instance.</p>
+<dd class="field-odd"><p><strong>json_str</strong> (<em>str</em>) – A json str to be converted into a new type instance.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A decoded object.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -788,29 +805,57 @@ from the args and kwargs arguments, respectively.</p>
 <dt class="sig sig-object py" id="gillespy2.core.model.Model">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">gillespy2.core.model.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tspan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annotation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'model'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.model.Model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#gillespy2.core.sortableobject.SortableObject" title="gillespy2.core.sortableobject.SortableObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.sortableobject.SortableObject</span></code></a>, <a class="reference internal" href="#gillespy2.core.jsonify.Jsonify" title="gillespy2.core.jsonify.Jsonify"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.jsonify.Jsonify</span></code></a></p>
+<p>Representation of a well mixed biochemical model. Contains reactions,
+parameters, species.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – The name of the model, or an annotation describing it.</p></li>
+<li><p><strong>population</strong> (<em>bool</em>) – The type of model being described. A discrete stochastic model is a
+population model (True), a deterministic model is a concentration model
+(False). Automatic conversion from population to concentration models
+may be used, by setting the volume parameter.</p></li>
+<li><p><strong>volume</strong> (<em>float</em>) – The volume of the system matters when converting to from population to
+concentration form. This will also set a parameter “vol” for use in
+custom (i.e. non-mass-action) propensity functions.</p></li>
+<li><p><strong>tspan</strong> (<em>numpy ndarray</em>) – The timepoints at which the model should be simulated. If None, a
+default timespan is added. May be set later, see Model.timespan</p></li>
+<li><p><strong>annotation</strong> (<em>str</em>) – Option further description of model</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.model.Model.add_assignment_rule">
 <span class="sig-name descname"><span class="pre">add_assignment_rule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">assignment_rules</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.add_assignment_rule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.model.Model.add_assignment_rule" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add AssignmentRule or list of AssignmentRules to the model object.
-:param assignment_rules: The AssignmentRule or list of AssignmentRules to be added to the model object.
-:type assignment_rules: AssignmentRule or list of AssignmentRules</p>
+<dd><p>Add AssignmentRule or list of AssignmentRules to the model object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>assignment_rules</strong> (<a class="reference internal" href="#gillespy2.core.assignmentrule.AssignmentRule" title="gillespy2.core.assignmentrule.AssignmentRule"><em>AssignmentRule</em></a><em> or </em><em>list of AssignmentRules</em>) – The AssignmentRule or list of AssignmentRules to be added to the model object.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.model.Model.add_event">
 <span class="sig-name descname"><span class="pre">add_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.add_event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.model.Model.add_event" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds an event, or list of events to the model.
-:param event: The event or list of event objects to be added to the model object.
-:type event: Event, or list of Events</p>
+<dd><p>Adds an event, or list of events to the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<a class="reference internal" href="#gillespy2.core.events.Event" title="gillespy2.core.events.Event"><em>Event</em></a><em>, or </em><em>list of Events</em>) – The event or list of event objects to be added to the model object.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.model.Model.add_function_definition">
 <span class="sig-name descname"><span class="pre">add_function_definition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function_definitions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.add_function_definition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.model.Model.add_function_definition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add FunctionDefinition or list of FunctionDefinitions
-:param function_definitions: The FunctionDefinition, or list of FunctionDefinitions to be added to the model
-object.
-:type function_definitions: FunctionDefinition or list of FunctionDefinitions.</p>
+<dd><p>Add FunctionDefinition or list of FunctionDefinitions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>function_definitions</strong> (<a class="reference internal" href="#gillespy2.core.functiondefinition.FunctionDefinition" title="gillespy2.core.functiondefinition.FunctionDefinition"><em>FunctionDefinition</em></a><em> or </em><em>list of FunctionDefinitions.</em>) – The FunctionDefinition, or list of FunctionDefinitions to be added to the model
+object.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -841,11 +886,10 @@ object.
 <dd><p>Adds a reaction, or list of reactions to the model.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>reactions</strong> – The reaction or list of reaction objects to be added to the model</p>
+<dd class="field-odd"><p><strong>reactions</strong> (<a class="reference internal" href="#gillespy2.core.reaction.Reaction" title="gillespy2.core.reaction.Reaction"><em>Reaction</em></a><em>, or </em><em>list of Reactions</em>) – The reaction or list of reaction objects to be added to the model
+object.</p>
 </dd>
 </dl>
-<p>object.
-:type reactions: Reaction, or list of Reactions</p>
 </dd></dl>
 
 <dl class="py method">
@@ -904,22 +948,34 @@ object.
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.model.Model.delete_assignment_rule">
 <span class="sig-name descname"><span class="pre">delete_assignment_rule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.delete_assignment_rule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.model.Model.delete_assignment_rule" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes an assignment rule from a model
-:param aname: Name of AssignmentRule object to be removed from model</p>
+<dd><p>Removes an assignment rule from a model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>aname</strong> – Name of AssignmentRule object to be removed from model</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.model.Model.delete_event">
 <span class="sig-name descname"><span class="pre">delete_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.delete_event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.model.Model.delete_event" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes specified Event from model
-:param ename: Name of Event to be removed</p>
+<dd><p>Removes specified Event from model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ename</strong> – Name of Event to be removed</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.model.Model.delete_function_definition">
 <span class="sig-name descname"><span class="pre">delete_function_definition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.delete_function_definition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.model.Model.delete_function_definition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes specified Function Definition from model
-:param fname: Name of Function Definition to be removed</p>
+<dd><p>Removes specified Function Definition from model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fname</strong> – Name of Function Definition to be removed</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -994,8 +1050,12 @@ object.
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.model.Model.get_all_parameters">
 <span class="sig-name descname"><span class="pre">get_all_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.get_all_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.model.Model.get_all_parameters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a dict of all parameters in the model, of the form:
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A dict of all parameters in the model, of the form:
 {name : parameter object}</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1021,8 +1081,12 @@ object.
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.model.Model.get_all_species">
 <span class="sig-name descname"><span class="pre">get_all_species</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.get_all_species"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.model.Model.get_all_species" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a dict of all species in the model, of the form:
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A dict of all species in the model, of the form:
 {name : species object}</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1042,11 +1106,16 @@ object.
 <dt class="sig sig-object py" id="gillespy2.core.model.Model.get_best_solver">
 <span class="sig-name descname"><span class="pre">get_best_solver</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.get_best_solver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.model.Model.get_best_solver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finds best solver for the users simulation. Currently, AssignmentRules, RateRules, FunctionDefinitions,
-Events, and Species with a dynamic, or continuous population must use the TauHybridSolver.
-:param precompile: If True, and the model contains no AssignmentRules, RateRules, FunctionDefinitions, Events,
-or Species with a dynamic or continuous population, it will choose SSACSolver
-:type precompile: bool
-:return: gillespy2.gillespySolver</p>
+Events, and Species with a dynamic, or continuous population must use the TauHybridSolver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>precompile</strong> (<em>bool</em>) – If True, and the model contains no AssignmentRules, RateRules, FunctionDefinitions, Events,
+or Species with a dynamic or continuous population, it will choose SSACSolver</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>gillespy2.gillespySolver</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1058,9 +1127,15 @@ or Species with a dynamic or continuous population, it will choose SSACSolver
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.model.Model.get_element">
 <span class="sig-name descname"><span class="pre">get_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.get_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.model.Model.get_element" title="Permalink to this definition">¶</a></dt>
-<dd><p>get element specified by name
-:param ename: name of element to search for
-:return:value of element, or ‘element not found’</p>
+<dd><p>Get element specified by name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ename</strong> – name of element to search for</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>value of element, or ‘element not found’</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1174,52 +1249,51 @@ This methods must be called before exporting the model.</p>
 parameters to be set here.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>solver</strong> – The solver by which to simulate the model. This solver object may</p>
-</dd>
-</dl>
-<p>be initialized separately to specify an algorithm. Optional,
-defaults to ssa solver.
-:type solver: gillespy.GillesPySolver</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>solver</strong> (<em>gillespy.GillesPySolver</em>) – The solver by which to simulate the model. This solver object may
+be initialized separately to specify an algorithm. Optional, defaults to ssa solver.</p></li>
 <li><p><strong>timeout</strong> (<em>int</em>) – Allows a time_out value in seconds to be sent to a signal handler, restricting simulation run-time</p></li>
 <li><p><strong>t</strong> (<em>int</em>) – End time of simulation</p></li>
 <li><p><strong>solver_args</strong> – Solver-specific arguments to be passed to solver.run()</p></li>
-<li><p><strong>cpp_support</strong> – INTERNAL USE ONLY, flag for whether or not a computer has the capability to compile a</p></li>
+<li><p><strong>cpp_support</strong> (<em>bool</em>) – INTERNAL USE ONLY, flag for whether or not a computer has the capability to compile a
+C++ program.</p></li>
+<li><p><strong>algorithm</strong> (<em>str</em>) – Specify algorithm (‘ODE’, ‘Tau-Leaping’, or ‘SSA’) for GillesPy2 to automatically pick best solver using that algorithm.</p></li>
 </ul>
 </dd>
-</dl>
-<p>C++ program.
-:type cpp_support: bool</p>
-<p>:return  If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is
 True,returns a Results object that inherits UserList and contains one or more Trajectory objects that
 inherit UserDict. Results object supports graphing and csv export.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>algorithm</strong> (<em>str</em>) – Specify algorithm (‘ODE’, ‘Tau-Leaping’, or ‘SSA’) for GillesPy2 to automatically pick best solver using that algorithm.</p>
 </dd>
 </dl>
 <p>To pause a simulation and retrieve data before the simulation, keyboard interrupt the simulation by pressing
 control+c or pressing stop on a jupyter notebook. To resume a simulation, pass your previously ran results
-into the run method, and set t = to the time you wish the resuming simulation to end (run(resume=results, t=x)).
-Pause/Resume is only supported for SINGLE TRAJECTORY simulations. T MUST BE SET OR UNEXPECTED BEHAVIOR MAY OCCUR.</p>
+into the run method, and set t = to the time you wish the resuming simulation to end (run(resume=results, t=x)).</p>
+<p><strong>Pause/Resume is only supported for SINGLE TRAJECTORY simulations. T MUST BE SET OR UNEXPECTED BEHAVIOR MAY OCCUR.</strong></p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.model.Model.sanitized_parameter_names">
 <span class="sig-name descname"><span class="pre">sanitized_parameter_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.sanitized_parameter_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.model.Model.sanitized_parameter_names" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a dictionary mapping user chosen parameter names to simplified formats which will be used
-later on by GillesPySolvers evaluating reaction propensity functions.
-:return: the dictionary mapping user parameter names to their internal GillesPy notation.</p>
+later on by GillesPySolvers evaluating reaction propensity functions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the dictionary mapping user parameter names to their internal GillesPy notation.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.model.Model.sanitized_species_names">
 <span class="sig-name descname"><span class="pre">sanitized_species_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.sanitized_species_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.model.Model.sanitized_species_names" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a dictionary mapping user chosen species names to simplified formats which will be used
-later on by GillesPySolvers evaluating reaction propensity functions.
-:return: the dictionary mapping user species names to their internal GillesPy notation.</p>
+later on by GillesPySolvers evaluating reaction propensity functions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the dictionary mapping user species names to their internal GillesPy notation.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1236,12 +1310,11 @@ later on by GillesPySolvers evaluating reaction propensity functions.
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>p_name</strong> (<em>str</em>) – Name of the parameter whose value will be set.</p></li>
-<li><p><strong>expression</strong> – String that may be executed in C, describing the value of the</p></li>
+<li><p><strong>expression</strong> (<em>str</em>) – String that may be executed in C, describing the value of the
+parameter. May reference other parameters by name. (e.g. “k1*4”)</p></li>
 </ul>
 </dd>
 </dl>
-<p>parameter. May reference other parameters by name. (e.g. “k1*4”)
-:type expression: str</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1258,42 +1331,7 @@ later on by GillesPySolvers evaluating reaction propensity functions.
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.core.model.Model.special_characters">
 <span class="sig-name descname"><span class="pre">special_characters</span></span><em class="property"> <span class="pre">=</span> <span class="pre">['[',</span> <span class="pre">']',</span> <span class="pre">'+',</span> <span class="pre">'-',</span> <span class="pre">'*',</span> <span class="pre">'/',</span> <span class="pre">'.',</span> <span class="pre">'^']</span></em><a class="headerlink" href="#gillespy2.core.model.Model.special_characters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Representation of a well mixed biochemical model. Contains reactions,
-parameters, species.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – The name of the model, or an annotation describing it.</p></li>
-<li><p><strong>population</strong> – The type of model being described. A discrete stochastic model is a</p></li>
-</ul>
-</dd>
-</dl>
-<p>population model (True), a deterministic model is a concentration model
-(False). Automatic conversion from population to concentration models
-may be used, by setting the volume parameter.
-Attributes
-:type population: bool</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>volume</strong> – The volume of the system matters when converting to from population to</p>
-</dd>
-</dl>
-<p>concentration form. This will also set a parameter “vol” for use in
-custom (i.e. non-mass-action) propensity functions.
-:type volume: float</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>tspan</strong> – The timepoints at which the model should be simulated. If None, a</p>
-</dd>
-</dl>
-<p>default timespan is added. May be set later, see Model.timespan
-:type tspan: numpy ndarray</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>annotation</strong> (<em>str</em>) – Option further description of model</p>
-</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.model.Model.timespan">
@@ -1302,11 +1340,10 @@ custom (i.e. non-mass-action) propensity functions.
 timespans.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>time_span</strong> – Evenly-spaced list of times at which to sample the species</p>
+<dd class="field-odd"><p><strong>time_span</strong> (<em>numpy ndarray</em>) – Evenly-spaced list of times at which to sample the species populations during the simulation.
+Best to use the form np.linspace(&lt;start time&gt;, &lt;end time&gt;, &lt;number of time-points, inclusive&gt;)</p>
 </dd>
 </dl>
-<p>populations during the simulation. Best to use the form np.linspace(&lt;start time&gt;, &lt;end time&gt;, &lt;number of time-points, inclusive&gt;)
-:type time_span: numpy ndarray</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1338,16 +1375,21 @@ file read from disk.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.model.StochMLDocument.from_model">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#StochMLDocument.from_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.model.StochMLDocument.from_model" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates an StochKit XML document from an exisiting Mdoel object.
+<dd><p>Creates an StochKit XML document from an exisiting Model object.
 This method assumes that all the parameters in the model are already
 resolved to scalar floats (see Model.resolveParamters).</p>
-<p>Note, this method is intended to be used interanally by the models
+<p>Note, this method is intended to be used internally by the models
 ‘serialization’ function, which performs additional operations and
-tests on the model prior to writing out the XML file. You should NOT         do:</p>
-<p>document = StochMLDocument.fromModel(model)
-print document.toString()</p>
-<p>You SHOULD do</p>
-<p>print model.serialize()</p>
+tests on the model prior to writing out the XML file.</p>
+<p>You should NOT do:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">document</span> <span class="o">=</span> <span class="n">StochMLDocument</span><span class="o">.</span><span class="n">fromModel</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="nb">print</span> <span class="n">document</span><span class="o">.</span><span class="n">toString</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>You SHOULD do:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span> <span class="n">model</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -1426,57 +1468,27 @@ simulation. Use caution when importing SBML.</p>
 <p>A parameter can be given as an expression (function) or directly
 as a value (scalar). If given an expression, it should be
 understood as evaluable in the namespace of a parent Model.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="gillespy2.core.parameter.Parameter.name">
-<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#gillespy2.core.parameter.Parameter.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>The name by which this parameter is called or referenced in reactions.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – The name by which this parameter is called or referenced in reactions.</p></li>
+<li><p><strong>expression</strong> (<em>str</em>) – String for a function calculating parameter values. Should be
+evaluable in namespace of Model.</p></li>
+<li><p><strong>value</strong> (<em>float</em>) – Value of a parameter if it is not dependent on other Model entities.</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="gillespy2.core.parameter.Parameter.expression">
-<span class="sig-name descname"><span class="pre">expression</span></span><a class="headerlink" href="#gillespy2.core.parameter.Parameter.expression" title="Permalink to this definition">¶</a></dt>
-<dd><p>String for a function calculating parameter values. Should be evaluable
-in namespace of Model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="gillespy2.core.parameter.Parameter.value">
-<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#gillespy2.core.parameter.Parameter.value" title="Permalink to this definition">¶</a></dt>
-<dd><p>Value of a parameter if it is not dependent on other Model entities.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.parameter.Parameter.evaluate">
 <span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">namespace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/parameter.html#Parameter.evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.parameter.Parameter.evaluate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate the expression and return the (scalar) value in the given
 namespace.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="gillespy2.core.parameter.Parameter.namespace">
-<span class="sig-name descname"><span class="pre">namespace</span></span><a class="headerlink" href="#gillespy2.core.parameter.Parameter.namespace" title="Permalink to this definition">¶</a></dt>
-<dd><p>The namespace in which to test evaluation of the parameter, if it
-involves other parameters, etc.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>dict (optional)</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>namespace</strong> (<em>dict</em>) – The namespace in which to test evaulation of the parameter,
+if it involves other parameters, etc.</p>
 </dd>
 </dl>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py method">
@@ -1532,24 +1544,18 @@ value) in the namespace defined by the union of those dicts.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – The name by which the reaction is called (optional).</p></li>
-<li><p><strong>reactants</strong> – The reactants that are consumed in the reaction, with stoichiometry. An</p></li>
+<li><p><strong>reactants</strong> (<em>dict</em>) – The reactants that are consumed in the reaction, with stoichiometry. An
+example would be {R1 : 1, R2 : 2} if the reaction consumes two of R1 and
+one of R2, where R1 and R2 are Species objects.</p></li>
+<li><p><strong>products</strong> (<em>dict</em>) – The species that are created by the reaction event, with stoichiometry. Same format as reactants.</p></li>
+<li><p><strong>propensity_function</strong> (<em>str</em>) – The custom propensity function for the reaction. Must be evaluable in the
+namespace of the reaction using C operations.</p></li>
+<li><p><strong>massaction</strong> (<em>bool</em>) – The switch to use a mass-action reaction. If set to True, a rate value is required.</p></li>
+<li><p><strong>rate</strong> (<em>float</em>) – The rate of the mass-action reaction, take care to note the units.</p></li>
+<li><p><strong>annotation</strong> (<em>str</em>) – An optional note about the reaction.</p></li>
 </ul>
 </dd>
 </dl>
-<p>example would be {R1 : 1, R2 : 2} if the reaction consumes two of R1 and
-one of R2, where R1 and R2 are Species objects.
-:type reactants: dict
-:param products: The species that are created by the reaction event, with stoichiometry. Same format as reactants.
-:type products: dict
-:param propensity_function: The custom propensity function for the reaction. Must be evaluable in the
-namespace of the reaction using C operations.
-:type propensity_function: str
-:param massaction: The switch to use a mass-action reaction. If set to True, a rate value is required.
-:type massaction: bool
-:param rate: The rate of the mass-action reaction, take care to note the units.
-:type rate: float
-:param annotation: An optional note about the reaction.
-:type annotation: str</p>
 <p class="rubric">Notes</p>
 <p>For a species that is NOT consumed in the reaction but is part of a mass
 action reaction, add it as both a reactant and a product.</p>
@@ -1611,7 +1617,10 @@ self.reactants and a single parameter value.</p>
 return a new instance of the type.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>json_str</strong> – A json str to be converted into a new type instance.</p>
+<dd class="field-odd"><p><strong>json_str</strong> (<em>str</em>) – A json str to be converted into a new type instance.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A decoded object.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1670,8 +1679,12 @@ Does nothing on sucesss, raises and error on failure.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.results.Results.average_ensemble">
 <span class="sig-name descname"><span class="pre">average_ensemble</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.average_ensemble"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.results.Results.average_ensemble" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate a single Results object with a Trajectory that is made of the means of all trajectories’ outputs
-:return: the Results object</p>
+<dd><p>Generate a single Results object with a Trajectory that is made of the means of all trajectories’ outputs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The Results object</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1686,25 +1699,20 @@ Does nothing on sucesss, raises and error on failure.</p>
 <li><p><strong>yaxis_label</strong> (<em>str</em>) – The label for the y-axis</p></li>
 <li><p><strong>title</strong> (<em>str</em>) – The title of the graph</p></li>
 <li><p><strong>multiple_graphs</strong> (<em>bool</em>) – IF each trajectory should have its own graph or if they should overlap.</p></li>
-<li><p><strong>included_species_list</strong> – A list of strings describing which species to include. By default displays all</p></li>
+<li><p><strong>included_species_list</strong> (<em>list</em>) – A list of strings describing which species to include. By default displays all
+species.</p></li>
+<li><p><strong>save_png</strong> (<em>bool</em><em> or </em><em>str</em>) – Should the graph be saved as a png file. If True, File name is title of graph. If a string is
+given, file is named after that string.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple of ints</em><em> (</em><em>x</em><em>,</em><em>y</em><em>)</em>) – The size of the graph. A tuple of the form (width,height). Is (18,10) by default.</p></li>
 </ul>
 </dd>
 </dl>
-<p>species.
-:type included_species_list: list
-:param save_png: Should the graph be saved as a png file. If True, File name is title of graph. If a string is
-given, file is named after that string.
-:type save_png: bool or str
-:param figsize: The size of the graph. A tuple of the form (width,height). Is (18,10) by default.
-:type figsize: tuple of ints (x,y)</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.results.Results.plot_mean_stdev">
 <span class="sig-name descname"><span class="pre">plot_mean_stdev</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xaxis_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Time'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yaxis_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Value'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">included_species_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ddof</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_png</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(18,</span> <span class="pre">10)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.plot_mean_stdev"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.results.Results.plot_mean_stdev" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Plot a matplotlib graph depicting mean and standard deviation of a results object</p>
-</div></blockquote>
+<dd><p>Plot a matplotlib graph depicting mean and standard deviation of a results object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -1714,27 +1722,21 @@ given, file is named after that string.
 <li><p><strong>show_title</strong> (<em>bool</em>) – Default False, if True, title will be displayed on the graph.</p></li>
 <li><p><strong>style</strong> (<em>str</em>) – Matplotlib style to be displayed on graph.</p></li>
 <li><p><strong>show_legend</strong> (<em>bool</em>) – Default to True, if False, legend will not be shown on graph.</p></li>
-<li><p><strong>included_species_list</strong> – A list of strings describing which species to include. By default displays all</p></li>
+<li><p><strong>included_species_list</strong> (<em>list</em>) – A list of strings describing which species to include. By default displays all
+species.</p></li>
+<li><p><strong>ddof</strong> (<em>int</em>) – Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
+where ddof is 0.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple of ints</em><em> (</em><em>x</em><em>,</em><em>y</em><em>)</em>) – The size of the graph. A tuple of the form (width,height). Is (18,10) by default.</p></li>
 </ul>
 </dd>
 </dl>
-<p>species.
-:type included_species_list: list
-:param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
-where ddof is 0.
-:type ddof: int
-:type save_png: bool or str
-:param figsize: The size of the graph. A tuple of the form (width,height). Is (18,10) by default.
-:type figsize: tuple of ints (x,y)</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.results.Results.plot_std_dev_range">
 <span class="sig-name descname"><span class="pre">plot_std_dev_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xaxis_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Time'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yaxis_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Value'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">included_species_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ddof</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_png</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(18,</span> <span class="pre">10)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.core.results.Results.plot_std_dev_range" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Plot a matplotlib graph depicting mean and standard deviation of a results object</p>
-</div></blockquote>
+<dd><p>Plot a matplotlib graph depicting mean and standard deviation of a results object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -1744,19 +1746,15 @@ where ddof is 0.
 <li><p><strong>show_title</strong> (<em>bool</em>) – Default False, if True, title will be displayed on the graph.</p></li>
 <li><p><strong>style</strong> (<em>str</em>) – Matplotlib style to be displayed on graph.</p></li>
 <li><p><strong>show_legend</strong> (<em>bool</em>) – Default to True, if False, legend will not be shown on graph.</p></li>
-<li><p><strong>included_species_list</strong> – A list of strings describing which species to include. By default displays all</p></li>
+<li><p><strong>included_species_list</strong> (<em>list</em>) – A list of strings describing which species to include. By default displays all
+species.</p></li>
+<li><p><strong>ddof</strong> (<em>int</em>) – Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
+where ddof is 0.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple of ints</em><em> (</em><em>x</em><em>,</em><em>y</em><em>)</em>) – The size of the graph. A tuple of the form (width,height). Is (18,10) by default.</p></li>
 </ul>
 </dd>
 </dl>
-<p>species.
-:type included_species_list: list
-:param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
-where ddof is 0.
-:type ddof: int
-:type save_png: bool or str
-:param figsize: The size of the graph. A tuple of the form (width,height). Is (18,10) by default.
-:type figsize: tuple of ints (x,y)</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1773,17 +1771,15 @@ where ddof is 0.
 <li><p><strong>show_title</strong> (<em>bool</em>) – If True, title will be shown on graph.</p></li>
 <li><p><strong>show_legend</strong> (<em>bool</em>) – Default True, if False, legend will not be shown on graph.</p></li>
 <li><p><strong>multiple_graphs</strong> (<em>bool</em>) – IF each trajectory should have its own graph or if they should overlap.</p></li>
-<li><p><strong>included_species_list</strong> – A list of strings describing which species to include. By default displays all</p></li>
+<li><p><strong>included_species_list</strong> (<em>list</em>) – A list of strings describing which species to include. By default displays all
+species.</p></li>
+<li><p><strong>return_plotly_figure</strong> (<em>bool</em>) – Whether or not to return a figure dictionary of data(graph object traces) and
+layout which may be edited by the user</p></li>
+<li><p><strong>**layout_args</strong> – <p>Optional additional arguments to be passed to plotlys layout constructor.</p>
+</p></li>
 </ul>
 </dd>
 </dl>
-<p>species.
-:type included_species_list: list
-:param return_plotly_figure: Whether or not to return a figure dictionary of data(graph object traces) and
-layout which may be edited by the user
-:type return_plotly_figure: bool
-:param <a href="#id1"><span class="problematic" id="id2">**</span></a>layout_args: Optional additional arguments to be passed to plotlys layout constructor.
-:type <a href="#id3"><span class="problematic" id="id4">**</span></a>layout_args: dict</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1798,21 +1794,18 @@ layout which may be edited by the user
 <li><p><strong>title</strong> (<em>str</em>) – The title of the graph</p></li>
 <li><p><strong>show_title</strong> (<em>bool</em>) – If True, title will be shown on graph.</p></li>
 <li><p><strong>show_legend</strong> (<em>bool</em>) – Default True, if False, legend will not be shown on graph.</p></li>
-<li><p><strong>included_species_list</strong> – A list of strings describing which species to include. By default displays all</p></li>
+<li><p><strong>included_species_list</strong> (<em>list</em>) – A list of strings describing which species to include. By default displays all
+species.</p></li>
+<li><p><strong>return_plotly_figure</strong> (<em>bool</em>) – Whether or not to return a figure dicctionary of data(graph object traces) and
+layout which may be edited by the user</p></li>
+<li><p><strong>ddof</strong> (<em>int</em>) – Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
+where ddof is 0.</p></li>
+<li><p><strong>**layout_args</strong> – <p>Optional additional arguments to be passed to plotlys layout constructor.</p>
+</p></li>
 </ul>
 </dd>
 </dl>
-<p>species.
-:type included_species_list: list
-:param return_plotly_figure: Whether or not to return a figure dicctionary of data(graph object traces) and
-layout which may be edited by the user
-:type return_plotly_figure: bool
-:param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
-where ddof is 0.
-:type ddof: int
-:param <a href="#id5"><span class="problematic" id="id6">**</span></a>layout_args: Optional additional arguments to be passed to plotlys layout constructor.
-:type <a href="#id7"><span class="problematic" id="id8">**</span></a>layout_args: dict</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1827,21 +1820,18 @@ where ddof is 0.
 <li><p><strong>title</strong> (<em>str</em>) – The title of the graph</p></li>
 <li><p><strong>show_title</strong> (<em>bool</em>) – If True, title will be shown on graph.</p></li>
 <li><p><strong>show_legend</strong> (<em>bool</em>) – Default True, if False, legend will not be shown on graph.</p></li>
-<li><p><strong>included_species_list</strong> – A list of strings describing which species to include. By default displays all</p></li>
+<li><p><strong>included_species_list</strong> (<em>list</em>) – A list of strings describing which species to include. By default displays all
+species.</p></li>
+<li><p><strong>return_plotly_figure</strong> (<em>bool</em>) – Whether or not to return a figure dicctionary of data(graph object traces) and
+layout which may be edited by the user</p></li>
+<li><p><strong>ddof</strong> (<em>int</em>) – Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
+where ddof is 0.</p></li>
+<li><p><strong>**layout_args</strong> – <p>Optional additional arguments to be passed to plotlys layout constructor.</p>
+</p></li>
 </ul>
 </dd>
 </dl>
-<p>species.
-:type included_species_list: list
-:param return_plotly_figure: Whether or not to return a figure dicctionary of data(graph object traces) and
-layout which may be edited by the user
-:type return_plotly_figure: bool
-:param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
-where ddof is 0.
-:type ddof: int
-:param <a href="#id9"><span class="problematic" id="id10">**</span></a>layout_args: Optional additional arguments to be passed to plotlys layout constructor.
-:type <a href="#id11"><span class="problematic" id="id12">**</span></a>layout_args: dict</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1851,13 +1841,14 @@ where ddof is 0.
 trajectories’ outputs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>ddof</strong> – Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents</p>
+<dd class="field-odd"><p><strong>ddof</strong> (<em>int</em>) – Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
+where ddof is 0.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the Results object</p>
 </dd>
 </dl>
-<p>the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
-where ddof is 0.
-:type ddof: int
-:return: the Results object</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1868,18 +1859,17 @@ where ddof is 0.
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.results.Results.to_csv">
 <span class="sig-name descname"><span class="pre">to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nametag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.to_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.results.Results.to_csv" title="Permalink to this definition">¶</a></dt>
-<dd><p>outputs the Results to one or more .csv files in a new directory.</p>
+<dd><p>Outputs the Results to one or more .csv files in a new directory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>nametag</strong> – allows the user to optionally “tag” the directory and included files. Defaults to the model</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nametag</strong> (<em>str</em>) – allows the user to optionally “tag” the directory and included files. Defaults to the model
+name.</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – the location for the new directory and included files. Defaults to model location.</p></li>
+<li><p><strong>stamp</strong> (<em>str</em>) – Allows the user to optionally “tag” the directory (not included files). Default is timestamp.</p></li>
+</ul>
 </dd>
 </dl>
-<p>name.
-:type nametag: str
-:param path: the location for the new directory and included files. Defaults to model location.
-:type path: str
-:param stamp: Allows the user to optionally “tag” the directory (not included files). Default is timestamp.
-:type stamp: str</p>
 </dd></dl>
 
 </dd></dl>
@@ -1930,41 +1920,40 @@ species or time.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – The name by which this species will be called in reactions and within the model.</p></li>
-<li><p><strong>initial_value</strong> – Initial population of this species. If this is not provided as an int,</p></li>
-</ul>
-</dd>
-</dl>
-<p>the type will be changed when it is added by numpy.int
-:type initial_value: int &gt;= 0
-:param constant: If true, the value of the species cannot be changed (currently TauHybridSolver only)
-:type constant: bool
-:param boundary_condition: If true, species can be changed by events and rate rules, but not by reactions.
-(TauHybridSolver only)
-:type boundary_condition: bool
-:param mode: <strong>*FOR USE WITH BasicTauHybridSolver ONLY*</strong>
+<li><p><strong>initial_value</strong> (<em>int &gt;= 0</em>) – Initial population of this species. If this is not provided as an int,
+the type will be changed when it is added by numpy.int</p></li>
+<li><p><strong>constant</strong> (<em>bool</em>) – If true, the value of the species cannot be changed (currently TauHybridSolver only)</p></li>
+<li><p><strong>boundary_condition</strong> (<em>bool</em>) – If true, species can be changed by events and rate rules, but not by reactions.
+(TauHybridSolver only)</p></li>
+<li><p><strong>mode</strong> (<em>str</em>) – <strong>*FOR USE WITH BasicTauHybridSolver ONLY*</strong>
 Sets the mode of representation of this species for the TauHybridSolver,
 can be discrete, continuous, or dynamic.
 mode=’dynamic’ - Allows a species to be represented as either discrete or continuous
 mode=’continuous’ - Species will only be represented as continuous
-mode=’discrete’ - Species will only be represented as discrete
-:type mode: str
-:param allow_negative_populations: If true, population can be reduces below 0.
-:type allow_negative_populations: bool
-:param switch_tol: <strong>*FOR USE WITH BasicTauHybridSolver ONLY*</strong>
+mode=’discrete’ - Species will only be represented as discrete</p></li>
+<li><p><strong>allow_negative_populations</strong> (<em>bool</em>) – If true, population can be reduces below 0.</p></li>
+<li><p><strong>switch_tol</strong> (<em>float</em>) – <strong>*FOR USE WITH BasicTauHybridSolver ONLY*</strong>
 Tolerance level for considering a dynamic species deterministically, value is compared to an estimated sd/mean
 population of a species after a given time step. This value will be used if a switch_min is not provided.
-The default value is 0.03
-:type switch_tol: float
-:param switch_min:  <strong>*FOR USE WITH BasicTauHybridSolver ONLY*</strong>
+The default value is 0.03</p></li>
+<li><p><strong>switch_min</strong> (<em>float</em>) – <strong>*FOR USE WITH BasicTauHybridSolver ONLY*</strong>
 Minimum population value at which species will be represented as continuous. If a value is given, switch_min will be
-used instead of switch_tol
-:type switch_min: float</p>
+used instead of switch_tol</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.species.Species.set_initial_value">
 <span class="sig-name descname"><span class="pre">set_initial_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/species.html#Species.set_initial_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.species.Species.set_initial_value" title="Permalink to this definition">¶</a></dt>
-<dd><p>Setter method for initial_value of a population
-:param num: Integer to set initial species population
-:raises SpeciesError: If num is non-negative or a decimal number</p>
+<dd><p>Setter method for initial_value of a population</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>num</strong> – Integer to set initial species population</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="#gillespy2.core.gillespyError.SpeciesError" title="gillespy2.core.gillespyError.SpeciesError"><strong>SpeciesError</strong></a> – If num is non-negative or a decimal number</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -1977,13 +1966,16 @@ used instead of switch_tol
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">gillespy2.core.</span></span><span class="sig-name descname"><span class="pre">AssignmentRule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formula</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/assignmentrule.html#AssignmentRule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.AssignmentRule" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#gillespy2.core.sortableobject.SortableObject" title="gillespy2.core.sortableobject.SortableObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.sortableobject.SortableObject</span></code></a>, <a class="reference internal" href="#gillespy2.core.jsonify.Jsonify" title="gillespy2.core.jsonify.Jsonify"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.jsonify.Jsonify</span></code></a></p>
 <p>An AssignmentRule is used to express equations that set the values of
-variables.  This would correspond to a function in the form of x = f(V)
-:param name: Name of the Rule
-:type name: str
-:param variable: Target Species/Parameter to be modified by rule
-:type variable: str
-:param formula: String representation of formula to be evaluated
-:type formula: str</p>
+variables.  This would correspond to a function in the form of x = f(V)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the Rule</p></li>
+<li><p><strong>variable</strong> (<em>str</em>) – Target Species/Parameter to be modified by rule</p></li>
+<li><p><strong>formula</strong> (<em>str</em>) – String representation of formula to be evaluated</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.AssignmentRule.sanitized_formula">
 <span class="sig-name descname"><span class="pre">sanitized_formula</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species_mappings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameter_mappings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/assignmentrule.html#AssignmentRule.sanitized_formula"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.AssignmentRule.sanitized_formula" title="Permalink to this definition">¶</a></dt>
@@ -2015,36 +2007,26 @@ understood as evaluable in the namespace of a parent Model.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – The name by which this Event is called or referenced in reactions.</p></li>
 <li><p><strong>assignments</strong> (<em>str</em>) – List of EventAssignments to be executed at trigger or delay</p></li>
-<li><p><strong>trigger</strong> – contains math expression which can be evaluated to</p></li>
+<li><p><strong>trigger</strong> (<a class="reference internal" href="#gillespy2.core.EventTrigger" title="gillespy2.core.EventTrigger"><em>EventTrigger</em></a>) – contains math expression which can be evaluated to
+a boolean result.  Upon the transition from ‘False’ to ‘True’,
+event assignments may be executed immediately, or after a
+designated delay.</p></li>
+<li><p><strong>delay</strong> (<em>str</em>) – contains math expression evaluable within model namespace.
+This expression designates a delay between the trigger of
+an event and the execution of its assignments.</p></li>
+<li><p><strong>priority</strong> (<em>str</em>) – Contains math expression evaluable within model namespace.</p></li>
 </ul>
 </dd>
 </dl>
-<p>a boolean result.  Upon the transition from ‘False’ to ‘True’,
-event assignments may be executed immediately, or after a
-designated delay.
-:type trigger: EventTrigger</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>delay</strong> – contains math expression evaluable within model namespace.</p>
-</dd>
-</dl>
-<p>This expression designates a delay between the trigger of
-an event and the execution of its assignments.
-:type delay: str</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>priority</strong> (<em>str</em>) – Contains math expression evaluable within model namespace.</p>
-</dd>
-</dl>
-<p>:param use_values_from_trigger_time
-:type use_values_from_trigger_time: bool</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.Event.add_assignment">
 <span class="sig-name descname"><span class="pre">add_assignment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">assignment</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/events.html#Event.add_assignment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Event.add_assignment" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds an eventAssignment or a list of eventAssignments.
-:param assignment: EventAssignment or a list of EventAssignments
-The event or list of events to be added to this event.
-:type assignment: EventAssignment or list of EventAssignments</p>
+<dd><p>Adds an EventAssignment or a list of EventAssignment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>assignment</strong> (<a class="reference internal" href="#gillespy2.core.EventAssignment" title="gillespy2.core.EventAssignment"><em>EventAssignment</em></a><em> or </em><em>list</em><em>[</em><a class="reference internal" href="#gillespy2.core.EventAssignment" title="gillespy2.core.EventAssignment"><em>EventAssignment</em></a><em>]</em>) – The event or list of events to be added to this event.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -2059,20 +2041,16 @@ associated trigger changes from false to true, or after a specified delay,
 depending on how the Event to which it is assigned is configured.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>variable</strong> – Target model component to be modified by the EventAssignment</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variable</strong> (<em>gillespy2.Species</em><em>, </em><em>gillespy2.Parameter</em>) – Target model component to be modified by the EventAssignment
+expression. Valid target variables include gillespy2 Species,
+Parameters, and Compartments.</p></li>
+<li><p><strong>expression</strong> (<em>str</em>) – String to be evaluated when the event is fired.  This expression must
+be evaluable within the model namespace, and the results of it’s
+evaluation will be assigned to the EventAssignment variable.</p></li>
+</ul>
 </dd>
 </dl>
-<p>expression. Valid target variables include gillespy2 Species,
-Parameters, and Compartments.
-:type variable: gillespy2.Species, gillespy2.Parameter</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>expression</strong> – String to be evaluated when the event is fired.  This expression must</p>
-</dd>
-</dl>
-<p>be evaluable within the model namespace, and the results of it’s
-evaluation will be assigned to the EventAssignment variable.
-:type expression: str</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -2093,14 +2071,9 @@ execution of an event’s list of assignments if no delay is present, otherwise,
 the delay evaluation will be initialized.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>expression</strong> – String for a function calculating EventTrigger values. Should be evaluable</p>
-</dd>
-</dl>
-<p>in namespace of Model.
-:type expression: str</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>expression</strong> (<em>str</em>) – String for a function calculating EventTrigger values. Should be evaluable
+in namespace of Model.</p></li>
 <li><p><strong>value</strong> (<em>bool</em>) – Value of EventTrigger at simulation start, with time t=0</p></li>
 <li><p><strong>persistent</strong> (<em>bool</em>) – Determines if trigger condition is persistent or not</p></li>
 </ul>
@@ -2130,7 +2103,7 @@ simulation of a GillesPy2 model</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the function to be made and called</p></li>
 <li><p><strong>function</strong> (<em>str</em>) – Defined function body of operation to be performed.</p></li>
-<li><p><strong>variables</strong> (<em>list of strings</em>) – String names of Variables to be used as arguments to function.</p></li>
+<li><p><strong>variables</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – String names of Variables to be used as arguments to function.</p></li>
 </ul>
 </dd>
 </dl>
@@ -2145,6 +2118,7 @@ simulation of a GillesPy2 model</p>
 <dt class="sig sig-object py" id="gillespy2.core.GillesPySolver">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">gillespy2.core.</span></span><span class="sig-name descname"><span class="pre">GillesPySolver</span></span><a class="reference internal" href="../_modules/gillespy2/core/gillespySolver.html#GillesPySolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.GillesPySolver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Abstract class for a solver.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.GillesPySolver.get_solver_settings">
 <span class="sig-name descname"><span class="pre">get_solver_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespySolver.html#GillesPySolver.get_solver_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.GillesPySolver.get_solver_settings" title="Permalink to this definition">¶</a></dt>
@@ -2153,42 +2127,29 @@ simulation of a GillesPy2 model</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.core.GillesPySolver.name">
 <span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'GillesPySolver'</span></em><a class="headerlink" href="#gillespy2.core.GillesPySolver.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstract class for a solver. This is generally called from within a
-gillespy Model through the Model.run function. Returns simulation
-trajectories.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>gillespy.Model</em>) – The model on which the solver will operate.</p></li>
-<li><p><strong>t</strong> (<em>int</em>) – The end time of the solver</p></li>
-<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each</p></li>
-</ul>
-</dd>
-</dl>
-<p>trajectory will be returned at the end of the simulation.
-:type number_of_trajectories: int</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
-<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
-<li><p><strong>debug</strong> – Set to True to provide additional debug information about the</p></li>
-</ul>
-</dd>
-</dl>
-<p>simulation.
-:type debug: bool</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>show_labels</strong> (<em>bool</em>) – Use names of species as index of result object rather than position numbers.</p>
-</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.GillesPySolver.run">
 <span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_trajectories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/gillespySolver.html#GillesPySolver.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.GillesPySolver.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call out and run the solver. Collect the results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>gillespy.Model</em>) – The model on which the solver will operate.</p></li>
+<li><p><strong>t</strong> (<em>int</em>) – The end time of the solver</p></li>
+<li><p><strong>number_of_trajectories</strong> (<em>int</em>) – The number of times to sample the chemical master equation. Each
+trajectory will be returned at the end of the simulation.</p></li>
+<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
+<li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation.</p></li>
+<li><p><strong>show_labels</strong> (<em>bool</em>) – Use names of species as index of result object rather than position numbers.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Simulation trajectories.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -2318,7 +2279,10 @@ and decoded into new objects.</p>
 This function will return a __new__ instance of the type.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>dict</strong> – The dictionary to apply onto the new instance.</p>
+<dd class="field-odd"><p><strong>src_dict</strong> (<em>dict</em>) – The dictionary to apply onto the new instance.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A new object with its backing __dict__ set to a copy of src_dict.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2330,7 +2294,10 @@ This function will return a __new__ instance of the type.</p>
 return a new instance of the type.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>json_str</strong> – A json str to be converted into a new type instance.</p>
+<dd class="field-odd"><p><strong>json_str</strong> (<em>str</em>) – A json str to be converted into a new type instance.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A decoded object.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2340,8 +2307,16 @@ return a new instance of the type.</p>
 <span class="sig-name descname"><span class="pre">get_json_hash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ignore_whitespace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hash_private_vals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">str</span><a class="reference internal" href="../_modules/gillespy2/core/jsonify.html#Jsonify.get_json_hash"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Jsonify.get_json_hash" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the hash of the json representation of self.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>An MD5 hash of the object’s sorted JSON representation.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ignore_whitespace</strong> (<em>bool</em>) – If set to True all whitespace will be stripped from the JSON
+prior to being hashed.</p></li>
+<li><p><strong>hash_private_vals</strong> (<em>bool</em>) – If set to True all private and non-private variables will
+be included in the hash.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An MD5 hash of the object’s sorted JSON representation.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2405,7 +2380,7 @@ Note: Complex types that inherit from Jsonify do not need to be manually encoded
 <dd><p>Convert self into a json string.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>encode_private</strong> – If True all private (prefixed of ‘_’) will be encoded. None if False.</p>
+<dd class="field-odd"><p><strong>encode_private</strong> (<em>bool</em>) – If True all private (prefixed of ‘_’) will be encoded. None if False.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>The JSON representation of self.</p>
@@ -2425,29 +2400,57 @@ Note: Complex types that inherit from Jsonify do not need to be manually encoded
 <dt class="sig sig-object py" id="gillespy2.core.Model">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">gillespy2.core.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tspan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annotation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'model'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#gillespy2.core.sortableobject.SortableObject" title="gillespy2.core.sortableobject.SortableObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.sortableobject.SortableObject</span></code></a>, <a class="reference internal" href="#gillespy2.core.jsonify.Jsonify" title="gillespy2.core.jsonify.Jsonify"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.jsonify.Jsonify</span></code></a></p>
+<p>Representation of a well mixed biochemical model. Contains reactions,
+parameters, species.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – The name of the model, or an annotation describing it.</p></li>
+<li><p><strong>population</strong> (<em>bool</em>) – The type of model being described. A discrete stochastic model is a
+population model (True), a deterministic model is a concentration model
+(False). Automatic conversion from population to concentration models
+may be used, by setting the volume parameter.</p></li>
+<li><p><strong>volume</strong> (<em>float</em>) – The volume of the system matters when converting to from population to
+concentration form. This will also set a parameter “vol” for use in
+custom (i.e. non-mass-action) propensity functions.</p></li>
+<li><p><strong>tspan</strong> (<em>numpy ndarray</em>) – The timepoints at which the model should be simulated. If None, a
+default timespan is added. May be set later, see Model.timespan</p></li>
+<li><p><strong>annotation</strong> (<em>str</em>) – Option further description of model</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.Model.add_assignment_rule">
 <span class="sig-name descname"><span class="pre">add_assignment_rule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">assignment_rules</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.add_assignment_rule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Model.add_assignment_rule" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add AssignmentRule or list of AssignmentRules to the model object.
-:param assignment_rules: The AssignmentRule or list of AssignmentRules to be added to the model object.
-:type assignment_rules: AssignmentRule or list of AssignmentRules</p>
+<dd><p>Add AssignmentRule or list of AssignmentRules to the model object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>assignment_rules</strong> (<a class="reference internal" href="#gillespy2.core.AssignmentRule" title="gillespy2.core.AssignmentRule"><em>AssignmentRule</em></a><em> or </em><em>list of AssignmentRules</em>) – The AssignmentRule or list of AssignmentRules to be added to the model object.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.Model.add_event">
 <span class="sig-name descname"><span class="pre">add_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.add_event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Model.add_event" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds an event, or list of events to the model.
-:param event: The event or list of event objects to be added to the model object.
-:type event: Event, or list of Events</p>
+<dd><p>Adds an event, or list of events to the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<a class="reference internal" href="#gillespy2.core.Event" title="gillespy2.core.Event"><em>Event</em></a><em>, or </em><em>list of Events</em>) – The event or list of event objects to be added to the model object.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.Model.add_function_definition">
 <span class="sig-name descname"><span class="pre">add_function_definition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function_definitions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.add_function_definition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Model.add_function_definition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add FunctionDefinition or list of FunctionDefinitions
-:param function_definitions: The FunctionDefinition, or list of FunctionDefinitions to be added to the model
-object.
-:type function_definitions: FunctionDefinition or list of FunctionDefinitions.</p>
+<dd><p>Add FunctionDefinition or list of FunctionDefinitions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>function_definitions</strong> (<a class="reference internal" href="#gillespy2.core.FunctionDefinition" title="gillespy2.core.FunctionDefinition"><em>FunctionDefinition</em></a><em> or </em><em>list of FunctionDefinitions.</em>) – The FunctionDefinition, or list of FunctionDefinitions to be added to the model
+object.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -2478,11 +2481,10 @@ object.
 <dd><p>Adds a reaction, or list of reactions to the model.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>reactions</strong> – The reaction or list of reaction objects to be added to the model</p>
+<dd class="field-odd"><p><strong>reactions</strong> (<a class="reference internal" href="#gillespy2.core.Reaction" title="gillespy2.core.Reaction"><em>Reaction</em></a><em>, or </em><em>list of Reactions</em>) – The reaction or list of reaction objects to be added to the model
+object.</p>
 </dd>
 </dl>
-<p>object.
-:type reactions: Reaction, or list of Reactions</p>
 </dd></dl>
 
 <dl class="py method">
@@ -2541,22 +2543,34 @@ object.
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.Model.delete_assignment_rule">
 <span class="sig-name descname"><span class="pre">delete_assignment_rule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.delete_assignment_rule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Model.delete_assignment_rule" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes an assignment rule from a model
-:param aname: Name of AssignmentRule object to be removed from model</p>
+<dd><p>Removes an assignment rule from a model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>aname</strong> – Name of AssignmentRule object to be removed from model</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.Model.delete_event">
 <span class="sig-name descname"><span class="pre">delete_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.delete_event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Model.delete_event" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes specified Event from model
-:param ename: Name of Event to be removed</p>
+<dd><p>Removes specified Event from model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ename</strong> – Name of Event to be removed</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.Model.delete_function_definition">
 <span class="sig-name descname"><span class="pre">delete_function_definition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.delete_function_definition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Model.delete_function_definition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes specified Function Definition from model
-:param fname: Name of Function Definition to be removed</p>
+<dd><p>Removes specified Function Definition from model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fname</strong> – Name of Function Definition to be removed</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -2631,8 +2645,12 @@ object.
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.Model.get_all_parameters">
 <span class="sig-name descname"><span class="pre">get_all_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.get_all_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Model.get_all_parameters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a dict of all parameters in the model, of the form:
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A dict of all parameters in the model, of the form:
 {name : parameter object}</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -2658,8 +2676,12 @@ object.
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.Model.get_all_species">
 <span class="sig-name descname"><span class="pre">get_all_species</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.get_all_species"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Model.get_all_species" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a dict of all species in the model, of the form:
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A dict of all species in the model, of the form:
 {name : species object}</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -2679,11 +2701,16 @@ object.
 <dt class="sig sig-object py" id="gillespy2.core.Model.get_best_solver">
 <span class="sig-name descname"><span class="pre">get_best_solver</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.get_best_solver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Model.get_best_solver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finds best solver for the users simulation. Currently, AssignmentRules, RateRules, FunctionDefinitions,
-Events, and Species with a dynamic, or continuous population must use the TauHybridSolver.
-:param precompile: If True, and the model contains no AssignmentRules, RateRules, FunctionDefinitions, Events,
-or Species with a dynamic or continuous population, it will choose SSACSolver
-:type precompile: bool
-:return: gillespy2.gillespySolver</p>
+Events, and Species with a dynamic, or continuous population must use the TauHybridSolver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>precompile</strong> (<em>bool</em>) – If True, and the model contains no AssignmentRules, RateRules, FunctionDefinitions, Events,
+or Species with a dynamic or continuous population, it will choose SSACSolver</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>gillespy2.gillespySolver</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -2695,9 +2722,15 @@ or Species with a dynamic or continuous population, it will choose SSACSolver
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.Model.get_element">
 <span class="sig-name descname"><span class="pre">get_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.get_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Model.get_element" title="Permalink to this definition">¶</a></dt>
-<dd><p>get element specified by name
-:param ename: name of element to search for
-:return:value of element, or ‘element not found’</p>
+<dd><p>Get element specified by name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ename</strong> – name of element to search for</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>value of element, or ‘element not found’</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -2811,52 +2844,51 @@ This methods must be called before exporting the model.</p>
 parameters to be set here.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>solver</strong> – The solver by which to simulate the model. This solver object may</p>
-</dd>
-</dl>
-<p>be initialized separately to specify an algorithm. Optional,
-defaults to ssa solver.
-:type solver: gillespy.GillesPySolver</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>solver</strong> (<em>gillespy.GillesPySolver</em>) – The solver by which to simulate the model. This solver object may
+be initialized separately to specify an algorithm. Optional, defaults to ssa solver.</p></li>
 <li><p><strong>timeout</strong> (<em>int</em>) – Allows a time_out value in seconds to be sent to a signal handler, restricting simulation run-time</p></li>
 <li><p><strong>t</strong> (<em>int</em>) – End time of simulation</p></li>
 <li><p><strong>solver_args</strong> – Solver-specific arguments to be passed to solver.run()</p></li>
-<li><p><strong>cpp_support</strong> – INTERNAL USE ONLY, flag for whether or not a computer has the capability to compile a</p></li>
+<li><p><strong>cpp_support</strong> (<em>bool</em>) – INTERNAL USE ONLY, flag for whether or not a computer has the capability to compile a
+C++ program.</p></li>
+<li><p><strong>algorithm</strong> (<em>str</em>) – Specify algorithm (‘ODE’, ‘Tau-Leaping’, or ‘SSA’) for GillesPy2 to automatically pick best solver using that algorithm.</p></li>
 </ul>
 </dd>
-</dl>
-<p>C++ program.
-:type cpp_support: bool</p>
-<p>:return  If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is
 True,returns a Results object that inherits UserList and contains one or more Trajectory objects that
 inherit UserDict. Results object supports graphing and csv export.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>algorithm</strong> (<em>str</em>) – Specify algorithm (‘ODE’, ‘Tau-Leaping’, or ‘SSA’) for GillesPy2 to automatically pick best solver using that algorithm.</p>
 </dd>
 </dl>
 <p>To pause a simulation and retrieve data before the simulation, keyboard interrupt the simulation by pressing
 control+c or pressing stop on a jupyter notebook. To resume a simulation, pass your previously ran results
-into the run method, and set t = to the time you wish the resuming simulation to end (run(resume=results, t=x)).
-Pause/Resume is only supported for SINGLE TRAJECTORY simulations. T MUST BE SET OR UNEXPECTED BEHAVIOR MAY OCCUR.</p>
+into the run method, and set t = to the time you wish the resuming simulation to end (run(resume=results, t=x)).</p>
+<p><strong>Pause/Resume is only supported for SINGLE TRAJECTORY simulations. T MUST BE SET OR UNEXPECTED BEHAVIOR MAY OCCUR.</strong></p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.Model.sanitized_parameter_names">
 <span class="sig-name descname"><span class="pre">sanitized_parameter_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.sanitized_parameter_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Model.sanitized_parameter_names" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a dictionary mapping user chosen parameter names to simplified formats which will be used
-later on by GillesPySolvers evaluating reaction propensity functions.
-:return: the dictionary mapping user parameter names to their internal GillesPy notation.</p>
+later on by GillesPySolvers evaluating reaction propensity functions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the dictionary mapping user parameter names to their internal GillesPy notation.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.Model.sanitized_species_names">
 <span class="sig-name descname"><span class="pre">sanitized_species_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#Model.sanitized_species_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Model.sanitized_species_names" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a dictionary mapping user chosen species names to simplified formats which will be used
-later on by GillesPySolvers evaluating reaction propensity functions.
-:return: the dictionary mapping user species names to their internal GillesPy notation.</p>
+later on by GillesPySolvers evaluating reaction propensity functions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the dictionary mapping user species names to their internal GillesPy notation.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -2873,12 +2905,11 @@ later on by GillesPySolvers evaluating reaction propensity functions.
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>p_name</strong> (<em>str</em>) – Name of the parameter whose value will be set.</p></li>
-<li><p><strong>expression</strong> – String that may be executed in C, describing the value of the</p></li>
+<li><p><strong>expression</strong> (<em>str</em>) – String that may be executed in C, describing the value of the
+parameter. May reference other parameters by name. (e.g. “k1*4”)</p></li>
 </ul>
 </dd>
 </dl>
-<p>parameter. May reference other parameters by name. (e.g. “k1*4”)
-:type expression: str</p>
 </dd></dl>
 
 <dl class="py method">
@@ -2895,42 +2926,7 @@ later on by GillesPySolvers evaluating reaction propensity functions.
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.core.Model.special_characters">
 <span class="sig-name descname"><span class="pre">special_characters</span></span><em class="property"> <span class="pre">=</span> <span class="pre">['[',</span> <span class="pre">']',</span> <span class="pre">'+',</span> <span class="pre">'-',</span> <span class="pre">'*',</span> <span class="pre">'/',</span> <span class="pre">'.',</span> <span class="pre">'^']</span></em><a class="headerlink" href="#gillespy2.core.Model.special_characters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Representation of a well mixed biochemical model. Contains reactions,
-parameters, species.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – The name of the model, or an annotation describing it.</p></li>
-<li><p><strong>population</strong> – The type of model being described. A discrete stochastic model is a</p></li>
-</ul>
-</dd>
-</dl>
-<p>population model (True), a deterministic model is a concentration model
-(False). Automatic conversion from population to concentration models
-may be used, by setting the volume parameter.
-Attributes
-:type population: bool</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>volume</strong> – The volume of the system matters when converting to from population to</p>
-</dd>
-</dl>
-<p>concentration form. This will also set a parameter “vol” for use in
-custom (i.e. non-mass-action) propensity functions.
-:type volume: float</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>tspan</strong> – The timepoints at which the model should be simulated. If None, a</p>
-</dd>
-</dl>
-<p>default timespan is added. May be set later, see Model.timespan
-:type tspan: numpy ndarray</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>annotation</strong> (<em>str</em>) – Option further description of model</p>
-</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.Model.timespan">
@@ -2939,11 +2935,10 @@ custom (i.e. non-mass-action) propensity functions.
 timespans.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>time_span</strong> – Evenly-spaced list of times at which to sample the species</p>
+<dd class="field-odd"><p><strong>time_span</strong> (<em>numpy ndarray</em>) – Evenly-spaced list of times at which to sample the species populations during the simulation.
+Best to use the form np.linspace(&lt;start time&gt;, &lt;end time&gt;, &lt;number of time-points, inclusive&gt;)</p>
 </dd>
 </dl>
-<p>populations during the simulation. Best to use the form np.linspace(&lt;start time&gt;, &lt;end time&gt;, &lt;number of time-points, inclusive&gt;)
-:type time_span: numpy ndarray</p>
 </dd></dl>
 
 <dl class="py method">
@@ -3046,57 +3041,27 @@ In either case, this is followed by: for k in F:  D[k] = F[k]</p>
 <p>A parameter can be given as an expression (function) or directly
 as a value (scalar). If given an expression, it should be
 understood as evaluable in the namespace of a parent Model.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="gillespy2.core.Parameter.name">
-<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#gillespy2.core.Parameter.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>The name by which this parameter is called or referenced in reactions.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – The name by which this parameter is called or referenced in reactions.</p></li>
+<li><p><strong>expression</strong> (<em>str</em>) – String for a function calculating parameter values. Should be
+evaluable in namespace of Model.</p></li>
+<li><p><strong>value</strong> (<em>float</em>) – Value of a parameter if it is not dependent on other Model entities.</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="gillespy2.core.Parameter.expression">
-<span class="sig-name descname"><span class="pre">expression</span></span><a class="headerlink" href="#gillespy2.core.Parameter.expression" title="Permalink to this definition">¶</a></dt>
-<dd><p>String for a function calculating parameter values. Should be evaluable
-in namespace of Model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="gillespy2.core.Parameter.value">
-<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#gillespy2.core.Parameter.value" title="Permalink to this definition">¶</a></dt>
-<dd><p>Value of a parameter if it is not dependent on other Model entities.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.Parameter.evaluate">
 <span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">namespace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/parameter.html#Parameter.evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Parameter.evaluate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate the expression and return the (scalar) value in the given
 namespace.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="gillespy2.core.Parameter.namespace">
-<span class="sig-name descname"><span class="pre">namespace</span></span><a class="headerlink" href="#gillespy2.core.Parameter.namespace" title="Permalink to this definition">¶</a></dt>
-<dd><p>The namespace in which to test evaluation of the parameter, if it
-involves other parameters, etc.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>dict (optional)</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>namespace</strong> (<em>dict</em>) – The namespace in which to test evaulation of the parameter,
+if it involves other parameters, etc.</p>
 </dd>
 </dl>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py method">
@@ -3152,24 +3117,18 @@ value) in the namespace defined by the union of those dicts.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – The name by which the reaction is called (optional).</p></li>
-<li><p><strong>reactants</strong> – The reactants that are consumed in the reaction, with stoichiometry. An</p></li>
+<li><p><strong>reactants</strong> (<em>dict</em>) – The reactants that are consumed in the reaction, with stoichiometry. An
+example would be {R1 : 1, R2 : 2} if the reaction consumes two of R1 and
+one of R2, where R1 and R2 are Species objects.</p></li>
+<li><p><strong>products</strong> (<em>dict</em>) – The species that are created by the reaction event, with stoichiometry. Same format as reactants.</p></li>
+<li><p><strong>propensity_function</strong> (<em>str</em>) – The custom propensity function for the reaction. Must be evaluable in the
+namespace of the reaction using C operations.</p></li>
+<li><p><strong>massaction</strong> (<em>bool</em>) – The switch to use a mass-action reaction. If set to True, a rate value is required.</p></li>
+<li><p><strong>rate</strong> (<em>float</em>) – The rate of the mass-action reaction, take care to note the units.</p></li>
+<li><p><strong>annotation</strong> (<em>str</em>) – An optional note about the reaction.</p></li>
 </ul>
 </dd>
 </dl>
-<p>example would be {R1 : 1, R2 : 2} if the reaction consumes two of R1 and
-one of R2, where R1 and R2 are Species objects.
-:type reactants: dict
-:param products: The species that are created by the reaction event, with stoichiometry. Same format as reactants.
-:type products: dict
-:param propensity_function: The custom propensity function for the reaction. Must be evaluable in the
-namespace of the reaction using C operations.
-:type propensity_function: str
-:param massaction: The switch to use a mass-action reaction. If set to True, a rate value is required.
-:type massaction: bool
-:param rate: The rate of the mass-action reaction, take care to note the units.
-:type rate: float
-:param annotation: An optional note about the reaction.
-:type annotation: str</p>
 <p class="rubric">Notes</p>
 <p>For a species that is NOT consumed in the reaction but is part of a mass
 action reaction, add it as both a reactant and a product.</p>
@@ -3231,7 +3190,10 @@ self.reactants and a single parameter value.</p>
 return a new instance of the type.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>json_str</strong> – A json str to be converted into a new type instance.</p>
+<dd class="field-odd"><p><strong>json_str</strong> (<em>str</em>) – A json str to be converted into a new type instance.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A decoded object.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3293,8 +3255,12 @@ Does nothing on sucesss, raises and error on failure.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.Results.average_ensemble">
 <span class="sig-name descname"><span class="pre">average_ensemble</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.average_ensemble"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Results.average_ensemble" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate a single Results object with a Trajectory that is made of the means of all trajectories’ outputs
-:return: the Results object</p>
+<dd><p>Generate a single Results object with a Trajectory that is made of the means of all trajectories’ outputs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The Results object</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -3309,25 +3275,20 @@ Does nothing on sucesss, raises and error on failure.</p>
 <li><p><strong>yaxis_label</strong> (<em>str</em>) – The label for the y-axis</p></li>
 <li><p><strong>title</strong> (<em>str</em>) – The title of the graph</p></li>
 <li><p><strong>multiple_graphs</strong> (<em>bool</em>) – IF each trajectory should have its own graph or if they should overlap.</p></li>
-<li><p><strong>included_species_list</strong> – A list of strings describing which species to include. By default displays all</p></li>
+<li><p><strong>included_species_list</strong> (<em>list</em>) – A list of strings describing which species to include. By default displays all
+species.</p></li>
+<li><p><strong>save_png</strong> (<em>bool</em><em> or </em><em>str</em>) – Should the graph be saved as a png file. If True, File name is title of graph. If a string is
+given, file is named after that string.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple of ints</em><em> (</em><em>x</em><em>,</em><em>y</em><em>)</em>) – The size of the graph. A tuple of the form (width,height). Is (18,10) by default.</p></li>
 </ul>
 </dd>
 </dl>
-<p>species.
-:type included_species_list: list
-:param save_png: Should the graph be saved as a png file. If True, File name is title of graph. If a string is
-given, file is named after that string.
-:type save_png: bool or str
-:param figsize: The size of the graph. A tuple of the form (width,height). Is (18,10) by default.
-:type figsize: tuple of ints (x,y)</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.Results.plot_mean_stdev">
 <span class="sig-name descname"><span class="pre">plot_mean_stdev</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xaxis_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Time'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yaxis_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Value'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">included_species_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ddof</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_png</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(18,</span> <span class="pre">10)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.plot_mean_stdev"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Results.plot_mean_stdev" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Plot a matplotlib graph depicting mean and standard deviation of a results object</p>
-</div></blockquote>
+<dd><p>Plot a matplotlib graph depicting mean and standard deviation of a results object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -3337,27 +3298,21 @@ given, file is named after that string.
 <li><p><strong>show_title</strong> (<em>bool</em>) – Default False, if True, title will be displayed on the graph.</p></li>
 <li><p><strong>style</strong> (<em>str</em>) – Matplotlib style to be displayed on graph.</p></li>
 <li><p><strong>show_legend</strong> (<em>bool</em>) – Default to True, if False, legend will not be shown on graph.</p></li>
-<li><p><strong>included_species_list</strong> – A list of strings describing which species to include. By default displays all</p></li>
+<li><p><strong>included_species_list</strong> (<em>list</em>) – A list of strings describing which species to include. By default displays all
+species.</p></li>
+<li><p><strong>ddof</strong> (<em>int</em>) – Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
+where ddof is 0.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple of ints</em><em> (</em><em>x</em><em>,</em><em>y</em><em>)</em>) – The size of the graph. A tuple of the form (width,height). Is (18,10) by default.</p></li>
 </ul>
 </dd>
 </dl>
-<p>species.
-:type included_species_list: list
-:param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
-where ddof is 0.
-:type ddof: int
-:type save_png: bool or str
-:param figsize: The size of the graph. A tuple of the form (width,height). Is (18,10) by default.
-:type figsize: tuple of ints (x,y)</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.Results.plot_std_dev_range">
 <span class="sig-name descname"><span class="pre">plot_std_dev_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xaxis_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Time'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yaxis_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Value'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">included_species_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ddof</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_png</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(18,</span> <span class="pre">10)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gillespy2.core.Results.plot_std_dev_range" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Plot a matplotlib graph depicting mean and standard deviation of a results object</p>
-</div></blockquote>
+<dd><p>Plot a matplotlib graph depicting mean and standard deviation of a results object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -3367,19 +3322,15 @@ where ddof is 0.
 <li><p><strong>show_title</strong> (<em>bool</em>) – Default False, if True, title will be displayed on the graph.</p></li>
 <li><p><strong>style</strong> (<em>str</em>) – Matplotlib style to be displayed on graph.</p></li>
 <li><p><strong>show_legend</strong> (<em>bool</em>) – Default to True, if False, legend will not be shown on graph.</p></li>
-<li><p><strong>included_species_list</strong> – A list of strings describing which species to include. By default displays all</p></li>
+<li><p><strong>included_species_list</strong> (<em>list</em>) – A list of strings describing which species to include. By default displays all
+species.</p></li>
+<li><p><strong>ddof</strong> (<em>int</em>) – Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
+where ddof is 0.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple of ints</em><em> (</em><em>x</em><em>,</em><em>y</em><em>)</em>) – The size of the graph. A tuple of the form (width,height). Is (18,10) by default.</p></li>
 </ul>
 </dd>
 </dl>
-<p>species.
-:type included_species_list: list
-:param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
-where ddof is 0.
-:type ddof: int
-:type save_png: bool or str
-:param figsize: The size of the graph. A tuple of the form (width,height). Is (18,10) by default.
-:type figsize: tuple of ints (x,y)</p>
 </dd></dl>
 
 <dl class="py method">
@@ -3396,17 +3347,15 @@ where ddof is 0.
 <li><p><strong>show_title</strong> (<em>bool</em>) – If True, title will be shown on graph.</p></li>
 <li><p><strong>show_legend</strong> (<em>bool</em>) – Default True, if False, legend will not be shown on graph.</p></li>
 <li><p><strong>multiple_graphs</strong> (<em>bool</em>) – IF each trajectory should have its own graph or if they should overlap.</p></li>
-<li><p><strong>included_species_list</strong> – A list of strings describing which species to include. By default displays all</p></li>
+<li><p><strong>included_species_list</strong> (<em>list</em>) – A list of strings describing which species to include. By default displays all
+species.</p></li>
+<li><p><strong>return_plotly_figure</strong> (<em>bool</em>) – Whether or not to return a figure dictionary of data(graph object traces) and
+layout which may be edited by the user</p></li>
+<li><p><strong>**layout_args</strong> – <p>Optional additional arguments to be passed to plotlys layout constructor.</p>
+</p></li>
 </ul>
 </dd>
 </dl>
-<p>species.
-:type included_species_list: list
-:param return_plotly_figure: Whether or not to return a figure dictionary of data(graph object traces) and
-layout which may be edited by the user
-:type return_plotly_figure: bool
-:param <a href="#id13"><span class="problematic" id="id14">**</span></a>layout_args: Optional additional arguments to be passed to plotlys layout constructor.
-:type <a href="#id15"><span class="problematic" id="id16">**</span></a>layout_args: dict</p>
 </dd></dl>
 
 <dl class="py method">
@@ -3421,21 +3370,18 @@ layout which may be edited by the user
 <li><p><strong>title</strong> (<em>str</em>) – The title of the graph</p></li>
 <li><p><strong>show_title</strong> (<em>bool</em>) – If True, title will be shown on graph.</p></li>
 <li><p><strong>show_legend</strong> (<em>bool</em>) – Default True, if False, legend will not be shown on graph.</p></li>
-<li><p><strong>included_species_list</strong> – A list of strings describing which species to include. By default displays all</p></li>
+<li><p><strong>included_species_list</strong> (<em>list</em>) – A list of strings describing which species to include. By default displays all
+species.</p></li>
+<li><p><strong>return_plotly_figure</strong> (<em>bool</em>) – Whether or not to return a figure dicctionary of data(graph object traces) and
+layout which may be edited by the user</p></li>
+<li><p><strong>ddof</strong> (<em>int</em>) – Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
+where ddof is 0.</p></li>
+<li><p><strong>**layout_args</strong> – <p>Optional additional arguments to be passed to plotlys layout constructor.</p>
+</p></li>
 </ul>
 </dd>
 </dl>
-<p>species.
-:type included_species_list: list
-:param return_plotly_figure: Whether or not to return a figure dicctionary of data(graph object traces) and
-layout which may be edited by the user
-:type return_plotly_figure: bool
-:param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
-where ddof is 0.
-:type ddof: int
-:param <a href="#id17"><span class="problematic" id="id18">**</span></a>layout_args: Optional additional arguments to be passed to plotlys layout constructor.
-:type <a href="#id19"><span class="problematic" id="id20">**</span></a>layout_args: dict</p>
 </dd></dl>
 
 <dl class="py method">
@@ -3450,21 +3396,18 @@ where ddof is 0.
 <li><p><strong>title</strong> (<em>str</em>) – The title of the graph</p></li>
 <li><p><strong>show_title</strong> (<em>bool</em>) – If True, title will be shown on graph.</p></li>
 <li><p><strong>show_legend</strong> (<em>bool</em>) – Default True, if False, legend will not be shown on graph.</p></li>
-<li><p><strong>included_species_list</strong> – A list of strings describing which species to include. By default displays all</p></li>
+<li><p><strong>included_species_list</strong> (<em>list</em>) – A list of strings describing which species to include. By default displays all
+species.</p></li>
+<li><p><strong>return_plotly_figure</strong> (<em>bool</em>) – Whether or not to return a figure dicctionary of data(graph object traces) and
+layout which may be edited by the user</p></li>
+<li><p><strong>ddof</strong> (<em>int</em>) – Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
+where ddof is 0.</p></li>
+<li><p><strong>**layout_args</strong> – <p>Optional additional arguments to be passed to plotlys layout constructor.</p>
+</p></li>
 </ul>
 </dd>
 </dl>
-<p>species.
-:type included_species_list: list
-:param return_plotly_figure: Whether or not to return a figure dicctionary of data(graph object traces) and
-layout which may be edited by the user
-:type return_plotly_figure: bool
-:param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
-where ddof is 0.
-:type ddof: int
-:param <a href="#id21"><span class="problematic" id="id22">**</span></a>layout_args: Optional additional arguments to be passed to plotlys layout constructor.
-:type <a href="#id23"><span class="problematic" id="id24">**</span></a>layout_args: dict</p>
 </dd></dl>
 
 <dl class="py method">
@@ -3474,13 +3417,14 @@ where ddof is 0.
 trajectories’ outputs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>ddof</strong> – Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents</p>
+<dd class="field-odd"><p><strong>ddof</strong> (<em>int</em>) – Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
+where ddof is 0.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the Results object</p>
 </dd>
 </dl>
-<p>the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
-where ddof is 0.
-:type ddof: int
-:return: the Results object</p>
 </dd></dl>
 
 <dl class="py method">
@@ -3491,18 +3435,17 @@ where ddof is 0.
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.Results.to_csv">
 <span class="sig-name descname"><span class="pre">to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nametag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/results.html#Results.to_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Results.to_csv" title="Permalink to this definition">¶</a></dt>
-<dd><p>outputs the Results to one or more .csv files in a new directory.</p>
+<dd><p>Outputs the Results to one or more .csv files in a new directory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>nametag</strong> – allows the user to optionally “tag” the directory and included files. Defaults to the model</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nametag</strong> (<em>str</em>) – allows the user to optionally “tag” the directory and included files. Defaults to the model
+name.</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – the location for the new directory and included files. Defaults to model location.</p></li>
+<li><p><strong>stamp</strong> (<em>str</em>) – Allows the user to optionally “tag” the directory (not included files). Default is timestamp.</p></li>
+</ul>
 </dd>
 </dl>
-<p>name.
-:type nametag: str
-:param path: the location for the new directory and included files. Defaults to model location.
-:type path: str
-:param stamp: Allows the user to optionally “tag” the directory (not included files). Default is timestamp.
-:type stamp: str</p>
 </dd></dl>
 
 </dd></dl>
@@ -3548,41 +3491,40 @@ species or time.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – The name by which this species will be called in reactions and within the model.</p></li>
-<li><p><strong>initial_value</strong> – Initial population of this species. If this is not provided as an int,</p></li>
-</ul>
-</dd>
-</dl>
-<p>the type will be changed when it is added by numpy.int
-:type initial_value: int &gt;= 0
-:param constant: If true, the value of the species cannot be changed (currently TauHybridSolver only)
-:type constant: bool
-:param boundary_condition: If true, species can be changed by events and rate rules, but not by reactions.
-(TauHybridSolver only)
-:type boundary_condition: bool
-:param mode: <strong>*FOR USE WITH BasicTauHybridSolver ONLY*</strong>
+<li><p><strong>initial_value</strong> (<em>int &gt;= 0</em>) – Initial population of this species. If this is not provided as an int,
+the type will be changed when it is added by numpy.int</p></li>
+<li><p><strong>constant</strong> (<em>bool</em>) – If true, the value of the species cannot be changed (currently TauHybridSolver only)</p></li>
+<li><p><strong>boundary_condition</strong> (<em>bool</em>) – If true, species can be changed by events and rate rules, but not by reactions.
+(TauHybridSolver only)</p></li>
+<li><p><strong>mode</strong> (<em>str</em>) – <strong>*FOR USE WITH BasicTauHybridSolver ONLY*</strong>
 Sets the mode of representation of this species for the TauHybridSolver,
 can be discrete, continuous, or dynamic.
 mode=’dynamic’ - Allows a species to be represented as either discrete or continuous
 mode=’continuous’ - Species will only be represented as continuous
-mode=’discrete’ - Species will only be represented as discrete
-:type mode: str
-:param allow_negative_populations: If true, population can be reduces below 0.
-:type allow_negative_populations: bool
-:param switch_tol: <strong>*FOR USE WITH BasicTauHybridSolver ONLY*</strong>
+mode=’discrete’ - Species will only be represented as discrete</p></li>
+<li><p><strong>allow_negative_populations</strong> (<em>bool</em>) – If true, population can be reduces below 0.</p></li>
+<li><p><strong>switch_tol</strong> (<em>float</em>) – <strong>*FOR USE WITH BasicTauHybridSolver ONLY*</strong>
 Tolerance level for considering a dynamic species deterministically, value is compared to an estimated sd/mean
 population of a species after a given time step. This value will be used if a switch_min is not provided.
-The default value is 0.03
-:type switch_tol: float
-:param switch_min:  <strong>*FOR USE WITH BasicTauHybridSolver ONLY*</strong>
+The default value is 0.03</p></li>
+<li><p><strong>switch_min</strong> (<em>float</em>) – <strong>*FOR USE WITH BasicTauHybridSolver ONLY*</strong>
 Minimum population value at which species will be represented as continuous. If a value is given, switch_min will be
-used instead of switch_tol
-:type switch_min: float</p>
+used instead of switch_tol</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.Species.set_initial_value">
 <span class="sig-name descname"><span class="pre">set_initial_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/species.html#Species.set_initial_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.Species.set_initial_value" title="Permalink to this definition">¶</a></dt>
-<dd><p>Setter method for initial_value of a population
-:param num: Integer to set initial species population
-:raises SpeciesError: If num is non-negative or a decimal number</p>
+<dd><p>Setter method for initial_value of a population</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>num</strong> – Integer to set initial species population</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="#gillespy2.core.SpeciesError" title="gillespy2.core.SpeciesError"><strong>SpeciesError</strong></a> – If num is non-negative or a decimal number</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -3609,16 +3551,21 @@ file read from disk.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.StochMLDocument.from_model">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/model.html#StochMLDocument.from_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.StochMLDocument.from_model" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates an StochKit XML document from an exisiting Mdoel object.
+<dd><p>Creates an StochKit XML document from an exisiting Model object.
 This method assumes that all the parameters in the model are already
 resolved to scalar floats (see Model.resolveParamters).</p>
-<p>Note, this method is intended to be used interanally by the models
+<p>Note, this method is intended to be used internally by the models
 ‘serialization’ function, which performs additional operations and
-tests on the model prior to writing out the XML file. You should NOT         do:</p>
-<p>document = StochMLDocument.fromModel(model)
-print document.toString()</p>
-<p>You SHOULD do</p>
-<p>print model.serialize()</p>
+tests on the model prior to writing out the XML file.</p>
+<p>You should NOT do:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">document</span> <span class="o">=</span> <span class="n">StochMLDocument</span><span class="o">.</span><span class="n">fromModel</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="nb">print</span> <span class="n">document</span><span class="o">.</span><span class="n">toString</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>You SHOULD do:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span> <span class="n">model</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -3672,13 +3619,22 @@ file read from disk.</p>
 <dd><p>Bases: <a class="reference internal" href="#gillespy2.core.jsonify.Jsonify" title="gillespy2.core.jsonify.Jsonify"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.jsonify.Jsonify</span></code></a></p>
 <p>This class contains functions to enable arbitrary object trees to be “translated” to anonymous
 and named objects. This behavior is defined by a map of ‘named’ and ‘anon’ key values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>to_anon</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em>) – A mapping of ‘named’ to ‘anonymous’ strings to be used when converting
+user-defined names to anon.</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.core.TranslationTable.obj_to_anon">
 <span class="sig-name descname"><span class="pre">obj_to_anon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/jsonify.html#TranslationTable.obj_to_anon"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.TranslationTable.obj_to_anon" title="Permalink to this definition">¶</a></dt>
 <dd><p>Recursively anonymise all named properties on the object.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>An anonymized instance of self.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obj</strong> (<em>object</em>) – The object to anonymize.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An anonymized instance of self.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3688,8 +3644,11 @@ and named objects. This behavior is defined by a map of ‘named’ and ‘anon�
 <span class="sig-name descname"><span class="pre">obj_to_named</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/core/jsonify.html#TranslationTable.obj_to_named"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.core.TranslationTable.obj_to_named" title="Permalink to this definition">¶</a></dt>
 <dd><p>Recursively identify all anonymous properties on the object.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A named instance of self.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obj</strong> (<em>object</em>) – The object that will be converted to named.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A named instance of self.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3702,8 +3661,8 @@ translation table. If a match is found, substitute.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>obj</strong> – The object that will be translated.</p></li>
-<li><p><strong>translation_table</strong> – The mapping to translate by.</p></li>
+<li><p><strong>obj</strong> (<em>object</em>) – The object that will be translated.</p></li>
+<li><p><strong>translation_table</strong> (<a class="reference internal" href="#gillespy2.core.TranslationTable" title="gillespy2.core.TranslationTable"><em>TranslationTable</em></a>) – The mapping to translate by.</p></li>
 </ul>
 </dd>
 </dl>

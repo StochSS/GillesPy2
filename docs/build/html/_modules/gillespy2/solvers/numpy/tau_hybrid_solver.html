@@ -632,14 +632,16 @@
 
 <span class="sd">        :param curr_state: Contains all state variables for system at current time</span>
 <span class="sd">        :type curr_state: dict</span>
+
 <span class="sd">        :param curr_time: Represents current time</span>
 <span class="sd">        :type curr_time: float</span>
+
 <span class="sd">        :param save_times: Currently unreached save points</span>
 <span class="sd">        :type save_times: list</span>
-<span class="sd">        :return curr_state, curr_time, save_times, sol</span>
 
-<span class="sd">        sol - Python object returned from LSODA which contains all solution</span>
-<span class="sd">        data.</span>
+<span class="sd">        :returns: curr_state, curr_time, save_times, sol</span>
+<span class="sd">            sol - Python object returned from LSODA which contains all solution</span>
+<span class="sd">            data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">event_queue</span> <span class="o">=</span> <span class="p">[]</span>
@@ -830,7 +832,7 @@
 <div class="viewcode-block" id="TauHybridSolver.get_solver_settings"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.TauHybridSolver.get_solver_settings">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_solver_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.</span>
+<span class="sd">        :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;number_of_trajectories&#39;</span><span class="p">,</span> <span class="s1">&#39;increment&#39;</span><span class="p">,</span> <span class="s1">&#39;seed&#39;</span><span class="p">,</span> <span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;profile&#39;</span><span class="p">,</span> <span class="s1">&#39;tau_tol&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;event_sensitivity&#39;</span><span class="p">,</span> <span class="s1">&#39;integrator&#39;</span><span class="p">,</span> <span class="s1">&#39;integrator_options&#39;</span><span class="p">,</span> <span class="s1">&#39;timeout&#39;</span><span class="p">)</span></div>
@@ -850,8 +852,8 @@
 <span class="sd">        :type t: int</span>
 
 <span class="sd">        :param number_of_trajectories: The number of times to sample the chemical master equation. Each</span>
-<span class="sd">        trajectory will be returned at the end of the simulation.</span>
-<span class="sd">        Optional, defaults to 1.Number of trajectories to simulate</span>
+<span class="sd">            trajectory will be returned at the end of the simulation.</span>
+<span class="sd">            Optional, defaults to 1. Number of trajectories to simulate</span>
 <span class="sd">        :type number_of_trajectories: int</span>
 
 <span class="sd">        :param increment: Save point increment for recording data</span>
@@ -867,25 +869,25 @@
 <span class="sd">        :type profile: bool</span>
 
 <span class="sd">        :param tau_tol: Tolerance level for Tau leaping algorithm.  Larger tolerance values will</span>
-<span class="sd">        result in larger tau steps. Default value is 0.03.</span>
+<span class="sd">            result in larger tau steps. Default value is 0.03.</span>
 <span class="sd">        :type tau_tol: float</span>
 
 <span class="sd">        :param event_sensitivity: Number of data points to be inspected between integration</span>
-<span class="sd">        steps/save points for event detection</span>
+<span class="sd">            steps/save points for event detection</span>
 <span class="sd">        :type event_sensitivity: int</span>
 
 <span class="sd">        :param integrator_options:  contains options to the scipy integrator. by default, this includes</span>
-<span class="sd">        rtol=1e-9 and atol=1e-12.  for a list of options,</span>
-<span class="sd">        see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.LSODA.html.</span>
-<span class="sd">        Example use: {max_step : 0, rtol : .01}</span>
+<span class="sd">            rtol=1e-9 and atol=1e-12.  for a list of options,</span>
+<span class="sd">            see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.LSODA.html.</span>
+<span class="sd">            Example use: {max_step : 0, rtol : .01}</span>
 <span class="sd">        :type integrator_options: dict</span>
 
 <span class="sd">        :param live_output: The type of output to be displayed by solver. Can be &quot;progress&quot;, &quot;text&quot;, or &quot;graph&quot;.</span>
 <span class="sd">        :type live_output: str</span>
 
 <span class="sd">        :param live_output_options: contains options for live_output. By default {&quot;interval&quot;:1}.</span>
-<span class="sd">        &quot;interval&quot; specifies seconds between displaying.</span>
-<span class="sd">        &quot;clear_output&quot; specifies if display should be refreshed with each display</span>
+<span class="sd">            &quot;interval&quot; specifies seconds between displaying.</span>
+<span class="sd">            &quot;clear_output&quot; specifies if display should be refreshed with each display</span>
 <span class="sd">        :type live_output_options:  str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 

@@ -188,12 +188,16 @@
 
 <span class="sd">    :param data: A dictionary of trajectory values created by a solver</span>
 <span class="sd">    :type data: UserDict</span>
+
 <span class="sd">    :param model: The name of the model used to create the trajectory</span>
 <span class="sd">    :type model: str</span>
+
 <span class="sd">    :param solver_name: The name of the solver used to create the trajectory</span>
 <span class="sd">    :type solver_name: str</span>
+
 <span class="sd">    :param rc: The solvers status return code.</span>
 <span class="sd">    :type rc: int</span>
+
 <span class="sd">    :param status: The solver status (&#39;Success&#39;,&#39;Timed out&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -323,13 +327,15 @@
 
 <div class="viewcode-block" id="Results.to_csv"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.to_csv">[docs]</a>    <span class="k">def</span> <span class="nf">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nametag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stamp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        outputs the Results to one or more .csv files in a new directory.</span>
+<span class="sd">        Outputs the Results to one or more .csv files in a new directory.</span>
 
 <span class="sd">        :param nametag: allows the user to optionally &quot;tag&quot; the directory and included files. Defaults to the model</span>
-<span class="sd">        name.</span>
+<span class="sd">            name.</span>
 <span class="sd">        :type nametag: str</span>
+
 <span class="sd">        :param path: the location for the new directory and included files. Defaults to model location.</span>
 <span class="sd">        :type path: str</span>
+
 <span class="sd">        :param stamp: Allows the user to optionally &quot;tag&quot; the directory (not included files). Default is timestamp.</span>
 <span class="sd">        :type stamp: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -372,23 +378,31 @@
 
 <span class="sd">        :param index: If not none, the index of the Trajectory to be plotted.</span>
 <span class="sd">        :type index: int</span>
+
 <span class="sd">        :param xaxis_label: The label for the x-axis</span>
 <span class="sd">        :type xaxis_label: str</span>
+
 <span class="sd">        :param yaxis_label: The label for the y-axis</span>
 <span class="sd">        :type yaxis_label: str</span>
+
 <span class="sd">        :param title: The title of the graph</span>
 <span class="sd">        :type title: str</span>
+
 <span class="sd">        :param multiple_graphs: IF each trajectory should have its own graph or if they should overlap.</span>
 <span class="sd">        :type multiple_graphs: bool</span>
+
 <span class="sd">        :param included_species_list: A list of strings describing which species to include. By default displays all</span>
-<span class="sd">        species.</span>
+<span class="sd">            species.</span>
 <span class="sd">        :type included_species_list: list</span>
+
 <span class="sd">        :param save_png: Should the graph be saved as a png file. If True, File name is title of graph. If a string is</span>
-<span class="sd">        given, file is named after that string.</span>
+<span class="sd">            given, file is named after that string.</span>
 <span class="sd">        :type save_png: bool or str</span>
+
 <span class="sd">        :param figsize: The size of the graph. A tuple of the form (width,height). Is (18,10) by default.</span>
 <span class="sd">        :type figsize: tuple of ints (x,y)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
         <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Iterable</span>
         <span class="n">trajectory_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -455,24 +469,33 @@
 
 <span class="sd">        :param index: If not none, the index of the Trajectory to be plotted.</span>
 <span class="sd">        :type index: int</span>
+
 <span class="sd">        :param xaxis_label: The label for the x-axis</span>
 <span class="sd">        :type xaxis_label: str</span>
+
 <span class="sd">        :param yaxis_label: The label for the y-axis</span>
 <span class="sd">        :type yaxis_label: str</span>
+
 <span class="sd">        :param title: The title of the graph</span>
 <span class="sd">        :type title: str</span>
+
 <span class="sd">        :param show_title: If True, title will be shown on graph.</span>
 <span class="sd">        :type show_title: bool</span>
+
 <span class="sd">        :param show_legend: Default True, if False, legend will not be shown on graph.</span>
 <span class="sd">        :type show_legend: bool</span>
+
 <span class="sd">        :param multiple_graphs: IF each trajectory should have its own graph or if they should overlap.</span>
 <span class="sd">        :type multiple_graphs: bool</span>
+
 <span class="sd">        :param included_species_list: A list of strings describing which species to include. By default displays all</span>
-<span class="sd">        species.</span>
+<span class="sd">            species.</span>
 <span class="sd">        :type included_species_list: list</span>
+
 <span class="sd">        :param return_plotly_figure: Whether or not to return a figure dictionary of data(graph object traces) and</span>
-<span class="sd">        layout which may be edited by the user</span>
+<span class="sd">            layout which may be edited by the user</span>
 <span class="sd">        :type return_plotly_figure: bool</span>
+
 <span class="sd">        :param **layout_args: Optional additional arguments to be passed to plotlys layout constructor.</span>
 <span class="sd">        :type **layout_args: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -563,7 +586,8 @@
 <div class="viewcode-block" id="Results.average_ensemble"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.average_ensemble">[docs]</a>    <span class="k">def</span> <span class="nf">average_ensemble</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate a single Results object with a Trajectory that is made of the means of all trajectories&#39; outputs</span>
-<span class="sd">        :return: the Results object</span>
+
+<span class="sd">        :returns: The Results object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">trajectory_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
@@ -601,11 +625,13 @@
 <span class="sd">        trajectories&#39; outputs.</span>
 
 <span class="sd">        :param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents</span>
-<span class="sd">        the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation</span>
-<span class="sd">        where ddof is 0.</span>
+<span class="sd">            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation</span>
+<span class="sd">            where ddof is 0.</span>
 <span class="sd">        :type ddof: int</span>
-<span class="sd">        :return: the Results object</span>
+
+<span class="sd">        :returns: the Results object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span>
 
         <span class="n">trajectory_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
@@ -653,27 +679,36 @@
 
 <span class="sd">        :param xaxis_label: The label for the x-axis</span>
 <span class="sd">        :type xaxis_label: str</span>
+
 <span class="sd">        :param yaxis_label: The label for the y-axis</span>
 <span class="sd">        :type yaxis_label: str</span>
+
 <span class="sd">        :param title: The title of the graph</span>
 <span class="sd">        :type title: str</span>
+
 <span class="sd">        :param show_title: If True, title will be shown on graph.</span>
 <span class="sd">        :type show_title: bool</span>
+
 <span class="sd">        :param show_legend: Default True, if False, legend will not be shown on graph.</span>
 <span class="sd">        :type show_legend: bool</span>
+
 <span class="sd">        :param included_species_list: A list of strings describing which species to include. By default displays all</span>
-<span class="sd">        species.</span>
+<span class="sd">            species.</span>
 <span class="sd">        :type included_species_list: list</span>
+
 <span class="sd">        :param return_plotly_figure: Whether or not to return a figure dicctionary of data(graph object traces) and</span>
-<span class="sd">        layout which may be edited by the user</span>
+<span class="sd">            layout which may be edited by the user</span>
 <span class="sd">        :type return_plotly_figure: bool</span>
+
 <span class="sd">        :param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents</span>
-<span class="sd">        the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation</span>
-<span class="sd">        where ddof is 0.</span>
+<span class="sd">            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation</span>
+<span class="sd">            where ddof is 0.</span>
 <span class="sd">        :type ddof: int</span>
+
 <span class="sd">        :param **layout_args: Optional additional arguments to be passed to plotlys layout constructor.</span>
 <span class="sd">        :type **layout_args: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="c1"># Backwards compatibility with xaxis_label argument (which duplicates plotly&#39;s xaxis_title argument)</span>
         <span class="k">if</span> <span class="n">layout_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;xaxis_title&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">xaxis_label</span> <span class="o">=</span> <span class="n">layout_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;xaxis_title&#39;</span><span class="p">)</span>
@@ -768,31 +803,39 @@
                            <span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_title</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">included_species_list</span><span class="o">=</span><span class="p">[],</span>
                            <span class="n">ddof</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">save_png</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span> <span class="mi">10</span><span class="p">)):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            Plot a matplotlib graph depicting mean and standard deviation of a results object</span>
+<span class="sd">        Plot a matplotlib graph depicting mean and standard deviation of a results object.</span>
 
 <span class="sd">        :param xaxis_label: The label for the x-axis</span>
 <span class="sd">        :type xaxis_label: str</span>
+
 <span class="sd">        :param yaxis_label: The label for the y-axis</span>
 <span class="sd">        :type yaxis_label: str</span>
+
 <span class="sd">        :param title: The title of the graph</span>
 <span class="sd">        :type title: str</span>
+
 <span class="sd">        :param show_title: Default False, if True, title will be displayed on the graph.</span>
 <span class="sd">        :type show_title: bool</span>
+
 <span class="sd">        :param style: Matplotlib style to be displayed on graph.</span>
 <span class="sd">        :type style: str</span>
+
 <span class="sd">        :param show_legend: Default to True, if False, legend will not be shown on graph.</span>
 <span class="sd">        :type show_legend: bool</span>
+
 <span class="sd">        :param included_species_list: A list of strings describing which species to include. By default displays all</span>
-<span class="sd">        species.</span>
+<span class="sd">            species.</span>
 <span class="sd">        :type included_species_list: list</span>
+
 <span class="sd">        :param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents</span>
-<span class="sd">        the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation</span>
-<span class="sd">        where ddof is 0.</span>
+<span class="sd">            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation</span>
+<span class="sd">            where ddof is 0.</span>
 <span class="sd">        :type ddof: int</span>
+
 <span class="sd">        :type save_png: bool or str</span>
+
 <span class="sd">        :param figsize: The size of the graph. A tuple of the form (width,height). Is (18,10) by default.</span>
 <span class="sd">        :type figsize: tuple of ints (x,y)</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">average_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">average_ensemble</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>

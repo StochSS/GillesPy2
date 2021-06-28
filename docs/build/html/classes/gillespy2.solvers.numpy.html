@@ -184,37 +184,7 @@
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.ode_solver.ODESolver.name">
 <span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'ODESolver'</span></em><a class="headerlink" href="#gillespy2.solvers.numpy.ode_solver.ODESolver.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstract class for a solver. This is generally called from within a
-gillespy Model through the Model.run function. Returns simulation
-trajectories.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>gillespy.Model</em>) – The model on which the solver will operate.</p></li>
-<li><p><strong>t</strong> (<em>int</em>) – The end time of the solver</p></li>
-<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each</p></li>
-</ul>
-</dd>
-</dl>
-<p>trajectory will be returned at the end of the simulation.
-:type number_of_trajectories: int</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
-<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
-<li><p><strong>debug</strong> – Set to True to provide additional debug information about the</p></li>
-</ul>
-</dd>
-</dl>
-<p>simulation.
-:type debug: bool</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>show_labels</strong> (<em>bool</em>) – Use names of species as index of result object rather than position numbers.</p>
-</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.ode_solver.ODESolver.pause_event">
@@ -242,35 +212,21 @@ trajectories.</p>
 <li><p><strong>number_of_trajectories</strong> – Should be 1.
 This is deterministic and will always have same results</p></li>
 <li><p><strong>increment</strong> – time step increment for plotting</p></li>
-<li><p><strong>integrator</strong> – integrator to be used form scipy.integrate.ode. Options include ‘vode’, ‘zvode’, ‘lsoda’,</p></li>
-</ul>
-</dd>
-</dl>
-<p>‘dopri5’, and ‘dop835’.  For more details,
-see <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html</a></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>integrator_options</strong> – a dictionary containing options to the scipy integrator. for a list of options,</p>
-</dd>
-</dl>
-<dl class="simple">
-<dt>see <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html</a>.</dt><dd><p>Example use: {max_step : 0, rtol : .01}</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
+<li><p><strong>integrator</strong> – integrator to be used form scipy.integrate.ode. Options include ‘vode’, ‘zvode’, ‘lsoda’,
+‘dopri5’, and ‘dop835’.  For more details,
+see <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html</a></p></li>
+<li><p><strong>integrator_options</strong> – a dictionary containing options to the scipy integrator. for a list of options,
+see <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html</a>.
+Example use: {max_step : 0, rtol : .01}</p></li>
 <li><p><strong>timeout</strong> (<em>int</em>) – If set, if simulation takes longer than timeout, will exit.</p></li>
 <li><p><strong>resume</strong> – Result of a previously run simulation, to be resumed</p></li>
+<li><p><strong>live_output</strong> – str The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.</p></li>
+<li><p><strong>live_output_options</strong> – dictionary contains options for live_output. By default {“interval”:1}.
+“interval” specifies seconds between displaying.
+“clear_output” specifies if display should be refreshed with each displa</p></li>
 </ul>
 </dd>
 </dl>
-<p>:param live_output : str The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.
-:param live_output_options : dictionary contains options for live_output. By default {“interval”:1}.</p>
-<blockquote>
-<div><p>“interval” specifies seconds between displaying.
-“clear_output” specifies if display should be refreshed with each displa</p>
-</div></blockquote>
 </dd></dl>
 
 <dl class="py attribute">
@@ -300,37 +256,7 @@ see <a class="reference external" href="https://docs.scipy.org/doc/scipy/referen
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.ssa_solver.NumPySSASolver.name">
 <span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'NumPySSASolver'</span></em><a class="headerlink" href="#gillespy2.solvers.numpy.ssa_solver.NumPySSASolver.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstract class for a solver. This is generally called from within a
-gillespy Model through the Model.run function. Returns simulation
-trajectories.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>gillespy.Model</em>) – The model on which the solver will operate.</p></li>
-<li><p><strong>t</strong> (<em>int</em>) – The end time of the solver</p></li>
-<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each</p></li>
-</ul>
-</dd>
-</dl>
-<p>trajectory will be returned at the end of the simulation.
-:type number_of_trajectories: int</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
-<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
-<li><p><strong>debug</strong> – Set to True to provide additional debug information about the</p></li>
-</ul>
-</dd>
-</dl>
-<p>simulation.
-:type debug: bool</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>show_labels</strong> (<em>bool</em>) – Use names of species as index of result object rather than position numbers.</p>
-</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.ssa_solver.NumPySSASolver.pause_event">
@@ -350,25 +276,27 @@ trajectories.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.ssa_solver.NumPySSASolver.run">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_trajectories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/ssa_solver.html#NumPySSASolver.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.numpy.ssa_solver.NumPySSASolver.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
-:param model: The model on which the solver will operate.
-:param t: The end time of the solver.
-:param number_of_trajectories: The number of times to sample the chemical master equation. Each
-trajectory will be returned at the end of the simulation.
-:param increment: The time step of the solution.
-:param seed: The random seed for the simulation. Defaults to None.
-:param debug: Set to True to provide additional debug information about the
-simulation.
-:param resume: Result of a previously run simulation, to be resumed
-:param live_output : str The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.
-:param live_output_options : dictionary contains options for live_output. By default {“interval”:1}.</p>
-<blockquote>
-<div><p>“interval” specifies seconds between displaying.
-“clear_output” specifies if display should be refreshed with each display</p>
-</div></blockquote>
+<dd><p>Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a list of each trajectory simulated.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – The model on which the solver will operate.</p></li>
+<li><p><strong>t</strong> – The end time of the solver.</p></li>
+<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each
+trajectory will be returned at the end of the simulation.</p></li>
+<li><p><strong>increment</strong> – The time step of the solution.</p></li>
+<li><p><strong>seed</strong> – The random seed for the simulation. Defaults to None.</p></li>
+<li><p><strong>debug</strong> – Set to True to provide additional debug information about the
+simulation.</p></li>
+<li><p><strong>resume</strong> – Result of a previously run simulation, to be resumed</p></li>
+<li><p><strong>live_output</strong> – str The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.</p></li>
+<li><p><strong>live_output_options</strong> – dictionary contains options for live_output. By default {“interval”:1}.
+“interval” specifies seconds between displaying.
+“clear_output” specifies if display should be refreshed with each display</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a list of each trajectory simulated.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -403,37 +331,7 @@ interchangeably or simultaneously.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.tau_hybrid_solver.TauHybridSolver.name">
 <span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'TauHybridSolver'</span></em><a class="headerlink" href="#gillespy2.solvers.numpy.tau_hybrid_solver.TauHybridSolver.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstract class for a solver. This is generally called from within a
-gillespy Model through the Model.run function. Returns simulation
-trajectories.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>gillespy.Model</em>) – The model on which the solver will operate.</p></li>
-<li><p><strong>t</strong> (<em>int</em>) – The end time of the solver</p></li>
-<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each</p></li>
-</ul>
-</dd>
-</dl>
-<p>trajectory will be returned at the end of the simulation.
-:type number_of_trajectories: int</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
-<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
-<li><p><strong>debug</strong> – Set to True to provide additional debug information about the</p></li>
-</ul>
-</dd>
-</dl>
-<p>simulation.
-:type debug: bool</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>show_labels</strong> (<em>bool</em>) – Use names of species as index of result object rather than position numbers.</p>
-</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.tau_hybrid_solver.TauHybridSolver.rc">
@@ -455,53 +353,28 @@ objects and will inherit those parameters which are passed with the model as the
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model</strong> (<em>GillesPy2.model</em>) – GillesPy2 model object to simulate</p></li>
 <li><p><strong>t</strong> (<em>int</em>) – Simulation run time</p></li>
-<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each</p></li>
-</ul>
-</dd>
-</dl>
-<p>trajectory will be returned at the end of the simulation.
-Optional, defaults to 1.Number of trajectories to simulate
-:type number_of_trajectories: int</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
+<li><p><strong>number_of_trajectories</strong> (<em>int</em>) – The number of times to sample the chemical master equation. Each
+trajectory will be returned at the end of the simulation.
+Optional, defaults to 1. Number of trajectories to simulate</p></li>
 <li><p><strong>increment</strong> (<em>float</em>) – Save point increment for recording data</p></li>
 <li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Optional, defaults to None.</p></li>
 <li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation.</p></li>
 <li><p><strong>profile</strong> (<em>bool</em>) – Set to True to provide information about step size (tau) taken at each step.</p></li>
-<li><p><strong>tau_tol</strong> – Tolerance level for Tau leaping algorithm.  Larger tolerance values will</p></li>
-</ul>
-</dd>
-</dl>
-<p>result in larger tau steps. Default value is 0.03.
-:type tau_tol: float</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>event_sensitivity</strong> – Number of data points to be inspected between integration</p>
-</dd>
-</dl>
-<p>steps/save points for event detection
-:type event_sensitivity: int</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>integrator_options</strong> – contains options to the scipy integrator. by default, this includes</p>
-</dd>
-</dl>
-<p>rtol=1e-9 and atol=1e-12.  for a list of options,
+<li><p><strong>tau_tol</strong> (<em>float</em>) – Tolerance level for Tau leaping algorithm.  Larger tolerance values will
+result in larger tau steps. Default value is 0.03.</p></li>
+<li><p><strong>event_sensitivity</strong> (<em>int</em>) – Number of data points to be inspected between integration
+steps/save points for event detection</p></li>
+<li><p><strong>integrator_options</strong> (<em>dict</em>) – contains options to the scipy integrator. by default, this includes
+rtol=1e-9 and atol=1e-12.  for a list of options,
 see <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.LSODA.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.LSODA.html</a>.
-Example use: {max_step : 0, rtol : .01}
-:type integrator_options: dict</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
+Example use: {max_step : 0, rtol : .01}</p></li>
 <li><p><strong>live_output</strong> (<em>str</em>) – The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.</p></li>
-<li><p><strong>live_output_options</strong> – contains options for live_output. By default {“interval”:1}.</p></li>
+<li><p><strong>live_output_options</strong> (<em>str</em>) – contains options for live_output. By default {“interval”:1}.
+“interval” specifies seconds between displaying.
+“clear_output” specifies if display should be refreshed with each display</p></li>
 </ul>
 </dd>
 </dl>
-<p>“interval” specifies seconds between displaying.
-“clear_output” specifies if display should be refreshed with each display
-:type live_output_options:  str</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -519,6 +392,10 @@ Example use: {max_step : 0, rtol : .01}
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.numpy.tau_leaping_solver.</span></span><span class="sig-name descname"><span class="pre">TauLeapingSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/tau_leaping_solver.html#TauLeapingSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
+<p>A Tau Leaping Solver for GillesPy2 models.  This solver uses an algorithm calculates
+multiple reactions in a single step over a given tau step size.  The change in propensities
+over this step are bounded by bounding the relative change in state, yielding greatly improved
+run-time performance with very little trade-off in accuracy.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.get_solver_settings">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">get_solver_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/tau_leaping_solver.html#TauLeapingSolver.get_solver_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.get_solver_settings" title="Permalink to this definition">¶</a></dt>
@@ -532,37 +409,7 @@ Example use: {max_step : 0, rtol : .01}
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.name">
 <span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'TauLeapingSolver'</span></em><a class="headerlink" href="#gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstract class for a solver. This is generally called from within a
-gillespy Model through the Model.run function. Returns simulation
-trajectories.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>gillespy.Model</em>) – The model on which the solver will operate.</p></li>
-<li><p><strong>t</strong> (<em>int</em>) – The end time of the solver</p></li>
-<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each</p></li>
-</ul>
-</dd>
-</dl>
-<p>trajectory will be returned at the end of the simulation.
-:type number_of_trajectories: int</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
-<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
-<li><p><strong>debug</strong> – Set to True to provide additional debug information about the</p></li>
-</ul>
-</dd>
-</dl>
-<p>simulation.
-:type debug: bool</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>show_labels</strong> (<em>bool</em>) – Use names of species as index of result object rather than position numbers.</p>
-</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.pause_event">
@@ -577,11 +424,7 @@ trajectories.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.result">
 <span class="sig-name descname"><span class="pre">result</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.result" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Tau Leaping Solver for GillesPy2 models.  This solver uses an algorithm calculates
-multiple reactions in a single step over a given tau step size.  The change in propensities
-over this step are bounded by bounding the relative change in state, yielding greatly improved
-run-time performance with very little trade-off in accuracy.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver.run">
@@ -601,18 +444,19 @@ as the arguments this run function.</p>
 <li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation</p></li>
 <li><p><strong>profile</strong> (<em>bool</em>) – Set to True to provide information about step size (tau) taken at each step.</p></li>
 <li><p><strong>live_output</strong> (<em>str</em>) – The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.</p></li>
-<li><p><strong>live_output_options</strong> – COntains options for live_output. By default {“interval”:1}. “interval”</p></li>
+<li><p><strong>live_output_options</strong> (<em>dict</em>) – COntains options for live_output. By default {“interval”:1}. “interval”
+specifies seconds between displaying. “clear_output” specifies if display should be refreshed with each
+display.</p></li>
+<li><p><strong>timeout</strong> – </p></li>
+<li><p><strong>resume</strong> – </p></li>
+<li><p><strong>tau_tol</strong> – </p></li>
+<li><p><strong>kwargs</strong> – </p></li>
 </ul>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
 </dl>
-<p>specifies seconds between displaying. “clear_output” specifies if display should be refreshed with each
-display.
-:type live_output_options: dict
-:param timeout:
-:param resume:
-:param tau_tol:
-:param kwargs:
-:return:</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -642,37 +486,7 @@ display.
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.NumPySSASolver.name">
 <span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'NumPySSASolver'</span></em><a class="headerlink" href="#gillespy2.solvers.numpy.NumPySSASolver.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstract class for a solver. This is generally called from within a
-gillespy Model through the Model.run function. Returns simulation
-trajectories.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>gillespy.Model</em>) – The model on which the solver will operate.</p></li>
-<li><p><strong>t</strong> (<em>int</em>) – The end time of the solver</p></li>
-<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each</p></li>
-</ul>
-</dd>
-</dl>
-<p>trajectory will be returned at the end of the simulation.
-:type number_of_trajectories: int</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
-<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
-<li><p><strong>debug</strong> – Set to True to provide additional debug information about the</p></li>
-</ul>
-</dd>
-</dl>
-<p>simulation.
-:type debug: bool</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>show_labels</strong> (<em>bool</em>) – Use names of species as index of result object rather than position numbers.</p>
-</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.NumPySSASolver.pause_event">
@@ -692,25 +506,27 @@ trajectories.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.NumPySSASolver.run">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_trajectories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/ssa_solver.html#NumPySSASolver.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.numpy.NumPySSASolver.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
-:param model: The model on which the solver will operate.
-:param t: The end time of the solver.
-:param number_of_trajectories: The number of times to sample the chemical master equation. Each
-trajectory will be returned at the end of the simulation.
-:param increment: The time step of the solution.
-:param seed: The random seed for the simulation. Defaults to None.
-:param debug: Set to True to provide additional debug information about the
-simulation.
-:param resume: Result of a previously run simulation, to be resumed
-:param live_output : str The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.
-:param live_output_options : dictionary contains options for live_output. By default {“interval”:1}.</p>
-<blockquote>
-<div><p>“interval” specifies seconds between displaying.
-“clear_output” specifies if display should be refreshed with each display</p>
-</div></blockquote>
+<dd><p>Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a list of each trajectory simulated.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – The model on which the solver will operate.</p></li>
+<li><p><strong>t</strong> – The end time of the solver.</p></li>
+<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each
+trajectory will be returned at the end of the simulation.</p></li>
+<li><p><strong>increment</strong> – The time step of the solution.</p></li>
+<li><p><strong>seed</strong> – The random seed for the simulation. Defaults to None.</p></li>
+<li><p><strong>debug</strong> – Set to True to provide additional debug information about the
+simulation.</p></li>
+<li><p><strong>resume</strong> – Result of a previously run simulation, to be resumed</p></li>
+<li><p><strong>live_output</strong> – str The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.</p></li>
+<li><p><strong>live_output_options</strong> – dictionary contains options for live_output. By default {“interval”:1}.
+“interval” specifies seconds between displaying.
+“clear_output” specifies if display should be refreshed with each display</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a list of each trajectory simulated.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -740,37 +556,7 @@ simulation.
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.ODESolver.name">
 <span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'ODESolver'</span></em><a class="headerlink" href="#gillespy2.solvers.numpy.ODESolver.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstract class for a solver. This is generally called from within a
-gillespy Model through the Model.run function. Returns simulation
-trajectories.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>gillespy.Model</em>) – The model on which the solver will operate.</p></li>
-<li><p><strong>t</strong> (<em>int</em>) – The end time of the solver</p></li>
-<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each</p></li>
-</ul>
-</dd>
-</dl>
-<p>trajectory will be returned at the end of the simulation.
-:type number_of_trajectories: int</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
-<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
-<li><p><strong>debug</strong> – Set to True to provide additional debug information about the</p></li>
-</ul>
-</dd>
-</dl>
-<p>simulation.
-:type debug: bool</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>show_labels</strong> (<em>bool</em>) – Use names of species as index of result object rather than position numbers.</p>
-</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.ODESolver.pause_event">
@@ -798,35 +584,21 @@ trajectories.</p>
 <li><p><strong>number_of_trajectories</strong> – Should be 1.
 This is deterministic and will always have same results</p></li>
 <li><p><strong>increment</strong> – time step increment for plotting</p></li>
-<li><p><strong>integrator</strong> – integrator to be used form scipy.integrate.ode. Options include ‘vode’, ‘zvode’, ‘lsoda’,</p></li>
-</ul>
-</dd>
-</dl>
-<p>‘dopri5’, and ‘dop835’.  For more details,
-see <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html</a></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>integrator_options</strong> – a dictionary containing options to the scipy integrator. for a list of options,</p>
-</dd>
-</dl>
-<dl class="simple">
-<dt>see <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html</a>.</dt><dd><p>Example use: {max_step : 0, rtol : .01}</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
+<li><p><strong>integrator</strong> – integrator to be used form scipy.integrate.ode. Options include ‘vode’, ‘zvode’, ‘lsoda’,
+‘dopri5’, and ‘dop835’.  For more details,
+see <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html</a></p></li>
+<li><p><strong>integrator_options</strong> – a dictionary containing options to the scipy integrator. for a list of options,
+see <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html</a>.
+Example use: {max_step : 0, rtol : .01}</p></li>
 <li><p><strong>timeout</strong> (<em>int</em>) – If set, if simulation takes longer than timeout, will exit.</p></li>
 <li><p><strong>resume</strong> – Result of a previously run simulation, to be resumed</p></li>
+<li><p><strong>live_output</strong> – str The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.</p></li>
+<li><p><strong>live_output_options</strong> – dictionary contains options for live_output. By default {“interval”:1}.
+“interval” specifies seconds between displaying.
+“clear_output” specifies if display should be refreshed with each displa</p></li>
 </ul>
 </dd>
 </dl>
-<p>:param live_output : str The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.
-:param live_output_options : dictionary contains options for live_output. By default {“interval”:1}.</p>
-<blockquote>
-<div><p>“interval” specifies seconds between displaying.
-“clear_output” specifies if display should be refreshed with each displa</p>
-</div></blockquote>
 </dd></dl>
 
 <dl class="py attribute">
@@ -856,37 +628,7 @@ interchangeably or simultaneously.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.TauHybridSolver.name">
 <span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'TauHybridSolver'</span></em><a class="headerlink" href="#gillespy2.solvers.numpy.TauHybridSolver.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstract class for a solver. This is generally called from within a
-gillespy Model through the Model.run function. Returns simulation
-trajectories.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>gillespy.Model</em>) – The model on which the solver will operate.</p></li>
-<li><p><strong>t</strong> (<em>int</em>) – The end time of the solver</p></li>
-<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each</p></li>
-</ul>
-</dd>
-</dl>
-<p>trajectory will be returned at the end of the simulation.
-:type number_of_trajectories: int</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
-<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
-<li><p><strong>debug</strong> – Set to True to provide additional debug information about the</p></li>
-</ul>
-</dd>
-</dl>
-<p>simulation.
-:type debug: bool</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>show_labels</strong> (<em>bool</em>) – Use names of species as index of result object rather than position numbers.</p>
-</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.TauHybridSolver.rc">
@@ -908,53 +650,28 @@ objects and will inherit those parameters which are passed with the model as the
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model</strong> (<em>GillesPy2.model</em>) – GillesPy2 model object to simulate</p></li>
 <li><p><strong>t</strong> (<em>int</em>) – Simulation run time</p></li>
-<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each</p></li>
-</ul>
-</dd>
-</dl>
-<p>trajectory will be returned at the end of the simulation.
-Optional, defaults to 1.Number of trajectories to simulate
-:type number_of_trajectories: int</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
+<li><p><strong>number_of_trajectories</strong> (<em>int</em>) – The number of times to sample the chemical master equation. Each
+trajectory will be returned at the end of the simulation.
+Optional, defaults to 1. Number of trajectories to simulate</p></li>
 <li><p><strong>increment</strong> (<em>float</em>) – Save point increment for recording data</p></li>
 <li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Optional, defaults to None.</p></li>
 <li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation.</p></li>
 <li><p><strong>profile</strong> (<em>bool</em>) – Set to True to provide information about step size (tau) taken at each step.</p></li>
-<li><p><strong>tau_tol</strong> – Tolerance level for Tau leaping algorithm.  Larger tolerance values will</p></li>
-</ul>
-</dd>
-</dl>
-<p>result in larger tau steps. Default value is 0.03.
-:type tau_tol: float</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>event_sensitivity</strong> – Number of data points to be inspected between integration</p>
-</dd>
-</dl>
-<p>steps/save points for event detection
-:type event_sensitivity: int</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>integrator_options</strong> – contains options to the scipy integrator. by default, this includes</p>
-</dd>
-</dl>
-<p>rtol=1e-9 and atol=1e-12.  for a list of options,
+<li><p><strong>tau_tol</strong> (<em>float</em>) – Tolerance level for Tau leaping algorithm.  Larger tolerance values will
+result in larger tau steps. Default value is 0.03.</p></li>
+<li><p><strong>event_sensitivity</strong> (<em>int</em>) – Number of data points to be inspected between integration
+steps/save points for event detection</p></li>
+<li><p><strong>integrator_options</strong> (<em>dict</em>) – contains options to the scipy integrator. by default, this includes
+rtol=1e-9 and atol=1e-12.  for a list of options,
 see <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.LSODA.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.LSODA.html</a>.
-Example use: {max_step : 0, rtol : .01}
-:type integrator_options: dict</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
+Example use: {max_step : 0, rtol : .01}</p></li>
 <li><p><strong>live_output</strong> (<em>str</em>) – The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.</p></li>
-<li><p><strong>live_output_options</strong> – contains options for live_output. By default {“interval”:1}.</p></li>
+<li><p><strong>live_output_options</strong> (<em>str</em>) – contains options for live_output. By default {“interval”:1}.
+“interval” specifies seconds between displaying.
+“clear_output” specifies if display should be refreshed with each display</p></li>
 </ul>
 </dd>
 </dl>
-<p>“interval” specifies seconds between displaying.
-“clear_output” specifies if display should be refreshed with each display
-:type live_output_options:  str</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -968,6 +685,10 @@ Example use: {max_step : 0, rtol : .01}
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.TauLeapingSolver">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.numpy.</span></span><span class="sig-name descname"><span class="pre">TauLeapingSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/tau_leaping_solver.html#TauLeapingSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.numpy.TauLeapingSolver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
+<p>A Tau Leaping Solver for GillesPy2 models.  This solver uses an algorithm calculates
+multiple reactions in a single step over a given tau step size.  The change in propensities
+over this step are bounded by bounding the relative change in state, yielding greatly improved
+run-time performance with very little trade-off in accuracy.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.TauLeapingSolver.get_solver_settings">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">get_solver_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/tau_leaping_solver.html#TauLeapingSolver.get_solver_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.numpy.TauLeapingSolver.get_solver_settings" title="Permalink to this definition">¶</a></dt>
@@ -981,37 +702,7 @@ Example use: {max_step : 0, rtol : .01}
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.TauLeapingSolver.name">
 <span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'TauLeapingSolver'</span></em><a class="headerlink" href="#gillespy2.solvers.numpy.TauLeapingSolver.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstract class for a solver. This is generally called from within a
-gillespy Model through the Model.run function. Returns simulation
-trajectories.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>gillespy.Model</em>) – The model on which the solver will operate.</p></li>
-<li><p><strong>t</strong> (<em>int</em>) – The end time of the solver</p></li>
-<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each</p></li>
-</ul>
-</dd>
-</dl>
-<p>trajectory will be returned at the end of the simulation.
-:type number_of_trajectories: int</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
-<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
-<li><p><strong>debug</strong> – Set to True to provide additional debug information about the</p></li>
-</ul>
-</dd>
-</dl>
-<p>simulation.
-:type debug: bool</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>show_labels</strong> (<em>bool</em>) – Use names of species as index of result object rather than position numbers.</p>
-</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.TauLeapingSolver.pause_event">
@@ -1026,11 +717,7 @@ trajectories.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.TauLeapingSolver.result">
 <span class="sig-name descname"><span class="pre">result</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#gillespy2.solvers.numpy.TauLeapingSolver.result" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Tau Leaping Solver for GillesPy2 models.  This solver uses an algorithm calculates
-multiple reactions in a single step over a given tau step size.  The change in propensities
-over this step are bounded by bounding the relative change in state, yielding greatly improved
-run-time performance with very little trade-off in accuracy.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.numpy.TauLeapingSolver.run">
@@ -1050,18 +737,19 @@ as the arguments this run function.</p>
 <li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation</p></li>
 <li><p><strong>profile</strong> (<em>bool</em>) – Set to True to provide information about step size (tau) taken at each step.</p></li>
 <li><p><strong>live_output</strong> (<em>str</em>) – The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.</p></li>
-<li><p><strong>live_output_options</strong> – COntains options for live_output. By default {“interval”:1}. “interval”</p></li>
+<li><p><strong>live_output_options</strong> (<em>dict</em>) – COntains options for live_output. By default {“interval”:1}. “interval”
+specifies seconds between displaying. “clear_output” specifies if display should be refreshed with each
+display.</p></li>
+<li><p><strong>timeout</strong> – </p></li>
+<li><p><strong>resume</strong> – </p></li>
+<li><p><strong>tau_tol</strong> – </p></li>
+<li><p><strong>kwargs</strong> – </p></li>
 </ul>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
 </dl>
-<p>specifies seconds between displaying. “clear_output” specifies if display should be refreshed with each
-display.
-:type live_output_options: dict
-:param timeout:
-:param resume:
-:param tau_tol:
-:param kwargs:
-:return:</p>
 </dd></dl>
 
 <dl class="py attribute">

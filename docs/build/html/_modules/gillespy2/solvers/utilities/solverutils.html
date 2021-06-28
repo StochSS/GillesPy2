@@ -139,12 +139,15 @@
 
 <div class="viewcode-block" id="numpy_resume"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.utilities.html#gillespy2.solvers.utilities.solverutils.numpy_resume">[docs]</a><span class="k">def</span> <span class="nf">numpy_resume</span><span class="p">(</span><span class="n">timeStopped</span><span class="p">,</span> <span class="n">simulation_data</span><span class="p">,</span> <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Helper function for when resuming a simulation in a numpy based solver</span>
+<span class="sd">    Helper function for when resuming a simulation in a numpy based solver.</span>
+
 <span class="sd">    :param timeStopped: The time in which the simulation was stopped.</span>
 <span class="sd">    :param simulation_data: The current models simulation data, after being parsed in the numpy solver of choice.</span>
+
 <span class="sd">    :param resume: The previous simulations data, that is being resumed</span>
-<span class="sd">    :type resume: gillespy2.core.results object</span>
-<span class="sd">    :return: Combined simulation data, the old resume data and the current simulation data.</span>
+<span class="sd">    :type resume: gillespy2.core.Results</span>
+
+<span class="sd">    :returns: Combined simulation data, the old resume data and the current simulation data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">timeStopped</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">timeStopped</span> <span class="o">!=</span> <span class="n">simulation_data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;time&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
@@ -206,17 +209,19 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">parameter_values</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">listOfParameters</span><span class="p">[</span><span class="n">parameters</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">expression</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">parameter_values</span></div>
+
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Below are two functions used for creating dependency graphs in the C solvers, and Numpy Solvers.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-
 <div class="viewcode-block" id="species_parse"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.utilities.html#gillespy2.solvers.utilities.solverutils.species_parse">[docs]</a><span class="k">def</span> <span class="nf">species_parse</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">custom_prop_fun</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This function uses Pythons AST module to parse custom propensity function, looking for Species in a model</span>
+
 <span class="sd">    :param model: Model to be checked for species</span>
 <span class="sd">    :param custom_prop_fun: The custom propensity function to be parsed</span>
-<span class="sd">    :return: List of species objects that are found in a custom propensity function</span>
+
+<span class="sd">    :returns: List of species objects that are found in a custom propensity function</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">parsed_species</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -235,9 +240,11 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This function returns a dependency graph for a models reactions in the form of a</span>
 <span class="sd">    dictionary containing {species name: {&#39;dependencies&#39;}:[list of reaction names]}.</span>
+
 <span class="sd">    :param model: Model to used to create a reaction dependency graph</span>
-<span class="sd">    :param reactions: list(model.listOfReactions)</span>
-<span class="sd">    :return: Dependency graph dictionary</span>
+<span class="sd">    :param reactions: list[model.listOfReactions]</span>
+
+<span class="sd">    :returns: Dependency graph dictionary</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">dependent_rxns</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">reactions</span><span class="p">:</span>

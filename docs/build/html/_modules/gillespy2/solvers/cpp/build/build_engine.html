@@ -207,7 +207,7 @@
 <span class="sd">        :type cache_dir: str</span>
 
 <span class="sd">        :param force_rebuild: Delete and rebuild the cache directory.</span>
-<span class="sd">        :type bool:</span>
+<span class="sd">        :type force_rebuild: bool</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">make</span> <span class="o">=</span> <span class="n">Make</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">makefile</span><span class="p">,</span> <span class="n">cache_dir</span><span class="p">,</span> <span class="n">cache_dir</span><span class="p">)</span>
@@ -238,7 +238,7 @@
 <span class="sd">        Only valid after the simulation has been built.</span>
 
 <span class="sd">        :return: String containing path to executable.</span>
-<span class="sd">        None if no executable exists.</span>
+<span class="sd">            None if no executable exists.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">make</span><span class="o">.</span><span class="n">output_file</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">None</span>

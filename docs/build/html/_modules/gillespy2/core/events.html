@@ -112,13 +112,13 @@
 <span class="sd">    depending on how the Event to which it is assigned is configured.</span>
 
 <span class="sd">    :param variable: Target model component to be modified by the EventAssignment</span>
-<span class="sd">    expression. Valid target variables include gillespy2 Species,</span>
-<span class="sd">    Parameters, and Compartments.</span>
+<span class="sd">        expression. Valid target variables include gillespy2 Species,</span>
+<span class="sd">        Parameters, and Compartments.</span>
 <span class="sd">    :type variable: gillespy2.Species, gillespy2.Parameter</span>
 
 <span class="sd">    :param expression: String to be evaluated when the event is fired.  This expression must</span>
-<span class="sd">    be evaluable within the model namespace, and the results of it&#39;s</span>
-<span class="sd">    evaluation will be assigned to the EventAssignment variable.</span>
+<span class="sd">        be evaluable within the model namespace, and the results of it&#39;s</span>
+<span class="sd">        evaluation will be assigned to the EventAssignment variable.</span>
 <span class="sd">    :type expression: str</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -159,7 +159,7 @@
 <span class="sd">    the delay evaluation will be initialized.</span>
 
 <span class="sd">    :param expression: String for a function calculating EventTrigger values. Should be evaluable</span>
-<span class="sd">    in namespace of Model.</span>
+<span class="sd">        in namespace of Model.</span>
 <span class="sd">    :type expression: str</span>
 
 <span class="sd">    :param value: Value of EventTrigger at simulation start, with time t=0</span>
@@ -199,7 +199,6 @@
 
 
 <div class="viewcode-block" id="Event"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.events.Event">[docs]</a><span class="k">class</span> <span class="nc">Event</span><span class="p">(</span><span class="n">Jsonify</span><span class="p">):</span>
-
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An Event can be given as an assignment_expression (function) or directly</span>
 <span class="sd">    as a value (scalar). If given an assignment_expression, it should be</span>
@@ -212,22 +211,22 @@
 <span class="sd">    :type assignments: str</span>
 
 <span class="sd">    :param trigger: contains math expression which can be evaluated to</span>
-<span class="sd">    a boolean result.  Upon the transition from &#39;False&#39; to &#39;True&#39;,</span>
-<span class="sd">    event assignments may be executed immediately, or after a</span>
-<span class="sd">    designated delay.</span>
+<span class="sd">        a boolean result.  Upon the transition from &#39;False&#39; to &#39;True&#39;,</span>
+<span class="sd">        event assignments may be executed immediately, or after a</span>
+<span class="sd">        designated delay.</span>
 <span class="sd">    :type trigger: EventTrigger</span>
 
 <span class="sd">    :param delay: contains math expression evaluable within model namespace.</span>
-<span class="sd">    This expression designates a delay between the trigger of</span>
-<span class="sd">    an event and the execution of its assignments.</span>
+<span class="sd">        This expression designates a delay between the trigger of</span>
+<span class="sd">        an event and the execution of its assignments.</span>
 <span class="sd">    :type delay: str</span>
 
 <span class="sd">    :param priority: Contains math expression evaluable within model namespace.</span>
 <span class="sd">    :type priority: str</span>
 
-<span class="sd">    :param use_values_from_trigger_time</span>
 <span class="sd">    :type use_values_from_trigger_time: bool</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
 
@@ -321,11 +320,12 @@
 
 <div class="viewcode-block" id="Event.add_assignment"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.events.Event.add_assignment">[docs]</a>    <span class="k">def</span> <span class="nf">add_assignment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">assignment</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Adds an eventAssignment or a list of eventAssignments.</span>
-<span class="sd">        :param assignment: EventAssignment or a list of EventAssignments</span>
-<span class="sd">        The event or list of events to be added to this event.</span>
-<span class="sd">        :type assignment: EventAssignment or list of EventAssignments</span>
+<span class="sd">        Adds an EventAssignment or a list of EventAssignment.</span>
+
+<span class="sd">        :param assignment: The event or list of events to be added to this event.</span>
+<span class="sd">        :type assignment: EventAssignment or list[EventAssignment]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">assignment</span><span class="p">,</span> <span class="s1">&#39;variable&#39;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">assignments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">assignment</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">assignment</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>

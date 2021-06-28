@@ -108,19 +108,17 @@
 <div class="viewcode-block" id="SimDecoder"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.c_decoder.SimDecoder">[docs]</a><span class="k">class</span> <span class="nc">SimDecoder</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Abstract simulation decoder class.</span>
-<span class="sd">    For solvers to handle output in a custom way,</span>
-<span class="sd">      this decoder class will be implemented.</span>
+<span class="sd">    For solvers to handle output in a custom way, this decoder class will be implemented.</span>
 <span class="sd">    Expects the output to be read from a buffered IO reader.</span>
+
+<span class="sd">    :param trajectories: 3D array to output simulation data to.</span>
+<span class="sd">    :type trajectories: numpy.array</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectories</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructor for simulation decoder class.</span>
-<span class="sd">        Reads the output of an external simulation and generates a numpy array</span>
-<span class="sd">          from the results.</span>
-
-<span class="sd">        :param trajectories: 3D array to output simulation data to.</span>
-<span class="sd">        :type trajectories: numpy.array</span>
+<span class="sd">        Reads the output of an external simulation and generates a numpy array from the results.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Make sure that it&#39;s actually a numpy array</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trajectories</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
@@ -148,7 +146,7 @@
 <span class="sd">        :param num_species: Number of species expected in the simulation output.</span>
 <span class="sd">        :type num_species: int</span>
 
-<span class="sd">        :return: An instance of the decoder object, automatically populated with a valid output array.</span>
+<span class="sd">        :returns: An instance of the decoder object, automatically populated with a valid output array.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_trajectories</span><span class="p">,</span> <span class="n">num_timesteps</span><span class="p">,</span> <span class="n">num_species</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)))</span></div>
 
@@ -171,7 +169,7 @@
 <span class="sd">        Returns the fully-populated NumPy array containing the completed simulation data.</span>
 <span class="sd">        Assumes that the subprocess has already completed.</span>
 
-<span class="sd">        :return: Tuple containing the 3D NumPy array of results, and the time stopped.</span>
+<span class="sd">        :returns: Tuple containing the 3D NumPy array of results, and the time stopped.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div></div>
 
@@ -191,7 +189,7 @@
 <span class="sd">        :param output: Reader provided from the stdout member of an open Popen object.</span>
 <span class="sd">        :type output: io.BufferedReader</span>
 
-<span class="sd">        :return: Integer representing the number of characters read.</span>
+<span class="sd">        :returns: Integer representing the number of characters read.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">line</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
         <span class="n">ln</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>

@@ -124,6 +124,8 @@
 <span class="sd">        Convert self into a json string.</span>
 
 <span class="sd">        :param encode_private: If True all private (prefixed of &#39;_&#39;) will be encoded. None if False.</span>
+<span class="sd">        :type encode_private: bool</span>
+
 <span class="sd">        :returns: The JSON representation of self.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -137,6 +139,9 @@
 <span class="sd">        return a new instance of the type.</span>
 
 <span class="sd">        :param json_str: A json str to be converted into a new type instance.</span>
+<span class="sd">        :type json_str: str</span>
+
+<span class="sd">        :returns: A decoded object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># If the json_str is actually a dict, it means we&#39;ve decoded as much as possible.</span>
@@ -164,7 +169,10 @@
 <span class="sd">        Convert some dict into a new instance of a python type.</span>
 <span class="sd">        This function will return a __new__ instance of the type.</span>
 
-<span class="sd">        :param dict: The dictionary to apply onto the new instance.</span>
+<span class="sd">        :param src_dict: The dictionary to apply onto the new instance.</span>
+<span class="sd">        :type src_dict: dict</span>
+
+<span class="sd">        :returns: A new object with its backing __dict__ set to a copy of src_dict.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
@@ -219,6 +227,14 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the hash of the json representation of self.</span>
 
+<span class="sd">        :param ignore_whitespace: If set to True all whitespace will be stripped from the JSON</span>
+<span class="sd">            prior to being hashed.</span>
+<span class="sd">        :type ignore_whitespace: bool</span>
+
+<span class="sd">        :param hash_private_vals: If set to True all private and non-private variables will </span>
+<span class="sd">            be included in the hash.</span>
+<span class="sd">        :type hash_private_vals: bool</span>
+
 <span class="sd">        :returns: An MD5 hash of the object&#39;s sorted JSON representation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -235,12 +251,25 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overload to compare the json of two objects that derive from Jsonify.</span>
 <span class="sd">        This method will not do any additional translation.</span>
+
+<span class="sd">        :param o: The Jsonify object to compare against.</span>
+<span class="sd">        :type o: Jsonify</span>
+
+<span class="sd">        :returns: True if equal, False if not.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_json_hash</span><span class="p">()</span> <span class="o">==</span> <span class="n">o</span><span class="o">.</span><span class="n">get_json_hash</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="ComplexJsonCoder"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.ComplexJsonCoder">[docs]</a><span class="k">class</span> <span class="nc">ComplexJsonCoder</span><span class="p">(</span><span class="n">JSONEncoder</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This class delegates the encoding and decoding of objects to one or more implementees.</span>
+
+<span class="sd">    :param translation_table: A TranslationTable instance that will be used to</span>
+<span class="sd">        translate objects.</span>
+<span class="sd">    :type translation_table: TranslationTable</span>
+
+<span class="sd">    :param encode_private: If set to True then all private and public variables will</span>
+<span class="sd">        be converted to JSON. If False, only public.</span>
+<span class="sd">    :type encode_private: bool</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">translation_table</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">encode_private</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -297,6 +326,8 @@
 <span class="sd">        Decode the JSON dictionary into a valid Python object.</span>
 
 <span class="sd">        :param json_dict: The JSON dictionary to decode.</span>
+<span class="sd">        :type json_dict: dict</span>
+
 <span class="sd">        :returns: The decoded form of the JSON dictionary.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -321,6 +352,10 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This class contains functions to enable arbitrary object trees to be &quot;translated&quot; to anonymous</span>
 <span class="sd">    and named objects. This behavior is defined by a map of &#39;named&#39; and &#39;anon&#39; key values.</span>
+
+<span class="sd">    :param to_anon: A mapping of &#39;named&#39; to &#39;anonymous&#39; strings to be used when converting</span>
+<span class="sd">        user-defined names to anon.</span>
+<span class="sd">    :type to_anon: dict[str, str]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">to_anon</span><span class="p">:</span> <span class="s2">&quot;dict[str, str]&quot;</span><span class="p">):</span>
@@ -331,6 +366,9 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Recursively anonymise all named properties on the object.</span>
 
+<span class="sd">        :param obj: The object to anonymize.</span>
+<span class="sd">        :type obj: object</span>
+
 <span class="sd">        :returns: An anonymized instance of self.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -339,6 +377,9 @@
 <div class="viewcode-block" id="TranslationTable.obj_to_named"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.TranslationTable.obj_to_named">[docs]</a>    <span class="k">def</span> <span class="nf">obj_to_named</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Recursively identify all anonymous properties on the object.</span>
+
+<span class="sd">        :param obj: The object that will be converted to named.</span>
+<span class="sd">        :type obj: object</span>
 
 <span class="sd">        :returns: A named instance of self.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -351,7 +392,10 @@
 <span class="sd">        translation table. If a match is found, substitute.</span>
 
 <span class="sd">        :param obj: The object that will be translated.</span>
+<span class="sd">        :type obj: object</span>
+
 <span class="sd">        :param translation_table: The mapping to translate by.</span>
+<span class="sd">        :type translation_table: TranslationTable</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># If a translation table exists on the object, remove and save it.</span>
