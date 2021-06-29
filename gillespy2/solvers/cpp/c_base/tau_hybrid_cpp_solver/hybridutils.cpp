@@ -1,7 +1,5 @@
 #include <iostream>
-#include "HybridModel.h"
-#include "tau.h"
-#include "model.h"
+#include "hybridutils.h"
 
 // toggle_reactions()
 namespace Gillespy::TauHybrid {
@@ -50,10 +48,10 @@ namespace Gillespy::TauHybrid {
 	}
 
 	void partition_species(
-		std::vector<HybridSpecies> &species,
 		std::vector<HybridReaction> &reactions,
+		std::vector<HybridSpecies> &species,
 		const std::vector<double> &propensity_values, 
-		std::vector<double> curr_state, 
+		std::vector<double> &curr_state, 
 		double tau_step, 
 		const TauArgs &tauArgs)
 	{

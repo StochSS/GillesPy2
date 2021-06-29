@@ -1,6 +1,5 @@
 #pragma once
 
-#include <variant>
 #include <functional>
 #include "model.h"
 
@@ -82,12 +81,11 @@ namespace Gillespy::TauHybrid {
 
 	struct HybridSimulation : Simulation<double>
 	{
-		hybrid_state *trajectories_hybrid1D;
-		hybrid_state ***trajectories_hybrid;
-
-		double hybrid_propensity(int reaction_id, std::vector<double> &current_state);
+	    std::vector<HybridSpecies> species_state;
+	    std::vector<HybridReaction> reaction_state;
 
 		HybridSimulation();
+		HybridSimulation(const Model &model);
 	};
 
 

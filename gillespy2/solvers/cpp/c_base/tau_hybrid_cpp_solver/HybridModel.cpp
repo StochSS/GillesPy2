@@ -4,7 +4,7 @@ namespace Gillespy::TauHybrid
 {
 
 	HybridReaction::HybridReaction()
-		: mode(SimulationState::CONTINUOUS),
+		: mode(SimulationState::DISCRETE),
 		  base_reaction(nullptr)
 	{
 		// Empty constructor body
@@ -25,6 +25,21 @@ namespace Gillespy::TauHybrid
 		// Empty constructor body
 	}
 
+	HybridSimulation::HybridSimulation(const Model &model)
+	    : Simulation<double>(),
+		  species_state(model.number_species),
+		  reaction_state(model.number_reactions)
+    {
+		for (int spec_i = 0; spec_i < model.number_species; ++spec_i)
+		{
+			species_state[spec_i].base_species = &model.species[spec_i];
+		}
+
+		for (int rxn_i = 0; rxn_i < model.number_reactions; ++rxn_i)
+		{
+			reaction_state[rxn_i].base_reaction = &model.reactions[rxn_i];
+		}
+    }
 
 
 	double DifferentialEquation::evaluate(

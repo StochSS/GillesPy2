@@ -6,6 +6,7 @@
 #include <math.h>
 #include "TauHybridSolver.h"
 #include "template.h"
+#include "hybrid_template.h"
 #include "arg_parser.h"
 using namespace Gillespy;
 
@@ -28,13 +29,6 @@ public:
 	}
     double evaluate(unsigned int reaction_number, unsigned int* S){return 1.0;}
 };
-
-double Gillespy::TauHybrid::HybridSimulation::hybrid_propensity(
-    int reaction_id,
-    std::vector<double> &S)
-{
-	return map_ode_propensity(reaction_id, S);
-}
 
 double Gillespy::TauHybrid::HybridReaction::ode_propensity(
 	ReactionId reaction_number,
@@ -68,7 +62,7 @@ int main(int argc, char* argv[]){
 	}
 	IPropensityFunction *propFun = new PropensityFunction();
 	//Simulation INIT
-	TauHybrid::HybridSimulation simulation;
+	TauHybrid::HybridSimulation simulation(model);
 	simulation.model = &model;
 	simulation.end_time = end_time;
 	simulation.random_seed = random_seed;
@@ -76,6 +70,7 @@ int main(int argc, char* argv[]){
 	simulation.number_trajectories = number_trajectories;
 	simulation.propensity_function = propFun;
 	init_simulation(&model, simulation);
+	Gillespy::TauHybrid::map_species_modes(simulation.species_state);
 	// Perform ODE  //
 	TauHybrid::TauHybridCSolver(&simulation, tau_tol);
 	simulation.output_results_buffer(std::cout);

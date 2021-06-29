@@ -14,17 +14,8 @@ IntegratorData::IntegratorData(
 	  concentrations(std::vector<double>(num_species)),
 	  populations(std::vector<int>(num_species)),
 	  propensities(std::vector<double>(num_reactions)),
-	  species_state(num_species),
-	  reaction_state(num_reactions)
-{
-	for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-		species_state[spec_i].base_species = &simulation->model->species[spec_i];
-	}
-
-	for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
-		reaction_state[rxn_i].base_reaction = &simulation->model->reactions[rxn_i];
-	}
-}
+	  species_state(&simulation->species_state),
+	  reaction_state(&simulation->reaction_state) {}
 
 IntegratorData::IntegratorData(HybridSimulation *simulation)
 	: IntegratorData(
@@ -97,7 +88,6 @@ Integrator::~Integrator()
 
 IntegrationResults Integrator::integrate(double *t)
 {
-	create_differential_equations(data.species_state, data.reaction_state);
 	if (!validate(CVode(cvode_mem, *t, y, &this->t, CV_NORMAL))) {
 		return { nullptr, nullptr };
 	}

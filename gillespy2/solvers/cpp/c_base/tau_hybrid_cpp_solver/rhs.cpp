@@ -18,8 +18,8 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	// Extract simulation data
 	IntegratorData *data = static_cast<IntegratorData*>(user_data);
 	HybridSimulation *sim = data->simulation;
-	std::vector<HybridSpecies> &species = data->species_state;
-	std::vector<HybridReaction> &reactions = data->reaction_state;
+	std::vector<HybridSpecies> *species = data->species_state;
+	std::vector<HybridReaction> *reactions = data->reaction_state;
 	std::vector<double> &propensities = data->propensities;
 	// Concentrations and reactions are both used for their respective propensity evaulations.
 	// They both should, roughly, reflect the same data, but tau selection requires both.
@@ -46,16 +46,16 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	//   for each of their dependent species.
 	// To handle these, we will go ahead and evaluate each species' differential equations.
 	for (spec_i = 0; spec_i < num_species; ++spec_i) {
-		dydt[spec_i] = species[spec_i].diff_equation.evaluate(concentrations, populations);
+		dydt[spec_i] = (*species)[spec_i].diff_equation.evaluate(concentrations, populations);
 	}
 
 	// Process deterministic propensity state
 	// These updates get written directly to the integrator's concentration state
 	for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
-		switch (reactions[rxn_i].mode) {
+		switch ((*reactions)[rxn_i].mode) {
 		case SimulationState::DISCRETE:
 			// Process stochastic reaction state by updating the root offset for each reaction.
-			propensity = reactions[rxn_i].ssa_propensity(rxn_i, populations);
+			propensity = (*reactions)[rxn_i].ssa_propensity(rxn_i, populations);
 			dydt_offsets[rxn_i] = propensity;
 			propensities[rxn_i] = propensity;
 			break;

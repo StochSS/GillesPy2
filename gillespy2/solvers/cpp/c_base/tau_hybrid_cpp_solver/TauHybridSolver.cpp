@@ -10,7 +10,6 @@
 #include "TauHybridSolver.h"
 #include "HybridModel.h"
 #include "integrator.h"
-#include "hybrid_template.h"
 #include "hybridutils.h"
 #include "tau.h"
 using namespace Gillespy;
@@ -57,9 +56,6 @@ namespace Gillespy::TauHybrid {
 			N_Vector y0 = init_model_vector(model, urn);
 			Integrator sol(simulation, y0, GPY_HYBRID_RELTOL, GPY_HYBRID_ABSTOL);
 
-			// Inject user-defined species modes into the solver.
-			map_species_modes(sol.data.species_state);
-
 			// Initialize the species population for the trajectory.
 			for (int spec_i = 0; spec_i < num_species; ++spec_i) {
 				current_state[spec_i] = species[spec_i].initial_population;
@@ -90,6 +86,19 @@ namespace Gillespy::TauHybrid {
 					sol.data.propensities,
 					current_populations
 				);
+				partition_species(
+					simulation->reaction_state,
+					simulation->species_state,
+					sol.data.propensities,
+					current_state,
+					tau_step,
+					tau_args
+				);
+				flag_det_rxns(
+					simulation->reaction_state,
+					simulation->species_state
+				);
+				create_differential_equations(simulation->species_state, simulation->reaction_state);
 
 				// Determine what the next time point is.
 				// This will become current_time on the next iteration.
@@ -127,7 +136,7 @@ namespace Gillespy::TauHybrid {
 						// Does not get updated unless the changes are deemed valid.
 						double rxn_state = result.reactions[rxn_i];
 
-						switch (sol.data.reaction_state[rxn_i].mode) {
+						switch (simulation->reaction_state[rxn_i].mode) {
 						case SimulationState::DISCRETE:
 							while (rxn_state >= 0) {
 								// "Fire" a reaction by recording changes in dependent species.
