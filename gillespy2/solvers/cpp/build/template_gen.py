@@ -1,3 +1,21 @@
+"""
+GillesPy2 is a modeling toolkit for biochemical simulation.
+Copyright (C) 2019-2021 GillesPy2 developers.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 from collections import OrderedDict
 from gillespy2.core import Species, Reaction, Parameter, Model
 
@@ -34,7 +52,7 @@ def get_model_defines(model: Model, variable=False) -> "dict[str, str]":
     :param variable: Set to true to allow for non-constant parameter values.
     :type variable: bool
 
-    :return: Dictionary of fully-formatted macro definitions.
+    :returns: Dictionary of fully-formatted macro definitions.
     """
     results = {}
 
@@ -77,13 +95,24 @@ def get_model_defines(model: Model, variable=False) -> "dict[str, str]":
     
     # Get definitions for propensities
     stoch_propensities = []
+    ode_propensities = []
     for rxn in reactions:
+        # ODE and non-ODE propensities can sometimes differ.
+        # As a result, each one needs to be sanitized and evaluated separately.
         stoch_propensity = rxn.sanitized_propensity_function(
             model.sanitized_species_names(),
-            model.sanitized_parameter_names())
+            model.sanitized_parameter_names(),
+            ode=False)
+        ode_propensity = rxn.sanitized_propensity_function(
+            model.sanitized_species_names(),
+            model.sanitized_parameter_names(),
+            ode=True)
         stoch_propensities.append(stoch_propensity)
-    stoch_propensity_definitions = template_def_propensities(stoch_propensities)
+        ode_propensities.append(ode_propensity)
+    stoch_propensity_definitions = template_def_propensities(stoch_propensities, ode=False)
+    ode_propensity_definitions = template_def_propensities(ode_propensities, ode=True)
     results.update(stoch_propensity_definitions)
+    results.update(ode_propensity_definitions)
 
     return results
 
@@ -96,10 +125,10 @@ def template_def_variables(parameters: "list[Parameter]", sanitized_names: "list
     :type parameters: list[gillespy2.Parameter]
 
     :param sanitized_names: Ordered list of names for their corresponding runtime parameters.
-    sanitized_names[i] should match parameters[i].
+        sanitized_names[i] should match parameters[i].
     :type sanitized_names: list[str]
 
-    Returns the result as a list of tuples containing key-value pairs to be templated.
+    :returns: The result as a list of tuples containing key-value pairs to be templated.
     """
     # Entries get defined as constant if variable is set to true.
     parameter_type = "VARIABLE" if variable else "CONSTANT"
@@ -123,10 +152,10 @@ def template_def_species(species: "list[Species]", sanitized_names: "list[str]")
     :type species: gillespy2.Species
 
     :param sanitized_names: Ordered list of names corresponding to species.
-    sanitized_names[i] should map to species[i].
+        sanitized_names[i] should map to species[i].
     :type sanitized_names: list[str]
 
-    :return: Dictionary of macro definitions for species and data related to species.
+    :returns: Dictionary of macro definitions for species and data related to species.
     """
     # Parse and format species initial populations
     populations = [str(specimen.initial_value) for specimen in species]
@@ -149,19 +178,19 @@ def template_def_reactions(reactions: "list[Reaction]", sanitized_names: "list[s
     Formats the relevant reactions and propensities to be passed to a C++ simulation template.
 
     :param reactions: Ordered list of reactions.
-    The reaction's index in this list should correspond to its reaction id.
-    For example, the reaction at reactions[3] has id 3.
+        The reaction's index in this list should correspond to its reaction id.
+        For example, the reaction at reactions[3] has id 3.
     :type reactions: list[Reaction]
 
     :param sanitized_names: Ordered list of sanitized names for the reactions.
-    The name's index in this list should match its corresponding reaction.
-    sanitized_names[i] is matched to reactions[i].
+        The name's index in this list should match its corresponding reaction.
+        sanitized_names[i] is matched to reactions[i].
     :type sanitized_names: list[str]
 
     :param species_map: Ordered dictionary mapping an unsanitized species name to its id.
     :type species_map: OrderedDict[str, int]
 
-    :return: Dictionary of macro definitions for reactions.
+    :returns: Dictionary of macro definitions for reactions.
     """
     num_reactions = str(len(reactions))
     reaction_set = []
@@ -203,10 +232,10 @@ def template_def_propensities(sanitized_propensities: "list[str]", ode=False) ->
     :type sanitized_propensities: list[str]
 
     :param ode: Boolean indicating whether the provided propensities are stochastic or deterministic.
-    If set to True, then propensities will be assumed to be ODE propensities.
+        If set to True, then propensities will be assumed to be ODE propensities.
     :type ode: bool
 
-    :return: Dictionary containing propensity macro definitions.
+    :returns: Dictionary containing propensity macro definitions.
     """
     def_keyword = "ODE_PROPENSITIES" if ode else "PROPENSITIES"
     propensities = []

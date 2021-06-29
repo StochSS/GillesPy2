@@ -1,3 +1,21 @@
+"""
+GillesPy2 is a modeling toolkit for biochemical simulation.
+Copyright (C) 2019-2021 GillesPy2 developers.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 from gillespy2.core.species import Species
 from json.encoder import JSONEncoder
 from gillespy2.core.sortableobject import SortableObject
@@ -17,19 +35,25 @@ class Reaction(SortableObject, Jsonify):
 
     :param name: The name by which the reaction is called (optional).
     :type name: str
+
     :param reactants: The reactants that are consumed in the reaction, with stoichiometry. An
-    example would be {R1 : 1, R2 : 2} if the reaction consumes two of R1 and
-    one of R2, where R1 and R2 are Species objects.
+        example would be {R1 : 1, R2 : 2} if the reaction consumes two of R1 and
+        one of R2, where R1 and R2 are Species objects.
     :type reactants: dict
+
     :param products: The species that are created by the reaction event, with stoichiometry. Same format as reactants.
     :type products: dict
+
     :param propensity_function: The custom propensity function for the reaction. Must be evaluable in the
-    namespace of the reaction using C operations.
+        namespace of the reaction using C operations.
     :type propensity_function: str
+
     :param massaction: The switch to use a mass-action reaction. If set to True, a rate value is required.
     :type massaction: bool
+
     :param rate: The rate of the mass-action reaction, take care to note the units.
     :type rate: float
+
     :param annotation: An optional note about the reaction.
     :type annotation: str
 
@@ -93,7 +117,11 @@ class Reaction(SortableObject, Jsonify):
             if rate is None:
                 self.marate = None
             else:
-                self.marate = rate
+                rtype = type(rate).__name__
+                if rtype == 'instance':
+                    self.marate = rate.name
+                else:
+                    self.marate = rate
                 self.create_mass_action()
         else:
             self.type = "customized"
@@ -252,8 +280,12 @@ class Reaction(SortableObject, Jsonify):
 
         # Case EmptySet -> Y
 
-        propensity_function = self.marate.name
-        ode_propensity_function = self.marate.name
+        if isinstance(self.marate, str):
+            propensity_function = self.marate
+            ode_propensity_function = self.marate
+        else:
+            propensity_function = self.marate.name
+            ode_propensity_function = self.marate.name
 
         # There are only three ways to get 'total_stoch==2':
         for r in sorted(self.reactants):
@@ -328,12 +360,12 @@ class Reaction(SortableObject, Jsonify):
         """
         self.annotation = annotation
 
-    def sanitized_propensity_function(self, species_mappings, parameter_mappings):
+    def sanitized_propensity_function(self, species_mappings, parameter_mappings, ode=False):
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
                        reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
-        sanitized_propensity = self.propensity_function
+        sanitized_propensity = self.ode_propensity_function if ode else self.propensity_function
         for id, name in enumerate(names):
             sanitized_propensity = sanitized_propensity.replace(name, "{" + str(id) + "}")
         return sanitized_propensity.format(*replacements)
