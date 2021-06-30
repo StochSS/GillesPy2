@@ -1,3 +1,21 @@
+"""
+GillesPy2 is a modeling toolkit for biochemical simulation.
+Copyright (C) 2019-2021 GillesPy2 developers.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 import io
 import abc
 import numpy
@@ -6,19 +24,17 @@ from abc import ABC
 class SimDecoder(ABC):
     """
     Abstract simulation decoder class.
-    For solvers to handle output in a custom way,
-      this decoder class will be implemented.
+    For solvers to handle output in a custom way, this decoder class will be implemented.
     Expects the output to be read from a buffered IO reader.
+
+    :param trajectories: 3D array to output simulation data to.
+    :type trajectories: numpy.array
     """
     
     def __init__(self, trajectories: numpy.ndarray):
         """
         Constructor for simulation decoder class.
-        Reads the output of an external simulation and generates a numpy array
-          from the results.
-
-        :param trajectories: 3D array to output simulation data to.
-        :type trajectories: numpy.array
+        Reads the output of an external simulation and generates a numpy array from the results.
         """
         # Make sure that it's actually a numpy array
         if not isinstance(trajectories, numpy.ndarray):
@@ -46,7 +62,7 @@ class SimDecoder(ABC):
         :param num_species: Number of species expected in the simulation output.
         :type num_species: int
 
-        :return: An instance of the decoder object, automatically populated with a valid output array.
+        :returns: An instance of the decoder object, automatically populated with a valid output array.
         """
         return cls(numpy.zeros((num_trajectories, num_timesteps, num_species + 1)))
 
@@ -69,7 +85,7 @@ class SimDecoder(ABC):
         Returns the fully-populated NumPy array containing the completed simulation data.
         Assumes that the subprocess has already completed.
 
-        :return: Tuple containing the 3D NumPy array of results, and the time stopped.
+        :returns: Tuple containing the 3D NumPy array of results, and the time stopped.
         """
         pass
 
@@ -89,7 +105,7 @@ class BasicSimDecoder(SimDecoder):
         :param output: Reader provided from the stdout member of an open Popen object.
         :type output: io.BufferedReader
 
-        :return: Integer representing the number of characters read.
+        :returns: Integer representing the number of characters read.
         """
         line = output.read().decode("utf-8")
         ln = len(line)

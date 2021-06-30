@@ -1,3 +1,21 @@
+"""
+GillesPy2 is a modeling toolkit for biochemical simulation.
+Copyright (C) 2019-2021 GillesPy2 developers.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 import os
 import gillespy2
 import numpy as np
@@ -6,6 +24,8 @@ try:
     import libsbml
 except ImportError:
     raise ImportError('libsbml is required to convert SBML files for GillesPy.')
+
+from gillespy2.core import gillespyError
 
 
 init_state = {'INF': np.inf, 'NaN': np.nan}
@@ -150,6 +170,12 @@ def traverse_math(node, old_id, new_id):
 
 def __get_kinetic_law(sbml_model, gillespy_model, reaction):
     kinetic_law = reaction.getKineticLaw()
+
+    if kinetic_law is None:
+        raise gillespyError.InvalidModelError(
+            f"Failed to load SBML model: Reaction '{reaction}' is missing its propensity function."
+        )
+
     tree = kinetic_law.getMath()
     params = kinetic_law.getListOfParameters()
     local_params = kinetic_law.getListOfLocalParameters()
