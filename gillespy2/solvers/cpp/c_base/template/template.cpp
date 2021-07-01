@@ -27,10 +27,10 @@
 
 namespace Gillespy
 {
-	unsigned int populations[GPY_NUM_SPECIES] = GPY_INIT_POPULATIONS;
-	std::vector<unsigned int> species_populations(
+	double populations[GPY_NUM_SPECIES] = GPY_INIT_POPULATIONS;
+	std::vector<double> species_populations(
 		populations,
-		populations + sizeof(populations) / sizeof(unsigned int));
+		populations + sizeof(populations) / sizeof(double));
 
 	std::string s_names[GPY_NUM_SPECIES] = 
 	{
@@ -118,7 +118,8 @@ namespace Gillespy
 		}
 	}
 
-	void add_reactions(Model &model)
+	template <typename T>
+	void add_reactions(Model<T> &model)
 	{
 		unsigned int rxn_i;
 		unsigned int spec_i;
@@ -138,4 +139,7 @@ namespace Gillespy
 
 		model.update_affected_reactions();
 	}
+
+	template void add_reactions<double>(Model<double> &model);
+	template void add_reactions<unsigned int>(Model<unsigned int> &model);
 }

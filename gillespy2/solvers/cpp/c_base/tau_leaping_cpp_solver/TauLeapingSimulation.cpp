@@ -73,7 +73,7 @@ int main(int argc, char* argv[]){
 	number_timesteps = parser.timesteps;
 	tau_tol = parser.tau_tol;
 
-	Model model(species_names, species_populations, reaction_names);
+	Model<unsigned int> model(species_names, species_populations, reaction_names);
 	add_reactions(model);
 
 	if(seed_time) {

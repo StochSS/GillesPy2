@@ -60,7 +60,7 @@ namespace Gillespy
 		sunindextype N = (simulation->model)->number_species;
 		N_Vector y0 = N_VNew_Serial(N);
 
-		Model *simulation_model = simulation->model;
+		Model<double> *simulation_model = simulation->model;
 
 		// Add species initial conditions to the current state vectory `y0`.
 		for (unsigned int species_index = 0; species_index < simulation_model->number_species; species_index++)
@@ -138,7 +138,7 @@ namespace Gillespy
 	{
 		UserData *sim_data = (UserData *)user_data;
 		Simulation<double> *simulation = sim_data->my_sim;
-		Model *model = simulation->model;
+		Model<double> *model = simulation->model;
 
 		// N_VGetArrayPointer returns a pointer to the data property within N_Vector.
 		realtype *ydata = N_VGetArrayPointer(y);

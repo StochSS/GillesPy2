@@ -19,19 +19,21 @@
 #include "model.h"
 
 namespace Gillespy {
-	Model::Model(
+
+	template <typename PType>
+	Model<PType>::Model(
 		std::vector<std::string> species_names,
-		std::vector<unsigned int> species_populations,
+		std::vector<double> species_populations,
 		std::vector<std::string> reaction_names) :
 		number_species(species_names.size()),
 		number_reactions(reaction_names.size()) {
 
-		species = std::make_unique<Species[]>(number_species);
+		species = std::make_unique<Species<PType>[]>(number_species);
 		reactions = std::make_unique<Reaction[]>(number_reactions);
 
 		for (unsigned int i = 0; i < number_species; i++) {
 			species[i].id = i;
-			species[i].initial_population = species_populations[i];
+			species[i].initial_population = static_cast<PType>(species_populations[i]);
 			species[i].name = species_names[i];
 		}
 
@@ -47,7 +49,8 @@ namespace Gillespy {
 		}
 	}
 
-	void Model::update_affected_reactions() {
+	template <typename PType>
+	void Model<PType>::update_affected_reactions() {
 		// Clear affected_reactions for each reaction.
 		for (unsigned int i = 0; i < number_reactions; i++) {
 			reactions[i].affected_reactions.clear();
@@ -66,7 +69,7 @@ namespace Gillespy {
 	}
 
 	template <typename TNum>
-	void init_timeline(Model *model, Simulation<TNum> &simulation) {
+	void init_timeline(Model<TNum> *model, Simulation<TNum> &simulation) {
 		double timestep_size = simulation.end_time / (simulation.number_timesteps - 1);
 		simulation.timeline = new double[simulation.number_timesteps];
 
@@ -76,7 +79,7 @@ namespace Gillespy {
 	}
 
 	template <typename TNum>
-	void init_simulation(Model *model, Simulation<TNum> &simulation) {
+	void init_simulation(Model<TNum> *model, Simulation<TNum> &simulation) {
 		init_timeline(model, simulation);
 
 		unsigned int trajectory_size = simulation.number_timesteps * (model->number_species);
@@ -138,9 +141,16 @@ namespace Gillespy {
 		os << (int)current_time;
 	}
 
+	// DETERMINISTIC SIMULATIONS: explicit instantation of real-valued data structures.
+	template struct Species<double>;
+	template struct Model<double>;
 	template struct Simulation<double>;
+
+	// STOCHASTIC SIMULATIONS: explicit instantiation of discrete-valued data structures.
+	template struct Species<unsigned int>;
+	template struct Model<unsigned int>;
 	template struct Simulation<unsigned int>;
 
-	template void init_simulation<double>(Model *model, Simulation<double> &simulation);
-	template void init_simulation<unsigned int>(Model *model, Simulation<unsigned int> &simulation);
+	template void init_simulation<double>(Model<double> *model, Simulation<double> &simulation);
+	template void init_simulation<unsigned int>(Model<unsigned int> *model, Simulation<unsigned int> &simulation);
 }
