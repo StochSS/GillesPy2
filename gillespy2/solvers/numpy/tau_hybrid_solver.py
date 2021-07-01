@@ -1,3 +1,21 @@
+"""
+GillesPy2 is a modeling toolkit for biochemical simulation.
+Copyright (C) 2019-2021 GillesPy2 developers.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 import random, math, sys, warnings
 from collections import OrderedDict
 from scipy.integrate import ode, LSODA
@@ -535,14 +553,16 @@ class TauHybridSolver(GillesPySolver):
 
         :param curr_state: Contains all state variables for system at current time
         :type curr_state: dict
+
         :param curr_time: Represents current time
         :type curr_time: float
+
         :param save_times: Currently unreached save points
         :type save_times: list
-        :return curr_state, curr_time, save_times, sol
 
-        sol - Python object returned from LSODA which contains all solution
-        data.
+        :returns: curr_state, curr_time, save_times, sol
+            sol - Python object returned from LSODA which contains all solution
+            data.
         """
 
         event_queue = []
@@ -733,7 +753,7 @@ class TauHybridSolver(GillesPySolver):
     @classmethod
     def get_solver_settings(self):
         """
-        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile', 'tau_tol',
                 'event_sensitivity', 'integrator', 'integrator_options', 'timeout')
@@ -753,8 +773,8 @@ class TauHybridSolver(GillesPySolver):
         :type t: int
 
         :param number_of_trajectories: The number of times to sample the chemical master equation. Each
-        trajectory will be returned at the end of the simulation.
-        Optional, defaults to 1.Number of trajectories to simulate
+            trajectory will be returned at the end of the simulation.
+            Optional, defaults to 1. Number of trajectories to simulate
         :type number_of_trajectories: int
 
         :param increment: Save point increment for recording data
@@ -770,25 +790,25 @@ class TauHybridSolver(GillesPySolver):
         :type profile: bool
 
         :param tau_tol: Tolerance level for Tau leaping algorithm.  Larger tolerance values will
-        result in larger tau steps. Default value is 0.03.
+            result in larger tau steps. Default value is 0.03.
         :type tau_tol: float
 
         :param event_sensitivity: Number of data points to be inspected between integration
-        steps/save points for event detection
+            steps/save points for event detection
         :type event_sensitivity: int
 
         :param integrator_options:  contains options to the scipy integrator. by default, this includes
-        rtol=1e-9 and atol=1e-12.  for a list of options,
-        see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.LSODA.html.
-        Example use: {max_step : 0, rtol : .01}
+            rtol=1e-9 and atol=1e-12.  for a list of options,
+            see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.LSODA.html.
+            Example use: {max_step : 0, rtol : .01}
         :type integrator_options: dict
 
         :param live_output: The type of output to be displayed by solver. Can be "progress", "text", or "graph".
         :type live_output: str
 
         :param live_output_options: contains options for live_output. By default {"interval":1}.
-        "interval" specifies seconds between displaying.
-        "clear_output" specifies if display should be refreshed with each display
+            "interval" specifies seconds between displaying.
+            "clear_output" specifies if display should be refreshed with each display
         :type live_output_options:  str
         """
 

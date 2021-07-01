@@ -1,3 +1,21 @@
+/*
+ * GillesPy2 is a modeling toolkit for biochemical simulation.
+ * Copyright (C) 2019-2021 GillesPy2 developers.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <iostream>
 
 #include "cvode.h"
@@ -42,7 +60,7 @@ namespace Gillespy
 		sunindextype N = (simulation->model)->number_species;
 		N_Vector y0 = N_VNew_Serial(N);
 
-		Model *simulation_model = simulation->model;
+		Model<double> *simulation_model = simulation->model;
 
 		// Add species initial conditions to the current state vectory `y0`.
 		for (unsigned int species_index = 0; species_index < simulation_model->number_species; species_index++)
@@ -120,7 +138,7 @@ namespace Gillespy
 	{
 		UserData *sim_data = (UserData *)user_data;
 		Simulation<double> *simulation = sim_data->my_sim;
-		Model *model = simulation->model;
+		Model<double> *model = simulation->model;
 
 		// N_VGetArrayPointer returns a pointer to the data property within N_Vector.
 		realtype *ydata = N_VGetArrayPointer(y);

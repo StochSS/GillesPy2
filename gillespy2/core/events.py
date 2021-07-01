@@ -1,3 +1,21 @@
+"""
+GillesPy2 is a modeling toolkit for biochemical simulation.
+Copyright (C) 2019-2021 GillesPy2 developers.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 from gillespy2.core.gillespyError import *
 from gillespy2.core.jsonify import Jsonify
 
@@ -10,13 +28,13 @@ class EventAssignment(Jsonify):
     depending on how the Event to which it is assigned is configured.
 
     :param variable: Target model component to be modified by the EventAssignment
-    expression. Valid target variables include gillespy2 Species,
-    Parameters, and Compartments.
+        expression. Valid target variables include gillespy2 Species,
+        Parameters, and Compartments.
     :type variable: gillespy2.Species, gillespy2.Parameter
 
     :param expression: String to be evaluated when the event is fired.  This expression must
-    be evaluable within the model namespace, and the results of it's
-    evaluation will be assigned to the EventAssignment variable.
+        be evaluable within the model namespace, and the results of it's
+        evaluation will be assigned to the EventAssignment variable.
     :type expression: str
 
     """
@@ -57,7 +75,7 @@ class EventTrigger(Jsonify):
     the delay evaluation will be initialized.
 
     :param expression: String for a function calculating EventTrigger values. Should be evaluable
-    in namespace of Model.
+        in namespace of Model.
     :type expression: str
 
     :param value: Value of EventTrigger at simulation start, with time t=0
@@ -97,7 +115,6 @@ class EventTrigger(Jsonify):
 
 
 class Event(Jsonify):
-
     """
     An Event can be given as an assignment_expression (function) or directly
     as a value (scalar). If given an assignment_expression, it should be
@@ -110,22 +127,22 @@ class Event(Jsonify):
     :type assignments: str
 
     :param trigger: contains math expression which can be evaluated to
-    a boolean result.  Upon the transition from 'False' to 'True',
-    event assignments may be executed immediately, or after a
-    designated delay.
+        a boolean result.  Upon the transition from 'False' to 'True',
+        event assignments may be executed immediately, or after a
+        designated delay.
     :type trigger: EventTrigger
 
     :param delay: contains math expression evaluable within model namespace.
-    This expression designates a delay between the trigger of
-    an event and the execution of its assignments.
+        This expression designates a delay between the trigger of
+        an event and the execution of its assignments.
     :type delay: str
 
     :param priority: Contains math expression evaluable within model namespace.
     :type priority: str
 
-    :param use_values_from_trigger_time
     :type use_values_from_trigger_time: bool
     """
+
     def __eq__(self, other):
         return str(self) == str(other)
 
@@ -219,11 +236,12 @@ class Event(Jsonify):
 
     def add_assignment(self, assignment):
         """
-        Adds an eventAssignment or a list of eventAssignments.
-        :param assignment: EventAssignment or a list of EventAssignments
-        The event or list of events to be added to this event.
-        :type assignment: EventAssignment or list of EventAssignments
+        Adds an EventAssignment or a list of EventAssignment.
+
+        :param assignment: The event or list of events to be added to this event.
+        :type assignment: EventAssignment or list[EventAssignment]
         """
+
         if hasattr(assignment, 'variable'):
             self.assignments.append(assignment)
         elif isinstance(assignment, list):

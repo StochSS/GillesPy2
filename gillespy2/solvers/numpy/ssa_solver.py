@@ -1,3 +1,21 @@
+"""
+GillesPy2 is a modeling toolkit for biochemical simulation.
+Copyright (C) 2019-2021 GillesPy2 developers.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 from threading import Thread, Event
 from gillespy2.core import GillesPySolver, log, gillespyError
 from gillespy2.solvers.utilities import solverutils as nputils
@@ -23,7 +41,7 @@ class NumPySSASolver(GillesPySolver):
 
     def get_solver_settings(self):
         """
-        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'timeout')
 
@@ -33,20 +51,22 @@ class NumPySSASolver(GillesPySolver):
 
         """
         Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
+
         :param model: The model on which the solver will operate.
         :param t: The end time of the solver.
         :param number_of_trajectories: The number of times to sample the chemical master equation. Each
-        trajectory will be returned at the end of the simulation.
+            trajectory will be returned at the end of the simulation.
         :param increment: The time step of the solution.
         :param seed: The random seed for the simulation. Defaults to None.
         :param debug: Set to True to provide additional debug information about the
-        simulation.
+            simulation.
         :param resume: Result of a previously run simulation, to be resumed
-        :param live_output : str The type of output to be displayed by solver. Can be "progress", "text", or "graph".
-        :param live_output_options : dictionary contains options for live_output. By default {"interval":1}.
-                    "interval" specifies seconds between displaying.
-                    "clear_output" specifies if display should be refreshed with each display
-        :return: a list of each trajectory simulated.
+        :param live_output: str The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+        :param live_output_options: dictionary contains options for live_output. By default {"interval":1}.
+            "interval" specifies seconds between displaying.
+            "clear_output" specifies if display should be refreshed with each display
+
+        :returns: a list of each trajectory simulated.
         """
 
         if isinstance(self, type):

@@ -1,3 +1,21 @@
+"""
+GillesPy2 is a modeling toolkit for biochemical simulation.
+Copyright (C) 2019-2021 GillesPy2 developers.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.gillespyError import *
 from gillespy2.core.jsonify import Jsonify
@@ -8,15 +26,15 @@ class Parameter(SortableObject, Jsonify):
     as a value (scalar). If given an expression, it should be
     understood as evaluable in the namespace of a parent Model.
 
-    Attributes
-    ----------
-    name : str
-        The name by which this parameter is called or referenced in reactions.
-    expression : str
-        String for a function calculating parameter values. Should be evaluable
-        in namespace of Model.
-    value : float
-        Value of a parameter if it is not dependent on other Model entities.
+    :param name: The name by which this parameter is called or referenced in reactions.
+    :type name: str
+
+    :param expression: String for a function calculating parameter values. Should be
+        evaluable in namespace of Model.
+    :type expression: str
+
+    :param value: Value of a parameter if it is not dependent on other Model entities.
+    :type value: float
     """
 
     def __init__(self, name="", expression=None, value=None):
@@ -48,12 +66,11 @@ class Parameter(SortableObject, Jsonify):
         Evaluate the expression and return the (scalar) value in the given
         namespace.
 
-        Attributes
-        ----------
-        namespace : dict (optional)
-            The namespace in which to test evaluation of the parameter, if it
-            involves other parameters, etc.
+        :param namespace: The namespace in which to test evaulation of the parameter,
+            if it involves other parameters, etc.
+        :type namespace: dict
         """
+
         try:
             self.value = (float(eval(self.expression, namespace)))
         except:
