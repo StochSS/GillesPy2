@@ -60,14 +60,15 @@ def main():
         action="store",
         dest="target_source",
         help=f"the directory path to a local copy of the target version repository. " 
-              "This option takes precedence over '--target-version'. "
+                "This option takes precedence over '--target-version'. "
     )
     parser.add_argument(
         "-t",
         "--target_version", 
-        action="store",
-        dest="target_version",
-        help=f"the GillesPy2 version to profile against. Version must be > '{minimum_version}'."
+        action="append",
+        dest="target_versions",
+        help=f"the GillesPy2 version to profile against. Version must be > '{minimum_version}'. "
+                "Multiple versions can be specified with additional '-t VERSION' arguments."
     )
     parser.add_argument(
         "-n",
@@ -92,6 +93,7 @@ def main():
         action="store",
         dest="group_name",
         help="the name of the solver group to run. The possible options are 'c++', 'python', or 'all'. Defaults to 'all'.",
+        choices=[ "c++", "python", "all" ],
         default="all"
     )
 
@@ -103,7 +105,7 @@ def main():
     group_name = args.group_name.lower()
 
     target_source = args.target_source
-    target_version = args.target_version
+    target_versions = args.target_versions
 
     # Validate the group name.
     if group_name not in ["c++", "python", "all"]:
@@ -118,25 +120,41 @@ def main():
             "Values must be greater than 0."
         )
 
+    # Get the current GillesPy2 version.
+    current_version = version.parse(gillespy2.__version__)
+    targets = []
+
     # If the target_source directory was provided (and exists), grab the version number from it.
     if target_source is not None and Path(target_source).is_dir():
         target_source = Path(target_source).resolve()
         target_version = grab_local_version(target_source)
 
+        # Validate the target_version against the current_version.
+        validate_versions(current_version, target_version)
+
+        targets.append((target_version, target_source))
+
     # If the target_source directory is not valid (or unset), clone the correct release by version.
-    elif target_version is not None:
-        target_version = version.parse(target_version)
-        target_source = clone_remote_version(target_version)
+    elif target_versions is not None and len(target_versions) > 0:
+        for target_version in target_versions:
+            # Validate the target_version against the current_version.
+            target_version = version.parse(target_version)
+            validate_versions(current_version, target_version)
 
-        # Get the local version of the downloaded source files.
-        remote_version = grab_local_version(target_source)
+            target_source = clone_remote_version(target_version)
 
-        # Sanity check to ensure that the target and downloaded source files are of the same version.
-        if target_version != grab_local_version(target_source):
-            exit(
-                f"!! Failed to validate downloaded '{remote_version}' release files at '{target_source}' "
-                f"because the parsed local version is not the same as the target '{target_version}'."
-            )
+            # Get the local version of the downloaded source files.
+            remote_version = grab_local_version(target_source)
+
+            # Sanity check to ensure that the target and downloaded source files are of the same version.
+            if target_version != grab_local_version(target_source):
+                exit(
+                    f"!! Failed to validate downloaded '{remote_version}' release files at '{target_source}' "
+                    f"because the parsed local version is not the same as the target '{target_version}'."
+                )
+
+            # Save the target_version and target_source for later.
+            targets.append((target_version, target_source))
 
     # If neither have valid inputs, quit.
     else:
@@ -145,13 +163,8 @@ def main():
             "ONE of these must be set to a valid value to continue."
         )
 
-    # Get the current GillesPy2 version and validate.
-    current_version = version.parse(gillespy2.__version__)
-    validate_versions(current_version, target_version)
-
     # Setup the profile targets.
     current = (current_version, Path(__file__).parent.resolve())
-    targets = [(target_version, target_source)]
 
     # Determine the solver types to profile from the group_name value.
     print(f":: Using group '{group_name}'.")
@@ -162,7 +175,7 @@ def main():
         profile_targets = profile_target_groups[group_name]
 
     # Lets do this.
-    print(f":: Ready to profile '{current_version}' against '{target_version}'.")
+    print(f":: Ready to profile '{current_version}' against {repr(target_versions)}.")
 
     profile_results = run_profiler(current, targets, profile_targets, number_of_runs=run_count)
     results_json = json.dumps(profile_results, indent=4, default=vars)
@@ -277,7 +290,8 @@ def run_profiler(
         core.log.disabled = True
 
         for solver, models in profile_runs.items():
-            print(f" · :: Profiling '{solver.__name__}'...")
+            print("{:·<71} ::".format(f" · :: Profiling '{solver.__name__}' "))
+
             solver = importlib.import_module(solver.__module__).__getattribute__(solver.__name__)
 
             models = sorted(models * number_of_runs, key=lambda model: model.__name__)
@@ -295,9 +309,9 @@ def run_profiler(
                 results = profiler.run_profiler(model=model(), solver=solver)
                 profile_results[solver.__name__][model.__name__][str(version)].append(results)
 
-                print("\r{:·<60} {:.2f} ms".format(message, results.execution_time))
+                print("\r{:·<60} {:.2f} ms ::".format(message, results.execution_time))
 
-            print(" · :: Done.", end="\n\n")
+            print("{:·<71} ::".format(f" · :: Done "), end="\n\n")
 
         # Remove the sys.path addition.
         sys.path.pop(0)
