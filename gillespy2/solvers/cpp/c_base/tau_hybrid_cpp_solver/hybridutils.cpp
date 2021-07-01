@@ -77,25 +77,22 @@ namespace Gillespy::TauHybrid {
 			HybridReaction &rxn = reactions[rxn_i];
 
 			for (int spec_i = 0; spec_i < species.size(); ++spec_i) {
+				// Only dynamic species whose mean/SD is requested are to be considered.
+				if (means.count(spec_i) <= 0) {
+					continue;
+				}
+				// Selected species is either a reactant or a product, depending on whether
+				//   dx is positive or negative.
 				// 0-dx species are not dependencies of this reaction, so dx == 0 is ignored.
 				int spec_dx = rxn.base_reaction->species_change[spec_i];
-				if (spec_dx > 0) {
+				if (spec_dx < 0) {
 					// Selected species is a reactant.
-					HybridSpecies &reactant = species[spec_i];
-					// Only dynamic species need to be considered.
-					if (reactant.partition_mode != SimulationState::DYNAMIC) {
-						continue;
-					}
 					means[spec_i] -= (tau_step * propensity_values[rxn_i] * spec_dx);
 					sd[spec_i] += std::pow((tau_step * propensity_values[rxn_i] * spec_dx), 2);
 				}
-				else if (spec_dx < 0) {
+				else if (spec_dx > 0) {
 					// Selected species is a product.
 					HybridSpecies &product = species[spec_i];
-					// Only dynamic species need to be considered.
-					if (product.partition_mode != SimulationState::DYNAMIC) {
-						continue;
-					}
 					means[spec_i] += (tau_step * propensity_values[rxn_i] * spec_dx);
 					sd[spec_i] += std::pow((tau_step * propensity_values[rxn_i] * spec_dx), 2);
 				}
