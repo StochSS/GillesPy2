@@ -20,7 +20,6 @@ if not test_init.is_file():
     test_init.touch()
 
 import gillespy2
-
 from gillespy2.solvers.cpp import (
     ODECSolver,
     SSACSolver,
@@ -36,15 +35,18 @@ from gillespy2.solvers.numpy import (
 from test.example_models import *
 
 target_models = [Tyson2StateOscillator, Example, VilarOscillator, MichaelisMenten, Dimerization]
-
-profile_targets = {
-    ODECSolver:         target_models,
-    SSACSolver:         target_models,
-    TauLeapingCSolver:  target_models,
-    ODESolver:          target_models,
-    NumPySSASolver:     target_models,
-    TauLeapingSolver:   target_models,
-    TauHybridSolver:    target_models
+profile_target_groups = {
+    "c++": {
+        ODECSolver:         target_models,
+        SSACSolver:         target_models,
+        TauLeapingCSolver:  target_models
+    },
+    "python": {
+        ODESolver:          target_models,
+        NumPySSASolver:     target_models,
+        TauLeapingSolver:  target_models,
+        TauHybridSolver:    target_models
+    }
 }
 
 minimum_version = "1.6.0"
@@ -72,17 +74,25 @@ def main():
         "--number_of_runs",
         action="store",
         dest="run_count",
-        help=f"the number of times each solver/model/version combo should be profiled.",
-        default=1,
-        type=int
+        help="the number of times each solver/model/version combo should be profiled.",
+        type=int,
+        default=1
     )
     parser.add_argument(
         "-o",
         "--output",
         action="store",
         dest="output_file",
-        help=f"the file profile results will be written to. If no value is passed then results will be written to stdout in JSON format.",
+        help="the file profile results will be written to. If no value is passed then results will be written to stdout in JSON format.",
         default=""
+    )
+    parser.add_argument(
+        "-g",
+        "--group_name",
+        action="store",
+        dest="group_name",
+        help="the name of the solver group to run. The possible options are 'c++', 'python', or 'all'. Defaults to 'all'.",
+        default="all"
     )
 
     args = parser.parse_args()
@@ -90,9 +100,16 @@ def main():
     # If a value is not passed then these can be None.
     run_count = args.run_count
     output_file = args.output_file
+    group_name = args.group_name.lower()
 
     target_source = args.target_source
     target_version = args.target_version
+
+    # Validate the group name.
+    if group_name not in ["c++", "python", "all"]:
+        exit(
+            f"!! A group name of '{group_name}' is invalid. Your possible options are: 'c++', 'python', or 'all'."
+        )
 
     # Validate profile_count.
     if run_count < 1:
@@ -132,14 +149,20 @@ def main():
     current_version = version.parse(gillespy2.__version__)
     validate_versions(current_version, target_version)
 
-    # Lets do this.
-    print(f":: Ready to profile {current_version} against {target_version}.")
-
     # Setup the profile targets.
     current = (current_version, Path(__file__).parent.resolve())
     targets = [(target_version, target_source)]
 
-    # Transform the profile_targets to something usable within the profiler.
+    # Determine the solver types to profile from the group_name value.
+    print(f":: Using group '{group_name}'.")
+    if group_name == "all":
+        profile_targets = { **profile_target_groups["c++"], **profile_target_groups["python"] }
+    
+    else:
+        profile_targets = profile_target_groups[group_name]
+
+    # Lets do this.
+    print(f":: Ready to profile '{current_version}' against '{target_version}'.")
 
     profile_results = run_profiler(current, targets, profile_targets, number_of_runs=run_count)
     results_json = json.dumps(profile_results, indent=4, default=vars)
