@@ -34,7 +34,7 @@ namespace Gillespy::TauHybrid {
 
 	struct HybridSpecies
 	{
-		Species *base_species;
+		Species<double> *base_species;
 
 		// allows the user to specify if a species' population should definitely be modeled continuously or 
 		// discretely
@@ -80,7 +80,7 @@ namespace Gillespy::TauHybrid {
 	    std::vector<HybridReaction> reaction_state;
 
 		HybridSimulation();
-		HybridSimulation(const Model &model);
+		HybridSimulation(const Model<double> &model);
 	};
 
 	std::set<int> flag_det_rxns(
@@ -93,7 +93,7 @@ namespace Gillespy::TauHybrid {
 		const std::vector<double> &propensity_values,
 		std::vector<double> &curr_state,
 		double tau_step,
-		const TauArgs &TauArgs);
+		const TauArgs<double> &TauArgs);
 
 	void update_species_state(
 		std::vector<HybridSpecies> &species,

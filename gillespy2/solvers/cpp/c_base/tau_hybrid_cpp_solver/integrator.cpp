@@ -118,7 +118,7 @@ double URNGenerator::next()
 /* Initialize a SUNDials N_Vector based on information provided in the model.
  * 
  */
-N_Vector Gillespy::TauHybrid::init_model_vector(Gillespy::Model &model, URNGenerator urn)
+N_Vector Gillespy::TauHybrid::init_model_vector(Gillespy::Model<double> &model, URNGenerator urn)
 {
 	int rxn_offset_boundary = model.number_reactions + model.number_species;
 

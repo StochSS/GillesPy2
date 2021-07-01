@@ -27,15 +27,15 @@ namespace Gillespy::TauHybrid {
 			return;
 		}
 
-		Model &model = *(simulation->model);
+		Model<double> &model = *(simulation->model);
 		int num_species = model.number_species;
 		int num_reactions = model.number_reactions;
 		int num_trajectories = simulation->number_trajectories;
-		std::unique_ptr<Species[]> &species = model.species;
+		std::unique_ptr<Species<double>[]> &species = model.species;
 		double increment = simulation->timeline[1] - simulation->timeline[0];
 
 		// Tau selector initialization. Used to select a valid tau step.
-		TauArgs tau_args = initialize(model, tau_tol);
+		TauArgs<double> tau_args = initialize(model, tau_tol);
 
 		//copy initial state for each trajectory
 		for(int s = 0; s < num_species; s++){

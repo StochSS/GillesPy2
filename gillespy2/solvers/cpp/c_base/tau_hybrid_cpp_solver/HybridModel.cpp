@@ -25,7 +25,7 @@ namespace Gillespy::TauHybrid
 		// Empty constructor body
 	}
 
-	HybridSimulation::HybridSimulation(const Model &model)
+	HybridSimulation::HybridSimulation(const Model<double> &model)
 	    : Simulation<double>(),
 		  species_state(model.number_species),
 		  reaction_state(model.number_reactions)
@@ -158,7 +158,7 @@ namespace Gillespy::TauHybrid
 		const std::vector<double> &propensity_values, 
 		std::vector<double> &curr_state, 
 		double tau_step, 
-		const TauArgs &tauArgs)
+		const TauArgs<double> &tauArgs)
 	{
 		// coefficient of variance- key:species id, value: cv
 		std::map<int, double> cv;
