@@ -5,6 +5,7 @@ import os
 import example_models
 from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
 from gillespy2.solvers.cpp import SSACSolver, ODECSolver, TauLeapingCSolver
+from gillespy2.solvers.cpp import TauHybridCSolver
 
 class TestCSolvers(unittest.TestCase):
     """
@@ -19,16 +20,19 @@ class TestCSolvers(unittest.TestCase):
         SSACSolver,
         ODECSolver,
         TauLeapingCSolver,
+        TauHybridCSolver,
     ]
     solvers = {
         SSACSolver.target: SSACSolver(model=test_model),
         ODECSolver.target: ODECSolver(model=test_model),
         TauLeapingCSolver.target: TauLeapingCSolver(model=test_model),
+        TauHybridCSolver.target: TauHybridCSolver(model=test_model)
     }
     solvers_variable = {
         SSACSolver.target: SSACSolver(model=test_model, variable=True),
         ODECSolver.target: ODECSolver(model=test_model, variable=True),
         TauLeapingCSolver.target: TauLeapingCSolver(model=test_model, variable=True),
+        TauHybridCSolver.target: TauHybridCSolver(model=test_model, variable=True),
     }
     
     def test_c_decoder(self):
