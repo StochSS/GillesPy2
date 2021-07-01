@@ -35,27 +35,29 @@ from gillespy2.solvers.numpy import (
     TauHybridSolver
 )
 
+import test.example_models
 from test.example_models import *
 
-target_models = [Tyson2StateOscillator, Example, VilarOscillator, MichaelisMenten, Dimerization]
-profile_target_groups = {
-    "c++": {
-        ODECSolver:         target_models,
-        SSACSolver:         target_models,
-        TauLeapingCSolver:  target_models
-    },
-    "python": {
-        ODESolver:          target_models,
-        NumPySSASolver:     target_models,
-        TauLeapingSolver:  target_models,
-        TauHybridSolver:    target_models
-    }
-}
 
 minimum_version = "1.6.0"
 repository = "https://github.com/StochSS/GillesPy2"
 
 def main():
+    target_models = [Tyson2StateOscillator, Example, VilarOscillator, MichaelisMenten, Dimerization]
+    profile_target_groups = {
+        "c++": {
+            ODECSolver:         target_models,
+            SSACSolver:         target_models,
+            TauLeapingCSolver:  target_models
+        },
+        "python": {
+            ODESolver:          target_models,
+            NumPySSASolver:     target_models,
+            TauLeapingSolver:   target_models,
+            TauHybridSolver:    target_models
+        }
+    }
+
     parser = ArgumentParser(description=f"The GillesPy2 per-version performance profiler. Versions > '{minimum_version}' are supported.")
 
     # --target-source and --target-version cannot both be set.
@@ -95,7 +97,7 @@ def main():
         "--solver",
         action="append",
         dest="solver_names",
-        help="solver name to profile. Multiple names can be specified with additional '-s SOLVER_NAME` arguments.",
+        help="solver name to profile. Multiple names can be specified with additional '-s SOLVER_NAME' arguments.",
         metavar="<solver name>",
         choices=[
             "ODECSolver",
@@ -127,6 +129,16 @@ def main():
         metavar="<output file>",
         default=""
     )
+    parser.add_argument(
+        "-m",
+        "--model_name",
+        action="append",
+        dest="target_models",
+        help="the name of a model to run while profiling the solvers. Multiple model names can be specified with "
+            "additional '-m MODEL_NAME' arguments.",
+        metavar="<model name>",
+        choices=test.example_models.__all__
+    )
 
     args = parser.parse_args()
 
@@ -136,6 +148,7 @@ def main():
     group_name = args.group_name
     solver_names = args.solver_names
 
+    target_model_names = args.target_models
     target_source = args.target_source
     target_versions = args.target_versions
 
@@ -191,6 +204,10 @@ def main():
             "ONE of these must be set to a valid value to continue."
         )
 
+    # If models are specified then overwrite target_models.
+    if target_model_names is not None:
+        target_models = [(getattr(test.example_models, model_name)) for model_name in target_model_names]
+
     # Setup the profile targets.
     current = (current_version, Path(__file__).parent.resolve())
     profile_targets = { }
@@ -212,7 +229,6 @@ def main():
     # If neither a group name or solver is specified set to default.
     else:
         profile_targets = { **profile_target_groups["c++"], **profile_target_groups["python"] }
-
 
     # Lets do this.
     print(f":: Ready to profile {current_version} against {', '.join(target_versions)}.")
