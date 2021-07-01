@@ -1,4 +1,5 @@
 import sys
+import json
 import runpy
 import shutil
 import tempfile
@@ -7,14 +8,44 @@ import importlib
 from pathlib import Path
 from urllib import request
 from zipfile import ZipFile
+from collections import defaultdict
 from argparse import ArgumentParser
 
 from packaging import version
 from packaging.version import Version
 
-# sys.path.append(Path(__file__).parent.joinpath("gillespy2").resolve())
+# Check to determine if a __init__.py file exists in the current test directory.
+test_init = Path(__file__).parent.resolve().joinpath("test/__init__.py")
+if not test_init.is_file():
+    test_init.touch()
 
-import gillespy2 as gillespy2_current
+import gillespy2
+
+from gillespy2.solvers.cpp import (
+    ODECSolver,
+    SSACSolver,
+    TauLeapingCSolver
+)
+from gillespy2.solvers.numpy import (
+    ODESolver,
+    NumPySSASolver,
+    TauLeapingSolver,
+    TauHybridSolver
+)
+
+from test.example_models import *
+
+target_models = [Tyson2StateOscillator, Example, VilarOscillator, MichaelisMenten, Dimerization]
+
+profile_targets = {
+    ODECSolver:         target_models,
+    SSACSolver:         target_models,
+    TauLeapingCSolver:  target_models,
+    ODESolver:          target_models,
+    NumPySSASolver:     target_models,
+    TauLeapingSolver:   target_models,
+    TauHybridSolver:    target_models
+}
 
 minimum_version = "1.6.0"
 repository = "https://github.com/StochSS/GillesPy2"
@@ -36,12 +67,39 @@ def main():
         dest="target_version",
         help=f"the GillesPy2 version to profile against. Version must be > '{minimum_version}'."
     )
+    parser.add_argument(
+        "-n",
+        "--number_of_runs",
+        action="store",
+        dest="run_count",
+        help=f"the number of times each solver/model/version combo should be profiled.",
+        default=1,
+        type=int
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        action="store",
+        dest="output_file",
+        help=f"the file profile results will be written to. If no value is passed then results will be written to stdout in JSON format.",
+        default=""
+    )
 
     args = parser.parse_args()
 
     # If a value is not passed then these can be None.
+    run_count = args.run_count
+    output_file = args.output_file
+
     target_source = args.target_source
     target_version = args.target_version
+
+    # Validate profile_count.
+    if run_count < 1:
+        exit(
+            f"!! Profile count of '{run_count}' is invalid because it is too small. "
+            "Values must be greater than 0."
+        )
 
     # If the target_source directory was provided (and exists), grab the version number from it.
     if target_source is not None and Path(target_source).is_dir():
@@ -59,41 +117,50 @@ def main():
         # Sanity check to ensure that the target and downloaded source files are of the same version.
         if target_version != grab_local_version(target_source):
             exit(
-                f"Failed to validate downloaded '{remote_version}' release files at '{target_source}' "
+                f"!! Failed to validate downloaded '{remote_version}' release files at '{target_source}' "
                 f"because the parsed local version is not the same as the target '{target_version}'."
             )
 
     # If neither have valid inputs, quit.
     else:
         exit(
-            "Failed to identify the target version as neither '--target-version' or '--target-source' are set. "
+            "!! Failed to identify the target version as neither '--target-version' or '--target-source' are set. "
             "ONE of these must be set to a valid value to continue."
         )
 
     # Get the current GillesPy2 version and validate.
-    current_version = version.parse(gillespy2_current.__version__)
+    current_version = version.parse(gillespy2.__version__)
     validate_versions(current_version, target_version)
 
     # Lets do this.
-    print(f"[INFO] Ready to profile target version '{target_version}' against current version '{current_version}'.")
+    print(f":: Ready to profile {current_version} against {target_version}.")
 
-    run_profiler(target_source)
+    # Setup the profile targets.
+    current = (current_version, Path(__file__).parent.resolve())
+    targets = [(target_version, target_source)]
+
+    # Transform the profile_targets to something usable within the profiler.
+
+    profile_results = run_profiler(current, targets, profile_targets, number_of_runs=run_count)
+    results_json = json.dumps(profile_results, indent=4, default=vars)
+    
+    # If the output_file is not an empty string, write profiled results to it.
+    if output_file != "":
+        with Path(output_file).resolve().open("w") as outfile:
+            outfile.write(results_json)
+
+        return
+
+    # Write the JSON results to stdout.
+    print(results_json)
+
 
 def validate_versions(current_version: Version, target_version: Version):
     # Check to ensure that the target version is not < the minimum version.
     if target_version < version.parse(minimum_version):
         exit(
-            f"Failed to profile against target version '{target_version}' "
+            f"!! Failed to profile against target version '{target_version}' "
             f"because it is older than the minimum supported version '{minimum_version}'."
-        )
-
-    # Get the current version of GillesPy2.
-    current_version = version.parse(gillespy2_current.__version__)
-
-    if current_version == target_version:
-        exit(
-            f"Failed to profile against target version '{target_version}' "
-            "because it is identical to the current GillesPy2 version."
         )
 
 def clone_remote_version(version: Version) -> Path:
@@ -104,7 +171,7 @@ def clone_remote_version(version: Version) -> Path:
     destination = Path(temp_dir).joinpath("release.zip")
     source_dir = destination.parent.joinpath(f"GillesPy2-{version}")
 
-    print(f"[INFO] Downloading version '{version}' from remote into '{destination}'...")
+    print(f":: Downloading version '{version}' from remote into '{destination}'...")
 
     # Download the release and stream it into the temp directory.
     dest_file = destination.open('wb')
@@ -114,16 +181,16 @@ def clone_remote_version(version: Version) -> Path:
     # Verify that the downloaded file is where we expect it to be.
     if not destination.is_file():
         exit(
-            f"Failed to download GillesPy2 release '{version}' to destination '{destination}'."
+            f"!! Failed to download GillesPy2 release '{version}' to destination '{destination}'."
         )
     
-    print(f"[INFO] Extracting '{destination}' into '{destination.parent}'...")
+    print(f" · :: Extracting '{destination}' into '{destination.parent}'...")
 
     # Extract the file into a subfolder of the temporary directory.
     with ZipFile(destination) as release:
         release.extractall(destination.parent)
     
-    print(f"[INFO] GillesPy2 version '{version}' was successfully downloaded and extracted into '{source_dir}'.")
+    print(f" · :: GillesPy2 version '{version}' was successfully downloaded and extracted into '{source_dir}'.", end="\n\n")
 
     # This is a nasty patch to ensure that `test` directories are importable as modules.
     init_file = source_dir.joinpath("test", "__init__.py")
@@ -139,7 +206,7 @@ def grab_local_version(local_repo: Path) -> Version:
     # Check that the version_file exists.
     if not version_file.is_file():
         exit(
-            f"Failed to load version file at '{version_file}' "
+            f"!! Failed to load version file at '{version_file}' "
             "because it does not exist. Please ensure that you are "
             "passing the correct path of the target source directory."
         )
@@ -150,58 +217,69 @@ def grab_local_version(local_repo: Path) -> Version:
     # Check that the __version__ property exists within the results of the prior call.
     if not "__version__" in version_results:
         exit(
-            f"Failed to parse semantic version from version file at '{version_file}'. "
+            f"!! Failed to parse semantic version from version file at '{version_file}'. "
             "Please ensure that this file contains a valid '__version__' attribute.",
         )
 
     return version.parse(version_results["__version__"])
 
-def run_profiler(target_source: Path):
-    # We need to generate a list of solvers and models to run our profilers with.
-    profile_runs = {
-        "NumPySSASolver": "Tyson2StateOscillator",
-        "ODESolver": "Oregonator",
-        "TauLeapingSolver": "VilarOscillator"
-    }
+def run_profiler(
+    current: "tuple[Version, Path]",
+    targets: "list[tuple[Version, Path]]",
+    profile_runs: "dict[type, list[type]]",
+    number_of_runs: int = 1,
+    ) -> "dict[str, dict[str, dict[str, list[object]]]]":
 
-    # All hail the triple dict of doom.
-    profile_results = {{{ }}}
+    # Store the results in a dictionary (for now).
+    tree = lambda: defaultdict(tree)
+    profile_results: "dict[str, dict[str, dict[str, list[object]]]]" = tree()
+
+    # Determine profile targets. This makes iteration easier.
+    profile_targets = [current] + targets
 
     # We need to wipe current imports so we can force in arbitrary GillesPy2 versions.
     for key in list(sys.modules.keys()):
         if key.startswith("gillespy2"):
             del sys.modules[key]
 
-    for source in [Path(__file__).parent.resolve(), target_source]:
-        print(f"[INFO] Switching to source '{source}'.")
+    for version, source in profile_targets:
+        print(f":: Started profiler for version '{version}'.")
 
         # Enable modules to be loaded from the source directory.
         sys.path.insert(0, str(source))
+        profiler = importlib.import_module("test.profiling.python_profiler", "test")
 
-        python_profiler = importlib.import_module("test.profiling.python_profiler", "test")
-        example_models = importlib.import_module("test.example_models", "test")
-        solvers = importlib.import_module("gillespy2.solvers.numpy", "test")
+        # Disable GillesPy2 log output.
+        core = importlib.import_module("gillespy2.core")
+        core.log.disabled = True
 
-        print(
-            "[DEBUG] Validating import paths:\n"
-            f"\tpython_profiler:	'{python_profiler.__file__}'\n"
-            f"\texample_models:		'{example_models.__file__}'\n"
-            f"\tsolvers:		'{solvers.__file__}'\n"
-        )
+        for solver, models in profile_runs.items():
+            print(f" · :: Profiling '{solver.__name__}'...")
+            solver = importlib.import_module(solver.__module__).__getattribute__(solver.__name__)
 
-        for solver_name, model_name in profile_runs.items():
-            model = getattr(example_models, model_name)()
-            solver = getattr(solvers, solver_name)
+            models = sorted(models * number_of_runs, key=lambda model: model.__name__)
+            for model in models:
+                message = f" ··· :: Running model '{model.__name__}' "
+                print(message, end="", flush=True)
 
-            print(f"[INFO] Starting profile run with solver '{solver.name}' and model '{model.name}'...")
+                if not isinstance(profile_results[solver.__name__][model.__name__][str(version)], list):
+                    profile_results[solver.__name__][model.__name__][str(version)] = list()
 
-            results = python_profiler.run_profiler(model=model, solver=solver)
-            seconds_taken = round(results.sample_time / 1000, 2)
+                # Import required modules.
+                model = importlib.import_module(model.__module__).__getattribute__(model.__name__)
 
-            print(f"[INFO] Profile run complete in {seconds_taken} seconds.")
+                # Run the profiler and save the results.
+                results = profiler.run_profiler(model=model(), solver=solver)
+                profile_results[solver.__name__][model.__name__][str(version)].append(results)
+
+                print("\r{:·<60} {:.2f} ms".format(message, results.execution_time))
+
+            print(" · :: Done.", end="\n\n")
 
         # Remove the sys.path addition.
         sys.path.pop(0)
+
+    return profile_results
 
 if __name__ == "__main__":
     main()
