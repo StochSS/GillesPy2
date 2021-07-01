@@ -10,7 +10,6 @@
 #include "TauHybridSolver.h"
 #include "HybridModel.h"
 #include "integrator.h"
-#include "hybridutils.h"
 #include "tau.h"
 using namespace Gillespy;
 
@@ -98,6 +97,7 @@ namespace Gillespy::TauHybrid {
 					simulation->reaction_state,
 					simulation->species_state
 				);
+				update_species_state(simulation->species_state, current_state);
 				create_differential_equations(simulation->species_state, simulation->reaction_state);
 
 				// Determine what the next time point is.

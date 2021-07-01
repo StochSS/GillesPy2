@@ -2,6 +2,7 @@
 
 #include <functional>
 #include "model.h"
+#include "tau.h"
 
 #define GPY_HYBRID_ABSTOL 1e-5
 #define GPY_HYBRID_RELTOL 1e-5
@@ -73,12 +74,6 @@ namespace Gillespy::TauHybrid {
 		double ssa_propensity(ReactionId reaction_number, std::vector<int> &state);
 	};
 
-	union hybrid_state
-	{
-		unsigned int discrete;
-		double continuous;
-	};
-
 	struct HybridSimulation : Simulation<double>
 	{
 	    std::vector<HybridSpecies> species_state;
@@ -88,6 +83,21 @@ namespace Gillespy::TauHybrid {
 		HybridSimulation(const Model &model);
 	};
 
+	std::set<int> flag_det_rxns(
+		std::vector<HybridReaction> &reactions,
+		std::vector<HybridSpecies> &species);
+
+	void partition_species(
+		std::vector<HybridReaction> &reactions,
+		std::vector<HybridSpecies> &species,
+		const std::vector<double> &propensity_values,
+		std::vector<double> &curr_state,
+		double tau_step,
+		const TauArgs &TauArgs);
+
+	void update_species_state(
+		std::vector<HybridSpecies> &species,
+		std::vector<double> &current_state);
 
 	void create_differential_equations(
 		std::vector<HybridSpecies> &species,

@@ -2,7 +2,6 @@
 CXX := g++
 CFLAGS := -Wall -O3
 CXXFLAGS := -std=c++14 -Wall -O3
-SOLVER ?= ssa
 #######################################
 
 ### Input directories ###
@@ -22,8 +21,6 @@ TAU_HYBRID_SOLVER_PATH := $(CBASE_DIR)/tau_hybrid_cpp_solver
 OBJ_DIR ?= $(CBASE_DIR)
 OUTPUT_DIR ?= $(CBASE_DIR)
 OUTPUT_FILE ?= $(OUTPUT_DIR)/Simulation.out
-EXE_CMD ?= ./
-EXE_ARGS ?= --trajectories 1 --end 10 --timesteps 11 --increment 1
 SUNDIALS_OBJ ?= $(OBJ_DIR)
 INCLUDES := -I$(CBASE_DIR) -I$(SUNDIALS_INC) -I$(TEMPLATE_DIR) -I$(TAU_DIR)
 ##########################
@@ -36,7 +33,7 @@ SUNOBJ_PATHS := $(SUNOBJ:%.o=$(SUNDIALS_OBJ)/%.o)
 TAU_DEPENDENCIES = tau.o
 TAU_DEPS_PATHS := $(TAU_DEPENDENCIES:%.o=$(OBJ_DIR)/%.o)
 
-TAU_HYBRID_DEPENDENCIES = HybridModel.o rhs.o integrator.o hybrid_template.o hybridutils.o
+TAU_HYBRID_DEPENDENCIES = HybridModel.o integrator.o hybrid_template.o
 TAU_HYBRID_DEPS_PATHS := $(TAU_HYBRID_DEPENDENCIES:%.o=$(OBJ_DIR)/%.o)
 
 ###################################
@@ -50,8 +47,8 @@ $(OBJ_DIR)/arg_parser.o: $(CBASE_DIR)/arg_parser.cpp $(CBASE_DIR)/arg_parser.h
 arg_parser: $(OBJ_DIR)/arg_parser.o ;
 
 $(SUNOBJ_PATHS): $(SUNDIALS_OBJ)/%.o: $(SUNDIALS_SRC)/%.c
-	$(CXX) -c -o $@ $< $(CXXFLAGS) -I$(SUNDIALS_INC)
-sundials: $(SUNOBJ_PATHS);
+	$(CXX) -c -o $@ $< $(CFLAGS) -I$(SUNDIALS_INC)
+sundials: $(SUNOBJ_PATHS) ;
 
 $(TAU_DEPS_PATHS): $(OBJ_DIR)/%.o: $(TAU_DIR)/%.cpp
 	$(CXX) -c -o $@ $< $(CXXFLAGS) $(INCLUDES)
@@ -98,7 +95,7 @@ $(OBJ_DIR)/TauHybridSimulation.o: $(TAU_HYBRID_SOLVER_PATH)/TauHybridSimulation.
 ### PRE-COMPILE RULES ###
 prebuild_solvers: ODESolver.o SSASolver.o TauLeapingSolver.o TauHybridSolver.o ;
 
-prebuild_simulations: ODESimulation.o SSASimulation.o TauLeapingSimulation.o TauHybridSolver.o ;
+prebuild_simulations: ODESimulation.o SSASimulation.o TauLeapingSimulation.o TauHybridSimulation.o ;
 
 prebuild: prebuild_solvers prebuild_simulations sundials arg_parser ;
 
@@ -118,18 +115,8 @@ tau_leap: TauLeapingSimulation.o TauLeapingSolver.o tau_deps model arg_parser $(
 	$(CXX) $(COMPILATION_ARGS) $(OBJ_DIR)/TauLeapingSimulation.o $(OBJ_DIR)/tau.o $(OBJ_DIR)/TauLeapingSolver.o
 
 hybrid: TauHybridSimulation.o TauHybridSolver.o model arg_parser sundials tau_deps hybrid_deps $(TEMPLATE_CPP)
-	$(CXX) $(COMPILATION_ARGS) $(SUNOBJ_PATHS) $(TAU_HYBRID_DEPS_PATHS) $(TAU_DEPS_PATHS) $(OBJ_DIR)/TauHybridSimulation.o  $(OBJ_DIR)/TauHybridSolver.o
+	$(CXX) $(COMPILATION_ARGS) $(SUNOBJ_PATHS) $(TAU_HYBRID_DEPS_PATHS) $(TAU_DEPS_PATHS) $(OBJ_DIR)/TauHybridSimulation.o $(OBJ_DIR)/TauHybridSolver.o
 
-build: $(SOLVER);
-
-run: build
-	./$(OUTPUT_FILE) $(EXE_ARGS)
-
-debug: CXXFLAGS = -std=c++14 -Wall -g
-debug: build;
-	gdb --args $(OUTPUT_FILE) $(EXE_ARGS)
-
-all: prebuild
 
 clean:
 	rm -rf $(OUTPUT_DIR)/*.out

@@ -97,4 +97,6 @@ namespace Gillespy::TauHybrid
 
 	N_Vector init_model_vector(Model &model, URNGenerator urn);
 
+	int rhs(realtype t, N_Vector y, N_Vector ydot, void *user_data);
+
 }
