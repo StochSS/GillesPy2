@@ -20,6 +20,9 @@ if not test_init.is_file():
     test_init.touch()
 
 import gillespy2
+import gillespy2.solvers.cpp
+import gillespy2.solvers.numpy
+
 from gillespy2.solvers.cpp import (
     ODECSolver,
     SSACSolver,
@@ -54,28 +57,64 @@ repository = "https://github.com/StochSS/GillesPy2"
 
 def main():
     parser = ArgumentParser(description=f"The GillesPy2 per-version performance profiler. Versions > '{minimum_version}' are supported.")
-    parser.add_argument(
-        "-s",
+
+    # --target-source and --target-version cannot both be set.
+    target_group = parser.add_mutually_exclusive_group(required=True)
+    target_group.add_argument(
+        "-t",
         "--target_source",
         action="store",
         dest="target_source",
         help=f"the directory path to a local copy of the target version repository. " 
-                "This option takes precedence over '--target-version'. "
+                "This option takes precedence over '--target-version'. ",
+        metavar="<target source>"
     )
-    parser.add_argument(
-        "-t",
+    target_group.add_argument(
+        "-v",
         "--target_version", 
         action="append",
         dest="target_versions",
         help=f"the GillesPy2 version to profile against. Version must be > '{minimum_version}'. "
-                "Multiple versions can be specified with additional '-t VERSION' arguments."
+                "Multiple versions can be specified with additional '-t VERSION' arguments.",
+        metavar="<target version>"
     )
+
+    # --group_name and --solver cannot both be set as they both specify solvers to profile.
+    solver_group = parser.add_mutually_exclusive_group()
+    solver_group.add_argument(
+        "-g",
+        "--group_name",
+        action="store",
+        dest="group_name",
+        help="the name of the solver group to run. The possible options are 'c++', 'python', or 'all'. Defaults to 'all'.",
+        metavar="<group name>",
+        choices=[ "c++", "python", "all" ]
+    )
+    solver_group.add_argument(
+        "-s",
+        "--solver",
+        action="append",
+        dest="solver_names",
+        help="solver name to profile. Multiple names can be specified with additional '-s SOLVER_NAME` arguments.",
+        metavar="<solver name>",
+        choices=[
+            "ODECSolver",
+            "SSACSolver",
+            "TauLeapingCSolver",
+            "ODESolver",
+            "NumPySSASolver",
+            "TauLeapingSolver",
+            "TauHybridSolver"
+        ],
+    )
+
     parser.add_argument(
         "-n",
         "--number_of_runs",
         action="store",
         dest="run_count",
         help="the number of times each solver/model/version combo should be profiled.",
+        metavar="<number of runs>",
         type=int,
         default=1
     )
@@ -85,16 +124,8 @@ def main():
         action="store",
         dest="output_file",
         help="the file profile results will be written to. If no value is passed then results will be written to stdout in JSON format.",
+        metavar="<output file>",
         default=""
-    )
-    parser.add_argument(
-        "-g",
-        "--group_name",
-        action="store",
-        dest="group_name",
-        help="the name of the solver group to run. The possible options are 'c++', 'python', or 'all'. Defaults to 'all'.",
-        choices=[ "c++", "python", "all" ],
-        default="all"
     )
 
     args = parser.parse_args()
@@ -102,18 +133,13 @@ def main():
     # If a value is not passed then these can be None.
     run_count = args.run_count
     output_file = args.output_file
-    group_name = args.group_name.lower()
+    group_name = args.group_name
+    solver_names = args.solver_names
 
     target_source = args.target_source
     target_versions = args.target_versions
 
-    # Validate the group name.
-    if group_name not in ["c++", "python", "all"]:
-        exit(
-            f"!! A group name of '{group_name}' is invalid. Your possible options are: 'c++', 'python', or 'all'."
-        )
-
-    # Validate profile_count.
+    # Validate arguments.
     if run_count < 1:
         exit(
             f"!! Profile count of '{run_count}' is invalid because it is too small. "
@@ -126,6 +152,7 @@ def main():
 
     # If the target_source directory was provided (and exists), grab the version number from it.
     if target_source is not None and Path(target_source).is_dir():
+        # Grab the version of the specified source.
         target_source = Path(target_source).resolve()
         target_version = grab_local_version(target_source)
 
@@ -141,6 +168,7 @@ def main():
             target_version = version.parse(target_version)
             validate_versions(current_version, target_version)
 
+            # Download the source of the specified version.
             target_source = clone_remote_version(target_version)
 
             # Get the local version of the downloaded source files.
@@ -165,17 +193,29 @@ def main():
 
     # Setup the profile targets.
     current = (current_version, Path(__file__).parent.resolve())
+    profile_targets = { }
 
     # Determine the solver types to profile from the group_name value.
-    print(f":: Using group '{group_name}'.")
-    if group_name == "all":
-        profile_targets = { **profile_target_groups["c++"], **profile_target_groups["python"] }
-    
+    if group_name is not None:
+        print(f":: Using group '{group_name}'.")
+
+        if group_name != "all":
+            profile_targets = profile_target_groups[group_name.lower()]
+
+    # If solver names were specified then determine the type and set to the target_models.
+    elif solver_names is not None:
+        for solver_name in solver_names:
+            solver_type = getattr(gillespy2.solvers.cpp, solver_name) if hasattr(gillespy2.solvers.cpp, solver_name) else getattr(gillespy2.solvers.numpy, solver_name)
+
+            profile_targets[solver_type] = target_models
+
+    # If neither a group name or solver is specified set to default.
     else:
-        profile_targets = profile_target_groups[group_name]
+        profile_targets = { **profile_target_groups["c++"], **profile_target_groups["python"] }
+
 
     # Lets do this.
-    print(f":: Ready to profile '{current_version}' against {repr(target_versions)}.")
+    print(f":: Ready to profile {current_version} against {', '.join(target_versions)}.")
 
     profile_results = run_profiler(current, targets, profile_targets, number_of_runs=run_count)
     results_json = json.dumps(profile_results, indent=4, default=vars)
@@ -207,7 +247,7 @@ def clone_remote_version(version: Version) -> Path:
     destination = Path(temp_dir).joinpath("release.zip")
     source_dir = destination.parent.joinpath(f"GillesPy2-{version}")
 
-    print(f":: Downloading version '{version}' from remote into '{destination}'...")
+    print(f":: Downloading version {version} from remote into '{destination}'...")
 
     # Download the release and stream it into the temp directory.
     dest_file = destination.open('wb')
@@ -217,7 +257,7 @@ def clone_remote_version(version: Version) -> Path:
     # Verify that the downloaded file is where we expect it to be.
     if not destination.is_file():
         exit(
-            f"!! Failed to download GillesPy2 release '{version}' to destination '{destination}'."
+            f"!! Failed to download GillesPy2 release {version} to destination '{destination}'."
         )
     
     print(f" · :: Extracting '{destination}' into '{destination.parent}'...")
@@ -226,7 +266,7 @@ def clone_remote_version(version: Version) -> Path:
     with ZipFile(destination) as release:
         release.extractall(destination.parent)
     
-    print(f" · :: GillesPy2 version '{version}' was successfully downloaded and extracted into '{source_dir}'.", end="\n\n")
+    print(f" · :: GillesPy2 version {version} was successfully downloaded and extracted into '{source_dir}'.", end="\n\n")
 
     # This is a nasty patch to ensure that `test` directories are importable as modules.
     init_file = source_dir.joinpath("test", "__init__.py")
@@ -279,7 +319,7 @@ def run_profiler(
             del sys.modules[key]
 
     for version, source in profile_targets:
-        print(f":: Started profiler for version '{version}'.")
+        print(f":: Started profiler for version {version}.")
 
         # Enable modules to be loaded from the source directory.
         sys.path.insert(0, str(source))
