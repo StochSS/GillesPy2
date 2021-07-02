@@ -2,7 +2,10 @@
 CXX := g++
 CFLAGS := -Wall -O3
 CXXFLAGS := -std=c++14 -Wall -O3
+GPY_SOLVER ?= ssa
+GPY_EXE_ARGS ?= --trajectories 1 --timesteps 21 --end 20
 #######################################
+.PHONY: run clean build profile ode ssa tau_leap
 
 ### Input directories ###
 CBASE_DIR ?= .
@@ -17,10 +20,14 @@ TAU_LEAPING_SOLVER_PATH := $(CBASE_DIR)/tau_leaping_cpp_solver
 
 ### Output directories ###
 OBJ_DIR ?= $(CBASE_DIR)
-OUTPUT_DIR ?= $(CBASE_DIR)
-OUTPUT_FILE ?= $(OUTPUT_DIR)/Simulation.out
-SUNDIALS_OBJ ?= $(OBJ_DIR)
 INCLUDES := -I$(CBASE_DIR) -I$(SUNDIALS_INC) -I$(TEMPLATE_DIR)
+SUNDIALS_OBJ ?= $(OBJ_DIR)
+OUTPUT_DIR ?= $(CBASE_DIR)
+ifeq ($(OS),Windows_NT)
+	OUTPUT_FILE ?= $(OUTPUT_DIR)/Simulation.exe
+else
+	OUTPUT_FILE ?= $(OUTPUT_DIR)/Simulation.out
+endif
 ##########################
 
 SUNOBJ = cvode_nls.o cvode_io.o sundials_iterative.o cvode_proj.o sundials_matrix.o sunmatrix_band.o sunmatrix_dense.o cvode_ls.o \
@@ -30,70 +37,64 @@ SUNOBJ_PATHS := $(SUNOBJ:%.o=$(SUNDIALS_OBJ)/%.o)
 
 ###################################
 ### SOLVER DEPENDENCIES COMPILE ###
-$(OBJ_DIR)/model.o: $(CBASE_DIR)/model.cpp $(CBASE_DIR)/model.h 
-	$(CXX) $(CXXFLAGS) -c -o $(OBJ_DIR)/model.o $(CBASE_DIR)/model.cpp -I$(CBASE_DIR)
-model: $(OBJ_DIR)/model.o ;
 
-$(OBJ_DIR)/arg_parser.o: $(CBASE_DIR)/arg_parser.cpp $(CBASE_DIR)/arg_parser.h
-	$(CXX) $(CXXFLAGS) -c -o $(OBJ_DIR)/arg_parser.o $(CBASE_DIR)/arg_parser.cpp $(INCLUDES)
-arg_parser: $(OBJ_DIR)/arg_parser.o ;
+### DEPENDENCIES FOR ALL SOLVERS ###
+GPY_SRC = model.cpp arg_parser.cpp
+GPY_OBJ := $(GPY_SRC:%.cpp=$(OBJ_DIR)/%.o)
+
+###    DEPENDENCIES FOR ODE SOLVER    ###
+GPY_SRC_ODE = ODESimulation.cpp ODESolver.cpp
+GPY_OBJ_ODE := $(GPY_SRC_ODE:%.cpp=$(OBJ_DIR)/%.o)
+
+### DEPENDENCIES FOR SSA SOLVER ###
+GPY_SRC_SSA = SSASimulation.cpp SSASolver.cpp
+GPY_OBJ_SSA := $(GPY_SRC_SSA:%.cpp=$(OBJ_DIR)/%.o)
+
+### DEPENDENCIES FOR TAU LEAPING SOLVER ###
+GPY_SRC_TAU = TauLeapingSimulation.cpp TauLeapingSolver.cpp
+GPY_OBJ_TAU := $(GPY_SRC_TAU:%.cpp=$(OBJ_DIR)/%.o)
+
+$(GPY_OBJ): $(OBJ_DIR)/%.o: $(CBASE_DIR)/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $^ $(INCLUDES)
+
+$(GPY_OBJ_ODE): $(OBJ_DIR)/%.o: $(ODE_SOLVER_PATH)/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $^ $(INCLUDES)
+
+$(GPY_OBJ_SSA): $(OBJ_DIR)/%.o: $(SSA_SOLVER_PATH)/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $^ $(INCLUDES)
+
+$(GPY_OBJ_TAU): $(OBJ_DIR)/%.o: $(TAU_LEAPING_SOLVER_PATH)/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $^ $(INCLUDES)
 
 $(SUNOBJ_PATHS): $(SUNDIALS_OBJ)/%.o: $(SUNDIALS_SRC)/%.c
 	$(CXX) -c -o $@ $< $(CFLAGS) -I$(SUNDIALS_INC)
 sundials: $(SUNOBJ_PATHS) ;
 
-#################################
-### SOLVER ALGORITHM COMPILE ####
-$(OBJ_DIR)/ODESolver.o: $(ODE_SOLVER_PATH)/ODESolver.cpp 
-	$(CXX) $(CXXFLAGS) -c -o $(OBJ_DIR)/ODESolver.o $(ODE_SOLVER_PATH)/ODESolver.cpp  $(INCLUDES)
-
-$(OBJ_DIR)/SSASolver.o: $(SSA_SOLVER_PATH)/SSASolver.cpp 
-	$(CXX) $(CXXFLAGS) -c -o $(OBJ_DIR)/SSASolver.o $(SSA_SOLVER_PATH)/SSASolver.cpp $(INCLUDES)
-
-$(OBJ_DIR)/TauLeapingSolver.o: $(TAU_LEAPING_SOLVER_PATH)/TauLeapingSolver.cpp
-	$(CXX) $(CXXFLAGS) -c -o $(OBJ_DIR)/TauLeapingSolver.o $(TAU_LEAPING_SOLVER_PATH)/TauLeapingSolver.cpp $(INCLUDES)
-
-%Solver.o: $(OBJ_DIR)/%Solver.o ;
-
-#################################
-### SOLVER SIMULATION COMPILE ###
-
-$(OBJ_DIR)/ODESimulation.o: $(ODE_SOLVER_PATH)/ODESimulation.cpp
-	$(CXX) $(CXXFLAGS) -c -o $(OBJ_DIR)/ODESimulation.o $(ODE_SOLVER_PATH)/ODESimulation.cpp $(INCLUDES)
-
-$(OBJ_DIR)/SSASimulation.o: $(SSA_SOLVER_PATH)/SSASimulation.cpp
-	$(CXX) $(CXXFLAGS) -c -o $(OBJ_DIR)/SSASimulation.o $(SSA_SOLVER_PATH)/SSASimulation.cpp $(INCLUDES)
-
-$(OBJ_DIR)/TauLeapingSimulation.o: $(TAU_LEAPING_SOLVER_PATH)/TauLeapingSimulation.cpp
-	$(CXX) $(CXXFLAGS) -c -o $(OBJ_DIR)/TauLeapingSimulation.o $(TAU_LEAPING_SOLVER_PATH)/TauLeapingSimulation.cpp $(INCLUDES)
-
-%Simulation.o: $(OBJ_DIR)/%Simulation.o ;
-
-#########################
-### PRE-COMPILE RULES ###
-prebuild_solvers: ODESolver.o SSASolver.o TauLeapingSolver.o ;
-
-prebuild_simulations: ODESimulation.o SSASimulation.o TauLeapingSimulation.o ;
-
-prebuild: prebuild_solvers prebuild_simulations sundials arg_parser ;
-
-#########################
-
 ##########################
 ### FINAL COMPILATIONS ###
-COMPILATION_ARGS := $(CXXFLAGS) -o $(OUTPUT_FILE) $(TEMPLATE_CPP) $(OBJ_DIR)/model.o $(OBJ_DIR)/arg_parser.o $(INCLUDES)
+GPY_ALL_DEPS := $(GPY_OBJ) $(TEMPLATE_CPP)
 
-ode: ODESimulation.o ODESolver.o sundials model arg_parser $(TEMPLATE_CPP)
-	$(CXX) $(COMPILATION_ARGS) $(SUNOBJ_PATHS) $(OBJ_DIR)/ODESimulation.o $(OBJ_DIR)/ODESolver.o
+ode: $(GPY_ALL_DEPS) $(GPY_OBJ_ODE) $(SUNOBJ_PATHS)
+	$(CXX) $(CXXFLAGS) -o $(OUTPUT_FILE) $^ $(INCLUDES)
 
-ssa: SSASimulation.o SSASolver.o model arg_parser $(TEMPLATE_CPP)
-	$(CXX) $(COMPILATION_ARGS) $(OBJ_DIR)/SSASimulation.o $(OBJ_DIR)/SSASolver.o
+ssa: $(GPY_ALL_DEPS) $(GPY_OBJ_SSA)
+	$(CXX) $(CXXFLAGS) -o $(OUTPUT_FILE) $^ $(INCLUDES)
 
-tau_leap: TauLeapingSimulation.o TauLeapingSolver.o model arg_parser $(TEMPLATE_CPP)
-	$(CXX) $(COMPILATION_ARGS) $(OBJ_DIR)/TauLeapingSimulation.o $(OBJ_DIR)/TauLeapingSolver.o
+tau_leap: $(GPY_ALL_DEPS) $(GPY_OBJ_TAU) $(TEMPLATE_CPP)
+	$(CXX) $(CXXFLAGS) -o $(OUTPUT_FILE) $^ $(INCLUDES)
+
+build: $(GPY_ALL_DEPS) $(GPY_OBJ_SSA) $(GPY_OBJ_ODE) $(GPY_OBJ_TAU) ;
+
+run: $(GPY_SOLVER)
+	$(OUTPUT_FILE) $(GPY_EXE_ARGS)
+
+debug: CXXFLAGS = -std=c++14 -Wall -g
+debug: $(GPY_SOLVER)
+	gdb --args $(OUTPUT_FILE) $(GPY_EXE_ARGS)
+
+profile: CXXFLAGS = -std=c++14 -Wall -pg
+profile: $(GPY_SOLVER)
+	$(OUTPUT_FILE) $(GPY_EXE_ARGS)
 
 clean:
-	rm -rf $(OUTPUT_DIR)/*.out
-
-clean_all:
-	rm -rf $(OBJ_DIR)/*.o $(SUNDIALS_OBJ)/*.o $(OUTPUT_DIR)/*.out
+	rm -rf $(OUTPUT_DIR)/*.out $(SUNDIALS_OBJ)/*.o $(OBJ_DIR)/*.o
