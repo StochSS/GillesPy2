@@ -19,6 +19,50 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from collections import OrderedDict
 from gillespy2.core import Species, Reaction, Parameter, Model
 
+
+class SanitizedModel:
+    """
+    Utility class for preparing a model to be passed to a C++ solver.
+    Ensures that any sanitized mappings are consistent between different mappings.
+
+    Wraps around an existing GillesPy2 model to provide sanitized mappings.
+    """
+
+    def __init__(self, model: Model):
+        """
+        :param model: GillesPy2 model to produce sanitized mappings of.
+        :type model: gillespy2.Model
+        """
+        self.species: "OrderedDict[str, Species]" = OrderedDict()
+        self.species_names = model.sanitized_species_names()
+        for species_name, sanitized_name in self.species_names.items():
+            self.species[sanitized_name] = model.get_species(species_name)
+
+        self.parameters: "OrderedDict[str, Parameter]" = OrderedDict()
+        self.parameter_names = model.sanitized_parameter_names()
+        for parameter_name, sanitized_name in self.parameter_names.items():
+            self.parameters[sanitized_name] = model.get_parameter(parameter_name) \
+                if parameter_name != "vol" else Parameter(name="V", expression=model.volume)
+
+        self.propensities: "OrderedDict[str, str]" = OrderedDict()
+        self.reactions: "OrderedDict[str, dict[str, int]]" = OrderedDict()
+        for reaction_name, reaction in model.get_all_reactions().items():
+            sanitized_name = model._listOfReactions[reaction_name].name
+            self.propensities[sanitized_name] = reaction.sanitized_propensity_function(
+                self.species_names, self.parameter_names)
+
+            self.reactions[sanitized_name] = {spec: 0 for spec in self.species_names.values()}
+            for reactant, stoich_value in reaction.reactants.items():
+                if isinstance(reactant, Species):
+                    reactant = self.species_names[reactant.name]
+                self.reactions[sanitized_name][reactant] -= stoich_value
+
+            for product, stoich_value in reaction.products.items():
+                if isinstance(product, Species):
+                    product = self.species_names[product.name]
+                self.reactions[sanitized_name][product] += stoich_value
+
+
 def write_template(path: str, model: Model, variable=False):
     """
     Write template definitions to a specified path. If the file does not exist, one is created.
