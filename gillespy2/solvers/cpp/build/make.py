@@ -57,16 +57,10 @@ class Make():
         self.output_file = Path(self.output_dir, self.output_file)
 
     def prebuild(self):
-        self.__execute("prebuild")
+        self.__execute("build")
 
     def build_simulation(self, simulation_name: str, **kwargs):
         self.__execute(simulation_name, **kwargs)
-
-    def clean(self):
-        self.__execute("clean")
-
-    def clean_all(self):
-        self.__execute("clean_all")
 
     def __execute(self, target: str, **kwargs):        
         # Default make arguments.
