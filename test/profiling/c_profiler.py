@@ -27,9 +27,8 @@ from .performance_data import PerformanceEntry
 
 from gillespy2.core import Model
 from gillespy2.solvers.cpp.c_solver import CSolver
+from gillespy2.solvers.cpp.build.build_engine import BuildLevel
 from gillespy2.solvers.cpp.build.build_engine import BuildEngine
-
-MAKEFILE_PATH = Path(os.path.dirname(__file__)).joinpath("Makefile")
 
 
 def parse_gprof_output(output: str):
@@ -94,7 +93,7 @@ def run_profiler(model: Model, solver: CSolver, trajectories=4, timesteps=101, e
         else BuildEngine()
 
     try:
-        build.makefile = MAKEFILE_PATH
+        # build.makefile = MAKEFILE_PATH
         build.prepare(model)
 
         # Prepare the location where performance data (gmon.out) is written.
@@ -102,7 +101,7 @@ def run_profiler(model: Model, solver: CSolver, trajectories=4, timesteps=101, e
             "GMON_OUT_PREFIX": f"{str(build.output_dir)}/profile"
         }
 
-        exe = build.build_simulation(simulation_name=solver.target)
+        exe = build.build_simulation(simulation_name=solver.target, level=BuildLevel.PROFILE)
 
         # Execute the simulation before running the profiler.
         # When profiling compiler flags (-pg) are enabled,
@@ -111,10 +110,10 @@ def run_profiler(model: Model, solver: CSolver, trajectories=4, timesteps=101, e
         # This profiler data can then be parsed using gprof.
         process_args = [
             exe,
-            "-trajectories", str(trajectories),
-            "-timesteps", str(timesteps),
-            "-end", str(end_time),
-            "-increment", str(end_time / (timesteps - 1))
+            "--trajectories", str(trajectories),
+            "--timesteps", str(timesteps),
+            "--end", str(end_time),
+            "--increment", str(end_time / (timesteps - 1))
         ]
         start = time.perf_counter()
         subprocess.check_call(args=process_args, stdout=subprocess.DEVNULL, env=gmon_env)
