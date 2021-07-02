@@ -339,14 +339,20 @@ def run_profiler(
 
         # Enable modules to be loaded from the source directory.
         sys.path.insert(0, str(source))
-        profiler = importlib.import_module("test.profiling.python_profiler", "test")
 
         # Disable GillesPy2 log output.
         core = importlib.import_module("gillespy2.core")
         core.log.disabled = True
 
         for solver, models in profile_runs.items():
-            print("{:·<71} ::".format(f" · :: Profiling '{solver.__name__}' "))
+            print(f" · :: Profiling '{solver.__name__}'")
+
+            if "gillespy2.solvers.cpp" in solver.__module__:
+                profiler = importlib.import_module("test.profiling.c_profiler")
+            
+            else:
+                profiler = importlib.import_module("test.profiling.python_profiler")
+                
 
             solver = importlib.import_module(solver.__module__).__getattribute__(solver.__name__)
 
@@ -365,9 +371,9 @@ def run_profiler(
                 results = profiler.run_profiler(model=model(), solver=solver)
                 profile_results[solver.__name__][model.__name__][str(version)].append(results)
 
-                print("\r{:·<60} {:.2f} ms ::".format(message, results.execution_time))
+                print("\r{:·<60} :: {:.2f} ms".format(message, results.execution_time))
 
-            print("{:·<71} ::".format(f" · :: Done "), end="\n\n")
+            print(f" · :: Done ", end="\n\n")
 
         # Remove the sys.path addition.
         sys.path.pop(0)
