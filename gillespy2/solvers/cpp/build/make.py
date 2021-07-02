@@ -62,6 +62,14 @@ class Make():
     def build_simulation(self, simulation_name: str, **kwargs):
         self.__execute(simulation_name, **kwargs)
 
+    def profile_build_simulation(self, simulation_name: str, **kwargs):
+
+        kwargs["gpy_solver"] = simulation_name
+        self.__execute(f"profile", **kwargs)
+
+    def debug_build_simulation(self, simulation_name: str, **kwargs):
+        self.__execute(f"debug {simulation_name}", **kwargs)
+
     def __execute(self, target: str, **kwargs):        
         # Default make arguments.
         args_dict = {

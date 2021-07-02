@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import shutil
 import tempfile
+
+from enum import Enum
 from pathlib import Path
 
 import gillespy2
@@ -26,6 +28,11 @@ from gillespy2.core import Model, gillespyError
 
 from . import template_gen
 from .make import Make
+
+class BuildLevel(Enum):
+    NORMAL = 0,
+    PROFILE = 1,
+    DEBUG = 2
 
 class BuildEngine():
     template_definitions_name = "template_definitions.h"
@@ -129,12 +136,15 @@ class BuildEngine():
         make = Make(self.makefile, cache_dir, cache_dir)
         make.prebuild()
 
-    def build_simulation(self, simulation_name: str) -> str:
+    def build_simulation(self, simulation_name: str, level: BuildLevel = BuildLevel.NORMAL) -> str:
         """
         Build the solver to the temp directory.
 
         :param simulation_name: The name of the simulation to build. For example, ODESimulation.
         :type simulation_name: str
+
+        :param level: The level of information to be included in the executable.
+        :type level: BuildLevel
 
         :return: The path of the newly build solver executable.
         """
@@ -145,9 +155,17 @@ class BuildEngine():
                 "To fix, call `BuildEngine.prepare()` prior to attempting to build the simulation."
             )
 
-        self.make.build_simulation(simulation_name, template_dir=str(self.template_dir))
-        return str(self.make.output_file)
+        if level == BuildLevel.NORMAL:
+            self.make.build_simulation(simulation_name, template_dir=str(self.template_dir))
 
+        elif level == BuildLevel.PROFILE:
+            self.make.profile_build_simulation(simulation_name, template_dir=str(self.template_dir))
+
+        elif level == BuildLevel.DEBUG:
+            self.make.debug_build_simulation(simulation_name, template_dir=str(self.template_dir))
+
+        return str(self.make.output_file)
+    
     def get_executable_path(self) -> str:
         """
         Resolves the filepath of the simulation executable.
