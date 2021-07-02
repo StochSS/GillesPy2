@@ -45,7 +45,7 @@ namespace Gillespy
 		int critical_threshold = 10;
 
 		std::map<std::string, int> HOR;
-		std::set<Gillespy::Species> reactants;
+		std::set<Gillespy::Species<unsigned int>> reactants;
 
 		std::map<std::string, std::function<double(double)>> g_i_lambdas;
 		std::map<std::string, int> g_i;
@@ -54,7 +54,7 @@ namespace Gillespy
 		std::map<int, std::vector<int>> products;
 	};
 
-	TauArgs initialize(Gillespy::Model &model, double tau_tol)
+	TauArgs initialize(Gillespy::Model<unsigned int> &model, double tau_tol)
 	{
 		// Initialize TauArgs struct to be returned as a pointer
 		TauArgs tau_args;
@@ -139,7 +139,7 @@ namespace Gillespy
 	}
 
 	double select(
-		Gillespy::Model &model,
+		Gillespy::Model<unsigned int> &model,
 		TauArgs &tau_args,
 		const double &tau_tol,
 		const double &current_time,
@@ -289,7 +289,7 @@ namespace Gillespy
 	}
 
 	std::pair<std::map<std::string, int>, double> get_reactions(
-		const Gillespy::Model *model,
+		const Gillespy::Model<unsigned int> *model,
 		const std::vector<double> &propensity_values,
 		double tau_step,
 		double current_time,
