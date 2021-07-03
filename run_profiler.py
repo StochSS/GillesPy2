@@ -352,7 +352,6 @@ def run_profiler(
             
             else:
                 profiler = importlib.import_module("test.profiling.python_profiler")
-                
 
             solver = importlib.import_module(solver.__module__).__getattribute__(solver.__name__)
 
@@ -369,6 +368,10 @@ def run_profiler(
 
                 # Run the profiler and save the results.
                 results = profiler.run_profiler(model=model(), solver=solver)
+
+                # This weird assignment is needed since Python doesn't seem to recognize that `call_time` exists.
+                results.call_list = results.call_list
+
                 profile_results[solver.__name__][model.__name__][str(version)].append(results)
 
                 print("\r{:·<60} :: {:.2f} ms".format(message, results.execution_time))
