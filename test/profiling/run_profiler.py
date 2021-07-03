@@ -14,8 +14,16 @@ from argparse import ArgumentParser
 from packaging import version
 from packaging.version import Version
 
-# Check to determine if a __init__.py file exists in the current test directory.
-test_init = Path(__file__).parent.resolve().joinpath("test/__init__.py")
+# If it exists, delete the current directory from the PATH.
+if sys.path[0] == str(Path(__file__).parent.resolve()):
+    sys.path.pop(0)
+
+# Push the top-level directory onto the PATH.
+top_level = Path(__file__).joinpath("../../../").resolve()
+sys.path.insert(0, str(top_level))
+
+# Check to determine if a __init__.py file exists in the repo test directory.
+test_init = top_level.joinpath("test/__init__.py")
 if not test_init.is_file():
     test_init.touch()
 
@@ -38,11 +46,10 @@ from gillespy2.solvers.numpy import (
 import test.example_models
 from test.example_models import *
 
-
 minimum_version = "1.6.0"
-repository = "https://github.com/StochSS/GillesPy2"
 
 def main():
+    # Instantiate the default profile target groups.
     target_models = [Tyson2StateOscillator, Example, VilarOscillator, MichaelisMenten, Dimerization]
     profile_target_groups = {
         "c++": {
@@ -256,6 +263,8 @@ def validate_versions(current_version: Version, target_version: Version):
         )
 
 def clone_remote_version(version: Version) -> Path:
+    repository = "https://github.com/StochSS/GillesPy2"
+
     # Setup the download URL and working directory.
     download_url = f"{repository}/archive/refs/tags/v{version}.zip"
 
