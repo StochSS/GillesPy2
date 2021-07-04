@@ -29,9 +29,9 @@
 #include "HybridModel.h"
 #include "integrator.h"
 #include "tau.h"
-using namespace Gillespy;
 
-namespace Gillespy::TauHybrid {
+namespace Gillespy::TauHybrid
+{
 	bool interrupted = false;
 
 	void signalHandler(int signum)
@@ -41,7 +41,8 @@ namespace Gillespy::TauHybrid {
 
 	void TauHybridCSolver(HybridSimulation *simulation, const double tau_tol)
 	{
-		if (simulation == NULL) {
+		if (simulation == NULL)
+		{
 			return;
 		}
 
@@ -55,13 +56,15 @@ namespace Gillespy::TauHybrid {
 		// Tau selector initialization. Used to select a valid tau step.
 		TauArgs<double> tau_args = initialize(model, tau_tol);
 
-		//copy initial state for each trajectory
-		for(int s = 0; s < num_species; s++){
+		// Copy initial state for each trajectory
+		for (int s = 0; s < num_species; s++)
+		{
 			simulation->trajectories[0][0][s] = species[s].initial_population;
 		}
 
-		//Simulate for each trajectory
-		for(int traj = 0; traj < num_trajectories; traj++){
+		// Simulate for each trajectory
+		for (int traj = 0; traj < num_trajectories; traj++)
+		{
 			// Population/concentration state values for each species.
 			// TODO: change back double -> hybrid_state, once we figure out how that works
 			std::vector<double> current_state(num_species);
@@ -74,7 +77,8 @@ namespace Gillespy::TauHybrid {
 			Integrator sol(simulation, y0, GPY_HYBRID_RELTOL, GPY_HYBRID_ABSTOL);
 
 			// Initialize the species population for the trajectory.
-			for (int spec_i = 0; spec_i < num_species; ++spec_i) {
+			for (int spec_i = 0; spec_i < num_species; ++spec_i)
+			{
 				current_state[spec_i] = species[spec_i].initial_population;
 				current_populations[spec_i] = species[spec_i].initial_population;
 			}
@@ -92,7 +96,8 @@ namespace Gillespy::TauHybrid {
 			// Should be 0-initialized each time it's used.
 			int *population_changes = new int[num_species];
 			simulation->current_time = 0;
-			while (simulation->current_time < simulation->end_time) {
+			while (simulation->current_time < simulation->end_time)
+			{
 				// Expected tau step is determined.
 				tau_step = select(
 					model,
@@ -136,25 +141,29 @@ namespace Gillespy::TauHybrid {
 					IntegrationResults result = sol.integrate(&next_time);
 
 					// 0-initialize our population_changes array.
-					for (int p_i = 0; p_i < num_species; ++p_i) {
+					for (int p_i = 0; p_i < num_species; ++p_i)
+					{
 						population_changes[p_i] = 0;
 					}
 
 					// Start with the species concentration as a baseline value.
 					// Stochastic reactions will update populations relative to their concentrations.
-					for (int spec_i = 0; spec_i < num_species; ++spec_i) {
+					for (int spec_i = 0; spec_i < num_species; ++spec_i)
+					{
 						current_state[spec_i] = result.concentrations[spec_i];
 					}
 
 					// The newly-updated reaction_states vector may need to be reconciled now.
 					// A positive reaction_state means reactions have potentially fired.
 					// NOTE: it is possible for a population to swing negative, where a smaller Tau is needed.
-					for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
+					for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
+					{
 						// Temporary variable for the reaction's state.
 						// Does not get updated unless the changes are deemed valid.
 						double rxn_state = result.reactions[rxn_i];
 
-						switch (simulation->reaction_state[rxn_i].mode) {
+						switch (simulation->reaction_state[rxn_i].mode)
+						{
 						case SimulationState::DISCRETE:
 							while (rxn_state >= 0) {
 								// "Fire" a reaction by recording changes in dependent species.
@@ -180,12 +189,14 @@ namespace Gillespy::TauHybrid {
 
 					// Positive reaction state means a negative population was detected.
 					// Only update state with the given population changes if valid.
-					if (invalid_state) {
+					if (invalid_state)
+					{
 						sol.restore_state();
 						tau_step /= 2;
 						next_time = simulation->current_time + tau_step;
 					}
-					else {
+					else
+					{
 						// "Permanently" update the rxn_state and populations.
 						for (int p_i = 0; p_i < num_species; ++p_i) {
 							current_state[p_i] += population_changes[p_i];
@@ -201,8 +212,10 @@ namespace Gillespy::TauHybrid {
 
 				// Seek forward, writing out any values on the timeline which are on current timestep range.
 				// 
-				while (save_idx < simulation->number_timesteps && save_time <= next_time) {
-					for (int spec_i = 0; spec_i < num_species; ++spec_i) {
+				while (save_idx < simulation->number_timesteps && save_time <= next_time)
+				{
+					for (int spec_i = 0; spec_i < num_species; ++spec_i)
+					{
 						simulation->trajectories[traj][save_idx][spec_i] = current_state[spec_i];
 					}
 					save_time = simulation->timeline[++save_idx];

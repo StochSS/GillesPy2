@@ -21,7 +21,8 @@
 
 #include <algorithm>
 
-namespace Gillespy {
+namespace Gillespy
+{
 
 	template<typename PType>
 	TauArgs<PType> initialize(Gillespy::Model<PType> &model, double tau_tol)
@@ -261,23 +262,23 @@ namespace Gillespy {
 
 	// Explicitly instantiate initialize/select functions for DISCRETE simulations
 	template TauArgs<double> initialize<double>(Model<double> &model, double tau_tol);
-    template double select<double>(
-        Model<double> &model,
-        TauArgs<double> &tau_args,
-        const double &tau_tol,
-        const double &current_time,
-        const double &save_time,
-        const std::vector<double> &propensity_values,
-        const std::vector<int> &current_state);
+	template double select<double>(
+		Model<double> &model,
+		TauArgs<double> &tau_args,
+		const double &tau_tol,
+		const double &current_time,
+		const double &save_time,
+		const std::vector<double> &propensity_values,
+		const std::vector<int> &current_state);
 
 	// Explicitly instantiate initialize/select functions for HYBRID simulations
 	template TauArgs<unsigned int> initialize<unsigned int>(Model<unsigned int> &model, double tau_tol);
-    template double select<unsigned int>(
-        Model<unsigned int> &model,
-        TauArgs<unsigned int> &tau_args,
-        const double &tau_tol,
-        const double &current_time,
-        const double &save_time,
-        const std::vector<double> &propensity_values,
-        const std::vector<int> &current_state);
+	template double select<unsigned int>(
+		Model<unsigned int> &model,
+		TauArgs<unsigned int> &tau_args,
+		const double &tau_tol,
+		const double &current_time,
+		const double &save_time,
+		const std::vector<double> &propensity_values,
+		const std::vector<int> &current_state);
 }

@@ -16,12 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TAUHYBRIDCSOLVER_H
-#define TAUHYBRIDCSOLVER_H
+#pragma once
+
 #include "HybridModel.h"
 
-namespace Gillespy::TauHybrid {
+namespace Gillespy::TauHybrid
+{
     void TauHybridCSolver(HybridSimulation* simulation, const double tau_tol);
 }
-
-#endif 

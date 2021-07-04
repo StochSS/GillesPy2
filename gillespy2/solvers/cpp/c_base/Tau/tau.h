@@ -16,8 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TAU_H
-#define TAU_H
+#pragma once
 
 #include "model.h"
 
@@ -27,7 +26,8 @@
 #include <functional>
 
 
-namespace Gillespy {
+namespace Gillespy
+{
 
     template<typename PType>
     struct TauArgs
@@ -81,4 +81,3 @@ namespace Gillespy {
         const std::vector<double> &propensity_values,
         const std::vector<int> &current_state);
 }
-#endif //TAU_H

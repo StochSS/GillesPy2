@@ -25,7 +25,8 @@
 #define GPY_HYBRID_ABSTOL 1e-5
 #define GPY_HYBRID_RELTOL 1e-5
 
-namespace Gillespy::TauHybrid {
+namespace Gillespy::TauHybrid
+{
 
 	typedef int ReactionId;
 
@@ -94,8 +95,8 @@ namespace Gillespy::TauHybrid {
 
 	struct HybridSimulation : Simulation<double>
 	{
-	    std::vector<HybridSpecies> species_state;
-	    std::vector<HybridReaction> reaction_state;
+		std::vector<HybridSpecies> species_state;
+		std::vector<HybridReaction> reaction_state;
 
 		HybridSimulation();
 		HybridSimulation(const Model<double> &model);
