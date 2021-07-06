@@ -253,7 +253,6 @@ def main():
     # Write the JSON results to stdout.
     print(results_json)
 
-
 def validate_versions(current_version: Version, target_version: Version):
     # Check to ensure that the target version is not < the minimum version.
     if target_version < version.parse(minimum_version):
@@ -300,6 +299,9 @@ def clone_remote_version(version: Version) -> Path:
 
     # The unzipped source files are now in the GillesPy2-version subdirectory.
     return source_dir
+
+def grab_current_version() -> Version:
+    return grab_local_version(top_level)
 
 def grab_local_version(local_repo: Path) -> Version:
     version_file = local_repo.joinpath("gillespy2", "__version__.py")
