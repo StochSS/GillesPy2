@@ -114,7 +114,12 @@ namespace Gillespy::TauHybrid
 			// Should be 0-initialized each time it's used.
 			int *population_changes = new int[num_species];
 			simulation->current_time = 0;
-			while (simulation->current_time < simulation->end_time)
+
+			// An invalid simulation state indicates that an unrecoverable error has occurred,
+			//   and the trajectory should terminate early.
+			bool invalid_state = false;
+
+			while (!invalid_state && simulation->current_time < simulation->end_time)
 			{
 				// Compute current propensity values based on existing state.
 				for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
@@ -168,14 +173,22 @@ namespace Gillespy::TauHybrid
 				// The integration loop continues until a valid solution is found.
 				// Any invalid Tau steps (which cause negative populations) are discarded.
 				sol.save_state();
-				bool invalid_state;
 				do {
-					invalid_state = false;
 					// Integration Step
 					// For deterministic reactions, the concentrations are updated directly.
 					// For stochastic reactions, integration updates the rxn_offsets vector.
-					// flag = CVode(cvode_mem, next_time, y0, &next_time, CV_NORMAL);
 					IntegrationResults result = sol.integrate(&next_time);
+					if (sol.status == IntegrationStatus::BAD_STEP_SIZE)
+					{
+						invalid_state = true;
+						// Breaking early causes `invalid_state` to remain set,
+						//   resulting in an early termination of the trajectory.
+						break;
+					}
+
+					// The integrator has, at this point, been validated.
+					// Any errors beyond this point is assumed to be a stochastic state failure.
+					invalid_state = false;
 
 					// 0-initialize our population_changes array.
 					for (int p_i = 0; p_i < num_species; ++p_i)
@@ -243,12 +256,19 @@ namespace Gillespy::TauHybrid
 					}
 				} while (invalid_state);
 
+				// Invalid state after the do-while loop implies that an unrecoverable error has occurred.
+				// While prior results are considered usable, the current integration results are not.
+				// Calling `continue` with an invalid state will discard the results and terminate the trajectory.
+				if (invalid_state)
+				{
+					continue;
+				}
+
 				// Output the results for this time step.
 				sol.refresh_state();
 				simulation->current_time = next_time;
 
 				// Seek forward, writing out any values on the timeline which are on current timestep range.
-				// 
 				while (save_idx < simulation->number_timesteps && save_time <= next_time)
 				{
 					for (int spec_i = 0; spec_i < num_species; ++spec_i)

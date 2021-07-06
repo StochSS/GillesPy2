@@ -18,10 +18,9 @@
 
 #include "integrator.h"
 
-static bool validate(int retcode);
-
 using namespace Gillespy::TauHybrid;
 
+static bool validate(Integrator *integrator, int retcode);
 
 IntegratorData::IntegratorData(
 	HybridSimulation *simulation,
@@ -67,12 +66,12 @@ Integrator::Integrator(HybridSimulation *simulation, N_Vector y0, double reltol,
 	}
 
 	cvode_mem = CVodeCreate(CV_BDF);
-	validate(CVodeInit(cvode_mem, rhs, t, y));
-	validate(CVodeSStolerances(cvode_mem, reltol, abstol));
+	validate(this, CVodeInit(cvode_mem, rhs, t, y));
+	validate(this, CVodeSStolerances(cvode_mem, reltol, abstol));
 
 	solver = SUNLinSol_SPGMR(y, 0, 0);
-	validate(CVodeSetUserData(cvode_mem, &data));
-	validate(CVodeSetLinearSolver(cvode_mem, solver, NULL));
+	validate(this, CVodeSetUserData(cvode_mem, &data));
+	validate(this, CVodeSetLinearSolver(cvode_mem, solver, NULL));
 }
 
 double Integrator::save_state()
@@ -94,14 +93,17 @@ double Integrator::restore_state()
 	{
 		NV_Ith_S(y, mem_i) = NV_Ith_S(y0, mem_i);
 	}
-	validate(CVodeReInit(cvode_mem, t0, y0));
+	if (!validate(this, CVodeReInit(cvode_mem, t0, y0)))
+	{
+		return 0;
+	}
 
 	return t0;
 }
 
 void Integrator::refresh_state()
 {
-	validate(CVodeReInit(cvode_mem, t, y));
+	validate(this, CVodeReInit(cvode_mem, t, y));
 }
 
 void Integrator::reinitialize(N_Vector y_reset)
@@ -111,7 +113,7 @@ void Integrator::reinitialize(N_Vector y_reset)
 	{
 		NV_Ith_S(y0, mem_i) = NV_Ith_S(y_reset, mem_i);
 	}
-	validate(CVodeReInit(cvode_mem, 0, y0));
+	validate(this, CVodeReInit(cvode_mem, 0, y0));
 }
 
 Integrator::~Integrator()
@@ -123,7 +125,7 @@ Integrator::~Integrator()
 
 IntegrationResults Integrator::integrate(double *t)
 {
-	if (!validate(CVode(cvode_mem, *t, y, &this->t, CV_NORMAL)))
+	if (!validate(this, CVode(cvode_mem, *t, y, &this->t, CV_NORMAL)))
 	{
 		return { nullptr, nullptr };
 	}
@@ -260,7 +262,23 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 };
 
 
-bool validate(int retcode)
+static bool validate(Integrator *integrator, int retcode)
 {
-	return true;
+	switch (retcode)
+	{
+	case CV_MEM_NULL:
+		integrator->status = IntegrationStatus::NULL_POINTER;
+		return false;
+	case CV_NO_MALLOC:
+		integrator->status = IntegrationStatus::BAD_MEMORY;
+		return false;
+	case CV_TOO_CLOSE:
+	case CV_TOO_MUCH_WORK:
+		integrator->status = IntegrationStatus::BAD_STEP_SIZE;
+		return false;
+	case CV_SUCCESS:
+	default:
+		integrator->status = IntegrationStatus::OK;
+		return true;
+	}
 }

@@ -29,6 +29,21 @@
 namespace Gillespy::TauHybrid
 {
 
+	/* IntegratorStatus: represents the runtime state of the integrator.
+	 * OK indicates that no errors have occurred.
+	 */
+	enum IntegrationStatus
+	{
+		// No errors have occurred.
+		OK = 0,
+		// Attempted to perform a SUNDIALS operation on a null CVODE object.
+		NULL_POINTER,
+		// A non-null object resulted in a memory error and must be initialized.
+		BAD_MEMORY,
+		// Could not perform integration, step size too small.
+		BAD_STEP_SIZE
+	};
+
 	struct IntegratorData
 	{
 		HybridSimulation *simulation;
@@ -70,6 +85,8 @@ namespace Gillespy::TauHybrid
 		int num_species;
 		int num_reactions;
 	public:
+		// status: check for errors before using the results.
+		IntegrationStatus status;
 		N_Vector y;
 		realtype t;
 
