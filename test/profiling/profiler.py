@@ -176,7 +176,49 @@ class ProfilerTarget:
         test_init = Path(source_dir).joinpath("test/__init__.py")
         if not test_init.is_file():
             test_init.touch()
-            
+
+        # If the version is 1.6.0 to 1.6.2 then an updated Makefile needs to be hot-patched in. These versions
+        # use a Makefile inside of the 'profiling' directory which does not include build instructions for the 
+        # ArgParser.
+        if self.version >= Version("1.6.0") and self.version <= Version("1.6.2"):
+            # The path of the profiling Makefile.
+            old_makefile = source_dir.joinpath("test/profiling/Makefile")
+
+            if not old_makefile.is_file():
+                print(f"Expected to find old Makefile, found nothing. This is undefined behavior: {old_makefile}.")
+
+            # Remove the old makefile and replace with patched version.
+            old_makefile.unlink()
+            new_makefile = Path(__file__).parent.joinpath("assets/1_6_0-1_6_2-makefile")
+
+            shutil.copyfile(new_makefile, old_makefile)
+
+            print(f"Successfully patched {old_makefile}.")
+
+            # We've patched the Makefile, but the c_profiler.py script still uses '-' prefixed arguments.
+            # This is a quick and nasty patch.
+            profiler_path = Path(source_dir).joinpath("test/profiling/c_profiler.py")
+
+            if not profiler_path.is_file():
+                print(f"Expected to find c_profiler.py, found nothing. This is undefined behavior: {profiler_path}.")
+
+            # Read the contents of the profiler_path file.
+            with profiler_path.open("r") as infile:
+                profiler_contents = infile.read()
+
+            # Replace the following instances.
+            needs_patching = ["-trajectories", "-timesteps", "-end", "-increment"]
+
+            for target in needs_patching:
+                profiler_contents = profiler_contents.replace(target, target.replace("-", "--"))
+
+            # Write the patched contents back to the file.
+            profiler_path.unlink()
+
+            with profiler_path.open("w") as outfile:
+                outfile.write(profiler_contents)
+
+            print(f"Successfully patched {profiler_path}.")
 
     def download_source(self) -> Path:
         download_url = f"https://github.com/StochSS/GillesPy2/archive/refs/tags/v{self.version}.zip"
