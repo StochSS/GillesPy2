@@ -44,11 +44,11 @@ namespace Gillespy::TauHybrid
 		double evaluate(std::vector<double> &ode_state, std::vector<int> &ssa_state);
 	};
 
-	enum SimulationState
+	enum SimulationState : unsigned int
 	{
 		CONTINUOUS = 0,
-		DISCRETE,
-		DYNAMIC
+		DISCRETE = 1,
+		DYNAMIC = 2
 	};
 
 	struct HybridSpecies

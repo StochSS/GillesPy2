@@ -54,10 +54,16 @@ Integrator::Integrator(HybridSimulation *simulation, N_Vector y0, double reltol,
 		NV_Ith_S(y, mem_i) = NV_Ith_S(this->y0, mem_i);
 	}
 
-	for (int spec_i = 0; spec_i < num_species; ++spec_i) {
+	for (int spec_i = 0; spec_i < num_species; ++spec_i)
+	{
 		data.populations[spec_i]
 			= data.concentrations[spec_i]
 			= simulation->model->species[spec_i].initial_population;
+	}
+
+	for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
+	{
+		data.propensities[rxn_i] = 0;
 	}
 
 	cvode_mem = CVodeCreate(CV_BDF);
@@ -72,7 +78,8 @@ Integrator::Integrator(HybridSimulation *simulation, N_Vector y0, double reltol,
 double Integrator::save_state()
 {
 	int max_offset = num_reactions + num_species;
-	for (int mem_i = 0; mem_i < max_offset; ++mem_i) {
+	for (int mem_i = 0; mem_i < max_offset; ++mem_i)
+	{
 		NV_Ith_S(y0, mem_i) = NV_Ith_S(y, mem_i);
 	}
 
@@ -83,7 +90,8 @@ double Integrator::save_state()
 double Integrator::restore_state()
 {
 	int max_offset = num_reactions + num_species;
-	for (int mem_i = 0; mem_i < max_offset; ++mem_i) {
+	for (int mem_i = 0; mem_i < max_offset; ++mem_i)
+	{
 		NV_Ith_S(y, mem_i) = NV_Ith_S(y0, mem_i);
 	}
 	validate(CVodeReInit(cvode_mem, t0, y0));
@@ -96,6 +104,16 @@ void Integrator::refresh_state()
 	validate(CVodeReInit(cvode_mem, t, y));
 }
 
+void Integrator::reinitialize(N_Vector y_reset)
+{
+	int max_offset = num_reactions + num_species;
+	for (int mem_i = 0; mem_i < max_offset; ++mem_i)
+	{
+		NV_Ith_S(y0, mem_i) = NV_Ith_S(y_reset, mem_i);
+	}
+	validate(CVodeReInit(cvode_mem, 0, y0));
+}
+
 Integrator::~Integrator()
 {
 	N_VDestroy_Serial(y);
@@ -105,7 +123,8 @@ Integrator::~Integrator()
 
 IntegrationResults Integrator::integrate(double *t)
 {
-	if (!validate(CVode(cvode_mem, *t, y, &this->t, CV_NORMAL))) {
+	if (!validate(CVode(cvode_mem, *t, y, &this->t, CV_NORMAL)))
+	{
 		return { nullptr, nullptr };
 	}
 
@@ -151,13 +170,15 @@ N_Vector Gillespy::TauHybrid::init_model_vector(Gillespy::Model<double> &model, 
 
 	// The first half of the integration vector is used for integrating species concentrations.
 	// [ --- concentrations --- | ...
-	for (int spec_i = 0; spec_i < model.number_species; ++spec_i) {
+	for (int spec_i = 0; spec_i < model.number_species; ++spec_i)
+	{
 		NV_Ith_S(y0, spec_i) = model.species[spec_i].initial_population;
 	}
 
 	// The second half represents the current "randomized state" for each reaction.
 	// ... | --- rxn_offsets --- ]
-	for (int rxn_i = model.number_species; rxn_i < rxn_offset_boundary; ++rxn_i) {
+	for (int rxn_i = model.number_species; rxn_i < rxn_offset_boundary; ++rxn_i)
+	{
 		// Represents the current "randomized state" for each reaction, used as a
 		//   helper value to determine if/how many stochastic reactions fire.
 		// This gets initialized to a random negative offset, and gets "less negative"
@@ -202,7 +223,8 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	// Populate the current ODE state into the concentrations vector.
 	// dy/dt results are initialized to zero, and become the change in propensity.
 	unsigned int spec_i;
-	for (spec_i = 0; spec_i < num_species; ++spec_i) {
+	for (spec_i = 0; spec_i < num_species; ++spec_i)
+	{
 		concentrations[spec_i] = Y[spec_i];
 		populations[spec_i] = Y[spec_i];
 	}
@@ -210,13 +232,15 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	// Deterministic reactions generally are "evaluated" by generating dy/dt functions
 	//   for each of their dependent species.
 	// To handle these, we will go ahead and evaluate each species' differential equations.
-	for (spec_i = 0; spec_i < num_species; ++spec_i) {
+	for (spec_i = 0; spec_i < num_species; ++spec_i)
+	{
 		dydt[spec_i] = (*species)[spec_i].diff_equation.evaluate(concentrations, populations);
 	}
 
 	// Process deterministic propensity state
 	// These updates get written directly to the integrator's concentration state
-	for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
+	for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
+	{
 		switch ((*reactions)[rxn_i].mode) {
 		case SimulationState::DISCRETE:
 			// Process stochastic reaction state by updating the root offset for each reaction.

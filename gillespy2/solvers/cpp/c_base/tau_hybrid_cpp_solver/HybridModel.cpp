@@ -29,8 +29,8 @@ namespace Gillespy::TauHybrid
 	}
 
 	HybridSpecies::HybridSpecies()
-		: user_mode(SimulationState::CONTINUOUS),
-		  partition_mode(SimulationState::CONTINUOUS),
+		: user_mode(SimulationState::DYNAMIC),
+		  partition_mode(SimulationState::DISCRETE),
 		  switch_tol(0.03),
 		  switch_min(0)
 	{
@@ -258,7 +258,7 @@ namespace Gillespy::TauHybrid
 	{
 		for (int spec_i = 0; spec_i < species.size(); ++spec_i) {
 			switch (species[spec_i].partition_mode) {
-			case SimulationState::CONTINUOUS:
+			case SimulationState::DISCRETE:
 				current_state[spec_i] = std::floor(current_state[spec_i]);
 				break;
 			default:

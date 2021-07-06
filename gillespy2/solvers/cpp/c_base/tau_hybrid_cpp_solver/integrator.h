@@ -95,6 +95,8 @@ namespace Gillespy::TauHybrid
 		 */
 		void refresh_state();
 
+		void reinitialize(N_Vector y_reset);
+
 		IntegrationResults integrate(double *t);
 		IntegratorData data;
 

@@ -53,28 +53,46 @@ namespace Gillespy::TauHybrid
 		std::unique_ptr<Species<double>[]> &species = model.species;
 		double increment = simulation->timeline[1] - simulation->timeline[0];
 
+		URNGenerator urn(simulation->random_seed);
+		// The contents of y0 are "stolen" by the integrator.
+		// Do not attempt to directly use y0 after being passed to sol!
+		N_Vector y0 = init_model_vector(model, urn);
+		N_Vector y;
+		if (num_trajectories > 0)
+		{
+			y = init_model_vector(model, urn);
+		}
+		else
+		{
+			y = y0;
+		}
+		Integrator sol(simulation, y, GPY_HYBRID_RELTOL, GPY_HYBRID_ABSTOL);
+
 		// Tau selector initialization. Used to select a valid tau step.
 		TauArgs<double> tau_args = initialize(model, tau_tol);
-
-		// Copy initial state for each trajectory
-		for (int s = 0; s < num_species; s++)
-		{
-			simulation->trajectories[0][0][s] = species[s].initial_population;
-		}
 
 		// Simulate for each trajectory
 		for (int traj = 0; traj < num_trajectories; traj++)
 		{
+			if (traj > 0)
+			{
+				sol.reinitialize(y0);
+			}
+
+			// Initialize each species with their respective user modes.
+			for (int spec_i = 0; spec_i < num_species; ++spec_i)
+			{
+				HybridSpecies *spec = &simulation->species_state[spec_i];
+				spec->partition_mode = spec->user_mode == SimulationState::DYNAMIC
+					? SimulationState::DISCRETE
+					: spec->user_mode;
+				simulation->trajectories[traj][0][spec_i] = spec->base_species->initial_population;
+			}
+
 			// Population/concentration state values for each species.
 			// TODO: change back double -> hybrid_state, once we figure out how that works
 			std::vector<double> current_state(num_species);
 			std::vector<int> current_populations(num_species);
-
-			URNGenerator urn;
-			// The contents of y0 are "stolen" by the integrator.
-			// Do not attempt to directly use y0 after being passed to sol!
-			N_Vector y0 = init_model_vector(model, urn);
-			Integrator sol(simulation, y0, GPY_HYBRID_RELTOL, GPY_HYBRID_ABSTOL);
 
 			// Initialize the species population for the trajectory.
 			for (int spec_i = 0; spec_i < num_species; ++spec_i)

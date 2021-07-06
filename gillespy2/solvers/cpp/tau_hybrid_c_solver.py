@@ -32,7 +32,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         species_mode_list = []
         for spec_id, spec in enumerate(species):
             # Continuous by default
-            mode_keyword = species_mode_map.get(spec.mode, species_mode_map["continuous"])
+            mode_keyword = species_mode_map.get(spec.mode, species_mode_map["dynamic"])
             species_mode_list.append(f"SPECIES_MODE({spec_id},{mode_keyword},{spec.switch_min})")
 
         return {
