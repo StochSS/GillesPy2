@@ -116,6 +116,25 @@ namespace Gillespy::TauHybrid
 			simulation->current_time = 0;
 			while (simulation->current_time < simulation->end_time)
 			{
+				// Compute current propensity values based on existing state.
+				for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
+				{
+					HybridReaction &rxn = simulation->reaction_state[rxn_i];
+					double propensity = 0.0;
+					switch (rxn.mode)
+					{
+						case SimulationState::CONTINUOUS:
+							propensity = rxn.ode_propensity(rxn_i, current_state);
+							break;
+						case SimulationState::DISCRETE:
+							propensity = rxn.ssa_propensity(rxn_i, current_populations);
+							break;
+						default:
+							break;
+					}
+					sol.data.propensities[rxn_i] = propensity;
+				}
+
 				// Expected tau step is determined.
 				tau_step = select(
 					model,
