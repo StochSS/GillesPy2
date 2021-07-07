@@ -20,6 +20,9 @@ import unittest
 from example_models import RobustModel
 from gillespy2.core import Model, Species, Reaction, Parameter
 from gillespy2.core.gillespyError import *
+from gillespy2.core.model import export_StochSS
+import tempfile
+import os
 import numpy as np
 
 
@@ -340,6 +343,17 @@ class TestModel(unittest.TestCase):
 
         except Exception as e:
             self.fail(f"An unknown exception occured while testing the RobustModel: {e}")
+
+    def test_stochss_export(self):
+        model = RobustModel()
+        tempdir = tempfile.mkdtemp()
+        stochss_model_path = os.path.join(tempdir, "robust_model.mdl")
+        try:
+            export_StochSS(model, filename=stochss_model_path)
+            self.assertTrue(os.path.exists(stochss_model_path))
+        finally:
+            os.unlink(stochss_model_path)
+            os.rmdir(tempdir)
 
 if __name__ == '__main__':
     unittest.main()

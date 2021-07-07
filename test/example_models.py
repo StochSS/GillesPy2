@@ -496,4 +496,4 @@ class RobustModel(Model):
 
 __all__ = ['Trichloroethylene', 'LacOperon', 'Schlogl', 'MichaelisMenten',
            'ToggleSwitch', 'Example', 'Tyson2StateOscillator', 'Oregonator',
-           'VilarOscillator', "Dimerization"]
+           'VilarOscillator', 'Dimerization', 'RobustModel']

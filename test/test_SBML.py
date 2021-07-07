@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 import tempfile
 import os
-from example_models import Example
+from example_models import RobustModel
 from gillespy2.core.model import import_SBML, export_SBML
 from gillespy2.core import gillespyError
 from gillespy2 import ODESolver
@@ -44,7 +44,7 @@ class TestSBML(unittest.TestCase):
             return
 
         tmp = tempfile.NamedTemporaryFile(delete=False)
-        model = Example()
+        model = RobustModel()
         path = export_SBML(model, filename=tmp.name)
         document = libsbml.readSBML(path)
         if document.getNumErrors() > 0:

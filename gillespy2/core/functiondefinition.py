@@ -46,6 +46,13 @@ class FunctionDefinition(SortableObject, Jsonify):
     def __str__(self):
         return f"{self.name}: Args: {self.args}, Expression: {self.function_string}"
 
+    def get_arg_string(self) -> str:
+        """
+        Convert function's argument list into a comma-separated formatted string.
+
+        :returns: Argument list as a comma-separated formatted string.
+        """
+        return ','.join(self.args)
 
     def sanitized_function(self, species_mappings, parameter_mappings):
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
