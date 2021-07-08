@@ -712,8 +712,11 @@ class TauHybridSolver(GillesPySolver):
         for e_name in model.listOfEvents:
             curr_state[e_name] = 0
 
+        sanitized_species = model.sanitized_species_names()
+        sanitized_parameters = model.sanitized_parameter_names()
         for fd in model.listOfFunctionDefinitions.values():
-            curr_state[fd.name] = fd.function
+            sanitized_function = fd.sanitized_function(sanitized_species, sanitized_parameters)
+            curr_state[fd.name] = eval(f"lambda {', '.join(fd.args)}: {sanitized_function}", eval_globals)
 
         for ar in model.listOfAssignmentRules.values():
             if ar.variable in model.listOfSpecies:

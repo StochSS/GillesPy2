@@ -35,30 +35,31 @@ class FunctionDefinition(SortableObject, Jsonify):
     """
 
     def __init__(self, name="", function=None, args=[]):
-
-        import math
-        eval_globals = math.__dict__
+        if function is None:
+            raise TypeError("Function string provided for FunctionDefinition cannot be None")
 
         self.name = name
         self.function_string = function
-
-        self.args = ', '.join(args)
-        self.function = eval('lambda ' + self.args + ': ' + function, eval_globals)
-
-        if self.function is None:
-            raise TypeError
+        self.args = args
 
 
     def __str__(self):
-        return f"self.name: Args: {self.args}, Expression: {self.function_string}"
+        return f"{self.name}: Args: {self.args}, Expression: {self.function_string}"
 
+    def get_arg_string(self) -> str:
+        """
+        Convert function's argument list into a comma-separated formatted string.
+
+        :returns: Argument list as a comma-separated formatted string.
+        """
+        return ','.join(self.args)
 
     def sanitized_function(self, species_mappings, parameter_mappings):
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
                        reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
-        sanitized_function = self.function
+        sanitized_function = self.function_string
         for id, name in enumerate(names):
             sanitized_function = sanitized_function.replace(name, "{" + str(id) + "}")
         return sanitized_function.format(*replacements)
