@@ -20,7 +20,7 @@
 #include <set>
 #include <cmath>
 #include <vector>
-#include <memory>
+#include <cstring>
 #include <string>
 #include <random>
 #include <csignal>
@@ -400,7 +400,7 @@ namespace Gillespy
 
 					tau_step = select(*(simulation->model), tau_args, tau_tol, simulation->current_time, save_time, propensity_values, current_state);
 
-					memcpy(prev_curr_state, current_state, simulation->model->number_species);
+					std:memcpy(prev_curr_state, current_state, simulation->model->number_species);
 					double prev_curr_time = simulation->current_time;
 					int loop_cnt = 0;
 
@@ -454,7 +454,7 @@ namespace Gillespy
 
 						if (neg_state)
 						{
-							memcpy(current_state, prev_curr_state, simulation->model->number_species);
+							std::memcpy(current_state, prev_curr_state, simulation->model->number_species);
 							simulation->current_time = prev_curr_time;
 							tau_step /= 2;
 						}
