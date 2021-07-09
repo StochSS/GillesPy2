@@ -95,6 +95,12 @@ namespace Gillespy {
 					&(simulation.trajectories_1D[trajectory * trajectory_size + timestep * (model->number_species)]);
 			}
 		}
+
+		simulation.current_state = new TNum[model->number_species];
+		for (unsigned int spec_i = 0; spec_i < model->number_species; ++spec_i)
+		{
+			simulation.current_state[spec_i] = model->species[spec_i].initial_population;
+		}
 	}
 
 	template <typename TNum>
@@ -155,12 +161,12 @@ namespace Gillespy {
 		}
 
 		unsigned int timestep;
-		for (timestep = last_timestep; timestep < next_timestep; ++timestep)
+		for (timestep = last_timestep; timestep <= next_timestep; ++timestep)
 		{
 			os << timeline[timestep];
 			for (unsigned int species = 0; species < model->number_species; ++species)
 			{
-				os << ',' << trajectories[trajectory_num][timestep][species];
+				os << ',' << current_state[species];
 			}
 			os << ',';
 		}
@@ -178,8 +184,13 @@ namespace Gillespy {
 	template<typename PType>
 	void Simulation<PType>::output_buffer_range(std::ostream &os)
 	{
-		unsigned int next_timestep = std::min(number_timesteps, last_timestep + 1);
-		output_buffer_range(os, next_timestep);
+		output_buffer_range(os, last_timestep);
+	}
+
+	template<typename PType>
+	void Simulation<PType>::output_buffer_final(std::ostream &os)
+	{
+		os << (int) current_time;
 	}
 
 	// DETERMINISTIC SIMULATIONS: explicit instantation of real-valued data structures.

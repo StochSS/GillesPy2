@@ -90,6 +90,7 @@ namespace Gillespy {
 
 		PType *trajectories_1D;
 		PType ***trajectories;
+		PType *current_state;
 
 		Model<PType> *model;
 
@@ -104,7 +105,7 @@ namespace Gillespy {
 		///
 		/// \brief Writes the contents of the simulation trajectory up to a certain index.
 		/// The simulation maintains a "memory" of the last timestep it left off at.
-		/// All timesteps between `last_timestep` (inclusive) and `next_timestep` (exclusive) are written.
+		/// All timesteps between `last_timestep` (inclusive) and `next_timestep` (inclusive) are written.
 		///
 		/// \param os Output stream to write to.
 		/// \param next_timestep Which timestep index to stop writing from.
@@ -126,6 +127,14 @@ namespace Gillespy {
 		///
 		/// \param trajectory_num Index pointing to the desired trajectory to output.
 		void reset_output_buffer(unsigned int trajectory_num);
+
+		/// \name output_buffer_final
+		///
+		/// \brief Writes the final appending values of the buffer.
+		/// Typically, this contains any necessary final data, like stop times or trajectory counts.
+		///
+		/// \param os Output stream to write the final buffer contents to.
+		void output_buffer_final(std::ostream &os);
 
 		~Simulation();
 

@@ -68,8 +68,9 @@ namespace Gillespy
 			unsigned int initial_population = simulation_model->species[species_index].initial_population;
 
 			NV_Ith_S(y0, species_index) = initial_population;
-			simulation->trajectories[0][0][species_index] = initial_population;
+			simulation->current_state[species_index] = initial_population;
 		}
+		simulation->output_buffer_range(std::cout);
 
 		// Create and set CVODE object pointer. CV_ADAMS for nonstiff, CV_BDF for stiff.
 		void *cvode_mem = CVodeCreate(CV_BDF);
@@ -120,8 +121,9 @@ namespace Gillespy
 
 			for (sunindextype species = 0; species < N; species++)
 			{
-				simulation->trajectories[0][current_time][(int)species] = NV_Ith_S(y0, species);
+				simulation->current_state[(int)species] = NV_Ith_S(y0, species);
 			}
+			simulation->output_buffer_range(std::cout);
 		}
 
 		// Deallocate the solution vector.
