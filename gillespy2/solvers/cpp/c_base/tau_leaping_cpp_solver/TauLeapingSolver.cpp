@@ -45,7 +45,7 @@ namespace Gillespy
 		int critical_threshold = 10;
 
 		std::map<std::string, int> HOR;
-		std::set<Gillespy::Species<unsigned int>> reactants;
+		std::set<Gillespy::Species<int>> reactants;
 
 		std::map<std::string, std::function<double(double)>> g_i_lambdas;
 		std::map<std::string, int> g_i;
@@ -54,7 +54,7 @@ namespace Gillespy
 		std::map<int, std::vector<int>> products;
 	};
 
-	TauArgs initialize(Gillespy::Model<unsigned int> &model, double tau_tol)
+	TauArgs initialize(Gillespy::Model<int> &model, double tau_tol)
 	{
 		// Initialize TauArgs struct to be returned as a pointer
 		TauArgs tau_args;
@@ -139,13 +139,13 @@ namespace Gillespy
 	}
 
 	double select(
-		Gillespy::Model<unsigned int> &model,
+		Gillespy::Model<int> &model,
 		TauArgs &tau_args,
 		const double &tau_tol,
 		const double &current_time,
 		const double &save_time,
 		const std::vector<double> &propensity_values,
-		const std::vector<int> &current_state)
+		const int *const current_state)
 	{
 
 		bool critical = false;  // system-wide flag, true when any reaction is critical
@@ -289,7 +289,7 @@ namespace Gillespy
 	}
 
 	std::pair<std::map<std::string, int>, double> get_reactions(
-		const Gillespy::Model<unsigned int> *model,
+		const Gillespy::Model<int> *model,
 		const std::vector<double> &propensity_values,
 		double tau_step,
 		double current_time,
@@ -323,7 +323,7 @@ namespace Gillespy
 		return values;
 	}
 
-	void tau_leaper(Gillespy::Simulation<unsigned int> *simulation, const double tau_tol)
+	void tau_leaper(Gillespy::Simulation<int> *simulation, const double tau_tol)
 	{
 		signal(SIGINT, signalHandler);
 
@@ -341,7 +341,7 @@ namespace Gillespy
 		generator = std::mt19937_64(simulation->random_seed);
 
 		//Initialize current_state variables, propensity_values
-		std::vector<int> current_state(simulation->model->number_species);
+		int *current_state = simulation->current_state;
 		std::vector<double> propensity_values(simulation->model->number_reactions);
 
 		//copy initial state for each trajectory
@@ -358,10 +358,7 @@ namespace Gillespy
 				break;
 			}
 
-			for (int spec = 0; spec < simulation->model->number_species; spec++)
-			{
-				current_state[spec] = simulation->model->species[spec].initial_population;
-			}
+			simulation->reset_output_buffer(trajectory_number);
 
 			//Initialize simulation variables
 			simulation->current_time = 0;
@@ -378,7 +375,7 @@ namespace Gillespy
 
 			//Initialize tau_step, will be assigned using tau::select()
 			double tau_step;
-			std::vector <int> prev_curr_state;
+			int *prev_curr_state = new int[simulation->model->number_species];
 
 			// Each save step
 			while (entry_count < simulation->number_timesteps)
@@ -403,7 +400,7 @@ namespace Gillespy
 
 					tau_step = select(*(simulation->model), tau_args, tau_tol, simulation->current_time, save_time, propensity_values, current_state);
 
-					prev_curr_state = current_state;
+					memcpy(prev_curr_state, current_state, simulation->model->number_species);
 					double prev_curr_time = simulation->current_time;
 					int loop_cnt = 0;
 
@@ -455,9 +452,9 @@ namespace Gillespy
 							}
 						}
 
-						if (neg_state == true)
+						if (neg_state)
 						{
-							current_state = prev_curr_state;
+							memcpy(current_state, prev_curr_state, simulation->model->number_species);
 							simulation->current_time = prev_curr_time;
 							tau_step /= 2;
 						}
@@ -468,14 +465,13 @@ namespace Gillespy
 						}
 					}
 				}
-				for (int i = 0; i < simulation->model->number_species; i++)
-				{
-					simulation->trajectories[trajectory_number][entry_count][i] = current_state[i];
-				}
+				simulation->output_buffer_range(std::cout, entry_count);
 
 				save_time += increment;
 				entry_count += 1;
 			}
+
+			delete[] prev_curr_state;
 		}
 	}
 }

@@ -46,7 +46,7 @@ public:
 		return map_propensity(reaction_number, S);
 	}
 
-	double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S)
+	double TauEvaluate(unsigned int reaction_number, const int *S)
 	{
 		return 1.0;
 	}

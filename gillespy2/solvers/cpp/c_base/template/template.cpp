@@ -62,7 +62,7 @@ namespace Gillespy
 	#undef CONSTANT
 	#undef VARIABLE
 
-	double map_propensity(int reaction_id, const std::vector<int> &S)
+	double map_propensity(int reaction_id, const int *S)
 	{
 		switch (reaction_id)
 		{
@@ -142,4 +142,5 @@ namespace Gillespy
 
 	template void add_reactions<double>(Model<double> &model);
 	template void add_reactions<unsigned int>(Model<unsigned int> &model);
+	template void add_reactions<int>(Model<int> &model);
 }

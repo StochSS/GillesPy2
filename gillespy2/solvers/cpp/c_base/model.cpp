@@ -167,7 +167,7 @@ namespace Gillespy {
 			os << ',';
 		}
 
-		last_timestep = timestep;
+		last_timestep = std::min(number_timesteps, timestep);
 	}
 
 	template <typename TNum>
@@ -202,9 +202,13 @@ namespace Gillespy {
 
 	// STOCHASTIC SIMULATIONS: explicit instantiation of discrete-valued data structures.
 	template struct Species<unsigned int>;
+	template struct Species<int>;
 	template struct Model<unsigned int>;
+	template struct Model<int>;
 	template struct Simulation<unsigned int>;
+	template struct Simulation<int>;
 
 	template void init_simulation<double>(Model<double> *model, Simulation<double> &simulation);
 	template void init_simulation<unsigned int>(Model<unsigned int> *model, Simulation<unsigned int> &simulation);
+	template void init_simulation<int>(Model<int> *model, Simulation<int> &simulation);
 }

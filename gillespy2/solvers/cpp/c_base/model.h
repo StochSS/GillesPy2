@@ -70,8 +70,7 @@ namespace Gillespy {
 	class IPropensityFunction {
 	public:
 		virtual double evaluate(unsigned int reaction_number, unsigned int *state) = 0;
-
-		virtual double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S) = 0;
+		virtual double TauEvaluate(unsigned int reaction_number, const int *S) = 0;
 		virtual double ODEEvaluate(int reaction_number, const std::vector<double> &S) = 0;
 
 		virtual ~IPropensityFunction() {};
@@ -164,9 +163,13 @@ namespace Gillespy {
 
 	// Stochastic Species: species whose initial and runtime values are discrete.
 	extern template struct Species<unsigned int>;
+	extern template struct Species<int>;
 	// Stochastic Model: species state represented using discrete population values.
 	extern template struct Model<unsigned int>;
+	extern template struct Model<int>;
 	// Stochastic Simulation: run using a discrete-valued model.
 	extern template struct Simulation<unsigned int>;
+	extern template struct Simulation<int>;
 	extern template void init_simulation<unsigned int>(Model<unsigned int> *model, Simulation<unsigned int> &simulation);
+	extern template void init_simulation<int>(Model<int> *model, Simulation<int> &simulation);
 }

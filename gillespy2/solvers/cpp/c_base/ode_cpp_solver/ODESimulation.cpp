@@ -47,7 +47,7 @@ public:
 		return 1.0;
 	}
 
-	double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S)
+	double TauEvaluate(unsigned int reaction_number, const int *S)
 	{
 		return 1.0;
 	}
