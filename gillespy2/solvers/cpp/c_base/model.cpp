@@ -17,6 +17,7 @@
  */
 
 #include "model.h"
+#include <algorithm>
 
 namespace Gillespy {
 
@@ -139,6 +140,46 @@ namespace Gillespy {
 		}
 
 		os << (int)current_time;
+	}
+
+	template <typename TNum>
+	void Simulation<TNum>::output_buffer_range(std::ostream &os, unsigned int next_timestep)
+	{
+		next_timestep = std::min(number_timesteps, next_timestep);
+		// Each entry per timestep is a species population/concentration value.
+		// If we have no species, then there's nothing to write!
+		if (model->number_species == 0)
+		{
+			last_timestep = next_timestep;
+			return;
+		}
+
+		unsigned int timestep;
+		for (timestep = last_timestep; timestep < next_timestep; ++timestep)
+		{
+			os << timeline[timestep];
+			for (unsigned int species = 0; species < model->number_species; ++species)
+			{
+				os << ',' << trajectories[trajectory_num][timestep][species];
+			}
+			os << ',';
+		}
+
+		last_timestep = timestep;
+	}
+
+	template <typename TNum>
+	void Simulation<TNum>::reset_output_buffer(unsigned int trajectory_index)
+	{
+		last_timestep = 0;
+		trajectory_num = trajectory_index;
+	}
+
+	template<typename PType>
+	void Simulation<PType>::output_buffer_range(std::ostream &os)
+	{
+		unsigned int next_timestep = std::min(number_timesteps, last_timestep + 1);
+		output_buffer_range(os, next_timestep);
 	}
 
 	// DETERMINISTIC SIMULATIONS: explicit instantation of real-valued data structures.

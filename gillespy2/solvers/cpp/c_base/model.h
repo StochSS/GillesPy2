@@ -97,8 +97,41 @@ namespace Gillespy {
 
 		template <class T> friend std::ostream &operator << (std::ostream &os, const Simulation<T> &simulation);
 
+		// output_results_buffer: Writes the contents of the entire simulation trajectory.
 		void output_results_buffer(std::ostream &os);
+
+		/// \name output_buffer_range
+		///
+		/// \brief Writes the contents of the simulation trajectory up to a certain index.
+		/// The simulation maintains a "memory" of the last timestep it left off at.
+		/// All timesteps between `last_timestep` (inclusive) and `next_timestep` (exclusive) are written.
+		///
+		/// \param os Output stream to write to.
+		/// \param next_timestep Which timestep index to stop writing from.
+		void output_buffer_range(std::ostream &os, unsigned int next_timestep);
+
+		/// \name output_buffer_range
+		///
+		/// \brief Writes the contents of the next timestep of the simulation trajectory.
+		/// The simulation maintains a "memory" of the last timestep it left off at.
+		/// When no `next_timestep` is specified, it is assumed that only the next timestep is written.
+		///
+		/// \param os Output stream to write to.
+		void output_buffer_range(std::ostream &os);
+
+		/// \name reset_output_buffer
+		///
+		/// \brief Re-initializes the simulation's output buffer state to prepare for a new trajectory.
+		/// When writing multiple trajectories, this should be called before each trajectory.
+		///
+		/// \param trajectory_num Index pointing to the desired trajectory to output.
+		void reset_output_buffer(unsigned int trajectory_num);
+
 		~Simulation();
+
+	private:
+		unsigned int last_timestep;
+		unsigned int trajectory_num;
 	};
 
 	template <typename TNum>
