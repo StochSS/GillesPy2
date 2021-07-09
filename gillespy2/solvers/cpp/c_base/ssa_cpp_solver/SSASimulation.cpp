@@ -91,9 +91,8 @@ int main(int argc, char *argv[])
 	simulation.propensity_function = propensity_function;
 	
 	init_simulation(&model, simulation);
-	
 	ssa_direct(&simulation);
-	simulation.output_results_buffer(std::cout);
+	simulation.output_buffer_final(std::cout);
 	
 	delete propensity_function;
 	return 0;

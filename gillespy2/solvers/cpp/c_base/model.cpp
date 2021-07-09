@@ -97,10 +97,6 @@ namespace Gillespy {
 		}
 
 		simulation.current_state = new TNum[model->number_species];
-		for (unsigned int spec_i = 0; spec_i < model->number_species; ++spec_i)
-		{
-			simulation.current_state[spec_i] = model->species[spec_i].initial_population;
-		}
 	}
 
 	template <typename TNum>
@@ -178,7 +174,13 @@ namespace Gillespy {
 	void Simulation<TNum>::reset_output_buffer(unsigned int trajectory_index)
 	{
 		last_timestep = 0;
+		current_time = 0.0;
 		trajectory_num = trajectory_index;
+
+		for (unsigned int spec_i = 0; spec_i < model->number_species; ++spec_i)
+		{
+			current_state[spec_i] = model->species[spec_i].initial_population;
+		}
 	}
 
 	template<typename PType>
