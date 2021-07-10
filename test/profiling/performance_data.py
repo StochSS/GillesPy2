@@ -33,6 +33,10 @@ class PerformanceData:
     # Measured as the cumulative time spent on each sampled function of the program.
     sample_time: float = -1.0
 
+    # Value in ms representing the total elapsed time from the start of the
+    # profile run to the end.
+    stopwatch_time: float = -1.0
+
     call_list: "dict[str, PerformanceEntry]" = {}
     worst_entry: "tuple[str, PerformanceEntry]" = ("unknown", PerformanceEntry())
 
