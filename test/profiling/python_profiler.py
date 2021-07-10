@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import time
 import cProfile
 
 import pstats
@@ -39,6 +40,8 @@ def run_profiler(model: Model, solver: GillesPySolver, trajectories=4, timesteps
             "'solver' is actually a CSolver. This profiler cannot test C++ solvers, use 'c_profiler' instead."
         )
 
+    start_time = time.perf_counter()
+
     profiler = cProfile.Profile()
     profiler.enable()
 
@@ -47,9 +50,12 @@ def run_profiler(model: Model, solver: GillesPySolver, trajectories=4, timesteps
     profiler.disable()
     stats = pstats.Stats(profiler).strip_dirs().sort_stats(SortKey.TIME)
 
+    stopwatch_time = (time.perf_counter() - start_time) * 1000
+
     perf_data = PerformanceData()
     perf_data.execution_time = stats.total_tt * 1000
     perf_data.sample_time = 0
+    perf_data.stopwatch_time = stopwatch_time
     
     worst_func = stats.fcn_list[0]
     (cc, nc, tt, ct, callers) = stats.stats[worst_func]
