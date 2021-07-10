@@ -1,9 +1,9 @@
 import sys
+import time
 import copy
 import runpy
 import shutil
 import tempfile
-import importlib
 
 from pathlib import Path
 from urllib import request
@@ -44,16 +44,14 @@ class Profiler:
         self.current_version = gillespy2.__version__
         self.current_source = Path(gillespy2.__file__).parent.parent.resolve()
 
-        # If a profile target for the current version already exists, remove it.
-        self.targets = [(target) for target in self.targets if target.version != self.current_version]
-        self.targets.insert(0, ProfilerTarget.from_source(self.current_version, self.current_source))
-
         # Sort the targets.
         self.targets = sorted(self.targets, key=lambda target: str(target.version))
 
     def run(self, number_of_runs: int = 1):
         tree = lambda: defaultdict(tree)
         results: "dict[GillesPySolver, dict[Model, dict[Version, list[PerformanceData]]]]" = tree()
+
+        saved_path = copy.deepcopy(sys.path)
 
         # Wipe current gillespy2 imports.
         for key in list(sys.modules.keys()):
@@ -82,7 +80,7 @@ class Profiler:
                 else:
                     from test.profiling import python_profiler as profiler
 
-                solver = importlib.import_module(solver.__module__).__getattribute__(solver.__name__)
+                # solver = importlib.import_module(solver.__module__).__getattribute__(solver.__name__)
 
                 models = sorted(models * number_of_runs, key=lambda model: model.__name__)
                 for model in models:
@@ -93,13 +91,18 @@ class Profiler:
                         results[solver.__name__][model.__name__][str(version)] = list()
 
                     # Import required modules.
-                    model = importlib.import_module(model.__module__).__getattribute__(model.__name__)
+                    # model = importlib.import_module(model.__module__).__getattribute__(model.__name__)
 
                     # Run the profiler and save the results.
+                    start_time = time.perf_counter()
                     profile_results = profiler.run_profiler(model=model(), solver=solver)
+
+                    stopwatch_time = (time.perf_counter() - start_time) * 1000
+                    setattr(profile_results, "stopwatch_time", stopwatch_time)
 
                     # This weird assignment is needed since Python doesn't seem to recognize that `call_time` exists.
                     profile_results.call_list = profile_results.call_list
+
                     results[solver.__name__][model.__name__][str(version)].append(profile_results)
 
                     print("\r{:·<60} :: {:.2f} ms".format(message, profile_results.execution_time))
@@ -109,18 +112,37 @@ class Profiler:
             # Remove the sys.path addition.
             sys.path.pop(0)
 
+        # Restore sys.modules and sys.path.
+        for key in list(sys.modules.keys()):
+            if key.startswith("gillespy2") or key.startswith("test"):
+                del sys.modules[key]
+
+        sys.path = saved_path
+
         # Instantiate and return a ProfileResults object.
         return ProfilerResults(results, self.targets, self.runs, number_of_runs)
 
 class ProfilerTarget:
     @classmethod
-    def from_source(cls, version: str, local_source: Path = None) -> "ProfilerTarget":
-        version = Version(version)
+    def from_current(cls) -> "ProfilerTarget":
+        local_path = Path(gillespy2.__file__).parent.parent.resolve()
+        print(local_path)
+
+        return cls.from_source(gillespy2.__version__, local_path)
+
+    @classmethod
+    def from_version(cls, version_str: str) -> "ProfilerTarget":
+        version = Version(version_str)
         profiler_target = cls(version)
-        
-        # If the local_source is None, download the repository.
-        if local_source is None:
-            local_source = profiler_target.download_source()
+
+        local_source = profiler_target.download_source()
+
+        return cls.from_source(version_str, local_source)
+
+    @classmethod
+    def from_source(cls, version_str: str, local_source: Path) -> "ProfilerTarget":
+        version = Version(version_str)
+        profiler_target = cls(version)
 
         # Validate the source.
         profiler_target.validate_source(local_source)
@@ -159,7 +181,7 @@ class ProfilerTarget:
             )
 
         # Run the __version__.py file and save the results.
-        version_results = runpy.run_path(version_file)
+        version_results = runpy.run_path(str(version_file))
 
         # Check that the __version__property exists within the results.
         if not "__version__" in version_results:
@@ -193,8 +215,6 @@ class ProfilerTarget:
 
             shutil.copyfile(new_makefile, old_makefile)
 
-            print(f"Successfully patched {old_makefile}.")
-
             # We've patched the Makefile, but the c_profiler.py script still uses '-' prefixed arguments.
             # This is a quick and nasty patch.
             profiler_path = Path(source_dir).joinpath("test/profiling/c_profiler.py")
@@ -218,7 +238,7 @@ class ProfilerTarget:
             with profiler_path.open("w") as outfile:
                 outfile.write(profiler_contents)
 
-            print(f"Successfully patched {profiler_path}.")
+            print(f"Successfully patched {self.version}.")
 
     def download_source(self) -> Path:
         download_url = f"https://github.com/StochSS/GillesPy2/archive/refs/tags/v{self.version}.zip"
@@ -259,7 +279,7 @@ class ProfilerResults:
         self.runs = runs
         self.run_count = run_count
 
-    def plot_solver(self, solver: "GillesPySolver"):
+    def plot_solver(self, solver: "GillesPySolver", target_stat: str = "execution_time"):
         # Generate lists of model and version names.
         models = [(model.__name__) for model in self.runs[solver]]
         versions = [(str(target.version)) for target in self.targets]
@@ -269,7 +289,7 @@ class ProfilerResults:
             times = []
 
             for model in models:
-                all_times = [(profile_data.execution_time) for profile_data in self.results[solver.__name__][model][version]]
+                all_times = [(getattr(profile_data, target_stat, 0.0)) for profile_data in self.results[solver.__name__][model][version]]
                 average = round(sum(all_times) / len(all_times), 2)
 
                 times.append(average)
@@ -288,7 +308,7 @@ class ProfilerResults:
             title=f"{solver.__name__}",
             xaxis_tickfont_size=14,
             yaxis=dict(
-                title="Execution time (ms)",
+                title=f"{target_stat.replace('_', ' ').capitalize()} (ms)",
                 titlefont_size=16,
                 tickfont_size=14
             ),
