@@ -3,12 +3,6 @@ from gillespy2 import log
 from typing import Union, Optional
 
 
-class ExpressionLanguage:
-    """Enum class representing the supported languages an Expression object can convert to."""
-    PYTHON = "python"
-    CPP = "cpp"
-
-
 class Expression:
     """
     Accepts an expression string to validate and convert.
@@ -35,7 +29,6 @@ class Expression:
             blacklist = []
         if namespace is None:
             namespace = {}
-        self.language = "python"
         self.blacklist = [op for op in Expression.map_operator(blacklist)]
         self.namespace = namespace
 
@@ -163,6 +156,13 @@ class Expression:
 
         return True
 
+    def __get_expr(self, statement: "str", converter: "ExpressionConverter") -> "Optional[str]":
+        expr = converter.get_expr()
+        if not self.__validate(expr):
+            return None
+
+        return converter.get_str()
+
     def getexpr_python(self, statement: "str", sanitize=False) -> "Optional[str]":
         """
         Converts the expression object into a Python expression string.
@@ -174,13 +174,9 @@ class Expression:
         if sanitize:
             raise NotImplementedError("Sanitization of expressions currently not implemented")
 
-        expr = ast.parse(statement)
-        if not self.__validate(expr):
-            return None
+        return self.__get_expr(statement, PythonConverter(statement))
 
-        return statement
-
-    def getexpr_cpp(self, sanitize=False) -> str:
+    def getexpr_cpp(self, statement: "str", sanitize=False) -> "Optional[str]":
         """
         Converts the expression object into a C++ expression string.
         Raises a SyntaxError if conversion to a C++ string is impossible.
@@ -188,7 +184,10 @@ class Expression:
         :raises: SyntaxError
         :returns: C++ expression string
         """
-        raise NotImplementedError("Converting expression to C++ string has not yet been implemented.")
+        if sanitize:
+            raise NotImplementedError("Sanitization of expressions currently not implemented")
+
+        return self.__get_expr(statement, CppConverter(statement))
 
 
 class ExpressionConverter(ast.NodeVisitor):
@@ -206,8 +205,11 @@ class ExpressionConverter(ast.NodeVisitor):
 
     def parse_logical(self, operator: "str"):
         expr = f" {operator} ".join(self.expression)
-        expr = f"({expr})"
         self.expression = [expr]
+
+    def parse_comparison(self, comparator: "str"):
+        expr = f"{self.expression.pop()} {comparator} {self.expression.pop()}"
+        self.expression.append(expr)
 
     def visit_Name(self, node: "ast.Name"):
         self.expression.append(node.id)
@@ -261,6 +263,49 @@ class ExpressionConverter(ast.NodeVisitor):
         self.generic_visit(node)
         self.parse_operator("**")
 
+    def visit_Compare(self, node: "ast.Compare"):
+        for comparator in node.comparators:
+            self.visit(comparator)
+        self.visit(node.left)
+        for operator in node.ops:
+            self.visit(operator)
+
+    def visit_Eq(self, node: "ast.Eq"):
+        self.generic_visit(node)
+        self.parse_comparison("==")
+
+    def visit_NotEq(self, node: "ast.NotEq"):
+        self.generic_visit(node)
+        self.parse_comparison("!=")
+
+    def visit_Lt(self, node: "ast.Lt"):
+        self.generic_visit(node)
+        self.parse_comparison("<")
+
+    def visit_LtE(self, node: "ast.LtE"):
+        self.generic_visit(node)
+        self.parse_comparison("<=")
+
+    def visit_Gt(self, node: "ast.Gt"):
+        self.generic_visit(node)
+        self.parse_comparison(">")
+
+    def visit_GtE(self, node: "ast.GtE"):
+        self.generic_visit(node)
+        self.parse_comparison(">=")
+
+    def get_expr(self) -> "ast.AST":
+        expr = ExpressionConverter.convert_str(self.statement)
+        return ast.parse(expr)
+
+    def _get_str(self, expr: "ast.AST"):
+        self.visit(expr)
+        return "".join(self.expression)
+
+    def get_str(self) -> "str":
+        expr = self.get_expr()
+        return self._get_str(expr)
+
 
 class PythonConverter(ExpressionConverter):
     def visit_And(self, node: "ast.And"):
@@ -268,12 +313,6 @@ class PythonConverter(ExpressionConverter):
 
     def visit_Or(self, node: "ast.Or"):
         self.parse_logical("or")
-
-    def getexpr(self) -> "str":
-        expr = PythonConverter.convert_str(self.statement)
-        expr = ast.parse(expr)
-        self.visit(expr)
-        return "".join(self.expression)
 
 
 class CppConverter(ExpressionConverter):
@@ -294,9 +333,7 @@ class CppConverter(ExpressionConverter):
     def visit_Or(self, node: "ast.Or"):
         self.parse_logical("||")
 
-    def getexpr(self) -> "str":
-        expr = CppConverter.convert_str(self.statement)
-        expr = ast.parse(expr)
+    def get_str(self) -> "str":
+        expr = self.get_expr()
         expr = CppConverter.CppExpressionTransformer().visit(expr)
-        self.visit(expr)
-        return "".join(self.expression)
+        return super()._get_str(expr)
