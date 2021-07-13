@@ -55,15 +55,33 @@ class Expression:
                 self.invalid_operators.append(str(node.op))
             self.generic_visit(node)
 
+    class CppExpressionTransformer(ast.NodeTransformer):
+        def visit_BinOp(self, node: "ast.BinOp"):
+            self.generic_visit(node)
+            if isinstance(node.op, ast.Pow):
+                node = ast.copy_location(ast.Call(
+                    func=ast.Name(id='pow', ctx=ast.Load()),
+                    args=[node.left, node.right],
+                    keywords=[]
+                ), node)
+            return node
+
     class PythonConverter(ast.NodeVisitor):
-        def __init__(self):
+        def __init__(self, statement: "str"):
+            self.statement = statement
             self.expression = []
+
+        @classmethod
+        def convert_str(cls, expression: "str"):
+            return expression.replace("^", "**")
 
         def visit_Name(self, node: "ast.Name"):
             self.expression.append(node.id)
+            self.generic_visit(node)
 
         def visit_Constant(self, node: "ast.Constant"):
             self.expression.append(str(node.value))
+            self.generic_visit(node)
 
         def visit_BinOp(self, node: "ast.BinOp"):
             # Right node is visited first.
@@ -72,10 +90,26 @@ class Expression:
             self.visit(node.right)
             self.visit(node.left)
             op = Expression.operator_reverse[type(node.op)]
-            expr = f"({self.expression.pop()}{op}{self.expression.pop()})"
+            expr = f"{self.expression.pop()}{op}{self.expression.pop()}"
+            self.expression.append(expr)
+
+        def visit_USub(self, node: "ast.USub"):
+            self.generic_visit(node)
+            self.expression.append(f"-({self.expression.pop()})")
+
+        def visit_Call(self, node: "ast.Call"):
+            arg_list = []
+            for arg in node.args:
+                self.visit(arg)
+                arg_list.append(self.expression.pop())
+            arg_list = ",".join(arg_list)
+            expr = f"{node.func.id}({arg_list})"
             self.expression.append(expr)
 
         def getexpr(self) -> "str":
+            expr = Expression.PythonConverter.convert_str(self.statement)
+            expr = ast.parse(expr)
+            self.visit(expr)
             return "".join(self.expression)
 
     @classmethod
@@ -99,6 +133,8 @@ class Expression:
         "-": ast.Sub,
         "*": ast.Mult,
         "/": ast.Div,
+        "**": ast.Pow,
+        "^": ast.BitXor,
     }
     operator_reverse = {value: key for key, value in operator_map.items()}
 
