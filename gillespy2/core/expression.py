@@ -15,20 +15,29 @@ class Expression:
     Allows for pre-flight syntax and namespace validations,
     as well as converting between Python and C++ expressions.
     """
-    def __init__(self, statement: str):
+    def __init__(self, blacklist: "list[str]" = None, namespace: "dict[str, any]" = None):
         """
-        The provided statement is expected to be a valid Python expression.
+        Object for managing context to validate Python expressions.
+        Expressions can be passed and validated, which are validated for syntax, namespace, and other conditions.
+        The later provided statements are expected to be valid Python expressions.
 
-        :param statement: Python expression to parse and convert.
-        :type statement: str
+        :param blacklist: List of operators which are not allowed in the following expressions.
+        Note that this will be "forwarded" to all following expressions.
+        Ideally, one should define the "universal" blacklist in the constructor,
+        using the `Expression#with_blacklist` method for more granular validations.
+        :type blacklist: list[str]
 
-        :raises SyntaxError: When the provided statement is not a valid Python expression.
+        :param namespace: Dictionary mapping allowed bare identifiers to their sanitized equivalents.
+        Any bare identifiers not listed as a namespace key will trigger a failed validation.
+        :type  namespace: dict[str, any]
         """
-        self.statement = statement
+        if blacklist is None:
+            blacklist = []
+        if namespace is None:
+            namespace = {}
         self.language = "python"
-        self.expression = Expression.parse_python(statement)
-        self.blacklist: "Union[list[ast.operator], None]" = None
-        self.namespace: "Union[dict[str, any], None]" = None
+        self.blacklist = [op for op in Expression.map_operator(blacklist)]
+        self.namespace = namespace
 
     class ValidationVisitor(ast.NodeVisitor):
         def __init__(self, namespace: "dict[str, any]" = None, blacklist: "list[ast.operator]" = None):
@@ -42,8 +51,6 @@ class Expression:
                 self.invalid_names.append(node.id)
 
         def visit_BinOp(self, node: "ast.BinOp"):
-            print(node.op)
-            print(dir(node.op))
             if type(node.op) in self.blacklist:
                 self.invalid_operators.append(str(node.op))
             self.generic_visit(node)
@@ -64,9 +71,30 @@ class Expression:
         finally:
             return parsed_expression
 
+    operator_map = {
+        "+": ast.Add,
+        "-": ast.Sub,
+        "*": ast.Mult,
+        "/": ast.Div,
+    }
+
+    @classmethod
+    def map_operator(cls, operator: "Union[str, list[str]]"):
+        if isinstance(operator, list):
+            for op in operator:
+                yield from Expression.map_operator(op)
+        else:
+            # Base case: operator is a single string.
+            if operator in Expression.operator_map:
+                yield Expression.operator_map[operator]
+            elif operator in Expression.operator_map.values():
+                # Yield the operator directly if there is no need to map it.
+                yield operator
+
     def with_blacklist(self, blacklist: "list[ast.operator]" = None) -> "Expression":
         """
-        Override operator handling behavior when converting or validating the expression.
+        Create a new duplicate of the current expression, with a different operator blacklist.
+        Overrides operator handling behavior when converting or validating the expression.
 
         :param blacklist: List of operators which are not allowed.
         :type blacklist: list[ast.operator]
@@ -74,24 +102,52 @@ class Expression:
         :returns: List of operators which, based on the given parameters, are not valid.
         An empty list indicates that no invalid operators were found.
         """
-        self.blacklist = blacklist
-        return self
+        if blacklist is None:
+            blacklist = self.blacklist
+        return Expression(blacklist=blacklist, namespace=self.namespace)
 
-    def with_namespace(self, namespace: "dict[str, str]") -> "Expression":
+    def with_namespace(self, namespace: "dict[str, any]" = None) -> "Expression":
         """
-        Validates the expression string against the provided namespace.
+        Create a new duplicate of the current expression, with a different namespace.
         Any identifiers present in the expression which are not listed in the namespace
-        will cause the expression to be flagged as an invalid namespace.
+        will cause the expression to be flagged as an invalid namespace during validation.
 
         :param namespace: A dictionary containing the namespace mappings for the expression.
         The keys of the dict are expected to be the "only" valid identifiers.
         The values of the namespace are what the keys map to during sanitization, if used.
         :type namespace: dict[str, str]
 
-        :returns: List of invalid namespace identifiers found in the expression.
+        :returns: New expression containing the given namespace.
+        The returned expression is a *copy* of the current expression.
+        :rtype: Expression
         """
-        self.namespace = namespace
-        return self
+        if namespace is None:
+            namespace = self.namespace
+        return Expression(blacklist=self.blacklist, namespace=namespace)
+
+    def validate(self, statement: "str") -> "bool":
+        """
+        Using the information provided so far, ensure that the given Python expression is valid.
+        The Python expression is parsed, raising a SyntaxError if it is an invalid Python expression.
+        The expression is then checked against the given properties, such as namespace and operator blacklist.
+        Additionally, the expression is rejected if it is not a single rvalue expression.
+
+        :raises SyntaxError: The statement is not a valid Python expression.
+        """
+        expr = ast.parse(statement)
+
+        validator = Expression.ValidationVisitor(namespace=self.namespace, blacklist=self.blacklist)
+        validator.visit(expr)
+
+        if validator.invalid_operators:
+            log.error("Invalid operators")
+            return False
+
+        if validator.invalid_names:
+            log.error("Invalid names")
+            return False
+
+        return True
 
     def getexpr_python(self, sanitize=False) -> str:
         """
