@@ -1,6 +1,6 @@
 import ast
 from gillespy2 import log
-from typing import Union
+from typing import Union, Optional
 
 
 class ExpressionLanguage:
@@ -55,6 +55,29 @@ class Expression:
                 self.invalid_operators.append(str(node.op))
             self.generic_visit(node)
 
+    class PythonConverter(ast.NodeVisitor):
+        def __init__(self):
+            self.expression = []
+
+        def visit_Name(self, node: "ast.Name"):
+            self.expression.append(node.id)
+
+        def visit_Constant(self, node: "ast.Constant"):
+            self.expression.append(str(node.value))
+
+        def visit_BinOp(self, node: "ast.BinOp"):
+            # Right node is visited first.
+            # By visiting the left node last, the most recently appended token is always the left-hand token.
+            # This allows us to always append when adding to the expression, and always pop when processing it.
+            self.visit(node.right)
+            self.visit(node.left)
+            op = Expression.operator_reverse[type(node.op)]
+            expr = f"({self.expression.pop()}{op}{self.expression.pop()})"
+            self.expression.append(expr)
+
+        def getexpr(self) -> "str":
+            return "".join(self.expression)
+
     @classmethod
     def parse_python(cls, statement: str) -> "Union[ast.AST, None]":
         """
@@ -77,6 +100,7 @@ class Expression:
         "*": ast.Mult,
         "/": ast.Div,
     }
+    operator_reverse = {value: key for key, value in operator_map.items()}
 
     @classmethod
     def map_operator(cls, operator: "Union[str, list[str]]"):
@@ -133,9 +157,20 @@ class Expression:
         Additionally, the expression is rejected if it is not a single rvalue expression.
 
         :raises SyntaxError: The statement is not a valid Python expression.
+        :returns: True if the statement is valid, otherwise returns false.
         """
         expr = ast.parse(statement)
+        return self.__validate(expr)
 
+    def __validate(self, expr: "ast.AST") -> "bool":
+        """
+        Helper method to validate an already parsed AST.
+
+        :param expr: AST from an already parsed Python expression.
+        :type expr: ast.AST
+
+        :returns: True if the statement is valid, otherwise returns false.
+        """
         validator = Expression.ValidationVisitor(namespace=self.namespace, blacklist=self.blacklist)
         validator.visit(expr)
 
@@ -149,15 +184,22 @@ class Expression:
 
         return True
 
-    def getexpr_python(self, sanitize=False) -> str:
+    def getexpr_python(self, statement: "str", sanitize=False) -> "Optional[str]":
         """
         Converts the expression object into a Python expression string.
         Raises a SyntaxError if conversion to a Python string is impossible.
 
         :raises: SyntaxError
-        :returns: Python expression string
+        :returns: Python expression string, if valid. Returns None if validation fails.
         """
-        raise NotImplementedError("Converting expression to Python string has not yet been implemented.")
+        if sanitize:
+            raise NotImplementedError("Sanitization of expressions currently not implemented")
+
+        expr = ast.parse(statement)
+        if not self.__validate(expr):
+            return None
+
+        return statement
 
     def getexpr_cpp(self, sanitize=False) -> str:
         """
