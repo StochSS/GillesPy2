@@ -129,7 +129,7 @@ namespace Gillespy::TauHybrid
 	public:
 		double next();
 		URNGenerator();
-		URNGenerator(double seed);
+		explicit URNGenerator(unsigned long long seed);
 	};
 
 	N_Vector init_model_vector(Model<double> &model, URNGenerator urn);

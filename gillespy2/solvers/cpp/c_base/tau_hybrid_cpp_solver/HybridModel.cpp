@@ -211,13 +211,13 @@ namespace Gillespy::TauHybrid
 				if (spec_dx < 0) {
 					// Selected species is a reactant.
 					means[spec_i] -= (tau_step * propensity_values[rxn_i] * spec_dx);
-					sd[spec_i] += std::pow((tau_step * propensity_values[rxn_i] * spec_dx), 2);
+					sd[spec_i] += (tau_step * propensity_values[rxn_i] * std::pow(spec_dx, 2));
 				}
 				else if (spec_dx > 0) {
 					// Selected species is a product.
 					HybridSpecies &product = species[spec_i];
 					means[spec_i] += (tau_step * propensity_values[rxn_i] * spec_dx);
-					sd[spec_i] += std::pow((tau_step * propensity_values[rxn_i] * spec_dx), 2);
+					sd[spec_i] += (tau_step * propensity_values[rxn_i] * std::pow(spec_dx, 2));
 				}
 			}
 		}

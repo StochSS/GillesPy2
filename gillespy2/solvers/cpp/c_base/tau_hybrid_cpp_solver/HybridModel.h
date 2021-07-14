@@ -60,13 +60,13 @@ namespace Gillespy::TauHybrid
 		// CONTINUOUS or DISCRETE
 		// otherwise, mode will be determined by the program (DYNAMIC)
 		// if no choice is made, DYNAMIC will be assumed 
-		SimulationState  user_mode : 2;
+		SimulationState  user_mode;
 
 		// during simulation execution, a species will fall into either of the two categories, CONTINUOUS or DISCRETE
 		// this is pre-determined only if the user_mode specifies CONTINUOUS or DISCRETE.
 		// otherwise, if DYNAMIC is specified, partition_mode will be continually calculated throughout the simulation
 		// according to standard deviation and coefficient of variance.
-		SimulationState partition_mode : 1;
+		SimulationState partition_mode;
 
 		// Tolerance level for considering a dynamic species deterministically, value is compared
 		// to an estimated sd/mean population of a species after a given time step.
@@ -85,7 +85,7 @@ namespace Gillespy::TauHybrid
 	struct HybridReaction
 	{
 		Reaction *base_reaction;
-		SimulationState mode : 1;
+		SimulationState mode;
 
 		HybridReaction();
 

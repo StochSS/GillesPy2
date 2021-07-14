@@ -42,6 +42,8 @@ IntegratorData::IntegratorData(HybridSimulation *simulation)
 
 Integrator::Integrator(HybridSimulation *simulation, N_Vector y0, double reltol, double abstol)
 	: y0(y0),
+	  t(0.0f),
+	  t0(0.0f),
 	  y(N_VClone_Serial(y0)),
 	  data(simulation),
 	  num_reactions(simulation->model->number_reactions),
@@ -140,7 +142,7 @@ IntegrationResults Integrator::integrate(double *t)
 URNGenerator::URNGenerator()
 	: uniform(0, 1) {}
 
-URNGenerator::URNGenerator(double seed)
+URNGenerator::URNGenerator(unsigned long long seed)
 	: uniform(0, 1),
 	  rng(seed) {}
 

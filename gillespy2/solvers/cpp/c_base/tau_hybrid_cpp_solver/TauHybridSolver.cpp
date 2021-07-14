@@ -101,9 +101,6 @@ namespace Gillespy::TauHybrid
 				current_populations[spec_i] = species[spec_i].initial_population;
 			}
 
-			// Represents the largest valid index of the output vector(s), y (and y0).
-			int rxn_offset_boundary  = num_species + num_reactions;
-
 			// SIMULATION STEP LOOP
 			int save_idx = 1;
 			double next_time;
@@ -250,7 +247,7 @@ namespace Gillespy::TauHybrid
 						// "Permanently" update the rxn_state and populations.
 						for (int p_i = 0; p_i < num_species; ++p_i) {
 							current_state[p_i] += population_changes[p_i];
-							current_populations[p_i] = current_state[p_i];
+							current_populations[p_i] = (int) current_state[p_i];
 							result.concentrations[p_i] = current_state[p_i];
 						}
 					}
