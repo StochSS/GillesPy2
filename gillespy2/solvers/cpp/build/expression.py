@@ -90,7 +90,6 @@ class Expression:
             return node
 
         def visit_Assign(self, node: "ast.Assign"):
-            print(self.blacklist)
             self.check_blacklist(ast.Assign())
             self.generic_visit(node)
             return node
@@ -255,6 +254,32 @@ class ExpressionConverter(ast.NodeVisitor):
     def visit_Constant(self, node: "ast.Constant"):
         self.expression.append(str(node.value))
         self.generic_visit(node)
+
+    ###########################################################################
+    ### The below methods are deprecated as of Python 3.8.                  ###
+    ### They are included for compatibility with 3.7 and earlier.           ###
+    ### If <=3.7 becomes unsupported, please remove these visitor methods.  ###
+    def visit_Num(self, node: "ast.Num"):
+        self.expression.append(str(node.n))
+        self.generic_visit(node)
+
+    def visit_Str(self, node: "ast.Str"):
+        self.expression.append(str(node.s))
+        self.generic_visit(node)
+
+    def visit_Bytes(self, node: "ast.Bytes"):
+        self.expression.append(str(node.s))
+        self.generic_visit(node)
+
+    def visit_NameConstant(self, node: "ast.NameConstant"):
+        self.expression.append(str(node.value))
+        self.generic_visit(node)
+
+    def visit_Ellipsis(self, node: "ast.Ellipsis"):
+        self.expression.append(str(node))
+        self.generic_visit(node)
+    ### End of deprecated functions (deprecated as of Python 3.8)           ###
+    ###########################################################################
 
     def visit_BinOp(self, node: "ast.BinOp"):
         # Right node is visited first.
