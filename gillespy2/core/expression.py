@@ -9,7 +9,7 @@ class Expression:
     Allows for pre-flight syntax and namespace validations,
     as well as converting between Python and C++ expressions.
     """
-    def __init__(self, blacklist: "list[str]" = None, namespace: "dict[str, any]" = None):
+    def __init__(self, blacklist: "list[str]" = None, namespace: "dict[str, any]" = None, sanitize=False):
         """
         Object for managing context to validate Python expressions.
         Expressions can be passed and validated, which are validated for syntax, namespace, and other conditions.
@@ -24,6 +24,11 @@ class Expression:
         :param namespace: Dictionary mapping allowed bare identifiers to their sanitized equivalents.
         Any bare identifiers not listed as a namespace key will trigger a failed validation.
         :type  namespace: dict[str, any]
+
+        :param sanitize: Whether or not to substitute namespace names during conversion.
+        Any valid names found as namespace keys will automatically be converted to the
+        corresponding namespace values in the namespace dict when getexpr_* methods are called.
+        :type sanitize: bool
         """
         if blacklist is None:
             blacklist = []
@@ -31,22 +36,57 @@ class Expression:
             namespace = {}
         self.blacklist = [op for op in Expression.map_operator(blacklist)]
         self.namespace = namespace
+        self.sanitize = sanitize
 
-    class ValidationVisitor(ast.NodeVisitor):
-        def __init__(self, namespace: "dict[str, any]" = None, blacklist: "list[ast.operator]" = None):
-            self.namespace = {} if namespace is None else namespace
-            self.blacklist = [] if blacklist is None else blacklist
+    class ValidationVisitor(ast.NodeTransformer):
+        def __init__(self,
+                     namespace: "dict[str, any]" = None,
+                     blacklist: "list[ast.operator]" = None,
+                     sanitize=False):
+            self.namespace = dict({}) if namespace is None else namespace
+            self.blacklist = list([]) if blacklist is None else blacklist
+            self.sanitize = sanitize
             self.invalid_names = []
             self.invalid_operators = []
+
+        def check_blacklist(self, operator):
+            if type(operator) in self.blacklist:
+                self.invalid_operators.append(str(operator))
 
         def visit_Name(self, node: "ast.Name"):
             if node.id not in self.namespace:
                 self.invalid_names.append(node.id)
+            elif self.sanitize:
+                node.id = self.namespace.get(node.id)
+            self.generic_visit(node)
+            return node
 
         def visit_BinOp(self, node: "ast.BinOp"):
-            if type(node.op) in self.blacklist:
-                self.invalid_operators.append(str(node.op))
+            self.check_blacklist(node.op)
             self.generic_visit(node)
+            return node
+
+        def visit_UnaryOp(self, node: "ast.UnaryOp"):
+            self.check_blacklist(node.op)
+            self.generic_visit(node)
+            return node
+
+        def visit_BoolOp(self, node: "ast.BoolOp"):
+            self.check_blacklist(node.op)
+            self.generic_visit(node)
+            return node
+
+        def visit_Compare(self, node: "ast.Compare"):
+            for op in node.ops:
+                self.check_blacklist(op)
+            self.generic_visit(node)
+            return node
+
+        def visit_Assign(self, node: "ast.Assign"):
+            print(self.blacklist)
+            self.check_blacklist(ast.Assign())
+            self.generic_visit(node)
+            return node
 
     @classmethod
     def parse_python(cls, statement: str) -> "Union[ast.AST, None]":
@@ -65,14 +105,40 @@ class Expression:
             return parsed_expression
 
     operator_map = {
+        # Basic math operators
         "+": ast.Add,
         "-": ast.Sub,
         "*": ast.Mult,
         "/": ast.Div,
         "**": ast.Pow,
+        "//": ast.FloorDiv,
+        "%": ast.Mod,
+        "@": ast.MatMult,
+
+        # Variable operators
+        "=": ast.Assign,
+        ":=": ast.Assign,
+
+        # Boolean operators
+        "and": ast.And,
+        "or": ast.Or,
+
+        # Bitwise operators (^ gets substituted for ** in Python and pow() in C++)
         "^": ast.BitXor,
+        "<<": ast.LShift,
+        ">>": ast.RShift,
+        "|": ast.BitOr,
+        "&": ast.BitAnd,
+
+        # Comparison operators
+        "==": ast.Eq,
+        "!=": ast.NotEq,
+        "!": ast.Not,
+        ">": ast.Gt,
+        ">=": ast.GtE,
+        "<": ast.Lt,
+        "<=": ast.LtE,
     }
-    operator_reverse = {value: key for key, value in operator_map.items()}
 
     @classmethod
     def map_operator(cls, operator: "Union[str, list[str]]"):
@@ -156,14 +222,21 @@ class Expression:
 
         return True
 
-    def __get_expr(self, statement: "str", converter: "ExpressionConverter") -> "Optional[str]":
-        expr = converter.get_expr()
-        if not self.__validate(expr):
+    def __get_expr(self, converter: "ExpressionConverter") -> "Optional[str]":
+        validator = Expression.ValidationVisitor(self.namespace, self.blacklist, self.sanitize)
+        validator.visit(converter.tree)
+
+        if validator.invalid_operators:
+            log.error("Invalid operators")
+            return None
+
+        if validator.invalid_names:
+            log.error("Invalid names")
             return None
 
         return converter.get_str()
 
-    def getexpr_python(self, statement: "str", sanitize=False) -> "Optional[str]":
+    def getexpr_python(self, statement: "str") -> "Optional[str]":
         """
         Converts the expression object into a Python expression string.
         Raises a SyntaxError if conversion to a Python string is impossible.
@@ -171,12 +244,10 @@ class Expression:
         :raises: SyntaxError
         :returns: Python expression string, if valid. Returns None if validation fails.
         """
-        if sanitize:
-            raise NotImplementedError("Sanitization of expressions currently not implemented")
+        expr = ast.parse(statement)
+        return self.__get_expr(PythonConverter(expr))
 
-        return self.__get_expr(statement, PythonConverter(statement))
-
-    def getexpr_cpp(self, statement: "str", sanitize=False) -> "Optional[str]":
+    def getexpr_cpp(self, statement: "str") -> "Optional[str]":
         """
         Converts the expression object into a C++ expression string.
         Raises a SyntaxError if conversion to a C++ string is impossible.
@@ -184,15 +255,14 @@ class Expression:
         :raises: SyntaxError
         :returns: C++ expression string
         """
-        if sanitize:
-            raise NotImplementedError("Sanitization of expressions currently not implemented")
-
-        return self.__get_expr(statement, CppConverter(statement))
+        statement = ExpressionConverter.convert_str(statement)
+        expr = ast.parse(statement)
+        return self.__get_expr(CppConverter(expr))
 
 
 class ExpressionConverter(ast.NodeVisitor):
-    def __init__(self, statement: "str"):
-        self.statement = statement
+    def __init__(self, tree: "ast.AST"):
+        self.tree = tree
         self.expression = []
 
     @classmethod
@@ -294,17 +364,12 @@ class ExpressionConverter(ast.NodeVisitor):
         self.generic_visit(node)
         self.parse_comparison(">=")
 
-    def get_expr(self) -> "ast.AST":
-        expr = ExpressionConverter.convert_str(self.statement)
-        return ast.parse(expr)
-
     def _get_str(self, expr: "ast.AST"):
         self.visit(expr)
         return "".join(self.expression)
 
     def get_str(self) -> "str":
-        expr = self.get_expr()
-        return self._get_str(expr)
+        return self._get_str(self.tree)
 
 
 class PythonConverter(ExpressionConverter):
@@ -334,6 +399,5 @@ class CppConverter(ExpressionConverter):
         self.parse_logical("||")
 
     def get_str(self) -> "str":
-        expr = self.get_expr()
-        expr = CppConverter.CppExpressionTransformer().visit(expr)
+        expr = CppConverter.CppExpressionTransformer().visit(self.tree)
         return super()._get_str(expr)
