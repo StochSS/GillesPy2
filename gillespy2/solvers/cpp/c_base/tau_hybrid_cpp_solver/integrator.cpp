@@ -144,7 +144,10 @@ URNGenerator::URNGenerator()
 
 URNGenerator::URNGenerator(unsigned long long seed)
 	: uniform(0, 1),
-	  rng(seed) {}
+	  rng(seed)
+{
+	this->seed = seed;
+}
 
 
 /* Generate a new random floating-point number on the range [0,1).

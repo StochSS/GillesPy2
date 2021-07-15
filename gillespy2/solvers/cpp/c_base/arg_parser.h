@@ -44,7 +44,7 @@ public:
     double end = 0.0;
     double increment = 0.0;
     double switch_tol = 0.0;
-    double tau_tol = 0.0;
+    double tau_tol = 0.03;
 
     ArgParser(int argc, char *argv[]);
     ~ArgParser();

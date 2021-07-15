@@ -115,8 +115,11 @@ namespace Gillespy::TauHybrid
 			// An invalid simulation state indicates that an unrecoverable error has occurred,
 			//   and the trajectory should terminate early.
 			bool invalid_state = false;
+			// This is a temporary fix. Ideally, invalid state should allow for integrator options change.
+			// For now, a "guard" is put in place to prevent potentially infinite loops from occurring.
+			unsigned int integration_guard = 1000;
 
-			while (!invalid_state && simulation->current_time < simulation->end_time)
+			while (integration_guard > 0 && simulation->current_time < simulation->end_time)
 			{
 				// Compute current propensity values based on existing state.
 				for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
@@ -256,10 +259,9 @@ namespace Gillespy::TauHybrid
 				// Invalid state after the do-while loop implies that an unrecoverable error has occurred.
 				// While prior results are considered usable, the current integration results are not.
 				// Calling `continue` with an invalid state will discard the results and terminate the trajectory.
-				if (invalid_state)
-				{
-					continue;
-				}
+				integration_guard = invalid_state
+					? integration_guard - 1
+					: 1000;
 
 				// Output the results for this time step.
 				sol.refresh_state();
@@ -274,6 +276,14 @@ namespace Gillespy::TauHybrid
 					}
 					save_time = simulation->timeline[++save_idx];
 				}
+			}
+
+			if (integration_guard == 0)
+			{
+				std::cerr
+					<< "[Trajectory #" << traj << "] "
+					<< "Integration guard triggered; problem space too stiff at t="
+					<< simulation->current_time << std::endl;
 			}
 
 			// End of trajectory

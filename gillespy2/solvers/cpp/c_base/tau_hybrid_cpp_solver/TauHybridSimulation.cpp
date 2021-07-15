@@ -35,7 +35,7 @@ int random_seed = 0;
 double end_time = 100.0;
 bool seed_time = true;
 double increment = 0;
-double tau_tol = 0.05;
+double tau_tol = 0.03;
 
 class PropensityFunction : public IPropensityFunction
 {

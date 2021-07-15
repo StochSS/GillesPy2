@@ -126,6 +126,7 @@ namespace Gillespy::TauHybrid
 	private:
 		std::uniform_real_distribution<double> uniform;
 		std::mt19937_64 rng;
+		unsigned long long seed;
 	public:
 		double next();
 		URNGenerator();
