@@ -1,5 +1,4 @@
 import ast
-from gillespy2 import log
 from typing import Union, Optional
 
 
@@ -61,6 +60,14 @@ class Expression:
             self.generic_visit(node)
             return node
 
+        def visit_Call(self, node: "ast.Call"):
+            if node.func.id not in self.namespace:
+                self.invalid_names.append(node.func.id)
+            elif self.sanitize:
+                node.func.id = self.namespace.get(node.func.id)
+            self.generic_visit(node)
+            return node
+
         def visit_BinOp(self, node: "ast.BinOp"):
             self.check_blacklist(node.op)
             self.generic_visit(node)
@@ -87,22 +94,6 @@ class Expression:
             self.check_blacklist(ast.Assign())
             self.generic_visit(node)
             return node
-
-    @classmethod
-    def parse_python(cls, statement: str) -> "Union[ast.AST, None]":
-        """
-        Attempt to parse the given string as a Python expression.
-
-        :returns: If valid, returns a Python AST representing the parsed expression.
-        If the statement is not valid, returns None.
-        """
-        parsed_expression = None
-        try:
-            parsed_expression = ast.parse(source=statement)
-        except SyntaxError as err:
-            log.warning(f"Syntax error: {err.msg}")
-        finally:
-            return parsed_expression
 
     operator_map = {
         # Basic math operators
@@ -200,38 +191,14 @@ class Expression:
         expr = ast.parse(statement)
         return self.__validate(expr)
 
-    def __validate(self, expr: "ast.AST") -> "bool":
-        """
-        Helper method to validate an already parsed AST.
-
-        :param expr: AST from an already parsed Python expression.
-        :type expr: ast.AST
-
-        :returns: True if the statement is valid, otherwise returns false.
-        """
-        validator = Expression.ValidationVisitor(namespace=self.namespace, blacklist=self.blacklist)
-        validator.visit(expr)
-
-        if validator.invalid_operators:
-            log.error("Invalid operators")
-            return False
-
-        if validator.invalid_names:
-            log.error("Invalid names")
-            return False
-
-        return True
-
     def __get_expr(self, converter: "ExpressionConverter") -> "Optional[str]":
         validator = Expression.ValidationVisitor(self.namespace, self.blacklist, self.sanitize)
         validator.visit(converter.tree)
 
         if validator.invalid_operators:
-            log.error("Invalid operators")
             return None
 
         if validator.invalid_names:
-            log.error("Invalid names")
             return None
 
         return converter.get_str()
