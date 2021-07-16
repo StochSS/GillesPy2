@@ -195,7 +195,7 @@ class TestCSolvers(unittest.TestCase):
         exe_path = os.path.join(tmpdir, "test")
 
         def build(expr_args: "list[str]", expr_str: "str", use_bool=False):
-            args = ["gcc", "-o", exe_path, src_path]
+            args = ["gcc", "-o", exe_path, src_path, "-lm"]
             expr_num = str(len(expr_args))
             expr_args = ",".join(expr_args)
             args.append(f"-DEXP{expr_num}({expr_args})=({expr_str})")
