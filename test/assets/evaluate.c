@@ -3,24 +3,30 @@
 #include <stdio.h>
 #include <math.h>
 
+#ifdef USE_BOOLEAN
+#	define RESULT_TYPE int
+#else
+#	define RESULT_TYPE float
+#endif
+
 #ifndef EXP1
-#define EXP1(x) (0)
+#	define EXP1(x) (0)
 #endif
 #ifndef EXP2
-#define EXP2(x,y) (0)
+#	define EXP2(x,y) (0)
 #endif
 #ifndef EXP3
-#define EXP3(x,y,z) (0)
+#	define EXP3(x,y,z) (0)
 #endif
 #ifndef EXP4
-#define EXP4(x,y,z,t) (0)
+#	define EXP4(x,y,z,t) (0)
 #endif
 
 int main(int argc, char **argv)
 {
 	if (argc < 2) return -1;
 
-	double result = 0.0f;
+	RESULT_TYPE result = 0.0f;
 	double *args = (double*) malloc(sizeof(double) * (argc - 1));
 	for (int i = 1; i < argc; ++i)
 	{
@@ -41,8 +47,13 @@ int main(int argc, char **argv)
 	default:
 		result = 0.0f;
 	}
-
 	free(args);
+
+#ifdef USE_BOOLEAN
+	printf("%d", result ? 1 : 0);
+#else
 	printf("%f", result);
+#endif
+
 	return 0;
 }

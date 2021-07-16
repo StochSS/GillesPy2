@@ -82,6 +82,34 @@ class TestCSolvers(unittest.TestCase):
             [5.1, 0.1, 2.0], [0.1, 5.1, 2.0], [2.0, 0.1, 5.1], [2.0, 5.1, 0.1],
         ]),
     ]
+    comparisons = [
+        # Asserts that single comparison expressions work.
+        ExpressionTestCase({"x": "x"}, "x > 0", [
+            [100], [0], [0.001], [-1],
+        ]),
+        ExpressionTestCase({"x": "x", "y": "y"}, "x > y", [
+            [100, 99], [99, 100], [-10, 10], [10, -10],
+            [0.001, 0.0], [0.0, 0.001], [-99.999, -99.998]
+        ]),
+        # Asserts that single boolean operators work.
+        ExpressionTestCase({"x": "x", "y": "y"}, "x > 0 and y < x", [
+            [100, 99], [99, 100], [0, -100], [-0.001, -99.0], [0, 0.001], [-0.001, 0]
+        ]),
+        # Asserts that nested boolean operators work.
+        ExpressionTestCase({"x": "x", "y": "y"}, "x > 0 and y < 10 and x > y", [
+            [100, 9], [0.01, 0.00], [100, 200], [0.01, 0.02],
+            [0, 0], [-0.01, -0.02], [-0.01, 0],
+        ]),
+        # Asserts that both && and || work.
+        ExpressionTestCase({"x": "x", "y": "y"}, "x > 0 and y < 10 or y > 100", [
+            [10, 9], [0.01, 9.99], [0, 10], [-1.0, -1.0],
+        ]),
+        # Asserts that nested boolean operators properly respect order of operations.
+        ExpressionTestCase({"x": "x", "y": "y", "z": "z"}, "x^2>x and y<y^2 or z^2!=z^3 and y!=z", [
+            [1.0, 1.0, 1.0], [99.9, 99.9, 100.0],
+            [0.0, -1.0, 99.9], [-1.0, -1.0, 0.00],
+        ]),
+    ]
     
     def test_c_decoder(self):
         """
@@ -166,35 +194,49 @@ class TestCSolvers(unittest.TestCase):
         src_path = os.path.join(os.path.dirname(__file__), "assets", "evaluate.c")
         exe_path = os.path.join(tmpdir, "test")
 
-        def build(expr_args: "list[str]", expr_str: "str"):
+        def build(expr_args: "list[str]", expr_str: "str", use_bool=False):
             args = ["gcc", "-o", exe_path, src_path]
             expr_num = str(len(expr_args))
             expr_args = ",".join(expr_args)
             args.append(f"-DEXP{expr_num}({expr_args})=({expr_str})")
+            if use_bool:
+                args.append("-DUSE_BOOLEAN")
             subprocess.check_call(args)
 
-        def run(args: "list[str]") -> float:
+        def run(args: "list[str]") -> str:
             args.insert(0, exe_path)
             stdout = subprocess.check_output(args)
-            return float(stdout.decode("ascii"))
+            return stdout.decode("ascii")
 
-        try:
-            for entry in self.expressions:
-                with self.subTest(expression=entry.expression):
-                    expression = ExpressionConverter.convert_str(entry.expression)
+        def test_expressions(expressions: "list[ExpressionTestCase]", use_bool=False):
+            for entry in expressions:
+                expression = ExpressionConverter.convert_str(entry.expression)
+                expr = Expression(namespace=entry.args)
+                cpp_expr = expr.getexpr_cpp(expression)
+                with self.subTest(msg="Evaluating converted C expressions",
+                                  expression=entry.expression,
+                                  c_expression=cpp_expr):
                     py_args = ",".join(entry.args.keys())
                     py_func = eval(f"lambda {py_args}: {expression}")
-
-                    expr = Expression(namespace=entry.args)
-                    cpp_expr = expr.getexpr_cpp(expression)
 
                     for value_set in entry.values:
                         value_str = [str(val) for val in value_set]
                         with self.subTest(values=",".join(value_str)):
                             expect = py_func(*value_set)
-                            build(list(entry.args.values()), cpp_expr)
-                            result_cpp = run(value_str)
-                            self.assertAlmostEqual(expect, result_cpp, places=3)
+                            build(list(entry.args.values()), cpp_expr, use_bool)
+                            if use_bool:
+                                result_cpp = bool(int(run(value_str)))
+                                self.assertTrue(expect == result_cpp)
+                            else:
+                                result_cpp = float(run(value_str))
+                                self.assertAlmostEqual(expect, result_cpp, places=3)
+
+        try:
+            # Test expressions which return a float value
+            test_expressions(self.expressions, False)
+            # Test boolean and comparator expressions
+            test_expressions(self.comparisons, True)
+
         finally:
             import shutil
             shutil.rmtree(tmpdir)

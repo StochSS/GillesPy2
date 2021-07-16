@@ -189,7 +189,7 @@ class Expression:
         :returns: True if the statement is valid, otherwise returns false.
         """
         expr = ast.parse(statement)
-        return self.__validate(expr)
+        return self.__get_expr(PythonConverter(expr)) is not None
 
     def __get_expr(self, converter: "ExpressionConverter") -> "Optional[str]":
         validator = Expression.ValidationVisitor(self.namespace, self.blacklist, self.sanitize)
@@ -241,8 +241,8 @@ class ExpressionConverter(ast.NodeVisitor):
         self.expression.append(expr)
 
     def parse_logical(self, operator: "str"):
-        expr = f" {operator} ".join(self.expression)
-        self.expression = [expr]
+        expr = f"{self.expression.pop()} {operator} {self.expression.pop()}"
+        self.expression.append(expr)
 
     def parse_comparison(self, comparator: "str"):
         expr = f"{self.expression.pop()} {comparator} {self.expression.pop()}"
@@ -276,9 +276,12 @@ class ExpressionConverter(ast.NodeVisitor):
     def visit_BoolOp(self, node: "ast.BoolOp"):
         # Base converter class assumes that "And" and "Or" operations are defined by inheriting class.
         # Implement visit_And() and visit_Or() to define behavior.
-        for operand in node.values:
+        for operand in reversed(node.values):
             self.visit(operand)
-        self.visit(node.op)
+        # Process n-1 operations; for n operands, there are n-1 operations.
+        # Example: x && y || z -> 3 operands, 2 operations
+        for op_i in range(len(node.values) - 1):
+            self.visit(node.op)
 
     def visit_Add(self, node: "ast.Add"):
         self.generic_visit(node)
@@ -360,9 +363,11 @@ class CppConverter(ExpressionConverter):
             return node
 
     def visit_And(self, node: "ast.And"):
+        self.generic_visit(node)
         self.parse_logical("&&")
 
     def visit_Or(self, node: "ast.Or"):
+        self.generic_visit(node)
         self.parse_logical("||")
 
     def get_str(self) -> "str":
