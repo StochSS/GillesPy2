@@ -8,7 +8,10 @@ class Expression:
     Allows for pre-flight syntax and namespace validations,
     as well as converting between Python and C++ expressions.
     """
-    def __init__(self, blacklist: "list[str]" = None, namespace: "dict[str, any]" = None, sanitize=False):
+    def __init__(self,
+                 blacklist: "Union[list[str], dict[ast.operator, str]]" = None,
+                 namespace: "dict[str, any]" = None,
+                 sanitize=False):
         """
         Object for managing context to validate Python expressions.
         Expressions can be passed and validated, which are validated for syntax, namespace, and other conditions.
@@ -30,27 +33,30 @@ class Expression:
         :type sanitize: bool
         """
         if blacklist is None:
-            blacklist = []
+            blacklist = dict({})
+        elif not isinstance(blacklist, dict):
+            blacklist = {ast_op: op for op, ast_op in Expression.map_operator(blacklist)}
         if namespace is None:
             namespace = {}
-        self.blacklist = [op for op in Expression.map_operator(blacklist)]
+        self.blacklist = blacklist
         self.namespace = namespace
         self.sanitize = sanitize
 
     class ValidationVisitor(ast.NodeTransformer):
         def __init__(self,
-                     namespace: "dict[str, any]" = None,
-                     blacklist: "list[ast.operator]" = None,
+                     namespace: "dict[str, str]" = None,
+                     blacklist: "dict[ast.operator, str]" = None,
                      sanitize=False):
             self.namespace = dict({}) if namespace is None else namespace
-            self.blacklist = list([]) if blacklist is None else blacklist
+            self.blacklist = dict({}) if blacklist is None else blacklist
             self.sanitize = sanitize
             self.invalid_names = []
             self.invalid_operators = []
 
         def check_blacklist(self, operator):
-            if type(operator) in self.blacklist:
-                self.invalid_operators.append(str(operator))
+            operator = type(operator)
+            if operator in self.blacklist:
+                self.invalid_operators.append(str(self.blacklist.get(operator)))
 
         def visit_Name(self, node: "ast.Name"):
             if node.id not in self.namespace:
@@ -138,12 +144,12 @@ class Expression:
         else:
             # Base case: operator is a single string.
             if operator in Expression.operator_map:
-                yield Expression.operator_map[operator]
+                yield operator, Expression.operator_map.get(operator)
             elif operator in Expression.operator_map.values():
                 # Yield the operator directly if there is no need to map it.
                 yield operator
 
-    def with_blacklist(self, blacklist: "list[ast.operator]" = None) -> "Expression":
+    def with_blacklist(self, blacklist: "list[str]" = None) -> "Expression":
         """
         Create a new duplicate of the current expression, with a different operator blacklist.
         Overrides operator handling behavior when converting or validating the expression.
@@ -155,7 +161,7 @@ class Expression:
         An empty list indicates that no invalid operators were found.
         """
         if blacklist is None:
-            blacklist = self.blacklist
+            blacklist = self.blacklist.copy()
         return Expression(blacklist=blacklist, namespace=self.namespace)
 
     def with_namespace(self, namespace: "dict[str, any]" = None) -> "Expression":
@@ -174,10 +180,10 @@ class Expression:
         :rtype: Expression
         """
         if namespace is None:
-            namespace = self.namespace
-        return Expression(blacklist=self.blacklist, namespace=namespace)
+            namespace = self.namespace.copy()
+        return Expression(blacklist=self.blacklist.copy(), namespace=namespace)
 
-    def validate(self, statement: "str") -> "bool":
+    def validate(self, statement: "str") -> "ExpressionResults":
         """
         Using the information provided so far, ensure that the given Python expression is valid.
         The Python expression is parsed, raising a SyntaxError if it is an invalid Python expression.
@@ -188,7 +194,10 @@ class Expression:
         :returns: True if the statement is valid, otherwise returns false.
         """
         expr = ast.parse(statement)
-        return self.__get_expr(PythonConverter(expr)) is not None
+        validator = Expression.ValidationVisitor(self.namespace, self.blacklist, self.sanitize)
+        validator.visit(expr)
+
+        return ExpressionResults(invalid_names=validator.invalid_names, invalid_operators=validator.invalid_operators)
 
     def __get_expr(self, converter: "ExpressionConverter") -> "Optional[str]":
         validator = Expression.ValidationVisitor(self.namespace, self.blacklist, self.sanitize)
@@ -224,6 +233,30 @@ class Expression:
         statement = ExpressionConverter.convert_str(statement)
         expr = ast.parse(statement)
         return self.__get_expr(CppConverter(expr))
+
+
+class ExpressionResults:
+    """
+    Container struct for returning the results of expression validation.
+    Any expression items which indicate an invalid expression are listed on an ExpressionResults instance.
+    Empty lists indicate that the expression is valid.
+    """
+    def __init__(self, invalid_names: "list[str]" = None, invalid_operators: "list[str]" = None, is_valid=True):
+        """
+        Container struct for returning the results of expression validation.
+
+        :param invalid_names: List of expression identifiers which were not valid in the given namespace.
+        :type invalid_names: list[str]
+
+        :param invalid_operators: List of blacklisted operators which were present in the expression.
+        :type invalid_operators: list[str]
+
+        :param is_valid: Override value for the `is_valid` property.
+        If not set, then the validity of the expression is inferred by the `invalid_*` lists provided.
+        """
+        self.invalid_names = invalid_names
+        self.invalid_operators = invalid_operators
+        self.is_valid = is_valid and (not invalid_names and not invalid_operators)
 
 
 class ExpressionConverter(ast.NodeVisitor):
