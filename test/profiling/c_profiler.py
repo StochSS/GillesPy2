@@ -98,10 +98,10 @@ def run_profiler(model: Model, solver: CSolver, trajectories=4, timesteps=101, e
 
         # Prepare the location where performance data (gmon.out) is written.
         gmon_env = {
-            "GMON_OUT_PREFIX": f"{str(build.output_dir)}/profile"
+            "GMON_OUT_PREFIX": os.path.join(str(build.output_dir), "profile")
         }
-
-        exe = build.build_simulation(simulation_name=solver.target, level=BuildLevel.PROFILE)
+        gmon_env.update(os.environ)
+        exe = build.build_simulation(simulation_name=solver.target, level=BuildLevel.PROFILE, env=gmon_env)
 
         # Execute the simulation before running the profiler.
         # When profiling compiler flags (-pg) are enabled,
@@ -113,10 +113,9 @@ def run_profiler(model: Model, solver: CSolver, trajectories=4, timesteps=101, e
             "--trajectories", str(trajectories),
             "--timesteps", str(timesteps),
             "--end", str(end_time),
-            "--increment", str(end_time / (timesteps - 1))
         ]
         start = time.perf_counter()
-        subprocess.check_call(args=process_args, stdout=subprocess.DEVNULL, env=gmon_env)
+        subprocess.check_call(" ".join(process_args), env=gmon_env)
         stop = time.perf_counter()
 
         # Locate gprof profiling metadata in output directory.
@@ -131,9 +130,11 @@ def run_profiler(model: Model, solver: CSolver, trajectories=4, timesteps=101, e
                 break
 
         if gprof_data is None:
-            raise EnvironmentError(
-                "Profiler data was not found in the current environment; aborting"
-            )
+            gprof_data = Path(os.path.join(os.path.dirname(__file__), "gmon.out"))
+            if not gprof_data.exists():
+                raise EnvironmentError(
+                    "Profiler data was not found in the current environment; aborting"
+                )
 
         # Run gprof to process the profiler output.
         # -b = brief, shows minimal output

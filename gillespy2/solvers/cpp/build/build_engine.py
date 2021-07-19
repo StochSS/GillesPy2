@@ -136,7 +136,7 @@ class BuildEngine():
         make = Make(self.makefile, cache_dir, cache_dir)
         make.prebuild()
 
-    def build_simulation(self, simulation_name: str, level: BuildLevel = BuildLevel.NORMAL) -> str:
+    def build_simulation(self, simulation_name: str, level: BuildLevel = BuildLevel.NORMAL, env: "dict[str, str]" = None) -> str:
         """
         Build the solver to the temp directory.
 
@@ -159,7 +159,7 @@ class BuildEngine():
             self.make.build_simulation(simulation_name, template_dir=str(self.template_dir))
 
         elif level == BuildLevel.PROFILE:
-            self.make.profile_build_simulation(simulation_name, template_dir=str(self.template_dir))
+            self.make.profile_build_simulation(simulation_name, template_dir=str(self.template_dir), env=env)
 
         elif level == BuildLevel.DEBUG:
             self.make.debug_build_simulation(simulation_name, template_dir=str(self.template_dir))

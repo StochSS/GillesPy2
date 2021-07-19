@@ -70,7 +70,9 @@ class Make():
     def debug_build_simulation(self, simulation_name: str, **kwargs):
         self.__execute(f"debug {simulation_name}", **kwargs)
 
-    def __execute(self, target: str, **kwargs):        
+    def __execute(self, target: str, env: "dict[str, str]" = None, **kwargs):
+        if env is None:
+            env = os.environ
         # Default make arguments.
         args_dict = {
             "cbase_dir": str(self.cbase_dir.resolve()),
@@ -90,7 +92,7 @@ class Make():
         make_cmd = ["make", "-C", str(self.cbase_dir), "-f", str(self.makefile), target] + make_args
 
         try:
-            result = subprocess.run(make_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            result = subprocess.run(make_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
 
         except KeyboardInterrupt:
             log.warning(f"Makefile was interrupted during execution of target: '{target}', unexpected behavior may occur.")
