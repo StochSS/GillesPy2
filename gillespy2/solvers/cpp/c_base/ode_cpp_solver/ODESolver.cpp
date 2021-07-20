@@ -65,7 +65,7 @@ namespace Gillespy
 		// Add species initial conditions to the current state vectory `y0`.
 		for (unsigned int species_index = 0; species_index < simulation_model->number_species; species_index++)
 		{
-			unsigned int initial_population = simulation_model->species[species_index].initial_population;
+			double initial_population = simulation_model->species[species_index].initial_population;
 
 			NV_Ith_S(y0, species_index) = initial_population;
 			simulation->trajectories[0][0][species_index] = initial_population;

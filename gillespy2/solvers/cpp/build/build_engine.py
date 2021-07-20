@@ -29,6 +29,7 @@ from .make import Make
 
 class BuildEngine():
     template_definitions_name = "template_definitions.h"
+    template_options_name = "template_opts.h"
 
     def __init__(self, debug: bool = False, output_dir: str = None):
         self.self_dir = Path(__file__).parent
@@ -68,7 +69,7 @@ class BuildEngine():
 
         return missing
 
-    def prepare(self, model: Model, variable=False) -> str:
+    def prepare(self, model: Model, variable=False, custom_definitions: "dict[str, str]" = None) -> str:
         """
         Prepare the template directory for compilation.
         The following operations will be performed:
@@ -109,6 +110,10 @@ class BuildEngine():
         template_file = self.template_dir.joinpath(self.template_definitions_name)
         template_file.unlink()
         template_gen.write_template(str(template_file), model, variable)
+        if custom_definitions is not None:
+            options_file = self.template_dir.joinpath(self.template_options_name)
+            options_file.unlink()
+            template_gen.write_definitions(str(options_file), custom_definitions)
 
         # With all required information gathered, create a Make instance.
         self.make = Make(str(self.makefile), str(self.output_dir), str(self.obj_dir))
