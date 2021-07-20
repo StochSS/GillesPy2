@@ -25,6 +25,7 @@ import subprocess
 import tempfile
 from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
 from gillespy2.solvers.cpp import SSACSolver, ODECSolver, TauLeapingCSolver
+from gillespy2.solvers.cpp import TauHybridCSolver
 from gillespy2.solvers.cpp.build.expression import Expression, ExpressionConverter
 
 
@@ -52,16 +53,19 @@ class TestCSolvers(unittest.TestCase):
         SSACSolver,
         ODECSolver,
         TauLeapingCSolver,
+        TauHybridCSolver,
     ]
     solvers = {
         SSACSolver.target: SSACSolver(model=test_model),
         ODECSolver.target: ODECSolver(model=test_model),
         TauLeapingCSolver.target: TauLeapingCSolver(model=test_model),
+        TauHybridCSolver.target: TauHybridCSolver(model=test_model)
     }
     solvers_variable = {
         SSACSolver.target: SSACSolver(model=test_model, variable=True),
         ODECSolver.target: ODECSolver(model=test_model, variable=True),
         TauLeapingCSolver.target: TauLeapingCSolver(model=test_model, variable=True),
+        TauHybridCSolver.target: TauHybridCSolver(model=test_model, variable=True),
     }
     expressions = [
         # Each test expression consists of a dict of args, an expression string, and a list of arg values.

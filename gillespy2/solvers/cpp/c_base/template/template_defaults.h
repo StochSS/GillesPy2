@@ -57,3 +57,28 @@
 #ifndef GPY_REACTION_NAMES
 #define GPY_REACTION_NAMES
 #endif
+
+// ===============================================================
+// ================ HYBRID SOLVER OPTION DEFAULTS ================
+// ===============================================================
+
+/* GPY_HYBRID_SPECIES_MODES: Default, user-provided flags for how each species is to be represented.
+ * Populate each SPECIES_MODE() with two arguments: species ID and species mode.
+ * Possible values for species mode are: DISCRETE / CONTINUOUS / DYNAMIC
+ * 
+ * 
+ * #define GPY_HYBRID_SPECIES_MODES \
+ * SPECIES_MODE(0, DISCRETE_MODE) \
+ * SPECIES_MODE(1, CONTINUOUS_MODE) \
+ * SPECIES_MODE(2, DYNAMIC_MODE)
+ */
+#ifdef GPY_SOLVER_HYBRID
+
+#ifndef GPY_HYBRID_SPECIES_MODES
+#define GPY_HYBRID_SPECIES_MODES
+#endif
+
+#endif
+
+// Import solver-specific template options.
+#include "template_opts.h"

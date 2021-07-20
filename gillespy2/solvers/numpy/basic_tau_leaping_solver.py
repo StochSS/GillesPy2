@@ -20,6 +20,13 @@ from .tau_leaping_solver import TauLeapingSolver
 
 
 class BasicTauLeapingSolver(TauLeapingSolver):
+    """
+    This solver has been deprecated. Future versions of GillesPy2 will not allow this import.
+    Please import :mod:`gillespy2.solvers.numpy.TauLeapingSolver`.
+
+    .. deprecated:: 1.5.0
+    """
+
     from gillespy2.core import log
     log.warning("The name 'BasicTauLeapingSolver' has been deprecated, future versions of GillesPy2 will not allow"
                 " this import. Please import 'TauLeapingSolver'")
