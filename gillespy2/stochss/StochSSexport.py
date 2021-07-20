@@ -53,7 +53,7 @@ def __add_event_assignments(model, event, assignments):
 
 def __add_function_definitions(model, function_definitions):
     for name, function_definition in function_definitions.items():
-        variables = function_definition.args
+        variables = function_definition.get_arg_string()
         expression = function_definition.function_string
         function = "lambda({0}, {1})".format(variables, expression)
         signature = "{0}({1})".format(name, variables)

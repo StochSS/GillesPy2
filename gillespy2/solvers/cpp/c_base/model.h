@@ -25,9 +25,11 @@
 #include <iostream>
 
 namespace Gillespy {
+
+	template <typename PType>
 	struct Species {
 		unsigned int id;
-		unsigned int initial_population;
+		PType initial_population;
 
 		std::string name;
 
@@ -48,18 +50,19 @@ namespace Gillespy {
 		std::unique_ptr<int[]> species_change;
 	};
 
+	template <typename PType>
 	struct Model {
 		unsigned int number_species;
 		unsigned int number_reactions;
 
-		std::unique_ptr<Species[]> species;
+		std::unique_ptr<Species<PType>[]> species;
 		std::unique_ptr<Reaction[]> reactions;
 
 		void update_affected_reactions();
 
 		Model(
 			std::vector<std::string> species_names,
-			std::vector<unsigned int> species_populations,
+			std::vector<double> species_populations,
 			std::vector<std::string> reaction_names
 		);
 	};
@@ -88,7 +91,7 @@ namespace Gillespy {
 		PType *trajectories_1D;
 		PType ***trajectories;
 
-		Model *model;
+		Model<PType> *model;
 
 		IPropensityFunction *propensity_function;
 
@@ -99,11 +102,29 @@ namespace Gillespy {
 	};
 
 	template <typename TNum>
-	void init_simulation(Model *model, Simulation<TNum> &simulation);
+	void init_simulation(Model<TNum> *model, Simulation<TNum> &simulation);
 
+	/* ================================= *
+	 * === DETERMINISTIC SIMULATIONS === *
+	 * ================================= */
+
+	// Deterministic Species: species whose initial and runtime values are continuous.
+	extern template struct Species<double>;
+	// Deterministic Model: species state represented using concentration values.
+	extern template struct Model<double>;
+	// Deterministic Simulation: run using a continuous-valued model.
 	extern template struct Simulation<double>;
-	extern template void init_simulation<double>(Model *model, Simulation<double> &simulation);
+	extern template void init_simulation<double>(Model<double> *model, Simulation<double> &simulation);
 
+	/* ============================== *
+	 * === STOCHASTIC SIMULATIONS === *
+	 * ============================== */
+
+	// Stochastic Species: species whose initial and runtime values are discrete.
+	extern template struct Species<unsigned int>;
+	// Stochastic Model: species state represented using discrete population values.
+	extern template struct Model<unsigned int>;
+	// Stochastic Simulation: run using a discrete-valued model.
 	extern template struct Simulation<unsigned int>;
-	extern template void init_simulation<unsigned int>(Model *model, Simulation<unsigned int> &simulation);
+	extern template void init_simulation<unsigned int>(Model<unsigned int> *model, Simulation<unsigned int> &simulation);
 }

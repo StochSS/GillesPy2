@@ -16,36 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "hybrid_template.h"
 
-class ArgParser
+namespace Gillespy::TauHybrid
 {
-private:
-    std::string usage = "\
-        usage: [simulation.out] \n\
-        [-t|--timesteps] <int> \n\
-        [-e|--end] <int|double> \n\
-        [-s|--seed] <int> \n\
-        [-S|--switch_tol] <double> \n\
-        [-i|--increment] <int|double> \n\
-        [-I|--init_pop] <int>... \n\
-        [-p|--parameters] <int|double>... \n\
-        [-T|--trajectories] <int>... \n\
-        [-l|--tau_tol] <double> \n\
-        ";
-
-    char match_arg(std::string &token);
-
-public:
-    int seed = -1;
-    int timesteps = 0;
-    int trajectories = 0;
-
-    double end = 0.0;
-    double increment = 0.0;
-    double switch_tol = 0.0;
-    double tau_tol = 0.03;
-
-    ArgParser(int argc, char *argv[]);
-    ~ArgParser();
-};
+	void map_species_modes(std::vector<HybridSpecies> &species)
+	{
+		#define SPECIES_MODE(spec_id, spec_mode, user_min) \
+		species[spec_id].user_mode = spec_mode; \
+		species[spec_id].switch_min = user_min;
+		#define CONTINUOUS_MODE SimulationState::CONTINUOUS
+		#define DISCRETE_MODE   SimulationState::DISCRETE
+		#define DYNAMIC_MODE    SimulationState::DYNAMIC
+		GPY_HYBRID_SPECIES_MODES
+		#undef DYNAMIC_MODE
+		#undef DISCRETE_MODE
+		#undef CONTINUOUS_MODE
+		#undef SPECIES_MODE
+	}
+}

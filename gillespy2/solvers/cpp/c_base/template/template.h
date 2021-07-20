@@ -26,15 +26,20 @@
 
 namespace Gillespy
 {
-	extern std::vector<unsigned int> species_populations;
+	extern std::vector<double> species_populations;
 	extern std::vector<std::string> species_names;
 	extern std::vector<std::string> reaction_names;
 
 	double map_propensity(int reaction_id, const std::vector<int> &state);
 	double map_propensity(int reaction_id, unsigned int *S);
 	double map_ode_propensity(int reaction_id, const std::vector<double> &state);
-	void add_reactions(Model &model);
+
+	template <typename T>
+	void add_reactions(Model<T> &model);
 
 	void map_variable_parameters(std::stringstream &stream);
 	void map_variable_populations(std::stringstream &stream);
+
+	extern template void add_reactions<double>(Model<double> &model);
+	extern template void add_reactions<unsigned int>(Model<unsigned int> &model);
 }
