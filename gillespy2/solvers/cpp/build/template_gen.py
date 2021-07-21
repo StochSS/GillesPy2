@@ -33,6 +33,8 @@ class SanitizedModel:
     """
 
     def __init__(self, model: Model):
+        self.model = model
+
         self.species: "OrderedDict[str, Species]" = OrderedDict()
         self.species_names = model.sanitized_species_names()
         for species_name, sanitized_name in self.species_names.items():
@@ -53,25 +55,50 @@ class SanitizedModel:
             **self.parameter_names,
             "vol": "V",
         }
-        expr = Expression(namespace=base_namespace, blacklist=["="], sanitize=True)
+        self.expr = Expression(namespace=base_namespace, blacklist=["="], sanitize=True)
 
         self.propensities: "OrderedDict[str, str]" = OrderedDict()
         self.ode_propensities: "OrderedDict[str, str]" = OrderedDict()
         self.reactions: "OrderedDict[str, dict[str, int]]" = OrderedDict()
-        for reaction_name, reaction in model.get_all_reactions().items():
-            self.propensities[reaction_name] = expr.getexpr_cpp(reaction.propensity_function)
-            self.ode_propensities[reaction_name] = expr.getexpr_cpp(reaction.ode_propensity_function)
 
-            self.reactions[reaction_name] = {spec: int(0) for spec in self.species_names.values()}
-            for reactant, stoich_value in reaction.reactants.items():
-                if isinstance(reactant, Species):
-                    reactant = self.species_names[reactant.name]
-                self.reactions[reaction_name][reactant] -= int(stoich_value)
+        for reaction in model.get_all_reactions().values():
+            self.use_reaction(reaction)
+            self.use_propensity(reaction, ode=False)
+            self.use_propensity(reaction, ode=True)
 
-            for product, stoich_value in reaction.products.items():
-                if isinstance(product, Species):
-                    product = self.species_names[product.name]
-                self.reactions[reaction_name][product] += int(stoich_value)
+    def use_propensity(self, reaction: "Reaction", ode=False):
+        """
+        Populates the given reaction's propensities into the sanitized model.
+        Expression conversion and sanitization are automatically applied.
+
+        :param reaction: Reaction to generate propensities from.
+        :type reaction: gillespy2.Reaction
+
+        :param ode: Determines whether the stochastic propensity or ODE mass-action rate is used.
+        If set to true, the mass-action rate is used instead of the propensity.
+        """
+        propensities = self.ode_propensities if ode else self.propensities
+        propensity = reaction.ode_propensity_function if ode else reaction.propensity_function
+        propensities[reaction.name] = self.expr.getexpr_cpp(propensity)
+
+    def use_reaction(self, reaction: "Reaction"):
+        """
+        Adds the given reaction to the sanitized model.
+        Populates the name and stoichiometry matrix into the model.
+
+        :param reaction: Reaction to add to the sanitized model.
+        :type reaction: gillespy2.Reaction
+        """
+        self.reactions[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
+        for reactant, stoich_value in reaction.reactants.items():
+            if isinstance(reactant, Species):
+                reactant = self.species_names[reactant.name]
+            self.reactions[reaction.name][reactant] -= int(stoich_value)
+
+        for product, stoich_value in reaction.products.items():
+            if isinstance(product, Species):
+                product = self.species_names[product.name]
+            self.reactions[reaction.name][product] += int(stoich_value)
 
 
 def write_template(path: str, model: Model, variable=False):
@@ -138,6 +165,12 @@ def get_model_defines(model: Model, variable=False) -> "dict[str, str]":
     results.update(ode_propensity_definitions)
 
     return results
+
+
+def template_def_rate_rules(model: SanitizedModel) -> "dict[str, str]":
+    """
+    Generates template definitions for SBML rate rules.
+    """
 
 
 def template_def_variables(model: SanitizedModel, variable=False) -> "dict[str, str]":
