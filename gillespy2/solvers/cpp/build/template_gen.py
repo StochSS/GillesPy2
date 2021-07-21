@@ -119,7 +119,6 @@ class SanitizedModel:
         """
         if rate_rule.variable in self.species_names:
             rr_sanitized = self.expr.getexpr_cpp(rate_rule.formula)
-            print(rr_sanitized)
             if rr_sanitized is not None:
                 self.rate_rules[self.species_names.get(rate_rule.variable)] = rr_sanitized
         return self
@@ -158,7 +157,7 @@ class SanitizedModel:
 
         return results
 
-    def get_options(self) -> "Optional[OrderedDict[str, str]]":
+    def get_options(self) -> "Optional[dict[str, str]]":
         """
         Creates a dictionary of C++ macro definitions for optional parameters of the model.
         The keys of the dictionary contain the name of the macro definition.
@@ -168,7 +167,7 @@ class SanitizedModel:
         :rtype: dict[str, str]
         """
         if len(self.options) > 0:
-            return self.options
+            return update_model_options(self, self.options.copy())
         return None
 
 
@@ -199,6 +198,7 @@ def write_definitions(path: str, defines: "dict[str, str]"):
     # Write generated lines to the template file.
     with open(path, "w") as template_file:
         template_file.writelines(template_lines)
+
 
 def get_model_defines(model: Model, variable=False) -> "dict[str, str]":
     """
@@ -236,6 +236,19 @@ def get_model_defines(model: Model, variable=False) -> "dict[str, str]":
     results.update(ode_propensity_definitions)
 
     return results
+
+
+def update_model_options(model: "SanitizedModel", definitions: "dict[str, str]" = None) -> "dict[str, str]":
+    """
+    Creates a
+    """
+    if definitions is None:
+        definitions = {}
+
+    if len(model.rate_rules) > 0:
+        definitions.update(template_def_rate_rules(model))
+
+    return definitions
 
 
 def template_def_rate_rules(model: SanitizedModel) -> "dict[str, str]":

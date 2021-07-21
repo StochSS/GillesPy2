@@ -88,7 +88,33 @@ namespace Gillespy
 		}
 	}
 
+	double map_propensity(int reaction_id, int *S)
+	{
+		switch (reaction_id)
+		{
+			#define PROPENSITY(id, func) case(id): return(func);
+			GPY_PROPENSITIES
+			#undef PROPENSITY
+
+			default:
+				return -1.0;
+		}
+	}
+
 	double map_ode_propensity(int reaction_id, const std::vector<double> &S)
+	{
+		switch (reaction_id)
+		{
+			#define PROPENSITY(id, func) case(id): return(func);
+			GPY_ODE_PROPENSITIES
+			#undef PROPENSITY
+
+			default:
+				return -1.0;
+		}
+	}
+
+	double map_ode_propensity(int reaction_id, double *S)
 	{
 		switch (reaction_id)
 		{

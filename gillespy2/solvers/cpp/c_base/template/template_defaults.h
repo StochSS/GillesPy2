@@ -78,6 +78,10 @@
 #define GPY_HYBRID_SPECIES_MODES
 #endif
 
+#ifndef GPY_RATE_RULES
+#define GPY_RATE_RULES
+#endif
+
 #endif
 
 // Import solver-specific template options.

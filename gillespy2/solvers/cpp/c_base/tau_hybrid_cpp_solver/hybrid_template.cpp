@@ -20,6 +20,7 @@
 
 namespace Gillespy::TauHybrid
 {
+
 	void map_species_modes(std::vector<HybridSpecies> &species)
 	{
 		#define SPECIES_MODE(spec_id, spec_mode, user_min) \
@@ -34,4 +35,12 @@ namespace Gillespy::TauHybrid
 		#undef CONTINUOUS_MODE
 		#undef SPECIES_MODE
 	}
+
+	void map_rate_rules(std::vector<HybridSpecies> &species)
+	{
+		#define RATE_RULE(spec_id, rate_rule) species[spec_id].diff_equation.rate_rules.push_back([](double t, double *S) { return (rate_rule); });
+		GPY_RATE_RULES
+		#undef RATE_RULE
+	}
+
 }

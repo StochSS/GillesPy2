@@ -129,10 +129,10 @@ namespace Gillespy::TauHybrid
 					switch (rxn.mode)
 					{
 						case SimulationState::CONTINUOUS:
-							propensity = rxn.ode_propensity(rxn_i, current_state);
+							propensity = HybridReaction::ode_propensity(rxn_i, &current_state[0]);
 							break;
 						case SimulationState::DISCRETE:
-							propensity = rxn.ssa_propensity(rxn_i, current_populations);
+							propensity = HybridReaction::ssa_propensity(rxn_i, &current_populations[0]);
 							break;
 						default:
 							break;
