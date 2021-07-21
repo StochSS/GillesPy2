@@ -2,6 +2,7 @@ import gillespy2
 from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
 from gillespy2.solvers.utilities import solverutils as cutils
 from gillespy2.core import GillesPySolver, gillespyError, Model
+from typing import Union
 
 from .c_solver import CSolver, SimulationReturnCode
 from gillespy2.solvers.cpp.build.template_gen import SanitizedModel
@@ -11,14 +12,18 @@ class TauHybridCSolver(GillesPySolver, CSolver):
     target = "hybrid"
 
     @classmethod
-    def __create_template_options(cls, species: "list[gillespy2.Species]"):
+    def __create_options(cls, model: "SanitizedModel") -> "SanitizedModel":
         """
         Populate the given list of species modes into a set of template macro definitions.
         Generated options are specific to the Tau Hybrid solver,
-          and get passed as custom definitons to the build engine.
+        and get passed as custom definitions to the build engine.
 
-        :param species: Ordered list of GillesPy2 species to generate options for.
-        :return: Dictionary containing key-value pairs representing macro definitions.
+        :param model: Sanitized model containing sanitized species definitions.
+        The GPY_HYBRID_SPECIES_MODES option will be set as an option for the model.
+        :type model: SanitizedModel
+
+        :returns: Pass-through of sanitized model object.
+        :rtype: SanitizedModel
         """
         species_mode_map = {
             "continuous": "CONTINUOUS_MODE",
@@ -27,22 +32,19 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         }
 
         species_mode_list = []
-        for spec_id, spec in enumerate(species):
-            # Continuous by default
-            mode_keyword = species_mode_map.get(spec.mode, species_mode_map["dynamic"])
-            species_mode_list.append(f"SPECIES_MODE({spec_id},{mode_keyword},{spec.switch_min})")
+        for spec_id, species in enumerate(model.species.values()):
+            mode_keyword = species_mode_map.get(species.mode, species_mode_map["dynamic"])
+            species_mode_list.append(f"SPECIES_MODE({spec_id},{mode_keyword},{species.switch_min})")
 
-        return {
-            f"GPY_HYBRID_SPECIES_MODES": " ".join(species_mode_list)
-        }
+        model.options["GPY_HYBRID_SPECIES_MODES"] = " ".join(species_mode_list)
+        return model
 
     def _build(self, model: "Union[Model, SanitizedModel]", simulation_name: str, variable: bool, debug: bool = False,
                custom_definitions=None) -> str:
-        sanitized_model = SanitizedModel(model)
+        sanitized_model = TauHybridCSolver.__create_options(SanitizedModel(model))
         for rate_rule in model.listOfRateRules.values():
             sanitized_model.use_rate_rule(rate_rule)
-        custom_definitions = TauHybridCSolver.__create_template_options(list(model.listOfSpecies.values()))
-        return super()._build(model, simulation_name, variable, debug, custom_definitions)
+        return super()._build(sanitized_model, simulation_name, variable, debug)
 
     def get_solver_settings(self):
         """

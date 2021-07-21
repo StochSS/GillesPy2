@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from collections import OrderedDict
+from typing import Optional
 from gillespy2.core import Species, Reaction, Parameter, Model, RateRule
 from gillespy2.solvers.cpp.build.expression import Expression
 import math
@@ -62,6 +63,7 @@ class SanitizedModel:
         self.ode_propensities: "OrderedDict[str, str]" = OrderedDict()
         self.reactions: "OrderedDict[str, dict[str, int]]" = OrderedDict()
         self.rate_rules: "OrderedDict[str, str]" = OrderedDict()
+        self.options: "OrderedDict[str, str]" = OrderedDict()
 
         for reaction in model.get_all_reactions().values():
             self.use_reaction(reaction)
@@ -155,6 +157,19 @@ class SanitizedModel:
         results.update(ode_propensity_definitions)
 
         return results
+
+    def get_options(self) -> "Optional[OrderedDict[str, str]]":
+        """
+        Creates a dictionary of C++ macro definitions for optional parameters of the model.
+        The keys of the dictionary contain the name of the macro definition.
+        The values of the dictionary are the values their corresponding macro should be defined to.
+
+        :returns: Dictionary of fully-formatted macro definitions.
+        :rtype: dict[str, str]
+        """
+        if len(self.options) > 0:
+            return self.options
+        return None
 
 
 def write_template(path: str, model: Model, variable=False):

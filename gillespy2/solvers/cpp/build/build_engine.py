@@ -71,7 +71,7 @@ class BuildEngine():
 
         return missing
 
-    def prepare(self, model: "Union[Model, template_gen.SanitizedModel]", variable=False, custom_definitions: "dict[str, str]" = None) -> str:
+    def prepare(self, model: "Union[Model, template_gen.SanitizedModel]", variable=False) -> str:
         """
         Prepare the template directory for compilation.
         The following operations will be performed:
@@ -118,6 +118,7 @@ class BuildEngine():
         template_file = self.template_dir.joinpath(self.template_definitions_name)
         template_file.unlink()
         template_gen.write_definitions(str(template_file), model.get_template(variable=variable))
+        custom_definitions = model.get_options()
         if custom_definitions is not None:
             options_file = self.template_dir.joinpath(self.template_options_name)
             options_file.unlink()
