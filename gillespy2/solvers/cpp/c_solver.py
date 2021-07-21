@@ -25,6 +25,7 @@ import numpy
 
 from enum import IntEnum
 from concurrent.futures import ThreadPoolExecutor
+from typing import Union
 
 from gillespy2.core import Model
 from gillespy2.core import Results
@@ -32,6 +33,7 @@ from gillespy2.core import log
 from gillespy2.core import gillespyError
 from gillespy2.solvers.cpp.c_decoder import SimDecoder
 from gillespy2.solvers.cpp.build.build_engine import BuildEngine
+from gillespy2.solvers.cpp.build.template_gen import SanitizedModel
 
 class SimulationReturnCode(IntEnum):
     DONE = 0
@@ -97,7 +99,7 @@ class CSolver:
 
         self.build_engine.clean()
 
-    def _build(self, model: Model, simulation_name: str, variable: bool, debug: bool = False, custom_definitions: "dict[str, str]" = None) -> str:
+    def _build(self, model: "Union[Model, SanitizedModel]", simulation_name: str, variable: bool, debug: bool = False, custom_definitions: "dict[str, str]" = None) -> str:
         """
         Generate and build the simulation from the specified Model and solver_name into the output_dir.
 

@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from collections import OrderedDict
-from gillespy2.core import Species, Reaction, Parameter, Model
+from gillespy2.core import Species, Reaction, Parameter, Model, RateRule
 from gillespy2.solvers.cpp.build.expression import Expression
 import math
 
@@ -54,12 +54,14 @@ class SanitizedModel:
             **self.species_names,
             **self.parameter_names,
             "vol": "V",
+            "t": "t",
         }
         self.expr = Expression(namespace=base_namespace, blacklist=["="], sanitize=True)
 
         self.propensities: "OrderedDict[str, str]" = OrderedDict()
         self.ode_propensities: "OrderedDict[str, str]" = OrderedDict()
         self.reactions: "OrderedDict[str, dict[str, int]]" = OrderedDict()
+        self.rate_rules: "OrderedDict[str, str]" = OrderedDict()
 
         for reaction in model.get_all_reactions().values():
             self.use_reaction(reaction)
@@ -81,7 +83,7 @@ class SanitizedModel:
         propensity = reaction.ode_propensity_function if ode else reaction.propensity_function
         propensities[reaction.name] = self.expr.getexpr_cpp(propensity)
 
-    def use_reaction(self, reaction: "Reaction"):
+    def use_reaction(self, reaction: "Reaction") -> "SanitizedModel":
         """
         Adds the given reaction to the sanitized model.
         Populates the name and stoichiometry matrix into the model.
@@ -99,6 +101,60 @@ class SanitizedModel:
             if isinstance(product, Species):
                 product = self.species_names[product.name]
             self.reactions[reaction.name][product] += int(stoich_value)
+
+        return self
+
+    def use_rate_rule(self, rate_rule: "RateRule") -> "SanitizedModel":
+        """
+        Attach the given rate rule to the sanitized model.
+        The rate rule will automatically be validated and sanitized before being applied.
+
+        :param rate_rule: GillesPy2 RateRule object to attach to the sanitized model.
+        :type rate_rule: gillespy2.RateRule
+
+        :returns: Pass-through of sanitized model object.
+        :rtype: SanitizedModel
+        """
+        if rate_rule.variable in self.species_names:
+            rr_sanitized = self.expr.getexpr_cpp(rate_rule.formula)
+            print(rr_sanitized)
+            if rr_sanitized is not None:
+                self.rate_rules[self.species_names.get(rate_rule.variable)] = rr_sanitized
+        return self
+
+    def get_template(self, variable=False) -> "dict[str, str]":
+        """
+        Creates a dictionary of C++ macro definitions from the given model.
+        The keys of the dictionary contain the name of the macro definition.
+        The values of the dictionary are the values their corresponding macro should be defined to.
+
+        :param variable: Set to true to allow for non-constant parameter values.
+        :type variable: bool
+
+        :returns: Dictionary of fully-formatted macro definitions.
+        :rtype: dict[str, str]
+        """
+        results = dict({})
+
+        # Get definitions for variables
+        parameter_definitions = template_def_variables(self, variable)
+        results.update(parameter_definitions)
+
+        # Get definitions for species
+        species_definitions = template_def_species(self)
+        results.update(species_definitions)
+
+        # Get definitions for reactions
+        reaction_definitions = template_def_reactions(self)
+        results.update(reaction_definitions)
+
+        # Get definitions for propensities
+        stoch_propensity_definitions = template_def_propensities(self, ode=False)
+        ode_propensity_definitions = template_def_propensities(self, ode=True)
+        results.update(stoch_propensity_definitions)
+        results.update(ode_propensity_definitions)
+
+        return results
 
 
 def write_template(path: str, model: Model, variable=False):
@@ -171,7 +227,15 @@ def template_def_rate_rules(model: SanitizedModel) -> "dict[str, str]":
     """
     Generates template definitions for SBML rate rules.
     """
+    rr_set = []
+    for spec_i, species in enumerate(model.species_names.values()):
+        if species in model.rate_rules:
+            spec_rr = model.rate_rules.get(species)
+            rr_set.append(f"RATE_RULE({spec_i}, {spec_rr})")
 
+    return {
+        "GPY_RATE_RULES": " ".join(rr_set)
+    }
 
 def template_def_variables(model: SanitizedModel, variable=False) -> "dict[str, str]":
     """

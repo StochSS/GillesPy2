@@ -4,14 +4,11 @@ from gillespy2.solvers.utilities import solverutils as cutils
 from gillespy2.core import GillesPySolver, gillespyError, Model
 
 from .c_solver import CSolver, SimulationReturnCode
+from gillespy2.solvers.cpp.build.template_gen import SanitizedModel
 
 class TauHybridCSolver(GillesPySolver, CSolver):
     name = "TauHybridCSolver"
     target = "hybrid"
-
-    def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable=False):
-        options = None if model is None else TauHybridCSolver.__create_template_options(list(model.listOfSpecies.values()))
-        super().__init__(model, output_directory, delete_directory, resume, variable, options)
 
     @classmethod
     def __create_template_options(cls, species: "list[gillespy2.Species]"):
@@ -38,6 +35,14 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         return {
             f"GPY_HYBRID_SPECIES_MODES": " ".join(species_mode_list)
         }
+
+    def _build(self, model: "Union[Model, SanitizedModel]", simulation_name: str, variable: bool, debug: bool = False,
+               custom_definitions=None) -> str:
+        sanitized_model = SanitizedModel(model)
+        for rate_rule in model.listOfRateRules.values():
+            sanitized_model.use_rate_rule(rate_rule)
+        custom_definitions = TauHybridCSolver.__create_template_options(list(model.listOfSpecies.values()))
+        return super()._build(model, simulation_name, variable, debug, custom_definitions)
 
     def get_solver_settings(self):
         """
