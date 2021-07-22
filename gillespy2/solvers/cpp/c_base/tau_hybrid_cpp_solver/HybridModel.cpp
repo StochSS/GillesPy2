@@ -134,10 +134,11 @@ namespace Gillespy::TauHybrid
 		std::vector<HybridReaction> &reactions,
 		std::vector<HybridSpecies> &species)
 	{
+		unsigned int num_reactions = reactions.size();
 		unsigned int num_species = species.size();
 		std::set<unsigned int> det_rxns;
 
-		for (unsigned int rxn_i = 0; rxn_i < num_species; ++rxn_i) {
+		for (unsigned int rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
 			// start with the assumption that reaction is determinstic
 			HybridReaction &rxn = reactions[rxn_i];
 			rxn.mode = SimulationState::CONTINUOUS;
