@@ -31,16 +31,16 @@ namespace Gillespy
 		TauArgs<PType> tau_args;
 
 		// Initialize highest order rxns to 0
-		for (int i = 0; i < model.number_species; i++)
+		for (unsigned int i = 0; i < model.number_species; i++)
 		{
 			tau_args.HOR[model.species[i].name] = 0;
 		}
 
-		for (int r = 0; r < model.number_reactions; r++)
+		for (unsigned int r = 0; r < model.number_reactions; r++)
 		{
 			int rxn_order = 0;
 
-			for (int spec = 0; spec < model.number_species; spec++)
+			for (unsigned int spec = 0; spec < model.number_species; spec++)
 			{
 				if (model.reactions[r].species_change[spec] > 0)
 				{
@@ -132,14 +132,14 @@ namespace Gillespy
 		std::map<std::string, double> sigma_i;
 
 		// initialize mu_i and sigma_i to 0
-		for (int spec = 0; spec < model.number_species; spec++)
+		for (unsigned int spec = 0; spec < model.number_species; spec++)
 		{
 			mu_i[model.species[spec].name] = 0;
 			sigma_i[model.species[spec].name] = 0;
 		}
 
 		// Determine if there are any critical reactions, update mu_i and sigma_i
-		for (int reaction = 0; reaction < model.number_reactions; reaction++)
+		for (unsigned int reaction = 0; reaction < model.number_reactions; reaction++)
 		{
 			for (auto const &reactant : tau_args.reactions_reactants[reaction])
 			{
@@ -164,9 +164,9 @@ namespace Gillespy
 
 		// If a critical reaction is present, estimate tau for a single firing of each
 		// critical reaction with propensity > 0, and take the smallest tau
-		if (critical == true)
+		if (critical)
 		{
-			for (int reaction = 0; reaction < model.number_reactions; reaction++)
+			for (unsigned int reaction = 0; reaction < model.number_reactions; reaction++)
 			{
 				if (propensity_values[reaction] > 0)
 				{
@@ -210,7 +210,7 @@ namespace Gillespy
 			}
 		}
 
-		if (tau_i.size() > 0)
+		if (tau_i.empty())
 		{
 			//find min of tau_i
 			std::pair<std::string, double> min;
@@ -223,13 +223,13 @@ namespace Gillespy
 		}
 
 		// If all reactions are non-critical, use non-critical tau.
-		if (critical == false)
+		if (critical)
 		{
 			tau = non_critical_tau;
 		}
 
 		// If all reactions are critical, use critical tau.
-		else if (tau_i.size() == 0)
+		else if (tau_i.empty())
 		{
 			tau = critical_tau;
 		}

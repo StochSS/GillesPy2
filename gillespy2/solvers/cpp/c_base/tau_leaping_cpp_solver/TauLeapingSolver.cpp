@@ -63,7 +63,7 @@ namespace Gillespy
 		std::map<std::string, int> rxn_count; // map of how many times reaction is fired
 		std::pair<std::map<std::string, int>, double> values; // value pair to be returned, map of times {map of times reaction fired, current time}
 
-		for (int i = 0; i < model->number_reactions; i++)
+		for (unsigned int i = 0; i < model->number_reactions; i++)
 		{
 			std::poisson_distribution<int> poisson(propensity_values[i] * tau_step);
 			rxn_count[model->reactions[i].name] = poisson(generator);
@@ -111,7 +111,7 @@ namespace Gillespy
 				break;
 			}
 
-			for (int spec = 0; spec < simulation->model->number_species; spec++)
+			for (unsigned int spec = 0; spec < simulation->model->number_species; spec++)
 			{
 				current_state[spec] = simulation->model->species[spec].initial_population;
 			}
@@ -120,14 +120,8 @@ namespace Gillespy
 			simulation->current_time = 0;
 			unsigned int entry_count = 0;
 
-			//Propensity sum initialization, to be added to later.
-			double propensity_sum;
-
 			//Start save time
 			double save_time = 0;
-
-			//Variable to keep track of rejected steps, debug
-			int steps_rejected = 0;
 
 			//Initialize tau_step, will be assigned using tau::select()
 			double tau_step;
@@ -179,7 +173,7 @@ namespace Gillespy
 
 						std::map<int, bool> species_modified;
 
-						for (int i = 0; i < simulation->model->number_reactions; i++)
+						for (unsigned int i = 0; i < simulation->model->number_reactions; i++)
 						{
 							if (rxn_count[simulation->model->reactions[i].name] > 0)
 							{
@@ -208,7 +202,7 @@ namespace Gillespy
 							}
 						}
 
-						if (neg_state == true)
+						if (neg_state)
 						{
 							current_state = prev_curr_state;
 							simulation->current_time = prev_curr_time;
@@ -221,7 +215,7 @@ namespace Gillespy
 						}
 					}
 				}
-				for (int i = 0; i < simulation->model->number_species; i++)
+				for (unsigned int i = 0; i < simulation->model->number_species; i++)
 				{
 					simulation->trajectories[trajectory_number][entry_count][i] = current_state[i];
 				}
