@@ -54,9 +54,8 @@ namespace Gillespy::TauHybrid
 		std::vector<int> populations;
 		std::vector<double> propensities;
 
-		IntegratorData(HybridSimulation *simulation);
-		IntegratorData(HybridSimulation *simulation, int num_species, int num_reactions);
-		IntegratorData(IntegratorData &prev_data);
+		explicit IntegratorData(HybridSimulation *simulation);
+		IntegratorData(HybridSimulation *simulation, unsigned int num_species, unsigned int num_reactions);
 	};
 
 	/* :IntegrationResults:
@@ -80,15 +79,16 @@ namespace Gillespy::TauHybrid
 	private:
 		void *cvode_mem;
 		N_Vector y0;
-		double t0;
+		double t0 = 0.0f;
 		SUNLinearSolver solver;
-		int num_species;
-		int num_reactions;
+		unsigned int num_species;
+		unsigned int num_reactions;
 	public:
 		// status: check for errors before using the results.
-		IntegrationStatus status;
 		N_Vector y;
-		realtype t;
+		IntegrationStatus status;
+		IntegratorData data;
+		realtype t = 0.0f;
 
 		/* save_state()
 		 * Creates a duplicate copy of the integrator's current solution vector.
@@ -115,7 +115,6 @@ namespace Gillespy::TauHybrid
 		void reinitialize(N_Vector y_reset);
 
 		IntegrationResults integrate(double *t);
-		IntegratorData data;
 
 		Integrator(HybridSimulation *simulation, N_Vector y0, double reltol, double abstol);
 		~Integrator();
@@ -126,10 +125,8 @@ namespace Gillespy::TauHybrid
 	private:
 		std::uniform_real_distribution<double> uniform;
 		std::mt19937_64 rng;
-		unsigned long long seed;
 	public:
 		double next();
-		URNGenerator();
 		explicit URNGenerator(unsigned long long seed);
 	};
 

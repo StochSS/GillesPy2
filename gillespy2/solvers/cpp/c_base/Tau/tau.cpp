@@ -210,7 +210,7 @@ namespace Gillespy
 			}
 		}
 
-		if (tau_i.empty())
+		if (!tau_i.empty())
 		{
 			//find min of tau_i
 			std::pair<std::string, double> min;
@@ -229,7 +229,7 @@ namespace Gillespy
 		}
 
 		// If all reactions are critical, use critical tau.
-		else if (tau_i.empty())
+		else if (!tau_i.empty())
 		{
 			tau = critical_tau;
 		}

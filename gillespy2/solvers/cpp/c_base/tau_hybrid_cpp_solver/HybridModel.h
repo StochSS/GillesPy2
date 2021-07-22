@@ -28,7 +28,7 @@
 namespace Gillespy::TauHybrid
 {
 
-	typedef int ReactionId;
+	typedef unsigned int ReactionId;
 
 	/* Gillespy::TauHybrid::DiffEquation
 	 * A vector containing evaluable functions, which accept integrator state and return propensities.
@@ -99,10 +99,10 @@ namespace Gillespy::TauHybrid
 		std::vector<HybridReaction> reaction_state;
 
 		HybridSimulation();
-		HybridSimulation(const Model<double> &model);
+		explicit HybridSimulation(const Model<double> &model);
 	};
 
-	std::set<int> flag_det_rxns(
+	std::set<unsigned int> flag_det_rxns(
 		std::vector<HybridReaction> &reactions,
 		std::vector<HybridSpecies> &species);
 

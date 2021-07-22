@@ -24,14 +24,14 @@ static bool validate(Integrator *integrator, int retcode);
 
 IntegratorData::IntegratorData(
 	HybridSimulation *simulation,
-	int num_species,
-	int num_reactions)
+	unsigned int num_species,
+	unsigned int num_reactions)
 	: simulation(simulation),
-	  concentrations(std::vector<double>(num_species)),
-	  populations(std::vector<int>(num_species)),
-	  propensities(std::vector<double>(num_reactions)),
 	  species_state(&simulation->species_state),
-	  reaction_state(&simulation->reaction_state) {}
+	  reaction_state(&simulation->reaction_state),
+	  concentrations(num_species),
+	  populations(num_species),
+	  propensities(num_reactions) {}
 
 IntegratorData::IntegratorData(HybridSimulation *simulation)
 	: IntegratorData(
@@ -42,27 +42,25 @@ IntegratorData::IntegratorData(HybridSimulation *simulation)
 
 Integrator::Integrator(HybridSimulation *simulation, N_Vector y0, double reltol, double abstol)
 	: y0(y0),
-	  t(0.0f),
-	  t0(0.0f),
-	  y(N_VClone_Serial(y0)),
-	  data(simulation),
+	  num_species(simulation->model->number_species),
 	  num_reactions(simulation->model->number_reactions),
-	  num_species(simulation->model->number_species)
+	  y(N_VClone_Serial(y0)),
+	  status(IntegrationStatus::OK),
+	  data(simulation)
 {
 	// y0 is the initial state, y is updated during integration.
 	// N_VClone_Serial() does not clone *contents*, we have to do that explicitly.
-	for (int mem_i = 0; mem_i < num_reactions + num_species; ++mem_i) {
+	for (unsigned int mem_i = 0; mem_i < num_reactions + num_species; ++mem_i) {
 		NV_Ith_S(y, mem_i) = NV_Ith_S(this->y0, mem_i);
 	}
 
-	for (int spec_i = 0; spec_i < num_species; ++spec_i)
+	for (unsigned int spec_i = 0; spec_i < num_species; ++spec_i)
 	{
-		data.populations[spec_i]
-			= data.concentrations[spec_i]
-			= simulation->model->species[spec_i].initial_population;
+		data.concentrations[spec_i] = simulation->model->species[spec_i].initial_population;
+		data.populations[spec_i] = static_cast<int>(data.concentrations[spec_i]);
 	}
 
-	for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
+	for (unsigned int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
 	{
 		data.propensities[rxn_i] = 0;
 	}
@@ -78,8 +76,8 @@ Integrator::Integrator(HybridSimulation *simulation, N_Vector y0, double reltol,
 
 double Integrator::save_state()
 {
-	int max_offset = num_reactions + num_species;
-	for (int mem_i = 0; mem_i < max_offset; ++mem_i)
+	unsigned int max_offset = num_reactions + num_species;
+	for (unsigned int mem_i = 0; mem_i < max_offset; ++mem_i)
 	{
 		NV_Ith_S(y0, mem_i) = NV_Ith_S(y, mem_i);
 	}
@@ -90,8 +88,8 @@ double Integrator::save_state()
 
 double Integrator::restore_state()
 {
-	int max_offset = num_reactions + num_species;
-	for (int mem_i = 0; mem_i < max_offset; ++mem_i)
+	unsigned int max_offset = num_reactions + num_species;
+	for (unsigned int mem_i = 0; mem_i < max_offset; ++mem_i)
 	{
 		NV_Ith_S(y, mem_i) = NV_Ith_S(y0, mem_i);
 	}
@@ -110,8 +108,8 @@ void Integrator::refresh_state()
 
 void Integrator::reinitialize(N_Vector y_reset)
 {
-	int max_offset = num_reactions + num_species;
-	for (int mem_i = 0; mem_i < max_offset; ++mem_i)
+	unsigned int max_offset = num_reactions + num_species;
+	for (unsigned int mem_i = 0; mem_i < max_offset; ++mem_i)
 	{
 		NV_Ith_S(y0, mem_i) = NV_Ith_S(y_reset, mem_i);
 	}
@@ -139,15 +137,9 @@ IntegrationResults Integrator::integrate(double *t)
 }
 
 
-URNGenerator::URNGenerator()
-	: uniform(0, 1) {}
-
 URNGenerator::URNGenerator(unsigned long long seed)
 	: uniform(0, 1),
-	  rng(seed)
-{
-	this->seed = seed;
-}
+	  rng(seed) {}
 
 
 /* Generate a new random floating-point number on the range [0,1).
@@ -164,7 +156,7 @@ double URNGenerator::next()
  */
 N_Vector Gillespy::TauHybrid::init_model_vector(Gillespy::Model<double> &model, URNGenerator urn)
 {
-	int rxn_offset_boundary = model.number_reactions + model.number_species;
+	unsigned int rxn_offset_boundary = model.number_reactions + model.number_species;
 
 	// INITIAL INTEGRATOR STATE VECTOR
 	// Integrator is used to integrate two vector regions separately:
@@ -177,14 +169,14 @@ N_Vector Gillespy::TauHybrid::init_model_vector(Gillespy::Model<double> &model, 
 
 	// The first half of the integration vector is used for integrating species concentrations.
 	// [ --- concentrations --- | ...
-	for (int spec_i = 0; spec_i < model.number_species; ++spec_i)
+	for (unsigned int spec_i = 0; spec_i < model.number_species; ++spec_i)
 	{
 		NV_Ith_S(y0, spec_i) = model.species[spec_i].initial_population;
 	}
 
 	// The second half represents the current "randomized state" for each reaction.
 	// ... | --- rxn_offsets --- ]
-	for (int rxn_i = model.number_species; rxn_i < rxn_offset_boundary; ++rxn_i)
+	for (unsigned int rxn_i = model.number_species; rxn_i < rxn_offset_boundary; ++rxn_i)
 	{
 		// Represents the current "randomized state" for each reaction, used as a
 		//   helper value to determine if/how many stochastic reactions fire.
@@ -223,9 +215,7 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 
 	// Differentiate different regions of the input/output vectors.
 	// First half is for concentrations, second half is for reaction offsets.
-	realtype *rxn_offsets = &Y[num_species];
 	realtype *dydt_offsets = &dydt[num_species];
-	int rxn_offset_boundary = num_species + num_reactions;
 
 	// Populate the current ODE state into the concentrations vector.
 	// dy/dt results are initialized to zero, and become the change in propensity.
@@ -233,7 +223,7 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	for (spec_i = 0; spec_i < num_species; ++spec_i)
 	{
 		concentrations[spec_i] = Y[spec_i];
-		populations[spec_i] = Y[spec_i];
+		populations[spec_i] = static_cast<int>(Y[spec_i]);
 	}
 
 	// Deterministic reactions generally are "evaluated" by generating dy/dt functions
@@ -246,7 +236,7 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 
 	// Process deterministic propensity state
 	// These updates get written directly to the integrator's concentration state
-	for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
+	for (unsigned int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
 	{
 		switch ((*reactions)[rxn_i].mode) {
 		case SimulationState::DISCRETE:

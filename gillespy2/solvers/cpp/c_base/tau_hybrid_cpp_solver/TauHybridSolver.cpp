@@ -41,17 +41,16 @@ namespace Gillespy::TauHybrid
 
 	void TauHybridCSolver(HybridSimulation *simulation, const double tau_tol)
 	{
-		if (simulation == NULL)
+		if (simulation == nullptr)
 		{
 			return;
 		}
 
 		Model<double> &model = *(simulation->model);
-		int num_species = model.number_species;
-		int num_reactions = model.number_reactions;
-		int num_trajectories = simulation->number_trajectories;
+		unsigned int num_species = model.number_species;
+		unsigned int num_reactions = model.number_reactions;
+		unsigned int num_trajectories = simulation->number_trajectories;
 		std::unique_ptr<Species<double>[]> &species = model.species;
-		double increment = simulation->timeline[1] - simulation->timeline[0];
 
 		URNGenerator urn(simulation->random_seed);
 		// The contents of y0 are "stolen" by the integrator.
@@ -72,7 +71,7 @@ namespace Gillespy::TauHybrid
 		TauArgs<double> tau_args = initialize(model, tau_tol);
 
 		// Simulate for each trajectory
-		for (int traj = 0; traj < num_trajectories; traj++)
+		for (unsigned int traj = 0; traj < num_trajectories; traj++)
 		{
 			if (traj > 0)
 			{
@@ -80,7 +79,7 @@ namespace Gillespy::TauHybrid
 			}
 
 			// Initialize each species with their respective user modes.
-			for (int spec_i = 0; spec_i < num_species; ++spec_i)
+			for (unsigned int spec_i = 0; spec_i < num_species; ++spec_i)
 			{
 				HybridSpecies *spec = &simulation->species_state[spec_i];
 				spec->partition_mode = spec->user_mode == SimulationState::DYNAMIC
@@ -95,14 +94,14 @@ namespace Gillespy::TauHybrid
 			std::vector<int> current_populations(num_species);
 
 			// Initialize the species population for the trajectory.
-			for (int spec_i = 0; spec_i < num_species; ++spec_i)
+			for (unsigned int spec_i = 0; spec_i < num_species; ++spec_i)
 			{
 				current_state[spec_i] = species[spec_i].initial_population;
-				current_populations[spec_i] = species[spec_i].initial_population;
+				current_populations[spec_i] = static_cast<int>(species[spec_i].initial_population);
 			}
 
 			// SIMULATION STEP LOOP
-			int save_idx = 1;
+			unsigned int save_idx = 1;
 			double next_time;
 			double tau_step = 0.0;
 			double save_time = simulation->timeline[save_idx];
@@ -122,7 +121,7 @@ namespace Gillespy::TauHybrid
 			while (integration_guard > 0 && simulation->current_time < simulation->end_time)
 			{
 				// Compute current propensity values based on existing state.
-				for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
+				for (unsigned int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
 				{
 					HybridReaction &rxn = simulation->reaction_state[rxn_i];
 					double propensity = 0.0;
@@ -191,22 +190,18 @@ namespace Gillespy::TauHybrid
 					invalid_state = false;
 
 					// 0-initialize our population_changes array.
-					for (int p_i = 0; p_i < num_species; ++p_i)
+					for (unsigned int spec_i = 0; spec_i < num_species; ++spec_i)
 					{
-						population_changes[p_i] = 0;
-					}
-
-					// Start with the species concentration as a baseline value.
-					// Stochastic reactions will update populations relative to their concentrations.
-					for (int spec_i = 0; spec_i < num_species; ++spec_i)
-					{
+						population_changes[spec_i] = 0;
+						// Start with the species concentration as a baseline value.
+						// Stochastic reactions will update populations relative to their concentrations.
 						current_state[spec_i] = result.concentrations[spec_i];
 					}
 
 					// The newly-updated reaction_states vector may need to be reconciled now.
 					// A positive reaction_state means reactions have potentially fired.
 					// NOTE: it is possible for a population to swing negative, where a smaller Tau is needed.
-					for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
+					for (unsigned int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
 					{
 						// Temporary variable for the reaction's state.
 						// Does not get updated unless the changes are deemed valid.
@@ -218,7 +213,7 @@ namespace Gillespy::TauHybrid
 							while (rxn_state >= 0) {
 								// "Fire" a reaction by recording changes in dependent species.
 								// If a negative value is detected, break without saving changes.
-								for (int spec_i = 0; spec_i < num_species; ++spec_i) {
+								for (unsigned int spec_i = 0; spec_i < num_species; ++spec_i) {
 									population_changes[spec_i] +=
 										model.reactions[rxn_i].species_change[spec_i];
 									if (current_state[spec_i] + population_changes[spec_i] < 0) {
@@ -248,7 +243,7 @@ namespace Gillespy::TauHybrid
 					else
 					{
 						// "Permanently" update the rxn_state and populations.
-						for (int p_i = 0; p_i < num_species; ++p_i) {
+						for (unsigned int p_i = 0; p_i < num_species; ++p_i) {
 							current_state[p_i] += population_changes[p_i];
 							current_populations[p_i] = (int) current_state[p_i];
 							result.concentrations[p_i] = current_state[p_i];
@@ -270,7 +265,7 @@ namespace Gillespy::TauHybrid
 				// Seek forward, writing out any values on the timeline which are on current timestep range.
 				while (save_idx < simulation->number_timesteps && save_time <= next_time)
 				{
-					for (int spec_i = 0; spec_i < num_species; ++spec_i)
+					for (unsigned int spec_i = 0; spec_i < num_species; ++spec_i)
 					{
 						simulation->trajectories[traj][save_idx][spec_i] = current_state[spec_i];
 					}
