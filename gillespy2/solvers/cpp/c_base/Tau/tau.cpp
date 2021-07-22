@@ -229,7 +229,7 @@ namespace Gillespy
 		}
 
 		// If all reactions are critical, use critical tau.
-		else if (!tau_i.empty())
+		else if (tau_i.empty())
 		{
 			tau = critical_tau;
 		}
