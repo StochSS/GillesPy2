@@ -20,6 +20,7 @@ from collections import OrderedDict
 from typing import Optional
 from gillespy2.core import Species, Reaction, Parameter, Model, RateRule
 from gillespy2.solvers.cpp.build.expression import Expression
+from gillespy2.core import log
 import math
 
 
@@ -32,6 +33,10 @@ class SanitizedModel:
     :param model: GillesPy2 model to produce sanitized mappings of.
     :type model: gillespy2.Model
     """
+    reserved_names = {
+        "vol": "V",
+        "t": "t",
+    }
 
     def __init__(self, model: Model):
         self.model = model
@@ -54,15 +59,21 @@ class SanitizedModel:
             **{name: name for name in math.__dict__.keys()},
             **self.species_names,
             **self.parameter_names,
-            "vol": "V",
-            "t": "t",
+            **self.reserved_names,
         }
         self.expr = Expression(namespace=base_namespace, blacklist=["="], sanitize=True)
 
+        # SSA Propensities: Maps reaction names to their corresponding propensity function.
         self.propensities: "OrderedDict[str, str]" = OrderedDict()
+        # ODE Propensities: Maps reaction names to their corresponding mass-action rate expression.
         self.ode_propensities: "OrderedDict[str, str]" = OrderedDict()
+        # Reactions: maps reaction names to their stoichiometry matrix.
+        # Stoichiometry matrix maps a sanitized species name to its stoichiometry.
         self.reactions: "OrderedDict[str, dict[str, int]]" = OrderedDict()
+        # Rate Rules: maps sanitized species names to their corresponding rate rule expression.
         self.rate_rules: "OrderedDict[str, str]" = OrderedDict()
+        # Options: custom definitions that can be supplied by the solver, maps macros to their definitions.
+        # The solver itself may use `options` to supply their own solver-specific definitions.
         self.options: "OrderedDict[str, str]" = OrderedDict()
 
         for reaction in model.get_all_reactions().values():
@@ -117,10 +128,19 @@ class SanitizedModel:
         :returns: Pass-through of sanitized model object.
         :rtype: SanitizedModel
         """
-        if rate_rule.variable in self.species_names:
+        variable = rate_rule.variable \
+            if isinstance(rate_rule.variable, Species) \
+            else self.model.get_species(rate_rule.variable)
+
+        if variable.name in self.species_names:
+            sanitized_name = self.species_names.get(variable.name)
+            if sanitized_name in self.rate_rules:
+                log.warning(f"Duplicate rate rule variable found in C++ solver: {variable}")
             rr_sanitized = self.expr.getexpr_cpp(rate_rule.formula)
             if rr_sanitized is not None:
-                self.rate_rules[self.species_names.get(rate_rule.variable)] = rr_sanitized
+                self.rate_rules[sanitized_name] = rr_sanitized
+            else:
+                log.warning(f"Could not sanitize rate rule formula expression: {rate_rule.formula}")
         return self
 
     def get_template(self, variable=False) -> "dict[str, str]":
