@@ -30,6 +30,8 @@
 /* Used to access individual components of a length N vector. */
 #define NV_Ith_s(v, i) (NV_DATA_S(v)[i])
 
+bool validate(int ret_code);
+
 namespace Gillespy
 {
 	static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data);
@@ -41,13 +43,6 @@ namespace Gillespy
 
 	void ODESolver(Simulation<double> *simulation, double increment)
 	{
-		// CVODE constants are returned on every success or failure.
-		// CV_SUCCESS: Operation was successful.
-		// CV_MEM_NULL: CVODE memory block was not initialized with CVodeCreate.
-		// CV_NO_MALLOC: The allocation function CVodeInit was not called.
-		// CV_ILL_INPUT: An input tolerance was negative.
-		int flag;
-
 		// Allocate memory for data passed into RHS.
 		UserData *data = new UserData();
 		data->my_sim = simulation;
@@ -76,8 +71,8 @@ namespace Gillespy
 		realtype t0 = 0;
 
 		// Initialize the ODE solver and set tolerances.
-		flag = CVodeInit(cvode_mem, f, t0, y0);
-		flag = CVodeSStolerances(cvode_mem, reltol, abstol);
+		validate(CVodeInit(cvode_mem, f, t0, y0));
+		validate(CVodeSStolerances(cvode_mem, reltol, abstol));
 
 		// Initialize and select the linear solver module.
 		// SUNSPMR: Iterative Solver (compatible with serial, threaded, parallel, and user suppoed NVector).
@@ -88,13 +83,13 @@ namespace Gillespy
 		SUNLinearSolver linear_solver = SUNLinSol_SPGMR(y0, 0, 0);
 
 		// Attach linear solver module.
-		flag = CVodeSetUserData(cvode_mem, data);
+		validate(CVodeSetUserData(cvode_mem, data));
 
 		// CVodeSetLinearSolver(void *cvoid_mem, SUNLinearSolver LS, SUNMatrix A)
 		// - void *cvode_mem: Pointer to CVODE memory block.
 		// - SUNLinearSolver LS: SUNLINSOL object to use for solving linear systems.
 		// - SUNMaxtrix A: Object to use as a template for Jacobian, defaults to NULL if not applicable.
-		flag = CVodeSetLinearSolver(cvode_mem, linear_solver, NULL);
+		validate(CVodeSetLinearSolver(cvode_mem, linear_solver, NULL));
 
 		// For each point at which output is desired, call `ier = CVode(cvode_mem, tout, yout, &tret, itask)`.
 		// Here, itask specifies the return mode.
@@ -115,7 +110,7 @@ namespace Gillespy
 			// parameter. The solver interpolates in order to return an approximate value of `y(tout)`.
 			// CVode() returns a vector `y0` (or `y(tout)`), and corresponding variable value `t` = `tret` (return time).
 			// With CV_NORMAL `tret` is equal to `tout` and `y0` = `y(tout)`.
-			flag = CVode(cvode_mem, tout, y0, &tret, CV_NORMAL);
+			validate(CVode(cvode_mem, tout, y0, &tret, CV_NORMAL));
 			current_time++;
 
 			for (sunindextype species = 0; species < N; species++)
@@ -178,5 +173,31 @@ namespace Gillespy
 		}
 
 		return 0;
+	}
+}
+
+bool validate(int ret_code)
+{
+	// CVODE constants are returned on every success or failure.
+	// CV_SUCCESS: Operation was successful.
+	// CV_MEM_NULL: CVODE memory block was not initialized with CVodeCreate.
+	// CV_NO_MALLOC: The allocation function CVodeInit was not called.
+	// CV_ILL_INPUT: An input tolerance was negative.
+	switch (ret_code)
+	{
+	case CV_TOO_CLOSE:
+	case CV_TOO_MUCH_WORK:
+		std::cerr << "CVode error: bad time step" << std::endl;
+		return false;
+	case CV_MEM_NULL:
+	case CV_NO_MALLOC:
+		std::cerr << "CVode error: invalid memory operation" << std::endl;
+		return false;
+	case CV_ILL_INPUT:
+		std::cerr << "CVode error: invalid input tolerance" << std::endl;
+		return false;
+	case CV_SUCCESS:
+	default:
+		return true;
 	}
 }
