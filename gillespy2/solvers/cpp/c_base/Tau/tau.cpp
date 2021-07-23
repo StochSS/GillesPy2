@@ -223,7 +223,7 @@ namespace Gillespy
 		}
 
 		// If all reactions are non-critical, use non-critical tau.
-		if (critical)
+		if (!critical)
 		{
 			tau = non_critical_tau;
 		}
