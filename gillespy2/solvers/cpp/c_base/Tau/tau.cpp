@@ -189,10 +189,9 @@ namespace Gillespy
 			for (auto const &x : tau_args.g_i_lambdas)
 			{
 				tau_args.g_i[x.first] = tau_args.g_i_lambdas[x.first](tau_args.g_i[x.first]);
-
 				tau_args.epsilon_i[x.first] = tau_tol / tau_args.g_i[x.first];
-				tau_args.g_i_lambdas.erase(x.first);
 			}
+			tau_args.g_i_lambdas.clear();
 		}
 
 		std::map<std::string, double> tau_i;    //Mapping of possible non-critical_taus, to be evaluated
