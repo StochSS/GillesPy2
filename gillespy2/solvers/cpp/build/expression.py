@@ -392,6 +392,13 @@ class ExpressionConverter(ast.NodeVisitor):
         self.generic_visit(node)
         self.parse_comparison(">=")
 
+    def visit_UnaryOp(self, node: "ast.UnaryOp"):
+        self.visit(node.operand)
+        self.visit(node.op)
+
+    def visit_USub(self, node: "ast.USub"):
+        self.expression.append(f"-{self.expression.pop()}")
+
     def _get_str(self, expr: "ast.AST"):
         self.visit(expr)
         return "".join(self.expression)
