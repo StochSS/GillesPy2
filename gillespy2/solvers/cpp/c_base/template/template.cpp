@@ -24,6 +24,7 @@
 #include "model.h"
 #include "template_definitions.h"
 #include "template_defaults.h"
+#include "template_params.h"
 
 namespace Gillespy
 {
@@ -56,8 +57,8 @@ namespace Gillespy
 		r_names,
 		r_names + sizeof(r_names) / sizeof(std::string));
 
-	#define VARIABLE(name, value) static double (name) = (value);
-	#define CONSTANT(name, value) static const double (name) = (value);
+	#define VARIABLE(name, value) double name = value;
+	#define CONSTANT(name, value) const double name = value;
 	GPY_PARAMETER_VALUES
 	#undef CONSTANT
 	#undef VARIABLE
