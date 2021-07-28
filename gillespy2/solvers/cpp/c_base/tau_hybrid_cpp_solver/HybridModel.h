@@ -22,8 +22,8 @@
 #include "model.h"
 #include "tau.h"
 
-#define GPY_HYBRID_ABSTOL 1e-5
-#define GPY_HYBRID_RELTOL 1e-5
+#define GPY_HYBRID_ABSTOL 1e-12
+#define GPY_HYBRID_RELTOL 1e-12
 
 namespace Gillespy::TauHybrid
 {

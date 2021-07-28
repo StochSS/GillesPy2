@@ -19,12 +19,22 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <cmath>
 
 #include "template.h"
 #include "model.h"
 #include "template_definitions.h"
 #include "template_defaults.h"
 #include "template_params.h"
+
+// "factorial()" function is not defined in cmath
+// Can be emulated using std::tgamma
+//   std::gamma(n) = factorial(n-1),
+//     and so:
+//   std::gamma(n+1) = factorial((n+1)-1) = factorial(n)
+#ifndef factorial
+#define factorial(n) std::tgamma(static_cast<int>(n)+1)
+#endif
 
 namespace Gillespy
 {
