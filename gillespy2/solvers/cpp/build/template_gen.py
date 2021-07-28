@@ -186,9 +186,8 @@ class SanitizedModel:
         :returns: Dictionary of fully-formatted macro definitions.
         :rtype: dict[str, str]
         """
-        if len(self.options) > 0:
-            return update_model_options(self, self.options.copy())
-        return None
+        options = update_model_options(self, self.options.copy())
+        return options if len(options) > 0 else None
 
 
 def write_template(path: str, model: Model, variable=False):
