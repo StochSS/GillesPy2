@@ -80,6 +80,10 @@ namespace Gillespy::TauHybrid
 
 		DifferentialEquation diff_equation;
 
+		// Boundary condition species are not directly updated by reactions, while standard ones are.
+		// If `boundary_condition` is true, then reactants are not consumed, and products are not produced.
+		bool boundary_condition = false;
+
 		HybridSpecies();
 	};
 

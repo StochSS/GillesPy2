@@ -25,13 +25,18 @@ namespace Gillespy
 	{
 		void map_species_modes(std::vector<HybridSpecies> &species)
 		{
-			#define SPECIES_MODE(spec_id, spec_mode, user_min) \
+			#define SPECIES_MODE(spec_id, user_min, spec_mode, boundary_mode) \
 			species[spec_id].user_mode = spec_mode; \
-			species[spec_id].switch_min = user_min;
+			species[spec_id].switch_min = user_min; \
+			species[spec_id].boundary_condition = boundary_mode;
 			#define CONTINUOUS_MODE SimulationState::CONTINUOUS
 			#define DISCRETE_MODE   SimulationState::DISCRETE
 			#define DYNAMIC_MODE    SimulationState::DYNAMIC
+			#define BOUNDARY true
+			#define STANDARD false
 			GPY_HYBRID_SPECIES_MODES
+			#undef STANDARD
+			#undef BOUNDARY
 			#undef DYNAMIC_MODE
 			#undef DISCRETE_MODE
 			#undef CONTINUOUS_MODE

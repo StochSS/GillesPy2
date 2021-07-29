@@ -237,6 +237,10 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	// To handle these, we will go ahead and evaluate each species' differential equations.
 	for (spec_i = 0; spec_i < num_species; ++spec_i)
 	{
+		if ((*species)[spec_i].boundary_condition) {
+			// The effective dy/dt of a boundary condition is 0.
+			continue;
+		}
 		dydt[spec_i] = (*species)[spec_i].diff_equation.evaluate(t, Y, &populations[0]);
 	}
 

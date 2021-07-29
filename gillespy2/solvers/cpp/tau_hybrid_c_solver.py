@@ -30,11 +30,22 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             "discrete": "DISCRETE_MODE",
             "dynamic": "DYNAMIC_MODE",
         }
+        boundary_condition_types = [
+            # When species.boundary_condition == False
+            "STANDARD",
+            # When species.boundary_condition == True
+            "BOUNDARY",
+        ]
 
         species_mode_list = []
         for spec_id, species in enumerate(model.species.values()):
             mode_keyword = species_mode_map.get(species.mode, species_mode_map["dynamic"])
-            species_mode_list.append(f"SPECIES_MODE({spec_id},{mode_keyword},{species.switch_min})")
+            # Casting a bool to an int evaluates: False -> 0, and True -> 1
+            # Explicit cast to bool for safety, in case boundary_condition is given weird values
+            boundary_keyword = boundary_condition_types[int(bool(species.boundary_condition))]
+            # Example: SPECIES_MODE(2, 10, CONTINUOUS_MODE, BOUNDARY)
+            entry = f"SPECIES_MODE({spec_id},{species.switch_min},{mode_keyword},{boundary_keyword})"
+            species_mode_list.append(entry)
 
         model.options["GPY_HYBRID_SPECIES_MODES"] = " ".join(species_mode_list)
         return model
