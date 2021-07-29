@@ -239,9 +239,12 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	{
 		if ((*species)[spec_i].boundary_condition) {
 			// The effective dy/dt of a boundary condition is 0.
-			continue;
+			dydt[spec_i] = 0.0;
 		}
-		dydt[spec_i] = (*species)[spec_i].diff_equation.evaluate(t, Y, &populations[0]);
+		else
+		{
+			dydt[spec_i] = (*species)[spec_i].diff_equation.evaluate(t, Y, &populations[0]);
+		}
 	}
 
 	// Process deterministic propensity state
