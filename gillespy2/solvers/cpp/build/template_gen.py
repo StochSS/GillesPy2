@@ -207,8 +207,17 @@ def write_template(path: str, model: Model, variable=False):
     defines = get_model_defines(model, variable)
     write_definitions(path, defines)
 
+
 def write_definitions(path: str, defines: "dict[str, str]"):
     """
+    Write the given key-value pairs as a C/C++ template file.
+    Contents of the given `defines` dict are written as `#define {key} {value}` format.
+
+    :param path: Absolute filepath of the header file to create (including the `.h` extension.
+    :type path: str
+
+    :param defines: Dictionary of key-value pairs representing macro definitions to create.
+    :type defines: dict[str, str]
     """
     # Definition dict is transformed into a list of C++ macro definitions, with:
     # `#define KEY VALUE` format.
@@ -259,7 +268,19 @@ def get_model_defines(model: Model, variable=False) -> "dict[str, str]":
 
 def update_model_options(model: "SanitizedModel", definitions: "dict[str, str]" = None) -> "dict[str, str]":
     """
-    Creates a
+    Generate the solver-specific options of the `SanitizedModel` with the given definitions.
+    This includes both solver-defined custom definitions, as well as SBML features.
+
+    :param model: Sanitized model to populate the options into.
+    The model itself is not modified.
+    :type model: SanitizedModel
+
+    :param definitions: Dictionary of macro definition key-value pairs to pass to the model.
+    :type definitions: dict[str, str]
+
+    :returns: Updated dictionary of macro definitions.
+    Includes both solver-specific definitions provided and SBML features on the model.
+    :rtype: dict[str, str]
     """
     if definitions is None:
         definitions = {}

@@ -5,7 +5,6 @@ import numpy
 from gillespy2 import TauHybridCSolver
 
 
-# Loosely based on:
 class BoundaryConditionTestModel(gillespy2.Model):
     def __init__(self):
         gillespy2.Model.__init__(self, name="BoundaryConditionTestModel")
@@ -33,7 +32,6 @@ class BoundaryConditionTestModel(gillespy2.Model):
         self.timespan(numpy.linspace(0, 20, 51))
 
 
-# Loosely based on:
 # The output has a roughly predictable output, each species (approx.) approaching a particular value:
 #   S1 -> 0     S2 -> 0.15      S3 -> 1.0 (should be approx. constant throughout)
 class RateRuleTestModel(gillespy2.Model):
