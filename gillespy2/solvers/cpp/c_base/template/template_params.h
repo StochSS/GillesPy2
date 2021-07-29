@@ -29,6 +29,18 @@
 #pragma once
 
 #include "template_definitions.h"
+#include <cmath>
+
+// "factorial()" function is not defined in cmath
+// Can be emulated using std::tgamma
+//   std::gamma(n) = factorial(n-1),
+//     and so:
+//   std::gamma(n+1) = factorial((n+1)-1) = factorial(n)
+#ifndef factorial
+#define factorial(n) std::tgamma(static_cast<int>(n)+1)
+#endif
+
+using namespace std;
 
 namespace Gillespy
 {

@@ -27,15 +27,6 @@
 #include "template_defaults.h"
 #include "template_params.h"
 
-// "factorial()" function is not defined in cmath
-// Can be emulated using std::tgamma
-//   std::gamma(n) = factorial(n-1),
-//     and so:
-//   std::gamma(n+1) = factorial((n+1)-1) = factorial(n)
-#ifndef factorial
-#define factorial(n) std::tgamma(static_cast<int>(n)+1)
-#endif
-
 namespace Gillespy
 {
 	double populations[GPY_NUM_SPECIES] = GPY_INIT_POPULATIONS;
@@ -55,7 +46,6 @@ namespace Gillespy
 		s_names + sizeof(s_names) / sizeof(std::string));
 
 	int reactions[GPY_NUM_REACTIONS][GPY_NUM_SPECIES] = GPY_REACTIONS;
-	// std::string r_names[GPY_NUM_REACTIONS] = GPY_REACTION_NAMES;
 	std::string r_names[GPY_NUM_REACTIONS] = 
 	{
 		#define REACTION_NAME(name) #name,
