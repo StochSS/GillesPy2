@@ -32,9 +32,9 @@ from gillespy2.core import (
 import numpy as np
 
 
-class VilarOscillator(gillespy2.Model):
+class VilarOscillator(Model):
     def __init__(self, parameter_values=None):
-        gillespy2.Model.__init__(self, name="VilarOscillator")
+        Model.__init__(self, name="VilarOscillator")
         self.volume = 1
 
         # Parameters
