@@ -93,7 +93,7 @@ class VilarOscillator(Model):
                            r10, r11, r12, r13, r14, r15, r16])
 
         # Timespan
-        self.timespan(numpy.linspace(0,200,201))
+        self.timespan(np.linspace(0,200,201))
 
 
 class Dimerization(Model):
