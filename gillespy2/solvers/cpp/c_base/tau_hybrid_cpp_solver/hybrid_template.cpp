@@ -50,5 +50,68 @@ namespace Gillespy
 			#undef RATE_RULE
 		}
 
+
+		bool Event::trigger(int event_id, double t, const double *S)
+		{
+			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist) \
+			case event_id: return (bool) (trigger);
+
+			switch (event_id)
+			{
+			GPY_HYBRID_EVENTS
+
+			default:
+				return false;
+			}
+
+			#undef EVENT
+		}
+
+		double Event::delay(int event_id, double t, const double *S)
+		{
+			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist) \
+			case event_id: return static_cast<double>(delay);
+
+			switch (event_id)
+			{
+				GPY_HYBRID_EVENTS
+
+				default:
+					return false;
+			}
+
+			#undef EVENT
+		}
+
+		double Event::priority(int event_id, double t, const double *S)
+		{
+			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist) \
+			case event_id: return static_cast<double>(priority);
+
+			switch (event_id)
+			{
+				GPY_HYBRID_EVENTS
+
+				default:
+					return false;
+			}
+
+			#undef EVENT
+		}
+
+		void Event::use_events(std::vector<Event> &events)
+		{
+			events.clear();
+			events.reserve(GPY_HYBRID_NUM_EVENTS);
+
+			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist) \
+			if ((event_id) < GPY_HYBRID_NUM_EVENTS) events[event_id] = Event(event_id, trigger);
+			GPY_HYBRID_EVENTS
+			#undef GPY_HYBRID_EVENTS
+		}
+
+		Event::Event(int event_id, std::initializer_list<int> assignment_ids)
+			: m_event_id(event_id)
+		{}
 	}
 }
