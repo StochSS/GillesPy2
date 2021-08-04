@@ -45,7 +45,8 @@ namespace Gillespy
 
 		void map_rate_rules(std::vector<HybridSpecies> &species)
 		{
-			#define RATE_RULE(spec_id, rate_rule) species[spec_id].diff_equation.rate_rules.push_back([](double t, double *S) { return (rate_rule); });
+			#define RATE_RULE(spec_id, rate_rule) species[spec_id].diff_equation.rate_rules.push_back(\
+			[](double t, double *S, double *P, const double *C){ return (rate_rule); });
 			GPY_RATE_RULES
 			#undef RATE_RULE
 		}

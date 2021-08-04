@@ -122,17 +122,17 @@ namespace Gillespy::TauHybrid
 			while (integration_guard > 0 && simulation->current_time < simulation->end_time)
 			{
 				// Compute current propensity values based on existing state.
-				for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
+				for (unsigned int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
 				{
 					HybridReaction &rxn = simulation->reaction_state[rxn_i];
 					double propensity = 0.0;
 					switch (rxn.mode)
 					{
 						case SimulationState::CONTINUOUS:
-							propensity = HybridReaction::ode_propensity(rxn_i, &current_state[0]);
+							propensity = Reaction::propensity(rxn_i, current_state.data());
 							break;
 						case SimulationState::DISCRETE:
-							propensity = HybridReaction::ssa_propensity(rxn_i, &current_populations[0]);
+							propensity = Reaction::propensity(rxn_i, current_populations.data());
 							break;
 						default:
 							break;

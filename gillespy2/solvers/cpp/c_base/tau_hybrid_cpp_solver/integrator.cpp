@@ -243,18 +243,18 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 		}
 		else
 		{
-			dydt[spec_i] = (*species)[spec_i].diff_equation.evaluate(t, Y, &populations[0]);
+			dydt[spec_i] = (*species)[spec_i].diff_equation.evaluate(t, Y, populations.data());
 		}
 	}
 
 	// Process deterministic propensity state
 	// These updates get written directly to the integrator's concentration state
-	for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
+	for (unsigned int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
 	{
 		switch ((*reactions)[rxn_i].mode) {
 		case SimulationState::DISCRETE:
 			// Process stochastic reaction state by updating the root offset for each reaction.
-			propensity = HybridReaction::ssa_propensity(rxn_i, &populations[0]);
+			propensity = Reaction::propensity(rxn_i, populations.data());
 			dydt_offsets[rxn_i] = propensity;
 			propensities[rxn_i] = propensity;
 			break;

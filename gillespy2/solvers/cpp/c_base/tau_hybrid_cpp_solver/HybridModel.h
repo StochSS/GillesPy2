@@ -41,7 +41,7 @@ namespace Gillespy::TauHybrid
 	{
 	public:
 		std::vector<std::function<double(double*, int*)>> formulas;
-		std::vector<std::function<double(double, double*)>> rate_rules;
+		std::vector<std::function<double(double, double*, double*, const double*)>> rate_rules;
 		double evaluate(double t, double *ode_state, int *ssa_state);
 	};
 
@@ -93,9 +93,6 @@ namespace Gillespy::TauHybrid
 		SimulationState mode;
 
 		HybridReaction();
-
-		static double ode_propensity(ReactionId reaction_number, double *state);
-		static double ssa_propensity(ReactionId reaction_number, int *state);
 	};
 
 	struct HybridSimulation : Simulation<double>

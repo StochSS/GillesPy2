@@ -159,7 +159,7 @@ namespace Gillespy
 		for (sunindextype reaction_index = 0; reaction_index < number_reactions; reaction_index++)
 		{
 			// Calculate propensity for each reaction at the current state.
-			propensity.push_back(simulation->propensity_function->ODEEvaluate((int)reaction_index, current_state));
+			propensity.push_back(Reaction::propensity(reaction_index, ydata));
 
 			for (sunindextype species_index = 0; species_index < number_species; species_index++)
 			{

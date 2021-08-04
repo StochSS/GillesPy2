@@ -29,6 +29,8 @@
 
 namespace Gillespy
 {
+	static double param_overrides[GPY_PARAMETER_NUM_VARIABLES];
+
 	double populations[GPY_NUM_SPECIES] = GPY_INIT_POPULATIONS;
 	std::vector<double> species_populations(
 		populations,
@@ -57,13 +59,33 @@ namespace Gillespy
 		r_names,
 		r_names + sizeof(r_names) / sizeof(std::string));
 
-	#define VARIABLE(name, value) double name = value;
-	#define CONSTANT(name, value) const double name = value;
-	GPY_PARAMETER_VALUES
-	#undef CONSTANT
-	#undef VARIABLE
+	double *get_variables(int *num_variables)
+	{
+		double *variables = new double[GPY_PARAMETER_NUM_VARIABLES];
 
-	double map_propensity(int reaction_id, const std::vector<int> &S)
+		#define CONSTANT(id, value)
+		#define VARIABLE(id, value) variables[id] = value; (*num_variables)++;
+		GPY_PARAMETER_VALUES
+		#undef VARIABLE
+		#undef CONSTANT
+
+		return variables;
+	}
+
+	double *get_constants(int *num_constants)
+	{
+		double *constants = new double[GPY_PARAMETER_NUM_CONSTANTS];
+
+		#define VARIABLE(id, value)
+		#define CONSTANT(id, value) constants[id] = value; (*num_constants)++;
+		GPY_PARAMETER_VALUES
+		#undef CONSTANT
+		#undef VARIABLE
+
+		return constants;
+	}
+
+	double map_propensity(unsigned int reaction_id, unsigned int *S, double *P, const double *C)
 	{
 		switch (reaction_id)
 		{
@@ -76,7 +98,7 @@ namespace Gillespy
 		}
 	}
 
-	double map_propensity(int reaction_id, unsigned int *S)
+	double map_propensity(unsigned int reaction_id, int *S, double *P, const double *C)
 	{
 		switch (reaction_id)
 		{
@@ -89,33 +111,7 @@ namespace Gillespy
 		}
 	}
 
-	double map_propensity(int reaction_id, int *S)
-	{
-		switch (reaction_id)
-		{
-			#define PROPENSITY(id, func) case(id): return(func);
-			GPY_PROPENSITIES
-			#undef PROPENSITY
-
-			default:
-				return -1.0;
-		}
-	}
-
-	double map_ode_propensity(int reaction_id, const std::vector<double> &S)
-	{
-		switch (reaction_id)
-		{
-			#define PROPENSITY(id, func) case(id): return(func);
-			GPY_ODE_PROPENSITIES
-			#undef PROPENSITY
-
-			default:
-				return -1.0;
-		}
-	}
-
-	double map_ode_propensity(int reaction_id, double *S)
+	double map_propensity(unsigned int reaction_id, double *S, double *P, const double *C)
 	{
 		switch (reaction_id)
 		{
@@ -130,8 +126,8 @@ namespace Gillespy
 
 	void map_variable_parameters(std::stringstream &stream)
 	{
-		#define VARIABLE(name, value) stream >> (name);
-		#define CONSTANT(name, value)
+		#define VARIABLE(id, value) stream >> param_overrides[id];
+		#define CONSTANT(id, value)
 		GPY_PARAMETER_VALUES
 		#undef CONSTANT
 		#undef VARIABLE

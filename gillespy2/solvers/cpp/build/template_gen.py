@@ -34,11 +34,10 @@ class SanitizedModel:
     :type model: gillespy2.Model
     """
     reserved_names = {
-        "vol": "V",
         "t": "t",
     }
 
-    def __init__(self, model: Model):
+    def __init__(self, model: Model, variable=False):
         self.model = model
 
         self.species: "OrderedDict[str, Species]" = OrderedDict()
@@ -47,10 +46,14 @@ class SanitizedModel:
             self.species[sanitized_name] = model.get_species(species_name)
 
         self.parameters: "OrderedDict[str, Parameter]" = OrderedDict()
-        self.parameter_names = model.sanitized_parameter_names()
+        self.parameter_names: "OrderedDict[str, str]" = OrderedDict()
+        self.parameter_names["vol"] = "P[0]" if variable else "C[0]"
+        for param_id, param_name in enumerate(model.listOfParameters.keys(), start=1):
+            if param_name not in self.parameter_names:
+                self.parameter_names[param_name] = f"P[{param_id}]" if variable else f"C[{param_id}]"
         for parameter_name, sanitized_name in self.parameter_names.items():
             self.parameters[sanitized_name] = model.get_parameter(parameter_name) \
-                if parameter_name != "vol" else Parameter(name="V", expression=model.volume)
+                if parameter_name != "vol" else Parameter(name=sanitized_name, expression=str(model.volume))
 
         base_namespace = {
             # ORDER IS IMPORTANT HERE!
@@ -322,11 +325,15 @@ def template_def_variables(model: SanitizedModel, variable=False) -> "dict[str, 
     parameter_type = "VARIABLE" if variable else "CONSTANT"
     # Parameter entries, parsed and formatted
     parameter_set = []
-    for param_name, parameter in model.parameters.items():
-        parameter_set.append(f"{parameter_type}({param_name},{parameter.expression})")
+    for param_id, parameter in enumerate(model.parameters.values()):
+        parameter_set.append(f"{parameter_type}({param_id},{parameter.expression})")
 
     return {
-        "GPY_PARAMETER_VALUES": " ".join(parameter_set)
+        "GPY_PARAMETER_VALUES": " ".join(parameter_set),
+        # Currently assumes all variable or all constant.
+        # For partially variable models, modify to compute these two separately.
+        "GPY_PARAMETER_NUM_VARIABLES": str(len(parameter_set)) if variable else "0",
+        "GPY_PARAMETER_NUM_CONSTANTS": str(len(parameter_set)) if not variable else "0",
     }
 
 

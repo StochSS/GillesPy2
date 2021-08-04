@@ -69,7 +69,7 @@ namespace Gillespy::TauHybrid
 
 		for (auto &rate_rule : rate_rules)
 		{
-			sum += rate_rule(t, ode_state);
+			sum += rate_rule(t, ode_state, Reaction::s_variables.get(), Reaction::s_constants.get());
 		}
 
 		for (auto &formula : formulas)
@@ -114,7 +114,7 @@ namespace Gillespy::TauHybrid
 						double *ode_state,
 						int *ssa_state)
 					{
-						return spec_diff * HybridReaction::ode_propensity(rxn_i, ode_state);
+						return spec_diff * Reaction::propensity(rxn_i, ode_state);
 					});
 					break;
 
@@ -123,7 +123,7 @@ namespace Gillespy::TauHybrid
 						double *ode_state,
 						int *ssa_state)
 					{
-						return spec_diff * HybridReaction::ssa_propensity(rxn_i, ssa_state);
+						return spec_diff * Reaction::propensity(rxn_i, ssa_state);
 					});
 					break;
 
