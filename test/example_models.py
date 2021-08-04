@@ -1,4 +1,34 @@
-from gillespy2.core import Model, Species, Reaction, Parameter
+"""
+GillesPy2 is a modeling toolkit for biochemical simulation.
+Copyright (C) 2019-2021 GillesPy2 developers.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
+from gillespy2.core import (
+    Event,
+    Model,
+    Species,
+    Reaction,
+    RateRule,
+    Parameter,
+    EventTrigger,
+    AssignmentRule,
+    EventAssignment,
+	FunctionDefinition
+)
+
 import numpy as np
 
 
@@ -425,7 +455,45 @@ class Oregonator(Model):
           # Set timespan of model
           self.timespan(np.linspace(0, 5, 501))
 
+class RobustModel(Model):
+    def __init__(self, parameter_values=None):
+        Model.__init__(self, name="test1")
+        self.volume = 1
+
+        # Parameters
+        self.add_parameter(Parameter(name="k1", expression="0.5"))
+        self.add_parameter(Parameter(name="k2", expression="3.2e-15"))
+
+        # Variables
+        self.add_species(Species(name="s1", initial_value=8000, mode="continuous"))
+        self.add_species(Species(name="s2", initial_value=0, mode="continuous"))
+
+        # Reactions
+        self.add_reaction(Reaction(name="r1", reactants={'s1': 1}, products={'s2': 1}, rate=self.listOfParameters["k2"]))
+        self.add_reaction(Reaction(name="r2", reactants={'s1': 1}, products={}, rate=self.listOfParameters["k1"]))
+        self.add_reaction(Reaction(name="r3", reactants={'s1': 2}, products={'s1': 3}, propensity_function="sin(1)"))
+
+        # Event Triggers
+        e1_trig = EventTrigger(expression="t > 50", initial_value=True, persistent=True)
+
+        # Event Assignments
+        e1_assign_1 = EventAssignment(variable="s1", expression="2000")
+
+        # Events
+        self.add_event(Event(name="e1", trigger=e1_trig, assignments=[e1_assign_1], delay="t - 40", priority="0", use_values_from_trigger_time=True))
+
+        # Rate Rules
+        self.add_rate_rule(RateRule(name="rr1", formula="sin(0.5)", variable="s1"))
+
+        # Assignment Rules
+        self.add_assignment_rule(AssignmentRule(name="rr2", formula="8000/(s1+1)", variable="s2"))
+
+        # Function Definitions
+        self.add_function_definition(FunctionDefinition(name="multiply", function="x * y", args=['x', 'y']))
+
+        # Timespan
+        self.timespan(np.arange(0, 20, 0.05))
 
 __all__ = ['Trichloroethylene', 'LacOperon', 'Schlogl', 'MichaelisMenten',
            'ToggleSwitch', 'Example', 'Tyson2StateOscillator', 'Oregonator',
-           'VilarOscillator', "Dimerization"]
+           'VilarOscillator', 'Dimerization', 'RobustModel']

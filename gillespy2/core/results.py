@@ -1,6 +1,25 @@
+"""
+GillesPy2 is a modeling toolkit for biochemical simulation.
+Copyright (C) 2019-2021 GillesPy2 developers.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 import warnings
 from datetime import datetime
 from gillespy2.core.gillespyError import *
+from gillespy2.core.jsonify import Jsonify
 from collections import UserDict, UserList
 
 # List of 50 hex color values used for plotting graphs
@@ -80,17 +99,21 @@ def _plotplotly_iterate(trajectory, show_labels=True, trace_list=None, line_dict
 
     return trace_list
 
-class Trajectory(UserDict):
+class Trajectory(UserDict, Jsonify):
     """ Trajectory Dict created by a gillespy2 solver containing single trajectory, extends the UserDict object.
 
     :param data: A dictionary of trajectory values created by a solver
     :type data: UserDict
+
     :param model: The name of the model used to create the trajectory
     :type model: str
+
     :param solver_name: The name of the solver used to create the trajectory
     :type solver_name: str
+
     :param rc: The solvers status return code.
     :type rc: int
+
     :param status: The solver status ('Success','Timed out')
     """
 
@@ -116,7 +139,7 @@ class Trajectory(UserDict):
         raise KeyError(key)
 
 
-class Results(UserList):
+class Results(UserList, Jsonify):
     """
     List of Trajectory objects created by a gillespy2 solver, extends the UserList object.
 
@@ -220,13 +243,15 @@ class Results(UserList):
 
     def to_csv(self, path=None, nametag=None, stamp=None):
         """
-        outputs the Results to one or more .csv files in a new directory.
+        Outputs the Results to one or more .csv files in a new directory.
 
         :param nametag: allows the user to optionally "tag" the directory and included files. Defaults to the model
-        name.
+            name.
         :type nametag: str
+
         :param path: the location for the new directory and included files. Defaults to model location.
         :type path: str
+
         :param stamp: Allows the user to optionally "tag" the directory (not included files). Default is timestamp.
         :type stamp: str
         """
@@ -269,23 +294,31 @@ class Results(UserList):
 
         :param index: If not none, the index of the Trajectory to be plotted.
         :type index: int
+
         :param xaxis_label: The label for the x-axis
         :type xaxis_label: str
+
         :param yaxis_label: The label for the y-axis
         :type yaxis_label: str
+
         :param title: The title of the graph
         :type title: str
+
         :param multiple_graphs: IF each trajectory should have its own graph or if they should overlap.
         :type multiple_graphs: bool
+
         :param included_species_list: A list of strings describing which species to include. By default displays all
-        species.
+            species.
         :type included_species_list: list
+
         :param save_png: Should the graph be saved as a png file. If True, File name is title of graph. If a string is
-        given, file is named after that string.
+            given, file is named after that string.
         :type save_png: bool or str
+
         :param figsize: The size of the graph. A tuple of the form (width,height). Is (18,10) by default.
         :type figsize: tuple of ints (x,y)
         """
+
         import matplotlib.pyplot as plt
         from collections import Iterable
         trajectory_list = []
@@ -352,24 +385,33 @@ class Results(UserList):
 
         :param index: If not none, the index of the Trajectory to be plotted.
         :type index: int
+
         :param xaxis_label: The label for the x-axis
         :type xaxis_label: str
+
         :param yaxis_label: The label for the y-axis
         :type yaxis_label: str
+
         :param title: The title of the graph
         :type title: str
+
         :param show_title: If True, title will be shown on graph.
         :type show_title: bool
+
         :param show_legend: Default True, if False, legend will not be shown on graph.
         :type show_legend: bool
+
         :param multiple_graphs: IF each trajectory should have its own graph or if they should overlap.
         :type multiple_graphs: bool
+
         :param included_species_list: A list of strings describing which species to include. By default displays all
-        species.
+            species.
         :type included_species_list: list
+
         :param return_plotly_figure: Whether or not to return a figure dictionary of data(graph object traces) and
-        layout which may be edited by the user
+            layout which may be edited by the user
         :type return_plotly_figure: bool
+
         :param **layout_args: Optional additional arguments to be passed to plotlys layout constructor.
         :type **layout_args: dict
         """
@@ -409,9 +451,9 @@ class Results(UserList):
 
         if multiple_graphs:
 
-            from plotly import tools
+            from plotly import subplots
 
-            fig = tools.make_subplots(print_grid=False, rows=int(number_of_trajectories/2) +
+            fig = subplots.make_subplots(print_grid=False, rows=int(number_of_trajectories/2) +
                                                              int(number_of_trajectories % 2), cols=2)
 
             for i, trajectory in enumerate(trajectory_list):
@@ -460,7 +502,8 @@ class Results(UserList):
     def average_ensemble(self):
         """
         Generate a single Results object with a Trajectory that is made of the means of all trajectories' outputs
-        :return: the Results object
+
+        :returns: The Results object
         """
 
         trajectory_list = self.data
@@ -498,11 +541,13 @@ class Results(UserList):
         trajectories' outputs.
 
         :param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-        the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
-        where ddof is 0.
+            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
+            where ddof is 0.
         :type ddof: int
-        :return: the Results object
+
+        :returns: the Results object
         """
+
         from math import sqrt
 
         trajectory_list = self.data
@@ -550,27 +595,36 @@ class Results(UserList):
 
         :param xaxis_label: The label for the x-axis
         :type xaxis_label: str
+
         :param yaxis_label: The label for the y-axis
         :type yaxis_label: str
+
         :param title: The title of the graph
         :type title: str
+
         :param show_title: If True, title will be shown on graph.
         :type show_title: bool
+
         :param show_legend: Default True, if False, legend will not be shown on graph.
         :type show_legend: bool
+
         :param included_species_list: A list of strings describing which species to include. By default displays all
-        species.
+            species.
         :type included_species_list: list
+
         :param return_plotly_figure: Whether or not to return a figure dicctionary of data(graph object traces) and
-        layout which may be edited by the user
+            layout which may be edited by the user
         :type return_plotly_figure: bool
+
         :param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-        the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
-        where ddof is 0.
+            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
+            where ddof is 0.
         :type ddof: int
+
         :param **layout_args: Optional additional arguments to be passed to plotlys layout constructor.
         :type **layout_args: dict
         """
+
         # Backwards compatibility with xaxis_label argument (which duplicates plotly's xaxis_title argument)
         if layout_args.get('xaxis_title') is not None:
             xaxis_label = layout_args.get('xaxis_title')
@@ -665,31 +719,39 @@ class Results(UserList):
                            , title=None, show_title=False, style="default", show_legend=True, included_species_list=[],
                            ddof=0, save_png=False, figsize=(18, 10)):
         """
-            Plot a matplotlib graph depicting mean and standard deviation of a results object
+        Plot a matplotlib graph depicting mean and standard deviation of a results object.
 
         :param xaxis_label: The label for the x-axis
         :type xaxis_label: str
+
         :param yaxis_label: The label for the y-axis
         :type yaxis_label: str
+
         :param title: The title of the graph
         :type title: str
+
         :param show_title: Default False, if True, title will be displayed on the graph.
         :type show_title: bool
+
         :param style: Matplotlib style to be displayed on graph.
         :type style: str
+
         :param show_legend: Default to True, if False, legend will not be shown on graph.
         :type show_legend: bool
+
         :param included_species_list: A list of strings describing which species to include. By default displays all
-        species.
+            species.
         :type included_species_list: list
+
         :param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-        the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
-        where ddof is 0.
+            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
+            where ddof is 0.
         :type ddof: int
+
         :type save_png: bool or str
+
         :param figsize: The size of the graph. A tuple of the form (width,height). Is (18,10) by default.
         :type figsize: tuple of ints (x,y)
-
         """
 
         average_result = self.average_ensemble().data[0]

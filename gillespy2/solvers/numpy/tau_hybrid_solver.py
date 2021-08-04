@@ -1,6 +1,24 @@
+"""
+GillesPy2 is a modeling toolkit for biochemical simulation.
+Copyright (C) 2019-2021 GillesPy2 developers.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 import random, math, sys, warnings
 from collections import OrderedDict
-from scipy.integrate import ode, solve_ivp
+from scipy.integrate import ode, LSODA
 import heapq
 import numpy as np
 import threading
@@ -10,7 +28,6 @@ from gillespy2.core import GillesPySolver, log
 from gillespy2.core.gillespyError import *
 
 eval_globals = math.__dict__
-
 
 def __piecewise(*args):
     # Eval entry for piecewise functions
@@ -105,9 +122,12 @@ class TauHybridSolver(GillesPySolver):
         rate_rules = OrderedDict()
 
         # Initialize sample dict
+        rr_vars = {}
+        for n, rr in model.listOfRateRules.items():
+            rr_vars[rr.variable] = n
         for spec in model.listOfSpecies:
-            if spec in model.listOfRateRules:
-                diff_eqs[model.listOfSpecies[spec]] = model.listOfRateRules[spec].formula
+            if spec in rr_vars.keys():
+                diff_eqs[model.listOfSpecies[spec]] = model.listOfRateRules[rr_vars[spec]].formula
             else:
                 diff_eqs[model.listOfSpecies[spec]] = '0'
 
@@ -134,7 +154,6 @@ class TauHybridSolver(GillesPySolver):
         for spec in model.listOfSpecies:
             if diff_eqs[model.listOfSpecies[spec]] == '0':
                 del diff_eqs[model.listOfSpecies[spec]]
-
         # create a dictionary of compiled gillespy2 rate rules
         for spec, rate in diff_eqs.items():
             rate_rules[spec] = compile(gillespy2.RateRule(spec, rate).formula, '<string>', 'eval')
@@ -149,8 +168,13 @@ class TauHybridSolver(GillesPySolver):
         # Determine if each rxn would be deterministic apart from other reactions
         prev_state = det_rxn.copy()
         for rxn in model.listOfReactions:
+            # assume it is deterministic
             det_rxn[rxn] = True
+            # iterate through the dependent species of this reaction
             for species in dependencies[rxn]:
+                # if any of the dependencies are discrete or (dynamic AND the 
+                # species itself has not been flagged as deterministic)
+                # then allow it to be modelled discretely
                 if model.listOfSpecies[species].mode == 'discrete':
                     det_rxn[rxn] = False
                     break
@@ -210,7 +234,6 @@ class TauHybridSolver(GillesPySolver):
         Evaluate the propensities for the reactions and the RHS of the Reactions and RateRules.
         Also evaluates boolean value of event triggers.
         """
-
         state_change = [0] * len(y_map)
         curr_state['t'] = t
         curr_state['time'] = t
@@ -230,7 +253,8 @@ class TauHybridSolver(GillesPySolver):
             state_change[y_map[r]] += propensities[r]
         for event in events:
             triggered = eval(event.trigger.expression, {**eval_globals, **curr_state})
-            if triggered: state_change[y_map[event]] = 1
+            if triggered: 
+                state_change[y_map[event]] = 1
 
         return state_change
 
@@ -414,13 +438,16 @@ class TauHybridSolver(GillesPySolver):
                     event_sensitivity, tau_step, pure_ode):
         """ 
         Helper function to perform the ODE integration of one step.  This
-        method uses scipy.integrate.solve_ivp to get simulation data, and
+        method uses scipy.integrate.LSODA to get simulation data, and
         determines the next stopping point of the simulation. The state is
         updated and returned to __simulate along with curr_time and the
         solution object. 
         """
+        max_step_size = model.tspan[1] - model.tspan[0] / 100
+
         from functools import partial
         events = model.listOfEvents.values()
+        dense_output = False 
         int_args = [curr_state, model.listOfSpecies, model.listOfReactions,
                     model.listOfRateRules,
                     propensities, y_map,
@@ -434,20 +461,30 @@ class TauHybridSolver(GillesPySolver):
         else:
             tau_step = max(1e-6, tau_step)
         if pure_ode:
-            next_tau = model.tspan[-1]
+            next_tau = curr_time+max_step_size
+            dense_output = True
         else:
             next_tau = curr_time + tau_step
         curr_state['t'] = curr_time
         curr_state['time'] = curr_time
 
         # Integrate until end or tau is reached
-        # TODO: Need a way to exit solve_ivp when timeout is triggered
-        sol = solve_ivp(rhs, [curr_time, next_tau], y0,
-                        method=integrator, dense_output=True,
-                        **integrator_options)
-
+        loop_count = 0
+        sol = LSODA(rhs, curr_time, y0, next_tau)
+        counter = 0
+        while sol.t < next_tau:
+            counter += 1
+            sol.step()
+            # Update states of all species based on changes made to species through
+            # ODE processes.  This will update all species whose mode is set to
+            # 'continuous', as well as 'dynamic' mode species which have been
+            # flagged as deterministic.
+            for spec_name, species in model.listOfSpecies.items():
+                if not species.constant:
+                    curr_state[spec_name] = sol.y[y_map[spec_name]]
 
         # Search for precise event times
+        '''
         if len(model.listOfEvents):
             event_times = self.__detect_events(event_sensitivity, sol, model, delayed_events,
                                                trigger_states, curr_time, curr_state)
@@ -456,23 +493,17 @@ class TauHybridSolver(GillesPySolver):
 
         # Get next tau time
         reaction_times = []
-
+        '''
         # Set curr time to next time a change occurs in the system outside of
         # the standard ODE process.  Determine what kind of change this is,
         # and set the curr_time of simulation to restart simulation after
         # making the appropriate state changes.
+        event_times = {}
+        reaction_times = []
         next_step, curr_time = self.__get_next_step(event_times, reaction_times,
                                                     delayed_events,
                                                     model.tspan[-1], next_tau)
         curr_state['t'] = curr_time
-
-        # Update states of all species based on changes made to species through
-        # ODE processes.  This will update all species whose mode is set to
-        # 'continuous', as well as 'dynamic' mode species which have been
-        # flagged as deterministic.
-        for spec_name, species in model.listOfSpecies.items():
-            if not species.constant:
-                curr_state[spec_name] = sol.sol(curr_time)[y_map[spec_name]]
 
         # Stochastic Reactions are also fired through a root-finding method
         # which mirrors the standard SSA probability.  Since we are using
@@ -486,7 +517,7 @@ class TauHybridSolver(GillesPySolver):
         # added (representing a single-firing each time) until the state value
         # of the reaction is once again negative.
         for rxn in compiled_reactions:
-            curr_state[rxn] = sol.sol(curr_time)[y_map[rxn]]
+            curr_state[rxn] = sol.y[y_map[rxn]]
 
         # In the case that a major change occurs to the system (outside of the
         # standard ODE process) is caused by an event trigger, we then examine
@@ -522,14 +553,16 @@ class TauHybridSolver(GillesPySolver):
 
         :param curr_state: Contains all state variables for system at current time
         :type curr_state: dict
+
         :param curr_time: Represents current time
         :type curr_time: float
+
         :param save_times: Currently unreached save points
         :type save_times: list
-        :return curr_state, curr_time, save_times, sol
 
-        sol - Python object returned from solve_ivp which contains all solution
-        data.
+        :returns: curr_state, curr_time, save_times, sol
+            sol - Python object returned from LSODA which contains all solution
+            data.
         """
 
         event_queue = []
@@ -585,11 +618,11 @@ class TauHybridSolver(GillesPySolver):
             assignment_state = curr_state.copy()
             for s in range(len(species)):
                 # Get ODE Solutions
-                trajectory[trajectory_index][s + 1] = sol.sol(time)[s]
+                trajectory[trajectory_index][s + 1] = sol.y[s]
                 # Update Assignment Rules for all processed time points
                 if len(model.listOfAssignmentRules):
                     # Copy ODE state for assignments
-                    assignment_state[species[s]] = sol.sol(time)[s]
+                    assignment_state[species[s]] = sol.y[s]
             assignment_state['t'] = time
             for ar in model.listOfAssignmentRules.values():
                 assignment_value = eval(ar.formula, {**eval_globals, **assignment_state})
@@ -684,8 +717,11 @@ class TauHybridSolver(GillesPySolver):
         for e_name in model.listOfEvents:
             curr_state[e_name] = 0
 
+        sanitized_species = model.sanitized_species_names()
+        sanitized_parameters = model.sanitized_parameter_names()
         for fd in model.listOfFunctionDefinitions.values():
-            curr_state[fd.name] = fd.function
+            sanitized_function = fd.sanitized_function(sanitized_species, sanitized_parameters)
+            curr_state[fd.name] = eval(f"lambda {', '.join(fd.args)}: {sanitized_function}", eval_globals)
 
         for ar in model.listOfAssignmentRules.values():
             if ar.variable in model.listOfSpecies:
@@ -720,7 +756,7 @@ class TauHybridSolver(GillesPySolver):
     @classmethod
     def get_solver_settings(self):
         """
-        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile', 'tau_tol',
                 'event_sensitivity', 'integrator', 'integrator_options', 'timeout')
@@ -740,8 +776,8 @@ class TauHybridSolver(GillesPySolver):
         :type t: int
 
         :param number_of_trajectories: The number of times to sample the chemical master equation. Each
-        trajectory will be returned at the end of the simulation.
-        Optional, defaults to 1.Number of trajectories to simulate
+            trajectory will be returned at the end of the simulation.
+            Optional, defaults to 1. Number of trajectories to simulate
         :type number_of_trajectories: int
 
         :param increment: Save point increment for recording data
@@ -757,30 +793,25 @@ class TauHybridSolver(GillesPySolver):
         :type profile: bool
 
         :param tau_tol: Tolerance level for Tau leaping algorithm.  Larger tolerance values will
-        result in larger tau steps. Default value is 0.03.
+            result in larger tau steps. Default value is 0.03.
         :type tau_tol: float
 
         :param event_sensitivity: Number of data points to be inspected between integration
-        steps/save points for event detection
+            steps/save points for event detection
         :type event_sensitivity: int
 
-        :param integrator: integrator method to be used form scipy.integrate.solve_ivp. Options include 'RK45', 'RK23',
-        'Radau', 'BDF', and 'LSODA'.
-        For more details, see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html
-        :type integrator: str
-
         :param integrator_options:  contains options to the scipy integrator. by default, this includes
-        rtol=1e-9 and atol=1e-12.  for a list of options,
-        see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html.
-        Example use: {max_step : 0, rtol : .01}
+            rtol=1e-9 and atol=1e-12.  for a list of options,
+            see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.LSODA.html.
+            Example use: {max_step : 0, rtol : .01}
         :type integrator_options: dict
 
         :param live_output: The type of output to be displayed by solver. Can be "progress", "text", or "graph".
         :type live_output: str
 
         :param live_output_options: contains options for live_output. By default {"interval":1}.
-        "interval" specifies seconds between displaying.
-        "clear_output" specifies if display should be refreshed with each display
+            "interval" specifies seconds between displaying.
+            "clear_output" specifies if display should be refreshed with each display
         :type live_output_options:  str
         """
 

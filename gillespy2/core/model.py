@@ -1,3 +1,22 @@
+"""
+GillesPy2 is a modeling toolkit for biochemical simulation.
+Copyright (C) 2019-2021 GillesPy2 developers.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
+from gillespy2.core.jsonify import TranslationTable
 from gillespy2.core.reaction import *
 from gillespy2.core.raterule import RateRule
 from gillespy2.core.parameter import Parameter
@@ -62,11 +81,25 @@ def export_SBML(gillespy_model, filename=None):
     return export(gillespy_model, path=filename)
 
 
-class Model(SortableObject):
-    # reserved names for model species/parameter names, volume, and operators.
-    reserved_names = ['vol']
-    special_characters = ['[', ']', '+', '-', '*', '/', '.', '^']
+def export_StochSS(gillespy_model, filename=None, return_stochss_model=False):
+    """
+    GillesPy model to StochSS converter
 
+    :param gillespy_model: GillesPy model to be converted to StochSS
+    :type gillespy_model: gillespy.Model
+
+    :param filename: Path to the StochSS file for conversion
+    :type filename: str
+    """
+    try:
+        from gillespy2.stochss.StochSSexport import export
+    except ImportError:
+        raise ImportError('StochSS export conversion not imported successfully')
+
+    return export(gillespy_model, path=filename, return_stochss_model=return_stochss_model)
+
+
+class Model(SortableObject, Jsonify):
     """
     Representation of a well mixed biochemical model. Contains reactions,
     parameters, species.
@@ -75,24 +108,27 @@ class Model(SortableObject):
     :type name: str
     
     :param population: The type of model being described. A discrete stochastic model is a
-    population model (True), a deterministic model is a concentration model
-    (False). Automatic conversion from population to concentration models
-    may be used, by setting the volume parameter.
-    Attributes
+        population model (True), a deterministic model is a concentration model
+        (False). Automatic conversion from population to concentration models
+        may be used, by setting the volume parameter.
     :type population: bool
 
     :param volume: The volume of the system matters when converting to from population to
-    concentration form. This will also set a parameter "vol" for use in
-    custom (i.e. non-mass-action) propensity functions.  
+        concentration form. This will also set a parameter "vol" for use in
+        custom (i.e. non-mass-action) propensity functions.  
     :type volume: float   
     
     :param tspan: The timepoints at which the model should be simulated. If None, a
-    default timespan is added. May be set later, see Model.timespan
+        default timespan is added. May be set later, see Model.timespan
     :type tspan: numpy ndarray
     
     :param annotation: Option further description of model
     :type annotation: str
     """
+
+    # reserved names for model species/parameter names, volume, and operators.
+    reserved_names = ['vol']
+    special_characters = ['[', ']', '+', '-', '*', '/', '.', '^']
 
     def __init__(self, name="", population=True, volume=1.0, tspan=None, annotation="model"):
         """ Create an empty model. """
@@ -106,6 +142,7 @@ class Model(SortableObject):
         self.listOfParameters = OrderedDict()
         self.listOfSpecies = OrderedDict()
         self.listOfReactions = OrderedDict()
+
         self.listOfAssignmentRules = OrderedDict()
         self.listOfRateRules = OrderedDict()
         self.listOfEvents = OrderedDict()
@@ -146,6 +183,11 @@ class Model(SortableObject):
         else:
             self.timespan(tspan)
 
+        # Change Jsonify settings to disable private variable
+        # JSON hashing and enable automatic translation table gen.
+        self._hash_private_vars = False
+        self._generate_translation_table = True
+
     def __str__(self):
         divider = '\n**********\n'
 
@@ -184,6 +226,33 @@ class Model(SortableObject):
 
         return print_string
 
+    def make_translation_table(self):
+        from collections import ChainMap
+
+        species = self.listOfSpecies.values()
+        reactions = self.listOfReactions.values()
+        parameters = self.listOfParameters.values()
+        assignments = self.listOfAssignmentRules.values()
+        rates = self.listOfRateRules.values()
+        events = self.listOfEvents.values()
+        functions = self.listOfFunctionDefinitions.values()
+
+        # A translation table is used to anonymize user-defined variable names and formulas into generic counterparts.
+        translation_table = dict(ChainMap(
+
+            # Build translation mappings for user-defined variable names.
+            dict({ self.name: "Model" }),
+            dict(zip((str(x.name) for x in species), (f"S_{x + 100}" for x in range(0, len(species))))),
+            dict(zip((str(x.name) for x in reactions), (f"R_{x + 100}" for x in range(0, len(reactions))))),
+            dict(zip((str(x.name) for x in parameters), (f"P_{x + 100}" for x in range(0, len(parameters))))),
+            dict(zip((str(x.name) for x in assignments), (f"AR_{x + 100}" for x in range(0, len(assignments))))),
+            dict(zip((str(x.name) for x in rates), (f"RR_{x + 100}" for x in range(0, len(rates))))),
+            dict(zip((str(x.name) for x in events), (f"E_{x + 100}" for x in range(0, len(events))))),
+            dict(zip((str(x.name) for x in functions), (f"F_{x + 100}" for x in range(0, len(functions))))),
+        ))
+
+        return TranslationTable(to_anon=translation_table)
+
     def serialize(self):
         """ Serializes the Model object to valid StochML. """
         self.resolve_parameters()
@@ -200,10 +269,11 @@ class Model(SortableObject):
         """
         Generate a dictionary mapping user chosen species names to simplified formats which will be used
         later on by GillesPySolvers evaluating reaction propensity functions.
-        :return: the dictionary mapping user species names to their internal GillesPy notation.
+
+        :returns: the dictionary mapping user species names to their internal GillesPy notation.
         """
         species_name_mapping = OrderedDict([])
-        for i, name in enumerate(sorted(self.listOfSpecies.keys())):
+        for i, name in enumerate(self.listOfSpecies.keys()):
             species_name_mapping[name] = 'S[{}]'.format(i)
         return species_name_mapping
 
@@ -216,6 +286,16 @@ class Model(SortableObject):
             return ModelError('Name "{}" is unavailable. A species with that name exists.'.format(name))
         if name in self.listOfParameters:
             return ModelError('Name "{}" is unavailable. A parameter with that name exists.'.format(name))
+        if name in self.listOfReactions:
+            return ModelError('Name "{}" is unavailable. A reaction with that name exists.'.format(name))
+        if name in self.listOfEvents:
+            return ModelError('Name "{}" is unavailable. An event with that name exists.'.format(name))
+        if name in self.listOfRateRules:
+            return ModelError('Name "{}" is unavailable. A rate rule with that name exists.'.format(name))
+        if name in self.listOfAssignmentRules:
+            return ModelError('Name "{}" is unavailable. An assignment rule with that name exists.'.format(name))
+        if name in self.listOfFunctionDefinitions:
+            return ModelError('Name "{}" is unavailable. A function definition with that name exists.'.format(name))
         if name.isdigit():
             return ModelError('Name "{}" is unavailable. Names must not be numeric strings.'.format(name))
         for special_character in Model.special_characters:
@@ -235,8 +315,8 @@ class Model(SortableObject):
 
     def get_all_species(self):
         """
-        Returns a dict of all species in the model, of the form:
-        {name : species object}
+        :returns: A dict of all species in the model, of the form:
+            {name : species object}
         """
         return self.listOfSpecies
 
@@ -295,11 +375,12 @@ class Model(SortableObject):
         """
         Generate a dictionary mapping user chosen parameter names to simplified formats which will be used
         later on by GillesPySolvers evaluating reaction propensity functions.
-        :return: the dictionary mapping user parameter names to their internal GillesPy notation.
+
+        :returns: the dictionary mapping user parameter names to their internal GillesPy notation.
         """
         parameter_name_mapping = OrderedDict()
         parameter_name_mapping['vol'] = 'V'
-        for i, name in enumerate(sorted(self.listOfParameters.keys())):
+        for i, name in enumerate(self.listOfParameters.keys()):
             if name not in parameter_name_mapping:
                 parameter_name_mapping[name] = 'P{}'.format(i)
         return parameter_name_mapping
@@ -318,8 +399,8 @@ class Model(SortableObject):
 
     def get_all_parameters(self):
         """
-        Returns a dict of all parameters in the model, of the form:
-        {name : parameter object}
+        :returns: A dict of all parameters in the model, of the form:
+            {name : parameter object}
         """
         return self.listOfParameters
 
@@ -362,7 +443,7 @@ class Model(SortableObject):
         :type p_name: str
 
         :param expression: String that may be executed in C, describing the value of the
-        parameter. May reference other parameters by name. (e.g. "k1*4")
+            parameter. May reference other parameters by name. (e.g. "k1*4")
         :type expression: str
         """
 
@@ -409,7 +490,7 @@ class Model(SortableObject):
         Adds a reaction, or list of reactions to the model.
 
         :param reactions: The reaction or list of reaction objects to be added to the model
-        object.
+            object.
         :type reactions: Reaction, or list of Reactions
         """
 
@@ -419,6 +500,9 @@ class Model(SortableObject):
                 self.add_reaction(r)
         else:
             try:
+                problem = self.problem_with_name(reactions.name)
+                if problem is not None:
+                    raise problem
                 reactions.verify()
                 self.validate_reactants_and_products(reactions)
                 if reactions.name is None or reactions.name == '':
@@ -458,6 +542,9 @@ class Model(SortableObject):
                 self.add_rate_rule(rr)
         else:
             try:
+                problem = self.problem_with_name(rate_rules.name)
+                if problem is not None:
+                    raise problem
                 if len(self.listOfAssignmentRules) != 0:
                     for i in self.listOfAssignmentRules.values():
                         if rate_rules.variable == i.variable:
@@ -490,6 +577,7 @@ class Model(SortableObject):
     def add_event(self, event):
         """
         Adds an event, or list of events to the model.
+
         :param event: The event or list of event objects to be added to the model object.
         :type event: Event, or list of Events
         """
@@ -499,6 +587,9 @@ class Model(SortableObject):
                 self.add_event(e)
         else:
             try:
+                problem = self.problem_with_name(event.name)
+                if problem is not None:
+                    raise problem
                 if event.trigger is None or not hasattr(event.trigger, 'expression'):
                     raise ModelError(
                         'An Event must contain a valid trigger.')
@@ -513,8 +604,9 @@ class Model(SortableObject):
     def add_function_definition(self, function_definitions):
         """
         Add FunctionDefinition or list of FunctionDefinitions
+
         :param function_definitions: The FunctionDefinition, or list of FunctionDefinitions to be added to the model
-        object.
+            object.
         :type function_definitions: FunctionDefinition or list of FunctionDefinitions.
         """
         if isinstance(function_definitions, list):
@@ -522,14 +614,18 @@ class Model(SortableObject):
                 self.add_function_definition(fd)
         else:
             try:
+                problem = self.problem_with_name(function_definitions.name)
+                if problem is not None:
+                    raise problem
                 self.listOfFunctionDefinitions[function_definitions.name] = function_definitions
             except Exception as e:
                 raise ParameterError(
-                    "Error using {} as a Function Definition. Reason given: ".format(function_definitions, e))
+                    "Error using {} as a Function Definition. Reason given: {}".format(function_definitions, e))
 
     def add_assignment_rule(self, assignment_rules):
         """
         Add AssignmentRule or list of AssignmentRules to the model object.
+
         :param assignment_rules: The AssignmentRule or list of AssignmentRules to be added to the model object.
         :type assignment_rules: AssignmentRule or list of AssignmentRules
         """
@@ -538,6 +634,9 @@ class Model(SortableObject):
                 self.add_assignment_rule(ar)
         else:
             try:
+                problem = self.problem_with_name(assignment_rules.name)
+                if problem is not None:
+                    raise problem
                 if len(self.listOfRateRules) != 0:
                     for i in self.listOfRateRules.values():
                         if assignment_rules.variable == i.variable:
@@ -556,15 +655,15 @@ class Model(SortableObject):
 
                 self.listOfAssignmentRules[assignment_rules.name] = assignment_rules
             except Exception as e:
-                raise ParameterError("Error using {} as a Assignment Rule. Reason given: ".format(assignment_rules, e))
+                raise ParameterError("Error using {} as a Assignment Rule. Reason given: {}".format(assignment_rules, e))
 
     def timespan(self, time_span):
         """
         Set the time span of simulation. StochKit does not support non-uniform
         timespans. 
 
-        :param time_span: Evenly-spaced list of times at which to sample the species
-        populations during the simulation. Best to use the form np.linspace(<start time>, <end time>, <number of time-points, inclusive>)
+        :param time_span: Evenly-spaced list of times at which to sample the species populations during the simulation. 
+            Best to use the form np.linspace(<start time>, <end time>, <number of time-points, inclusive>)
         :type time_span: numpy ndarray
         """
         
@@ -580,13 +679,13 @@ class Model(SortableObject):
     def get_reaction(self, rname):
         """
         :param rname: name of reaction to return
-        :return: Reaction object
+        :returns: Reaction object
         """
         return self.listOfReactions[rname]
 
     def get_all_reactions(self):
         """
-        :return: dict of all Reaction objects
+        :returns: dict of all Reaction objects
         """
         return self.listOfReactions
 
@@ -607,19 +706,20 @@ class Model(SortableObject):
     def get_event(self, ename):
         """
         :param ename: Name of Event to get
-        :return: Event object
+        :returns: Event object
         """
         return self.listOfEvents[ename]
 
     def get_all_events(self):
         """
-        :return: dict of all Event objects
+        :returns: dict of all Event objects
         """
         return self.listOfEvents
 
     def delete_event(self, ename):
         """
         Removes specified Event from model
+
         :param ename: Name of Event to be removed
         """
         self.listOfEvents.pop(ename)
@@ -635,13 +735,13 @@ class Model(SortableObject):
     def get_rate_rule(self, rname):
         """
         :param rname: Name of Rate Rule to get
-        :return: RateRule object
+        :returns: RateRule object
         """
         return self.listOfRateRules[rname]
 
     def get_all_rate_rules(self):
         """
-        :return: dict of all Rate Rule objects
+        :returns: dict of all Rate Rule objects
         """
         return self.listOfRateRules
 
@@ -663,19 +763,20 @@ class Model(SortableObject):
     def get_assignment_rule(self, aname):
         """
         :param aname: Name of Assignment Rule to get
-        :return: Assignment Rule object
+        :returns: Assignment Rule object
         """
         return self.listOfAssignmentRules[aname]
 
     def get_all_assignment_rules(self):
         """
-        :return: dict of models Assignment Rules
+        :returns: dict of models Assignment Rules
         """
         return self.listOfAssignmentRules
 
     def delete_assignment_rule(self, aname):
         """
         Removes an assignment rule from a model
+
         :param aname: Name of AssignmentRule object to be removed from model
         """
         self.listOfAssignmentRules.pop(aname)
@@ -691,19 +792,20 @@ class Model(SortableObject):
     def get_function_definition(self, fname):
         """
         :param fname: name of Function to get
-        :return: FunctionDefinition object
+        :returns: FunctionDefinition object
         """
         return self.listOfFunctionDefinitions[fname]
 
     def get_all_function_definitions(self):
         """
-        :return: Dict of models function definitions
+        :returns: Dict of models function definitions
         """
         return self.listOfFunctionDefinitions
 
     def delete_function_definition(self, fname):
         """
         Removes specified Function Definition from model
+
         :param fname: Name of Function Definition to be removed
         """
         self.listOfFunctionDefinitions.pop(fname)
@@ -718,9 +820,10 @@ class Model(SortableObject):
 
     def get_element(self, ename):
         """
-        get element specified by name
+        Get element specified by name.
+
         :param ename: name of element to search for
-        :return:value of element, or 'element not found'
+        :returns: value of element, or 'element not found'
         """
         if ename in self.listOfReactions:
             return self.get_reaction(ename)
@@ -743,10 +846,12 @@ class Model(SortableObject):
         """
         Finds best solver for the users simulation. Currently, AssignmentRules, RateRules, FunctionDefinitions,
         Events, and Species with a dynamic, or continuous population must use the TauHybridSolver.
+
         :param precompile: If True, and the model contains no AssignmentRules, RateRules, FunctionDefinitions, Events,
-        or Species with a dynamic or continuous population, it will choose SSACSolver
+            or Species with a dynamic or continuous population, it will choose SSACSolver
         :type precompile: bool
-        :return: gillespy2.gillespySolver
+
+        :returns: gillespy2.gillespySolver
         """
         from gillespy2.solvers.numpy import can_use_numpy
         hybrid_check = False
@@ -769,7 +874,9 @@ class Model(SortableObject):
                              'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
                              'Please install Numpy.')
         
-        from gillespy2.solvers.cpp import can_use_cpp
+        from gillespy2.solvers.cpp.build.build_engine import BuildEngine
+        can_use_cpp = not len(BuildEngine.get_missing_dependencies())
+
         if can_use_cpp is False and can_use_numpy and not hybrid_check:
             from gillespy2 import NumPySSASolver
             return NumPySSASolver
@@ -782,8 +889,9 @@ class Model(SortableObject):
         """
         If user has specified a particular algorithm, we return either the Python or C++ version of that algorithm
         """
-        from gillespy2.solvers.cpp import can_use_cpp
         from gillespy2.solvers.numpy import can_use_numpy
+        from gillespy2.solvers.cpp.build.build_engine import BuildEngine
+        can_use_cpp = not len(BuildEngine.get_missing_dependencies())
 
         if not can_use_cpp and can_use_numpy:
             raise ModelError("Please install C++ or Numpy to use GillesPy2 solvers.")
@@ -822,8 +930,7 @@ class Model(SortableObject):
         parameters to be set here.
 
         :param solver: The solver by which to simulate the model. This solver object may
-        be initialized separately to specify an algorithm. Optional,
-        defaults to ssa solver.
+            be initialized separately to specify an algorithm. Optional, defaults to ssa solver.
         :type solver: gillespy.GillesPySolver
 
         :param timeout: Allows a time_out value in seconds to be sent to a signal handler, restricting simulation run-time
@@ -835,20 +942,21 @@ class Model(SortableObject):
         :param solver_args: Solver-specific arguments to be passed to solver.run()
 
         :param cpp_support: INTERNAL USE ONLY, flag for whether or not a computer has the capability to compile a
-        C++ program.
+            C++ program.
         :type cpp_support: bool
-
-        :return  If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is
-        True,returns a Results object that inherits UserList and contains one or more Trajectory objects that
-        inherit UserDict. Results object supports graphing and csv export.
 
         :param algorithm: Specify algorithm ('ODE', 'Tau-Leaping', or 'SSA') for GillesPy2 to automatically pick best solver using that algorithm.
         :type algorithm: str
 
+        :returns:  If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is
+            True,returns a Results object that inherits UserList and contains one or more Trajectory objects that
+            inherit UserDict. Results object supports graphing and csv export.
+
         To pause a simulation and retrieve data before the simulation, keyboard interrupt the simulation by pressing
         control+c or pressing stop on a jupyter notebook. To resume a simulation, pass your previously ran results
         into the run method, and set t = to the time you wish the resuming simulation to end (run(resume=results, t=x)).
-        Pause/Resume is only supported for SINGLE TRAJECTORY simulations. T MUST BE SET OR UNEXPECTED BEHAVIOR MAY OCCUR.
+        
+        **Pause/Resume is only supported for SINGLE TRAJECTORY simulations. T MUST BE SET OR UNEXPECTED BEHAVIOR MAY OCCUR.**
         """
 
         if not show_labels:
@@ -914,21 +1022,26 @@ class StochMLDocument():
     @classmethod
     def from_model(cls, model):
         """
-        Creates an StochKit XML document from an exisiting Mdoel object.
+        Creates an StochKit XML document from an exisiting Model object.
         This method assumes that all the parameters in the model are already
         resolved to scalar floats (see Model.resolveParamters).
 
-        Note, this method is intended to be used interanally by the models
+        Note, this method is intended to be used internally by the models
         'serialization' function, which performs additional operations and
-        tests on the model prior to writing out the XML file. You should NOT \
-        do:
+        tests on the model prior to writing out the XML file. 
+        
+        You should NOT do:
 
-        document = StochMLDocument.fromModel(model)
-        print document.toString()
+        .. code-block:: python
 
-        You SHOULD do
+            document = StochMLDocument.fromModel(model)
+            print document.toString()
 
-        print model.serialize()
+        You SHOULD do:
+
+        .. code-block:: python
+
+            print model.serialize()
 
         """
 
@@ -1156,7 +1269,7 @@ class StochMLDocument():
                         reaction.marate = model.listOfParameters[
                             generated_rate_name]
 
-                    reaction.__create_mass_action()
+                    reaction.create_mass_action()
                 except Exception as e:
                     raise
             elif type == 'customized':

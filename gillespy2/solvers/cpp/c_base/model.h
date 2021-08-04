@@ -1,76 +1,130 @@
-#ifndef GILLESPY_MODEL
-#define GILLESPY_MODEL
+/*
+ * GillesPy2 is a modeling toolkit for biochemical simulation.
+ * Copyright (C) 2019-2021 GillesPy2 developers.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include <cmath>
 #include <memory>
 #include <string>
 #include <vector>
 #include <iostream>
-#include <cmath>
 
-namespace Gillespy{
+namespace Gillespy {
 
-  //Represents info for a chemical reactant/product
-  struct Species{
-    unsigned int id; //useful for index id in arrays
-    std :: string name;
-    unsigned int initial_population;
-    //Used for hashing into set, for TauLeapingCSolver
-    bool operator < (const Species &other) const { return id < other.id; }
-  };
+	template <typename PType>
+	struct Species {
+		unsigned int id;
+		PType initial_population;
 
-  struct Reaction{
-    unsigned int id; //useful for propensity function id associated
-    std :: string name;
-    std :: unique_ptr<int[]> species_change; //list of changes to species with this reaction firing
-    std :: vector<unsigned int> affected_reactions; //list of which reactions have propensities that would change with this reaction firing
-  };
-  
-  //Represents a model of reactions and species
-  struct Model{
-      void update_affected_reactions();
-    unsigned int number_species;
-    std :: unique_ptr<Species[]> species;
-    unsigned int number_reactions;
-    std :: unique_ptr<Reaction[]> reactions;
-    Model(std :: vector<std :: string> species_names, std :: vector<unsigned int> species_populations, std :: vector<std :: string> reaction_names);
-  };
-  
-  //Interface class to represent container for propensity functions
-  class IPropensityFunction{
-  public:
-    virtual double evaluate(unsigned int reaction_number, unsigned int* state) = 0;
-    virtual double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S) = 0;
-    virtual double ODEEvaluate(int reaction_number, const std::vector <double> &S) = 0;
-    virtual ~IPropensityFunction() {};
-  };
+		std::string name;
 
+		// Needed by TauLeapingCSolver to hash into a set.
+		bool operator < (const Species &other) const {
+			return id < other.id;
+		};
+	};
 
+	struct Reaction {
+		unsigned int id;
+		std::string name;
 
-  struct Simulation{
-    Model* model;
-    ~Simulation();
+		// List of species that will change when this reaction fires.
+		std::vector<unsigned int> affected_reactions;
 
-    int ISODE = 0; // if 0, not ODE sim, if 1, ODE sim
-    double* timeline;
-    double end_time;
-    double current_time;
-    int random_seed;
+		// List of reactions who's propensities will change when this reaction fires.
+		std::unique_ptr<int[]> species_change;
+	};
 
-    unsigned int number_timesteps;
-    unsigned int number_trajectories;
+	template <typename PType>
+	struct Model {
+		unsigned int number_species;
+		unsigned int number_reactions;
 
-    unsigned int* trajectories_1D;
-    unsigned int*** trajectories;
+		std::unique_ptr<Species<PType>[]> species;
+		std::unique_ptr<Reaction[]> reactions;
 
-    double* trajectories_1DODE;
-    double*** trajectoriesODE;
+		void update_affected_reactions();
 
-    IPropensityFunction *propensity_function;
-    friend std :: ostream& operator<<(std :: ostream& os, const Simulation& simulation);
-    void output_results_buffer(std :: ostream& os);
-  };
-  //Trajectory initializers for ODE and SSA solvers
-  void simulationODEINIT(Model* model, Simulation &simulation);
-  void simulationSSAINIT(Model* model, Simulation &simulation);
+		Model(
+			std::vector<std::string> species_names,
+			std::vector<double> species_populations,
+			std::vector<std::string> reaction_names
+		);
+	};
 
+	class IPropensityFunction {
+	public:
+		virtual double evaluate(unsigned int reaction_number, unsigned int *state) = 0;
+
+		virtual double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S) = 0;
+		virtual double ODEEvaluate(int reaction_number, const std::vector<double> &S) = 0;
+
+		virtual ~IPropensityFunction() {};
+	};
+
+	template <typename PType>
+	struct Simulation {
+		int random_seed;
+
+		unsigned int number_timesteps;
+		unsigned int number_trajectories;
+
+		double current_time;
+		double end_time;
+		double *timeline;
+
+		PType *trajectories_1D;
+		PType ***trajectories;
+
+		Model<PType> *model;
+
+		IPropensityFunction *propensity_function;
+
+		template <class T> friend std::ostream &operator << (std::ostream &os, const Simulation<T> &simulation);
+
+		void output_results_buffer(std::ostream &os);
+		~Simulation();
+	};
+
+	template <typename TNum>
+	void init_simulation(Model<TNum> *model, Simulation<TNum> &simulation);
+
+	/* ================================= *
+	 * === DETERMINISTIC SIMULATIONS === *
+	 * ================================= */
+
+	// Deterministic Species: species whose initial and runtime values are continuous.
+	extern template struct Species<double>;
+	// Deterministic Model: species state represented using concentration values.
+	extern template struct Model<double>;
+	// Deterministic Simulation: run using a continuous-valued model.
+	extern template struct Simulation<double>;
+	extern template void init_simulation<double>(Model<double> *model, Simulation<double> &simulation);
+
+	/* ============================== *
+	 * === STOCHASTIC SIMULATIONS === *
+	 * ============================== */
+
+	// Stochastic Species: species whose initial and runtime values are discrete.
+	extern template struct Species<unsigned int>;
+	// Stochastic Model: species state represented using discrete population values.
+	extern template struct Model<unsigned int>;
+	// Stochastic Simulation: run using a discrete-valued model.
+	extern template struct Simulation<unsigned int>;
+	extern template void init_simulation<unsigned int>(Model<unsigned int> *model, Simulation<unsigned int> &simulation);
 }
-#endif

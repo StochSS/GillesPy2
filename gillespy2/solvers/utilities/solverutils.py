@@ -1,222 +1,24 @@
-import os  # for getting directories for C++ files
-import shutil  # for deleting/copying files
-from distutils.dir_util import copy_tree
+"""
+GillesPy2 is a modeling toolkit for biochemical simulation.
+Copyright (C) 2019-2021 GillesPy2 developers.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 import ast  # for dependency graphing
 import numpy as np
 from gillespy2.core import log, Species
-
-
-"""
-This file contains various functions used in the ssa_c_solver, variable_ssa_c_solver, and numpy solvers.
-
-
-C SOLVER FUNCTIONS BELOW
-"""
-
-
-def find_time(array, value):
-    """
-    Finds the index of the closest value in the array parameter, to the value parameter
-    :param array: results['time'] array, input to find index of closest 'value' parameter
-    :type array: numpy.ndarray
-    :param value: Value in which to find the closest values index in the array parameter.
-    :type value: float
-    :return: Integer index, the index of the closest value to 'value' parameter.
-    """
-    index = np.searchsorted(array, value, side="left")
-    return index
-
-
-def _copy_files(destination, GILLESPY_C_DIRECTORY, ode=False):
-    src_files = os.listdir(GILLESPY_C_DIRECTORY)
-    if not ode:
-        for src_file in src_files:
-            src_file = os.path.join(GILLESPY_C_DIRECTORY, src_file)
-            if os.path.isfile(src_file):
-                shutil.copy(src_file, destination)
-    else:
-        for root, dirs, files in os.walk(GILLESPY_C_DIRECTORY):
-            for file in files:
-                path_file = os.path.join(root, file)
-                shutil.copy2(path_file, destination)
-
-
-def write_variables(outfile, model, reactions, species, parameter_mappings, resume=None, variable=False):
-    """
-    This function writes the models constants to a user simulation file
-    :param outfile: CPP file, used for simulating a model
-    :param model: The model that is being simulated
-    :param reactions: List of names of a models reactions
-    :param species: List of sanitized species names
-    :param parameter_mappings: List of sanitized parameter names
-    :param resume: If resuming a simulation from a previous one, resume is the results object from the prior simulation.
-    Else, it is defaulted to None.
-   """
-    parameters = list(parameter_mappings.keys())
-
-    const_or_not = ''
-    if not variable:
-        const_or_not = 'const '
-    outfile.write("{0}double V = {1};\n".format(const_or_not, model.volume))
-    outfile.write("std :: string s_names[] = {")
-    if len(species) > 0:
-        # Write model species names.
-        for i in range(len(species)-1):
-            outfile.write('"{}", '.format(species[i]))
-        outfile.write('"{}"'.format(species[-1]))
-        outfile.write("};\nunsigned int populations[] = {")
-        # Write initial populations.
-        for i in range(len(species) - 1):
-            # If resuming
-            if not (resume is None):
-                if isinstance(resume, np.ndarray):
-                    outfile.write('{}, '.format(int(resume[0][-1][i + 1])))
-                else:
-                    outfile.write('{}, '.format(int(resume[species[i]][-1])))
-            else:
-                outfile.write('{}, '.format(int(model.listOfSpecies[species[i]].initial_value)))
-        if not (resume is None):
-            if isinstance(resume, np.ndarray):
-                outfile.write('{}'.format(int(resume[0][-1][-1])))
-            else:
-                outfile.write('{}'.format(int(resume[species[-1]][-1])))
-        else:
-            outfile.write('{}'.format(int(model.listOfSpecies[species[-1]].initial_value)))
-        outfile.write("};\n")
-    if len(reactions) > 0:
-        # Write reaction names
-        outfile.write("std :: string r_names[] = {")
-        for i in range(len(reactions)-1):
-            outfile.write('"{}", '.format(reactions[i]))
-        outfile.write('"{}"'.format(reactions[-1]))
-        outfile.write("};\n")
-    for param in parameters:
-        if param != 'vol':
-            outfile.write("{0}double {1} = {2};\n".format(const_or_not,parameter_mappings[param], model.listOfParameters[param].value))
-
-
-def update_parameters(outfile, parameters, parameter_mappings):
-    for param in parameters:
-        if param != 'vol':
-            outfile.write('       arg_stream >> {};\n'.format(parameter_mappings[param]))
-        else:
-            outfile.write('       arg_stream >> V;\n')
-
-
-def write_propensity(outfile, model, species_mappings, parameter_mappings, reactions):
-    """
-    This functions writes a models propensity functions to a cpp user simulation template, for the SSACSolvers.
-    :param outfile: File where the propensity function will be written to
-    :param model: Model used to access species, reactions
-    :param species_mappings: Sanitized species names
-    :param parameter_mappings: Sanitized parameter names
-    :param reactions: Names of reactions
-    :type reactions: str
-    """
-    for i in range(len(reactions)):
-        # Write switch statement case for reaction
-        outfile.write("""
-        case {0}:
-            return {1};
-        """.format(i, model.listOfReactions[reactions[i]].sanitized_propensity_function(species_mappings,
-                                                                                        parameter_mappings)))
-
-
-def write_reactions(outfile, model, reactions, species):
-    customrxns = {}
-    for i in range(len(reactions)):
-        reaction = model.listOfReactions[reactions[i]]
-        if reaction.type == 'customized':
-            customrxns[i] = species_parse(model, reaction.propensity_function)
-        for j in range(len(species)):
-            change = (reaction.products.get(model.listOfSpecies[species[j]], 0)) - (reaction.reactants.get
-                                                                                    (model.listOfSpecies[species[j]], 0)
-                                                                                    )
-            if change != 0:
-                outfile.write("model.reactions[{0}].species_change[{1}] = {2};\n".format(i, j, change))
-
-    for i in customrxns.keys():
-        for j in range(len(reactions)):
-            if i == j:
-                continue
-            if any(elem in customrxns[i] for elem in list(model.listOfReactions[reactions[j]].reactants)) or \
-                    any(elem in customrxns[i] for elem in list(model.listOfReactions[reactions[j]].products)):
-                outfile.write("model.reactions[{0}].affected_reactions.push_back({1});\n".format(i, j))
-
-
-def parse_binary_output(number_of_trajectories, number_timesteps, number_species, data, pause=False):
-    """
-    This function reads binary output from a CPP simulation
-    :param data: stdout of the CPP simulation ran
-    :param number_of_trajectories: Total number of trajectories for a simulation
-    :type number_of_trajectories: int
-    :param number_timesteps: How many steps for a given simulation
-    :type number_timesteps: int
-    :param number_species: Total number of species in a model
-    :param pause: Whether or not a model was paused, set to true when simulation was sent a KeyBoardInterrupt or
-    timeout.
-    :return: Trajectories for a simulation, and time that simulation was stopped, if sent a keyboardinterrupt or
-    timeout.
-    """
-    trajectory_base = np.empty((number_of_trajectories, number_timesteps, number_species+1))
-
-    # Timestopped is added to the end of the data, when a simulation completes or is paused
-    if pause:
-        timeStopped = int(data[-1])
-        data.pop()
-    else:
-        timeStopped = 0
-    for t in range(number_of_trajectories):
-        for i in range(number_timesteps*(number_species+1)):
-            index = i + (number_timesteps*(number_species+1)*t)
-            trajectory_base[t][i//(number_species+1)][i % (number_species+1)] = data[index]
-    return trajectory_base, timeStopped
-
-
-def c_solver_resume(timeStopped, simulation_data, t, resume=None):
-    """
-    If a simulation is being resumed from a previous simulation, this function is called in the VariableSSACSolver,
-    or SSACSolver
-    :param timeStopped: The time that a simulation was stopped, originally attained from the results_buffer returned
-    by the CPP simulation.
-    :param simulation_data: The current simulation data, attained after parsing the results in the VariableSSACSolver or
-    SSACSolver.
-    :param t: The end time for the resume simulation, originally set in model.run(t=...)
-    :param resume: The previous simulations data
-    :type resume: gillespy2.core.result object
-    :return: Combined data of the previous simulation, and the current simulation
-    """
-
-    # If simulation was paused/KeyboardInterrupt
-    if timeStopped != 0:
-        cutoff = find_time(simulation_data[0]['time'], timeStopped)
-        if cutoff == 0 or cutoff == 1:
-            log.warning('You have paused the simulation too early, and no points have been calculated past'
-                        ' initial values. A graphic display will not produce expected results.')
-        else:
-            cutoff -= 1
-        for i in simulation_data[0]:
-            simulation_data[0][i] = simulation_data[0][i][:cutoff]
-
-    if resume is not None:
-        resumeTime = float(resume['time'][-1])
-        step = resumeTime - resume['time'][-2]
-        if timeStopped == 0:
-            timeSpan = np.arange(resumeTime, t + resumeTime + step, step)
-        else:
-            timeSpan = np.arange(resumeTime + step, timeStopped + resumeTime + step, step)
-        simulation_data[0]['time'] = timeSpan
-
-    if resume is not None:
-        # If resuming, combine old pause with new data, and delete any excess null data
-        for i in simulation_data[0]:
-            oldData = resume[i]
-            newData = simulation_data[0][i]
-            simulation_data[0][i] = np.concatenate((oldData, newData), axis=None)
-            if len(simulation_data[0]['time']) != len(simulation_data[0][i]):
-                simulation_data[0]['time'] = simulation_data[0]['time'][:-1]
-    return simulation_data
-
 
 """
 NUMPY SOLVER UTILITIES BELOW
@@ -253,12 +55,15 @@ def numpy_trajectory_base_initialization(model, number_of_trajectories, timeline
 
 def numpy_resume(timeStopped, simulation_data, resume=None):
     """
-    Helper function for when resuming a simulation in a numpy based solver
+    Helper function for when resuming a simulation in a numpy based solver.
+
     :param timeStopped: The time in which the simulation was stopped.
     :param simulation_data: The current models simulation data, after being parsed in the numpy solver of choice.
+
     :param resume: The previous simulations data, that is being resumed
-    :type resume: gillespy2.core.results object
-    :return: Combined simulation data, the old resume data and the current simulation data.
+    :type resume: gillespy2.core.Results
+
+    :returns: Combined simulation data, the old resume data and the current simulation data.
     """
     if timeStopped != 0:
         if timeStopped != simulation_data[0]['time'][-1]:
@@ -320,17 +125,19 @@ def change_param_values(listOfParameters, parameters, volume, variables):
         else:
             parameter_values += '{}'.format(listOfParameters[parameters[-1]].expression)
     return parameter_values
+
 """
 Below are two functions used for creating dependency graphs in the C solvers, and Numpy Solvers.
 """
 
-
 def species_parse(model, custom_prop_fun):
     """
     This function uses Pythons AST module to parse custom propensity function, looking for Species in a model
+
     :param model: Model to be checked for species
     :param custom_prop_fun: The custom propensity function to be parsed
-    :return: List of species objects that are found in a custom propensity function
+
+    :returns: List of species objects that are found in a custom propensity function
     """
     parsed_species = []
 
@@ -349,9 +156,11 @@ def dependency_grapher(model, reactions):
     """
     This function returns a dependency graph for a models reactions in the form of a
     dictionary containing {species name: {'dependencies'}:[list of reaction names]}.
+
     :param model: Model to used to create a reaction dependency graph
-    :param reactions: list(model.listOfReactions)
-    :return: Dependency graph dictionary
+    :param reactions: list[model.listOfReactions]
+
+    :returns: Dependency graph dictionary
     """
     dependent_rxns = {}
     for i in reactions:
