@@ -41,40 +41,90 @@ namespace Gillespy
 			const double *constants;
 		};
 
+		class EventExecution;
+
 		class Event
 		{
 		public:
+			friend class EventExecution;
+
+			inline bool trigger(double t, const double *state) const
+			{
+				return Event::trigger(m_event_id, t, state, Reaction::s_variables.get(), Reaction::s_constants.get());
+			}
+
+			inline double delay(double t, const double *state) const
+			{
+				return Event::delay(m_event_id, t, state, Reaction::s_variables.get(), Reaction::s_constants.get());
+			}
+
+			inline double priority(double t, const double *state) const
+			{
+				return Event::priority(m_event_id, t, state, Reaction::s_variables.get(), Reaction::s_constants.get());
+			}
+
+			EventExecution get_execution(double t,
+					const double *state, int num_state) const;
 			static void use_events(std::vector<Event> &events);
 
-			void execute(double t, double *state, double *variables, const double *constants);
-			void execute(double t, EventOutput output) const;
-			void use_state(const double *state, int num_state, const double *variables, int num_variables);
+		private:
+			int m_event_id;
+			bool m_use_trigger_state;
+			bool m_use_persist;
 
-			~Event();
-			Event(const Event &);
-			Event &operator=(const Event &);
-			Event(Event &&) noexcept;
-			Event &operator=(Event &&) noexcept;
+			explicit Event(int event_id, bool use_trigger_state, bool use_persist);
+
+			static bool trigger(
+					int event_id, double t,
+					const double *state,
+					const double *variables,
+					const double *constants);
+			static double delay(
+					int event_id, double t,
+					const double *state,
+					const double *variables,
+					const double *constants);
+			static double priority(
+					int event_id, double t,
+					const double *state,
+					const double *variables,
+					const double *constants);
+			static void assign(int event_id, double t, EventOutput output);
+		};
+
+		class EventExecution
+		{
+		public:
+
+			friend class Event;
+			~EventExecution();
+			EventExecution(const EventExecution&);
+			EventExecution(EventExecution&&) noexcept;
+			EventExecution &operator=(const EventExecution&);
+			EventExecution &operator=(EventExecution&&) noexcept;
+
+			void execute(double t, EventOutput output) const;
+			void execute(double t, double *state);
+
+			inline double get_execution_time() const { return m_execution_time; }
 
 		private:
+			double m_execution_time;
+			int m_event_id;
+
 			int m_num_state = 0;
 			double *m_state = nullptr;
 
 			int m_num_variables = 0;
 			double *m_variables = nullptr;
 
-			int m_event_id;
-			std::vector<unsigned int> m_assignments;
+			std::vector<int> m_assignments;
+			void use_assignments();
 
-			Event(int event_id, std::initializer_list<unsigned int> assignment_ids);
-
-			static bool trigger(int event_id, double t, const double *state);
-
-			static double delay(int event_id, double t, const double *state);
-
-			static double priority(int event_id, double t, const double *state);
-
-			static void assign(int event_id, double t, EventOutput output);
+			EventExecution(int event_id, double t);
+			EventExecution(int event_id, double t,
+						   const double *state, int num_state,
+						   const double *variables, int num_variables);
 		};
 
 		/* Gillespy::TauHybrid::DiffEquation

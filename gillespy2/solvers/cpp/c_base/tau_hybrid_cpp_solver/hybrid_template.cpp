@@ -56,7 +56,11 @@ namespace Gillespy
 		}
 
 
-		bool Event::trigger(int event_id, double t, const double *S)
+		bool Event::trigger(
+				int event_id, double t,
+				const double *S,
+				const double *P,
+				const double *C)
 		{
 			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist) \
 			case event_id: return (bool) (trigger);
@@ -72,7 +76,11 @@ namespace Gillespy
 			#undef EVENT
 		}
 
-		double Event::delay(int event_id, double t, const double *S)
+		double Event::delay(
+				int event_id, double t,
+				const double *S,
+				const double *P,
+				const double *C)
 		{
 			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist) \
 			case event_id: return static_cast<double>(delay);
@@ -88,7 +96,11 @@ namespace Gillespy
 			#undef EVENT
 		}
 
-		double Event::priority(int event_id, double t, const double *S)
+		double Event::priority(
+				int event_id, double t,
+				const double *S,
+				const double *P,
+				const double *C)
 		{
 			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist) \
 			case event_id: return static_cast<double>(priority);
@@ -109,9 +121,36 @@ namespace Gillespy
 			events.clear();
 			events.reserve(GPY_HYBRID_NUM_EVENTS);
 
+			#define USE_TRIGGER true
+			#define USE_EVAL false
+			#define PERSISTENT true
+			#define IRREGULAR false
 			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist) \
-			events[event_id] = Event(event_id, targets);
+			events[event_id] = Event(event_id, use_trigger, use_persist);
 			GPY_HYBRID_EVENTS
+			#undef EVENT
+			#undef IRREGULAR
+			#undef PERSISTENT
+			#undef USE_EVAL
+			#undef USE_TRIGGER
+		}
+
+		void EventExecution::use_assignments()
+		{
+			m_assignments.clear();
+			m_assignments.reserve(GPY_HYBRID_NUM_EVENT_ASSIGNMENTS);
+
+			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist) \
+			case event_id: m_assignments.assign(targets);
+
+			switch (m_event_id)
+			{
+			GPY_HYBRID_EVENTS
+
+			default:
+				return;
+			}
+
 			#undef EVENT
 		}
 

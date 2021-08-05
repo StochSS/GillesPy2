@@ -139,7 +139,6 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         self._validate_kwargs(**kwargs)
         self._validate_sbml_features({
             "Assignment Rules": len(model.listOfAssignmentRules),
-            "Events": len(model.listOfEvents),
             "Function Definitions": len(model.listOfFunctionDefinitions)
         })
 

@@ -24,17 +24,45 @@ namespace Gillespy
 {
 	namespace TauHybrid
 	{
-		Event::Event(int event_id, std::initializer_list<unsigned int> assignment_ids)
+		Event::Event(int event_id, bool use_trigger_state, bool use_persist)
 				: m_event_id(event_id),
-				  m_assignments(assignment_ids)
+				  m_use_trigger_state(use_trigger_state),
+				  m_use_persist(use_persist)
 		{}
 
-		Event::Event(const Event &old_event)
-				: m_num_state(old_event.m_num_state),
-				  m_num_variables(old_event.m_num_variables),
-				  m_event_id(old_event.m_event_id),
-				  // Yes, this invokes the copy constructor. Yes, this is intentional.
-				  m_assignments(old_event.m_assignments)
+		EventExecution Event::get_execution(double t,
+											const double *state, int num_state) const
+		{
+			return m_use_trigger_state
+				   ? EventExecution(m_event_id, t, state, num_state,
+									Reaction::s_variables.get(), Reaction::s_num_variables)
+				   : EventExecution(m_event_id, t);
+		}
+
+
+		EventExecution::EventExecution(int event_id, double t)
+				: m_execution_time(t),
+				  m_event_id(event_id)
+		{
+			use_assignments();
+		}
+
+		EventExecution::EventExecution(int event_id, double t,
+		   const double *state, int num_state,
+		   const double *variables, int num_variables)
+			   : m_execution_time(t),
+			     m_event_id(event_id),
+			     m_num_state(num_state),
+			     m_state(new double[num_state]),
+			     m_num_variables(num_variables),
+			     m_variables(new double[num_variables])
+		{
+			use_assignments();
+		}
+
+		EventExecution::EventExecution(const EventExecution &old_event)
+				: m_execution_time(old_event.m_execution_time),
+				  m_event_id(old_event.m_event_id)
 		{
 			if (old_event.m_state != nullptr && m_num_state > 0)
 			{
@@ -49,13 +77,9 @@ namespace Gillespy
 			}
 		}
 
-		Event::Event(Event &&old_event) noexcept
-				: m_num_state(old_event.m_num_state),
-				  m_state(old_event.m_state),
-				  m_num_variables(old_event.m_num_variables),
-				  m_variables(old_event.m_variables),
-				  m_event_id(old_event.m_event_id),
-				  m_assignments(std::move(old_event.m_assignments))
+		EventExecution::EventExecution(EventExecution &&old_event) noexcept
+				: m_execution_time(old_event.m_execution_time),
+				  m_event_id(old_event.m_event_id)
 		{
 			old_event.m_num_state = 0;
 			old_event.m_state = nullptr;
@@ -63,8 +87,9 @@ namespace Gillespy
 			old_event.m_variables = nullptr;
 		}
 
-		Event &Event::operator=(const Event &old_event)
+		EventExecution &EventExecution::operator=(const EventExecution &old_event)
 		{
+			m_execution_time = old_event.m_execution_time;
 			m_assignments = old_event.m_assignments;
 
 			if (this != &old_event)
@@ -96,8 +121,9 @@ namespace Gillespy
 			return *this;
 		}
 
-		Event &Event::operator=(Event &&old_event) noexcept
+		EventExecution &EventExecution::operator=(EventExecution &&old_event) noexcept
 		{
+			m_execution_time = old_event.m_execution_time;
 			m_assignments = std::move(old_event.m_assignments);
 
 			if (this != &old_event)
@@ -116,49 +142,42 @@ namespace Gillespy
 			return *this;
 		}
 
-		Event::~Event()
+		EventExecution::~EventExecution()
 		{
 			delete[] m_state;
 			delete[] m_variables;
 		}
 
-		void Event::use_state(
-				const double *state, int num_state,
-				const double *variables, int num_variables)
+		void EventExecution::execute(double t, EventOutput output) const
 		{
-			if (m_state == nullptr || m_num_state != num_state)
+			for (int assign_id : m_assignments)
 			{
-				delete[] m_state;
-				m_num_state = num_state;
-				m_state = new double[num_state];
+				Event::assign(assign_id, t, output);
 			}
-
-			if (m_variables == nullptr || m_num_variables != num_variables)
-			{
-				delete[] m_variables;
-				m_num_variables = num_variables;
-				m_variables = new double[num_variables];
-			}
-
-			std::memcpy(m_state, state, num_state);
-			std::memcpy(m_variables, variables, num_variables);
 		}
 
-		void Event::execute(double t, EventOutput output) const
+		void EventExecution::execute(double t, double *state)
 		{
-			Event::assign(m_event_id, t, output);
-		}
-
-		void Event::execute(double t, double *state, double *variables, const double *constants)
-		{
-			execute(t, EventOutput
+			if (m_state == nullptr || m_variables == nullptr)
 			{
-				state,
-				variables,
-				m_state,
-				m_variables,
-				constants
-			});
+				execute(t, EventOutput {
+					state,
+					Reaction::s_variables.get(),
+					state,
+					Reaction::s_variables.get(),
+					Reaction::s_constants.get()
+				});
+			}
+			else
+			{
+				execute(t, EventOutput {
+					state,
+					Reaction::s_variables.get(),
+					m_state,
+					m_variables,
+					Reaction::s_constants.get()
+				});
+			}
 		}
 
 
