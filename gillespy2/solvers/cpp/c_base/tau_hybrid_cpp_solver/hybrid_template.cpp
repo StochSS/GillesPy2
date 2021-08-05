@@ -19,6 +19,10 @@
 #include "hybrid_template.h"
 #include "template_params.h"
 
+// , cannot be overridden, so we can't use it as a delimiter
+// Use a separate macro to represent a delimiter
+#define AND ,
+
 namespace Gillespy
 {
 	namespace TauHybrid

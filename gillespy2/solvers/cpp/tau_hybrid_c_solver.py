@@ -63,7 +63,8 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         event_list = []
         # [SPECIES/VARIABLE]_ASSIGNMENT(assign_id, target_id, expr)
         event_assignment_list = []
-        for event_id, event in enumerate(sanitized_model.model.listOfEvents):
+        assign_id = 0
+        for event_id, event in enumerate(sanitized_model.model.listOfEvents.values()):
             trigger = sanitized_model.expr.getexpr_cpp(event.trigger.expression)
             delay = sanitized_model.expr.getexpr_cpp(event.delay) \
                 if event.delay is not None else "0"
@@ -73,7 +74,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             use_persist = persist_types[int(bool(event.trigger.persistent))]
 
             assignments: "list[str]" = []
-            for assign_id, assign in enumerate(event.assignments):
+            for assign in event.assignments:
                 variable = assign.variable
                 expression = sanitized_model.expr.getexpr_cpp(assign.expression)
 
@@ -95,12 +96,13 @@ class TauHybridCSolver(GillesPySolver, CSolver):
                 else:
                     raise ValueError(f"Invalid event assignment {assign}: received variable of type {type(variable)} "
                                      f"Must be of type str, Species, or Parameter")
+                assign_id += 1
 
                 assignments.append(str(assign_id))
                 event_assignment_list.append(assign_str)
             assignments: "str" = " AND ".join(assignments)
             event_list.append(
-                f"EVENT({event_id},{{{assignments}}},{trigger},{delay},{priority},{use_trigger},{use_persist}"
+                f"EVENT({event_id},{{{assignments}}},{trigger},{delay},{priority},{use_trigger},{use_persist})"
             )
 
         sanitized_model.options["GPY_HYBRID_SPECIES_MODES"] = " ".join(species_mode_list)

@@ -65,7 +65,10 @@ int main(int argc, char* argv[])
 	init_simulation(&model, simulation);
 	Gillespy::TauHybrid::map_species_modes(simulation.species_state);
 	Gillespy::TauHybrid::map_rate_rules(simulation.species_state);
-	// Perform ODE  //
+
+	std::vector<Gillespy::TauHybrid::Event> events;
+	Gillespy::TauHybrid::Event::use_events(events);
+
 	TauHybrid::TauHybridCSolver(&simulation, tau_tol);
 	simulation.output_results_buffer(std::cout);
 	return 0;
