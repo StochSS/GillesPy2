@@ -18,110 +18,159 @@
 
 #pragma once
 
-#include <functional>
 #include "model.h"
 #include "tau.h"
+
+#include <vector>
 
 #define GPY_HYBRID_ABSTOL 1e-8
 #define GPY_HYBRID_RELTOL 1e-8
 
-namespace Gillespy::TauHybrid
+namespace Gillespy
 {
-
-	typedef int ReactionId;
-
-	/* Gillespy::TauHybrid::DiffEquation
-	 * A vector containing evaluable functions, which accept integrator state and return propensities.
-	 * 
-	 * The vector is understood to be an arbitrarily sized collection of propensity evaluations,
-	 *   each weighted by some individual, constant factor.
-	 * The sum of evaulations of all collected functions is interpreted to be the dydt of that state.
-	 */
-	struct DifferentialEquation
+	namespace TauHybrid
 	{
-	public:
-		std::vector<std::function<double(double*, int*)>> formulas;
-		std::vector<std::function<double(double, double*, double*, const double*)>> rate_rules;
-		double evaluate(double t, double *ode_state, int *ssa_state);
-	};
+		typedef int ReactionId;
 
-	enum SimulationState : unsigned int
-	{
-		CONTINUOUS = 0,
-		DISCRETE = 1,
-		DYNAMIC = 2
-	};
+		struct EventOutput
+		{
+			double *species_out;
+			double *variable_out;
+			const double *species;
+			const double *variables;
+			const double *constants;
+		};
 
-	struct HybridSpecies
-	{
-		Species<double> *base_species;
+		class Event
+		{
+		public:
+			static void use_events(std::vector<Event> &events);
 
-		// allows the user to specify if a species' population should definitely be modeled continuously or 
-		// discretely
-		// CONTINUOUS or DISCRETE
-		// otherwise, mode will be determined by the program (DYNAMIC)
-		// if no choice is made, DYNAMIC will be assumed 
-		SimulationState  user_mode;
+			void execute(double t, double *state, double *variables, const double *constants);
+			void execute(double t, EventOutput output) const;
+			void use_state(const double *state, int num_state, const double *variables, int num_variables);
 
-		// during simulation execution, a species will fall into either of the two categories, CONTINUOUS or DISCRETE
-		// this is pre-determined only if the user_mode specifies CONTINUOUS or DISCRETE.
-		// otherwise, if DYNAMIC is specified, partition_mode will be continually calculated throughout the simulation
-		// according to standard deviation and coefficient of variance.
-		SimulationState partition_mode;
+			~Event();
+			Event(const Event &);
+			Event &operator=(const Event &);
+			Event(Event &&) noexcept;
+			Event &operator=(Event &&) noexcept;
 
-		// Tolerance level for considering a dynamic species deterministically, value is compared
-		// to an estimated sd/mean population of a species after a given time step.
-		//  This value will be used if a switch_min is not provided. The default value is 0.03
-		double switch_tol = 0.03;
+		private:
+			int m_num_state = 0;
+			double *m_state = nullptr;
 
-		//Minimum population value at which species will be represented as continuous. 
-		// If a value is given, switch_min will be used instead of switch_tol.
-		unsigned int switch_min = 0;
+			int m_num_variables = 0;
+			double *m_variables = nullptr;
 
-		DifferentialEquation diff_equation;
+			int m_event_id;
+			std::vector<unsigned int> m_assignments;
 
-		// Boundary condition species are not directly updated by reactions, while standard ones are.
-		// If `boundary_condition` is true, then reactants are not consumed, and products are not produced.
-		bool boundary_condition = false;
+			Event(int event_id, std::initializer_list<unsigned int> assignment_ids);
 
-		HybridSpecies();
-	};
+			static bool trigger(int event_id, double t, const double *state);
 
-	struct HybridReaction
-	{
-		Reaction *base_reaction;
-		SimulationState mode;
+			static double delay(int event_id, double t, const double *state);
 
-		HybridReaction();
-	};
+			static double priority(int event_id, double t, const double *state);
 
-	struct HybridSimulation : Simulation<double>
-	{
-		std::vector<HybridSpecies> species_state;
-		std::vector<HybridReaction> reaction_state;
+			static void assign(int event_id, double t, EventOutput output);
+		};
 
-		HybridSimulation();
-		HybridSimulation(const Model<double> &model);
-	};
+		/* Gillespy::TauHybrid::DiffEquation
+		 * A vector containing evaluable functions, which accept integrator state and return propensities.
+		 *
+		 * The vector is understood to be an arbitrarily sized collection of propensity evaluations,
+		 *   each weighted by some individual, constant factor.
+		 * The sum of evaulations of all collected functions is interpreted to be the dydt of that state.
+		 */
+		struct DifferentialEquation
+		{
+		public:
+			std::vector<std::function<double(double *, int *)>> formulas;
+			std::vector<std::function<double(double, double *, double *, const double *)>> rate_rules;
 
-	std::set<int> flag_det_rxns(
-		std::vector<HybridReaction> &reactions,
-		std::vector<HybridSpecies> &species);
+			double evaluate(double t, double *ode_state, int *ssa_state);
+		};
 
-	void partition_species(
-		std::vector<HybridReaction> &reactions,
-		std::vector<HybridSpecies> &species,
-		const std::vector<double> &propensity_values,
-		std::vector<double> &curr_state,
-		double tau_step,
-		const TauArgs<double> &TauArgs);
+		enum SimulationState : unsigned int
+		{
+			CONTINUOUS = 0,
+			DISCRETE = 1,
+			DYNAMIC = 2
+		};
 
-	void update_species_state(
-		std::vector<HybridSpecies> &species,
-		std::vector<double> &current_state);
+		struct HybridSpecies
+		{
+			Species<double> *base_species;
 
-	void create_differential_equations(
-		std::vector<HybridSpecies> &species,
-		std::vector<HybridReaction> &reactions);
+			// allows the user to specify if a species' population should definitely be modeled continuously or
+			// discretely
+			// CONTINUOUS or DISCRETE
+			// otherwise, mode will be determined by the program (DYNAMIC)
+			// if no choice is made, DYNAMIC will be assumed
+			SimulationState user_mode;
 
+			// during simulation execution, a species will fall into either of the two categories, CONTINUOUS or DISCRETE
+			// this is pre-determined only if the user_mode specifies CONTINUOUS or DISCRETE.
+			// otherwise, if DYNAMIC is specified, partition_mode will be continually calculated throughout the simulation
+			// according to standard deviation and coefficient of variance.
+			SimulationState partition_mode;
+
+			// Tolerance level for considering a dynamic species deterministically, value is compared
+			// to an estimated sd/mean population of a species after a given time step.
+			//  This value will be used if a switch_min is not provided. The default value is 0.03
+			double switch_tol = 0.03;
+
+			//Minimum population value at which species will be represented as continuous.
+			// If a value is given, switch_min will be used instead of switch_tol.
+			unsigned int switch_min = 0;
+
+			DifferentialEquation diff_equation;
+
+			// Boundary condition species are not directly updated by reactions, while standard ones are.
+			// If `boundary_condition` is true, then reactants are not consumed, and products are not produced.
+			bool boundary_condition = false;
+
+			HybridSpecies();
+		};
+
+		struct HybridReaction
+		{
+			Reaction *base_reaction;
+			SimulationState mode;
+
+			HybridReaction();
+		};
+
+		struct HybridSimulation : Simulation<double>
+		{
+			std::vector<HybridSpecies> species_state;
+			std::vector<HybridReaction> reaction_state;
+
+			HybridSimulation();
+
+			HybridSimulation(const Model<double> &model);
+		};
+
+		std::set<int> flag_det_rxns(
+				std::vector<HybridReaction> &reactions,
+				std::vector<HybridSpecies> &species);
+
+		void partition_species(
+				std::vector<HybridReaction> &reactions,
+				std::vector<HybridSpecies> &species,
+				const std::vector<double> &propensity_values,
+				std::vector<double> &curr_state,
+				double tau_step,
+				const TauArgs<double> &TauArgs);
+
+		void update_species_state(
+				std::vector<HybridSpecies> &species,
+				std::vector<double> &current_state);
+
+		void create_differential_equations(
+				std::vector<HybridSpecies> &species,
+				std::vector<HybridReaction> &reactions);
+	}
 }

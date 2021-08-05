@@ -106,13 +106,32 @@ namespace Gillespy
 			events.reserve(GPY_HYBRID_NUM_EVENTS);
 
 			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist) \
-			if ((event_id) < GPY_HYBRID_NUM_EVENTS) events[event_id] = Event(event_id, trigger);
+			events[event_id] = Event(event_id, targets);
 			GPY_HYBRID_EVENTS
-			#undef GPY_HYBRID_EVENTS
+			#undef EVENT
 		}
 
-		Event::Event(int event_id, std::initializer_list<int> assignment_ids)
-			: m_event_id(event_id)
-		{}
+		void Event::assign(int assign_id, double t, EventOutput output)
+		{
+			const double *S = output.species;
+			const double *P = output.variables;
+			const double *C = output.constants;
+
+			#define SPECIES_ASSIGNMENT(id, spec_id, expr) \
+			case id: output.species_out[spec_id] = expr;
+			#define VARIABLE_ASSIGNMENT(id, var_id, expr) \
+			case id: output.variable_out[var_id] = expr;
+
+			switch (assign_id)
+			{
+			GPY_HYBRID_EVENT_ASSIGNMENTS
+
+			default:
+				return;
+			}
+
+			#undef VARIABLE_ASSIGNMENT
+			#undef SPECIES_ASSIGNMENT
+		}
 	}
 }

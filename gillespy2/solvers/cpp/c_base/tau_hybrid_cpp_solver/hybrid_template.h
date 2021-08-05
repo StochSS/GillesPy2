@@ -34,27 +34,16 @@
 
 #ifndef GPY_HYBRID_EVENT_ASSIGNMENTS
 #define GPY_HYBRID_EVENT_ASSIGNMENTS
+#define GPY_HYBRID_NUM_EVENT_ASSIGNMENTS 0
 #endif
 
-namespace Gillespy::TauHybrid
+namespace Gillespy
 {
-	using EventAssignment = std::function<void(const double, double*)>;
-
-	class Event
+	namespace TauHybrid
 	{
-	public:
-		static void use_events(std::vector<Event> &events);
 
-	private:
-		int m_event_id;
+		void map_species_modes(std::vector<HybridSpecies> &species);
+		void map_rate_rules(std::vector<HybridSpecies> &species);
 
-		Event(int event_id, std::initializer_list<int> assignment_ids);
-		static bool trigger(int event_id, double t, const double *state);
-		static double delay(int event_id, double t, const double *state);
-		static double priority(int event_id, double t, const double *state);
-	};
-
-	void map_species_modes(std::vector<HybridSpecies> &species);
-	void map_rate_rules(std::vector<HybridSpecies> &species);
-
+	}
 }
