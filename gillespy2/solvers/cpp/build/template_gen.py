@@ -42,15 +42,20 @@ class SanitizedModel:
 
         self.species: "OrderedDict[str, Species]" = OrderedDict()
         self.species_names = model.sanitized_species_names()
-        for species_name, sanitized_name in self.species_names.items():
+        self.species_id: "OrderedDict[str, int]" = OrderedDict()
+        for spec_id, spec_entry in enumerate(self.species_names.items()):
+            species_name, sanitized_name = spec_entry
             self.species[sanitized_name] = model.get_species(species_name)
+            self.species_id[species_name] = spec_id
 
         self.parameters: "OrderedDict[str, Parameter]" = OrderedDict()
         self.parameter_names: "OrderedDict[str, str]" = OrderedDict()
         self.parameter_names["vol"] = "P[0]" if variable else "C[0]"
+        self.parameter_id: "OrderedDict[str, int]" = OrderedDict()
         for param_id, param_name in enumerate(model.listOfParameters.keys(), start=1):
             if param_name not in self.parameter_names:
                 self.parameter_names[param_name] = f"P[{param_id}]" if variable else f"C[{param_id}]"
+                self.parameter_id[param_name] = param_id
         for parameter_name, sanitized_name in self.parameter_names.items():
             self.parameters[sanitized_name] = model.get_parameter(parameter_name) \
                 if parameter_name != "vol" else Parameter(name=sanitized_name, expression=str(model.volume))
