@@ -62,7 +62,8 @@ namespace Gillespy
 
 		EventExecution::EventExecution(const EventExecution &old_event)
 				: m_execution_time(old_event.m_execution_time),
-				  m_event_id(old_event.m_event_id)
+				  m_event_id(old_event.m_event_id),
+				  m_assignments(old_event.m_assignments)
 		{
 			if (old_event.m_state != nullptr && m_num_state > 0)
 			{
@@ -79,7 +80,8 @@ namespace Gillespy
 
 		EventExecution::EventExecution(EventExecution &&old_event) noexcept
 				: m_execution_time(old_event.m_execution_time),
-				  m_event_id(old_event.m_event_id)
+				  m_event_id(old_event.m_event_id),
+				  m_assignments(std::move(old_event.m_assignments))
 		{
 			old_event.m_num_state = 0;
 			old_event.m_state = nullptr;
@@ -178,6 +180,16 @@ namespace Gillespy
 					Reaction::s_constants.get()
 				});
 			}
+		}
+
+		bool EventExecution::operator<(const EventExecution &rhs) const
+		{
+			return m_execution_time < rhs.m_execution_time;
+		}
+
+		bool EventExecution::operator>(const EventExecution &rhs) const
+		{
+			return m_execution_time > rhs.m_execution_time;
 		}
 
 

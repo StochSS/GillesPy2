@@ -126,7 +126,7 @@ namespace Gillespy
 			#define PERSISTENT true
 			#define IRREGULAR false
 			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist) \
-			events[event_id] = Event(event_id, use_trigger, use_persist);
+			events.emplace_back(Event(event_id, use_trigger, use_persist));
 			GPY_HYBRID_EVENTS
 			#undef EVENT
 			#undef IRREGULAR
@@ -138,10 +138,8 @@ namespace Gillespy
 		void EventExecution::use_assignments()
 		{
 			m_assignments.clear();
-			m_assignments.reserve(GPY_HYBRID_NUM_EVENT_ASSIGNMENTS);
-
 			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist) \
-			case event_id: m_assignments.assign(targets);
+			case event_id: m_assignments = std::vector<int>(targets); break;
 
 			switch (m_event_id)
 			{
@@ -161,9 +159,9 @@ namespace Gillespy
 			const double *C = output.constants;
 
 			#define SPECIES_ASSIGNMENT(id, spec_id, expr) \
-			case id: output.species_out[spec_id] = expr;
+			case id: output.species_out[spec_id] = expr; break;
 			#define VARIABLE_ASSIGNMENT(id, var_id, expr) \
-			case id: output.variable_out[var_id] = expr;
+			case id: output.variable_out[var_id] = expr; break;
 
 			switch (assign_id)
 			{

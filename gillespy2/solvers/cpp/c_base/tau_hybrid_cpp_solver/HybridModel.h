@@ -58,11 +58,6 @@ namespace Gillespy
 				return Event::delay(m_event_id, t, state, Reaction::s_variables.get(), Reaction::s_constants.get());
 			}
 
-			inline double priority(double t, const double *state) const
-			{
-				return Event::priority(m_event_id, t, state, Reaction::s_variables.get(), Reaction::s_constants.get());
-			}
-
 			EventExecution get_execution(double t,
 					const double *state, int num_state) const;
 			static void use_events(std::vector<Event> &events);
@@ -105,8 +100,15 @@ namespace Gillespy
 
 			void execute(double t, EventOutput output) const;
 			void execute(double t, double *state);
+			inline double priority(double t, const double *state) const
+			{
+				return Event::priority(m_event_id, t, state, Reaction::s_variables.get(), Reaction::s_constants.get());
+			}
 
 			inline double get_execution_time() const { return m_execution_time; }
+
+			bool operator<(const EventExecution &rhs) const;
+			bool operator>(const EventExecution &rhs) const;
 
 		private:
 			double m_execution_time;

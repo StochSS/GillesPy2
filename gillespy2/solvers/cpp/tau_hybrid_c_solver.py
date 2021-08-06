@@ -96,10 +96,9 @@ class TauHybridCSolver(GillesPySolver, CSolver):
                 else:
                     raise ValueError(f"Invalid event assignment {assign}: received variable of type {type(variable)} "
                                      f"Must be of type str, Species, or Parameter")
-                assign_id += 1
-
                 assignments.append(str(assign_id))
                 event_assignment_list.append(assign_str)
+                assign_id += 1
             assignments: "str" = " AND ".join(assignments)
             event_list.append(
                 f"EVENT({event_id},{{{assignments}}},{trigger},{delay},{priority},{use_trigger},{use_persist})"

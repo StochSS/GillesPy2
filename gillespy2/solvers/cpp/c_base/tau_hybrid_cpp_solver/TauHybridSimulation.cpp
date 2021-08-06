@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
 	std::vector<Gillespy::TauHybrid::Event> events;
 	Gillespy::TauHybrid::Event::use_events(events);
 
-	TauHybrid::TauHybridCSolver(&simulation, tau_tol);
+	TauHybrid::TauHybridCSolver(&simulation, events, tau_tol);
 	simulation.output_results_buffer(std::cout);
 	return 0;
 }
