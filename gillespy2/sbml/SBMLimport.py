@@ -67,6 +67,7 @@ def __get_math(math):
     math_str = libsbml.formulaToL3String(math)
     replacements = {
         '\bln\b': 'log',
+        'ln': 'log',
         '^': '**',
         '&&': 'and',
         '||': 'or'
