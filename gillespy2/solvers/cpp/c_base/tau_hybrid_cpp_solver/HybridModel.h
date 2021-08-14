@@ -58,6 +58,8 @@ namespace Gillespy
 				return Event::delay(m_event_id, t, state, Reaction::s_variables.get(), Reaction::s_constants.get());
 			}
 
+			inline bool is_persistent() const { return m_use_persist; }
+
 			EventExecution get_execution(double t,
 					const double *state, int num_state) const;
 			static void use_events(std::vector<Event> &events);
@@ -104,6 +106,10 @@ namespace Gillespy
 			{
 				return Event::priority(m_event_id, t, state, Reaction::s_variables.get(), Reaction::s_constants.get());
 			}
+			inline bool trigger(double t, const double *state) const
+			{
+				return Event::trigger(m_event_id, t, state, Reaction::s_variables.get(), Reaction::s_constants.get());
+			}
 
 			inline double get_execution_time() const { return m_execution_time; }
 
@@ -116,7 +122,7 @@ namespace Gillespy
 
 			int m_num_state = 0;
 			double *m_state = nullptr;
-
+			
 			int m_num_variables = 0;
 			double *m_variables = nullptr;
 
@@ -134,7 +140,7 @@ namespace Gillespy
 		 *
 		 * The vector is understood to be an arbitrarily sized collection of propensity evaluations,
 		 *   each weighted by some individual, constant factor.
-		 * The sum of evaulations of all collected functions is interpreted to be the dydt of that state.
+		 * The sum of evaluations of all collected functions is interpreted to be the dy/dt of that state.
 		 */
 		struct DifferentialEquation
 		{

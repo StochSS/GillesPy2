@@ -20,6 +20,7 @@
 #include <csignal> //Included for timeout signal handling
 #include <random>
 #include <queue>
+#include <list>
 #include "cvode.h" // prototypes for CVODE fcts., consts.
 #include "nvector_serial.h"  // access to serial N_Vector
 #include "sunlinsol_spgmr.h"  //access to SPGMR SUNLinearSolver
@@ -35,6 +36,9 @@ namespace Gillespy
 {
 	namespace TauHybrid
 	{
+		template <typename T>
+		using DelayedExecutionQueue = std::priority_queue<EventExecution, std::vector<EventExecution>, T>;
+
 		bool interrupted = false;
 
 		void signalHandler(int signum)
@@ -121,10 +125,17 @@ namespace Gillespy
 				// For now, a "guard" is put in place to prevent potentially infinite loops from occurring.
 				unsigned int integration_guard = 1000;
 
-				std::priority_queue<
-				        EventExecution,
-				        std::vector<EventExecution>,
-						std::greater<EventExecution>> delay_queue;
+				// delay_queue:
+				// Delayed execution objects which are guaranteed to (eventually) fire at its time.
+				// Once placed in this queue, an execution is only removed when it's ready to fire.
+				DelayedExecutionQueue<std::greater<EventExecution>> delay_queue;
+
+				// volatile_queue:
+				// Delayed execution objects which must be re-evaluated at each root.
+				// If any volatile executions transition from True -> False, they are removed.
+				// Otherwise, they are treated just like a delay_queue, by triggering when ready.
+				std::list<EventExecution> volatile_queue;
+
 				while (integration_guard > 0 && simulation->current_time < simulation->end_time)
 				{
 					// Compute current propensity values based on existing state.
@@ -297,23 +308,43 @@ namespace Gillespy
 							if (event.trigger(t, event_state))
 							{
 								double delay = event.delay(t, event_state);
-								if (delay > 0)
+								if (delay <= 0)
+								{
+									// Immediately put EventExecution on "triggered" pile
+									trigger_queue.emplace(event.get_execution(t, event_state, num_species));
+								}
+								else if (event.is_persistent())
 								{
 									// Put EventExecution on "delayed" pile
-									delay_queue.push(event.get_execution(delay, event_state, num_species));
+									delay_queue.emplace(event.get_execution(delay, event_state, num_species));
 								}
 								else
 								{
-									// Put EventExecution on "triggered" pile
-									trigger_queue.push(event.get_execution(t, event_state, num_species));
+									// Delayed, but must be re-checked on every iteration.
+									volatile_queue.emplace_back(event.get_execution(delay, event_state, num_species));
 								}
+							}
+						}
+
+						for (auto vol_event = volatile_queue.begin(); vol_event != volatile_queue.end(); ++vol_event)
+						{
+							// Execution objects in the volatile queue must remain True until execution.
+							// Remove any execution objects which transitioned to False before execution.
+							if (!vol_event->trigger(t, event_state))
+							{
+								vol_event = volatile_queue.erase(vol_event);
+							}
+							else if (vol_event->get_execution_time() >= t)
+							{
+								trigger_queue.push(*vol_event);
+								vol_event = volatile_queue.erase(vol_event);
 							}
 						}
 
 						while (!delay_queue.empty())
 						{
 							auto &event = delay_queue.top();
-							if (event.get_execution_time() < simulation->current_time)
+							if (event.get_execution_time() < t)
 							{
 								break;
 							}
