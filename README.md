@@ -175,7 +175,7 @@ Authors and history
 * [**Eliot Dixon**](https://github.com/edixon1)
 * [**Dalton Nickerson**](https://github.com/Thisisnotdalton)
 * [**Sean Matthew**](https://github.com/seanebum)
-* [**George Hall** ](https://github.com/georgemhall)
+* [**Kassidy Hall** ](https://github.com/technodivergent)
 * [**W.R. Jackson** ](https://github.com/JustJackson)
 * [**Samuel Hodges**](https://github.com/hodgespodge)
 * [**Emma Weisgerber**](https://github.com/eweisger)
