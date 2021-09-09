@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import sys
+import json
 import threading
 from gillespy2.core import log
 
@@ -70,6 +71,8 @@ def valid_graph_params(live_output_options):
 
     if 'file_path' not in live_output_options:
         live_output_options['file_path'] = None
+    elif live_output_options['type'] == "graph":
+        live_output_options['type'] = "figure"
 
 
 class LiveDisplayer():
@@ -184,8 +187,38 @@ class LiveDisplayer():
             plt.show()
 
         elif self.display_type == "figure":
+            import plotly
             import plotly.graph_objs as go
             from gillespy2.core.results import common_rgb_values
+
+            entry_count = floor(curr_time) - self.x_shift
+            
+            trace_list = []
+            for i, species in enumerate(self.species):
+                line_dict = {"color": common_rgb_values()[(i) % len(common_rgb_values())]}
+                trace_list.append(
+                    go.Scatter(
+                        x=trajectory_base[0][:, 0][:entry_count].tolist(),
+                        y=trajectory_base[0][:, i + 1][:entry_count].tolist(),
+                        mode="lines", name=species, line=line_dict, legendgroup=species
+                    )
+                )
+
+                trace_list.append(
+                    go.Scatter(
+                        x=[entry_count - 1, curr_time - self.timeline[0]],
+                        y=[trajectory_base[0][:, i + 1][entry_count - 1], curr_state[species]],
+                        mode="lines", name=species, line=line_dict, legendgroup=species, showlegend=False
+                    )
+                )
+
+            layout = go.Layout(
+                showlegend=True, title=self.trajectory_header(),
+                xaxis={"range": [self.timeline[0], self.timeline[-1]]}
+            )
+
+            fig = dict(data=trace_list, layout=layout)
+            json.dump(fig, file_obj, cls=plotly.utils.PlotlyJSONEncoder)
 
         if self.file_path is not None and self.display_type != "graph":
             file_obj.close()
