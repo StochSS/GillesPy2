@@ -73,6 +73,10 @@ namespace Gillespy
 				y = y0;
 			}
 			Integrator sol(simulation, y, GPY_HYBRID_RELTOL, GPY_HYBRID_ABSTOL);
+			if (!events.empty())
+			{
+				sol.use_events(&events);
+			}
 
 			// Tau selector initialization. Used to select a valid tau step.
 			TauArgs<double> tau_args = initialize(model, tau_tol);
@@ -189,15 +193,20 @@ namespace Gillespy
 						? simulation->current_time + tau_step
 						: simulation->current_time + std::min(tau_step, increment);
 
+					// Vector used to store any continuous events discovered by the root-finder.
+					// How each integrator event is handled is context-dependent.
+					std::set<int> roots_found;
+
 					// The integration loop continues until a valid solution is found.
 					// Any invalid Tau steps (which cause negative populations) are discarded.
 					sol.save_state();
+
 					do
 					{
 						// Integration Step
 						// For deterministic reactions, the concentrations are updated directly.
 						// For stochastic reactions, integration updates the rxn_offsets vector.
-						IntegrationResults result = sol.integrate(&next_time);
+						IntegrationResults result = sol.integrate(&next_time, roots_found);
 						if (sol.status == IntegrationStatus::BAD_STEP_SIZE)
 						{
 							invalid_state = true;
@@ -267,7 +276,8 @@ namespace Gillespy
 							sol.restore_state();
 							tau_step /= 2;
 							next_time = simulation->current_time + tau_step;
-						} else
+						}
+						else
 						{
 							// "Permanently" update the rxn_state and populations.
 							for (int p_i = 0; p_i < num_species; ++p_i)
@@ -292,49 +302,59 @@ namespace Gillespy
 										? integration_guard - 1
 										: 1000;
 
+					// ===== <EVENT HANDLING> =====
 					if (!events.empty())
 					{
-						double t = simulation->current_time;
 						double *event_state = N_VGetArrayPointer(sol.y);
-						auto compare = [t, event_state](EventExecution &lhs, EventExecution &rhs) -> bool
+						auto compare = [next_time, event_state](EventExecution &lhs, EventExecution &rhs) -> bool
 						{
-							return lhs.priority(t, event_state) < rhs.priority(t, event_state);
+							return lhs.priority(next_time, event_state) < rhs.priority(next_time, event_state);
 						};
 						std::priority_queue<EventExecution, std::vector<EventExecution>, decltype(compare)>
 								trigger_queue(compare);
 
-						for (auto &event : events)
+						// Step 1: Check to see if any events are present in the volatile queue.
+						// If so, those executions must be discarded (double-transition).
+						for (auto vol_iter = volatile_queue.begin(); vol_iter != volatile_queue.end(); ++vol_iter)
 						{
-							if (event.trigger(t, event_state))
+							auto found_event = roots_found.find(vol_iter->get_event_id());
+							// Element in roots_found contains event id; discard
+							if (found_event != roots_found.end())
 							{
-								double delay = event.delay(t, event_state);
-								if (delay <= 0)
-								{
-									// Immediately put EventExecution on "triggered" pile
-									trigger_queue.emplace(event.get_execution(t, event_state, num_species));
-								}
-								else if (event.is_persistent())
-								{
-									// Put EventExecution on "delayed" pile
-									delay_queue.emplace(event.get_execution(delay, event_state, num_species));
-								}
-								else
-								{
-									// Delayed, but must be re-checked on every iteration.
-									volatile_queue.emplace_back(event.get_execution(delay, event_state, num_species));
-								}
+								vol_iter = volatile_queue.erase(vol_iter);
 							}
 						}
 
+						// Step 2: Evaluate remaining roots as triggers
+						for (int root : roots_found)
+						{
+							Event event = events[root];
+							double delay = event.delay(next_time, event_state);
+
+							if (delay <= 0)
+							{
+								// Immediately put EventExecution on "triggered" pile
+								trigger_queue.emplace(event.get_execution(next_time, event_state, num_species));
+							}
+							else if (event.is_persistent())
+							{
+								// Put EventExecution on "delayed" pile
+								delay_queue.emplace(event.get_execution(delay, event_state, num_species));
+							}
+							else
+							{
+								// Delayed, but must be re-checked on every iteration.
+								volatile_queue.emplace_back(event.get_execution(delay, event_state, num_species));
+							}
+						}
+
+						// Step 3: Process delayed executions that are now ready to fire.
+						// Both the volatile and non-volatile queue are processed in a similar manner.
 						for (auto vol_event = volatile_queue.begin(); vol_event != volatile_queue.end(); ++vol_event)
 						{
 							// Execution objects in the volatile queue must remain True until execution.
 							// Remove any execution objects which transitioned to False before execution.
-							if (!vol_event->trigger(t, event_state))
-							{
-								vol_event = volatile_queue.erase(vol_event);
-							}
-							else if (vol_event->get_execution_time() >= t)
+							if (vol_event->get_execution_time() >= next_time)
 							{
 								trigger_queue.push(*vol_event);
 								vol_event = volatile_queue.erase(vol_event);
@@ -344,21 +364,26 @@ namespace Gillespy
 						while (!delay_queue.empty())
 						{
 							auto &event = delay_queue.top();
-							if (event.get_execution_time() < t)
+							if (event.get_execution_time() < next_time)
 							{
+								// Delay queue is sorted in chronological order.
+								// As soon as we hit a time that is beyond the current time,
+								//  there is no use in continuing through the queue.
 								break;
 							}
 							trigger_queue.push(event);
 							delay_queue.pop();
 						}
 
+						// Step 4: Process any pending triggers, unconditionally.
 						while (!trigger_queue.empty())
 						{
 							auto event = trigger_queue.top();
-							event.execute(t, event_state);
+							event.execute(next_time, event_state);
 							trigger_queue.pop();
 						}
 					}
+					// ===== </EVENT HANDLING> =====
 
 					// Output the results for this time step.
 					sol.refresh_state();

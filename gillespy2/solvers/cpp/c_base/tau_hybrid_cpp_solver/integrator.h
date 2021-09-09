@@ -26,8 +26,10 @@
 #include <vector>
 #include <random>
 
-namespace Gillespy::TauHybrid
+namespace Gillespy
 {
+	namespace TauHybrid
+	{
 
 	/* IntegratorStatus: represents the runtime state of the integrator.
 	 * OK indicates that no errors have occurred.
@@ -49,6 +51,7 @@ namespace Gillespy::TauHybrid
 		HybridSimulation *simulation;
 		std::vector<HybridSpecies> *species_state;
 		std::vector<HybridReaction> *reaction_state;
+		std::vector<Event> *events = nullptr;
 
 		std::vector<double> concentrations;
 		std::vector<int> populations;
@@ -84,6 +87,7 @@ namespace Gillespy::TauHybrid
 		SUNLinearSolver solver;
 		int num_species;
 		int num_reactions;
+		int *m_roots = nullptr;
 	public:
 		// status: check for errors before using the results.
 		IntegrationStatus status;
@@ -114,7 +118,11 @@ namespace Gillespy::TauHybrid
 
 		void reinitialize(N_Vector y_reset);
 
+		void use_events(std::vector<Event> *events);
+		bool has_events() const;
+
 		IntegrationResults integrate(double *t);
+		IntegrationResults integrate(double *t, std::set<int> &events);
 		IntegratorData data;
 
 		Integrator(HybridSimulation *simulation, N_Vector y0, double reltol, double abstol);
@@ -136,5 +144,7 @@ namespace Gillespy::TauHybrid
 	N_Vector init_model_vector(Model<double> &model, URNGenerator urn);
 
 	int rhs(realtype t, N_Vector y, N_Vector ydot, void *user_data);
+	int rootfn(realtype t, N_Vector y, realtype *gout, void *user_data);
 
+	}
 }

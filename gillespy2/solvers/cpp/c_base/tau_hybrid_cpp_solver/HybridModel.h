@@ -112,6 +112,7 @@ namespace Gillespy
 			}
 
 			inline double get_execution_time() const { return m_execution_time; }
+			inline int get_event_id() const { return m_event_id; }
 
 			bool operator<(const EventExecution &rhs) const;
 			bool operator>(const EventExecution &rhs) const;

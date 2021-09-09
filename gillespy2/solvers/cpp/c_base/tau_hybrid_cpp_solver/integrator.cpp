@@ -123,6 +123,7 @@ Integrator::~Integrator()
 	N_VDestroy_Serial(y);
 	CVodeFree(&cvode_mem);
 	SUNLinSolFree_SPGMR(solver);
+	delete[] m_roots;
 }
 
 IntegrationResults Integrator::integrate(double *t)
@@ -133,10 +134,61 @@ IntegrationResults Integrator::integrate(double *t)
 	}
 
 	return {
-		NV_DATA_S(y), // NV_DATA_S instead?
+		NV_DATA_S(y),
 		NV_DATA_S(y) + num_species
 	};
 }
+
+IntegrationResults Integrator::integrate(double *t, std::set<int> &events)
+{
+	IntegrationResults results = integrate(t);
+
+	std::vector<Event> *integrator_events = data.events;
+	if (integrator_events != nullptr && !integrator_events->empty())
+	{
+		int num_events = (int) integrator_events->size();
+		if (m_roots == nullptr)
+		{
+			m_roots = new int[num_events];
+		}
+
+		if (validate(this, CVodeGetRootInfo(cvode_mem, m_roots)))
+		{
+			for (int event_id = 0; event_id < num_events; ++event_id)
+			{
+				// CVode root output can be: -1, 0, or 1
+				//   +1 : Passes from negative to positive
+				//   -1 : Passes from positive to negative
+				//    0 : No root found
+				// (See page 83 of CVODE documentation)
+				// https://computing.llnl.gov/sites/default/files/cv_guide-5.7.0.pdf
+				// NOTE: do we need to check root direction? If so, this is the place to do so.
+				if (m_roots[event_id] < 0 || m_roots[event_id] > 0)
+				{
+					std::cerr << " ====== EVENT FIRED AT t=" << *t << std::endl;
+					events.insert(event_id);
+				}
+			}
+		}
+	}
+
+	return results;
+}
+void Integrator::use_events(std::vector<Event> *events)
+{
+	if (events == nullptr
+		|| !validate(this, CVodeRootInit(cvode_mem, (int) events->size(), rootfn)))
+	{
+		return;
+	}
+	data.events = events;
+}
+
+bool Integrator::has_events() const
+{
+	return data.events != nullptr && !data.events->empty();
+}
+
 
 
 URNGenerator::URNGenerator()
@@ -268,6 +320,22 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 
 	return 0;
 };
+
+int Gillespy::TauHybrid::rootfn(realtype t, N_Vector y, realtype *gout, void *user_data)
+{
+	std::vector<Event> &events = *(static_cast<IntegratorData*>(user_data)->events);
+	realtype *y_t = N_VGetArrayPointer(y);
+	unsigned long long num_events = events.size();
+
+	for (int event_id = 0; event_id < num_events; ++event_id)
+	{
+		gout[event_id] = events[event_id].trigger(t, y_t)
+				?  1.0f
+				: -1.0f;
+	}
+
+	return 0;
+}
 
 
 static bool validate(Integrator *integrator, int retcode)
