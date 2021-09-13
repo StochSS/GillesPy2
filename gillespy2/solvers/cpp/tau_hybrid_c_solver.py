@@ -1,43 +1,56 @@
-"""
-GillesPy2 is a modeling toolkit for biochemical simulation.
-Copyright (C) 2019-2021 GillesPy2 developers.
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
-
+import gillespy2
 from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
 from gillespy2.solvers.utilities import solverutils as cutils
 from gillespy2.core import GillesPySolver, gillespyError, Model
 
 from .c_solver import CSolver, SimulationReturnCode
 
-class TauLeapingCSolver(GillesPySolver, CSolver):
-    name = "TauLeapingCSolver"
-    target = "tau_leap"
+class TauHybridCSolver(GillesPySolver, CSolver):
+    name = "TauHybridCSolver"
+    target = "hybrid"
+
+    def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable=False):
+        options = None if model is None else TauHybridCSolver.__create_template_options(list(model.listOfSpecies.values()))
+        super().__init__(model, output_directory, delete_directory, resume, variable, options)
+
+    @classmethod
+    def __create_template_options(cls, species: "list[gillespy2.Species]"):
+        """
+        Populate the given list of species modes into a set of template macro definitions.
+        Generated options are specific to the Tau Hybrid solver,
+          and get passed as custom definitons to the build engine.
+
+        :param species: Ordered list of GillesPy2 species to generate options for.
+        :return: Dictionary containing key-value pairs representing macro definitions.
+        """
+        species_mode_map = {
+            "continuous": "CONTINUOUS_MODE",
+            "discrete": "DISCRETE_MODE",
+            "dynamic": "DYNAMIC_MODE",
+        }
+
+        species_mode_list = []
+        for spec_id, spec in enumerate(species):
+            # Continuous by default
+            mode_keyword = species_mode_map.get(spec.mode, species_mode_map["dynamic"])
+            species_mode_list.append(f"SPECIES_MODE({spec_id},{mode_keyword},{spec.switch_min})")
+
+        return {
+            f"GPY_HYBRID_SPECIES_MODES": " ".join(species_mode_list)
+        }
 
     def get_solver_settings(self):
         """
-        :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
         """
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
     def run(self=None, model: Model = None, t: int = 20, number_of_trajectories: int = 1, timeout: int = 0,
             increment: int = 0.05, seed: int = None, debug: bool = False, profile: bool = False, variables={}, 
-            resume=None, tau_tol=0.03, **kwargs):
+            resume=None, tau_step: int = .03, tau_tol=0.03, **kwargs):
 
         if self is None or self.model is None:
-            self = TauLeapingCSolver(model, resume=resume)
+            self = TauHybridCSolver(model, resume=resume)
 
         # Validate parameters prior to running the model.
         self._validate_type(variables, dict, "'variables' argument must be a dictionary.")

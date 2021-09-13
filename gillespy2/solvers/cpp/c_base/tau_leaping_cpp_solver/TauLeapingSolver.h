@@ -21,5 +21,5 @@
 
 namespace Gillespy
 {
-	void tau_leaper(Gillespy::Simulation<int> *simulation, const double tau_tol);
+	void tau_leaper(Gillespy::Simulation<unsigned int> *simulation, const double tau_tol);
 }

@@ -18,6 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from collections import OrderedDict
 from gillespy2.core import Species, Reaction, Parameter, Model
+from gillespy2.solvers.cpp.build.expression import Expression
+import math
 
 
 class SanitizedModel:
@@ -42,14 +44,23 @@ class SanitizedModel:
             self.parameters[sanitized_name] = model.get_parameter(parameter_name) \
                 if parameter_name != "vol" else Parameter(name="V", expression=model.volume)
 
+        base_namespace = {
+            # ORDER IS IMPORTANT HERE!
+            # All "system" namespace entries should always be first.
+            # Otherwise, user-defined identifiers (like, for example, "gamma") might get overwritten.
+            **{name: name for name in math.__dict__.keys()},
+            **self.species_names,
+            **self.parameter_names,
+            "vol": "V",
+        }
+        expr = Expression(namespace=base_namespace, blacklist=["="], sanitize=True)
+
         self.propensities: "OrderedDict[str, str]" = OrderedDict()
         self.ode_propensities: "OrderedDict[str, str]" = OrderedDict()
         self.reactions: "OrderedDict[str, dict[str, int]]" = OrderedDict()
         for reaction_name, reaction in model.get_all_reactions().items():
-            self.propensities[reaction_name] = reaction.sanitized_propensity_function(
-                self.species_names, self.parameter_names, ode=False)
-            self.ode_propensities[reaction_name] = reaction.sanitized_propensity_function(
-                self.species_names, self.parameter_names, ode=True)
+            self.propensities[reaction_name] = expr.getexpr_cpp(reaction.propensity_function)
+            self.ode_propensities[reaction_name] = expr.getexpr_cpp(reaction.ode_propensity_function)
 
             self.reactions[reaction_name] = {spec: int(0) for spec in self.species_names.values()}
             for reactant, stoich_value in reaction.reactants.items():
@@ -78,6 +89,13 @@ def write_template(path: str, model: Model, variable=False):
     # Get a dictionary of model defines and transform into a list of strings in
     # `#define KEY VALUE` format.
     defines = get_model_defines(model, variable)
+    write_definitions(path, defines)
+
+def write_definitions(path: str, defines: "dict[str, str]"):
+    """
+    """
+    # Definition dict is transformed into a list of C++ macro definitions, with:
+    # `#define KEY VALUE` format.
     template_lines = [(f"#define {key} {value}\n") for key, value in defines.items()]
 
     # Write generated lines to the template file.
