@@ -89,6 +89,7 @@ int main(int argc, char* argv[]){
 	simulation.number_timesteps = number_timesteps;
 	simulation.number_trajectories = number_trajectories;
 	simulation.propensity_function = propFun;
+	simulation.output_interval = parser.output_interval;
 
 	init_simulation(&model, simulation);
 	tau_leaper(&simulation, tau_tol);

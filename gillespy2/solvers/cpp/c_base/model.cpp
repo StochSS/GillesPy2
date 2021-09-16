@@ -97,6 +97,12 @@ namespace Gillespy {
 		}
 
 		simulation.current_state = new TNum[model->number_species];
+		// Output interval must lie within the range (0, num_timesteps].
+		// An output interval of 0 signifies to output entire trajectories.
+		if (simulation.output_interval == 0 || simulation.output_interval > simulation.number_timesteps)
+		{
+			simulation.output_interval = simulation.number_timesteps;
+		}
 	}
 
 	template <typename TNum>

@@ -82,7 +82,8 @@ namespace Gillespy {
 
 		unsigned int number_timesteps;
 		unsigned int number_trajectories;
-		unsigned int output_interval;
+		// 0 is an invalid output interval and is instead used as a sentinel value.
+		unsigned int output_interval = 0;
 
 		double current_time;
 		double end_time;

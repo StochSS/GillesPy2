@@ -90,6 +90,7 @@ int main(int argc, char *argv[]) {
 	simulation.number_trajectories = number_trajectories;
 	simulation.propensity_function = propensity_function;
 	simulation.current_time = 0.0;
+	simulation.output_interval = parser.output_interval;
 
 	init_simulation(&model, simulation);
 
