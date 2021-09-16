@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import io
 import abc
 import numpy
+from collections import deque
 from abc import ABC
 
 class SimDecoder(ABC):
@@ -145,3 +146,75 @@ class BasicSimDecoder(SimDecoder):
             self.trajectories[traj_num][ts_num][spec_num] = entry
 
         return self.trajectories, time_stopped
+
+
+class IterativeSimDecoder(SimDecoder):
+    """
+    Output decoder for processing the output at regular intervals.
+    The IterableSimDecoder object can be iterated over,
+      yielding an "output event" object and
+    Intended for handling just-in-time output.
+    """
+
+    def __init__(self, trajectories: numpy.ndarray, callback=None):
+        super(IterativeSimDecoder, self).__init__(trajectories)
+        self.callback = callback if callback is not None else lambda *args: None
+        self.end_time = 0
+
+    def with_callback(self, callback) -> "IterativeSimDecoder":
+        if not callable(callback):
+            raise ValueError(f"Expected function as callback: got {type(callback)}")
+        self.callback = callback
+        return self
+
+    def read(self, output: io.BufferedReader, page_size=64):
+        """
+        Read and process output from the provided buffer, one timestep at a time.
+        Any registered callbacks will be invoked on each iteration of output processing.
+
+        Blocks until the output of the buffered reader has been read completely.
+
+        :param output: Reader provided from the stdout member of an open Popen class.
+        :type output: io.BufferedReader
+
+        :param page_size: Suggested value for number of bytes to read from the simulation on each pass.
+        Smaller values may result in more consistent callback times, at the cost of performance.
+        Larger values may result in better overall performance, at the cost of sporadic callback times.
+        :type page_size: int
+
+        :returns: Total number of bytes read
+        """
+        traj_id, t = 0, 0
+        current_timestep = deque()
+        num_trajectories, num_timesteps, entries_per_timestep = self.trajectories.shape
+
+        line = output.read(page_size).decode("ascii")
+        carry_value = ""
+        bytes_read = len(line)
+        total_bytes = bytes_read
+        while bytes_read > 0:
+            entries = (carry_value + line).split(",")
+            carry_value = entries.pop()
+            current_timestep.extend(entries)
+            # Fill current_timestep up with the values we've received
+            # Anytime current_timestep becomes full, empty it and handle that event
+            # Continue until the processed entries are finished
+            while len(current_timestep) >= entries_per_timestep:
+                self.trajectories[traj_id][t] = [current_timestep.popleft() for _ in range(entries_per_timestep)]
+                t += 1
+                if t >= num_timesteps:
+                    traj_id += 1
+                    t = 0
+
+            line = output.read(page_size).decode("ascii")
+            bytes_read = len(line)
+            total_bytes += bytes_read
+
+        if carry_value != "":
+            self.end_time = int(carry_value)
+
+        return bytes_read
+
+    def get_output(self) -> "tuple[numpy.ndarray, int]":
+        # TODO: block get_output() call if waiting on read() to complete
+        return self.trajectories, self.end_time
