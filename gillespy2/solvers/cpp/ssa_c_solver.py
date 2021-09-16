@@ -58,7 +58,8 @@ class SSACSolver(GillesPySolver, CSolver):
         args = {
             "trajectories": number_of_trajectories,
             "timesteps": number_timesteps,
-            "end": t
+            "end": t,
+            "interval": str(number_timesteps),
         }
 
         if self.variable:

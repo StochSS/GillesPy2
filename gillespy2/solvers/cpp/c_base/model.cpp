@@ -165,6 +165,11 @@ namespace Gillespy {
 				os << ',' << current_state[species];
 			}
 			os << ',';
+
+			if (timestep % output_interval == 0)
+			{
+				os.flush();
+			}
 		}
 
 		last_timestep = std::min(number_timesteps, timestep);
@@ -193,6 +198,7 @@ namespace Gillespy {
 	void Simulation<PType>::output_buffer_final(std::ostream &os)
 	{
 		os << (int) current_time;
+		os.flush();
 	}
 
 	// DETERMINISTIC SIMULATIONS: explicit instantation of real-valued data structures.

@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 	
 	IPropensityFunction *propensity_function = new PropensityFunction();
 	Simulation<unsigned int> simulation;
-	
+	simulation.output_interval = parser.output_interval;
 	simulation.model = &model;
 	simulation.end_time = end_time;
 	simulation.random_seed = random_seed;

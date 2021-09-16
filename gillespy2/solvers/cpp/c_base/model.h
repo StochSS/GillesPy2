@@ -82,6 +82,7 @@ namespace Gillespy {
 
 		unsigned int number_timesteps;
 		unsigned int number_trajectories;
+		unsigned int output_interval;
 
 		double current_time;
 		double end_time;
