@@ -20,6 +20,7 @@ import io
 import abc
 import numpy
 from collections import deque
+from typing import Callable
 from abc import ABC
 
 class SimDecoder(ABC):
@@ -47,6 +48,7 @@ class SimDecoder(ABC):
         # Provided trajectory assumed valid
         self.trajectories = trajectories
         self.num_trajectories, self.num_timesteps, self.num_species = trajectories.shape
+        self.bytes_read = 0
 
     @classmethod
     def create_default(cls, num_trajectories: int, num_timesteps: int, num_species: int) -> "SimDecoder":
@@ -68,7 +70,7 @@ class SimDecoder(ABC):
         return cls(numpy.zeros((num_trajectories, num_timesteps, num_species + 1)))
 
     @abc.abstractmethod
-    def read(self, output: io.BufferedReader):
+    def read(self, output: io.BufferedReader, **kwargs):
         """
         Accepts a buffered reader from stdout of a subprocess.
         Contents of the given reader are processed and made available through get_output().
@@ -114,13 +116,13 @@ class BasicSimDecoder(SimDecoder):
             self.buffer.append(line)
         return ln
 
-    def read(self, output: io.BufferedReader):
-        bytes_read = 0
+    def read(self, output: io.BufferedReader, **kwargs):
         page_size = self.__read_next(output)
+        self.bytes_read = page_size
         while page_size > 0 and not output.closed:
             page_size = self.__read_next(output)
-            bytes_read += page_size
-        return bytes_read
+            self.bytes_read += page_size
+        return self.bytes_read
 
     def get_output(self):
         stdout = "".join(self.buffer).split(",")
@@ -151,8 +153,10 @@ class BasicSimDecoder(SimDecoder):
 class IterativeSimDecoder(SimDecoder):
     """
     Output decoder for processing the output at regular intervals.
-    The IterableSimDecoder object can be iterated over,
-      yielding an "output event" object and
+    An IterativeSimDecoder object can be provided a callback.
+    Each time a new timestep is received and processed, the callback is invoked,
+      and is provided with the timestep value and output time.
+
     Intended for handling just-in-time output.
     """
 
@@ -161,13 +165,28 @@ class IterativeSimDecoder(SimDecoder):
         self.callback = callback if callback is not None else lambda *args: None
         self.end_time = 0
 
-    def with_callback(self, callback) -> "IterativeSimDecoder":
+    def with_callback(self, callback: "Callable[[int, numpy.ndarray], None]") -> "IterativeSimDecoder":
+        """
+        Provide a callback function to be invoked on each timestep.
+        Accepts a function with the signature:
+
+        def callback(float, numpy.ndarray)
+
+        The first value (float) is the time value for the given timestep entry.
+        The second value (NumPy array) is the simulation state for that timestep.
+        Return values are ignored.
+
+        :param callback: Function to be invoked on each timestep.
+        :type callback: Callable[[int, numpy.ndarray], None]
+
+        :returns: Pass-through for IterativeSimDecoder.
+        """
         if not callable(callback):
             raise ValueError(f"Expected function as callback: got {type(callback)}")
         self.callback = callback
         return self
 
-    def read(self, output: io.BufferedReader, page_size=64):
+    def read(self, output: io.BufferedReader, page_size=256, **kwargs):
         """
         Read and process output from the provided buffer, one timestep at a time.
         Any registered callbacks will be invoked on each iteration of output processing.
@@ -184,6 +203,8 @@ class IterativeSimDecoder(SimDecoder):
 
         :returns: Total number of bytes read
         """
+        if page_size < 1:
+            page_size = 256
         traj_id, t = 0, 0
         current_timestep = deque()
         num_trajectories, num_timesteps, entries_per_timestep = self.trajectories.shape
@@ -191,29 +212,45 @@ class IterativeSimDecoder(SimDecoder):
         line = output.read(page_size).decode("ascii")
         carry_value = ""
         bytes_read = len(line)
-        total_bytes = bytes_read
+        self.bytes_read = bytes_read
         while bytes_read > 0:
-            entries = (carry_value + line).split(",")
+            # carry_value is carried over from the previous read.
+            # It must be appended to the beginning of the next read.
+            if carry_value != "":
+                line = carry_value + line
+            entries = line.split(",")
+
+            # The last "value" is not guaranteed to be a complete number.
+            # It may be the start of an incomplete value. Example:
+            # [ current read | next read ]
+            # [...12,13,14,1 | 5,16,17...]
+            # The value at the "boundary" should be 15, but if we do not carry,
+            #   then it will be misread as two separate values, 1 and 5.
             carry_value = entries.pop()
+
+            # Process incoming text, one timestep entry at a time.
             current_timestep.extend(entries)
-            # Fill current_timestep up with the values we've received
-            # Anytime current_timestep becomes full, empty it and handle that event
-            # Continue until the processed entries are finished
             while len(current_timestep) >= entries_per_timestep:
                 self.trajectories[traj_id][t] = [current_timestep.popleft() for _ in range(entries_per_timestep)]
+                # First value of each timestep is the current time of the simulation.
+                # The remaining entries of each timestep are the output state at that time.
+                self.callback(self.trajectories[traj_id][t][0],
+                              self.trajectories[traj_id][t][1:])
                 t += 1
                 if t >= num_timesteps:
                     traj_id += 1
                     t = 0
 
+            # Process the next output block.
+            # An empty output block indicates that the simulation has ended.
             line = output.read(page_size).decode("ascii")
             bytes_read = len(line)
-            total_bytes += bytes_read
+            self.bytes_read += bytes_read
 
         if carry_value != "":
             self.end_time = int(carry_value)
 
-        return bytes_read
+        return self.bytes_read
 
     def get_output(self) -> "tuple[numpy.ndarray, int]":
         # TODO: block get_output() call if waiting on read() to complete

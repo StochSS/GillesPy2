@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
+from gillespy2.solvers.cpp.c_decoder import IterativeSimDecoder
 from gillespy2.solvers.utilities import solverutils as cutils
 from gillespy2.core import GillesPySolver, gillespyError, Model
 
@@ -60,7 +60,8 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
             "trajectories": number_of_trajectories,
             "timesteps": number_timesteps,
             "tau_tol": tau_tol,
-            "end": t
+            "end": t,
+            "interval": str(number_timesteps),
         }
 
         if self.variable:
@@ -80,7 +81,7 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
 
 
         args = self._make_args(args)
-        decoder = BasicSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
+        decoder = IterativeSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
 
         sim_exec = self._build(model, self.target, self.variable, False)
         sim_status = self._run(sim_exec, args, decoder, timeout)

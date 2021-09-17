@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
+from gillespy2.solvers.cpp.c_decoder import IterativeSimDecoder
 from gillespy2.solvers.utilities import solverutils as cutils
 from gillespy2.core import GillesPySolver, gillespyError, Model
 
@@ -37,6 +37,9 @@ class SSACSolver(GillesPySolver, CSolver):
 
         if self is None or self.model is None:
             self = SSACSolver(model, resume=resume)
+
+        if model is None:
+            model = self.model
 
         # Validate parameters prior to running the model.
         self._validate_type(variables, dict, "'variables' argument must be a dictionary.")
@@ -79,7 +82,7 @@ class SSACSolver(GillesPySolver, CSolver):
 
 
         args = self._make_args(args)
-        decoder = BasicSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
+        decoder = IterativeSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
 
         sim_exec = self._build(model, self.target, self.variable, False)
         sim_status = self._run(sim_exec, args, decoder, timeout)
