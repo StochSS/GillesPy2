@@ -179,10 +179,9 @@ class Model(SortableObject, Jsonify):
         self.namespace = OrderedDict([])
 
         if tspan is None:
-            self.user_set_tspan = False
             self.timespan(np.linspace(0, 20, 401))
+            self.user_set_tspan = False
         else:
-            self.user_set_tspan = True
             self.timespan(tspan)
 
         # Change Jsonify settings to disable private variable
