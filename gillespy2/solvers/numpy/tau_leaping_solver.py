@@ -1,3 +1,21 @@
+"""
+GillesPy2 is a modeling toolkit for biochemical simulation.
+Copyright (C) 2019-2021 GillesPy2 developers.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 """Class and methods for the Tau Leaping Solver"""
 import random
 import math
@@ -9,18 +27,18 @@ from gillespy2.core import GillesPySolver, log, liveGraphing
 from gillespy2.core import ModelError, ExecutionError
 
 class TauLeapingSolver(GillesPySolver):
-    name = 'TauLeapingSolver'
-    rc = 0
-    stop_event = None
-    pause_event = None
-    result = None
     """
     A Tau Leaping Solver for GillesPy2 models.  This solver uses an algorithm calculates
     multiple reactions in a single step over a given tau step size.  The change in propensities
     over this step are bounded by bounding the relative change in state, yielding greatly improved
     run-time performance with very little trade-off in accuracy.
     """
+
     name = "TauLeapingSolver"
+    rc = 0
+    stop_event = None
+    pause_event = None
+    result = None
 
     def __init__(self, debug=False, profile=False):
         name = "TauLeapingSolver"
@@ -33,10 +51,11 @@ class TauLeapingSolver(GillesPySolver):
 
     def __get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions):
         """
-        Helper Function to get reactions fired from t to t+tau.  Returns three values:
-        rxn_count - dict with key=Reaction channel value=number of times fired
-        curr_state - dict containing all state variables for system at current time
-        curr_time - float representing current time
+        Helper Function to get reactions fired from t to t+tau.  
+        :returns: Three values:
+            rxn_count - dict with key=Reaction channel value=number of times fired
+            curr_state - dict containing all state variables for system at current time
+            curr_time - float representing current time
         """
 
         if curr_time + step > save_time:
@@ -63,7 +82,7 @@ class TauLeapingSolver(GillesPySolver):
     @classmethod
     def get_solver_settings(self):
         """
-        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile','timeout', 'tau_tol')
 
@@ -79,29 +98,39 @@ class TauLeapingSolver(GillesPySolver):
 
             :param model: GillesPy2 model object to simulate
             :type model: gillespy2.Model
+
             :param t: Simulation run time
             :type t: int
+
             :param number_of_trajectories: Number of trajectories to simulate
             :type number_of_trajectories: int
+
             :param increment: Save point increment for recording data
             :type increment: float
+
             :param seed: The random seed for the simulation. Optional, defaults to None
             :type seed: int
+
             :param debug: Set to True to provide additional debug information about the simulation
             :type debug: bool
+
             :param profile: Set to True to provide information about step size (tau) taken at each step.
             :type profile: bool
+
             :param live_output: The type of output to be displayed by solver. Can be "progress", "text", or "graph".
             :type live_output: str
+
             :param live_output_options: COntains options for live_output. By default {"interval":1}. "interval"
-            specifies seconds between displaying. "clear_output" specifies if display should be refreshed with each
-            display.
+                specifies seconds between displaying. "clear_output" specifies if display should be refreshed with each
+                display.
             :type live_output_options: dict
+
             :param timeout:
             :param resume:
             :param tau_tol:
             :param kwargs:
-            :return:
+
+            :returns:
             """
 
             if isinstance(self, type):

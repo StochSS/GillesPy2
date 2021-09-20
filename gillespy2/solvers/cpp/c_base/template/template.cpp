@@ -1,18 +1,46 @@
+/*
+ * GillesPy2 is a modeling toolkit for biochemical simulation.
+ * Copyright (C) 2019-2021 GillesPy2 developers.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <vector>
 #include <string>
 #include <sstream>
+#include <cmath>
 
 #include "template.h"
 #include "model.h"
 #include "template_definitions.h"
 #include "template_defaults.h"
 
+// "factorial()" function is not defined in cmath
+// Can be emulated using std::tgamma
+//   std::gamma(n) = factorial(n-1),
+//     and so:
+//   std::gamma(n+1) = factorial((n+1)-1) = factorial(n)
+#ifndef factorial
+#define factorial(n) std::tgamma(static_cast<int>(n)+1)
+#endif
+
 namespace Gillespy
 {
-	unsigned int populations[GPY_NUM_SPECIES] = GPY_INIT_POPULATIONS;
-	std::vector<unsigned int> species_populations(
+	double populations[GPY_NUM_SPECIES] = GPY_INIT_POPULATIONS;
+	std::vector<double> species_populations(
 		populations,
-		populations + sizeof(populations) / sizeof(unsigned int));
+		populations + sizeof(populations) / sizeof(double));
 
 	std::string s_names[GPY_NUM_SPECIES] = 
 	{
@@ -100,7 +128,8 @@ namespace Gillespy
 		}
 	}
 
-	void add_reactions(Model &model)
+	template <typename T>
+	void add_reactions(Model<T> &model)
 	{
 		unsigned int rxn_i;
 		unsigned int spec_i;
@@ -120,4 +149,7 @@ namespace Gillespy
 
 		model.update_affected_reactions();
 	}
+
+	template void add_reactions<double>(Model<double> &model);
+	template void add_reactions<unsigned int>(Model<unsigned int> &model);
 }

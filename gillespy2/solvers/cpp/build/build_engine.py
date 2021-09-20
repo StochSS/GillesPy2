@@ -1,3 +1,21 @@
+"""
+GillesPy2 is a modeling toolkit for biochemical simulation.
+Copyright (C) 2019-2021 GillesPy2 developers.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 import os
 import shutil
 import tempfile
@@ -11,6 +29,7 @@ from .make import Make
 
 class BuildEngine():
     template_definitions_name = "template_definitions.h"
+    template_options_name = "template_opts.h"
 
     def __init__(self, debug: bool = False, output_dir: str = None):
         self.self_dir = Path(__file__).parent
@@ -50,7 +69,7 @@ class BuildEngine():
 
         return missing
 
-    def prepare(self, model: Model, variable=False) -> str:
+    def prepare(self, model: Model, variable=False, custom_definitions: "dict[str, str]" = None) -> str:
         """
         Prepare the template directory for compilation.
         The following operations will be performed:
@@ -91,6 +110,10 @@ class BuildEngine():
         template_file = self.template_dir.joinpath(self.template_definitions_name)
         template_file.unlink()
         template_gen.write_template(str(template_file), model, variable)
+        if custom_definitions is not None:
+            options_file = self.template_dir.joinpath(self.template_options_name)
+            options_file.unlink()
+            template_gen.write_definitions(str(options_file), custom_definitions)
 
         # With all required information gathered, create a Make instance.
         self.make = Make(str(self.makefile), str(self.output_dir), str(self.obj_dir))
@@ -105,7 +128,7 @@ class BuildEngine():
         :type cache_dir: str
 
         :param force_rebuild: Delete and rebuild the cache directory.
-        :type bool:
+        :type force_rebuild: bool
         """
 
         make = Make(self.makefile, cache_dir, cache_dir)
@@ -136,7 +159,7 @@ class BuildEngine():
         Only valid after the simulation has been built.
 
         :return: String containing path to executable.
-        None if no executable exists.
+            None if no executable exists.
         """
         if not os.path.exists(self.make.output_file):
             return None

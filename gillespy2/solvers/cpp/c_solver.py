@@ -1,3 +1,21 @@
+"""
+GillesPy2 is a modeling toolkit for biochemical simulation.
+Copyright (C) 2019-2021 GillesPy2 developers.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 import os
 import subprocess
 import signal
@@ -21,12 +39,31 @@ class SimulationReturnCode(IntEnum):
     FAILED = -1
 
 class CSolver:
-    def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable: bool = False):
+    """
+    This class implements base behavior that will be needed for C++ solver implementees.
+
+    :param model: The Model to simulate.
+    :type model: Model
+
+    :param output_directory: The working output directory.
+    :type output_directory: str
+
+    :param delete_directory: If True then the output_directory will be deleted upon completetion.
+    :type delete_directory: bool
+
+    :param resume: Resume data from a previous simulation run.
+
+    :param variable: Indicates whether the simulation should be variable.
+    :type variable: bool
+    """
+
+    def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable: bool = False, custom_definitions: "dict[str,str]" = None):
         self.delete_directory = False
         self.model = model
         self.resume = resume
         self.variable = variable
-        self.build_engine = None
+        self.build_engine: BuildEngine = None
+        self.custom_definitions = custom_definitions
 
         # Validate output_directory, ensure that it doesn't already exist
         if isinstance(output_directory, str):
@@ -43,7 +80,7 @@ class CSolver:
         if self.model is None:
             return
 
-        self._build(model, self.target, variable, False)
+        self._build(model, self.target, variable, False, custom_definitions)
         self.species_mappings = self.model.sanitized_species_names()
         self.species = list(self.species_mappings.keys())
         self.parameter_mappings = self.model.sanitized_parameter_names()
@@ -60,24 +97,27 @@ class CSolver:
 
         self.build_engine.clean()
 
-    def _build(self, model: Model, simulation_name: str, variable: bool, debug: bool = False) -> str:
+    def _build(self, model: Model, simulation_name: str, variable: bool, debug: bool = False, custom_definitions: "dict[str, str]" = None) -> str:
         """
         Generate and build the simulation from the specified Model and solver_name into the output_dir.
 
         :param model: The Model to simulate.
         :type model: gillespy2.Model
 
-        :param solver_name: The name of the simulation to execute.
-        :type str:
+        :param simulation_name: The name of the simulation to execute.
+        :type simulation_name: str
 
-        :param output_directory: The directory to output the simulation executable.
-        :type str:
+        :param variable: If True the simulation will be variable, False if not.
+        :type variable: bool
+
+        :param debug: Enables or disables debug behavior.
+        :type debug: bool
         """
 
         # Prepare the build workspace.
         if self.build_engine is None or self.build_engine.get_executable_path() is None:
             self.build_engine = BuildEngine(debug=debug, output_dir=self.output_directory)
-            self.build_engine.prepare(model, variable)
+            self.build_engine.prepare(model, variable, custom_definitions)
             # Compile the simulation, returning the path of the executable.
             return self.build_engine.build_simulation(simulation_name)
 
@@ -91,6 +131,12 @@ class CSolver:
         :param sim_exec: The executable simulation to run.
         :type sim_exec: str
 
+        :param sim_args: The arguments to pass on simulation run.
+        :type sim_args: list[str]
+
+        :param decoder: The SimDecoder instance that will handle simulation output.
+        :type decoder: SimDecoder
+
         :returns: A future which represents the currently executing run_simulation job.
         """
 
@@ -103,6 +149,12 @@ class CSolver:
 
         :param sim_exec: The executable simulation to run.
         :type sim_exec: str
+
+        :param sim_args: The arguments to pass on simulation run.
+        :type sim_args: list[str]
+
+        :param decoder: The SimDecoder instance that will handle simulation output.
+        :type decoder: SimDecoder
 
         :returns: The return_code of the simulation.
         """
@@ -164,6 +216,7 @@ class CSolver:
         Note: Do not prefix a key with `-` as this will be handled automatically.
 
         :param args_dict: A dictionary of named arguments.
+        :type args_dict: dict[str, str]
 
         :returns: A formatted list of arguments.
         """
