@@ -122,7 +122,7 @@ class TestModel(unittest.TestCase):
         try:
             model.run(increment=4)
 
-        except ModelError as e:
+        except SimulationError as e:
             return
 
         self.fail(
