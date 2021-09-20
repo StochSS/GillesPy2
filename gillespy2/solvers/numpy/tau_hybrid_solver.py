@@ -762,7 +762,7 @@ class TauHybridSolver(GillesPySolver):
                 'event_sensitivity', 'integrator', 'integrator_options', 'timeout')
 
     @classmethod
-    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
+    def run(self, model, t=20, number_of_trajectories=1, increment=None, seed=None,
             debug=False, profile=False, tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
             integrator_options={}, live_output=None, live_output_options={}, timeout=None, **kwargs):
         """
@@ -817,6 +817,8 @@ class TauHybridSolver(GillesPySolver):
 
         if isinstance(self, type):
             self = TauHybridSolver()
+
+        increment = self.get_increment(model=model, increment=increment)
 
         if timeout > 0:
             for i, s in enumerate(list(model._listOfSpecies.keys())):

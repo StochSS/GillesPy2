@@ -46,7 +46,7 @@ class NumPySSASolver(GillesPySolver):
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'timeout')
 
     @classmethod
-    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True,
+    def run(self, model, t=20, number_of_trajectories=1, increment=None, seed=None, debug=False, show_labels=True,
             live_output=None, live_output_options={}, timeout=None, resume=None, **kwargs):
 
         """
@@ -71,6 +71,8 @@ class NumPySSASolver(GillesPySolver):
 
         if isinstance(self, type):
             self = NumPySSASolver()
+
+        increment = self.get_increment(model=model, increment=increment)
 
         self.stop_event = Event()
         self.pause_event = Event()
