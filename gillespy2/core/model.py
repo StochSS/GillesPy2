@@ -179,8 +179,10 @@ class Model(SortableObject, Jsonify):
         self.namespace = OrderedDict([])
 
         if tspan is None:
+            self.user_set_tspan = False
             self.timespan(np.linspace(0, 20, 401))
         else:
+            self.user_set_tspan = True
             self.timespan(tspan)
 
         # Change Jsonify settings to disable private variable
@@ -672,6 +674,7 @@ class Model(SortableObject, Jsonify):
         isuniform = np.isclose(other_diff, first_diff).all()
 
         if isuniform:
+            self.user_set_tspan = True
             self.tspan = time_span
         else:
             raise InvalidModelError("StochKit only supports uniform timespans")
@@ -967,8 +970,14 @@ class Model(SortableObject, Jsonify):
         if t is None:
             t = self.tspan[-1]
 
-        if increment is not None and self.timespan is not None:
-            raise ModelError(
+        if solver is None:
+            if algorithm is not None:
+                solver = self.get_best_solver_algo(algorithm)
+            else:
+                solver = self.get_best_solver()
+
+        if self.user_set_tspan and increment is not None:
+            raise SimulationError(
                 """
                 Failed while preparing to run the model. Both increment and timespan are set.
 
@@ -977,13 +986,6 @@ class Model(SortableObject, Jsonify):
                 """
             )
 
-        if solver is None:
-            if algorithm is not None:
-                solver = self.get_best_solver_algo(algorithm)
-            else:
-                solver = self.get_best_solver()
-        if increment is None:
-            increment = self.tspan[-1] - self.tspan[-2]
         try:
             solver_results, rc = solver.run(model=self, t=t, increment=increment, timeout=timeout, **solver_args)
         except Exception as e:
