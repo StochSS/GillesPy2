@@ -26,6 +26,14 @@ from gillespy2 import TauHybridSolver
 
 class TestBasicTauHybridSolver(unittest.TestCase):
 
+    def test_null_timeout(self):
+        model = Example()
+        species = gillespy2.Species('test_species', initial_value=1)
+        model.add_species([species])
+        solver = TauHybridSolver()
+        results = solver.run(model=model)
+        self.assertEqual(results[0].solver_name, 'TauHybridSolver')
+
     def test_add_rate_rule(self):
         model = Example()
         species = gillespy2.Species('test_species', initial_value=1)
