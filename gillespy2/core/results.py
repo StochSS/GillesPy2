@@ -241,6 +241,32 @@ class Results(UserList, Jsonify):
             results.append(newArray)
         return results
 
+    @classmethod
+    def build_from_solver_results(cls, model, solver):
+        """
+        Build a gillespy2.Results object using the provided solver results.
+
+        :param model: The model on which the solver operated.
+        :type model: gillespy2.Model
+
+        :param solver: The solver used to run the simulation.
+        :type solver: gillespy2.GillesPySolver
+        """
+        if solver.rc == 33:
+            from gillespy2.core import log
+            log.warning('GillesPy2 simulation exceeded timeout.')
+        if hasattr(solver.result[0], 'shape'):
+            return solver.result
+        if len(solver.result) > 0:
+            results_list = []
+            for i in range(0, len(solver.result)):
+                temp = Trajectory(data=solver.result[i], model=model, solver_name=solver.name, rc=solver.rc)
+                results_list.append(temp)
+
+            return Results(results_list)
+        else:
+            raise ValueError("number_of_trajectories must be non-negative and non-zero")
+
     def to_csv(self, path=None, nametag=None, stamp=None):
         """
         Outputs the Results to one or more .csv files in a new directory.
