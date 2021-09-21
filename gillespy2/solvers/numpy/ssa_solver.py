@@ -33,12 +33,13 @@ class NumPySSASolver(GillesPySolver):
     result = None
     pause_event = None
 
-    def __init__(self):
+    def __init__(self, model=None):
         name = 'NumPySSASolver'
         rc = 0
         stop_event = None
         result = None
         pause_event = None
+        self.model = model
 
     def get_solver_settings(self):
         """
@@ -71,7 +72,7 @@ class NumPySSASolver(GillesPySolver):
         """
 
         if isinstance(self, type):
-            self = NumPySSASolver()
+            self = NumPySSASolver(model=model)
 
         self.stop_event = Event()
         self.pause_event = Event()
@@ -160,7 +161,7 @@ class NumPySSASolver(GillesPySolver):
         if hasattr(self, 'has_raised_exception'):
             raise self.has_raised_exception
 
-        return Results.build_from_solver_results(model, self)
+        return Results.build_from_solver_results(self)
 
     def ___run(self, model, curr_state, total_time, timeline, trajectory_base, live_grapher, t=20,
                number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True, resume=None,

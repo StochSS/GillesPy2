@@ -242,12 +242,9 @@ class Results(UserList, Jsonify):
         return results
 
     @classmethod
-    def build_from_solver_results(cls, model, solver):
+    def build_from_solver_results(cls, solver):
         """
         Build a gillespy2.Results object using the provided solver results.
-
-        :param model: The model on which the solver operated.
-        :type model: gillespy2.Model
 
         :param solver: The solver used to run the simulation.
         :type solver: gillespy2.GillesPySolver
@@ -260,7 +257,7 @@ class Results(UserList, Jsonify):
         if len(solver.result) > 0:
             results_list = []
             for i in range(0, len(solver.result)):
-                temp = Trajectory(data=solver.result[i], model=model, solver_name=solver.name, rc=solver.rc)
+                temp = Trajectory(data=solver.result[i], model=solver.model, solver_name=solver.name, rc=solver.rc)
                 results_list.append(temp)
 
             return Results(results_list)

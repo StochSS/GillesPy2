@@ -99,4 +99,4 @@ class SSACSolver(GillesPySolver, CSolver):
         self.result = simulation_data
         self.rc = int(sim_status)
 
-        return Results.build_from_solver_results(model, self)
+        return Results.build_from_solver_results(self)

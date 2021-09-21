@@ -37,12 +37,13 @@ class ODESolver(GillesPySolver):
     result = None
     pause_event = None
 
-    def __init__(self):
+    def __init__(self, model=None):
         name = "ODESolver"
         rc = 0
         stop_event = None
         pause_event = None
         result = None
+        self.model = model
 
     @staticmethod
     def __f(t, y, curr_state, model, c_prop):
@@ -107,7 +108,7 @@ class ODESolver(GillesPySolver):
             "clear_output" specifies if display should be refreshed with each displa
         """
         if isinstance(self, type):
-            self = ODESolver()
+            self = ODESolver(model=model)
         self.stop_event = Event()
         self.pause_event = Event()
 
@@ -196,7 +197,7 @@ class ODESolver(GillesPySolver):
         if hasattr(self, 'has_raised_exception'):
             raise self.has_raised_exception
         
-        return Results.build_from_solver_results(model, self)
+        return Results.build_from_solver_results(self)
 
     def ___run(self, model, curr_state, curr_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
                number_of_trajectories=1, increment=0.05, timeout=None, show_labels=True, integrator='lsoda',

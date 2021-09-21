@@ -41,12 +41,13 @@ class TauLeapingSolver(GillesPySolver):
     pause_event = None
     result = None
 
-    def __init__(self, debug=False, profile=False):
+    def __init__(self, model=None, debug=False, profile=False):
         name = "TauLeapingSolver"
         rc = 0
         stop_event = None
         pause_event = None
         result = None
+        self.model = model
         self.debug = debug
         self.profile = profile
 
@@ -135,7 +136,7 @@ class TauLeapingSolver(GillesPySolver):
             """
 
             if isinstance(self, type):
-                self = TauLeapingSolver(debug=debug, profile=profile)
+                self = TauLeapingSolver(model=model, debug=debug, profile=profile)
 
             self.stop_event = Event()
             self.pause_event = Event()
@@ -229,7 +230,7 @@ class TauLeapingSolver(GillesPySolver):
             if hasattr(self, 'has_raised_exception'):
                 raise self.has_raised_exception
 
-            return Results.build_from_solver_results(model, self)
+            return Results.build_from_solver_results(self)
 
     def ___run(self, model, curr_state,total_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
                number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, show_labels=True,

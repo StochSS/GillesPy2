@@ -70,9 +70,10 @@ class TauHybridSolver(GillesPySolver):
     result = None
     stop_event = None
 
-    def __init__(self):
+    def __init__(self, model=None):
         name = 'TauHybridSolver'
         rc = 0
+        self.model = model
 
     def __toggle_reactions(self, model, all_compiled, deterministic_reactions, dependencies, 
                             curr_state, det_spec, rr_sets):
@@ -817,7 +818,7 @@ class TauHybridSolver(GillesPySolver):
         """
 
         if isinstance(self, type):
-            self = TauHybridSolver()
+            self = TauHybridSolver(model=model)
 
         if timeout > 0:
             for i, s in enumerate(list(model._listOfSpecies.keys())):
@@ -928,7 +929,7 @@ class TauHybridSolver(GillesPySolver):
         if hasattr(self, 'has_raised_exception'):
             raise self.has_raised_exception
         
-        return Results.build_from_solver_results(model, self)
+        return Results.build_from_solver_results(self)
 
     def ___run(self, model, curr_state, curr_time, timeline, trajectory_base, initial_state, live_grapher, t=20,
                number_of_trajectories=1, increment=0.05, seed=None,
