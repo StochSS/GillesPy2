@@ -2,6 +2,7 @@ import gillespy2
 from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
 from gillespy2.solvers.utilities import solverutils as cutils
 from gillespy2.core import GillesPySolver, gillespyError, Model
+from gillespy2.core import Results
 
 from .c_solver import CSolver, SimulationReturnCode
 
@@ -109,6 +110,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             simulation_data = self._make_resume_data(time_stopped, simulation_data, t)
         if resume is not None:
             simulation_data = self._update_resume_data(resume, simulation_data, time_stopped)
-        self.simulation_data = simulation_data
+        self.result = simulation_data
+        self.rc = int(sim_status)
 
-        return simulation_data, int(sim_status)
+        return Results.build_from_solver_results(model, self)
