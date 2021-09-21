@@ -25,6 +25,7 @@ from gillespy2.solvers.utilities import Tau
 from gillespy2.solvers.utilities import solverutils as nputils
 from gillespy2.core import GillesPySolver, log, liveGraphing
 from gillespy2.core import ModelError, ExecutionError
+from gillespy2.core.results import Results
 
 class TauLeapingSolver(GillesPySolver):
     """
@@ -228,7 +229,7 @@ class TauLeapingSolver(GillesPySolver):
             if hasattr(self, 'has_raised_exception'):
                 raise self.has_raised_exception
 
-            return self.result, self.rc
+            return Results.build_from_solver_results(model, self)
 
     def ___run(self, model, curr_state,total_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
                number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, show_labels=True,

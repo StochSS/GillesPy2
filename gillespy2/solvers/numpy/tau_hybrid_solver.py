@@ -26,6 +26,7 @@ import gillespy2
 from gillespy2.solvers.utilities import Tau
 from gillespy2.core import GillesPySolver, log
 from gillespy2.core.gillespyError import *
+from gillespy2.core.results import Results
 
 eval_globals = math.__dict__
 
@@ -926,7 +927,8 @@ class TauHybridSolver(GillesPySolver):
             pass
         if hasattr(self, 'has_raised_exception'):
             raise self.has_raised_exception
-        return self.result, self.rc
+        
+        return Results.build_from_solver_results(model, self)
 
     def ___run(self, model, curr_state, curr_time, timeline, trajectory_base, initial_state, live_grapher, t=20,
                number_of_trajectories=1, increment=0.05, seed=None,
