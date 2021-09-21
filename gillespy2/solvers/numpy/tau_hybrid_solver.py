@@ -858,6 +858,7 @@ class TauHybridSolver(GillesPySolver):
 
         # create numpy array for timeline
         timeline = np.linspace(0, t, int(round(t / increment + 1)))
+        model.tspan = timeline
 
         # create numpy matrix to mark all state data of time and species
         trajectory_base = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
