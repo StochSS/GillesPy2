@@ -818,7 +818,7 @@ class TauHybridSolver(GillesPySolver):
         if isinstance(self, type):
             self = TauHybridSolver()
 
-        if timeout > 0:
+        if timeout is not None and timeout > 0:
             for i, s in enumerate(list(model._listOfSpecies.keys())):
                 # Solve_ivp doesn't return any results until it's finished solving so timing out early only slows
                 # the solver.
@@ -858,6 +858,7 @@ class TauHybridSolver(GillesPySolver):
 
         # create numpy array for timeline
         timeline = np.linspace(0, t, int(round(t / increment + 1)))
+        model.tspan = timeline
 
         # create numpy matrix to mark all state data of time and species
         trajectory_base = np.zeros((number_of_trajectories, timeline.size, number_species + 1))
