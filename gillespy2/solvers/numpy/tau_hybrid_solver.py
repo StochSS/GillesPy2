@@ -818,13 +818,9 @@ class TauHybridSolver(GillesPySolver):
         if isinstance(self, type):
             self = TauHybridSolver()
 
-<<<<<<< HEAD
         increment = self.get_increment(model=model, increment=increment)
 
-        if timeout > 0:
-=======
         if timeout is not None and timeout > 0:
->>>>>>> de503fc79f4ac2ed328ee208a54b6079400463e7
             for i, s in enumerate(list(model._listOfSpecies.keys())):
                 # Solve_ivp doesn't return any results until it's finished solving so timing out early only slows
                 # the solver.
