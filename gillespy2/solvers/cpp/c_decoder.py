@@ -249,6 +249,10 @@ class IterativeSimDecoder(SimDecoder):
 
         if carry_value != "":
             self.end_time = int(carry_value)
+        elif len(current_timestep) > 0:
+            self.end_time = int(current_timestep.popleft())
+        else:
+            self.end_time = 0
 
         return self.bytes_read
 

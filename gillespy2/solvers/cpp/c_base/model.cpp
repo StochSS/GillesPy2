@@ -153,7 +153,7 @@ namespace Gillespy {
 	template <typename TNum>
 	void Simulation<TNum>::output_buffer_range(std::ostream &os, unsigned int next_timestep)
 	{
-		next_timestep = std::min(number_timesteps, next_timestep);
+		next_timestep = std::min(number_timesteps - 1, next_timestep);
 		// Each entry per timestep is a species population/concentration value.
 		// If we have no species, then there's nothing to write!
 		if (model->number_species == 0)
@@ -178,7 +178,7 @@ namespace Gillespy {
 			}
 		}
 
-		last_timestep = std::min(number_timesteps, timestep);
+		last_timestep = timestep;
 	}
 
 	template <typename TNum>
