@@ -72,9 +72,10 @@ namespace Gillespy
 				}
 
 				//Set up current state from initial state
-				simulation->reset_output_buffer(trajectory_number);
+				unsigned int entry_count = 0;
 				simulation->current_time = 0;
-				unsigned int entry_count = 1;
+				simulation->output_buffer_range(std::cout);
+				simulation->reset_output_buffer(trajectory_number);
 
 				//calculate initial propensities
 				for (unsigned int reaction_number = 0; reaction_number < ((simulation->model)->number_reactions); reaction_number++)
@@ -108,18 +109,6 @@ namespace Gillespy
 					double cumulative_sum = rng() * propensity_sum / rng.max();
 					simulation->current_time += -log(rng() * 1.0 / rng.max()) / propensity_sum;
 
-					//Copy current state to passed timesteps
-					while (entry_count < simulation->number_timesteps && (simulation->timeline[entry_count]) <= simulation->current_time)
-					{
-						if (interrupted)
-						{
-							break;
-						}
-
-						simulation->output_buffer_range(std::cout, entry_count);
-						entry_count++;
-					}
-
 					for (unsigned int potential_reaction = 0; potential_reaction < ((simulation->model)->number_reactions); potential_reaction++)
 					{
 						cumulative_sum -= propensity_values[potential_reaction];
@@ -143,6 +132,25 @@ namespace Gillespy
 							break;
 						}
 					}
+
+					// Output timestep results
+					while (entry_count < simulation->number_timesteps && simulation->timeline[entry_count] <= simulation->current_time)
+					{
+						if (interrupted)
+						{
+							break;
+						}
+
+						simulation->output_buffer_range(std::cout, entry_count++);
+					}
+				}
+
+				
+				// Copy final state for rest of entries
+				if (entry_count < simulation->number_timesteps)
+				{
+					simulation->current_time = simulation->timeline[simulation->number_timesteps - 1];
+					simulation->output_buffer_range(std::cout, simulation->number_timesteps - 1);
 				}
 			}
 
