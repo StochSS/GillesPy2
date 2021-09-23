@@ -1,44 +1,62 @@
 import gillespy2
-from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
+from gillespy2.solvers.cpp.c_decoder import IterativeSimDecoder
 from gillespy2.solvers.utilities import solverutils as cutils
 from gillespy2.core import GillesPySolver, gillespyError, Model
+from typing import Union
 from gillespy2.core import Results
 
 from .c_solver import CSolver, SimulationReturnCode
+from gillespy2.solvers.cpp.build.template_gen import SanitizedModel
 
 class TauHybridCSolver(GillesPySolver, CSolver):
     name = "TauHybridCSolver"
     target = "hybrid"
 
-    def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable=False):
-        options = None if model is None else TauHybridCSolver.__create_template_options(list(model.listOfSpecies.values()))
-        super().__init__(model, output_directory, delete_directory, resume, variable, options)
-
     @classmethod
-    def __create_template_options(cls, species: "list[gillespy2.Species]"):
+    def __create_options(cls, model: "SanitizedModel") -> "SanitizedModel":
         """
         Populate the given list of species modes into a set of template macro definitions.
         Generated options are specific to the Tau Hybrid solver,
-          and get passed as custom definitons to the build engine.
+        and get passed as custom definitions to the build engine.
 
-        :param species: Ordered list of GillesPy2 species to generate options for.
-        :return: Dictionary containing key-value pairs representing macro definitions.
+        :param model: Sanitized model containing sanitized species definitions.
+        The GPY_HYBRID_SPECIES_MODES option will be set as an option for the model.
+        :type model: SanitizedModel
+
+        :returns: Pass-through of sanitized model object.
+        :rtype: SanitizedModel
         """
         species_mode_map = {
             "continuous": "CONTINUOUS_MODE",
             "discrete": "DISCRETE_MODE",
             "dynamic": "DYNAMIC_MODE",
         }
+        boundary_condition_types = [
+            # When species.boundary_condition == False
+            "STANDARD",
+            # When species.boundary_condition == True
+            "BOUNDARY",
+        ]
 
         species_mode_list = []
-        for spec_id, spec in enumerate(species):
-            # Continuous by default
-            mode_keyword = species_mode_map.get(spec.mode, species_mode_map["dynamic"])
-            species_mode_list.append(f"SPECIES_MODE({spec_id},{mode_keyword},{spec.switch_min})")
+        for spec_id, species in enumerate(model.species.values()):
+            mode_keyword = species_mode_map.get(species.mode, species_mode_map["dynamic"])
+            # Casting a bool to an int evaluates: False -> 0, and True -> 1
+            # Explicit cast to bool for safety, in case boundary_condition is given weird values
+            boundary_keyword = boundary_condition_types[int(bool(species.boundary_condition))]
+            # Example: SPECIES_MODE(2, 10, CONTINUOUS_MODE, BOUNDARY)
+            entry = f"SPECIES_MODE({spec_id},{species.switch_min},{mode_keyword},{boundary_keyword})"
+            species_mode_list.append(entry)
 
-        return {
-            f"GPY_HYBRID_SPECIES_MODES": " ".join(species_mode_list)
-        }
+        model.options["GPY_HYBRID_SPECIES_MODES"] = " ".join(species_mode_list)
+        return model
+
+    def _build(self, model: "Union[Model, SanitizedModel]", simulation_name: str, variable: bool, debug: bool = False,
+               custom_definitions=None) -> str:
+        sanitized_model = TauHybridCSolver.__create_options(SanitizedModel(model))
+        for rate_rule in model.listOfRateRules.values():
+            sanitized_model.use_rate_rule(rate_rule)
+        return super()._build(sanitized_model, simulation_name, variable, debug)
 
     def get_solver_settings(self):
         """
@@ -61,7 +79,6 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         self._validate_resume(t, resume)
         self._validate_kwargs(**kwargs)
         self._validate_sbml_features({
-            "Rate Rules": len(model.listOfRateRules),
             "Assignment Rules": len(model.listOfAssignmentRules),
             "Events": len(model.listOfEvents),
             "Function Definitions": len(model.listOfFunctionDefinitions)
@@ -76,7 +93,8 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             "trajectories": number_of_trajectories,
             "timesteps": number_timesteps,
             "tau_tol": tau_tol,
-            "end": t
+            "end": t,
+            "interval": str(number_timesteps),
         }
 
         if self.variable:
@@ -96,7 +114,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
 
 
         args = self._make_args(args)
-        decoder = BasicSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
+        decoder = IterativeSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
 
         sim_exec = self._build(model, self.target, self.variable, False)
         sim_status = self._run(sim_exec, args, decoder, timeout)

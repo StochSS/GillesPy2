@@ -47,7 +47,7 @@ public:
 		return 1.0;
 	}
 
-	double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S)
+	double TauEvaluate(unsigned int reaction_number, const int *S)
 	{
 		return 1.0;
 	}
@@ -89,11 +89,14 @@ int main(int argc, char *argv[]) {
 	simulation.number_timesteps = number_timesteps;
 	simulation.number_trajectories = number_trajectories;
 	simulation.propensity_function = propensity_function;
+	simulation.current_time = 0.0;
+	simulation.output_interval = parser.output_interval;
 
 	init_simulation(&model, simulation);
 
+	simulation.reset_output_buffer(0);
 	ODESolver(&simulation, increment);
-	simulation.output_results_buffer(std::cout);
+	simulation.output_buffer_final(std::cout);
 
 	delete propensity_function;
 

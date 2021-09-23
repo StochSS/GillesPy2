@@ -216,24 +216,20 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	std::vector<double> &propensities = data->propensities;
 	// Concentrations and reactions are both used for their respective propensity evaulations.
 	// They both should, roughly, reflect the same data, but tau selection requires both.
-	std::vector<double> &concentrations = data->concentrations;
 	std::vector<int> &populations = data->populations;
 	unsigned int num_species = sim->model->number_species;
 	unsigned int num_reactions = sim->model->number_reactions;
 
 	// Differentiate different regions of the input/output vectors.
 	// First half is for concentrations, second half is for reaction offsets.
-	realtype *rxn_offsets = &Y[num_species];
 	realtype *dydt_offsets = &dydt[num_species];
-	int rxn_offset_boundary = num_species + num_reactions;
 
 	// Populate the current ODE state into the concentrations vector.
 	// dy/dt results are initialized to zero, and become the change in propensity.
 	unsigned int spec_i;
 	for (spec_i = 0; spec_i < num_species; ++spec_i)
 	{
-		concentrations[spec_i] = Y[spec_i];
-		populations[spec_i] = Y[spec_i];
+		populations[spec_i] = static_cast<int>(Y[spec_i]);
 	}
 
 	// Deterministic reactions generally are "evaluated" by generating dy/dt functions
@@ -241,7 +237,14 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	// To handle these, we will go ahead and evaluate each species' differential equations.
 	for (spec_i = 0; spec_i < num_species; ++spec_i)
 	{
-		dydt[spec_i] = (*species)[spec_i].diff_equation.evaluate(concentrations, populations);
+		if ((*species)[spec_i].boundary_condition) {
+			// The effective dy/dt of a boundary condition is 0.
+			dydt[spec_i] = 0.0;
+		}
+		else
+		{
+			dydt[spec_i] = (*species)[spec_i].diff_equation.evaluate(t, Y, &populations[0]);
+		}
 	}
 
 	// Process deterministic propensity state
@@ -251,7 +254,7 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 		switch ((*reactions)[rxn_i].mode) {
 		case SimulationState::DISCRETE:
 			// Process stochastic reaction state by updating the root offset for each reaction.
-			propensity = (*reactions)[rxn_i].ssa_propensity(rxn_i, populations);
+			propensity = HybridReaction::ssa_propensity(rxn_i, &populations[0]);
 			dydt_offsets[rxn_i] = propensity;
 			propensities[rxn_i] = propensity;
 			break;

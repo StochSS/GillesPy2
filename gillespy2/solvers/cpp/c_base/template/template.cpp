@@ -25,15 +25,7 @@
 #include "model.h"
 #include "template_definitions.h"
 #include "template_defaults.h"
-
-// "factorial()" function is not defined in cmath
-// Can be emulated using std::tgamma
-//   std::gamma(n) = factorial(n-1),
-//     and so:
-//   std::gamma(n+1) = factorial((n+1)-1) = factorial(n)
-#ifndef factorial
-#define factorial(n) std::tgamma(static_cast<int>(n)+1)
-#endif
+#include "template_params.h"
 
 namespace Gillespy
 {
@@ -54,7 +46,6 @@ namespace Gillespy
 		s_names + sizeof(s_names) / sizeof(std::string));
 
 	int reactions[GPY_NUM_REACTIONS][GPY_NUM_SPECIES] = GPY_REACTIONS;
-	// std::string r_names[GPY_NUM_REACTIONS] = GPY_REACTION_NAMES;
 	std::string r_names[GPY_NUM_REACTIONS] = 
 	{
 		#define REACTION_NAME(name) #name,
@@ -66,13 +57,13 @@ namespace Gillespy
 		r_names,
 		r_names + sizeof(r_names) / sizeof(std::string));
 
-	#define VARIABLE(name, value) static double (name) = (value);
-	#define CONSTANT(name, value) static const double (name) = (value);
+	#define VARIABLE(name, value) double name = value;
+	#define CONSTANT(name, value) const double name = value;
 	GPY_PARAMETER_VALUES
 	#undef CONSTANT
 	#undef VARIABLE
 
-	double map_propensity(int reaction_id, const std::vector<int> &S)
+	double map_propensity(int reaction_id, const int *S)
 	{
 		switch (reaction_id)
 		{
@@ -98,7 +89,33 @@ namespace Gillespy
 		}
 	}
 
+	double map_propensity(int reaction_id, int *S)
+	{
+		switch (reaction_id)
+		{
+			#define PROPENSITY(id, func) case(id): return(func);
+			GPY_PROPENSITIES
+			#undef PROPENSITY
+
+			default:
+				return -1.0;
+		}
+	}
+
 	double map_ode_propensity(int reaction_id, const std::vector<double> &S)
+	{
+		switch (reaction_id)
+		{
+			#define PROPENSITY(id, func) case(id): return(func);
+			GPY_ODE_PROPENSITIES
+			#undef PROPENSITY
+
+			default:
+				return -1.0;
+		}
+	}
+
+	double map_ode_propensity(int reaction_id, double *S)
 	{
 		switch (reaction_id)
 		{
@@ -152,4 +169,5 @@ namespace Gillespy
 
 	template void add_reactions<double>(Model<double> &model);
 	template void add_reactions<unsigned int>(Model<unsigned int> &model);
+	template void add_reactions<int>(Model<int> &model);
 }

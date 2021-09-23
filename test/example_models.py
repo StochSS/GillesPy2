@@ -470,6 +470,22 @@ class Oregonator(Model):
           # Set timespan of model
           self.timespan(np.linspace(0, 5, 501))
 
+
+class Degradation(Model):
+    def __init__(self, model_name="Degradation"):
+        super().__init__(name=model_name)
+        
+        A = Species(name="A", initial_value=2000)
+        self.add_species(A)
+        
+        k1 = Parameter(name="k1", expression="0.1")
+        self.add_parameter(k1)
+        
+        r1 = Reaction(name="r1", rate="k1", reactants={"A":1})
+        self.add_reaction(r1)
+        self.timespan(np.arange(0, 151))
+
+
 class RobustModel(Model):
     def __init__(self, parameter_values=None):
         Model.__init__(self, name="test1")

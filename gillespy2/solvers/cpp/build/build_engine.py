@@ -20,12 +20,14 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
+from typing import Union
 
 import gillespy2
 from gillespy2.core import Model, gillespyError
 
 from . import template_gen
 from .make import Make
+
 
 class BuildEngine():
     template_definitions_name = "template_definitions.h"
@@ -69,7 +71,7 @@ class BuildEngine():
 
         return missing
 
-    def prepare(self, model: Model, variable=False, custom_definitions: "dict[str, str]" = None) -> str:
+    def prepare(self, model: "Union[Model, template_gen.SanitizedModel]", variable=False) -> str:
         """
         Prepare the template directory for compilation.
         The following operations will be performed:
@@ -106,10 +108,17 @@ class BuildEngine():
         # Copy the C++ template directory to the temp directory.
         shutil.copytree(self.src_template_dir, self.template_dir)
 
+        # If a raw GillesPy2 model was provided, convert it to a sanitized model.
+        if isinstance(model, gillespy2.Model):
+            model = template_gen.SanitizedModel(model)
+        elif not isinstance(model, template_gen.SanitizedModel):
+            raise TypeError(f"Build engine expected gillespy2.Model or SanitizedModel type: received {type(model)}")
+
         # Build the template and write it to the temp directory and remove the sample template_definitions header.
         template_file = self.template_dir.joinpath(self.template_definitions_name)
         template_file.unlink()
-        template_gen.write_template(str(template_file), model, variable)
+        template_gen.write_definitions(str(template_file), model.get_template(variable=variable))
+        custom_definitions = model.get_options()
         if custom_definitions is not None:
             options_file = self.template_dir.joinpath(self.template_options_name)
             options_file.unlink()
