@@ -146,7 +146,7 @@ class CSolver:
         executor = ThreadPoolExecutor()
         return executor.submit(self._run, sim_exec, sim_args, decoder, timeout)
 
-    def _run(self, sim_exec: str, sim_args: "list[str]", decoder: SimDecoder, timeout: int = 0) -> int:
+    def _run(self, sim_exec: str, sim_args: "list[str]", decoder: SimDecoder, timeout: int = 0, display_args: dict = None) -> int:
         """
         Run the target executable simulation.
 
@@ -158,6 +158,9 @@ class CSolver:
 
         :param decoder: The SimDecoder instance that will handle simulation output.
         :type decoder: SimDecoder
+
+        :param display_args: The kwargs need to setup the live graphing
+        :type display_args: dict
 
         :returns: The return_code of the simulation.
         """
@@ -189,6 +192,9 @@ class CSolver:
             timeout_thread = threading.Timer(timeout, timeout_kill)
             reader_thread = threading.Thread(target=decoder.read,
                                              args=(simulation.stdout,))
+
+            if display_args is not None:
+                print(display_args)
 
             if timeout > 0:
                 timeout_thread.start()
