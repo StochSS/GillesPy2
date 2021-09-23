@@ -1,6 +1,5 @@
 from datetime import time
 import unittest
-import gillespy2
 import numpy as np
 import io
 from gillespy2.solvers import ODECSolver, SSACSolver, TauLeapingCSolver, TauHybridCSolver
@@ -30,7 +29,7 @@ class TestCDecode(unittest.TestCase):
                 with self.subTest("Processing simulation output for each solver with different trajectory sizes",
                                   number_of_trajectories=number_of_trajectories,
                                   solver=solver):
-                    results = self.model.run(solver=solver, number_of_trajectories=number_of_trajectories)
+                    results = self.model.run(solver=solver, number_of_trajectories=number_of_trajectories, seed=1024)
                     for result in results:
                         tspan, first_value, last_value = result["time"], result["A"][0], result["A"][-1]
                         result_diff = np.concatenate([np.array([first_value]), result["A"][1:]])

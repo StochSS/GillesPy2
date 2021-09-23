@@ -74,8 +74,8 @@ namespace Gillespy
 				//Set up current state from initial state
 				unsigned int entry_count = 0;
 				simulation->current_time = 0;
-				simulation->output_buffer_range(std::cout);
 				simulation->reset_output_buffer(trajectory_number);
+				simulation->output_buffer_range(std::cout);
 
 				//calculate initial propensities
 				for (unsigned int reaction_number = 0; reaction_number < ((simulation->model)->number_reactions); reaction_number++)

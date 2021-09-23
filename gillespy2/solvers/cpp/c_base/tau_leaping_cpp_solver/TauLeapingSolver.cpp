@@ -97,12 +97,6 @@ namespace Gillespy
 		std::vector<int> current_state(simulation->model->number_species);
 		std::vector<double> propensity_values(simulation->model->number_reactions);
 
-		//copy initial state for each trajectory
-		for (unsigned int species_number = 0; species_number < (simulation->model->number_species); species_number++)
-		{
-			simulation->trajectories[0][0][species_number] = simulation->model->species[species_number].initial_population;
-		}
-
 		//Simulate for each trajectory
 		for (unsigned int trajectory_number = 0; trajectory_number < simulation->number_trajectories; trajectory_number++)
 		{
@@ -112,6 +106,12 @@ namespace Gillespy
 			}
 
 			simulation->reset_output_buffer(trajectory_number);
+			//copy initial state for each trajectory
+			for (unsigned int species_number = 0; species_number < (simulation->model->number_species); species_number++)
+			{
+				current_state[species_number] = simulation->model->species[species_number].initial_population;
+			}
+			std::copy(current_state.begin(), current_state.end(), simulation->current_state);
 
 			//Initialize simulation variables
 			simulation->current_time = 0;
@@ -128,7 +128,7 @@ namespace Gillespy
 
 			//Initialize tau_step, will be assigned using tau::select()
 			double tau_step;
-			int *prev_curr_state = new int[simulation->model->number_species];
+			std::vector<int> prev_curr_state(current_state.begin(), current_state.end());
 
 			// Each save step
 			while (entry_count < simulation->number_timesteps)
@@ -152,8 +152,7 @@ namespace Gillespy
 					}
 
 					tau_step = select(*(simulation->model), tau_args, tau_tol, simulation->current_time, save_time, propensity_values, current_state);
-
-					std:memcpy(prev_curr_state, &current_state[0], simulation->model->number_species);
+					prev_curr_state = current_state;
 					double prev_curr_time = simulation->current_time;
 					int loop_cnt = 0;
 
@@ -207,7 +206,7 @@ namespace Gillespy
 
 						if (neg_state)
 						{
-							std::memcpy(&current_state[0], prev_curr_state, simulation->model->number_species);
+							current_state = prev_curr_state;
 							simulation->current_time = prev_curr_time;
 							tau_step /= 2;
 						}
@@ -219,14 +218,12 @@ namespace Gillespy
 					}
 				}
 				// Copy internal vector into simulation state array
-				std::memcpy(simulation->current_state, &current_state[0], simulation->model->number_species);
-				simulation->output_buffer_range(std::cout, entry_count);
+				std::copy(current_state.begin(), current_state.end(), simulation->current_state);
+				simulation->output_buffer_range(std::cout);
 
 				save_time += increment;
 				entry_count += 1;
 			}
-
-			delete[] prev_curr_state;
 		}
 	}
 }
