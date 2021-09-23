@@ -18,8 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import unittest
 import tempfile
-from gillespy2.core.gillespyError import DirectoryError
-from example_models import Example
+from gillespy2.core.gillespyError import DirectoryError, SimulationError
+from example_models import Example, ExampleNoTspan
 from gillespy2.solvers.cpp.tau_leaping_c_solver import TauLeapingCSolver
 
 class TestTauLeapingCSolver(unittest.TestCase):
@@ -41,6 +41,19 @@ class TestTauLeapingCSolver(unittest.TestCase):
     def test_run_example(self):
         model = Example()
         results = model.run(solver=TauLeapingCSolver)
+
+    def test_run_example__with_increment_only(self):
+        model = ExampleNoTspan()
+        results = TauLeapingCSolver.run(model, increment=0.2)
+
+    def test_run_example__with_tspan_only(self):
+        model = Example()
+        results = TauLeapingCSolver.run(model)
+
+    def test_run_example__with_tspan_and_increment(self):
+        with assertRaises(SimulationError):
+            model = Example()
+            results = TauLeapingCSolver.run(model, increment=0.2)
 
 
 if __name__ == '__main__':

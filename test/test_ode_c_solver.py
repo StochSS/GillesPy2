@@ -18,8 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import unittest
 import tempfile
-from gillespy2.core.gillespyError import DirectoryError
-from example_models import Example
+from gillespy2.core.gillespyError import DirectoryError, SimulationError
+from example_models import Example, ExampleNoTspan
 from gillespy2.solvers.cpp.ode_c_solver import ODECSolver
 
 
@@ -39,9 +39,22 @@ class TestODECSolver(unittest.TestCase):
         solver = ODECSolver(model)
         results = model.run(solver=solver)
 
-    # def test_run_example(self):
-    #     model = Example()
-    #     results = model.run(solver=ODECSolver)
+    def test_run_example(self):
+        model = Example()
+        results = model.run(solver=ODECSolver)
+
+    def test_run_example__with_increment_only(self):
+        model = ExampleNoTspan()
+        results = ODECSolver.run(model, increment=0.2)
+
+    def test_run_example__with_tspan_only(self):
+        model = Example()
+        results = ODECSolver.run(model)
+
+    def test_run_example__with_tspan_and_increment(self):
+        with assertRaises(SimulationError):
+            model = Example()
+            results = ODECSolver.run(model, increment=0.2)
 
 
 if __name__ == '__main__':

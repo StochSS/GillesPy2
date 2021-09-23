@@ -19,8 +19,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 import numpy as np
 import gillespy2
-from example_models import Example
+from example_models import Example, ExampleNoTspan
 from gillespy2 import ODESolver
+from gillespy2.core.gillespyError import SimulationError
 
 
 class TestBasicODESolver(unittest.TestCase):
@@ -61,6 +62,19 @@ class TestBasicODESolver(unittest.TestCase):
         model = StoichTestModel()
         result = model.run(solver=ODESolver)
         self.assertAlmostEqual(result['B'][-1], 5, places=3)
+
+    def test_run_example__with_increment_only(self):
+        model = ExampleNoTspan()
+        results = ODESolver.run(model, increment=0.2)
+
+    def test_run_example__with_tspan_only(self):
+        model = Example()
+        results = ODESolver.run(model)
+
+    def test_run_example__with_tspan_and_increment(self):
+        with assertRaises(SimulationError):
+            model = Example()
+            results = ODESolver.run(model, increment=0.2)
 
 
 

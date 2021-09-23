@@ -17,12 +17,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import unittest
-from example_models import Example
+from gillespy2.core.gillespyError import SimulationError
+from example_models import Example, ExampleNoTspan
 from gillespy2 import NumPySSASolver
 
 
 class TestNumPySSASolver(unittest.TestCase):
     model = Example()
+
+    def test_run_example__with_increment_only(self):
+        model = ExampleNoTspan()
+        results = NumPySSASolver.run(model, increment=0.2)
+
+    def test_run_example__with_tspan_only(self):
+        model = Example()
+        results = NumPySSASolver.run(model)
+
+    def test_run_example__with_tspan_and_increment(self):
+        with assertRaises(SimulationError):
+            model = Example()
+            results = NumPySSASolver.run(model, increment=0.2)
     
 
 if __name__ == '__main__':
