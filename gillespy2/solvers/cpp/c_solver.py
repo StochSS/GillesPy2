@@ -189,24 +189,45 @@ class CSolver:
                 timeout_event[0] = True
                 proc_kill(simulation)
 
+            if display_args is not None:
+                def decoder_cb(curr_time, curr_state, trajectory_base=decoder.trajectories):
+                    entry = (curr_state, curr_time, trajectory_base)
+                    print(entry)
+                decoder.with_callback(decoder_cb)
+
             timeout_thread = threading.Timer(timeout, timeout_kill)
             reader_thread = threading.Thread(target=decoder.read,
                                              args=(simulation.stdout,))
-
-            if display_args is not None:
-                print(display_args)
 
             if timeout > 0:
                 timeout_thread.start()
 
             try:
                 reader_thread.start()
+
+                # if display_args is not None:
+                #     from gillespy2.core.liveGraphing import (
+                #         LiveDisplayer, CRepeatTimer, valid_graph_params
+                #     )
+                #     display_args['live_output_options'] = valid_graph_params(display_args['live_output_options'])
+                #     live_grapher = [LiveDisplayer(**display_args)]
+                #     display_timer = CRepeatTimer(
+                #         display_args['live_output_options']['interval'], live_grapher[0].display,
+                #         args=(queue, display_args['live_output_options']['type'])
+                #     )
+
+                #     display_timer.start()
+
                 reader_thread.join()
             
             except KeyboardInterrupt:
+                # if display_args is not None:
+                #     display_timer.pause = True
                 proc_kill(simulation)
 
             finally:
+                # if display_args is not None:
+                #     display_timer.cancel()
                 timeout_thread.cancel()
                 return_code = simulation.wait()
                 reader_thread.join()
