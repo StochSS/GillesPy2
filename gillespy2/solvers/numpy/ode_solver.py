@@ -108,14 +108,10 @@ class ODESolver(GillesPySolver):
             "clear_output" specifies if display should be refreshed with each displa
         """
         if isinstance(self, type):
-<<<<<<< HEAD
-            self = ODESolver()
+            self = ODESolver(model=model)
 
         increment = self.get_increment(model=model, increment=increment)
 
-=======
-            self = ODESolver(model=model)
->>>>>>> 10492c766d2ed8d5595d3b123057f9fd095e7538
         self.stop_event = Event()
         self.pause_event = Event()
 
