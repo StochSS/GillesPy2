@@ -58,6 +58,7 @@ class CSolver:
     :param variable: Indicates whether the simulation should be variable.
     :type variable: bool
     """
+    rc = 0
 
     def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable: bool = False):
         self.delete_directory = False
@@ -87,7 +88,8 @@ class CSolver:
         self.parameter_mappings = self.model.sanitized_parameter_names()
         self.parameters = list(self.parameter_mappings.keys())
         self.reactions = list(self.model.listOfReactions.keys())
-        self.simulation_data = []
+        self.result = []
+        self.rc = 0
 
     def __del__(self):
         if self.build_engine is None:
@@ -236,7 +238,7 @@ class CSolver:
 
         # The trajectory count is the first dimention of the input ndarray.
         trajectory_count = trajectories.shape[0]
-        self.simulation_data = []
+        self.result = []
 
         # Begin iterating through the trajectories, copying each dimension into simulation_data.
         for trajectory in range(trajectory_count):
@@ -248,9 +250,9 @@ class CSolver:
             for i in range(len(self.species)):
                 data[self.species[i]] = trajectories[trajectory, :, i + 1]
 
-            self.simulation_data.append(data)
+            self.result.append(data)
 
-        return self.simulation_data
+        return self.result
 
     def _make_resume_data(self, time_stopped: int, simulation_data: numpy.ndarray, t: int):
         """
