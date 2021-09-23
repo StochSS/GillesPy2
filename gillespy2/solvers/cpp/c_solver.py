@@ -25,6 +25,7 @@ import numpy
 
 from enum import IntEnum
 from concurrent.futures import ThreadPoolExecutor
+from typing import Union
 
 from gillespy2.core import Model
 from gillespy2.core import Results
@@ -32,6 +33,7 @@ from gillespy2.core import log
 from gillespy2.core import gillespyError
 from gillespy2.solvers.cpp.c_decoder import SimDecoder
 from gillespy2.solvers.cpp.build.build_engine import BuildEngine
+from gillespy2.solvers.cpp.build.template_gen import SanitizedModel
 
 class SimulationReturnCode(IntEnum):
     DONE = 0
@@ -58,13 +60,12 @@ class CSolver:
     """
     rc = 0
 
-    def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable: bool = False, custom_definitions: "dict[str,str]" = None):
+    def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable: bool = False):
         self.delete_directory = False
         self.model = model
         self.resume = resume
         self.variable = variable
         self.build_engine: BuildEngine = None
-        self.custom_definitions = custom_definitions
 
         # Validate output_directory, ensure that it doesn't already exist
         if isinstance(output_directory, str):
@@ -81,7 +82,7 @@ class CSolver:
         if self.model is None:
             return
 
-        self._build(model, self.target, variable, False, custom_definitions)
+        self._build(model, self.target, variable, False)
         self.species_mappings = self.model.sanitized_species_names()
         self.species = list(self.species_mappings.keys())
         self.parameter_mappings = self.model.sanitized_parameter_names()
@@ -99,7 +100,7 @@ class CSolver:
 
         self.build_engine.clean()
 
-    def _build(self, model: Model, simulation_name: str, variable: bool, debug: bool = False, custom_definitions: "dict[str, str]" = None) -> str:
+    def _build(self, model: "Union[Model, SanitizedModel]", simulation_name: str, variable: bool, debug: bool = False) -> str:
         """
         Generate and build the simulation from the specified Model and solver_name into the output_dir.
 
@@ -119,7 +120,7 @@ class CSolver:
         # Prepare the build workspace.
         if self.build_engine is None or self.build_engine.get_executable_path() is None:
             self.build_engine = BuildEngine(debug=debug, output_dir=self.output_directory)
-            self.build_engine.prepare(model, variable, custom_definitions)
+            self.build_engine.prepare(model, variable)
             # Compile the simulation, returning the path of the executable.
             return self.build_engine.build_simulation(simulation_name)
 

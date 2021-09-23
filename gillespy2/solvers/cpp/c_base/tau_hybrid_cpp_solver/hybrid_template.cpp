@@ -17,21 +17,38 @@
  */
 
 #include "hybrid_template.h"
+#include "template_params.h"
 
-namespace Gillespy::TauHybrid
+namespace Gillespy
 {
-	void map_species_modes(std::vector<HybridSpecies> &species)
+	namespace TauHybrid
 	{
-		#define SPECIES_MODE(spec_id, spec_mode, user_min) \
-		species[spec_id].user_mode = spec_mode; \
-		species[spec_id].switch_min = user_min;
-		#define CONTINUOUS_MODE SimulationState::CONTINUOUS
-		#define DISCRETE_MODE   SimulationState::DISCRETE
-		#define DYNAMIC_MODE    SimulationState::DYNAMIC
-		GPY_HYBRID_SPECIES_MODES
-		#undef DYNAMIC_MODE
-		#undef DISCRETE_MODE
-		#undef CONTINUOUS_MODE
-		#undef SPECIES_MODE
+		void map_species_modes(std::vector<HybridSpecies> &species)
+		{
+			#define SPECIES_MODE(spec_id, user_min, spec_mode, boundary_mode) \
+			species[spec_id].user_mode = spec_mode; \
+			species[spec_id].switch_min = user_min; \
+			species[spec_id].boundary_condition = boundary_mode;
+			#define CONTINUOUS_MODE SimulationState::CONTINUOUS
+			#define DISCRETE_MODE   SimulationState::DISCRETE
+			#define DYNAMIC_MODE    SimulationState::DYNAMIC
+			#define BOUNDARY true
+			#define STANDARD false
+			GPY_HYBRID_SPECIES_MODES
+			#undef STANDARD
+			#undef BOUNDARY
+			#undef DYNAMIC_MODE
+			#undef DISCRETE_MODE
+			#undef CONTINUOUS_MODE
+			#undef SPECIES_MODE
+		}
+
+		void map_rate_rules(std::vector<HybridSpecies> &species)
+		{
+			#define RATE_RULE(spec_id, rate_rule) species[spec_id].diff_equation.rate_rules.push_back([](double t, double *S) { return (rate_rule); });
+			GPY_RATE_RULES
+			#undef RATE_RULE
+		}
+
 	}
 }

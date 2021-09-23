@@ -61,12 +61,19 @@ namespace Gillespy::TauHybrid
 
 
 	double DifferentialEquation::evaluate(
-		std::vector<double> &ode_state,
-		std::vector<int> &ssa_state)
+		const double t,
+		double *ode_state,
+		int *ssa_state)
 	{
 		double sum =  0.0;
 
-		for (auto &formula : formulas) {
+		for (auto &rate_rule : rate_rules)
+		{
+			sum += rate_rule(t, ode_state);
+		}
+
+		for (auto &formula : formulas)
+		{
 			sum += formula(ode_state, ssa_state);
 		}
 
@@ -103,20 +110,20 @@ namespace Gillespy::TauHybrid
 
 				switch (spec.partition_mode) {
 				case SimulationState::CONTINUOUS:
-					formula_set.push_back([&rxn, rxn_i, spec_diff](
-						std::vector<double> &ode_state,
-						std::vector<int> &ssa_state)
+					formula_set.push_back([rxn_i, spec_diff](
+						double *ode_state,
+						int *ssa_state)
 					{
-						return spec_diff * rxn.ode_propensity(rxn_i, ode_state);
+						return spec_diff * HybridReaction::ode_propensity(rxn_i, ode_state);
 					});
 					break;
 
 				case SimulationState::DISCRETE:
-					spec.diff_equation.formulas.push_back([&rxn, rxn_i, spec_diff](
-						std::vector<double> &ode_state,
-						std::vector<int> &ssa_state)
+					formula_set.push_back([rxn_i, spec_diff](
+						double *ode_state,
+						int *ssa_state)
 					{
-						return spec_diff * rxn.ssa_propensity(rxn_i, ssa_state);
+						return spec_diff * HybridReaction::ssa_propensity(rxn_i, ssa_state);
 					});
 					break;
 

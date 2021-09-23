@@ -28,5 +28,6 @@ namespace Gillespy::TauHybrid
 {
 
 	void map_species_modes(std::vector<HybridSpecies> &species);
+	void map_rate_rules(std::vector<HybridSpecies> &species);
 
 }

@@ -22,8 +22,8 @@
 #include "model.h"
 #include "tau.h"
 
-#define GPY_HYBRID_ABSTOL 1e-12
-#define GPY_HYBRID_RELTOL 1e-12
+#define GPY_HYBRID_ABSTOL 1e-8
+#define GPY_HYBRID_RELTOL 1e-8
 
 namespace Gillespy::TauHybrid
 {
@@ -40,8 +40,9 @@ namespace Gillespy::TauHybrid
 	struct DifferentialEquation
 	{
 	public:
-		std::vector<std::function<double(std::vector<double>&, std::vector<int>&)>> formulas;
-		double evaluate(std::vector<double> &ode_state, std::vector<int> &ssa_state);
+		std::vector<std::function<double(double*, int*)>> formulas;
+		std::vector<std::function<double(double, double*)>> rate_rules;
+		double evaluate(double t, double *ode_state, int *ssa_state);
 	};
 
 	enum SimulationState : unsigned int
@@ -79,6 +80,10 @@ namespace Gillespy::TauHybrid
 
 		DifferentialEquation diff_equation;
 
+		// Boundary condition species are not directly updated by reactions, while standard ones are.
+		// If `boundary_condition` is true, then reactants are not consumed, and products are not produced.
+		bool boundary_condition = false;
+
 		HybridSpecies();
 	};
 
@@ -89,8 +94,8 @@ namespace Gillespy::TauHybrid
 
 		HybridReaction();
 
-		double ode_propensity(ReactionId reaction_number, std::vector<double> &state);
-		double ssa_propensity(ReactionId reaction_number, std::vector<int> &state);
+		static double ode_propensity(ReactionId reaction_number, double *state);
+		static double ssa_propensity(ReactionId reaction_number, int *state);
 	};
 
 	struct HybridSimulation : Simulation<double>

@@ -52,14 +52,14 @@ public:
 
 double Gillespy::TauHybrid::HybridReaction::ode_propensity(
 	ReactionId reaction_number,
-	std::vector<double> &state)
+	double *state)
 {
 	return map_ode_propensity(reaction_number, state);
 }
 
 double Gillespy::TauHybrid::HybridReaction::ssa_propensity(
 	ReactionId reaction_number,
-	std::vector<int> &state)
+	int *state)
 {
 	return map_propensity(reaction_number, state);
 }
@@ -92,6 +92,7 @@ int main(int argc, char* argv[])
 	simulation.propensity_function = propFun;
 	init_simulation(&model, simulation);
 	Gillespy::TauHybrid::map_species_modes(simulation.species_state);
+	Gillespy::TauHybrid::map_rate_rules(simulation.species_state);
 	// Perform ODE  //
 	TauHybrid::TauHybridCSolver(&simulation, tau_tol);
 	simulation.output_results_buffer(std::cout);
