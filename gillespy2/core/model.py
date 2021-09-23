@@ -986,7 +986,7 @@ class Model(SortableObject, Jsonify):
             )
 
         try:
-            solver_results, rc = solver.run(model=self, t=t, increment=increment, timeout=timeout, **solver_args)
+            return solver.run(model=self, t=t, increment=increment, timeout=timeout, **solver_args)
         except Exception as e:
             # If user has specified the SSACSolver, but they don't actually have a g++ compiler,
             # This will throw an error and throw log. IF a user specifies cpp_support == True and don't have a compiler
@@ -999,27 +999,6 @@ class Model(SortableObject, Jsonify):
                                 " run properly.")
             raise SimulationError(
                 "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e))
-
-        if rc == 33:
-            from gillespy2.core import log
-            log.warning('GillesPy2 simulation exceeded timeout.')
-
-        if hasattr(solver_results[0], 'shape'):
-            return solver_results
-
-        if len(solver_results) > 0:
-            results_list = []
-            for i in range(0, len(solver_results)):
-                temp = Trajectory(data=solver_results[i], model=self, solver_name=solver.name, rc=rc)
-                results_list.append(temp)
-
-            results = Results(results_list)
-            if show_labels == False:
-                results = results.to_array()
-            return results
-
-        else:
-            raise ValueError("number_of_trajectories must be non-negative and non-zero")
 
 
 class StochMLDocument():
