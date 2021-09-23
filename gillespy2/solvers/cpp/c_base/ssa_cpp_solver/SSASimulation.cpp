@@ -46,7 +46,7 @@ public:
 		return map_propensity(reaction_number, S);
 	}
 
-	double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S)
+	double TauEvaluate(unsigned int reaction_number, const int *S)
 	{
 		return 1.0;
 	}
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 	
 	IPropensityFunction *propensity_function = new PropensityFunction();
 	Simulation<unsigned int> simulation;
-	
+	simulation.output_interval = parser.output_interval;
 	simulation.model = &model;
 	simulation.end_time = end_time;
 	simulation.random_seed = random_seed;
@@ -91,9 +91,8 @@ int main(int argc, char *argv[])
 	simulation.propensity_function = propensity_function;
 	
 	init_simulation(&model, simulation);
-	
 	ssa_direct(&simulation);
-	simulation.output_results_buffer(std::cout);
+	simulation.output_buffer_final(std::cout);
 	
 	delete propensity_function;
 	return 0;

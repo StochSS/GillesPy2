@@ -60,7 +60,8 @@ class ODECSolver(GillesPySolver, CSolver):
             "trajectories": number_of_trajectories,
             "timesteps": number_timesteps,
             "end": t,
-            "increment": increment
+            "increment": increment,
+            "interval": str(number_timesteps),
         }
 
         if self.variable:

@@ -42,7 +42,7 @@ double tau_tol = 0.03;
 class PropensityFunction : public IPropensityFunction
 {
 public:
-	double TauEvaluate(unsigned int reaction_number, const std::vector<int> &S)
+	double TauEvaluate(unsigned int reaction_number, const int *S)
 	{
 		return map_propensity(reaction_number, S);
 	}
@@ -89,11 +89,11 @@ int main(int argc, char* argv[]){
 	simulation.number_timesteps = number_timesteps;
 	simulation.number_trajectories = number_trajectories;
 	simulation.propensity_function = propFun;
+	simulation.output_interval = parser.output_interval;
 
 	init_simulation(&model, simulation);
 	tau_leaper(&simulation, tau_tol);
-
-	simulation.output_results_buffer(std :: cout);
+	simulation.output_buffer_final(std::cout);
 
 	delete propFun;
 	return 0;
