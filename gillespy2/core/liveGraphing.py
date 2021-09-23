@@ -22,6 +22,27 @@ import threading
 from gillespy2.core import log
 
 
+class CRepeatTimer(threading.Timer):
+    """
+    Threading timer which repeatedly calls the given function instead of simply ending.
+
+    Used for C solver live graphing support
+    """
+    pause = False
+
+    def run(self):
+        from IPython.display import clear_output
+        type = str.join('', [*self.args[1]])
+        while not self.finished.wait(self.interval):
+            args = self.args[0].get()
+            self.function(*args, **kwargs)
+
+        if not self.pause and type != "graph":
+            args = self.args[0].get()
+            self.kwargs['finished'] = True
+            self.function(args, **self.kwargs)
+
+
 class RepeatTimer(threading.Timer):
     """
     Threading timer which repeatedly calls the given function instead of simply ending
