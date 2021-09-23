@@ -39,6 +39,10 @@ namespace Gillespy
 		Simulation<double> *my_sim;
 	};
 
+    bool cmpf(float A, float B){
+        return (fabs(A - B) < FLT_EPSILON);
+    }
+
 	void ODESolver(Simulation<double> *simulation, double increment)
 	{
 		// CVODE constants are returned on every success or failure.
@@ -109,7 +113,7 @@ namespace Gillespy
 		realtype tret = 0;
 
 		int current_time = 0;
-		for (tout = step_length; tout <= end_time; tout += step_length)
+		for (tout = step_length; tout < end_time || cmpf(tout, end_time); tout += step_length)
 		{
 			// CV_NORMAL causes the solver to take internal steps until it has reached or just passed the `tout`
 			// parameter. The solver interpolates in order to return an approximate value of `y(tout)`.
