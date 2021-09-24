@@ -18,8 +18,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 import json
+import time
 import threading
 from gillespy2.core import log
+
+
+class CRepeatTimer(threading.Timer):
+    """
+    Threading timer which repeatedly calls the given function instead of simply ending.
+
+    Used for C solver live graphing support
+    """
+    pause = False
+
+    def run(self):
+        from IPython.display import clear_output
+        type = str.join('', [*self.args[1]])
+        while not self.finished.wait(self.interval):
+            args = self.args[0].get()
+            self.function(*args, **self.kwargs)
+        
+        if not self.pause:
+            args = self.args[0].get()
+            self.kwargs['finished'] = True
+            self.function(*args, **self.kwargs)
 
 
 class RepeatTimer(threading.Timer):
@@ -35,7 +57,7 @@ class RepeatTimer(threading.Timer):
         while not self.finished.wait(self.interval):
             self.function(*self.args, **self.kwargs)
 
-        if not self.pause and type != "graph":
+        if not self.pause:
             self.kwargs['finished'] = True
             self.function(*self.args, **self.kwargs)
 
@@ -71,7 +93,7 @@ def valid_graph_params(live_output_options):
 
     if 'file_path' not in live_output_options:
         live_output_options['file_path'] = None
-    elif live_output_options['type'] == "graph":
+    elif live_output_options['type'] == "graph" and live_output_options['file_path'] is not None:
         live_output_options['type'] = "figure"
 
 
@@ -165,6 +187,9 @@ class LiveDisplayer():
 
         elif self.display_type == "graph":
 
+            if finished:
+                return
+
             import matplotlib.pyplot as plt
             from gillespy2.core.results import common_rgb_values
 
@@ -222,3 +247,5 @@ class LiveDisplayer():
 
         if self.file_path is not None and self.display_type != "graph":
             file_obj.close()
+        if finished:
+            time.sleep(3)

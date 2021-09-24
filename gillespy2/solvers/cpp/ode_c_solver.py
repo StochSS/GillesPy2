@@ -34,7 +34,8 @@ class ODECSolver(GillesPySolver, CSolver):
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
     def run(self=None, model: Model = None, t: int = 20, number_of_trajectories: int = 1, timeout: int = 0,
-            increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={}, resume=None, **kwargs):
+            increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
+            resume=None, live_output: str = None, live_output_options: dict = {}, **kwargs):
 
         if self is None or self.model is None:
             self = ODECSolver(model, resume=resume)
@@ -81,12 +82,20 @@ class ODECSolver(GillesPySolver, CSolver):
                 "seed": seed
             })
 
+        if live_output is not None:
+            live_output_options['type'] = live_output
+            display_args = {
+                "model": model, "number_of_trajectories": number_of_trajectories, "timeline": np.linspace(0, t, number_timesteps),
+                "live_output_options": live_output_options, "resume": bool(resume)
+            }
+        else:
+            display_args = None
 
         args = self._make_args(args)
         decoder = BasicSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
 
         sim_exec = self._build(model, self.target, self.variable, False)
-        sim_status = self._run(sim_exec, args, decoder, timeout)
+        sim_status = self._run(sim_exec, args, decoder, timeout, display_args)
 
         if sim_status == SimulationReturnCode.FAILED:
             raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:\n"
