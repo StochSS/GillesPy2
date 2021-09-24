@@ -183,6 +183,8 @@ class CSolver:
                 "start_new_session": True
             }
 
+        live_grapher = [None]
+
         if display_args is not None:
             live_queue = queue.Queue(maxsize=1)
             def decoder_cb(curr_time, curr_state, trajectory_base=decoder.trajectories):
@@ -191,14 +193,22 @@ class CSolver:
                 except queue.Empty as err:
                     pass
                 curr_state = {self.species[i]: curr_state[i] for i in range(len(curr_state))}
-                entry = (curr_state, curr_time, trajectory_base)
+                entry = ([curr_state], [curr_time], trajectory_base)
                 live_queue.put(entry)
                 
             decoder.with_callback(decoder_cb)
 
-        timeout_event = [False]
-        live_grapher = [None]
+            from gillespy2.core.liveGraphing import (
+                LiveDisplayer, CRepeatTimer, valid_graph_params
+            )
+            valid_graph_params(display_args['live_output_options'])
+            live_grapher[0] = LiveDisplayer(**display_args)
+            display_timer = CRepeatTimer(
+                display_args['live_output_options']['interval'], live_grapher[0].display,
+                args=(live_queue, display_args['live_output_options']['type'])
+            )
 
+        timeout_event = [False]
         with subprocess.Popen(sim_args, stdout=subprocess.PIPE, **platform_args) as simulation:
             def timeout_kill():
                 timeout_event[0] = True
@@ -213,20 +223,8 @@ class CSolver:
 
             try:
                 reader_thread.start()
-
                 if display_args is not None:
-                    from gillespy2.core.liveGraphing import (
-                        LiveDisplayer, CRepeatTimer, valid_graph_params
-                    )
-                    valid_graph_params(display_args['live_output_options'])
-                    live_grapher[0] = LiveDisplayer(**display_args)
-                    display_timer = CRepeatTimer(
-                        display_args['live_output_options']['interval'], live_grapher[0].display,
-                        args=(live_queue, display_args['live_output_options']['type'])
-                    )
-
                     display_timer.start()
-
                 reader_thread.join()
             
             except KeyboardInterrupt:

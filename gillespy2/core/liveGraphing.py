@@ -35,12 +35,12 @@ class CRepeatTimer(threading.Timer):
         type = str.join('', [*self.args[1]])
         while not self.finished.wait(self.interval):
             args = self.args[0].get()
-            self.function(*args, **kwargs)
-
+            self.function(*args, **self.kwargs)
+        
         if not self.pause and type != "graph":
             args = self.args[0].get()
             self.kwargs['finished'] = True
-            self.function(args, **self.kwargs)
+            self.function(*args, **self.kwargs)
 
 
 class RepeatTimer(threading.Timer):
