@@ -51,7 +51,7 @@ class TestTauLeapingCSolver(unittest.TestCase):
         results = TauLeapingCSolver.run(model)
 
     def test_run_example__with_tspan_and_increment(self):
-        with assertRaises(SimulationError):
+        with self.assertRaises(SimulationError):
             model = Example()
             results = TauLeapingCSolver.run(model, increment=0.2)
 

@@ -52,7 +52,7 @@ class TestODECSolver(unittest.TestCase):
         results = ODECSolver.run(model)
 
     def test_run_example__with_tspan_and_increment(self):
-        with assertRaises(SimulationError):
+        with self.assertRaises(SimulationError):
             model = Example()
             results = ODECSolver.run(model, increment=0.2)
 

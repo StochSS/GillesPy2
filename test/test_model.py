@@ -379,7 +379,7 @@ class TestModel(unittest.TestCase):
         results = model.run()
 
     def test_run_example__with_tspan_and_increment(self):
-        with assertRaises(SimulationError):
+        with self.assertRaises(SimulationError):
             model = Example()
             results = model.run(t=20, increment=0.2)
 

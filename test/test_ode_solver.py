@@ -72,7 +72,7 @@ class TestBasicODESolver(unittest.TestCase):
         results = ODESolver.run(model)
 
     def test_run_example__with_tspan_and_increment(self):
-        with assertRaises(SimulationError):
+        with self.assertRaises(SimulationError):
             model = Example()
             results = ODESolver.run(model, increment=0.2)
 

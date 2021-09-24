@@ -3,6 +3,8 @@ import unittest
 import gillespy2
 import numpy
 from gillespy2 import TauHybridCSolver
+from example_models import Example, ExampleNoTspan
+from gillespy2.core.gillespyError import SimulationError
 
 
 class BoundaryConditionTestModel(gillespy2.Model):
@@ -81,6 +83,19 @@ class TestTauHybridCSolver(unittest.TestCase):
                 spec_results = results[spec_name]
                 is_uniform = numpy.all(spec_results == species.initial_value)
                 self.assertTrue(species.boundary_condition == is_uniform)
+
+    def test_run_example__with_increment_only(self):
+        model = ExampleNoTspan()
+        results = TauHybridCSolver.run(model, increment=0.2)
+
+    def test_run_example__with_tspan_only(self):
+        model = Example()
+        results = TauHybridCSolver.run(model)
+
+    def test_run_example__with_tspan_and_increment(self):
+        with self.assertRaises(SimulationError):
+            model = Example()
+            results = TauHybridCSolver.run(model, increment=0.2)
 
 
 if __name__ == '__main__':
