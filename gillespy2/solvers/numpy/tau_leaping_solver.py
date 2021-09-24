@@ -89,7 +89,7 @@ class TauLeapingSolver(GillesPySolver):
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile','timeout', 'tau_tol')
 
     @classmethod
-    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
+    def run(self, model=None, t=20, number_of_trajectories=1, increment=None, seed=None,
             debug=False, profile=False,  live_output=None, live_output_options={},
             timeout=None, resume=None, tau_tol=0.03, **kwargs):
             """
@@ -137,6 +137,8 @@ class TauLeapingSolver(GillesPySolver):
 
             if isinstance(self, type):
                 self = TauLeapingSolver(model=model, debug=debug, profile=profile)
+
+            increment = self.get_increment(model=model, increment=increment)
 
             self.stop_event = Event()
             self.pause_event = Event()

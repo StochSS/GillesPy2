@@ -82,7 +82,7 @@ class ODESolver(GillesPySolver):
                 'timeout')
 
     @classmethod
-    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, show_labels=True, integrator='lsoda',
+    def run(self, model=None, t=20, number_of_trajectories=1, increment=None, show_labels=True, integrator='lsoda',
             integrator_options={}, live_output=None, live_output_options={}, timeout=None, resume=None, **kwargs):
         """
         :param model: gillespy2.model class object
@@ -109,6 +109,9 @@ class ODESolver(GillesPySolver):
         """
         if isinstance(self, type):
             self = ODESolver(model=model)
+
+        increment = self.get_increment(model=model, increment=increment)
+
         self.stop_event = Event()
         self.pause_event = Event()
 

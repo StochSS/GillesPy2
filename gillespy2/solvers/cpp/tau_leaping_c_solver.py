@@ -34,11 +34,13 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
     def run(self=None, model: Model = None, t: int = 20, number_of_trajectories: int = 1, timeout: int = 0,
-            increment: int = 0.05, seed: int = None, debug: bool = False, profile: bool = False, variables={}, 
+            increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={}, 
             resume=None, live_output: str = None, live_output_options: dict = {}, tau_tol=0.03, **kwargs):
 
         if self is None or self.model is None:
             self = TauLeapingCSolver(model, resume=resume)
+
+        increment = self.get_increment(model=model, increment=increment)
 
         # Validate parameters prior to running the model.
         self._validate_type(variables, dict, "'variables' argument must be a dictionary.")
