@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import unittest
-from example_models import RobustModel, Example
+from example_models import RobustModel, Example, ExampleNoTspan
 from gillespy2.core import Model, Species, Reaction, Parameter
 from gillespy2.core.gillespyError import *
 from gillespy2.core.model import export_StochSS
