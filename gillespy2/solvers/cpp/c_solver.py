@@ -20,6 +20,7 @@ import os
 import subprocess
 import signal
 import threading
+import queue
 
 import numpy
 
@@ -190,9 +191,17 @@ class CSolver:
                 proc_kill(simulation)
 
             if display_args is not None:
+                live_queue = queue.Queue(maxsize=1)
                 def decoder_cb(curr_time, curr_state, trajectory_base=decoder.trajectories):
+                    try:
+                        old_entry = live_queue.get_nowait()
+                        print(old_entry)
+                    except queue.Empty as err:
+                        pass
+                    curr_state = {self.species[i]: curr_state[i] for i in range(len(curr_state))}
                     entry = (curr_state, curr_time, trajectory_base)
-                    print(entry)
+                    live_queue.put(entry)
+                    
                 decoder.with_callback(decoder_cb)
 
             timeout_thread = threading.Timer(timeout, timeout_kill)
