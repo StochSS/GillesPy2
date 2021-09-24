@@ -65,16 +65,16 @@ class TestBasicODESolver(unittest.TestCase):
 
     def test_run_example__with_increment_only(self):
         model = ExampleNoTspan()
-        results = ODESolver.run(model, increment=0.2)
+        results = ODESolver.run(model=model, increment=0.2)
 
     def test_run_example__with_tspan_only(self):
         model = Example()
-        results = ODESolver.run(model)
+        results = ODESolver.run(model=model)
 
     def test_run_example__with_tspan_and_increment(self):
         with self.assertRaises(SimulationError):
             model = Example()
-            results = ODESolver.run(model, increment=0.2)
+            results = ODESolver.run(model=model, increment=0.2)
 
 
 

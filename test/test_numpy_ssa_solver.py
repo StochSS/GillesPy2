@@ -27,16 +27,16 @@ class TestNumPySSASolver(unittest.TestCase):
 
     def test_run_example__with_increment_only(self):
         model = ExampleNoTspan()
-        results = NumPySSASolver.run(model, increment=0.2)
+        results = NumPySSASolver.run(model=model, increment=0.2)
 
     def test_run_example__with_tspan_only(self):
         model = Example()
-        results = NumPySSASolver.run(model)
+        results = NumPySSASolver.run(model=model)
 
     def test_run_example__with_tspan_and_increment(self):
         with self.assertRaises(SimulationError):
             model = Example()
-            results = NumPySSASolver.run(model, increment=0.2)
+            results = NumPySSASolver.run(model=model, increment=0.2)
     
 
 if __name__ == '__main__':
