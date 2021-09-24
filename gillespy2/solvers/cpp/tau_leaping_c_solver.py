@@ -35,7 +35,7 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
 
     def run(self=None, model: Model = None, t: int = 20, number_of_trajectories: int = 1, timeout: int = 0,
             increment: int = 0.05, seed: int = None, debug: bool = False, profile: bool = False, variables={}, 
-            resume=None, tau_tol=0.03, **kwargs):
+            resume=None, live_output: str = None, live_output_options: dict = {}, tau_tol=0.03, **kwargs):
 
         if self is None or self.model is None:
             self = TauLeapingCSolver(model, resume=resume)
@@ -80,12 +80,20 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
                 "seed": seed
             })
 
+        if live_output is not None:
+            live_output_options['type'] = live_output
+            display_args = {
+                "model": model, "number_of_trajectories": number_of_trajectories, "timeline": np.linspace(0, t, number_timesteps),
+                "live_output_options": live_output_options, "resume": bool(resume)
+            }
+        else:
+            display_args = None
 
         args = self._make_args(args)
         decoder = IterativeSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
 
         sim_exec = self._build(model, self.target, self.variable, False)
-        sim_status = self._run(sim_exec, args, decoder, timeout)
+        sim_status = self._run(sim_exec, args, decoder, timeout, display_args)
 
         if sim_status == SimulationReturnCode.FAILED:
             raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:\n"
