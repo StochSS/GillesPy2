@@ -61,7 +61,7 @@ double Gillespy::TauHybrid::HybridReaction::ssa_propensity(
 	ReactionId reaction_number,
 	int *state)
 {
-	return map_propensity(reaction_number, state.data());
+	return map_propensity(reaction_number, state);
 }
 
 int main(int argc, char* argv[])
