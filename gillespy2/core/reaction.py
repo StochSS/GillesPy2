@@ -163,6 +163,10 @@ class Reaction(SortableObject, Jsonify):
                 expr = ExpressionParser().visit(expr)
 
                 class ToString(ast.NodeVisitor):
+                    substitutions = {
+                        "ln": "log",
+                    }
+
                     def __init__(self):
                         self.string = ''
 
@@ -185,13 +189,16 @@ class Reaction(SortableObject, Jsonify):
                         self.generic_visit(node)
 
                     def visit_Call(self, node):
-                        self._string_changer(node.func.id + '(')
+                        func_name = ToString.substitutions.get(node.func.id) \
+                            if node.func.id in ToString.substitutions \
+                            else node.func.id
+                        self._string_changer(func_name + '(')
                         counter = 0
                         for arg in node.args:
-                            self.visit(arg)
-                            if counter == 0:
+                            if counter > 0:
                                 self._string_changer(',')
-                                counter += 1
+                            self.visit(arg)
+                            counter += 1
                         self._string_changer(')')
 
                     def visit_Add(self, node):
@@ -222,7 +229,9 @@ class Reaction(SortableObject, Jsonify):
                 newFunc = ToString()
                 newFunc.visit(expr)
                 return newFunc.string
+
             self.propensity_function = __customPropParser()
+            self.ode_propensity_function = self.propensity_function
 
     def __str__(self):
         self.verify()
