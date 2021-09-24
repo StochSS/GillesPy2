@@ -180,6 +180,7 @@ class Model(SortableObject, Jsonify):
 
         if tspan is None:
             self.timespan(np.linspace(0, 20, 401))
+            self.user_set_tspan = False
         else:
             self.timespan(tspan)
 
@@ -672,6 +673,7 @@ class Model(SortableObject, Jsonify):
         isuniform = np.isclose(other_diff, first_diff).all()
 
         if isuniform:
+            self.user_set_tspan = True
             self.tspan = time_span
         else:
             raise InvalidModelError("StochKit only supports uniform timespans")
@@ -963,6 +965,7 @@ class Model(SortableObject, Jsonify):
             from gillespy2.core import log
             log.warning('show_labels = False is deprecated. Future releases '
                         'of GillesPy2 may not support this feature.')
+
         if t is None:
             t = self.tspan[-1]
 
@@ -971,8 +974,17 @@ class Model(SortableObject, Jsonify):
                 solver = self.get_best_solver_algo(algorithm)
             else:
                 solver = self.get_best_solver()
-        if increment is None:
-            increment = self.tspan[-1] - self.tspan[-2]
+
+        if self.user_set_tspan and increment is not None:
+            raise SimulationError(
+                """
+                Failed while preparing to run the model. Both increment and timespan are set.
+
+                To continue either remove your `timespan` definition from your Model or remove the 
+                `increment` argument from this `model.run()` call.               
+                """
+            )
+
         try:
             return solver.run(model=self, t=t, increment=increment, timeout=timeout, **solver_args)
         except Exception as e:

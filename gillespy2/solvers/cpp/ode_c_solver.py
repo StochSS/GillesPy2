@@ -34,10 +34,12 @@ class ODECSolver(GillesPySolver, CSolver):
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
     def run(self=None, model: Model = None, t: int = 20, number_of_trajectories: int = 1, timeout: int = 0,
-            increment: int = 0.05, seed: int = None, debug: bool = False, profile: bool = False, variables={}, resume=None, **kwargs):
+            increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={}, resume=None, **kwargs):
 
         if self is None or self.model is None:
             self = ODECSolver(model, resume=resume)
+
+        increment = self.get_increment(model=model, increment=increment)
 
         # Validate parameters prior to running the model.
         self._validate_type(variables, dict, "'variables' argument must be a dictionary.")
