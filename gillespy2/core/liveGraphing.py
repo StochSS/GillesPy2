@@ -38,12 +38,10 @@ class CRepeatTimer(threading.Timer):
             args = self.args[0].get()
             self.function(*args, **self.kwargs)
         
-        if not self.pause and type != "graph":
+        if not self.pause:
             args = self.args[0].get()
             self.kwargs['finished'] = True
             self.function(*args, **self.kwargs)
-        elif type == "graph":
-            clear_output(wait=True)
 
 
 class RepeatTimer(threading.Timer):
@@ -59,11 +57,9 @@ class RepeatTimer(threading.Timer):
         while not self.finished.wait(self.interval):
             self.function(*self.args, **self.kwargs)
 
-        if not self.pause and type != "graph":
+        if not self.pause:
             self.kwargs['finished'] = True
             self.function(*self.args, **self.kwargs)
-        elif type == "graph":
-            clear_output(wait=True)
 
 
 
@@ -191,6 +187,9 @@ class LiveDisplayer():
 
         elif self.display_type == "graph":
 
+            if finished:
+                return
+
             import matplotlib.pyplot as plt
             from gillespy2.core.results import common_rgb_values
 
@@ -248,3 +247,5 @@ class LiveDisplayer():
 
         if self.file_path is not None and self.display_type != "graph":
             file_obj.close()
+        if finished:
+            time.sleep(3)
