@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 import json
+import time
 import threading
 from gillespy2.core import log
 
@@ -41,6 +42,8 @@ class CRepeatTimer(threading.Timer):
             args = self.args[0].get()
             self.kwargs['finished'] = True
             self.function(*args, **self.kwargs)
+        elif type == "graph":
+            clear_output(wait=True)
 
 
 class RepeatTimer(threading.Timer):
@@ -59,6 +62,8 @@ class RepeatTimer(threading.Timer):
         if not self.pause and type != "graph":
             self.kwargs['finished'] = True
             self.function(*self.args, **self.kwargs)
+        elif type == "graph":
+            clear_output(wait=True)
 
 
 
