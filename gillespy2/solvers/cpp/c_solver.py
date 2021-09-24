@@ -183,26 +183,26 @@ class CSolver:
                 "start_new_session": True
             }
 
+        if display_args is not None:
+            live_queue = queue.Queue(maxsize=1)
+            def decoder_cb(curr_time, curr_state, trajectory_base=decoder.trajectories):
+                try:
+                    old_entry = live_queue.get_nowait()
+                except queue.Empty as err:
+                    pass
+                curr_state = {self.species[i]: curr_state[i] for i in range(len(curr_state))}
+                entry = (curr_state, curr_time, trajectory_base)
+                live_queue.put(entry)
+                
+            decoder.with_callback(decoder_cb)
+
         timeout_event = [False]
+        live_grapher = [None]
 
         with subprocess.Popen(sim_args, stdout=subprocess.PIPE, **platform_args) as simulation:
             def timeout_kill():
                 timeout_event[0] = True
                 proc_kill(simulation)
-
-            if display_args is not None:
-                live_queue = queue.Queue(maxsize=1)
-                def decoder_cb(curr_time, curr_state, trajectory_base=decoder.trajectories):
-                    try:
-                        old_entry = live_queue.get_nowait()
-                        print(old_entry)
-                    except queue.Empty as err:
-                        pass
-                    curr_state = {self.species[i]: curr_state[i] for i in range(len(curr_state))}
-                    entry = (curr_state, curr_time, trajectory_base)
-                    live_queue.put(entry)
-                    
-                decoder.with_callback(decoder_cb)
 
             timeout_thread = threading.Timer(timeout, timeout_kill)
             reader_thread = threading.Thread(target=decoder.read,
@@ -214,29 +214,29 @@ class CSolver:
             try:
                 reader_thread.start()
 
-                # if display_args is not None:
-                #     from gillespy2.core.liveGraphing import (
-                #         LiveDisplayer, CRepeatTimer, valid_graph_params
-                #     )
-                #     display_args['live_output_options'] = valid_graph_params(display_args['live_output_options'])
-                #     live_grapher = [LiveDisplayer(**display_args)]
-                #     display_timer = CRepeatTimer(
-                #         display_args['live_output_options']['interval'], live_grapher[0].display,
-                #         args=(queue, display_args['live_output_options']['type'])
-                #     )
+                if display_args is not None:
+                    from gillespy2.core.liveGraphing import (
+                        LiveDisplayer, CRepeatTimer, valid_graph_params
+                    )
+                    valid_graph_params(display_args['live_output_options'])
+                    live_grapher[0] = LiveDisplayer(**display_args)
+                    display_timer = CRepeatTimer(
+                        display_args['live_output_options']['interval'], live_grapher[0].display,
+                        args=(live_queue, display_args['live_output_options']['type'])
+                    )
 
-                #     display_timer.start()
+                    display_timer.start()
 
                 reader_thread.join()
             
             except KeyboardInterrupt:
-                # if display_args is not None:
-                #     display_timer.pause = True
+                if live_grapher[0] is not None:
+                    display_timer.pause = True
                 proc_kill(simulation)
 
             finally:
-                # if display_args is not None:
-                #     display_timer.cancel()
+                if live_grapher[0] is not None:
+                    display_timer.cancel()
                 timeout_thread.cancel()
                 return_code = simulation.wait()
                 reader_thread.join()
