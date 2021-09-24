@@ -92,7 +92,7 @@ def valid_graph_params(live_output_options):
 
     if 'file_path' not in live_output_options:
         live_output_options['file_path'] = None
-    elif live_output_options['type'] == "graph":
+    elif live_output_options['type'] == "graph" and live_output_options['file_path'] is not None:
         live_output_options['type'] = "figure"
 
 
