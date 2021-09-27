@@ -16,9 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
+from gillespy2.solvers.cpp.c_decoder import IterativeSimDecoder
 from gillespy2.solvers.utilities import solverutils as cutils
 from gillespy2.core import GillesPySolver, gillespyError, Model
+from gillespy2.core import Results 
 
 from .c_solver import CSolver, SimulationReturnCode
 
@@ -33,11 +34,13 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
     def run(self=None, model: Model = None, t: int = 20, number_of_trajectories: int = 1, timeout: int = 0,
-            increment: int = 0.05, seed: int = None, debug: bool = False, profile: bool = False, variables={}, 
-            resume=None, tau_tol=0.03, **kwargs):
+            increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={}, 
+            resume=None, live_output: str = None, live_output_options: dict = {}, tau_tol=0.03, **kwargs):
 
         if self is None or self.model is None:
             self = TauLeapingCSolver(model, resume=resume)
+
+        increment = self.get_increment(model=model, increment=increment)
 
         # Validate parameters prior to running the model.
         self._validate_type(variables, dict, "'variables' argument must be a dictionary.")
@@ -60,7 +63,8 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
             "trajectories": number_of_trajectories,
             "timesteps": number_timesteps,
             "tau_tol": tau_tol,
-            "end": t
+            "end": t,
+            "interval": str(number_timesteps),
         }
 
         if self.variable:
@@ -78,12 +82,20 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
                 "seed": seed
             })
 
+        if live_output is not None:
+            live_output_options['type'] = live_output
+            display_args = {
+                "model": model, "number_of_trajectories": number_of_trajectories, "timeline": np.linspace(0, t, number_timesteps),
+                "live_output_options": live_output_options, "resume": bool(resume)
+            }
+        else:
+            display_args = None
 
         args = self._make_args(args)
-        decoder = BasicSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
+        decoder = IterativeSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
 
         sim_exec = self._build(model, self.target, self.variable, False)
-        sim_status = self._run(sim_exec, args, decoder, timeout)
+        sim_status = self._run(sim_exec, args, decoder, timeout, display_args)
 
         if sim_status == SimulationReturnCode.FAILED:
             raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:\n"
@@ -96,6 +108,7 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
             simulation_data = self._make_resume_data(time_stopped, simulation_data, t)
         if resume is not None:
             simulation_data = self._update_resume_data(resume, simulation_data, time_stopped)
-        self.simulation_data = simulation_data
+        self.result = simulation_data
+        self.rc = int(sim_status)
 
-        return simulation_data, int(sim_status)
+        return Results.build_from_solver_results(self)

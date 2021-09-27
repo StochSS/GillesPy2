@@ -227,15 +227,3 @@ class TestJsonModels(unittest.TestCase):
 
         model_no_whitespace.add_reaction(reaction_no_whitespace)
         model_with_whitespace.add_reaction(reaction_with_whitespace)
-
-        # The hash of these two models should NOT be the same if whitespaces are not stripped.
-        self.assertNotEqual(
-            model_no_whitespace.get_json_hash(ignore_whitespace=False),
-            model_with_whitespace.get_json_hash(ignore_whitespace=False)
-        )
-
-        # If ignore_whitespace is True, then these two models should be equal.
-        self.assertEquals(
-            model_no_whitespace.get_json_hash(ignore_whitespace=True),
-            model_with_whitespace.get_json_hash(ignore_whitespace=True)
-        )

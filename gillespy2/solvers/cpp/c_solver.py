@@ -20,11 +20,13 @@ import os
 import subprocess
 import signal
 import threading
+import queue
 
 import numpy
 
 from enum import IntEnum
 from concurrent.futures import ThreadPoolExecutor
+from typing import Union
 
 from gillespy2.core import Model
 from gillespy2.core import Results
@@ -32,6 +34,7 @@ from gillespy2.core import log
 from gillespy2.core import gillespyError
 from gillespy2.solvers.cpp.c_decoder import SimDecoder
 from gillespy2.solvers.cpp.build.build_engine import BuildEngine
+from gillespy2.solvers.cpp.build.template_gen import SanitizedModel
 
 class SimulationReturnCode(IntEnum):
     DONE = 0
@@ -56,14 +59,14 @@ class CSolver:
     :param variable: Indicates whether the simulation should be variable.
     :type variable: bool
     """
+    rc = 0
 
-    def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable: bool = False, custom_definitions: "dict[str,str]" = None):
+    def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable: bool = False):
         self.delete_directory = False
         self.model = model
         self.resume = resume
         self.variable = variable
         self.build_engine: BuildEngine = None
-        self.custom_definitions = custom_definitions
 
         # Validate output_directory, ensure that it doesn't already exist
         if isinstance(output_directory, str):
@@ -80,13 +83,14 @@ class CSolver:
         if self.model is None:
             return
 
-        self._build(model, self.target, variable, False, custom_definitions)
+        self._build(model, self.target, variable, False)
         self.species_mappings = self.model.sanitized_species_names()
         self.species = list(self.species_mappings.keys())
         self.parameter_mappings = self.model.sanitized_parameter_names()
         self.parameters = list(self.parameter_mappings.keys())
         self.reactions = list(self.model.listOfReactions.keys())
-        self.simulation_data = []
+        self.result = []
+        self.rc = 0
 
     def __del__(self):
         if self.build_engine is None:
@@ -97,7 +101,7 @@ class CSolver:
 
         self.build_engine.clean()
 
-    def _build(self, model: Model, simulation_name: str, variable: bool, debug: bool = False, custom_definitions: "dict[str, str]" = None) -> str:
+    def _build(self, model: "Union[Model, SanitizedModel]", simulation_name: str, variable: bool, debug: bool = False) -> str:
         """
         Generate and build the simulation from the specified Model and solver_name into the output_dir.
 
@@ -117,7 +121,7 @@ class CSolver:
         # Prepare the build workspace.
         if self.build_engine is None or self.build_engine.get_executable_path() is None:
             self.build_engine = BuildEngine(debug=debug, output_dir=self.output_directory)
-            self.build_engine.prepare(model, variable, custom_definitions)
+            self.build_engine.prepare(model, variable)
             # Compile the simulation, returning the path of the executable.
             return self.build_engine.build_simulation(simulation_name)
 
@@ -143,7 +147,7 @@ class CSolver:
         executor = ThreadPoolExecutor()
         return executor.submit(self._run, sim_exec, sim_args, decoder, timeout)
 
-    def _run(self, sim_exec: str, sim_args: "list[str]", decoder: SimDecoder, timeout: int = 0) -> int:
+    def _run(self, sim_exec: str, sim_args: "list[str]", decoder: SimDecoder, timeout: int = 0, display_args: dict = None) -> int:
         """
         Run the target executable simulation.
 
@@ -155,6 +159,9 @@ class CSolver:
 
         :param decoder: The SimDecoder instance that will handle simulation output.
         :type decoder: SimDecoder
+
+        :param display_args: The kwargs need to setup the live graphing
+        :type display_args: dict
 
         :returns: The return_code of the simulation.
         """
@@ -176,8 +183,32 @@ class CSolver:
                 "start_new_session": True
             }
 
-        timeout_event = [False]
+        live_grapher = [None]
 
+        if display_args is not None:
+            live_queue = queue.Queue(maxsize=1)
+            def decoder_cb(curr_time, curr_state, trajectory_base=decoder.trajectories):
+                try:
+                    old_entry = live_queue.get_nowait()
+                except queue.Empty as err:
+                    pass
+                curr_state = {self.species[i]: curr_state[i] for i in range(len(curr_state))}
+                entry = ([curr_state], [curr_time], trajectory_base)
+                live_queue.put(entry)
+                
+            decoder.with_callback(decoder_cb)
+
+            from gillespy2.core.liveGraphing import (
+                LiveDisplayer, CRepeatTimer, valid_graph_params
+            )
+            valid_graph_params(display_args['live_output_options'])
+            live_grapher[0] = LiveDisplayer(**display_args)
+            display_timer = CRepeatTimer(
+                display_args['live_output_options']['interval'], live_grapher[0].display,
+                args=(live_queue, display_args['live_output_options']['type'])
+            )
+
+        timeout_event = [False]
         with subprocess.Popen(sim_args, stdout=subprocess.PIPE, **platform_args) as simulation:
             def timeout_kill():
                 timeout_event[0] = True
@@ -192,12 +223,18 @@ class CSolver:
 
             try:
                 reader_thread.start()
+                if display_args is not None:
+                    display_timer.start()
                 reader_thread.join()
             
             except KeyboardInterrupt:
+                if live_grapher[0] is not None:
+                    display_timer.pause = True
                 proc_kill(simulation)
 
             finally:
+                if live_grapher[0] is not None:
+                    display_timer.cancel()
                 timeout_thread.cancel()
                 return_code = simulation.wait()
                 reader_thread.join()
@@ -235,7 +272,7 @@ class CSolver:
 
         # The trajectory count is the first dimention of the input ndarray.
         trajectory_count = trajectories.shape[0]
-        self.simulation_data = []
+        self.result = []
 
         # Begin iterating through the trajectories, copying each dimension into simulation_data.
         for trajectory in range(trajectory_count):
@@ -247,9 +284,9 @@ class CSolver:
             for i in range(len(self.species)):
                 data[self.species[i]] = trajectories[trajectory, :, i + 1]
 
-            self.simulation_data.append(data)
+            self.result.append(data)
 
-        return self.simulation_data
+        return self.result
 
     def _make_resume_data(self, time_stopped: int, simulation_data: numpy.ndarray, t: int):
         """

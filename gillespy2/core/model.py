@@ -180,6 +180,7 @@ class Model(SortableObject, Jsonify):
 
         if tspan is None:
             self.timespan(np.linspace(0, 20, 401))
+            self.user_set_tspan = False
         else:
             self.timespan(tspan)
 
@@ -672,6 +673,7 @@ class Model(SortableObject, Jsonify):
         isuniform = np.isclose(other_diff, first_diff).all()
 
         if isuniform:
+            self.user_set_tspan = True
             self.tspan = time_span
         else:
             raise InvalidModelError("StochKit only supports uniform timespans")
@@ -963,6 +965,7 @@ class Model(SortableObject, Jsonify):
             from gillespy2.core import log
             log.warning('show_labels = False is deprecated. Future releases '
                         'of GillesPy2 may not support this feature.')
+
         if t is None:
             t = self.tspan[-1]
 
@@ -971,10 +974,19 @@ class Model(SortableObject, Jsonify):
                 solver = self.get_best_solver_algo(algorithm)
             else:
                 solver = self.get_best_solver()
-        if increment is None:
-            increment = self.tspan[-1] - self.tspan[-2]
+
+        if self.user_set_tspan and increment is not None:
+            raise SimulationError(
+                """
+                Failed while preparing to run the model. Both increment and timespan are set.
+
+                To continue either remove your `timespan` definition from your Model or remove the 
+                `increment` argument from this `model.run()` call.               
+                """
+            )
+
         try:
-            solver_results, rc = solver.run(model=self, t=t, increment=increment, timeout=timeout, **solver_args)
+            return solver.run(model=self, t=t, increment=increment, timeout=timeout, **solver_args)
         except Exception as e:
             # If user has specified the SSACSolver, but they don't actually have a g++ compiler,
             # This will throw an error and throw log. IF a user specifies cpp_support == True and don't have a compiler
@@ -987,27 +999,6 @@ class Model(SortableObject, Jsonify):
                                 " run properly.")
             raise SimulationError(
                 "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e))
-
-        if rc == 33:
-            from gillespy2.core import log
-            log.warning('GillesPy2 simulation exceeded timeout.')
-
-        if hasattr(solver_results[0], 'shape'):
-            return solver_results
-
-        if len(solver_results) > 0:
-            results_list = []
-            for i in range(0, len(solver_results)):
-                temp = Trajectory(data=solver_results[i], model=self, solver_name=solver.name, rc=rc)
-                results_list.append(temp)
-
-            results = Results(results_list)
-            if show_labels == False:
-                results = results.to_array()
-            return results
-
-        else:
-            raise ValueError("number_of_trajectories must be non-negative and non-zero")
 
 
 class StochMLDocument():

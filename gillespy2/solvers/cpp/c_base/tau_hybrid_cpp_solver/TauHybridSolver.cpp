@@ -129,10 +129,10 @@ namespace Gillespy::TauHybrid
 					switch (rxn.mode)
 					{
 						case SimulationState::CONTINUOUS:
-							propensity = rxn.ode_propensity(rxn_i, current_state);
+							propensity = HybridReaction::ode_propensity(rxn_i, &current_state[0]);
 							break;
 						case SimulationState::DISCRETE:
-							propensity = rxn.ssa_propensity(rxn_i, current_populations);
+							propensity = HybridReaction::ssa_propensity(rxn_i, &current_populations[0]);
 							break;
 						default:
 							break;
@@ -248,10 +248,17 @@ namespace Gillespy::TauHybrid
 					else
 					{
 						// "Permanently" update the rxn_state and populations.
-						for (int p_i = 0; p_i < num_species; ++p_i) {
-							current_state[p_i] += population_changes[p_i];
+						for (int p_i = 0; p_i < num_species; ++p_i)
+						{
+							if (!simulation->species_state[p_i].boundary_condition)
+							{
+								// Boundary conditions are not modified directly by reactions.
+								// As such, population dx in stochastic regime is not considered.
+								// For deterministic species, their effective dy/dt should always be 0.
+								current_state[p_i] += population_changes[p_i];
+								result.concentrations[p_i] = current_state[p_i];
+							}
 							current_populations[p_i] = (int) current_state[p_i];
-							result.concentrations[p_i] = current_state[p_i];
 						}
 					}
 				} while (invalid_state);

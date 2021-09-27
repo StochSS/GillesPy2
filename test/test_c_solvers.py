@@ -21,9 +21,24 @@ import numpy
 import io
 import os
 import example_models
+import subprocess
+import tempfile
 from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
 from gillespy2.solvers.cpp import SSACSolver, ODECSolver, TauLeapingCSolver
 from gillespy2.solvers.cpp import TauHybridCSolver
+from gillespy2.solvers.cpp.build.expression import Expression, ExpressionConverter
+
+
+class ExpressionTestCase:
+    """
+    Each test expression consists of a dict of argument names, an expression, and a list of
+    values to be passed as arguments to the given expression.
+    """
+    def __init__(self, args: "dict[str, str]", expression: "str", values: "list[list[float]]"):
+        self.args = args
+        self.expression = expression
+        self.values = values
+
 
 class TestCSolvers(unittest.TestCase):
     """
@@ -52,32 +67,53 @@ class TestCSolvers(unittest.TestCase):
         TauLeapingCSolver.target: TauLeapingCSolver(model=test_model, variable=True),
         TauHybridCSolver.target: TauHybridCSolver(model=test_model, variable=True),
     }
-    
-    def test_c_decoder(self):
-        """
-        Ensures that, given a certain input from stdout, the results will be
-          properly formatted by the sim decoder.
-        """
-        example_input = """
-        0,1.0,2.0,3.0,1,2.0,4.0,6.0,2,3.0,6.0,9.0,3,4.0,8.0,12.0,
-        0,1.0,2.0,3.0,1,2.0,4.0,6.0,2,3.0,6.0,9.0,3,4.0,8.0,12.0,3
-        """.strip()
-        mock_stdout = io.BytesIO(bytes(example_input, "utf-8"))
-        mock_stdout = io.BufferedReader(mock_stdout)
-
-        trajectories = numpy.zeros((2, 4, 4))
-        reader = BasicSimDecoder(trajectories)
-        reader.read(mock_stdout)
-        result, time_stopped = reader.get_output()
-        
-        expected_result = numpy.array([
-            [ [0, 1.0,2.0,3.0], [1, 2.0,4.0,6.0], [2, 3.0,6.0,9.0], [3, 4.0,8.0,12.0] ],
-            [ [0, 1.0,2.0,3.0], [1, 2.0,4.0,6.0], [2, 3.0,6.0,9.0], [3, 4.0,8.0,12.0] ]
-        ])
-
-        self.assertEqual(time_stopped, 3)
-        # Test both the passed-in trajectory list and the returned trajectories.
-        self.assertTrue(numpy.all(result == expected_result))
+    expressions = [
+        # Each test expression consists of a dict of args, an expression string, and a list of arg values.
+        # Asserts that single operations work.
+        ExpressionTestCase({"x": "x"}, "x*2", [
+            [0.0], [1.0], [-1.0], [9.999], [-9.999],
+        ]),
+        # Asserts that order of operations is being evaluated properly.
+        ExpressionTestCase({"x": "x"}, "x*2 + x/2 - (x*3)^2 + x/3^2", [
+            [0.0], [1.0], [-1.0], [3.333], [-3.333], [9.8765], [-9.8765]
+        ]),
+        # Asserts that order of operations is evaluated properly with multiple variables.
+        ExpressionTestCase({"x": "x", "y": "y"}, "(x-1)*y^2+x", [
+            [1.0, 2.4], [5.1, 0.0], [5.1, 1.0], [5.1, -1.0], [9.8765, -1.0], [-1.0, 9.8765],
+        ]),
+        # Asserts complex order of operations with a large number of variables.
+        ExpressionTestCase({"x": "x", "y": "y", "z": "z"}, "(x^2/y^2/z^2)/x^2/y^2/z^2**1/x**1/y**1/z", [
+            [5.1, 0.1, 2.0], [0.1, 5.1, 2.0], [2.0, 0.1, 5.1], [2.0, 5.1, 0.1],
+        ]),
+    ]
+    comparisons = [
+        # Asserts that single comparison expressions work.
+        ExpressionTestCase({"x": "x"}, "x > 0", [
+            [100], [0], [0.001], [-1],
+        ]),
+        ExpressionTestCase({"x": "x", "y": "y"}, "x > y", [
+            [100, 99], [99, 100], [-10, 10], [10, -10],
+            [0.001, 0.0], [0.0, 0.001], [-99.999, -99.998]
+        ]),
+        # Asserts that single boolean operators work.
+        ExpressionTestCase({"x": "x", "y": "y"}, "x > 0 and y < x", [
+            [100, 99], [99, 100], [0, -100], [-0.001, -99.0], [0, 0.001], [-0.001, 0]
+        ]),
+        # Asserts that nested boolean operators work.
+        ExpressionTestCase({"x": "x", "y": "y"}, "x > 0 and y < 10 and x > y", [
+            [100, 9], [0.01, 0.00], [100, 200], [0.01, 0.02],
+            [0, 0], [-0.01, -0.02], [-0.01, 0],
+        ]),
+        # Asserts that both && and || work.
+        ExpressionTestCase({"x": "x", "y": "y"}, "x > 0 and y < 10 or y > 100", [
+            [10, 9], [0.01, 9.99], [0, 10], [-1.0, -1.0],
+        ]),
+        # Asserts that nested boolean operators properly respect order of operations.
+        ExpressionTestCase({"x": "x", "y": "y", "z": "z"}, "x^2>x and y<y^2 or z^2!=z^3 and y!=z", [
+            [1.0, 1.0, 1.0], [99.9, 99.9, 100.0],
+            [0.0, -1.0, 99.9], [-1.0, -1.0, 0.00],
+        ]),
+    ]
 
     def test_solver_build(self):
         """
@@ -127,3 +163,58 @@ class TestCSolvers(unittest.TestCase):
                                      "Build engine has no associated executable")
                 self.assertTrue(os.access(base_solver.build_engine.get_executable_path(), os.X_OK),
                                 "Solver executable invalid or missing at solver's construction")
+
+    def test_solver_expressions(self):
+        """
+        Ensure that expression conversions to C++ result in (roughly) equivalent values as Python.
+        """
+        tmpdir = tempfile.mkdtemp()
+        src_path = os.path.join(os.path.dirname(__file__), "assets", "evaluate.c")
+        exe_path = os.path.join(tmpdir, "test")
+
+        def build(expr_args: "list[str]", expr_str: "str", use_bool=False):
+            args = ["gcc", "-o", exe_path, src_path, "-lm"]
+            expr_num = str(len(expr_args))
+            expr_args = ",".join(expr_args)
+            args.append(f"-DEXP{expr_num}({expr_args})=({expr_str})")
+            if use_bool:
+                args.append("-DUSE_BOOLEAN")
+            subprocess.check_call(args)
+
+        def run(args: "list[str]") -> str:
+            args.insert(0, exe_path)
+            stdout = subprocess.check_output(args)
+            return stdout.decode("ascii")
+
+        def test_expressions(expressions: "list[ExpressionTestCase]", use_bool=False):
+            for entry in expressions:
+                expression = ExpressionConverter.convert_str(entry.expression)
+                expr = Expression(namespace=entry.args)
+                cpp_expr = expr.getexpr_cpp(expression)
+                with self.subTest(msg="Evaluating converted C expressions",
+                                  expression=entry.expression,
+                                  c_expression=cpp_expr):
+                    py_args = ",".join(entry.args.keys())
+                    py_func = eval(f"lambda {py_args}: {expression}")
+
+                    for value_set in entry.values:
+                        value_str = [str(val) for val in value_set]
+                        with self.subTest(values=",".join(value_str)):
+                            expect = py_func(*value_set)
+                            build(list(entry.args.values()), cpp_expr, use_bool)
+                            if use_bool:
+                                result_cpp = bool(int(run(value_str)))
+                                self.assertTrue(expect == result_cpp)
+                            else:
+                                result_cpp = float(run(value_str))
+                                self.assertAlmostEqual(expect, result_cpp, places=3)
+
+        try:
+            # Test expressions which return a float value
+            test_expressions(self.expressions, False)
+            # Test boolean and comparator expressions
+            test_expressions(self.comparisons, True)
+
+        finally:
+            import shutil
+            shutil.rmtree(tmpdir)

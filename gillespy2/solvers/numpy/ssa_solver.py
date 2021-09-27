@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from threading import Thread, Event
+from gillespy2.core.results import Results
 from gillespy2.core import GillesPySolver, log, gillespyError
 from gillespy2.solvers.utilities import solverutils as nputils
 import random
@@ -32,12 +33,13 @@ class NumPySSASolver(GillesPySolver):
     result = None
     pause_event = None
 
-    def __init__(self):
+    def __init__(self, model=None):
         name = 'NumPySSASolver'
         rc = 0
         stop_event = None
         result = None
         pause_event = None
+        self.model = model
 
     def get_solver_settings(self):
         """
@@ -46,7 +48,7 @@ class NumPySSASolver(GillesPySolver):
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'timeout')
 
     @classmethod
-    def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True,
+    def run(self, model=None, t=20, number_of_trajectories=1, increment=None, seed=None, debug=False, show_labels=True,
             live_output=None, live_output_options={}, timeout=None, resume=None, **kwargs):
 
         """
@@ -70,7 +72,9 @@ class NumPySSASolver(GillesPySolver):
         """
 
         if isinstance(self, type):
-            self = NumPySSASolver()
+            self = NumPySSASolver(model=model)
+
+        increment = self.get_increment(model=model, increment=increment)
 
         self.stop_event = Event()
         self.pause_event = Event()
@@ -159,7 +163,7 @@ class NumPySSASolver(GillesPySolver):
         if hasattr(self, 'has_raised_exception'):
             raise self.has_raised_exception
 
-        return self.result, self.rc
+        return Results.build_from_solver_results(self)
 
     def ___run(self, model, curr_state, total_time, timeline, trajectory_base, live_grapher, t=20,
                number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True, resume=None,

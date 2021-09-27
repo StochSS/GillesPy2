@@ -16,8 +16,32 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import sys
+import json
+import time
 import threading
 from gillespy2.core import log
+
+
+class CRepeatTimer(threading.Timer):
+    """
+    Threading timer which repeatedly calls the given function instead of simply ending.
+
+    Used for C solver live graphing support
+    """
+    pause = False
+
+    def run(self):
+        from IPython.display import clear_output
+        type = str.join('', [*self.args[1]])
+        while not self.finished.wait(self.interval):
+            args = self.args[0].get()
+            self.function(*args, **self.kwargs)
+        
+        if not self.pause:
+            args = self.args[0].get()
+            self.kwargs['finished'] = True
+            self.function(*args, **self.kwargs)
 
 
 class RepeatTimer(threading.Timer):
@@ -34,9 +58,8 @@ class RepeatTimer(threading.Timer):
             self.function(*self.args, **self.kwargs)
 
         if not self.pause:
-            if type == 'progress':
-                clear_output()
-                print('progress = 100 %')
+            self.kwargs['finished'] = True
+            self.function(*self.args, **self.kwargs)
 
 
 
@@ -68,6 +91,11 @@ def valid_graph_params(live_output_options):
         else:
             live_output_options['clear_output'] = False
 
+    if 'file_path' not in live_output_options:
+        live_output_options['file_path'] = None
+    elif live_output_options['type'] == "graph" and live_output_options['file_path'] is not None:
+        live_output_options['type'] = "figure"
+
 
 class LiveDisplayer():
     """
@@ -78,6 +106,7 @@ class LiveDisplayer():
 
         self.display_type = live_output_options['type']
         self.display_interval = live_output_options['interval']
+        self.file_path = live_output_options['file_path']
         self.model = model
         self.resume = resume
         self.timeline = timeline
@@ -98,21 +127,21 @@ class LiveDisplayer():
         self.current_trajectory = trajectory_num + 1
         self.header_printed = False
 
-    def print_text_header(self):
+    def print_text_header(self, file_obj):
 
         self.header_printed = True
         if self.number_of_trajectories > 1:
-            print(self.trajectory_header())
+            print(self.trajectory_header(), file=file_obj)
 
-        print("Time      |", end="")
+        print("Time      |", end="", file=file_obj)
         for species in self.model.listOfSpecies:
-            print(species[:10].ljust(10), end="|")
-        print("")
+            print(species[:10].ljust(10), end="|", file=file_obj)
+        print("", file=file_obj)
 
     '''
     curr_state and curr_time should be list of len 1 to get reference
     '''
-    def display(self, curr_state, curr_time, trajectory_base):
+    def display(self, curr_state, curr_time, trajectory_base, finished=False):
         from IPython.display import clear_output
         from math import floor
         curr_time = curr_time[0]
@@ -126,31 +155,40 @@ class LiveDisplayer():
             if curr_state['time'] > curr_time:
                 curr_time = curr_state['time']
 
-        if self.clear_output:
+        if self.file_path is None or self.display_type == "graph":
+            if self.clear_output:
                 clear_output(wait=True)
+            file_obj = sys.stdout
+        else:
+            mode = "w" if self.clear_output else "a"
+            file_obj = open(self.file_path, mode)
 
         if self.display_type == "text":
 
             if not self.header_printed:
-                self.print_text_header()
+                self.print_text_header(file_obj)
 
-            print(str(round(curr_time, 2))[:10].ljust(10), end="|")
+            print(str(round(curr_time, 2))[:10].ljust(10), end="|", file=file_obj)
 
             for i in range(self.number_species):
-                print(str(curr_state[self.species[i]])[:10].ljust(10), end="|")
-            print("")
+                print(str(curr_state[self.species[i]])[:10].ljust(10), end="|", file=file_obj)
+            print("", file=file_obj)
+
+        elif finished and self.display_type == "progress":
+            print("progress = 100 %", file=file_obj)
 
         elif self.display_type == "progress":
-
             if self.number_of_trajectories > 1:
-                print(self.trajectory_header())
+                print(self.trajectory_header(), file=file_obj)
             if self.resume is True:
-                print("progress =", round(((curr_time-self.x_shift)/self.timeline_len)*100, 2), "%\n"
-                      )
+                print(f"progress = {round(((curr_time-self.x_shift)/self.timeline_len)*100, 2)} %\n", file=file_obj)
             else:
-                print("progress =", round((curr_time / (self.timeline_len + self.x_shift)) * 100, 2), "%\n")
+                print(f"progress = {round((curr_time / (self.timeline_len + self.x_shift)) * 100, 2) }%\n", file=file_obj)
 
         elif self.display_type == "graph":
+
+            if finished:
+                return
 
             import matplotlib.pyplot as plt
             from gillespy2.core.results import common_rgb_values
@@ -172,3 +210,42 @@ class LiveDisplayer():
                          color=line_color)
             plt.legend(loc='upper right')
             plt.show()
+
+        elif self.display_type == "figure":
+            import plotly
+            import plotly.graph_objs as go
+            from gillespy2.core.results import common_rgb_values
+
+            entry_count = floor(curr_time) - self.x_shift
+            
+            trace_list = []
+            for i, species in enumerate(self.species):
+                line_dict = {"color": common_rgb_values()[(i) % len(common_rgb_values())]}
+                trace_list.append(
+                    go.Scatter(
+                        x=trajectory_base[0][:, 0][:entry_count].tolist(),
+                        y=trajectory_base[0][:, i + 1][:entry_count].tolist(),
+                        mode="lines", name=species, line=line_dict, legendgroup=species
+                    )
+                )
+
+                trace_list.append(
+                    go.Scatter(
+                        x=[entry_count - 1, curr_time - self.timeline[0]],
+                        y=[trajectory_base[0][:, i + 1][entry_count - 1], curr_state[species]],
+                        mode="lines", name=species, line=line_dict, legendgroup=species, showlegend=False
+                    )
+                )
+
+            layout = go.Layout(
+                showlegend=True, title=self.trajectory_header(),
+                xaxis={"range": [self.timeline[0], self.timeline[-1]]}
+            )
+
+            fig = dict(data=trace_list, layout=layout)
+            json.dump(fig, file_obj, cls=plotly.utils.PlotlyJSONEncoder)
+
+        if self.file_path is not None and self.display_type != "graph":
+            file_obj.close()
+        if finished:
+            time.sleep(3)

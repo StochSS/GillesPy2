@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import unittest
-from example_models import RobustModel
+from example_models import RobustModel, Example, ExampleNoTspan
 from gillespy2.core import Model, Species, Reaction, Parameter
 from gillespy2.core.gillespyError import *
 from gillespy2.core.model import export_StochSS
@@ -115,6 +115,21 @@ class TestModel(unittest.TestCase):
         model.add_reaction(reaction1)
         with self.assertRaises(ModelError):
             model.add_reaction(reaction2)
+
+    def test_model_run_with_both_increment_and_timespan(self):
+        model = Example()
+
+        try:
+            model.run(increment=4)
+
+        except SimulationError as e:
+            return
+
+        self.fail(
+            """
+            Failed while testing Model.run() behavior when both `timespan` and `increment` are set.
+            """
+        )
 
     def test_valid_initial_value_float(self):
         species = Species('A', initial_value=1.5, mode='continuous')
@@ -354,6 +369,19 @@ class TestModel(unittest.TestCase):
         finally:
             os.unlink(stochss_model_path)
             os.rmdir(tempdir)
+
+    def test_run_example__with_increment_only(self):
+        model = ExampleNoTspan()
+        results = model.run(t=20, increment=0.2)
+
+    def test_run_example__with_tspan_only(self):
+        model = Example()
+        results = model.run()
+
+    def test_run_example__with_tspan_and_increment(self):
+        with self.assertRaises(SimulationError):
+            model = Example()
+            results = model.run(t=20, increment=0.2)
 
 if __name__ == '__main__':
     unittest.main()

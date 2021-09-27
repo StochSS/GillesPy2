@@ -70,6 +70,11 @@ char ArgParser::match_arg(std::string &token)
 		return 'l';
 	}
 
+	if (!token.compare("--interval"))
+	{
+		return 'V';
+	}
+
 	else
 	{
 		return 0;
@@ -145,6 +150,10 @@ ArgParser::ArgParser(int argc, char *argv[])
 				arg_stream >> tau_tol;
 				break;
 
+			case 'V':
+				arg_stream >> output_interval;
+				break;
+
 			default:
 				std::cerr << usage << std::endl;
 				exit(0);
@@ -154,6 +163,8 @@ ArgParser::ArgParser(int argc, char *argv[])
 	// Negative or 0 increment is invalid.
 	// If such an increment is provided, compute a valid increment manually.
 	increment = increment > 0 ? increment : end / (timesteps - 1);
+	// Output interval must lie within the range (0, num_timesteps]
+	output_interval = std::max(1, std::min(timesteps, output_interval));
 }
 
 ArgParser::~ArgParser()
