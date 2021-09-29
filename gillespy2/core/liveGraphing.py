@@ -247,5 +247,3 @@ class LiveDisplayer():
 
         if self.file_path is not None and self.display_type != "graph":
             file_obj.close()
-        if finished:
-            time.sleep(3)
