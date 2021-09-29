@@ -242,7 +242,7 @@ class Results(UserList, Jsonify):
         return results
 
     @classmethod
-    def build_from_solver_results(cls, solver):
+    def build_from_solver_results(cls, solver, live_output_options):
         """
         Build a gillespy2.Results object using the provided solver results.
 
@@ -260,7 +260,10 @@ class Results(UserList, Jsonify):
                 temp = Trajectory(data=solver.result[i], model=solver.model, solver_name=solver.name, rc=solver.rc)
                 results_list.append(temp)
 
-            return Results(results_list)
+            results = Results(results_list)
+            if live_output_options['type'] == "graph":
+                results.plot()
+            return results
         else:
             raise ValueError("number_of_trajectories must be non-negative and non-zero")
 
