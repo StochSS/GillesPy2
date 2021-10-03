@@ -59,6 +59,7 @@ namespace Gillespy
 			}
 
 			inline bool is_persistent() const { return m_use_persist; }
+			inline bool get_event_id() const { return m_event_id; }
 
 			EventExecution get_execution(double t,
 					const double *state, int num_state) const;

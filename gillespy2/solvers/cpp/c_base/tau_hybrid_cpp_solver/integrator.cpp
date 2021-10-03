@@ -165,7 +165,6 @@ IntegrationResults Integrator::integrate(double *t, std::set<int> &events)
 				// NOTE: do we need to check root direction? If so, this is the place to do so.
 				if (m_roots[event_id] < 0 || m_roots[event_id] > 0)
 				{
-					std::cerr << " ====== EVENT FIRED AT t=" << *t << std::endl;
 					events.insert(event_id);
 				}
 			}
