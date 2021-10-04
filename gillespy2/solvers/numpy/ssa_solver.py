@@ -163,7 +163,7 @@ class NumPySSASolver(GillesPySolver):
         if hasattr(self, 'has_raised_exception'):
             raise self.has_raised_exception
 
-        return Results.build_from_solver_results(self)
+        return Results.build_from_solver_results(self, live_output_options)
 
     def ___run(self, model, curr_state, total_time, timeline, trajectory_base, live_grapher, t=20,
                number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True, resume=None,
