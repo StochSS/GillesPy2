@@ -229,14 +229,7 @@ class LiveDisplayer():
                     )
                 )
 
-                trace_list.append(
-                    go.Scatter(
-                        x=[entry_count - 1, curr_time - self.timeline[0]],
-                        y=[trajectory_base[0][:, i + 1][entry_count - 1], curr_state[species]],
-                        mode="lines", name=species, line=line_dict, legendgroup=species, showlegend=False
-                    )
-                )
-
+            print(trace_list)
             layout = go.Layout(
                 showlegend=True, title=self.trajectory_header(),
                 xaxis={"range": [self.timeline[0], self.timeline[-1]]}
