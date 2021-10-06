@@ -91,7 +91,7 @@ class ODESolver(GillesPySolver):
             This is deterministic and will always have same results
         :param increment: time step increment for plotting
         :param integrator: integrator to be used form scipy.integrate.ode. Options include 'vode', 'zvode', 'lsoda',
-            'dopri5', and 'dop835'.  For more details,
+            'dopri5', and 'dop853'.  For more details,
             see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html
 
         :param integrator_options: a dictionary containing options to the scipy integrator. for a list of options,
