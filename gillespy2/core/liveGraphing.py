@@ -229,7 +229,6 @@ class LiveDisplayer():
                     )
                 )
 
-            print(trace_list)
             layout = go.Layout(
                 showlegend=True, title=self.trajectory_header(),
                 xaxis={"range": [self.timeline[0], self.timeline[-1]]}
