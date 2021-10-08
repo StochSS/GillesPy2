@@ -16,12 +16,22 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+
+from beartype import beartype
+import typing
+from typing import Union, Optional, List
+
+from gillespy2.core import GillesPySolver
 from gillespy2.core.jsonify import TranslationTable
 from gillespy2.core.reaction import *
 from gillespy2.core.raterule import RateRule
 from gillespy2.core.parameter import Parameter
 from gillespy2.core.species import Species
 from gillespy2.core.reaction import Reaction
+from gillespy2.core.events import Event
+from gillespy2.core.functiondefinition import FunctionDefinition
+from gillespy2.core.assignmentrule import AssignmentRule
 import numpy as np
 from gillespy2.core.results import Trajectory,Results
 from collections import OrderedDict
@@ -130,7 +140,16 @@ class Model(SortableObject, Jsonify):
     reserved_names = ['vol']
     special_characters = ['[', ']', '+', '-', '*', '/', '.', '^']
 
-    def __init__(self, name="", population=True, volume=1.0, tspan=None, annotation="model"):
+    @beartype
+    def __init__(
+            self, 
+            name: str = "", 
+            population: bool = True, 
+            volume: Union[int, float] = 1.0, 
+            tspan: Optional[int] = None, 
+            annotation: str = "model"
+        ):
+
         """ Create an empty model. """
 
         # The name that the model is referenced by (should be a String)
@@ -189,7 +208,8 @@ class Model(SortableObject, Jsonify):
         self._hash_private_vars = False
         self._generate_translation_table = True
 
-    def __str__(self):
+    @beartype
+    def __str__(self) -> str:
         divider = '\n**********\n'
 
         def decorate(header):
@@ -227,7 +247,8 @@ class Model(SortableObject, Jsonify):
 
         return print_string
 
-    def make_translation_table(self):
+    @beartype
+    def make_translation_table(self) -> TranslationTable:
         from collections import ChainMap
 
         species = self.listOfSpecies.values()
@@ -254,31 +275,36 @@ class Model(SortableObject, Jsonify):
 
         return TranslationTable(to_anon=translation_table)
 
-    def serialize(self):
+    @beartype
+    def serialize(self) -> str:
         """ Serializes the Model object to valid StochML. """
         self.resolve_parameters()
         doc = StochMLDocument().from_model(self)
         return doc.to_string()
 
-    def update_namespace(self):
+    @beartype
+    def update_namespace(self) -> None:
         """ Create a dict with flattened parameter and species objects. """
         self.namespace = OrderedDict([])
         for param in self.listOfParameters:
             self.namespace[param] = self.listOfParameters[param].value
 
-    def sanitized_species_names(self):
+    @beartype
+    def sanitized_species_names(self) -> typing.OrderedDict[str, str]: 
         """
         Generate a dictionary mapping user chosen species names to simplified formats which will be used
         later on by GillesPySolvers evaluating reaction propensity functions.
 
         :returns: the dictionary mapping user species names to their internal GillesPy notation.
         """
-        species_name_mapping = OrderedDict([])
+        species_name_mapping: OrderedDict[str, str] = OrderedDict([])
+
         for i, name in enumerate(self.listOfSpecies.keys()):
             species_name_mapping[name] = 'S[{}]'.format(i)
         return species_name_mapping
 
-    def problem_with_name(self, name):
+    @beartype
+    def problem_with_name(self, name: str) -> Optional[ModelError]:
         if name in Model.reserved_names:
             return ModelError(
                 'Name "{}" is unavailable. It is reserved for internal GillesPy use. Reserved Names: ({}).'.format(name,
@@ -305,7 +331,8 @@ class Model(SortableObject, Jsonify):
                     'Name "{}" is unavailable. Names must not contain special characters: {}.'.format(name,
                                                                                                       Model.special_characters))
 
-    def get_species(self, s_name):
+    @beartype
+    def get_species(self, s_name: str) -> Species: 
         """
         Returns a species object by name.
 
@@ -314,14 +341,16 @@ class Model(SortableObject, Jsonify):
         """
         return self.listOfSpecies[s_name]
 
-    def get_all_species(self):
+    @beartype
+    def get_all_species(self) -> typing.OrderedDict[str, Species]:
         """
         :returns: A dict of all species in the model, of the form:
             {name : species object}
         """
         return self.listOfSpecies
 
-    def add_species(self, obj):
+    @beartype
+    def add_species(self, obj: Union[Species, List[Species]]) -> Union[Species, List[Species]]:
         """
         Adds a species, or list of species to the model.
 
@@ -343,7 +372,8 @@ class Model(SortableObject, Jsonify):
                 raise ParameterError("Error using {} as a Species. Reason given: {}".format(obj, e))
         return obj
 
-    def delete_species(self, obj):
+    @beartype
+    def delete_species(self, obj: str) -> None:
         """
         Removes a species object by name.
 
@@ -353,14 +383,16 @@ class Model(SortableObject, Jsonify):
         self.listOfSpecies.pop(obj)
         self._listOfSpecies.pop(obj)
 
-    def delete_all_species(self):
+    @beartype
+    def delete_all_species(self) -> None:
         """
         Removes all species from the model object.
         """
         self.listOfSpecies.clear()
         self._listOfSpecies.clear()
 
-    def set_units(self, units):
+    @beartype
+    def set_units(self, units: str) -> None:
         """
         Sets the units of the model to either "population" or "concentration"
 
@@ -372,7 +404,8 @@ class Model(SortableObject, Jsonify):
         else:
             raise ModelError("units must be either concentration or population (case insensitive)")
 
-    def sanitized_parameter_names(self):
+    @beartype
+    def sanitized_parameter_names(self) -> typing.OrderedDict[str, str]:
         """
         Generate a dictionary mapping user chosen parameter names to simplified formats which will be used
         later on by GillesPySolvers evaluating reaction propensity functions.
@@ -386,7 +419,8 @@ class Model(SortableObject, Jsonify):
                 parameter_name_mapping[name] = 'P{}'.format(i)
         return parameter_name_mapping
 
-    def get_parameter(self, p_name):
+    @beartype
+    def get_parameter(self, p_name: str) -> Parameter:
         """
         Returns a parameter object by name.
 
@@ -398,14 +432,16 @@ class Model(SortableObject, Jsonify):
         except:
             raise ModelError("No parameter named " + p_name)
 
-    def get_all_parameters(self):
+    @beartype
+    def get_all_parameters(self) -> typing.OrderedDict[str, Parameter]:
         """
         :returns: A dict of all parameters in the model, of the form:
             {name : parameter object}
         """
         return self.listOfParameters
 
-    def add_parameter(self, params):
+    @beartype
+    def add_parameter(self, params: Union[Parameter, List[Parameter]]) -> Union[Parameter, List[Parameter]]:
         """
         Adds a parameter, or list of parameters to the model.
 
@@ -426,7 +462,8 @@ class Model(SortableObject, Jsonify):
                 raise ParameterError("Error using {} as a Parameter. Reason given: {}".format(params, e))
         return params
 
-    def delete_parameter(self, obj):
+    @beartype
+    def delete_parameter(self, obj: str) -> None:
         """
         Removes a parameter object by name.
 
@@ -436,7 +473,8 @@ class Model(SortableObject, Jsonify):
         self.listOfParameters.pop(obj)
         self._listOfParameters.pop(obj)
 
-    def set_parameter(self, p_name, expression):
+    @beartype
+    def set_parameter(self, p_name: str, expression: str) -> None:
         """
         Set the value of an existing parameter "pname" to "expression".
 
@@ -452,7 +490,8 @@ class Model(SortableObject, Jsonify):
         p.expression = expression
         p.evaluate()
 
-    def resolve_parameters(self):
+    @beartype
+    def resolve_parameters(self) -> None:
         """ Internal function:
         attempt to resolve all parameter expressions to scalar floats.
         This methods must be called before exporting the model.
@@ -464,12 +503,14 @@ class Model(SortableObject, Jsonify):
             except:
                 raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(param))
 
-    def delete_all_parameters(self):
+    @beartype
+    def delete_all_parameters(self) -> None:
         """ Deletes all parameters from model. """
         self.listOfParameters.clear()
         self._listOfParameters.clear()
 
-    def validate_reactants_and_products(self, reactions):
+    @beartype
+    def validate_reactants_and_products(self, reactions: List[Reaction]) -> None:
         for reactant in list(reactions.reactants.keys()):
             if isinstance(reactant, str):
                 if reactant not in self.listOfSpecies.keys():
@@ -486,7 +527,8 @@ class Model(SortableObject, Jsonify):
                 reactions.products[self.listOfSpecies[product]] = reactions.products[product]
                 del reactions.products[product]
 
-    def add_reaction(self, reactions):
+    @beartype
+    def add_reaction(self, reactions: Union[Reaction, List[Reaction]]) -> Union[Reaction, List[Reaction]]:
         """
         Adds a reaction, or list of reactions to the model.
 
@@ -531,7 +573,8 @@ class Model(SortableObject, Jsonify):
                 raise ParameterError("Error using {} as a Reaction. Reason given: {}".format(reactions, e))
         return reactions
 
-    def add_rate_rule(self, rate_rules):
+    @beartype
+    def add_rate_rule(self, rate_rules: Union[RateRule, List[RateRule]]) -> Union[RateRule, List[RateRule]]:
         """
         Adds a rate rule, or list of rate rules to the model.
 
@@ -575,7 +618,8 @@ class Model(SortableObject, Jsonify):
                 raise ParameterError("Error using {} as a Rate Rule. Reason given: {}".format(rate_rules, e))
         return rate_rules
 
-    def add_event(self, event):
+    @beartype
+    def add_event(self, event: Union[Event, List[Event]]) -> Union[Event, List[Event]]:
         """
         Adds an event, or list of events to the model.
 
@@ -602,7 +646,8 @@ class Model(SortableObject, Jsonify):
                 raise ParameterError("Error using {} as Event. Reason given: {}".format(event, e))
         return event
 
-    def add_function_definition(self, function_definitions):
+    @beartype
+    def add_function_definition(self, function_definitions: Union[FunctionDefinition, List[FunctionDefinition]]) -> None:
         """
         Add FunctionDefinition or list of FunctionDefinitions
 
@@ -623,7 +668,8 @@ class Model(SortableObject, Jsonify):
                 raise ParameterError(
                     "Error using {} as a Function Definition. Reason given: {}".format(function_definitions, e))
 
-    def add_assignment_rule(self, assignment_rules):
+    @beartype
+    def add_assignment_rule(self, assignment_rules: Union[AssignmentRule, List[AssignmentRule]]):
         """
         Add AssignmentRule or list of AssignmentRules to the model object.
 
@@ -658,7 +704,8 @@ class Model(SortableObject, Jsonify):
             except Exception as e:
                 raise ParameterError("Error using {} as a Assignment Rule. Reason given: {}".format(assignment_rules, e))
 
-    def timespan(self, time_span):
+    @beartype
+    def timespan(self, time_span: np.ndarray) -> None:
         """
         Set the time span of simulation. StochKit does not support non-uniform
         timespans. 
@@ -678,47 +725,54 @@ class Model(SortableObject, Jsonify):
         else:
             raise InvalidModelError("StochKit only supports uniform timespans")
 
-    def get_reaction(self, rname):
+    @beartype
+    def get_reaction(self, rname: str) -> Reaction:
         """
         :param rname: name of reaction to return
         :returns: Reaction object
         """
         return self.listOfReactions[rname]
 
-    def get_all_reactions(self):
+    @beartype
+    def get_all_reactions(self) -> typing.OrderedDict[str, Reaction]:
         """
         :returns: dict of all Reaction objects
         """
         return self.listOfReactions
 
-    def delete_reaction(self, obj):
+    @beartype
+    def delete_reaction(self, obj: str) -> None:
         """
         :param obj: Name of Reaction to be removed
         """
         self.listOfReactions.pop(obj)
         self._listOfReactions.pop(obj)
 
-    def delete_all_reactions(self):
+    @beartype
+    def delete_all_reactions(self) -> None:
         """
         Clears all reactions in model
         """
         self.listOfReactions.clear()
         self._listOfReactions.clear()
 
-    def get_event(self, ename):
+    @beartype
+    def get_event(self, ename: str) -> Event:
         """
         :param ename: Name of Event to get
         :returns: Event object
         """
         return self.listOfEvents[ename]
 
-    def get_all_events(self):
+    @beartype
+    def get_all_events(self) -> typing.OrderedDict[str, Event]:
         """
         :returns: dict of all Event objects
         """
         return self.listOfEvents
 
-    def delete_event(self, ename):
+    @beartype
+    def delete_event(self, ename: str) -> None:
         """
         Removes specified Event from model
 
@@ -727,27 +781,31 @@ class Model(SortableObject, Jsonify):
         self.listOfEvents.pop(ename)
         self._listOfEvents.pop(ename)
 
-    def delete_all_events(self):
+    @beartype
+    def delete_all_events(self) -> None:
         """
         Clears models events
         """
         self.listOfEvents.clear()
         self._listOfEvents.clear()
 
-    def get_rate_rule(self, rname):
+    @beartype
+    def get_rate_rule(self, rname: str) -> RateRule:
         """
         :param rname: Name of Rate Rule to get
         :returns: RateRule object
         """
         return self.listOfRateRules[rname]
 
-    def get_all_rate_rules(self):
+    @beartype
+    def get_all_rate_rules(self) -> typing.OrderedDict[str, RateRule]:
         """
         :returns: dict of all Rate Rule objects
         """
         return self.listOfRateRules
 
-    def delete_rate_rule(self, rname):
+    @beartype
+    def delete_rate_rule(self, rname: str) -> None:
         """
         Removes specified Rate Rule from model
         :param rname: Name of Rate Rule to be removed
@@ -755,27 +813,31 @@ class Model(SortableObject, Jsonify):
         self.listOfRateRules.pop(rname)
         self._listOfRateRules.pop(rname)
 
-    def delete_all_rate_rules(self):
+    @beartype
+    def delete_all_rate_rules(self) -> None:
         """
         Clears all of models Rate Rules
         """
         self.listOfRateRules.clear()
         self._listOfRateRules.clear()
 
-    def get_assignment_rule(self, aname):
+    @beartype
+    def get_assignment_rule(self, aname: str) -> AssignmentRule:
         """
         :param aname: Name of Assignment Rule to get
         :returns: Assignment Rule object
         """
         return self.listOfAssignmentRules[aname]
 
-    def get_all_assignment_rules(self):
+    @beartype
+    def get_all_assignment_rules(self) -> typing.OrderedDict[str, AssignmentRule]:
         """
         :returns: dict of models Assignment Rules
         """
         return self.listOfAssignmentRules
 
-    def delete_assignment_rule(self, aname):
+    @beartype
+    def delete_assignment_rule(self, aname: str) -> None:
         """
         Removes an assignment rule from a model
 
@@ -784,27 +846,31 @@ class Model(SortableObject, Jsonify):
         self.listOfAssignmentRules.pop(aname)
         self._listOfAssignmentRules.pop(aname)
 
-    def delete_all_assignment_rules(self):
+    @beartype
+    def delete_all_assignment_rules(self) -> None:
         """
         Clears all assignment rules from model
         """
         self.listOfAssignmentRules.clear()
         self._listOfAssignmentRules.clear()
 
-    def get_function_definition(self, fname):
+    @beartype
+    def get_function_definition(self, fname: str) -> FunctionDefinition:
         """
         :param fname: name of Function to get
         :returns: FunctionDefinition object
         """
         return self.listOfFunctionDefinitions[fname]
 
-    def get_all_function_definitions(self):
+    @beartype
+    def get_all_function_definitions(self) -> typing.OrderedDict[str, FunctionDefinition]:
         """
         :returns: Dict of models function definitions
         """
         return self.listOfFunctionDefinitions
 
-    def delete_function_definition(self, fname):
+    @beartype
+    def delete_function_definition(self, fname: str) -> None:
         """
         Removes specified Function Definition from model
 
@@ -813,14 +879,19 @@ class Model(SortableObject, Jsonify):
         self.listOfFunctionDefinitions.pop(fname)
         self._listOfFunctionDefinitions.pop(fname)
 
-    def delete_all_function_definitions(self):
+    @beartype
+    def delete_all_function_definitions(self) -> None:
         """
         Clears all Function Definitions from a model
         """
         self.listOfFunctionDefinitions.clear()
         self._listOfFunctionDefinitions.clear()
 
-    def get_element(self, ename):
+    @beartype
+    def get_element(
+            self, 
+            ename: str
+        ) -> Union[str, Reaction, Species, Parameter, Event, RateRule, AssignmentRule, FunctionDefinition]:
         """
         Get element specified by name.
 
@@ -843,8 +914,8 @@ class Model(SortableObject, Jsonify):
             return self.get_function_definition(ename)
         return 'Element not found!'
 
-
-    def get_best_solver(self):
+    @beartype
+    def get_best_solver(self) -> GillesPySolver:
         """
         Finds best solver for the users simulation. Currently, AssignmentRules, RateRules, FunctionDefinitions,
         Events, and Species with a dynamic, or continuous population must use the TauHybridSolver.
@@ -887,7 +958,8 @@ class Model(SortableObject, Jsonify):
             from gillespy2 import SSACSolver
             return SSACSolver
 
-    def get_best_solver_algo(self, algorithm):
+    @beartype
+    def get_best_solver_algo(self, algorithm: str) -> GillesPySolver:
         """
         If user has specified a particular algorithm, we return either the Python or C++ version of that algorithm
         """
@@ -924,9 +996,18 @@ class Model(SortableObject, Jsonify):
         else:
             raise ModelError("Invalid value for the argument 'algorithm' entered. "
                              "Please enter 'SSA', 'ODE', or 'Tau-leaping'.")
-
-    def run(self, solver=None, timeout=0, t=None, increment=None, show_labels=True, cpp_support=False, algorithm=None,
-            **solver_args):
+    @beartype
+    def run(
+            self, 
+            solver: Optional[Union[str, GillesPySolver]] = None, 
+            timeout: int = 0, 
+            t: Optional[int] = None, 
+            increment: Optional[int] = None, 
+            show_labels: bool = True, 
+            cpp_support: bool = False, 
+            algorithm: Optional[str] = None,
+            **solver_args
+        ) -> Results:
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.

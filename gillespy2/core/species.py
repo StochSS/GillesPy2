@@ -16,6 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+
+from typing import Optional, Union
+from beartype import beartype
+
 from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.gillespyError import *
 from gillespy2.core.jsonify import Jsonify
@@ -63,10 +68,19 @@ class Species(SortableObject, Jsonify):
     :type switch_min: float
     """
 
-    def __init__(self, name="", initial_value=0, constant=False,
-                 boundary_condition=False, mode=None,
-                 allow_negative_populations=False, switch_min=0,
-                 switch_tol=0.03):
+    @beartype
+    def __init__(
+            self, 
+            name: str = "", 
+            initial_value: int = 0, 
+            constant: bool = False,
+            boundary_condition: bool = False, 
+            mode: Optional[str] = None,
+            allow_negative_populations: bool = False, 
+            switch_min: float = 0,
+            switch_tol: float = 0.03
+        ):
+
         # A species has a name (string) and an initial value (positive integer)
         self.name = name
         self.constant = constant
