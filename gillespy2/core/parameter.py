@@ -59,7 +59,7 @@ class Parameter(SortableObject, Jsonify):
             self.evaluate()
 
     def __str__(self):
-        return self.name + ': ' + self.expression
+        return self.name + ': ' + str(self.expression)
 
     def evaluate(self, namespace={}):
         """
