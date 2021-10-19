@@ -254,7 +254,6 @@ class Results(UserList, Jsonify):
             "clear_output" specifies if display should be refreshed with each display
         :type live_output_options: dict
         """
-        print(live_output_options)
         if solver.rc == 33:
             from gillespy2.core import log
             log.warning('GillesPy2 simulation exceeded timeout.')
