@@ -425,7 +425,7 @@ class Model(SortableObject, Jsonify):
                 self.listOfParameters[params.name] = params
                 self._listOfParameters[params.name] = 'P{}'.format(len(self._listOfParameters))
             else:
-                raise ParameterError("Parameter {}  must be of type {}, it is of type {}".format(params.name, str(type(Parameter)), str(params))
+                raise ParameterError("Parameter {}  must be of type {}, it is of type {}".format(params.name, str(type(Parameter)), str(params) ))
         return params
 
     def delete_parameter(self, obj):
