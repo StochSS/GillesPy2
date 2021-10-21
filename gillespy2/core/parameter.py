@@ -32,31 +32,19 @@ class Parameter(SortableObject, Jsonify):
     :param expression: String for a function calculating parameter values. Should be
         evaluable in namespace of Model.
     :type expression: str
-
-    :param value: Value of a parameter if it is not dependent on other Model entities.
-    :type value: float
     """
 
-    def __init__(self, name="", expression=None, value=None):
+    def __init__(self, name="", expression=None):
 
+        self.value = None
         self.name = name
         # We allow expression to be passed in as a non-string type. Invalid strings
         # will be caught below. It is perfectly fine to give a scalar value as the expression.
         # This can then be evaluated in an empty namespace to the scalar value.
-        self.expression = expression
-        if expression is not None:
-            self.expression = str(expression)
-
-        self.value = value
-
-        # self.value is allowed to be None, but not self.expression. self.value
-        # might not be evaluable in the namespace of this parameter, but defined
-        # in the context of a model or reaction.
-        if self.expression is None:
-            raise TypeError
-
-        if self.value is None:
-            self.evaluate()
+        if expression is None:
+            raise ParameterError("Parameter expression can not be none".format(param))
+        
+        self.expression = str(expression)
 
     def __str__(self):
         return self.name + ': ' + str(self.expression)
@@ -74,24 +62,7 @@ class Parameter(SortableObject, Jsonify):
         try:
             self.value = (float(eval(self.expression, namespace)))
         except:
-            self.value = None
-
-    def set_expression(self, expression):
-        """
-        Sets the expression for a parameter.
-        """
-        self.expression = expression
-        # We allow expression to be passed in as a non-string type. Invalid
-        # strings will be caught below. It is perfectly fine to give a scalar
-        # value as the expression. This can then be evaluated in an empty
-        # namespace to the scalar value.
-        if expression is not None:
-            self.expression = str(expression)
-
-        if self.expression is None:
-            raise TypeError
-
-        self.evaluate()
+            raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(param))
 
     def sanitized_expression(self, species_mappings, parameter_mappings):
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),

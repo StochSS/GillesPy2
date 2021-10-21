@@ -416,14 +416,16 @@ class Model(SortableObject, Jsonify):
             for p in sorted(params):
                 self.add_parameter(p)
         else:
-            try:
+            if instance(params, Parameters) or type(params), __name__ == 'Parameter':
                 problem = self.problem_with_name(params.name)
                 if problem is not None:
                     raise problem
+                self.update_namespace()
+                params.evaluate(self.namespace)
                 self.listOfParameters[params.name] = params
                 self._listOfParameters[params.name] = 'P{}'.format(len(self._listOfParameters))
-            except Exception as e:
-                raise ParameterError("Error using {} as a Parameter. Reason given: {}".format(params, e))
+            else:
+                raise ParameterError("Parameter {}  must be of type {}, it is of type {}".format(params.name, str(type(Parameter)), str(params) ))
         return params
 
     def delete_parameter(self, obj):
@@ -459,10 +461,7 @@ class Model(SortableObject, Jsonify):
         """
         self.update_namespace()
         for param in self.listOfParameters:
-            try:
-                self.listOfParameters[param].evaluate(self.namespace)
-            except:
-                raise ParameterError("Could not resolve Parameter expression {} to a scalar value.".format(param))
+            self.listOfParameters[param].evaluate(self.namespace)
 
     def delete_all_parameters(self):
         """ Deletes all parameters from model. """
