@@ -416,7 +416,7 @@ class Model(SortableObject, Jsonify):
             for p in sorted(params):
                 self.add_parameter(p)
         else:
-            if instance(params, Parameters) or type(params), __name__ == 'Parameter':
+            if instance(params, Parameters) or type(params).__name__ == 'Parameter':
                 problem = self.problem_with_name(params.name)
                 if problem is not None:
                     raise problem
