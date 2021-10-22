@@ -42,7 +42,7 @@ class Parameter(SortableObject, Jsonify):
         # will be caught below. It is perfectly fine to give a scalar value as the expression.
         # This can then be evaluated in an empty namespace to the scalar value.
         if expression is None:
-            raise ParameterError("Parameter expression can not be none".format(params))
+            raise ParameterError("Parameter expression can not be none".format(expression))
         
         self.expression = str(expression)
 
