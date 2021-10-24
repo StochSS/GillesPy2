@@ -63,7 +63,7 @@ class Parameter(SortableObject, Jsonify):
         try:
             self.value = (float(eval(self.expression, namespace)))
         except:
-            raise TypeError("Could not resolve Parameter expression {} to a scalar value.".format(self.expression))
+            self.value = None
 
     def sanitized_expression(self, species_mappings, parameter_mappings):
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
