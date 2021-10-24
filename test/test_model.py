@@ -308,15 +308,6 @@ class TestModel(unittest.TestCase):
         with self.assertRaises(TypeError):
             parameter = Parameter(name = 'parameter')
 
-    def test_set_expression(self):
-        parameter = Parameter(name = 'parameter', expression = 0.5)
-        parameter.set_expression(1)
-
-    def test_set_null_expression(self):
-        parameter = Parameter(name = 'parameter', expression = 0.5)
-        with self.assertRaises(TypeError):
-            parameter.set_expression(None)
-
     def test_ode_propensity(self):
         model = Model()
         rate = Parameter(name='rate', expression=0.5)
