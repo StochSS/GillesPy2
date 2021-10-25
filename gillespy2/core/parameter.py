@@ -51,21 +51,22 @@ class Parameter(SortableObject, Jsonify):
         return self.name + ': ' + str(self.expression)
 
     def set_expression(self, expression):
+        """
+        Sets the expression for a parameter.
+        """
         # We allow expression to be passed in as a non-string type. Invalid
         # strings will be caught below. It is perfectly fine to give a scalar
         # value as the expression. This can then be evaluated in an empty
         # namespace to the scalar value.
 
+        log.warning("The name 'set_epxression' has been deprecated, future versions of GillesPy2 will not allow"
+                    " this import.")
+
         if expression is None:
             raise ParameterError("Parameter expression can not be none")
 
-        """
-        Sets the expression for a parameter.
-        """
         self.expression = str(expression)
 
-        log.warning("The name 'set_epxression' has been deprecated, future versions of GillesPy2 will not allow"
-                    " this import.")
 
 
     def _evaluate(self, namespace={}):
