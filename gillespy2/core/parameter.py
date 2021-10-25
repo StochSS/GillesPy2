@@ -50,6 +50,24 @@ class Parameter(SortableObject, Jsonify):
     def __str__(self):
         return self.name + ': ' + str(self.expression)
 
+    def set_expression(self, expression):
+        """
+        Sets the expression for a parameter.
+        """
+        self.expression = expression
+        # We allow expression to be passed in as a non-string type. Invalid
+        # strings will be caught below. It is perfectly fine to give a scalar
+        # value as the expression. This can then be evaluated in an empty
+        # namespace to the scalar value.
+        if expression is not None:
+            self.expression = str(expression)
+
+        if self.expression is None:
+            raise ParameterError("Parameter expression can not be none")
+
+        self.evaluate()
+
+
     def _evaluate(self, namespace={}):
         """
         Evaluate the expression and return the (scalar) value in the given
