@@ -421,7 +421,7 @@ class Model(SortableObject, Jsonify):
                 if problem is not None:
                     raise problem
                 self.update_namespace()
-                params.evaluate(self.namespace)
+                params._evaluate(self.namespace)
                 self.listOfParameters[params.name] = params
                 self._listOfParameters[params.name] = 'P{}'.format(len(self._listOfParameters))
             else:
@@ -452,7 +452,7 @@ class Model(SortableObject, Jsonify):
 
         p = self.listOfParameters[p_name]
         p.expression = expression
-        p.evaluate()
+        p._evaluate()
 
     def resolve_parameters(self):
         """ Internal function:
@@ -461,7 +461,7 @@ class Model(SortableObject, Jsonify):
         """
         self.update_namespace()
         for param in self.listOfParameters:
-            self.listOfParameters[param].evaluate(self.namespace)
+            self.listOfParameters[param]._evaluate(self.namespace)
 
     def delete_all_parameters(self):
         """ Deletes all parameters from model. """
@@ -1156,7 +1156,7 @@ class StochMLDocument():
                 p = Parameter(name, expression=expr)
                 # Try to evaluate the expression in the empty namespace
                 # (if the expr is a scalar value)
-                p.evaluate()
+                p._evaluate()
                 model.add_parameter(p)
 
         # Create species
@@ -1254,7 +1254,7 @@ class StochMLDocument():
                         p = Parameter(name=generated_rate_name,
                                       expression=ratename)
                         # Try to evaluate the parameter to set its value
-                        p.evaluate()
+                        p._evaluate()
                         model.add_parameter(p)
                         reaction.marate = model.listOfParameters[
                             generated_rate_name]

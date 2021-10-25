@@ -42,15 +42,15 @@ class Parameter(SortableObject, Jsonify):
         # will be caught below. It is perfectly fine to give a scalar value as the expression.
         # This can then be evaluated in an empty namespace to the scalar value.
 
-        self.expression = str(expression)
-
         if expression is None:
-            raise TypeError("Parameter expression can not be none")
+            raise ParameterError("Parameter expression can not be none")
+
+        self.expression = str(expression)
 
     def __str__(self):
         return self.name + ': ' + str(self.expression)
 
-    def evaluate(self, namespace={}):
+    def _evaluate(self, namespace={}):
         """
         Evaluate the expression and return the (scalar) value in the given
         namespace.
@@ -62,8 +62,8 @@ class Parameter(SortableObject, Jsonify):
 
         try:
             self.value = (float(eval(self.expression, namespace)))
-        except:
-            self.value = None
+        except Exception as error:
+            raise ParameterError("Could not evaluate expression: {}.".format(str(error))) from error
 
     def sanitized_expression(self, species_mappings, parameter_mappings):
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
