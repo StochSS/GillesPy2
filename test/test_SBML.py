@@ -95,7 +95,7 @@ class TestSBML(unittest.TestCase):
             import_SBML(model_path)
         except gillespyError.InvalidModelError:
             return
-        except ParameterError:
+        except gillespyError.ParameterError:
             return
 
         self.fail()
