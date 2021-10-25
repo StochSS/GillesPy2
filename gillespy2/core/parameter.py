@@ -65,7 +65,7 @@ class Parameter(SortableObject, Jsonify):
         if self.expression is None:
             raise ParameterError("Parameter expression can not be none")
 
-        self.evaluate()
+        self._evaluate()
 
 
     def _evaluate(self, namespace={}):
