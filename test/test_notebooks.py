@@ -24,10 +24,10 @@ from nbconvert.preprocessors import ExecutePreprocessor
 
 
 class TestNotebooks(unittest.TestCase):
-    errors = {}
-    ep = ExecutePreprocessor(timeout=600, kernel_name='python3', allow_errors=True)
     
     def test_notebooks(self):
+        errors = {}
+        ep = ExecutePreprocessor(timeout=600, kernel_name='python3', allow_errors=True)
         for root, dirs, files in os.walk("../examples/"):
             for file in files:
                 if file.endswith(".ipynb"):
