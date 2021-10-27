@@ -44,18 +44,17 @@ class TestNotebooks(unittest.TestCase):
                                 print('Error executing the notebook "{}".\n\n'.format(file))
                                 errors[file] = err
         elif test_set == MINIMAL:
-            files = ['cylinderDemo/SpatialPy_cylinderDemo3D.ipynb', 'tests/Diffusion_validation.ipynb',
-                        'tests/Spatial_Birth_Death.ipynb']
-            root = '../examples'
+            for root, dirs, files in os.walk(os.path.join('examples','StartingModels')):
                 for file in files:
-                     with open(os.path.join(root, file)) as f:
-                        print('Executing {}...'.format(file))
-                        nb = nbformat.read(f, as_version=nbformat.NO_CONVERT)
-                        try:
-                            ep.preprocess(nb, {'metadata': {'path': root}})
-                        except Exception as err:
-                            print('Error executing the notebook "{}".\n\n'.format(file))
-                            errors[file] = err
+                    if file.endswith(".ipynb"):
+                        with open(os.path.join(root, file)) as f:
+                            print('Executing {}...'.format(file))
+                            nb = nbformat.read(f, as_version=nbformat.NO_CONVERT)
+                            try:
+                                ep.preprocess(nb, {'metadata': {'path': root}})
+                            except Exception as err:
+                                print('Error executing the notebook "{}".\n\n'.format(file))
+                                errors[file] = err
         for fname, err in errors.items():
             if len(err.__str__()) > 500:
                 print('{}:\n{}\n...\n{}'.format(fname, err.__str__()[:251], err.__str__()[-251:]))
