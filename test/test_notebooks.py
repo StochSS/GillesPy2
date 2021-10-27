@@ -26,11 +26,28 @@ from nbconvert.preprocessors import ExecutePreprocessor
 class TestNotebooks(unittest.TestCase):
     
     def test_notebooks(self):
+        FULL = 0
+        MINIMAL = 1
+        test_set = MINIMAL
         errors = {}
         ep = ExecutePreprocessor(timeout=600, kernel_name='python3', allow_errors=True)
-        for root, dirs, files in os.walk("../examples/"):
-            for file in files:
-                if file.endswith(".ipynb"):
+        if test_set == FULL:
+            for root, dirs, files in os.walk("../examples/"):
+                for file in files:
+                    if file.endswith(".ipynb"):
+                         with open(os.path.join(root, file)) as f:
+                            print('Executing {}...'.format(file))
+                            nb = nbformat.read(f, as_version=nbformat.NO_CONVERT)
+                            try:
+                                ep.preprocess(nb, {'metadata': {'path': root}})
+                            except Exception as err:
+                                print('Error executing the notebook "{}".\n\n'.format(file))
+                                errors[file] = err
+        elif test_set == MINIMAL:
+            files = ['cylinderDemo/SpatialPy_cylinderDemo3D.ipynb', 'tests/Diffusion_validation.ipynb',
+                        'tests/Spatial_Birth_Death.ipynb']
+            root = '../examples'
+                for file in files:
                      with open(os.path.join(root, file)) as f:
                         print('Executing {}...'.format(file))
                         nb = nbformat.read(f, as_version=nbformat.NO_CONVERT)
