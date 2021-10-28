@@ -305,17 +305,8 @@ class TestModel(unittest.TestCase):
         model = Model(tspan = np.linspace(0, 20, 401))
 
     def test_parameter_init_unspecified_expression(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ParameterError):
             parameter = Parameter(name = 'parameter')
-
-    def test_set_expression(self):
-        parameter = Parameter(name = 'parameter', expression = 0.5)
-        parameter.set_expression(1)
-
-    def test_set_null_expression(self):
-        parameter = Parameter(name = 'parameter', expression = 0.5)
-        with self.assertRaises(TypeError):
-            parameter.set_expression(None)
 
     def test_ode_propensity(self):
         model = Model()
