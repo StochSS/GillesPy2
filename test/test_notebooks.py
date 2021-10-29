@@ -26,9 +26,9 @@ from nbconvert.preprocessors import ExecutePreprocessor
 class TestNotebooks(unittest.TestCase):
     
     def test_notebooks(self):
-        FULL = 0
-        MINIMAL = 1
+        FULL, MINIMAL = 0, 1
         test_set = MINIMAL
+        notebooks = {}
         errors = {}
         ep = ExecutePreprocessor(timeout=600, kernel_name='python3', allow_errors=True)
 
@@ -41,13 +41,17 @@ class TestNotebooks(unittest.TestCase):
             for file in files:
                 if file.endswith(".ipynb"):
                      with open(os.path.join(root, file)) as f:
-                        print('Executing {}...'.format(file))
-                        nb = nbformat.read(f, as_version=nbformat.NO_CONVERT)
-                        try:
-                            ep.preprocess(nb, {'metadata': {'path': root}})
-                        except Exception as err:
-                            print('Error executing the notebook "{}".\n\n'.format(file))
-                            errors[file] = err
+                        print('Reading {}...'.format(file))
+                        notebooks[file] = nbformat.read(f, as_version=nbformat.NO_CONVERT)
+
+        for file, nb in notebooks.items():
+            with self.subTest(msg=file):
+                try:
+                    print('Executing {}...'.format(file))
+                    ep.preprocess(nb, {'metadata': {'path': root}})
+                except Exception as err:
+                    print('Error executing the notebook "{}".\n\n'.format(file))
+                    errors[file] = err
 
         for fname, err in errors.items():
             if len(err.__str__()) > 500:
@@ -55,3 +59,7 @@ class TestNotebooks(unittest.TestCase):
             else:
                 print('{}:\n{}'.format(fname, err))
         self.assertFalse(bool(errors))
+
+if __name__ == '__main__':
+    unittest.main()
+
