@@ -47,18 +47,11 @@ class TestNotebooks(unittest.TestCase):
         for file, nb in notebooks.items():
             with self.subTest(msg=file):
                 try:
-                    print('Executing {}...'.format(file))
                     ep.preprocess(nb, {'metadata': {'path': root}})
                 except Exception as err:
-                    print('Error executing the notebook "{}".\n\n'.format(file))
                     errors[file] = err
+                self.assertFalse(bool(errors))
 
-        for fname, err in errors.items():
-            if len(err.__str__()) > 500:
-                print('{}:\n{}\n...\n{}'.format(fname, err.__str__()[:251], err.__str__()[-251:]))
-            else:
-                print('{}:\n{}'.format(fname, err))
-        self.assertFalse(bool(errors))
 
 if __name__ == '__main__':
     unittest.main()
