@@ -91,7 +91,7 @@ class ODESolver(GillesPySolver):
             This is deterministic and will always have same results
         :param increment: time step increment for plotting
         :param integrator: integrator to be used form scipy.integrate.ode. Options include 'vode', 'zvode', 'lsoda',
-            'dopri5', and 'dop835'.  For more details,
+            'dopri5', and 'dop853'.  For more details,
             see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html
 
         :param integrator_options: a dictionary containing options to the scipy integrator. for a list of options,
@@ -200,7 +200,7 @@ class ODESolver(GillesPySolver):
         if hasattr(self, 'has_raised_exception'):
             raise self.has_raised_exception
         
-        return Results.build_from_solver_results(self)
+        return Results.build_from_solver_results(self, live_output_options)
 
     def ___run(self, model, curr_state, curr_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
                number_of_trajectories=1, increment=0.05, timeout=None, show_labels=True, integrator='lsoda',
