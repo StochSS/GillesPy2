@@ -142,35 +142,32 @@ IntegrationResults Integrator::integrate(double *t)
 IntegrationResults Integrator::integrate(double *t, std::set<int> &events)
 {
 	IntegrationResults results = integrate(t);
+	unsigned long long num_triggers = data.active_triggers.size();
+	unsigned long long num_rxn_roots = data.active_reaction_ids.size();
+	unsigned long long root_size = data.active_triggers.size() + data.active_reaction_ids.size();
+	int *root_results = new int[root_size];
 
-	std::vector<Event> *integrator_events = data.events;
-	if (integrator_events != nullptr && !integrator_events->empty())
+	if (validate(this, CVodeGetRootInfo(cvode_mem, root_results)))
 	{
-		int num_events = (int) integrator_events->size();
-		if (m_roots == nullptr)
+		unsigned long long root_id;
+		for (root_id = 0; root_id < num_triggers; ++root_id)
 		{
-			m_roots = new int[num_events];
+			if (root_results[root_id] != 0)
+			{
+				std::cerr << "Root-finder found root for event " << root_id << std::endl;
+			}
 		}
 
-		if (validate(this, CVodeGetRootInfo(cvode_mem, m_roots)))
+		for (; root_id < num_rxn_roots; ++root_id)
 		{
-			for (int event_id = 0; event_id < num_events; ++event_id)
+			if (root_results[root_id] != 0)
 			{
-				// CVode root output can be: -1, 0, or 1
-				//   +1 : Passes from negative to positive
-				//   -1 : Passes from positive to negative
-				//    0 : No root found
-				// (See page 83 of CVODE documentation)
-				// https://computing.llnl.gov/sites/default/files/cv_guide-5.7.0.pdf
-				// NOTE: do we need to check root direction? If so, this is the place to do so.
-				if (m_roots[event_id] < 0 || m_roots[event_id] > 0)
-				{
-					events.insert(event_id);
-				}
+				std::cerr << "Root-finder found reaction at " << data.active_reaction_ids[root_id] << std::endl;
 			}
 		}
 	}
 
+	delete[] root_results;
 	return results;
 }
 void Integrator::use_events(std::vector<Event> *events)
@@ -188,6 +185,48 @@ bool Integrator::has_events() const
 	return data.events != nullptr && !data.events->empty();
 }
 
+void Integrator::use_events(const std::vector<Event> &events)
+{
+	data.active_triggers.clear();
+	for (auto &event : events)
+	{
+		data.active_triggers.emplace_back([event](double t, const double *state) -> double {
+			return event.trigger(t, state) ? 1.0 : -1.0;
+		});
+	}
+}
+
+void Integrator::use_reactions(const std::vector<HybridReaction> &reactions)
+{
+	data.active_reaction_ids.clear();
+	for (auto &reaction : reactions)
+	{
+		if (reaction.mode == SimulationState::DISCRETE)
+		{
+			// Reaction root-finder should only be used on discrete-valued reactions.
+			// The required IDs are placed into a reference vector and are mapped back out
+			// when the caller of integrate() retrieves them.
+			data.active_reaction_ids.push_back(reaction.base_reaction->id);
+		}
+	}
+}
+
+void Integrator::use_events(const std::vector<Event> &events, const std::vector<HybridReaction> &reactions)
+{
+	use_events(events);
+	use_reactions(reactions);
+}
+
+bool Integrator::enable_root_finder()
+{
+	unsigned long long root_fn_size = data.active_triggers.size() + data.active_reaction_ids.size();
+	return validate(this, CVodeRootInit(cvode_mem, (int) root_fn_size, rootfn));
+}
+
+bool Integrator::disable_root_finder()
+{
+	return validate(this, CVodeRootInit(cvode_mem, 0, rootfn));
+}
 
 
 URNGenerator::URNGenerator()
@@ -322,15 +361,23 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 
 int Gillespy::TauHybrid::rootfn(realtype t, N_Vector y, realtype *gout, void *user_data)
 {
-	std::vector<Event> &events = *(static_cast<IntegratorData*>(user_data)->events);
+	IntegratorData &data = *static_cast<IntegratorData*>(user_data);
+	unsigned long long num_triggers = data.active_triggers.size();
+	unsigned long long num_reactions = data.active_reaction_ids.size();
 	realtype *y_t = N_VGetArrayPointer(y);
-	unsigned long long num_events = events.size();
+	realtype *rxn_t = y_t + data.species_state->size();
+	realtype *rxn_out = gout + num_triggers;
 
-	for (int event_id = 0; event_id < num_events; ++event_id)
+	unsigned long long trigger_id;
+	for (trigger_id = 0; trigger_id < num_triggers; ++trigger_id)
 	{
-		gout[event_id] = events[event_id].trigger(t, y_t)
-				?  1.0f
-				: -1.0f;
+		gout[trigger_id] = data.active_triggers[trigger_id](t, y_t);
+	}
+
+	unsigned long long rxn_id;
+	for (rxn_id = 0; rxn_id < num_reactions; ++rxn_id)
+	{
+		rxn_out[rxn_id] = rxn_t[data.active_reaction_ids[rxn_id]];
 	}
 
 	return 0;

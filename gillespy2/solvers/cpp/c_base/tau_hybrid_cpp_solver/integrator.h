@@ -52,6 +52,12 @@ namespace Gillespy
 		std::vector<HybridSpecies> *species_state;
 		std::vector<HybridReaction> *reaction_state;
 		std::vector<Event> *events = nullptr;
+		std::vector<std::function<double(double, const double*)>> active_triggers;
+		// Container representing the rootfinder-enabled reactions.
+		// Each integer at index i represents the reaction id corresponding to rootfinder element i.
+		// In `rootfn`, this means that gout[i] is the "output" of reaction active_reaction_ids[i].
+		// This is used to map the internal reaction number to the actual reaction id.
+		std::vector<unsigned int> active_reaction_ids;
 
 		std::vector<double> concentrations;
 		std::vector<int> populations;
@@ -119,6 +125,11 @@ namespace Gillespy
 		void reinitialize(N_Vector y_reset);
 
 		void use_events(std::vector<Event> *events);
+		void use_events(const std::vector<Event> &events);
+		void use_events(const std::vector<Event> &events, const std::vector<HybridReaction> &reactions);
+		void use_reactions(const std::vector<HybridReaction> &reactions);
+		bool enable_root_finder();
+		bool disable_root_finder();
 		bool has_events() const;
 
 		IntegrationResults integrate(double *t);
