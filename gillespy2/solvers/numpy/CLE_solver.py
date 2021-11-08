@@ -62,7 +62,8 @@ class CLESolver(GillesPySolver):
         X_i(t+\tau) = X_i(t) + \sum_{j=1}^M \nu_{ji} \left[ a_j(x_t)\tau + \left( a_j(x_t)\tau \right)^{1/2} \mathcal{N}(0,1) \right]
         
         This function calculates: \left[ a_j(x_t)\tau + \left( a_j(x_t)\tau \right)^{1/2} \mathcal{N}(0,1) \right]
-        for each reaction channel
+        for each reaction channel.
+        Reference: Gillespie 2000. https://doi.org/10.1063/1.481811 (eq 21)
 
         :returns: Three values:
             rxn_count - dict with key=Reaction channel value=number of times fired
