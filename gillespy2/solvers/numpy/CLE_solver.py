@@ -340,7 +340,7 @@ class CLESolver(GillesPySolver):
 
             compiled_propensities = {}
             for i, r in enumerate(model.listOfReactions):
-                compiled_propensities[r] = compile(model.listOfReactions[r].propensity_function, '<string>', 'eval')
+                compiled_propensities[r] = compile(model.listOfReactions[r].ode_propensity_function, '<string>', 'eval')
 
             timestep = 0
             
