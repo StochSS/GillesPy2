@@ -332,7 +332,7 @@ class CSolver:
             # The results of the current simulation is treated as an "extension" of the resume data.
             # As such, the new simulation output is formed by joining the two end to end.
             if entry_name != "time":
-                entry_data = entry_data[1:]
+                entry_data = entry_data[:-1]
             new_data = numpy.concatenate((resume[entry_name], entry_data), axis=None)
             simulation_data[-1][entry_name] = new_data
 
