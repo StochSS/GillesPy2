@@ -325,7 +325,7 @@ class CSolver:
         increment = resume_time - float(resume["time"][-2])
         # Replace the simulation's timespan to continue where the Results object left off.
         simulation_data[-1]["time"] = numpy.arange(start=(resume_time),
-                                                   stop=(resume_time + time_stopped),
+                                                   stop=(resume_time + time_stopped + increment),
                                                    step=increment)
 
         for entry_name, entry_data in simulation_data[-1].items():
