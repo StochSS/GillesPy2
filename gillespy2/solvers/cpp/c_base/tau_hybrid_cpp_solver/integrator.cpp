@@ -132,6 +132,7 @@ IntegrationResults Integrator::integrate(double *t)
 	{
 		return { nullptr, nullptr };
 	}
+	*t = this->t;
 
 	return {
 		NV_DATA_S(y),
@@ -139,7 +140,7 @@ IntegrationResults Integrator::integrate(double *t)
 	};
 }
 
-IntegrationResults Integrator::integrate(double *t, std::set<int> &events)
+IntegrationResults Integrator::integrate(double *t, std::set<int> &event_roots, std::set<int> &reaction_roots)
 {
 	IntegrationResults results = integrate(t);
 	unsigned long long num_triggers = data.active_triggers.size();
@@ -154,7 +155,7 @@ IntegrationResults Integrator::integrate(double *t, std::set<int> &events)
 		{
 			if (root_results[root_id] != 0)
 			{
-				std::cerr << "Root-finder found root for event " << root_id << std::endl;
+				event_roots.insert((int) root_id);
 			}
 		}
 
@@ -162,7 +163,7 @@ IntegrationResults Integrator::integrate(double *t, std::set<int> &events)
 		{
 			if (root_results[root_id] != 0)
 			{
-				std::cerr << "Root-finder found reaction at " << data.active_reaction_ids[root_id] << std::endl;
+				reaction_roots.insert(data.active_reaction_ids[root_id]);
 			}
 		}
 	}
@@ -225,7 +226,9 @@ bool Integrator::enable_root_finder()
 
 bool Integrator::disable_root_finder()
 {
-	return validate(this, CVodeRootInit(cvode_mem, 0, rootfn));
+	data.active_triggers.clear();
+	data.active_reaction_ids.clear();
+	return validate(this, CVodeRootInit(cvode_mem, 0, NULL));
 }
 
 

@@ -137,6 +137,11 @@ namespace Gillespy
 				// Otherwise, they are treated just like a delay_queue, by triggering when ready.
 				std::list<EventExecution> volatile_queue;
 
+				// trigger_pool:
+				// Set of event IDs whose trigger was detected, where the exact trigger time must be found.
+				// IDs are removed if either the search interval has passed, or if the trigger has been found.
+				std::set<int> trigger_pool;
+
 				// trigger_state:
 				// Maps each event to its (current) corresponding event state.
 				// An event is considered to fire if its trigger() does not match its event state,
@@ -206,13 +211,15 @@ namespace Gillespy
 					// The integration loop continues until a valid solution is found.
 					// Any invalid Tau steps (which cause negative populations) are discarded.
 					sol.save_state();
+					// TODO: Fire reactions manually when root-finder is installed.
+					std::set<int> event_roots, rxn_roots;
 
 					do
 					{
 						// Integration Step
 						// For deterministic reactions, the concentrations are updated directly.
 						// For stochastic reactions, integration updates the rxn_offsets vector.
-						IntegrationResults result = sol.integrate(&next_time);
+						IntegrationResults result = sol.integrate(&next_time, event_roots, rxn_roots);
 						if (sol.status == IntegrationStatus::BAD_STEP_SIZE)
 						{
 							invalid_state = true;
@@ -309,7 +316,26 @@ namespace Gillespy
 										: 1000;
 
 					// ===== <EVENT HANDLING> =====
-					if (!events.empty())
+					if (trigger_pool.empty())
+					{
+						double *event_state = N_VGetArrayPointer(sol.y);
+						for (auto &event : events)
+						{
+							if (event.trigger(next_time, event_state) != trigger_state.at(event.get_event_id()))
+							{
+								trigger_pool.insert(event.get_event_id());
+							}
+						}
+
+						if (!trigger_pool.empty())
+						{
+							sol.restore_state();
+							sol.use_events(events, simulation->reaction_state);
+							sol.enable_root_finder();
+							continue;
+						}
+					}
+					else if (!events.empty())
 					{
 						double *event_state = N_VGetArrayPointer(sol.y);
 						auto compare = [next_time, event_state](EventExecution &lhs, EventExecution &rhs) -> bool
@@ -319,7 +345,6 @@ namespace Gillespy
 						std::priority_queue<EventExecution, std::vector<EventExecution>, decltype(compare)>
 								trigger_queue(compare);
 
-						std::set<int> events_found;
 						// Step 1: Identify any fired event triggers.
 						for (auto &event : events)
 						{
@@ -331,7 +356,7 @@ namespace Gillespy
 
 								// Update trigger state to prevent repeated firings.
 								trigger_state.find(event.get_event_id())->second = trigger;
-								events_found.insert(execution.get_event_id());
+								event_roots.insert(execution.get_event_id());
 								if (delay <= 0)
 								{
 									// Immediately put EventExecution on "triggered" pile
@@ -354,9 +379,9 @@ namespace Gillespy
 						// If so, those executions must be discarded (double-transition).
 						for (auto vol_iter = volatile_queue.begin(); vol_iter != volatile_queue.end(); ++vol_iter)
 						{
-							auto found_event = events_found.find(vol_iter->get_event_id());
+							auto found_event = event_roots.find(vol_iter->get_event_id());
 							// Element in roots_found contains event id; discard
-							if (found_event != events_found.end())
+							if (found_event != event_roots.end())
 							{
 								vol_iter = volatile_queue.erase(vol_iter);
 							}
@@ -395,12 +420,19 @@ namespace Gillespy
 							auto event = trigger_queue.top();
 							event.execute(next_time, event_state);
 							trigger_queue.pop();
+							trigger_pool.erase(event.get_event_id());
 						}
 
 						// Step 5: Update any trigger states to reflect the new trigger value.
 						for (auto &event : events)
 						{
 							trigger_state.find(event.get_event_id())->second = event.trigger(next_time, event_state);
+						}
+
+						// Disable "root search mode" if no more events are found
+						if (trigger_pool.empty())
+						{
+							sol.disable_root_finder();
 						}
 
 						std::copy(event_state, event_state + num_species, current_state.begin());

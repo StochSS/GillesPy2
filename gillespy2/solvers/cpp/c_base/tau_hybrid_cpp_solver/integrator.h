@@ -133,7 +133,7 @@ namespace Gillespy
 		bool has_events() const;
 
 		IntegrationResults integrate(double *t);
-		IntegrationResults integrate(double *t, std::set<int> &events);
+		IntegrationResults integrate(double *t, std::set<int> &event_roots, std::set<int> &reaction_roots);
 		IntegratorData data;
 
 		Integrator(HybridSimulation *simulation, N_Vector y0, double reltol, double abstol);
