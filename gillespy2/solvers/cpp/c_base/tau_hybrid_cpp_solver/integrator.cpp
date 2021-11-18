@@ -140,7 +140,7 @@ IntegrationResults Integrator::integrate(double *t)
 	};
 }
 
-IntegrationResults Integrator::integrate(double *t, std::set<int> &event_roots, std::set<int> &reaction_roots)
+IntegrationResults Integrator::integrate(double *t, std::set<int> &event_roots, std::set<unsigned int> &reaction_roots)
 {
 	IntegrationResults results = integrate(t);
 	unsigned long long num_triggers = data.active_triggers.size();
@@ -170,20 +170,6 @@ IntegrationResults Integrator::integrate(double *t, std::set<int> &event_roots, 
 
 	delete[] root_results;
 	return results;
-}
-void Integrator::use_events(std::vector<Event> *events)
-{
-	if (events == nullptr
-		|| !validate(this, CVodeRootInit(cvode_mem, (int) events->size(), rootfn)))
-	{
-		return;
-	}
-	data.events = events;
-}
-
-bool Integrator::has_events() const
-{
-	return data.events != nullptr && !data.events->empty();
 }
 
 void Integrator::use_events(const std::vector<Event> &events)

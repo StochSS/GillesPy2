@@ -57,6 +57,8 @@ namespace Gillespy
 			     m_num_variables(num_variables),
 			     m_variables(new double[num_variables])
 		{
+			std::memcpy(m_state, state, num_state);
+			std::memcpy(m_variables, variables, num_variables);
 			use_assignments();
 		}
 

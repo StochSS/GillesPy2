@@ -30,6 +30,7 @@
 namespace Gillespy
 {
 	static double param_overrides[GPY_PARAMETER_NUM_VARIABLES];
+	static bool param_override_mask[GPY_PARAMETER_NUM_VARIABLES];
 
 	double populations[GPY_NUM_SPECIES] = GPY_INIT_POPULATIONS;
 	std::vector<double> species_populations(
@@ -64,7 +65,9 @@ namespace Gillespy
 		double *variables = new double[GPY_PARAMETER_NUM_VARIABLES];
 
 		#define CONSTANT(id, value)
-		#define VARIABLE(id, value) variables[id] = value; (*num_variables)++;
+		#define VARIABLE(id, value) variables[id] = param_override_mask[id] \
+			? param_overrides[id] \
+			: value; (*num_variables)++;
 		GPY_PARAMETER_VALUES
 		#undef VARIABLE
 		#undef CONSTANT
@@ -126,7 +129,9 @@ namespace Gillespy
 
 	void map_variable_parameters(std::stringstream &stream)
 	{
-		#define VARIABLE(id, value) stream >> param_overrides[id];
+		#define VARIABLE(id, value) \
+		stream >> param_overrides[id]; \
+		param_override_mask[id] = true;
 		#define CONSTANT(id, value)
 		GPY_PARAMETER_VALUES
 		#undef CONSTANT

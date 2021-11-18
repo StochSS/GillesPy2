@@ -39,6 +39,7 @@ class SanitizedModel:
 
     def __init__(self, model: Model, variable=False):
         self.model = model
+        self.variable = variable
 
         self.species: "OrderedDict[str, Species]" = OrderedDict()
         self.species_names = model.sanitized_species_names()
@@ -151,7 +152,7 @@ class SanitizedModel:
                 log.warning(f"Could not sanitize rate rule formula expression: {rate_rule.formula}")
         return self
 
-    def get_template(self, variable=False) -> "dict[str, str]":
+    def get_template(self) -> "dict[str, str]":
         """
         Creates a dictionary of C++ macro definitions from the given model.
         The keys of the dictionary contain the name of the macro definition.
@@ -166,7 +167,7 @@ class SanitizedModel:
         results = dict({})
 
         # Get definitions for variables
-        parameter_definitions = template_def_variables(self, variable)
+        parameter_definitions = template_def_variables(self, self.variable)
         results.update(parameter_definitions)
 
         # Get definitions for species

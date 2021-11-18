@@ -113,7 +113,8 @@ class TauHybridCSolver(GillesPySolver, CSolver):
 
     def _build(self, model: "Union[Model, SanitizedModel]", simulation_name: str, variable: bool, debug: bool = False,
                custom_definitions=None) -> str:
-        sanitized_model = TauHybridCSolver.__create_options(SanitizedModel(model))
+        variable = variable or len(model.listOfEvents) > 0
+        sanitized_model = TauHybridCSolver.__create_options(SanitizedModel(model, variable=variable))
         for rate_rule in model.listOfRateRules.values():
             sanitized_model.use_rate_rule(rate_rule)
         return super()._build(sanitized_model, simulation_name, variable, debug)

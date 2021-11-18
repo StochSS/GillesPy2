@@ -212,10 +212,13 @@ namespace Gillespy
 					// Any invalid Tau steps (which cause negative populations) are discarded.
 					sol.save_state();
 					// TODO: Fire reactions manually when root-finder is installed.
-					std::set<int> event_roots, rxn_roots;
+					std::set<int> event_roots;
+					std::set<unsigned int> rxn_roots;
 
 					do
 					{
+						invalid_state = false;
+
 						// Integration Step
 						// For deterministic reactions, the concentrations are updated directly.
 						// For stochastic reactions, integration updates the rxn_offsets vector.
@@ -227,10 +230,26 @@ namespace Gillespy
 							//   resulting in an early termination of the trajectory.
 							break;
 						}
+						else if (!rxn_roots.empty())
+						{
+							// "Direct" roots found; these are executed manually
+							for (unsigned int rxn_i : rxn_roots)
+							{
+								// "Fire" a reaction by recording changes in dependent species.
+								// If a negative value is detected, break without saving changes.
+								for (int spec_i = 0; spec_i < num_species; ++spec_i)
+								{
+									// Unlike the Tau-leaping version of reaction firings,
+									// it is not possible to have a negative state occur in direct reactions.
+									population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i];
+									result.reactions[rxn_i] = log(urn.next());
+								}
+							}
+							continue;
+						}
 
 						// The integrator has, at this point, been validated.
 						// Any errors beyond this point is assumed to be a stochastic state failure.
-						invalid_state = false;
 
 						// 0-initialize our population_changes array.
 						for (int p_i = 0; p_i < num_species; ++p_i)
@@ -418,7 +437,9 @@ namespace Gillespy
 						while (!trigger_queue.empty())
 						{
 							auto event = trigger_queue.top();
+
 							event.execute(next_time, event_state);
+							std::cerr << "== AFTER ==" << std::endl;
 							trigger_queue.pop();
 							trigger_pool.erase(event.get_event_id());
 						}
