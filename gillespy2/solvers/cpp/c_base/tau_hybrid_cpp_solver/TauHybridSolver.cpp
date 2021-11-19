@@ -371,7 +371,7 @@ namespace Gillespy
 							if (trigger_state.at(event.get_event_id()) != trigger)
 							{
 								double delay = event.delay(next_time, event_state);
-								EventExecution execution = event.get_execution(next_time, event_state, num_species);
+								EventExecution execution = event.get_execution(next_time + delay, event_state, num_species);
 
 								// Update trigger state to prevent repeated firings.
 								trigger_state.find(event.get_event_id())->second = trigger;
@@ -388,41 +388,51 @@ namespace Gillespy
 								}
 								else
 								{
-									// Delayed, but must be re-checked on every iteration.
-									volatile_queue.push_back(execution);
+									// Search the volatile queue to see if it is already present.
+									// If it is, the event has "double-fired" and must be erased.
+									auto vol_iter = volatile_queue.begin();
+									while (vol_iter != volatile_queue.end()
+										&& vol_iter->get_event_id() != event.get_event_id())
+									{
+										++vol_iter;
+									}
+
+									if (vol_iter == volatile_queue.end())
+									{
+										// No match found; this is a new delay trigger, and is therefore valid.
+										// Delayed, but must be re-checked on every iteration.
+										volatile_queue.push_back(execution);
+									}
+									else
+									{
+										// Match found; this is an existing trigger, discard.
+										volatile_queue.erase(vol_iter);
+										trigger_pool.erase(event.get_event_id());
+										trigger_state.at(event.get_event_id()) = !trigger_state.at(event.get_event_id());
+									}
 								}
 							}
 						}
 
-						// Step 2: Check to see if any events are present in the volatile queue.
-						// If so, those executions must be discarded (double-transition).
-						for (auto vol_iter = volatile_queue.begin(); vol_iter != volatile_queue.end(); ++vol_iter)
-						{
-							auto found_event = event_roots.find(vol_iter->get_event_id());
-							// Element in roots_found contains event id; discard
-							if (found_event != event_roots.end())
-							{
-								vol_iter = volatile_queue.erase(vol_iter);
-							}
-						}
-
-						// Step 3: Process delayed executions that are now ready to fire.
+						// Step 2: Process delayed, non-persistent executions that are now ready to fire.
 						// Both the volatile and non-volatile queue are processed in a similar manner.
 						for (auto vol_event = volatile_queue.begin(); vol_event != volatile_queue.end(); ++vol_event)
 						{
 							// Execution objects in the volatile queue must remain True until execution.
 							// Remove any execution objects which transitioned to False before execution.
-							if (vol_event->get_execution_time() >= next_time)
+							if (vol_event->get_execution_time() < next_time)
 							{
 								trigger_queue.push(*vol_event);
 								vol_event = volatile_queue.erase(vol_event);
 							}
 						}
 
+						// Step 3: Process delayed executions, which includes both persistent triggers
+						// and non-persistent triggers whose execution time has arrived.
 						while (!delay_queue.empty())
 						{
 							auto &event = delay_queue.top();
-							if (event.get_execution_time() < next_time)
+							if (event.get_execution_time() >= next_time)
 							{
 								// Delay queue is sorted in chronological order.
 								// As soon as we hit a time that is beyond the current time,
@@ -439,7 +449,6 @@ namespace Gillespy
 							auto event = trigger_queue.top();
 
 							event.execute(next_time, event_state);
-							std::cerr << "== AFTER ==" << std::endl;
 							trigger_queue.pop();
 							trigger_pool.erase(event.get_event_id());
 						}

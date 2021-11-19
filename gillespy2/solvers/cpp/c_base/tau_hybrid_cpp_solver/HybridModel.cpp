@@ -57,31 +57,37 @@ namespace Gillespy
 			     m_num_variables(num_variables),
 			     m_variables(new double[num_variables])
 		{
-			std::memcpy(m_state, state, num_state);
-			std::memcpy(m_variables, variables, num_variables);
+			std::memcpy(m_state, state, sizeof(double) * num_state);
+			std::memcpy(m_variables, variables, sizeof(double) * num_variables);
 			use_assignments();
 		}
 
 		EventExecution::EventExecution(const EventExecution &old_event)
-				: m_execution_time(old_event.m_execution_time),
+				: m_num_state(old_event.m_num_state),
+				  m_num_variables(old_event.m_num_variables),
+				  m_execution_time(old_event.m_execution_time),
 				  m_event_id(old_event.m_event_id),
 				  m_assignments(old_event.m_assignments)
 		{
 			if (old_event.m_state != nullptr && m_num_state > 0)
 			{
 				m_state = new double[m_num_state];
-				std::memcpy(m_state, old_event.m_state, m_num_state);
+				std::memcpy(m_state, old_event.m_state, sizeof(double) * m_num_state);
 			}
 
 			if (old_event.m_variables != nullptr && m_num_variables > 0)
 			{
 				m_variables = new double[m_num_variables];
-				std::memcpy(m_variables, old_event.m_variables, m_num_variables);
+				std::memcpy(m_variables, old_event.m_variables, sizeof(double) * m_num_variables);
 			}
 		}
 
 		EventExecution::EventExecution(EventExecution &&old_event) noexcept
-				: m_execution_time(old_event.m_execution_time),
+				: m_state(old_event.m_state),
+				  m_num_state(old_event.m_num_state),
+				  m_variables(old_event.m_variables),
+				  m_num_variables(old_event.m_num_variables),
+				  m_execution_time(old_event.m_execution_time),
 				  m_event_id(old_event.m_event_id),
 				  m_assignments(std::move(old_event.m_assignments))
 		{
@@ -107,7 +113,7 @@ namespace Gillespy
 						m_num_state = old_event.m_num_state;
 						m_state = new double[m_num_state];
 					}
-					std::memcpy(m_state, old_event.m_state, m_num_state);
+					std::memcpy(m_state, old_event.m_state, sizeof(double) * m_num_state);
 				}
 
 				if (old_event.m_variables != nullptr)
@@ -118,7 +124,7 @@ namespace Gillespy
 						m_num_variables = old_event.m_num_variables;
 						m_variables = new double[m_num_variables];
 					}
-					std::memcpy(m_variables, old_event.m_variables, m_num_variables);
+					std::memcpy(m_variables, old_event.m_variables, sizeof(double) * m_num_variables);
 				}
 			}
 
