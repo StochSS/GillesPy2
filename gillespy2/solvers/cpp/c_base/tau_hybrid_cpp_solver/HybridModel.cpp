@@ -475,5 +475,142 @@ namespace Gillespy
 			}
 		}
 
+		EventList::EventList()
+		{
+			Event::use_events(m_events);
+
+			for (auto &event : m_events)
+			{
+				// With the below implementation, it is impossible for an event to fire at t=t[0].
+				m_trigger_state.insert({
+					event.get_event_id(),
+					event.get_initial_value(),
+				});
+			}
+		}
+
+		bool EventList::evaluate_triggers(double *event_state, double t)
+		{
+			for (auto &event: m_events)
+			{
+				if (event.trigger(t, event_state) != m_trigger_state.at(event.get_event_id()))
+				{
+					m_trigger_pool.insert(event.get_event_id());
+				}
+			}
+
+			return has_active_events();
+		}
+
+		bool EventList::evaluate(double *event_state, int output_size, double t, const std::set<int> &events_found)
+		{
+			if (m_events.empty())
+			{
+				return has_active_events();
+			}
+
+			auto compare = [t, event_state](EventExecution &lhs, EventExecution &rhs) -> bool
+			{
+				return lhs.priority(t, event_state) < rhs.priority(t, event_state);
+			};
+			std::priority_queue<EventExecution, std::vector<EventExecution>, decltype(compare)>
+					trigger_queue(compare);
+
+			// Step 1: Identify any fired event triggers.
+			for (auto &event : m_events)
+			{
+				bool trigger = event.trigger(t, event_state);
+				if (m_trigger_state.at(event.get_event_id()) != trigger)
+				{
+					double delay = event.delay(t, event_state);
+					EventExecution execution = event.get_execution(t + delay, event_state, output_size);
+
+					// Update trigger state to prevent repeated firings.
+					m_trigger_state.find(event.get_event_id())->second = trigger;
+					if (delay <= 0)
+					{
+						// Immediately put EventExecution on "triggered" pile
+						trigger_queue.push(execution);
+					}
+					else if (event.is_persistent())
+					{
+						// Put EventExecution on "delayed" pile
+						m_delay_queue.push(execution);
+					}
+					else
+					{
+						// Search the volatile queue to see if it is already present.
+						// If it is, the event has "double-fired" and must be erased.
+						auto vol_iter = m_volatile_queue.begin();
+						while (vol_iter != m_volatile_queue.end()
+							   && vol_iter->get_event_id() != event.get_event_id())
+						{
+							++vol_iter;
+						}
+
+						if (vol_iter == m_volatile_queue.end())
+						{
+							// No match found; this is a new delay trigger, and is therefore valid.
+							// Delayed, but must be re-checked on every iteration.
+							m_volatile_queue.push_back(execution);
+						}
+						else
+						{
+							// Match found; this is an existing trigger, discard.
+							m_volatile_queue.erase(vol_iter);
+							m_trigger_pool.erase(event.get_event_id());
+							m_trigger_state.at(event.get_event_id()) = !m_trigger_state.at(event.get_event_id());
+						}
+					}
+				}
+			}
+
+			// Step 2: Process delayed, non-persistent executions that are now ready to fire.
+			// Both the volatile and non-volatile queue are processed in a similar manner.
+			for (auto vol_event = m_volatile_queue.begin(); vol_event != m_volatile_queue.end(); ++vol_event)
+			{
+				// Execution objects in the volatile queue must remain True until execution.
+				// Remove any execution objects which transitioned to False before execution.
+				if (vol_event->get_execution_time() < t)
+				{
+					trigger_queue.push(*vol_event);
+					vol_event = m_volatile_queue.erase(vol_event);
+				}
+			}
+
+			// Step 3: Process delayed executions, which includes both persistent triggers
+			// and non-persistent triggers whose execution time has arrived.
+			while (!m_delay_queue.empty())
+			{
+				auto &event = m_delay_queue.top();
+				if (event.get_execution_time() >= t)
+				{
+					// Delay queue is sorted in chronological order.
+					// As soon as we hit a time that is beyond the current time,
+					//  there is no use in continuing through the queue.
+					break;
+				}
+				trigger_queue.push(event);
+				m_delay_queue.pop();
+			}
+
+			// Step 4: Process any pending triggers, unconditionally.
+			while (!trigger_queue.empty())
+			{
+				auto event = trigger_queue.top();
+
+				event.execute(t, event_state);
+				trigger_queue.pop();
+				m_trigger_pool.erase(event.get_event_id());
+			}
+
+			// Step 5: Update any trigger states to reflect the new trigger value.
+			for (auto &event : m_events)
+			{
+				m_trigger_state.find(event.get_event_id())->second = event.trigger(t, event_state);
+			}
+
+			return has_active_events();
+		}
 	}
 }

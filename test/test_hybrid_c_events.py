@@ -110,3 +110,19 @@ class EventFeatures(unittest.TestCase):
         s1, s2 = result["S1"][-1], result["S2"][-1]
 
         self.assertGreater(s2, s1, "Event assignment did not assign values from trigger time")
+
+    def test_initial_values(self):
+        model = EventFeatures.BaseEventModel(s1=0, s2=100.0, rate=1.0)
+
+        event = gillespy2.Event(name="ev1", assignments=[
+            gillespy2.EventAssignment(variable=model.s1, expression="S2/2"),
+        ], trigger=gillespy2.EventTrigger(expression="S1==0", initial_value=False))
+        model.add_event(event)
+
+        solver = TauHybridCSolver(model=model)
+        result = model.run(solver=solver)
+
+        s1, s2 = result["S1"][-1], result["S2"][-1]
+        self.assertAlmostEqual(s1 + s2, 150.0, places=1, msg="Event assignment assigned incorrect value")
+        self.assertGreater(s2, 100, "Event with initial condition did not fire")
+        self.assertEqual(result["S1"][0], 50, "Event assignment with initial condition failed to fire at t=0")

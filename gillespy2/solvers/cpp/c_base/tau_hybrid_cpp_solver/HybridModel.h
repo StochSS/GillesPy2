@@ -22,6 +22,8 @@
 #include "tau.h"
 
 #include <vector>
+#include <queue>
+#include <list>
 
 #define GPY_HYBRID_ABSTOL 1e-8
 #define GPY_HYBRID_RELTOL 1e-8
@@ -30,7 +32,12 @@ namespace Gillespy
 {
 	namespace TauHybrid
 	{
+		class EventExecution;
+		class Event;
+
 		typedef int ReactionId;
+		template <typename T>
+		using DelayedExecutionQueue = std::priority_queue<EventExecution, std::vector<EventExecution>, T>;
 
 		struct EventOutput
 		{
@@ -41,7 +48,24 @@ namespace Gillespy
 			const double *constants;
 		};
 
-		class EventExecution;
+		class EventList
+		{
+		public:
+			EventList();
+			bool evaluate_triggers(double *event_state, double t);
+			bool evaluate(double *output, int output_size, double t, const std::set<int> &events_found);
+			inline bool has_active_events() const
+			{
+				return !m_trigger_pool.empty();
+			}
+
+		private:
+			std::vector<Event> m_events;
+			std::set<int> m_trigger_pool;
+			std::map<int, bool> m_trigger_state;
+			DelayedExecutionQueue<std::greater<EventExecution>> m_delay_queue;
+			std::list<EventExecution> m_volatile_queue;
+		};
 
 		class Event
 		{
