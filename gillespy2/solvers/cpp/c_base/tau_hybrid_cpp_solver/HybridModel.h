@@ -58,6 +58,11 @@ namespace Gillespy
 				return Event::delay(m_event_id, t, state, Reaction::s_variables.get(), Reaction::s_constants.get());
 			}
 
+			inline bool get_initial_value() const
+			{
+				return Event::initial_value(m_event_id);
+			}
+
 			inline bool is_persistent() const { return m_use_persist; }
 			inline bool get_event_id() const { return m_event_id; }
 
@@ -88,6 +93,7 @@ namespace Gillespy
 					const double *variables,
 					const double *constants);
 			static void assign(int event_id, double t, EventOutput output);
+			static bool initial_value(int event_id);
 		};
 
 		class EventExecution

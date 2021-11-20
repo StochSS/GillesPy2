@@ -48,6 +48,12 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             # When event.trigger.persistent == True
             "PERSISTENT",
         ]
+        initial_value_types = [
+            # When event.trigger.initial_value == False
+            "INIT_FALSE",
+            # When event.trigger.initial_value == True
+            "INIT_TRUE",
+        ]
 
         species_mode_list = []
         for spec_id, species in enumerate(sanitized_model.species.values()):
@@ -72,6 +78,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
                 if event.priority is not None else "0"
             use_trigger = trigger_mode_types[int(bool(event.use_values_from_trigger_time))]
             use_persist = persist_types[int(bool(event.trigger.persistent))]
+            initial_value = initial_value_types[int(bool(event.trigger.value or False))]
 
             assignments: "list[str]" = []
             for assign in event.assignments:
@@ -101,7 +108,16 @@ class TauHybridCSolver(GillesPySolver, CSolver):
                 assign_id += 1
             assignments: "str" = " AND ".join(assignments)
             event_list.append(
-                f"EVENT({event_id},{{{assignments}}},{trigger},{delay},{priority},{use_trigger},{use_persist})"
+                f"EVENT("
+                f"{event_id},"
+                f"{{{assignments}}},"
+                f"{trigger},"
+                f"{delay},"
+                f"{priority},"
+                f"{use_trigger},"
+                f"{use_persist},"
+                f"{initial_value}"
+                f")"
             )
 
         sanitized_model.options["GPY_HYBRID_SPECIES_MODES"] = " ".join(species_mode_list)

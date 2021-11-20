@@ -56,13 +56,34 @@ namespace Gillespy
 		}
 
 
+		bool Event::initial_value(int event_id)
+		{
+			#define INIT_TRUE (1)
+			#define INIT_FALSE (0)
+			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_perist, init) \
+			case event_id: return (bool) init;
+
+			switch (event_id)
+			{
+			GPY_HYBRID_EVENTS
+
+			default:
+				return false;
+			}
+
+			#undef EVENT
+			#undef INIT_FALSE
+			#undef INIT_TRUE
+		}
+
+
 		bool Event::trigger(
 				int event_id, double t,
 				const double *S,
 				const double *P,
 				const double *C)
 		{
-			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist) \
+			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist, init) \
 			case event_id: return (bool) (trigger);
 
 			switch (event_id)
@@ -82,7 +103,7 @@ namespace Gillespy
 				const double *P,
 				const double *C)
 		{
-			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist) \
+			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist, init) \
 			case event_id: return static_cast<double>(delay);
 
 			switch (event_id)
@@ -102,7 +123,7 @@ namespace Gillespy
 				const double *P,
 				const double *C)
 		{
-			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist) \
+			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist, init) \
 			case event_id: return static_cast<double>(priority);
 
 			switch (event_id)
@@ -125,7 +146,7 @@ namespace Gillespy
 			#define USE_EVAL false
 			#define PERSISTENT true
 			#define IRREGULAR false
-			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist) \
+			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist, init) \
 			events.emplace_back(Event(event_id, use_trigger, use_persist));
 			GPY_HYBRID_EVENTS
 			#undef EVENT
@@ -138,7 +159,7 @@ namespace Gillespy
 		void EventExecution::use_assignments()
 		{
 			m_assignments.clear();
-			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist) \
+			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist, init) \
 			case event_id: m_assignments = std::vector<int>(targets); break;
 
 			switch (m_event_id)
