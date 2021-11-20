@@ -68,11 +68,11 @@ int main(int argc, char* argv[]){
 	simulation.random_seed = random_seed;
 	simulation.number_timesteps = number_timesteps;
 	simulation.number_trajectories = number_trajectories;
+	simulation.output_interval = parser.output_interval;
 
 	init_simulation(&model, simulation);
 	tau_leaper(&simulation, tau_tol);
-
-	simulation.output_results_buffer(std :: cout);
+	simulation.output_buffer_final(std::cout);
 
 	return 0;
 }

@@ -40,6 +40,7 @@ public:
     int seed = -1;
     int timesteps = 0;
     int trajectories = 0;
+    int output_interval = 1;
 
     double end = 0.0;
     double increment = 0.0;

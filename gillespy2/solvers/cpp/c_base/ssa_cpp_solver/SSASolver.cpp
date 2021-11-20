@@ -23,6 +23,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#undef max
 #endif
 
 #include "SSASolver.h"
@@ -59,17 +60,8 @@ namespace Gillespy
 			//Number of bytes for copying states
 			unsigned int state_size = sizeof(int) * ((simulation->model)->number_species);
 
-			//Current state
-			unsigned int *current_state = new unsigned int[(simulation->model)->number_species];
-
 			//Calculated propensity values for current state
 			double *propensity_values = new double[(simulation->model)->number_reactions];
-
-			//copy initial state for each trajectory
-			for (unsigned int species_number = 0; species_number < ((simulation->model)->number_species); species_number++)
-			{
-				simulation->trajectories[0][0][species_number] = (simulation->model)->species[species_number].initial_population;
-			}
 
 			//Simulate for each trajectory
 			for (unsigned int trajectory_number = 0; trajectory_number < simulation->number_trajectories; trajectory_number++)
@@ -79,24 +71,16 @@ namespace Gillespy
 					break;
 				}
 
-				//Get simpler reference to memory space for this trajectory
-				unsigned int **trajectory = simulation->trajectories[trajectory_number];
-
-				//Copy initial state as needed
-				if (trajectory_number > 0)
-				{
-					memcpy(trajectory[0], simulation->trajectories[0][0], state_size);
-				}
-
 				//Set up current state from initial state
-				memcpy(current_state, trajectory[0], state_size);
+				unsigned int entry_count = 0;
 				simulation->current_time = 0;
-				unsigned int entry_count = 1;
+				simulation->reset_output_buffer(trajectory_number);
+				simulation->output_buffer_range(std::cout);
 
 				//calculate initial propensities
 				for (unsigned int reaction_number = 0; reaction_number < ((simulation->model)->number_reactions); reaction_number++)
 				{
-					propensity_values[reaction_number] = Reaction::propensity(reaction_number, current_state);
+					propensity_values[reaction_number] = Reaction::propensity(reaction_number, simulation->current_state);
 				}
 
 				double propensity_sum;
@@ -117,12 +101,6 @@ namespace Gillespy
 					//No more reactions
 					if (propensity_sum <= 0)
 					{
-						//Copy all of last changed state for rest of entries
-						for (unsigned int i = entry_count; i < simulation->number_timesteps; i++)
-						{
-							memcpy(trajectory[i], current_state, state_size);
-						}
-
 						//Quit simulating this trajectory
 						break;
 					}
@@ -130,18 +108,6 @@ namespace Gillespy
 					//Reaction will fire, determine which one
 					double cumulative_sum = rng() * propensity_sum / rng.max();
 					simulation->current_time += -log(rng() * 1.0 / rng.max()) / propensity_sum;
-
-					//Copy current state to passed timesteps
-					while (entry_count < simulation->number_timesteps && (simulation->timeline[entry_count]) <= simulation->current_time)
-					{
-						if (interrupted)
-						{
-							break;
-						}
-
-						memcpy(trajectory[entry_count], current_state, state_size);
-						entry_count++;
-					}
 
 					for (unsigned int potential_reaction = 0; potential_reaction < ((simulation->model)->number_reactions); potential_reaction++)
 					{
@@ -154,23 +120,41 @@ namespace Gillespy
 							Reaction &reaction = ((simulation->model)->reactions[potential_reaction]);
 							for (unsigned int species_number = 0; species_number < ((simulation->model)->number_species); species_number++)
 							{
-								current_state[species_number] += reaction.species_change[species_number];
+								simulation->current_state[species_number] += reaction.species_change[species_number];
 							}
 
 							//Recalculate needed propensities
 							for (unsigned int &affected_reaction : reaction.affected_reactions)
 							{
-								propensity_values[affected_reaction] = Reaction::propensity(affected_reaction, current_state);
+								propensity_values[affected_reaction] = Reaction::propensity(affected_reaction, simulation->current_state);
 							}
 
 							break;
 						}
 					}
+
+					// Output timestep results
+					while (entry_count < simulation->number_timesteps && simulation->timeline[entry_count] <= simulation->current_time)
+					{
+						if (interrupted)
+						{
+							break;
+						}
+
+						simulation->output_buffer_range(std::cout, entry_count++);
+					}
+				}
+
+				
+				// Copy final state for rest of entries
+				if (entry_count < simulation->number_timesteps)
+				{
+					simulation->current_time = simulation->timeline[simulation->number_timesteps - 1];
+					simulation->output_buffer_range(std::cout, simulation->number_timesteps - 1);
 				}
 			}
 
 			delete propensity_values;
-			delete current_state;
 		}
 	}
 }

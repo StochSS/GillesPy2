@@ -170,4 +170,5 @@ namespace Gillespy
 
 	template void add_reactions<double>(Model<double> &model);
 	template void add_reactions<unsigned int>(Model<unsigned int> &model);
+	template void add_reactions<int>(Model<int> &model);
 }

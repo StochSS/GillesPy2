@@ -25,6 +25,8 @@ jobs:
         pip install python-libsbml
         pip install cython
         pip install coverage
+        pip install nbformat
+        pip install nbconvert
         
     - name: Run tests
       run: coverage run --source=gillespy2 --omit=gillespy2/solvers/stochkit/* test/run_tests.py -m develop

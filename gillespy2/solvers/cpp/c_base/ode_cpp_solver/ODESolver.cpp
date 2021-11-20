@@ -39,6 +39,10 @@ namespace Gillespy
 		Simulation<double> *my_sim;
 	};
 
+    bool cmpf(float A, float B){
+        return (fabs(A - B) < FLT_EPSILON);
+    }
+
 	void ODESolver(Simulation<double> *simulation, double increment)
 	{
 		// CVODE constants are returned on every success or failure.
@@ -68,8 +72,9 @@ namespace Gillespy
 			double initial_population = simulation_model->species[species_index].initial_population;
 
 			NV_Ith_S(y0, species_index) = initial_population;
-			simulation->trajectories[0][0][species_index] = initial_population;
+			simulation->current_state[species_index] = initial_population;
 		}
+		simulation->output_buffer_range(std::cout);
 
 		// Create and set CVODE object pointer. CV_ADAMS for nonstiff, CV_BDF for stiff.
 		void *cvode_mem = CVodeCreate(CV_BDF);
@@ -109,7 +114,7 @@ namespace Gillespy
 		realtype tret = 0;
 
 		int current_time = 0;
-		for (tout = step_length; tout <= end_time; tout += step_length)
+		for (tout = step_length; tout < end_time || cmpf(tout, end_time); tout += step_length)
 		{
 			// CV_NORMAL causes the solver to take internal steps until it has reached or just passed the `tout`
 			// parameter. The solver interpolates in order to return an approximate value of `y(tout)`.
@@ -120,8 +125,9 @@ namespace Gillespy
 
 			for (sunindextype species = 0; species < N; species++)
 			{
-				simulation->trajectories[0][current_time][(int)species] = NV_Ith_S(y0, species);
+				simulation->current_state[(int)species] = NV_Ith_S(y0, species);
 			}
+			simulation->output_buffer_range(std::cout);
 		}
 
 		// Deallocate the solution vector.

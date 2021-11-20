@@ -60,3 +60,26 @@ class GillesPySolver:
     def get_solver_settings(self):
 
         raise SimulationError("This abstract solver class cannot be used directly")
+
+    def get_increment(self, model, increment):
+        """
+        Set the default increment value if it was not provided
+
+        :param model: The model on which the tspan can be found.
+        :type model: gillespy.Model
+
+        :param increment: The current value of increment.
+        :type increment: int
+        """
+        if increment is None:
+            return model.tspan[-1] - model.tspan[-2]
+        if model.user_set_tspan:
+            raise  SimulationError(
+                """
+                Failed while preparing to run the model. Both increment and timespan are set.
+
+                To continue either remove your `timespan` definition from your Model or remove the 
+                `increment` argument from this `solver.run()` call.               
+                """
+            )
+        return increment

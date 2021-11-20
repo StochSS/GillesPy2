@@ -49,4 +49,5 @@ namespace Gillespy
 
 	extern template void add_reactions<double>(Model<double> &model);
 	extern template void add_reactions<unsigned int>(Model<unsigned int> &model);
+	extern template void add_reactions<int>(Model<int> &model);
 }

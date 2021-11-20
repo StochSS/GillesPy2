@@ -241,6 +241,37 @@ class Results(UserList, Jsonify):
             results.append(newArray)
         return results
 
+    @classmethod
+    def build_from_solver_results(cls, solver, live_output_options):
+        """
+        Build a gillespy2.Results object using the provided solver results.
+
+        :param solver: The solver used to run the simulation.
+        :type solver: gillespy2.GillesPySolver
+
+        :param live_output_options: dictionary contains options for live_output. By default {"interval":1}.
+            "interval" specifies seconds between displaying.
+            "clear_output" specifies if display should be refreshed with each display
+        :type live_output_options: dict
+        """
+        if solver.rc == 33:
+            from gillespy2.core import log
+            log.warning('GillesPy2 simulation exceeded timeout.')
+        if hasattr(solver.result[0], 'shape'):
+            return solver.result
+        if len(solver.result) > 0:
+            results_list = []
+            for i in range(0, len(solver.result)):
+                temp = Trajectory(data=solver.result[i], model=solver.model, solver_name=solver.name, rc=solver.rc)
+                results_list.append(temp)
+
+            results = Results(results_list)
+            if "type" in live_output_options.keys() and live_output_options['type'] == "graph":
+                results.plot()
+            return results
+        else:
+            raise ValueError("number_of_trajectories must be non-negative and non-zero")
+
     def to_csv(self, path=None, nametag=None, stamp=None):
         """
         Outputs the Results to one or more .csv files in a new directory.

@@ -20,6 +20,8 @@ import os
 import gillespy2
 import numpy as np
 import math
+import re
+
 try:
     import libsbml
 except ImportError:
@@ -66,13 +68,13 @@ def __read_sbml_model(filename):
 def __get_math(math):
     math_str = libsbml.formulaToL3String(math)
     replacements = {
-        '\bln\b': 'log',
-        '^': '**',
-        '&&': 'and',
-        '||': 'or'
+        r'\bln\b': 'log',
+        r'\^': '**',
+        r'\&\&': 'and',
+        r'\|\|': 'or'
         }
     for old, new in replacements.items():
-        math_str = math_str.replace(old, new)
+        math_str = re.sub(old, new, math_str)
     return math_str
 
 def __get_species(sbml_model, gillespy_model, errors):

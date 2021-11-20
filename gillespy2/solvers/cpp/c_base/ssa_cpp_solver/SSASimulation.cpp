@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 	}
 
 	Simulation<unsigned int> simulation;
-	
+	simulation.output_interval = parser.output_interval;
 	simulation.model = &model;
 	simulation.end_time = end_time;
 	simulation.random_seed = random_seed;
@@ -71,9 +71,8 @@ int main(int argc, char *argv[])
 	simulation.number_trajectories = number_trajectories;
 	
 	init_simulation(&model, simulation);
-	
 	ssa_direct(&simulation);
-	simulation.output_results_buffer(std::cout);
+	simulation.output_buffer_final(std::cout);
 
 	return 0;
 }

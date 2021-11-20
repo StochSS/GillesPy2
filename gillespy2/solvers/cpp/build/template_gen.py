@@ -137,9 +137,19 @@ class SanitizedModel:
         :returns: Pass-through of sanitized model object.
         :rtype: SanitizedModel
         """
-        variable = rate_rule.variable \
-            if isinstance(rate_rule.variable, Species) \
-            else self.model.get_species(rate_rule.variable)
+
+        if isinstance(rate_rule.variable, Species):
+            variable = rate_rule.variable
+        elif not isinstance(rate_rule.variable, Parameter) and \
+                    rate_rule.variable in self.model.listOfSpecies.keys():
+            variable = self.model.get_species(rate_rule.variable)
+        else:
+            errmsg = """
+            Parameters are not valid variables for the TauHybridCSolver.
+
+            In order to use this variable it will need to be a gillespy2.Species.
+            """
+            raise SimulationError(errmsg)
 
         if variable.name in self.species_names:
             sanitized_name = self.species_names.get(variable.name)

@@ -32,36 +32,44 @@ class Parameter(SortableObject, Jsonify):
     :param expression: String for a function calculating parameter values. Should be
         evaluable in namespace of Model.
     :type expression: str
-
-    :param value: Value of a parameter if it is not dependent on other Model entities.
-    :type value: float
     """
 
-    def __init__(self, name="", expression=None, value=None):
+    def __init__(self, name="", expression=None):
 
+        self.value = None
         self.name = name
         # We allow expression to be passed in as a non-string type. Invalid strings
         # will be caught below. It is perfectly fine to give a scalar value as the expression.
         # This can then be evaluated in an empty namespace to the scalar value.
-        self.expression = expression
-        if expression is not None:
-            self.expression = str(expression)
 
-        self.value = value
+        if expression is None:
+            raise ParameterError("Parameter expression can not be none")
 
-        # self.value is allowed to be None, but not self.expression. self.value
-        # might not be evaluable in the namespace of this parameter, but defined
-        # in the context of a model or reaction.
-        if self.expression is None:
-            raise TypeError
-
-        if self.value is None:
-            self.evaluate()
+        self.expression = str(expression)
 
     def __str__(self):
-        return self.name + ': ' + self.expression
+        return self.name + ': ' + str(self.expression)
 
-    def evaluate(self, namespace={}):
+    def set_expression(self, expression):
+        """
+        Sets the expression for a parameter.
+        """
+        # We allow expression to be passed in as a non-string type. Invalid
+        # strings will be caught below. It is perfectly fine to give a scalar
+        # value as the expression. This can then be evaluated in an empty
+        # namespace to the scalar value.
+
+        log.warning("'Parameter.set_expression' has been deprecated, future versions of GillesPy2 will not support"
+                    " this function. To set expression within a parameter, use Parameter.expression = expression")
+
+        if expression is None:
+            raise ParameterError("Parameter expression can not be none")
+
+        self.expression = str(expression)
+
+
+
+    def _evaluate(self, namespace={}):
         """
         Evaluate the expression and return the (scalar) value in the given
         namespace.
@@ -73,25 +81,8 @@ class Parameter(SortableObject, Jsonify):
 
         try:
             self.value = (float(eval(self.expression, namespace)))
-        except:
-            self.value = None
-
-    def set_expression(self, expression):
-        """
-        Sets the expression for a parameter.
-        """
-        self.expression = expression
-        # We allow expression to be passed in as a non-string type. Invalid
-        # strings will be caught below. It is perfectly fine to give a scalar
-        # value as the expression. This can then be evaluated in an empty
-        # namespace to the scalar value.
-        if expression is not None:
-            self.expression = str(expression)
-
-        if self.expression is None:
-            raise TypeError
-
-        self.evaluate()
+        except Exception as error:
+            raise ParameterError("Could not evaluate expression: {}.".format(str(error))) from error
 
     def sanitized_expression(self, species_mappings, parameter_mappings):
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
