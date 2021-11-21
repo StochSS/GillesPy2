@@ -924,15 +924,11 @@ class Model(SortableObject, Jsonify):
             raise ModelError("Invalid value for the argument 'algorithm' entered. "
                              "Please enter 'SSA', 'ODE', or 'Tau-leaping'.")
 
-    def run(self, solver=None, timeout=0, t=None, increment=None, show_labels=True, cpp_support=False, algorithm=None,
+    def run(self, timeout=0, t=None, increment=None, show_labels=True, cpp_support=False, algorithm=None,
             **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
-
-        :param solver: The solver by which to simulate the model. This solver object may
-            be initialized separately to specify an algorithm. Optional, defaults to ssa solver.
-        :type solver: gillespy.GillesPySolver
 
         :param timeout: Allows a time_out value in seconds to be sent to a signal handler, restricting simulation run-time
         :type timeout: int
@@ -967,7 +963,7 @@ class Model(SortableObject, Jsonify):
 
         if t is None:
             t = self.tspan[-1]
-
+# TODO handle absence of solver arg
         if solver is None:
             if algorithm is not None:
                 solver = self.get_best_solver_algo(algorithm)
@@ -990,6 +986,7 @@ class Model(SortableObject, Jsonify):
             # If user has specified the SSACSolver, but they don't actually have a g++ compiler,
             # This will throw an error and throw log. IF a user specifies cpp_support == True and don't have a compiler
             # They would bypass this log.warning and just recieve an error
+            # TODO improve
             if cpp_support is False and not isinstance(solver, str):
                 if solver.name == 'SSACSolver':
                     from gillespy2.core import log
