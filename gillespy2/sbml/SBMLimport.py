@@ -125,7 +125,10 @@ def __get_parameters(sbml_model, gillespy_model):
     for i in range(sbml_model.getNumParameters()):
         parameter = sbml_model.getParameter(i)
         name = parameter.getId()
-        value = parameter.getValue()
+        if parameter.isSetValue():
+            value = parameter.getValue()
+        else:
+            value = 0
         init_state[name] = value
 
         # GillesPy2 represents non-constant parameters as species
