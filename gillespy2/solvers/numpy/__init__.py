@@ -31,6 +31,7 @@ try:
     from .ode_solver import ODESolver
     from .tau_leaping_solver import TauLeapingSolver
     from .tau_hybrid_solver import TauHybridSolver
+    from .CLE_solver import CLESolver
     log.debug("Successful Import of NumPy solvers.")
 
 except Exception as e:
@@ -38,4 +39,4 @@ except Exception as e:
     can_use_numpy = False
 
 
-__all__ = ['NumPySSASolver', 'ODESolver', 'TauLeapingSolver', 'TauHybridSolver'] if can_use_numpy else []
+__all__ = ['NumPySSASolver', 'ODESolver', 'TauLeapingSolver', 'TauHybridSolver', 'CLESolver'] if can_use_numpy else []
