@@ -206,23 +206,6 @@ namespace Gillespy
 							//   resulting in an early termination of the trajectory.
 							break;
 						}
-						else if (!rxn_roots.empty())
-						{
-							// "Direct" roots found; these are executed manually
-							for (unsigned int rxn_i : rxn_roots)
-							{
-								// "Fire" a reaction by recording changes in dependent species.
-								// If a negative value is detected, break without saving changes.
-								for (int spec_i = 0; spec_i < num_species; ++spec_i)
-								{
-									// Unlike the Tau-leaping version of reaction firings,
-									// it is not possible to have a negative state occur in direct reactions.
-									population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i];
-									result.reactions[rxn_i] = log(urn.next());
-								}
-							}
-							continue;
-						}
 
 						// The integrator has, at this point, been validated.
 						// Any errors beyond this point is assumed to be a stochastic state failure.
@@ -240,40 +223,60 @@ namespace Gillespy
 							current_state[spec_i] = result.concentrations[spec_i];
 						}
 
-						// The newly-updated reaction_states vector may need to be reconciled now.
-						// A positive reaction_state means reactions have potentially fired.
-						// NOTE: it is possible for a population to swing negative, where a smaller Tau is needed.
-						for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
+						if (!rxn_roots.empty())
 						{
-							// Temporary variable for the reaction's state.
-							// Does not get updated unless the changes are deemed valid.
-							double rxn_state = result.reactions[rxn_i];
-
-							switch (simulation->reaction_state[rxn_i].mode)
+							// "Direct" roots found; these are executed manually
+							for (unsigned int rxn_i : rxn_roots)
 							{
-							case SimulationState::DISCRETE:
-								while (rxn_state >= 0)
+								// "Fire" a reaction by recording changes in dependent species.
+								// If a negative value is detected, break without saving changes.
+								for (int spec_i = 0; spec_i < num_species; ++spec_i)
 								{
-									// "Fire" a reaction by recording changes in dependent species.
-									// If a negative value is detected, break without saving changes.
-									for (int spec_i = 0; spec_i < num_species; ++spec_i)
-									{
-										population_changes[spec_i] +=
-												model.reactions[rxn_i].species_change[spec_i];
-										if (current_state[spec_i] + population_changes[spec_i] < 0)
-										{
-											invalid_state = true;
-										}
-									}
-
-									rxn_state += log(urn.next());
+									// Unlike the Tau-leaping version of reaction firings,
+									// it is not possible to have a negative state occur in direct reactions.
+									population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i];
+									result.reactions[rxn_i] = log(urn.next());
 								}
-								result.reactions[rxn_i] = rxn_state;
-								break;
+							}
+							rxn_roots.clear();
+						}
+						else
+						{
+							// The newly-updated reaction_states vector may need to be reconciled now.
+							// A positive reaction_state means reactions have potentially fired.
+							// NOTE: it is possible for a population to swing negative, where a smaller Tau is needed.
+							for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
+							{
+								// Temporary variable for the reaction's state.
+								// Does not get updated unless the changes are deemed valid.
+								double rxn_state = result.reactions[rxn_i];
 
-							case SimulationState::CONTINUOUS:
-							default:
-								break;
+								switch (simulation->reaction_state[rxn_i].mode)
+								{
+								case SimulationState::DISCRETE:
+									while (rxn_state >= 0)
+									{
+										// "Fire" a reaction by recording changes in dependent species.
+										// If a negative value is detected, break without saving changes.
+										for (int spec_i = 0; spec_i < num_species; ++spec_i)
+										{
+											population_changes[spec_i] +=
+													model.reactions[rxn_i].species_change[spec_i];
+											if (current_state[spec_i] + population_changes[spec_i] < 0)
+											{
+												invalid_state = true;
+											}
+										}
+
+										rxn_state += log(urn.next());
+									}
+									result.reactions[rxn_i] = rxn_state;
+									break;
+
+								case SimulationState::CONTINUOUS:
+								default:
+									break;
+								}
 							}
 						}
 
