@@ -40,6 +40,10 @@ class ODECSolver(GillesPySolver, CSolver):
 
         if self is None or self.model is None:
             self = ODECSolver(model, resume=resume)
+        if self.model is not None:
+            self.model.resolve_parameters()
+        if model is not None:
+            model.resolve_parameters()
 
         increment = self.get_increment(model=model, increment=increment)
 

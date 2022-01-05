@@ -73,6 +73,10 @@ class NumPySSASolver(GillesPySolver):
 
         if isinstance(self, type):
             self = NumPySSASolver(model=model)
+        if self.model is not None:
+            self.model.resolve_parameters()
+        if model is not None:
+            model.resolve_parameters()
 
         increment = self.get_increment(model=model, increment=increment)
 
