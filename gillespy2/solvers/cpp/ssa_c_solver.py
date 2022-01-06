@@ -39,7 +39,7 @@ class SSACSolver(GillesPySolver, CSolver):
             increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
             resume=None, live_output: str = None, live_output_options: dict = {}, **kwargs):
 
-        if self is None or self.model is None:
+        if isinstance(self, type):
             self = SSACSolver(model, resume=resume)
         if self.model is None:
             if model is None:
