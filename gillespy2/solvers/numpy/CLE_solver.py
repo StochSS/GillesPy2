@@ -191,7 +191,7 @@ class CLESolver(GillesPySolver):
         curr_state = [None]
         live_grapher = [None]
 
-        sim_thread = Thread(target=self.___run, args=(self.model, curr_state, total_time, timeline, trajectory_base, tmpSpecies,
+        sim_thread = Thread(target=self.___run, args=(curr_state, total_time, timeline, trajectory_base, tmpSpecies,
                                                       live_grapher,), kwargs={'t': t,
                                                                               'number_of_trajectories':
                                                                                   number_of_trajectories,
