@@ -38,7 +38,7 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
             increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={}, 
             resume=None, live_output: str = None, live_output_options: dict = {}, tau_tol=0.03, **kwargs):
 
-        if isinstance(self, type):
+        if self is None:
             self = TauLeapingCSolver(model, resume=resume)
         if self.model is None:
             if model is None:

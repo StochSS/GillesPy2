@@ -80,17 +80,15 @@ class CSolver:
         self.output_directory = output_directory
         self.delete_directory = delete_directory
 
-        if self.model is None:
-            return
-
-        self._build(model, self.target, variable, False)
-        self.species_mappings = self.model.sanitized_species_names()
-        self.species = list(self.species_mappings.keys())
-        self.parameter_mappings = self.model.sanitized_parameter_names()
-        self.parameters = list(self.parameter_mappings.keys())
-        self.reactions = list(self.model.listOfReactions.keys())
-        self.result = []
-        self.rc = 0
+        if self.model is not None:
+            self._build(model, self.target, variable, False)
+            self.species_mappings = self.model.sanitized_species_names()
+            self.species = list(self.species_mappings.keys())
+            self.parameter_mappings = self.model.sanitized_parameter_names()
+            self.parameters = list(self.parameter_mappings.keys())
+            self.reactions = list(self.model.listOfReactions.keys())
+            self.result = []
+            self.rc = 0
 
     def __del__(self):
         if self.build_engine is None:
