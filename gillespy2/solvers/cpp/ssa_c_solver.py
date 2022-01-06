@@ -41,12 +41,15 @@ class SSACSolver(GillesPySolver, CSolver):
 
         if self is None or self.model is None:
             self = SSACSolver(model, resume=resume)
-        if self.model is not None:
-            self.model.resolve_parameters()
-        if model is not None:
-            model.resolve_parameters()
+        if self.model is None:
+            if model is None:
+                raise SimulationError("A model is required to run the simulation.")
+            self.model = model
+        if model is not None and model.get_json_hash() != self.model.get_json_hash():
+            raise SimulationError("Model must equal SSACSolver.model.")
+        self.model.resolve_parameters()
 
-        increment = self.get_increment(model=model, increment=increment)
+        increment = self.get_increment(increment=increment)
 
         # Validate parameters prior to running the model.
         self._validate_type(variables, dict, "'variables' argument must be a dictionary.")
@@ -54,10 +57,10 @@ class SSACSolver(GillesPySolver, CSolver):
         self._validate_resume(t, resume)
         self._validate_kwargs(**kwargs)
         self._validate_sbml_features({
-            "Rate Rules": len(model.listOfRateRules),
-            "Assignment Rules": len(model.listOfAssignmentRules),
-            "Events": len(model.listOfEvents),
-            "Function Definitions": len(model.listOfFunctionDefinitions)
+            "Rate Rules": len(self.model.listOfRateRules),
+            "Assignment Rules": len(self.model.listOfAssignmentRules),
+            "Events": len(self.model.listOfEvents),
+            "Function Definitions": len(self.model.listOfFunctionDefinitions)
         })
 
         if resume is not None:
@@ -73,8 +76,8 @@ class SSACSolver(GillesPySolver, CSolver):
         }
 
         if self.variable:
-            populations = cutils.update_species_init_values(model.listOfSpecies, self.species, variables, resume)
-            parameter_values = cutils.change_param_values(model.listOfParameters, self.parameters, model.volume, variables)
+            populations = cutils.update_species_init_values(self.model.listOfSpecies, self.species, variables, resume)
+            parameter_values = cutils.change_param_values(self.model.listOfParameters, self.parameters, self.model.volume, variables)
 
             args.update({
                 "init_pop": populations,
@@ -90,7 +93,7 @@ class SSACSolver(GillesPySolver, CSolver):
         if live_output is not None:
             live_output_options['type'] = live_output
             display_args = {
-                "model": model, "number_of_trajectories": number_of_trajectories, "timeline": np.linspace(0, t, number_timesteps),
+                "model": self.model, "number_of_trajectories": number_of_trajectories, "timeline": np.linspace(0, t, number_timesteps),
                 "live_output_options": live_output_options, "resume": bool(resume)
             }
         else:
@@ -99,7 +102,7 @@ class SSACSolver(GillesPySolver, CSolver):
         args = self._make_args(args)
         decoder = IterativeSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
 
-        sim_exec = self._build(model, self.target, self.variable, False)
+        sim_exec = self._build(self.model, self.target, self.variable, False)
         sim_status = self._run(sim_exec, args, decoder, timeout, display_args)
 
         if sim_status == SimulationReturnCode.FAILED:
