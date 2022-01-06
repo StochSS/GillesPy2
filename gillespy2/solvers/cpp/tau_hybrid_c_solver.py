@@ -73,7 +73,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
-            self.model = model
+            self._set_model(model=model)
         if model is not None and model.get_json_hash() != self.model.get_json_hash():
             raise SimulationError("Model must equal TauHybridCSolver.model.")
         self.model.resolve_parameters()
