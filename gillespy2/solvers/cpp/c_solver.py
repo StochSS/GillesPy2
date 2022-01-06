@@ -307,7 +307,7 @@ class CSolver:
         if model is not None:
             self.model = model
 
-        self._build(model, self.target, variable, False)
+        self._build(self.model, self.target, self.variable, False)
         self.species_mappings = self.model.sanitized_species_names()
         self.species = list(self.species_mappings.keys())
         self.parameter_mappings = self.model.sanitized_parameter_names()
