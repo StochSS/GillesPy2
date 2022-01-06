@@ -150,12 +150,15 @@ class CLESolver(GillesPySolver):
 
         if isinstance(self, type):
             self = CLESolver(model=model, debug=debug, profile=profile)
-        if self.model is not None:
-            self.model.resolve_parameters()
-        if model is not None:
-            model.resolve_parameters()
+        if self.model is None:
+            if model is None:
+                raise SimulationError("A model is required to run the simulation.")
+            self.model = model
+        if model is not None and model.get_json_hash() != self.model.get_json_hash():
+            raise SimulationError("Model must equal CLESolver.model.")
+        self.model.resolve_parameters()
 
-        increment = self.get_increment(model=model, increment=increment)
+        increment = self.get_increment(increment=increment)
 
         self.stop_event = Event()
         self.pause_event = Event()
@@ -175,8 +178,8 @@ class CLESolver(GillesPySolver):
         else:
             timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
-        species = list(model._listOfSpecies.keys())
-        trajectory_base, tmpSpecies = nputils.numpy_trajectory_base_initialization(model, number_of_trajectories,
+        species = list(self.model._listOfSpecies.keys())
+        trajectory_base, tmpSpecies = nputils.numpy_trajectory_base_initialization(self.model, number_of_trajectories,
                                                                                    timeline, species, resume=resume)
 
         # total_time and curr_state are list of len 1 so that __run receives reference
@@ -188,7 +191,7 @@ class CLESolver(GillesPySolver):
         curr_state = [None]
         live_grapher = [None]
 
-        sim_thread = Thread(target=self.___run, args=(model, curr_state, total_time, timeline, trajectory_base, tmpSpecies,
+        sim_thread = Thread(target=self.___run, args=(self.model, curr_state, total_time, timeline, trajectory_base, tmpSpecies,
                                                       live_grapher,), kwargs={'t': t,
                                                                               'number_of_trajectories':
                                                                                   number_of_trajectories,
@@ -209,7 +212,7 @@ class CLESolver(GillesPySolver):
                 else:
                     resumeTest = False
                 live_grapher[
-                    0] = gillespy2.core.liveGraphing.LiveDisplayer(model,
+                    0] = gillespy2.core.liveGraphing.LiveDisplayer(self.model,
                                                                    timeline,
                                                                    number_of_trajectories,
                                                                    live_output_options,
@@ -251,12 +254,12 @@ class CLESolver(GillesPySolver):
 
         return Results.build_from_solver_results(self, live_output_options)
 
-    def ___run(self, model, curr_state,total_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
+    def ___run(self, curr_state,total_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
                number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, show_labels=True,
                timeout=None, resume=None, tau_tol=0.03, **kwargs):
 
         try:
-            self.__run(model, curr_state, total_time, timeline, trajectory_base, tmpSpecies, live_grapher, t, number_of_trajectories,
+            self.__run(curr_state, total_time, timeline, trajectory_base, tmpSpecies, live_grapher, t, number_of_trajectories,
                        increment, seed, debug, profile, timeout, resume, tau_tol, **kwargs)
 
         except Exception as e:
@@ -264,7 +267,7 @@ class CLESolver(GillesPySolver):
             self.result = []
             return [], -1
 
-    def __run(self, model, curr_state, total_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
+    def __run(self, curr_state, total_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
               number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, timeout=None,
               resume=None, tau_tol=0.03, **kwargs):
 
@@ -272,7 +275,7 @@ class CLESolver(GillesPySolver):
         # how species and time are initialized to 0
         timeStopped = 0
         if resume is not None:
-            if resume[0].model != model:
+            if resume[0].model != self.model:
                 raise ModelError('When resuming, one must not alter the model being resumed.')
             if t < resume['time'][-1]:
                 raise ExecutionError(
@@ -282,7 +285,7 @@ class CLESolver(GillesPySolver):
             print("t = ", t)
             print("increment = ", increment)
 
-        species_mappings, species, parameter_mappings, number_species = nputils.numpy_initialization(model)
+        species_mappings, species, parameter_mappings, number_species = nputils.numpy_initialization(self.model)
 
         if seed is not None:
             if not isinstance(seed, int):
@@ -305,7 +308,7 @@ class CLESolver(GillesPySolver):
             if live_grapher[0] is not None:
                 live_grapher[0].increment_trajectory(trajectory_num)
 
-            start_state = [0] * (len(model.listOfReactions) + len(model.listOfRateRules))
+            start_state = [0] * (len(self.model.listOfReactions) + len(self.model.listOfRateRules))
             propensities = {}
             curr_state[0] = {}
 
@@ -316,35 +319,35 @@ class CLESolver(GillesPySolver):
                 save_time = 0
                 curr_time = [0]
 
-            curr_state[0]['vol'] = model.volume
+            curr_state[0]['vol'] = self.model.volume
             data = {'time': timeline}
             steps_taken = []
             steps_rejected = 0
             entry_count = 0
             trajectory = trajectory_base[trajectory_num]
 
-            HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold = Tau.initialize(model, tau_tol)
+            HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, critical_threshold = Tau.initialize(self.model, tau_tol)
 
             if resume is not None:
-                for spec in model.listOfSpecies:
+                for spec in self.model.listOfSpecies:
                     curr_state[0][spec] = tmpSpecies[spec]
             else:
-                for spec in model.listOfSpecies:
-                    curr_state[0][spec] = model.listOfSpecies[spec].initial_value
+                for spec in self.model.listOfSpecies:
+                    curr_state[0][spec] = self.model.listOfSpecies[spec].initial_value
 
-            for param in model.listOfParameters:
-                curr_state[0][param] = model.listOfParameters[param].value
+            for param in self.model.listOfParameters:
+                curr_state[0][param] = self.model.listOfParameters[param].value
 
-            for i, rxn in enumerate(model.listOfReactions):
+            for i, rxn in enumerate(self.model.listOfReactions):
                 # set reactions to uniform random number and add to start_state
                 start_state[i] = (math.log(random.uniform(0, 1)))
                 if debug:
                     print("Setting Random number ",
-                          start_state[i], " for ", model.listOfReactions[rxn].name)
+                          start_state[i], " for ", self.model.listOfReactions[rxn].name)
 
             compiled_propensities = {}
-            for i, r in enumerate(model.listOfReactions):
-                compiled_propensities[r] = compile(model.listOfReactions[r].ode_propensity_function, '<string>', 'eval')
+            for i, r in enumerate(self.model.listOfReactions):
+                compiled_propensities[r] = compile(self.model.listOfReactions[r].ode_propensity_function, '<string>', 'eval')
 
             timestep = 0
             
@@ -368,12 +371,12 @@ class CLESolver(GillesPySolver):
 
                     propensity_sum = 0
 
-                    for i, r in enumerate(model.listOfReactions):
+                    for i, r in enumerate(self.model.listOfReactions):
                         propensities[r] = eval(compiled_propensities[r], curr_state[0])
                         propensity_sum += propensities[r]
 
                     tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
-                                model, propensities, curr_state[0], curr_time[0], save_time]
+                                self.model, propensities, curr_state[0], curr_time[0], save_time]
 
                     tau_step = Tau.select(*tau_args)
 
@@ -390,19 +393,19 @@ class CLESolver(GillesPySolver):
 
                         reactions, curr_state[0], curr_time[0] = self.__get_reactions(
                             tau_step, curr_state[0], curr_time[0], save_time,
-                            propensities, model.listOfReactions)
+                            propensities, self.model.listOfReactions)
 
                         # Update curr_state with the result of the CLE step
                         species_modified = {}
-                        for i, rxn in enumerate(model.listOfReactions):
+                        for i, rxn in enumerate(self.model.listOfReactions):
                             if reactions[rxn] > 0:
-                                for reactant in model.listOfReactions[rxn].reactants:
+                                for reactant in self.model.listOfReactions[rxn].reactants:
                                     species_modified[reactant.name] = True
-                                    curr_state[0][reactant.name] -= model.listOfReactions[
+                                    curr_state[0][reactant.name] -= self.model.listOfReactions[
                                         rxn].reactants[reactant] * reactions[rxn]
-                                for product in model.listOfReactions[rxn].products:
+                                for product in self.model.listOfReactions[rxn].products:
                                     species_modified[product.name] = True
-                                    curr_state[0][product.name] += model.listOfReactions[
+                                    curr_state[0][product.name] += self.model.listOfReactions[
                                         rxn].products[product] * reactions[rxn]
                         neg_state = False
                         for spec in species_modified:
