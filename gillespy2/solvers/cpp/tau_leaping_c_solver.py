@@ -15,6 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+import numpy as np
 
 from gillespy2.solvers.cpp.c_decoder import IterativeSimDecoder
 from gillespy2.solvers.utilities import solverutils as cutils

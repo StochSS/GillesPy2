@@ -304,8 +304,7 @@ class Reaction(SortableObject, Jsonify):
                 rname = r.name
             # Case 1: 2X -> Y
             if self.reactants[r] == 2:
-                propensity_function = (propensity_function +
-                                       "*" + rname + "*(" + rname + "-1)/vol")
+                propensity_function = "0.5 * {0} * {1} * ({1} - 1) / vol".format(propensity_function, rname)
                 ode_propensity_function += '*' + rname + '*' + rname
             else:
                 # Case 3: X1, X2 -> Y;

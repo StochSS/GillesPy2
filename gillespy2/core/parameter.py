@@ -58,6 +58,7 @@ class Parameter(SortableObject, Jsonify):
         # strings will be caught below. It is perfectly fine to give a scalar
         # value as the expression. This can then be evaluated in an empty
         # namespace to the scalar value.
+        from gillespy2.core import log
 
         log.warning("'Parameter.set_expression' has been deprecated, future versions of GillesPy2 will not support"
                     " this function. To set expression within a parameter, use Parameter.expression = expression")
