@@ -24,10 +24,26 @@
 #include "HybridModel.h"
 #include "template_defaults.h"
 
-namespace Gillespy::TauHybrid
+#include <functional>
+#include <initializer_list>
+
+#ifndef GPY_HYBRID_EVENTS
+#define GPY_HYBRID_EVENTS
+#define GPY_HYBRID_NUM_EVENTS 0
+#endif
+
+#ifndef GPY_HYBRID_EVENT_ASSIGNMENTS
+#define GPY_HYBRID_EVENT_ASSIGNMENTS
+#define GPY_HYBRID_NUM_EVENT_ASSIGNMENTS 0
+#endif
+
+namespace Gillespy
 {
+	namespace TauHybrid
+	{
 
-	void map_species_modes(std::vector<HybridSpecies> &species);
-	void map_rate_rules(std::vector<HybridSpecies> &species);
+		void map_species_modes(std::vector<HybridSpecies> &species);
+		void map_rate_rules(std::vector<HybridSpecies> &species);
 
+	}
 }

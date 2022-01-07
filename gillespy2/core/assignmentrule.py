@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import uuid
+
 from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.jsonify import Jsonify
 
@@ -36,9 +38,12 @@ class AssignmentRule(SortableObject, Jsonify):
     """
 
     def __init__(self, variable=None, formula=None, name=None):
+        if name in (None, ""):
+            self.name = f'ar{uuid.uuid4()}'.replace('-', '_')
+        else:
+            self.name = name
         self.variable = variable
         self.formula = formula
-        self.name = name
 
     def __str__(self):
         return self.variable + ': ' + self.formula

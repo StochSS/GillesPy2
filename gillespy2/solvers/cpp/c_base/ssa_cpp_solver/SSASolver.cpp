@@ -80,7 +80,7 @@ namespace Gillespy
 				//calculate initial propensities
 				for (unsigned int reaction_number = 0; reaction_number < ((simulation->model)->number_reactions); reaction_number++)
 				{
-					propensity_values[reaction_number] = (simulation->propensity_function)->evaluate(reaction_number, simulation->current_state);
+					propensity_values[reaction_number] = Reaction::propensity(reaction_number, simulation->current_state);
 				}
 
 				double propensity_sum;
@@ -126,7 +126,7 @@ namespace Gillespy
 							//Recalculate needed propensities
 							for (unsigned int &affected_reaction : reaction.affected_reactions)
 							{
-								propensity_values[affected_reaction] = (simulation->propensity_function)->evaluate(affected_reaction, simulation->current_state);
+								propensity_values[affected_reaction] = Reaction::propensity(affected_reaction, simulation->current_state);
 							}
 
 							break;

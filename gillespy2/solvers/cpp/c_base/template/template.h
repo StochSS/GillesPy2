@@ -22,22 +22,27 @@
  * Includes functions for loading and defining simulation parameters.
  */
 
-#include "model.h"
+#include <sstream>
+#include <vector>
 
 namespace Gillespy
 {
+	template <typename PType>
+	struct Model;
+
 	extern std::vector<double> species_populations;
 	extern std::vector<std::string> species_names;
 	extern std::vector<std::string> reaction_names;
 
-	double map_propensity(int reaction_id, const int *state);
-	double map_propensity(int reaction_id, unsigned int *S);
-	double map_propensity(int reaction_id, int *S);
-	double map_ode_propensity(int reaction_id, const std::vector<double> &state);
-	double map_ode_propensity(int reaction_id, double *S);
+	double map_propensity(unsigned int reaction_id, int *state, double *parameters, const double *constants);
+	double map_propensity(unsigned int reaction_id, unsigned int *S, double *parameters, const double *constants);
+	double map_propensity(unsigned int reaction_id, double *S, double *parameters, const double *constants);
 
 	template <typename T>
 	void add_reactions(Model<T> &model);
+
+	double *get_variables(int *num_variables);
+	double *get_constants(int *num_constants);
 
 	void map_variable_parameters(std::stringstream &stream);
 	void map_variable_populations(std::stringstream &stream);

@@ -39,25 +39,6 @@ unsigned int number_timesteps = 0;
 double end_time = 100.0;
 double increment = 0;
 
-class PropensityFunction : public IPropensityFunction
-{
-public:
-	double evaluate(unsigned int reaction_number, unsigned int *S)
-	{
-		return 1.0;
-	}
-
-	double TauEvaluate(unsigned int reaction_number, const int *S)
-	{
-		return 1.0;
-	}
-
-	double ODEEvaluate(int reaction_number, const std::vector<double> &S)
-	{
-		return map_ode_propensity(reaction_number, S);
-	}
-};
-
 int main(int argc, char *argv[]) {
 	ArgParser parser = ArgParser(argc, argv);
 
@@ -72,6 +53,7 @@ int main(int argc, char *argv[]) {
 	number_timesteps = parser.timesteps;
 	increment = parser.increment;
 
+	Reaction::load_parameters();
 	Model<double> model(species_names, species_populations, reaction_names);
 	add_reactions(model);
 
@@ -80,7 +62,6 @@ int main(int argc, char *argv[]) {
 		random_seed = time(NULL);
 	}
 
-	IPropensityFunction *propensity_function = new PropensityFunction();
 	Simulation<double> simulation;
 
 	simulation.model = &model;
@@ -88,7 +69,6 @@ int main(int argc, char *argv[]) {
 	simulation.random_seed = random_seed;
 	simulation.number_timesteps = number_timesteps;
 	simulation.number_trajectories = number_trajectories;
-	simulation.propensity_function = propensity_function;
 	simulation.current_time = 0.0;
 	simulation.output_interval = parser.output_interval;
 
@@ -97,8 +77,6 @@ int main(int argc, char *argv[]) {
 	simulation.reset_output_buffer(0);
 	ODESolver(&simulation, increment);
 	simulation.output_buffer_final(std::cout);
-
-	delete propensity_function;
 
 	return 0;
 }

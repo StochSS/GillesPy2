@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import uuid
+
 from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.jsonify import Jsonify
 
@@ -38,7 +40,10 @@ class FunctionDefinition(SortableObject, Jsonify):
         if function is None:
             raise TypeError("Function string provided for FunctionDefinition cannot be None")
 
-        self.name = name
+        if name in (None, ""):
+            self.name = f'fd{uuid.uuid4()}'.replace('-', '_')
+        else:
+            self.name = name
         self.function_string = function
         self.args = args
 

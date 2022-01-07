@@ -123,6 +123,7 @@ Integrator::~Integrator()
 	N_VDestroy_Serial(y);
 	CVodeFree(&cvode_mem);
 	SUNLinSolFree_SPGMR(solver);
+	delete[] m_roots;
 }
 
 IntegrationResults Integrator::integrate(double *t)
@@ -131,11 +132,89 @@ IntegrationResults Integrator::integrate(double *t)
 	{
 		return { nullptr, nullptr };
 	}
+	*t = this->t;
 
 	return {
-		NV_DATA_S(y), // NV_DATA_S instead?
+		NV_DATA_S(y),
 		NV_DATA_S(y) + num_species
 	};
+}
+
+IntegrationResults Integrator::integrate(double *t, std::set<int> &event_roots, std::set<unsigned int> &reaction_roots)
+{
+	IntegrationResults results = integrate(t);
+	unsigned long long num_triggers = data.active_triggers.size();
+	unsigned long long num_rxn_roots = data.active_reaction_ids.size();
+	unsigned long long root_size = data.active_triggers.size() + data.active_reaction_ids.size();
+	int *root_results = new int[root_size];
+
+	if (validate(this, CVodeGetRootInfo(cvode_mem, root_results)))
+	{
+		unsigned long long root_id;
+		for (root_id = 0; root_id < num_triggers; ++root_id)
+		{
+			if (root_results[root_id] != 0)
+			{
+				event_roots.insert((int) root_id);
+			}
+		}
+
+		for (; root_id < num_rxn_roots; ++root_id)
+		{
+			if (root_results[root_id] != 0)
+			{
+				reaction_roots.insert(data.active_reaction_ids[root_id]);
+			}
+		}
+	}
+
+	delete[] root_results;
+	return results;
+}
+
+void Integrator::use_events(const std::vector<Event> &events)
+{
+	data.active_triggers.clear();
+	for (auto &event : events)
+	{
+		data.active_triggers.emplace_back([event](double t, const double *state) -> double {
+			return event.trigger(t, state) ? 1.0 : -1.0;
+		});
+	}
+}
+
+void Integrator::use_reactions(const std::vector<HybridReaction> &reactions)
+{
+	data.active_reaction_ids.clear();
+	for (auto &reaction : reactions)
+	{
+		if (reaction.mode == SimulationState::DISCRETE)
+		{
+			// Reaction root-finder should only be used on discrete-valued reactions.
+			// The required IDs are placed into a reference vector and are mapped back out
+			// when the caller of integrate() retrieves them.
+			data.active_reaction_ids.push_back(reaction.base_reaction->id);
+		}
+	}
+}
+
+void Integrator::use_events(const std::vector<Event> &events, const std::vector<HybridReaction> &reactions)
+{
+	use_events(events);
+	use_reactions(reactions);
+}
+
+bool Integrator::enable_root_finder()
+{
+	unsigned long long root_fn_size = data.active_triggers.size() + data.active_reaction_ids.size();
+	return validate(this, CVodeRootInit(cvode_mem, (int) root_fn_size, rootfn));
+}
+
+bool Integrator::disable_root_finder()
+{
+	data.active_triggers.clear();
+	data.active_reaction_ids.clear();
+	return validate(this, CVodeRootInit(cvode_mem, 0, NULL));
 }
 
 
@@ -243,18 +322,18 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 		}
 		else
 		{
-			dydt[spec_i] = (*species)[spec_i].diff_equation.evaluate(t, Y, &populations[0]);
+			dydt[spec_i] = (*species)[spec_i].diff_equation.evaluate(t, Y, populations.data());
 		}
 	}
 
 	// Process deterministic propensity state
 	// These updates get written directly to the integrator's concentration state
-	for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
+	for (unsigned int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
 	{
 		switch ((*reactions)[rxn_i].mode) {
 		case SimulationState::DISCRETE:
 			// Process stochastic reaction state by updating the root offset for each reaction.
-			propensity = HybridReaction::ssa_propensity(rxn_i, &populations[0]);
+			propensity = Reaction::propensity(rxn_i, populations.data());
 			dydt_offsets[rxn_i] = propensity;
 			propensities[rxn_i] = propensity;
 			break;
@@ -268,6 +347,30 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 
 	return 0;
 };
+
+int Gillespy::TauHybrid::rootfn(realtype t, N_Vector y, realtype *gout, void *user_data)
+{
+	IntegratorData &data = *static_cast<IntegratorData*>(user_data);
+	unsigned long long num_triggers = data.active_triggers.size();
+	unsigned long long num_reactions = data.active_reaction_ids.size();
+	realtype *y_t = N_VGetArrayPointer(y);
+	realtype *rxn_t = y_t + data.species_state->size();
+	realtype *rxn_out = gout + num_triggers;
+
+	unsigned long long trigger_id;
+	for (trigger_id = 0; trigger_id < num_triggers; ++trigger_id)
+	{
+		gout[trigger_id] = data.active_triggers[trigger_id](t, y_t);
+	}
+
+	unsigned long long rxn_id;
+	for (rxn_id = 0; rxn_id < num_reactions; ++rxn_id)
+	{
+		rxn_out[rxn_id] = rxn_t[data.active_reaction_ids[rxn_id]];
+	}
+
+	return 0;
+}
 
 
 static bool validate(Integrator *integrator, int retcode)
