@@ -39,7 +39,12 @@ class EventAssignment(Jsonify):
 
     """
 
-    def __init__(self, variable=None, expression=None):
+    def __init__(self, name=None, variable=None, expression=None):
+
+        if name in (None, ""):
+            self.name = f'evn{uuid.uuid4()}'.replace('-', '_')
+        else:
+            self.name = name
 
         self.variable = variable
         self.expression = expression

@@ -38,7 +38,10 @@ class FunctionDefinition(SortableObject, Jsonify):
         if function is None:
             raise TypeError("Function string provided for FunctionDefinition cannot be None")
 
-        self.name = name
+        if name in (None, ""):
+            self.name = f'fd{uuid.uuid4()}'.replace('-', '_')
+        else:
+            self.name = name
         self.function_string = function
         self.args = args
 

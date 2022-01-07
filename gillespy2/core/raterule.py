@@ -34,9 +34,12 @@ class RateRule(SortableObject, Jsonify):
     """
 
     def __init__(self, variable=None, formula='', name=None):
+        if name in (None, ""):
+            self.name = f'rr{uuid.uuid4()}'.replace('-', '_')
+        else:
+            self.name = name
         self.formula = formula
         self.variable = variable
-        self.name = name
 
     def __str__(self):
         try:
