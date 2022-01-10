@@ -169,16 +169,12 @@ namespace Gillespy
 
 			for (sunindextype species_index = 0; species_index < number_species; species_index++)
 			{
-				// If the species is a product of this reaction, add the propensity function.
-				if (model->reactions[reaction_index].species_change[species_index] > 0)
+				// If the species is a product (positive) or reactant (negativ) of this reaction,
+                // add the propensity function multiplied by the species_change value (e.g -2 for 
+                // a bi-molecular reaction reactants). 
+				if (model->reactions[reaction_index].species_change[species_index] != 0)
 				{
-					dydata[species_index] += propensity[reaction_index];
-				}
-
-				// If the species is a reactant, subtract the propensity function.
-				else if (model->reactions[reaction_index].species_change[species_index] < 0)
-				{
-					dydata[species_index] -= propensity[reaction_index];
+					dydata[species_index] += propensity[reaction_index] * model->reactions[reaction_index].species_change[species_index];
 				}
 			}
 		}
