@@ -41,12 +41,3 @@
 #endif
 
 using namespace std;
-
-namespace Gillespy
-{
-    #define VARIABLE(name, value) extern double name;
-    #define CONSTANT(name, value) extern const double name;
-    GPY_PARAMETER_VALUES
-    #undef CONSTANT
-    #undef VARIABLE
-}

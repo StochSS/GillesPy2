@@ -19,8 +19,12 @@
 #pragma once
 
 #include "HybridModel.h"
+#include <vector>
 
-namespace Gillespy::TauHybrid
+namespace Gillespy
 {
-    void TauHybridCSolver(HybridSimulation* simulation, const double tau_tol);
+	namespace TauHybrid
+	{
+    	void TauHybridCSolver(HybridSimulation* simulation, std::vector<Event> &events, double tau_tol);
+	}
 }

@@ -21,6 +21,11 @@
 
 namespace Gillespy {
 
+	int Reaction::s_num_constants;
+	int Reaction::s_num_variables;
+	std::shared_ptr<double> Reaction::s_variables;
+	std::shared_ptr<const double> Reaction::s_constants;
+
 	template <typename PType>
 	Model<PType>::Model(
 		std::vector<std::string> species_names,
