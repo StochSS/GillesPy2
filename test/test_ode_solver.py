@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import unittest
+import sys
 import numpy as np
 import gillespy2
 from example_models import Example, ExampleNoTspan
@@ -77,6 +78,23 @@ class TestBasicODESolver(unittest.TestCase):
             results = ODESolver.run(model=model, increment=0.2)
 
 
+    def test_stoch3(self):
+        class StochTestModel(gillespy2.Model):
+            def __init__(self, parameter_values=None):
+                gillespy2.Model.__init__(self, name='StochTest1')
+                A = gillespy2.Species(name='A', initial_value=10)
+                B = gillespy2.Species(name='B', initial_value=0)
+                self.add_species([A, B])
+                k = gillespy2.Parameter(name='k', expression=10)
+                self.add_parameter([k])
+                r = gillespy2.Reaction(name='r', reactants={A: 1}, products={B:1},
+                    propensity_function="k*A/vol") # testing if 'vol' is a pre-set variable
+                self.add_reaction([r])
+                self.timespan(np.linspace(0, 100, 101))
+        model = StochTestModel()
+        result = model.run(solver=ODESolver)
+        sys.stderr.write(f"\ntest_shoch3(): B={result['B'][-1]}\n\n")
+        self.assertGreateThan(result['B'][-1], 5)
 
 if __name__ == '__main__':
     unittest.main()
