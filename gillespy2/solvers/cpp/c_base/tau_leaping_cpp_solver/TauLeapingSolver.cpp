@@ -148,7 +148,7 @@ namespace Gillespy
 					//calculate propensities for each step
 					for (unsigned int reaction_number = 0; reaction_number < simulation->model->number_reactions; reaction_number++)
 					{
-						propensity_values[reaction_number] = simulation->propensity_function->TauEvaluate(reaction_number, &current_state[0]);
+						propensity_values[reaction_number] = Reaction::propensity(reaction_number, current_state.data());
 					}
 
 					tau_step = select(*(simulation->model), tau_args, tau_tol, simulation->current_time, save_time, propensity_values, current_state);

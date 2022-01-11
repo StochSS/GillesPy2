@@ -73,8 +73,15 @@ class NumPySSASolver(GillesPySolver):
 
         if isinstance(self, type):
             self = NumPySSASolver(model=model)
+        if self.model is None:
+            if model is None:
+                raise SimulationError("A model is required to run the simulation.")
+            self.model = model
+        if model is not None and model.get_json_hash() != self.model.get_json_hash():
+            raise SimulationError("Model must equal NumPySSASolver.model.")
+        self.model.resolve_parameters()
 
-        increment = self.get_increment(model=model, increment=increment)
+        increment = self.get_increment(increment=increment)
 
         self.stop_event = Event()
         self.pause_event = Event()
@@ -94,9 +101,9 @@ class NumPySSASolver(GillesPySolver):
         else:
             timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
-        species = list(model._listOfSpecies.keys())
+        species = list(self.model._listOfSpecies.keys())
 
-        trajectory_base, tmpSpecies = nputils.numpy_trajectory_base_initialization(model, number_of_trajectories,
+        trajectory_base, tmpSpecies = nputils.numpy_trajectory_base_initialization(self.model, number_of_trajectories,
                                                                                    timeline, species, resume=resume)
 
         # curr_time and curr_state are list of len 1 so that __run receives reference
@@ -108,7 +115,7 @@ class NumPySSASolver(GillesPySolver):
         curr_state = [None]
         live_grapher = [None]
 
-        sim_thread = Thread(target=self.___run, args=(model, curr_state, total_time, timeline, trajectory_base,
+        sim_thread = Thread(target=self.___run, args=(curr_state, total_time, timeline, trajectory_base,
                                                       live_grapher,), kwargs={'t': t, 'number_of_trajectories':
                                                                               number_of_trajectories,
                                                                               'increment': increment,
@@ -127,7 +134,7 @@ class NumPySSASolver(GillesPySolver):
                     resumeTest = True  # If resuming, relay this information to live_grapher
                 else:
                     resumeTest = False
-                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(model, timeline, number_of_trajectories,
+                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(self.model, timeline, number_of_trajectories,
                                                                              live_output_options,resume = resumeTest)
                 display_timer = gillespy2.core.liveGraphing.RepeatTimer(live_output_options['interval'],
                                                                         live_grapher[0].display, args=(curr_state,
@@ -165,19 +172,19 @@ class NumPySSASolver(GillesPySolver):
 
         return Results.build_from_solver_results(self, live_output_options)
 
-    def ___run(self, model, curr_state, total_time, timeline, trajectory_base, live_grapher, t=20,
+    def ___run(self, curr_state, total_time, timeline, trajectory_base, live_grapher, t=20,
                number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True, resume=None,
                timeout=None):
 
         try:
-            self.__run(model, curr_state, total_time, timeline, trajectory_base, live_grapher, t, number_of_trajectories,
+            self.__run(curr_state, total_time, timeline, trajectory_base, live_grapher, t, number_of_trajectories,
                        increment, seed, debug, show_labels, resume, timeout)
         except Exception as e:
             self.has_raised_exception = e
             self.result = []
             return [], -1
 
-    def __run(self, model, curr_state, total_time, timeline, trajectory_base, live_grapher, t=20,
+    def __run(self, curr_state, total_time, timeline, trajectory_base, live_grapher, t=20,
               number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True,
               resume=None,  timeout=None):
 
@@ -186,7 +193,7 @@ class NumPySSASolver(GillesPySolver):
         timeStopped = 0
 
         if resume is not None:
-            if resume[0].model != model:
+            if resume[0].model != self.model:
                 raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
             if t < resume['time'][-1]:
                 raise gillespyError.ExecutionError(
@@ -195,18 +202,18 @@ class NumPySSASolver(GillesPySolver):
 
         random.seed(seed)
 
-        species_mappings, species, parameter_mappings, number_species = nputils.numpy_initialization(model)
+        species_mappings, species, parameter_mappings, number_species = nputils.numpy_initialization(self.model)
 
         # create dictionary of all constant parameters for propensity evaluation
-        parameters = {'V': model.volume}
-        for paramName, param in model.listOfParameters.items():
+        parameters = {'V': self.model.volume}
+        for paramName, param in self.model.listOfParameters.items():
             parameters[parameter_mappings[paramName]] = param.value
 
         # create mapping of reaction dictionary to array indices
-        reactions = list(model.listOfReactions.keys())
+        reactions = list(self.model.listOfReactions.keys())
 
         # create mapping of reactions, and which reactions depend on their reactants/products
-        dependent_rxns = nputils.dependency_grapher(model, reactions)
+        dependent_rxns = nputils.dependency_grapher(self.model, reactions)
         number_reactions = len(reactions)
         propensity_functions = {}
 
@@ -217,11 +224,11 @@ class NumPySSASolver(GillesPySolver):
         for i, reaction in enumerate(reactions):
             # replace all references to species with array indices
             for j, spec in enumerate(species):
-                species_changes[i][j] = model.listOfReactions[reaction].products.get(model.listOfSpecies[spec], 0) \
-                                        - model.listOfReactions[reaction].reactants.get(model.listOfSpecies[spec], 0)
+                species_changes[i][j] = self.model.listOfReactions[reaction].products.get(self.model.listOfSpecies[spec], 0) \
+                                        - self.model.listOfReactions[reaction].reactants.get(self.model.listOfSpecies[spec], 0)
                 if debug:
                     print('species_changes: {0},i={1}, j={2}... {3}'.format(species, i, j, species_changes[i][j]))
-            propensity_functions[reaction] = [eval('lambda S:' + model.listOfReactions[reaction].
+            propensity_functions[reaction] = [eval('lambda S:' + self.model.listOfReactions[reaction].
                                                    sanitized_propensity_function(species_mappings, parameter_mappings),
                                                    parameters), i]
         if debug:
@@ -251,11 +258,11 @@ class NumPySSASolver(GillesPySolver):
             else:
                 curr_time = [0]
 
-            for spec in model.listOfSpecies:
+            for spec in self.model.listOfSpecies:
                 if resume is not None:
                     curr_state[0][spec] = resume[spec][-1]
                 else:
-                    curr_state[0][spec] = model.listOfSpecies[spec].initial_value
+                    curr_state[0][spec] = self.model.listOfSpecies[spec].initial_value
 
             propensity_sums = np.zeros(number_reactions)
             # calculate initial propensity sums
@@ -311,7 +318,7 @@ class NumPySSASolver(GillesPySolver):
                         print('if <=0, fire: ', cumulative_sum)
                     if cumulative_sum <= 0:
 
-                        for i,spec in enumerate(model.listOfSpecies):
+                        for i,spec in enumerate(self.model.listOfSpecies):
                             curr_state[0][spec] += species_changes[potential_reaction][i]
 
                         reacName = reactions[potential_reaction]

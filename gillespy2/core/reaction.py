@@ -77,7 +77,10 @@ class Reaction(SortableObject, Jsonify):
         """
 
         # Metadata
-        self.name = name
+        if name in (None, ""):
+            self.name = f'rxn{uuid.uuid4()}'.replace('-', '_')
+        else:
+            self.name = name
         self.annotation = ""
 
         # We might use this flag in the future to automatically generate

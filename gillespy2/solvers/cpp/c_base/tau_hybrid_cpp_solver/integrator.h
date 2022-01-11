@@ -26,8 +26,10 @@
 #include <vector>
 #include <random>
 
-namespace Gillespy::TauHybrid
+namespace Gillespy
 {
+	namespace TauHybrid
+	{
 
 	/* IntegratorStatus: represents the runtime state of the integrator.
 	 * OK indicates that no errors have occurred.
@@ -49,6 +51,13 @@ namespace Gillespy::TauHybrid
 		HybridSimulation *simulation;
 		std::vector<HybridSpecies> *species_state;
 		std::vector<HybridReaction> *reaction_state;
+		std::vector<Event> *events = nullptr;
+		std::vector<std::function<double(double, const double*)>> active_triggers;
+		// Container representing the rootfinder-enabled reactions.
+		// Each integer at index i represents the reaction id corresponding to rootfinder element i.
+		// In `rootfn`, this means that gout[i] is the "output" of reaction active_reaction_ids[i].
+		// This is used to map the internal reaction number to the actual reaction id.
+		std::vector<unsigned int> active_reaction_ids;
 
 		std::vector<double> concentrations;
 		std::vector<int> populations;
@@ -84,6 +93,7 @@ namespace Gillespy::TauHybrid
 		SUNLinearSolver solver;
 		int num_species;
 		int num_reactions;
+		int *m_roots = nullptr;
 	public:
 		// status: check for errors before using the results.
 		IntegrationStatus status;
@@ -114,7 +124,38 @@ namespace Gillespy::TauHybrid
 
 		void reinitialize(N_Vector y_reset);
 
+		/// @brief Make events available to root-finder during integration.
+		/// The root-finder itself is not activated until enable_root_finder() is called.
+		///
+		/// @param events List of event objects to make available to the root-finder.
+		/// The trigger functions of all given events are added as root-finder targets.
+		void use_events(const std::vector<Event> &events);
+
+		/// @brief Make events and reactions available to root-finder during integration.
+		/// The root-finder itself is not activated until enable_root_finder() is called.
+		///
+		/// @param events List of event objects to make available to the root-finder.
+		/// @param reactions List of reaction objects to make available to the root-finder.
+		void use_events(const std::vector<Event> &events, const std::vector<HybridReaction> &reactions);
+
+		/// @brief Make reactions available to root-finder during integration.
+		/// The root-finder itself is not activated until enable_root_finder() is called.
+		///
+		/// @param reactions List of reaction objects to make available to the root-finder.
+		void use_reactions(const std::vector<HybridReaction> &reactions);
+
+		/// @brief Installs a CVODE root-finder onto the integrator.
+		/// Any events or reactions provided by previous calls to use_events() or use_reactions()
+		/// will cause the integrator to return early, which the integrate() method will indicate.
+		bool enable_root_finder();
+
+		/// @brief Removes the CVODE root-finder from the integrator.
+		/// Early returns on root-finder events no longer happen,
+		/// and the underlying SBML event data and reaction data are removed.
+		bool disable_root_finder();
+
 		IntegrationResults integrate(double *t);
+		IntegrationResults integrate(double *t, std::set<int> &event_roots, std::set<unsigned int> &reaction_roots);
 		IntegratorData data;
 
 		Integrator(HybridSimulation *simulation, N_Vector y0, double reltol, double abstol);
@@ -136,5 +177,7 @@ namespace Gillespy::TauHybrid
 	N_Vector init_model_vector(Model<double> &model, URNGenerator urn);
 
 	int rhs(realtype t, N_Vector y, N_Vector ydot, void *user_data);
+	int rootfn(realtype t, N_Vector y, realtype *gout, void *user_data);
 
+	}
 }

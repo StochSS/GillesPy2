@@ -13,15 +13,15 @@ class TauHybridCSolver(GillesPySolver, CSolver):
     target = "hybrid"
 
     @classmethod
-    def __create_options(cls, model: "SanitizedModel") -> "SanitizedModel":
+    def __create_options(cls, sanitized_model: "SanitizedModel") -> "SanitizedModel":
         """
         Populate the given list of species modes into a set of template macro definitions.
         Generated options are specific to the Tau Hybrid solver,
         and get passed as custom definitions to the build engine.
 
-        :param model: Sanitized model containing sanitized species definitions.
+        :param sanitized_model: Sanitized model containing sanitized species definitions.
         The GPY_HYBRID_SPECIES_MODES option will be set as an option for the model.
-        :type model: SanitizedModel
+        :type sanitized_model: SanitizedModel
 
         :returns: Pass-through of sanitized model object.
         :rtype: SanitizedModel
@@ -37,9 +37,27 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             # When species.boundary_condition == True
             "BOUNDARY",
         ]
+        trigger_mode_types = [
+            # When event.use_values_from_trigger_time == False
+            "USE_EVAL",
+            # When event.use_values_from_trigger_time == True
+            "USE_TRIGGER",
+        ]
+        persist_types = [
+            # When event.trigger.persistent == False
+            "IRREGULAR",
+            # When event.trigger.persistent == True
+            "PERSISTENT",
+        ]
+        initial_value_types = [
+            # When event.trigger.initial_value == False
+            "INIT_FALSE",
+            # When event.trigger.initial_value == True
+            "INIT_TRUE",
+        ]
 
         species_mode_list = []
-        for spec_id, species in enumerate(model.species.values()):
+        for spec_id, species in enumerate(sanitized_model.species.values()):
             mode_keyword = species_mode_map.get(species.mode, species_mode_map["dynamic"])
             # Casting a bool to an int evaluates: False -> 0, and True -> 1
             # Explicit cast to bool for safety, in case boundary_condition is given weird values
@@ -48,12 +66,72 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             entry = f"SPECIES_MODE({spec_id},{species.switch_min},{mode_keyword},{boundary_keyword})"
             species_mode_list.append(entry)
 
-        model.options["GPY_HYBRID_SPECIES_MODES"] = " ".join(species_mode_list)
-        return model
+        # EVENT(event_id, {targets}, trigger, delay, priority, use_trigger, use_persist)
+        event_list = []
+        # [SPECIES/VARIABLE]_ASSIGNMENT(assign_id, target_id, expr)
+        event_assignment_list = []
+        assign_id = 0
+        for event_id, event in enumerate(sanitized_model.model.listOfEvents.values()):
+            trigger = sanitized_model.expr.getexpr_cpp(event.trigger.expression)
+            delay = sanitized_model.expr.getexpr_cpp(event.delay) \
+                if event.delay is not None else "0"
+            priority = sanitized_model.expr.getexpr_cpp(event.priority) \
+                if event.priority is not None else "0"
+            use_trigger = trigger_mode_types[int(bool(event.use_values_from_trigger_time))]
+            use_persist = persist_types[int(bool(event.trigger.persistent))]
+            initial_value = initial_value_types[int(bool(event.trigger.value or False))]
+
+            assignments: "list[str]" = []
+            for assign in event.assignments:
+                variable = assign.variable
+                expression = sanitized_model.expr.getexpr_cpp(assign.expression)
+
+                if isinstance(variable, str):
+                    if variable in sanitized_model.model.listOfSpecies:
+                        variable = sanitized_model.model.listOfSpecies.get(variable)
+                    elif variable in sanitized_model.model.listOfParameters:
+                        variable = sanitized_model.model.listOfParameters.get(variable)
+                    else:
+                        raise ValueError(f"Invalid event assignment {assign}: received name {variable} "
+                                         f"Must match the name of a valid Species or Parameter.")
+
+                if isinstance(variable, gillespy2.Species):
+                    assign_str = f"SPECIES_ASSIGNMENT(" \
+                                 f"{assign_id},{sanitized_model.species_id.get(variable.name)},{expression})"
+                elif isinstance(variable, gillespy2.Parameter):
+                    assign_str = f"VARIABLE_ASSIGNMENT(" \
+                                 f"{assign_id},{sanitized_model.parameter_id.get(variable.name)},{expression})"
+                else:
+                    raise ValueError(f"Invalid event assignment {assign}: received variable of type {type(variable)} "
+                                     f"Must be of type str, Species, or Parameter")
+                assignments.append(str(assign_id))
+                event_assignment_list.append(assign_str)
+                assign_id += 1
+            assignments: "str" = " AND ".join(assignments)
+            event_list.append(
+                f"EVENT("
+                f"{event_id},"
+                f"{{{assignments}}},"
+                f"{trigger},"
+                f"{delay},"
+                f"{priority},"
+                f"{use_trigger},"
+                f"{use_persist},"
+                f"{initial_value}"
+                f")"
+            )
+
+        sanitized_model.options["GPY_HYBRID_SPECIES_MODES"] = " ".join(species_mode_list)
+        sanitized_model.options["GPY_HYBRID_EVENTS"] = " ".join(event_list)
+        sanitized_model.options["GPY_HYBRID_NUM_EVENTS"] = str(len(event_list))
+        sanitized_model.options["GPY_HYBRID_EVENT_ASSIGNMENTS"] = " ".join(event_assignment_list)
+        sanitized_model.options["GPY_HYBRID_NUM_EVENT_ASSIGNMENTS"] = str(len(event_assignment_list))
+        return sanitized_model
 
     def _build(self, model: "Union[Model, SanitizedModel]", simulation_name: str, variable: bool, debug: bool = False,
                custom_definitions=None) -> str:
-        sanitized_model = TauHybridCSolver.__create_options(SanitizedModel(model))
+        variable = variable or len(model.listOfEvents) > 0
+        sanitized_model = TauHybridCSolver.__create_options(SanitizedModel(model, variable=variable))
         for rate_rule in model.listOfRateRules.values():
             sanitized_model.use_rate_rule(rate_rule)
         return super()._build(sanitized_model, simulation_name, variable, debug)
@@ -68,10 +146,17 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={}, 
             resume=None, live_output: str = None, live_output_options: dict = {}, tau_step: int = .03, tau_tol=0.03, **kwargs):
 
-        if self is None or self.model is None:
+        if self is None:
             self = TauHybridCSolver(model, resume=resume)
+        if self.model is None:
+            if model is None:
+                raise SimulationError("A model is required to run the simulation.")
+            self._set_model(model=model)
+        if model is not None and model.get_json_hash() != self.model.get_json_hash():
+            raise SimulationError("Model must equal TauHybridCSolver.model.")
+        self.model.resolve_parameters()
 
-        increment = self.get_increment(model=model, increment=increment)
+        increment = self.get_increment(increment=increment)
 
         # Validate parameters prior to running the model.
         self._validate_type(variables, dict, "'variables' argument must be a dictionary.")
@@ -79,9 +164,8 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         self._validate_resume(t, resume)
         self._validate_kwargs(**kwargs)
         self._validate_sbml_features({
-            "Assignment Rules": len(model.listOfAssignmentRules),
-            "Events": len(model.listOfEvents),
-            "Function Definitions": len(model.listOfFunctionDefinitions)
+            "Assignment Rules": len(self.model.listOfAssignmentRules),
+            "Function Definitions": len(self.model.listOfFunctionDefinitions)
         })
 
         if resume is not None:
@@ -98,8 +182,8 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         }
 
         if self.variable:
-            populations = cutils.update_species_init_values(model.listOfSpecies, self.species, variables, resume)
-            parameter_values = cutils.change_param_values(model.listOfParameters, self.parameters, model.volume, variables)
+            populations = cutils.update_species_init_values(self.model.listOfSpecies, self.species, variables, resume)
+            parameter_values = cutils.change_param_values(self.model.listOfParameters, self.parameters, self.model.volume, variables)
 
             args.update({
                 "init_pop": populations,
@@ -115,7 +199,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         if live_output is not None:
             live_output_options['type'] = live_output
             display_args = {
-                "model": model, "number_of_trajectories": number_of_trajectories, "timeline": np.linspace(0, t, number_timesteps),
+                "model": self.model, "number_of_trajectories": number_of_trajectories, "timeline": np.linspace(0, t, number_timesteps),
                 "live_output_options": live_output_options, "resume": bool(resume)
             }
         else:
@@ -124,7 +208,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         args = self._make_args(args)
         decoder = IterativeSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
 
-        sim_exec = self._build(model, self.target, self.variable, False)
+        sim_exec = self._build(self.model, self.target, self.variable, False)
         sim_status = self._run(sim_exec, args, decoder, timeout, display_args)
 
         if sim_status == SimulationReturnCode.FAILED:

@@ -18,13 +18,17 @@
 
 #pragma once
 
+#include "template.h"
+
 #include <cmath>
 #include <memory>
 #include <string>
 #include <vector>
 #include <iostream>
 
-namespace Gillespy {
+namespace Gillespy
+{
+	typedef unsigned int ReactionId;
 
 	template <typename PType>
 	struct Species {
@@ -48,6 +52,59 @@ namespace Gillespy {
 
 		// List of reactions who's propensities will change when this reaction fires.
 		std::unique_ptr<int[]> species_change;
+
+		inline static double propensity(
+				ReactionId reaction_id,
+				double *state,
+				double *parameters,
+				const double *constants)
+		{
+			return map_propensity(reaction_id, state, parameters, constants);
+		}
+
+		inline static double propensity(
+				ReactionId reaction_id,
+				unsigned int *state,
+				double *parameters,
+				const double *constants)
+		{
+			return map_propensity(reaction_id, state, parameters, constants);
+		}
+
+		inline static double propensity(
+				ReactionId reaction_id,
+				int *state,
+				double *parameters,
+				const double *constants)
+		{
+			return map_propensity(reaction_id, state, parameters, constants);
+		}
+
+		inline static double propensity(ReactionId reaction_id, double *state)
+		{
+			return map_propensity(reaction_id, state, s_variables.get(), s_constants.get());
+		}
+
+		inline static double propensity(ReactionId reaction_id, int *state)
+		{
+			return map_propensity(reaction_id, state, s_variables.get(), s_constants.get());
+		}
+
+		inline static double propensity(ReactionId reaction_id, unsigned int *state)
+		{
+			return map_propensity(reaction_id, state, s_variables.get(), s_constants.get());
+		}
+
+		inline static void load_parameters()
+		{
+			s_variables = std::shared_ptr<double>(get_variables(&s_num_variables));
+			s_constants = std::shared_ptr<const double>(get_constants(&s_num_constants));
+		}
+
+		static int s_num_variables;
+		static int s_num_constants;
+		static std::shared_ptr<double> s_variables;
+		static std::shared_ptr<const double> s_constants;
 	};
 
 	template <typename PType>
@@ -65,15 +122,6 @@ namespace Gillespy {
 			std::vector<double> species_populations,
 			std::vector<std::string> reaction_names
 		);
-	};
-
-	class IPropensityFunction {
-	public:
-		virtual double evaluate(unsigned int reaction_number, unsigned int *state) = 0;
-		virtual double TauEvaluate(unsigned int reaction_number, const int *S) = 0;
-		virtual double ODEEvaluate(int reaction_number, const std::vector<double> &S) = 0;
-
-		virtual ~IPropensityFunction() {};
 	};
 
 	template <typename PType>
@@ -94,8 +142,6 @@ namespace Gillespy {
 		PType *current_state;
 
 		Model<PType> *model;
-
-		IPropensityFunction *propensity_function;
 
 		template <class T> friend std::ostream &operator << (std::ostream &os, const Simulation<T> &simulation);
 

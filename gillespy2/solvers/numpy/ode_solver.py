@@ -109,8 +109,15 @@ class ODESolver(GillesPySolver):
         """
         if isinstance(self, type):
             self = ODESolver(model=model)
+        if self.model is None:
+            if model is None:
+                raise SimulationError("A model is required to run the simulation.")
+            self.model = model
+        if model is not None and model.get_json_hash() != self.model.get_json_hash():
+            raise SimulationError("Model must equal OSESolver.model.")
+        self.model.resolve_parameters()
 
-        increment = self.get_increment(model=model, increment=increment)
+        increment = self.get_increment(increment=increment)
 
         self.stop_event = Event()
         self.pause_event = Event()
@@ -132,8 +139,8 @@ class ODESolver(GillesPySolver):
         else:
             timeline = np.linspace(0, t, int(round(t / increment + 1)))
 
-        species = list(model._listOfSpecies.keys())
-        trajectory_base, tmpSpecies = nputils.numpy_trajectory_base_initialization(model, number_of_trajectories,
+        species = list(self.model._listOfSpecies.keys())
+        trajectory_base, tmpSpecies = nputils.numpy_trajectory_base_initialization(self.model, number_of_trajectories,
                                                                                    timeline, species, resume=resume)
 
         # curr_time and curr_state are list of len 1 so that __run receives reference
@@ -144,7 +151,7 @@ class ODESolver(GillesPySolver):
         curr_state = [None]
         live_grapher = [None]
 
-        sim_thread = Thread(target=self.___run, args=(model, curr_state, curr_time, timeline, trajectory_base,
+        sim_thread = Thread(target=self.___run, args=(curr_state, curr_time, timeline, trajectory_base,
                                                       tmpSpecies, live_grapher,), kwargs={'t': t,
                                                                                           'number_of_trajectories':
                                                                                               number_of_trajectories,
@@ -167,7 +174,7 @@ class ODESolver(GillesPySolver):
                     resumeTest = True  # If resuming, relay this information to live_grapher
                 else:
                     resumeTest = False
-                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(model, timeline, number_of_trajectories,
+                live_grapher[0] = gillespy2.core.liveGraphing.LiveDisplayer(self.model, timeline, number_of_trajectories,
                                                                             live_output_options, resume=resumeTest)
                 display_timer = gillespy2.core.liveGraphing.RepeatTimer(live_output_options['interval'],
                                                                         live_grapher[0].display,
@@ -202,11 +209,11 @@ class ODESolver(GillesPySolver):
         
         return Results.build_from_solver_results(self, live_output_options)
 
-    def ___run(self, model, curr_state, curr_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
+    def ___run(self, curr_state, curr_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
                number_of_trajectories=1, increment=0.05, timeout=None, show_labels=True, integrator='lsoda',
                integrator_options={}, resume=None, **kwargs):
         try:
-            self.__run(model, curr_state, curr_time, timeline, trajectory_base, tmpSpecies, live_grapher, t,
+            self.__run(curr_state, curr_time, timeline, trajectory_base, tmpSpecies, live_grapher, t,
                        number_of_trajectories, increment, timeout, show_labels, integrator, integrator_options, resume,
                        **kwargs)
         except Exception as e:
@@ -214,13 +221,13 @@ class ODESolver(GillesPySolver):
             self.result = []
             return [], -1
 
-    def __run(self, model, curr_state, curr_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
+    def __run(self, curr_state, curr_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
               number_of_trajectories=1, increment=0.05, timeout=None, show_labels=True, integrator='lsoda',
               integrator_options={}, resume=None, **kwargs):
 
         timeStopped = 0
         if resume is not None:
-            if resume[0].model != model:
+            if resume[0].model != self.model:
                 raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
             if t < resume['time'][-1]:
                 raise gillespyError.ExecutionError(
@@ -229,13 +236,13 @@ class ODESolver(GillesPySolver):
 
         # compile reaction propensity functions for eval
         c_prop = OrderedDict()
-        for r_name, reaction in model.listOfReactions.items():
+        for r_name, reaction in self.model.listOfReactions.items():
             c_prop[r_name] = compile(reaction.ode_propensity_function, '<string>', 'eval')
 
         result = trajectory_base[0]
         entry_count = 0
 
-        y0 = [0] * len(model.listOfSpecies)
+        y0 = [0] * len(self.model.listOfSpecies)
 
         curr_state[0] = OrderedDict()
 
@@ -244,14 +251,16 @@ class ODESolver(GillesPySolver):
                 curr_state[0][s] = tmpSpecies[s]
                 y0[i] = tmpSpecies[s]
         else:
-            for i, s in enumerate(model.listOfSpecies.values()):
+            for i, s in enumerate(self.model.listOfSpecies.values()):
                 curr_state[0][s.name] = s.initial_value
                 y0[i] = s.initial_value
 
-        for p_name, param in model.listOfParameters.items():
+        for p_name, param in self.model.listOfParameters.items():
             curr_state[0][p_name] = param.value
+        if 'vol' not in curr_state[0]:
+            curr_state[0]['vol'] = 1.0
         rhs = ode(ODESolver.__f).set_integrator(integrator, **integrator_options)
-        rhs.set_initial_value(y0, curr_time[0]).set_f_params(curr_state, model, c_prop)
+        rhs.set_initial_value(y0, curr_time[0]).set_f_params(curr_state, self.model, c_prop)
 
         while entry_count < timeline.size - 1:
             if self.stop_event.is_set():
@@ -265,14 +274,14 @@ class ODESolver(GillesPySolver):
             entry_count += 1
             y0 = rhs.integrate(int_time)
             curr_time[0] += increment
-            for i, spec in enumerate(model.listOfSpecies):
+            for i, spec in enumerate(self.model.listOfSpecies):
                 curr_state[0][spec] = y0[i]
                 result[entry_count][i+1] = curr_state[0][spec]
 
         results_as_dict = {
             'time': timeline
         }
-        for i, species in enumerate(model.listOfSpecies):
+        for i, species in enumerate(self.model.listOfSpecies):
             results_as_dict[species] = result[:, i+1]
         results = [results_as_dict] * number_of_trajectories
 

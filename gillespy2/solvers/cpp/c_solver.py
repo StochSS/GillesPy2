@@ -80,17 +80,8 @@ class CSolver:
         self.output_directory = output_directory
         self.delete_directory = delete_directory
 
-        if self.model is None:
-            return
-
-        self._build(model, self.target, variable, False)
-        self.species_mappings = self.model.sanitized_species_names()
-        self.species = list(self.species_mappings.keys())
-        self.parameter_mappings = self.model.sanitized_parameter_names()
-        self.parameters = list(self.parameter_mappings.keys())
-        self.reactions = list(self.model.listOfReactions.keys())
-        self.result = []
-        self.rc = 0
+        if self.model is not None:
+            self._set_model()
 
     def __del__(self):
         if self.build_engine is None:
@@ -311,6 +302,19 @@ class CSolver:
             simulation_data[-1][entry_name] = entry_data[:cutoff]
 
         return simulation_data
+
+    def _set_model(self, model=None):
+        if model is not None:
+            self.model = model
+
+        self._build(self.model, self.target, self.variable, False)
+        self.species_mappings = self.model.sanitized_species_names()
+        self.species = list(self.species_mappings.keys())
+        self.parameter_mappings = self.model.sanitized_parameter_names()
+        self.parameters = list(self.parameter_mappings.keys())
+        self.reactions = list(self.model.listOfReactions.keys())
+        self.result = []
+        self.rc = 0
 
     def _update_resume_data(self, resume: Results, simulation_data: "list[dict[str, numpy.ndarray]]", time_stopped: int):
         """

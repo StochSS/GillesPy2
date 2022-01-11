@@ -15,6 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+import numpy as np
 
 from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
 from gillespy2.solvers.utilities import solverutils as cutils
@@ -37,10 +38,17 @@ class ODECSolver(GillesPySolver, CSolver):
             increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
             resume=None, live_output: str = None, live_output_options: dict = {}, **kwargs):
 
-        if self is None or self.model is None:
+        if self is None:
             self = ODECSolver(model, resume=resume)
+        if self.model is None:
+            if model is None:
+                raise SimulationError("A model is required to run the simulation.")
+            self._set_model(model=model)
+        if model is not None and model.get_json_hash() != self.model.get_json_hash():
+            raise SimulationError("Model must equal ODECSolver.model.")
+        self.model.resolve_parameters()
 
-        increment = self.get_increment(model=model, increment=increment)
+        increment = self.get_increment(increment=increment)
 
         # Validate parameters prior to running the model.
         self._validate_type(variables, dict, "'variables' argument must be a dictionary.")
@@ -48,10 +56,10 @@ class ODECSolver(GillesPySolver, CSolver):
         self._validate_resume(t, resume)
         self._validate_kwargs(**kwargs)
         self._validate_sbml_features({
-            "Rate Rules": len(model.listOfRateRules),
-            "Assignment Rules": len(model.listOfAssignmentRules),
-            "Events": len(model.listOfEvents),
-            "Function Definitions": len(model.listOfFunctionDefinitions)
+            "Rate Rules": len(self.model.listOfRateRules),
+            "Assignment Rules": len(self.model.listOfAssignmentRules),
+            "Events": len(self.model.listOfEvents),
+            "Function Definitions": len(self.model.listOfFunctionDefinitions)
         })
 
         if resume is not None:
@@ -68,8 +76,8 @@ class ODECSolver(GillesPySolver, CSolver):
         }
 
         if self.variable:
-            populations = cutils.update_species_init_values(model.listOfSpecies, self.species, variables, resume)
-            parameter_values = cutils.change_param_values(model.listOfParameters, self.parameters, model.volume, variables)
+            populations = cutils.update_species_init_values(self.model.listOfSpecies, self.species, variables, resume)
+            parameter_values = cutils.change_param_values(self.model.listOfParameters, self.parameters, self.model.volume, variables)
 
             args.update({
                 "init_pop": populations,
@@ -85,7 +93,7 @@ class ODECSolver(GillesPySolver, CSolver):
         if live_output is not None:
             live_output_options['type'] = live_output
             display_args = {
-                "model": model, "number_of_trajectories": number_of_trajectories, "timeline": np.linspace(0, t, number_timesteps),
+                "model": self.model, "number_of_trajectories": number_of_trajectories, "timeline": np.linspace(0, t, number_timesteps),
                 "live_output_options": live_output_options, "resume": bool(resume)
             }
         else:
@@ -94,7 +102,7 @@ class ODECSolver(GillesPySolver, CSolver):
         args = self._make_args(args)
         decoder = BasicSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
 
-        sim_exec = self._build(model, self.target, self.variable, False)
+        sim_exec = self._build(self.model, self.target, self.variable, False)
         sim_status = self._run(sim_exec, args, decoder, timeout, display_args)
 
         if sim_status == SimulationReturnCode.FAILED:
