@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import unittest
 import sys
+sys.path.append("..")
 import numpy as np
 import gillespy2
 from example_models import Example, ExampleNoTspan
@@ -94,7 +95,8 @@ class TestBasicODESolver(unittest.TestCase):
         model = StochTestModel()
         result = model.run(solver=ODESolver)
         sys.stderr.write(f"\ntest_shoch3(): B={result['B'][-1]}\n\n")
-        self.assertGreateThan(result['B'][-1], 5)
+        self.assertGreater(result['B'][-1], 5)
 
 if __name__ == '__main__':
-    unittest.main()
+    #unittest.main()
+    TestBasicODESolver().test_stoch3()
