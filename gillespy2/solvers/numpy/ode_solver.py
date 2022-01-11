@@ -257,6 +257,8 @@ class ODESolver(GillesPySolver):
 
         for p_name, param in self.model.listOfParameters.items():
             curr_state[0][p_name] = param.value
+        if 'vol' not in curr_state[0]:
+            curr_state[0]['vol'] = 1.0
         rhs = ode(ODESolver.__f).set_integrator(integrator, **integrator_options)
         rhs.set_initial_value(y0, curr_time[0]).set_f_params(curr_state, self.model, c_prop)
 
