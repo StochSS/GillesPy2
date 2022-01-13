@@ -26,6 +26,7 @@ import numpy as np
 from gillespy2.core.results import Trajectory,Results
 from collections import OrderedDict
 from gillespy2.core.gillespyError import *
+from .gillespyError import SimulationError
 
 try:
     import lxml.etree as eTree
