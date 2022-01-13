@@ -22,7 +22,7 @@ from threading import Thread, Event
 from scipy.integrate import ode
 from collections import OrderedDict
 import numpy as np
-from gillespy2.core import GillesPySolver, log, gillespyError
+from gillespy2.core import GillesPySolver, log, gillespyError, SimulationError
 from gillespy2.solvers.utilities import solverutils as nputils
 from gillespy2.core.results import Results
 
