@@ -419,7 +419,13 @@ def template_def_propensities(model: SanitizedModel, ode=False) -> "dict[str, st
     """
     def_keyword = "ODE_PROPENSITIES" if ode else "PROPENSITIES"
     propensities = model.ode_propensities if ode else model.propensities
-    propensities = [f"PROPENSITY({rxn_i},{propensities[rxn]})" for rxn_i, rxn in enumerate(model.reactions.keys())]
+    propensities = []
+    for rxn_i, rxn in enumerate(model.reactions.keys()):
+        if propensities[rxn] is not None:
+            propensities.append(f"PROPENSITY({rxn_i},{propensities[rxn]})")
+        else:
+            #TODO should we raise an Exceptoin here?  Why is a propensity None?
+            propensities.append(f"PROPENSITY({rxn_i},0)")
 
     return {
         f"GPY_{def_keyword}": " ".join(propensities)
