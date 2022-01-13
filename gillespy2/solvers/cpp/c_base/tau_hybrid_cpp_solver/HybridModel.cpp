@@ -604,12 +604,6 @@ namespace Gillespy
 				m_trigger_pool.erase(event.get_event_id());
 			}
 
-			// Step 5: Update any trigger states to reflect the new trigger value.
-			for (auto &event : m_events)
-			{
-				m_trigger_state.find(event.get_event_id())->second = event.trigger(t, event_state);
-			}
-
 			return has_active_events();
 		}
 	}

@@ -143,6 +143,10 @@ IntegrationResults Integrator::integrate(double *t)
 IntegrationResults Integrator::integrate(double *t, std::set<int> &event_roots, std::set<unsigned int> &reaction_roots)
 {
 	IntegrationResults results = integrate(t);
+	if (status != IntegrationStatus::OK) {
+		return results;
+	}
+
 	unsigned long long num_triggers = data.active_triggers.size();
 	unsigned long long num_rxn_roots = data.active_reaction_ids.size();
 	unsigned long long root_size = data.active_triggers.size() + data.active_reaction_ids.size();
