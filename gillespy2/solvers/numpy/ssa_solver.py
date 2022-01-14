@@ -18,7 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from threading import Thread, Event
 from gillespy2.core.results import Results
-from gillespy2.core import GillesPySolver, log, gillespyError
+from gillespy2.core import GillesPySolver, log
+from gillespy2.core.gillespyError import *
 from gillespy2.solvers.utilities import solverutils as nputils
 import random
 import math
