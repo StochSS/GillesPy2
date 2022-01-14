@@ -217,10 +217,6 @@ bool Integrator::disable_root_finder()
 	return validate(this, CVodeRootInit(cvode_mem, 0, NULL));
 }
 
-
-URNGenerator::URNGenerator()
-	: uniform(0, 1) {}
-
 URNGenerator::URNGenerator(unsigned long long seed)
 	: uniform(0, 1),
 	  rng(seed)

@@ -368,7 +368,7 @@ def template_def_species(model: SanitizedModel) -> "dict[str, str]":
     populations = OrderedDict()
 
     for spec_name, spec in model.species.items():
-        populations[spec_name] = str(spec.initial_value)
+        populations[spec_name] = str(float(spec.initial_value))
     # Species names, parsed and formatted
     sanitized_names = [f"SPECIES_NAME({name})" for name in populations.keys()]
     populations = f"{{{','.join(populations.values())}}}"

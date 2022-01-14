@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
 	add_reactions(model);
 
 	if(seed_time){
-		random_seed = time(NULL);
+		random_seed = time(nullptr) % getpid();
 	}
 	//Simulation INIT
 	TauHybrid::HybridSimulation simulation(model);

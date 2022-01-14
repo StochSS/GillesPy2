@@ -147,7 +147,7 @@ namespace Gillespy {
 				os << timeline[timestep] << ',';
 
 				for (int species = 0; species < model->number_species; species++) {
-					os << trajectories[trajectory][timestep][species] << ',';
+					os << (double) trajectories[trajectory][timestep][species] << ',';
 				}
 			}
 		}
