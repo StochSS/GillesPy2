@@ -24,7 +24,7 @@ import numpy as np
 from gillespy2.solvers.utilities import Tau
 from gillespy2.solvers.utilities import solverutils as nputils
 from gillespy2.core import GillesPySolver, log, liveGraphing
-from gillespy2.core import ModelError, ExecutionError
+from gillespy2.core.gillespyError import *
 from gillespy2.core.results import Results
 
 class TauLeapingSolver(GillesPySolver):

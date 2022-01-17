@@ -1,7 +1,8 @@
 import gillespy2
 from gillespy2.solvers.cpp.c_decoder import IterativeSimDecoder
 from gillespy2.solvers.utilities import solverutils as cutils
-from gillespy2.core import GillesPySolver, gillespyError, Model
+from gillespy2.core import GillesPySolver, Model
+from gillespy2.core.gillespyError import *
 from typing import Union
 from gillespy2.core import Results
 

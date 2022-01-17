@@ -21,6 +21,8 @@ from typing import Optional
 from gillespy2.core import Species, Reaction, Parameter, Model, RateRule
 from gillespy2.solvers.cpp.build.expression import Expression
 from gillespy2.core import log
+from gillespy2.core.gillespyError import SimulationError
+
 import math
 
 
