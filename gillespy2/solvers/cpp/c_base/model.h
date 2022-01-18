@@ -26,6 +26,14 @@
 #include <vector>
 #include <iostream>
 
+#if defined(WIN32) || defined(WIN32) || defined(__WIN32) || defined(__WIN32__)
+#include <windows.h>
+#define GPY_PID_GET() ((int) GetCurrentProcessId())
+#else
+#include <unistd.h>
+#define GPY_PID_GET() (getpid())
+#endif
+
 namespace Gillespy
 {
 	typedef unsigned int ReactionId;

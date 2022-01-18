@@ -170,7 +170,7 @@ namespace Gillespy
 		unsigned long long seed;
 	public:
 		double next();
-		URNGenerator();
+		URNGenerator() = delete;
 		explicit URNGenerator(unsigned long long seed);
 	};
 
