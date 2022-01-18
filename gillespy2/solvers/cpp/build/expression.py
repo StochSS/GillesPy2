@@ -1,5 +1,6 @@
 import ast
 from typing import Union, Optional
+from gillespy2.core.gillespyError import SimulationError
 
 
 class Expression:
@@ -232,7 +233,10 @@ class Expression:
         """
         statement = ExpressionConverter.convert_str(statement)
         expr = ast.parse(statement)
-        return self.__get_expr(CppConverter(expr))
+        ret =  self.__get_expr(CppConverter(expr))
+        if ret is None:
+            raise SimulationError(f"Error in getexpr_cpp(), could not convert '{statement}' to c++ code")
+        return ret
 
 
 class ExpressionResults:
