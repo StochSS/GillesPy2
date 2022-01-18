@@ -93,7 +93,8 @@ class TauHybridCSolver(GillesPySolver, CSolver):
                     elif variable in sanitized_model.model.listOfParameters:
                         variable = sanitized_model.model.listOfParameters.get(variable)
                     else:
-                        raise ValueError(f"Invalid event assignment {assign}: received name {variable} "
+                        raise ValueError(f"Error in event={event} "
+                                         f"Invalid event assignment {assign}: received name {variable} "
                                          f"Must match the name of a valid Species or Parameter.")
 
                 if isinstance(variable, gillespy2.Species):
