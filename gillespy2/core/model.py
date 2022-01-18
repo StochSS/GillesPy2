@@ -841,7 +841,8 @@ class Model(SortableObject, Jsonify):
             return self.get_assignment_rule(ename)
         if ename in self.listOfFunctionDefinitions:
             return self.get_function_definition(ename)
-        return 'Element not found!'
+        #return 'Element not found!'
+        raise ModelError(f"model.get_element(): element={ename} not found")
 
 
     def get_best_solver(self):
