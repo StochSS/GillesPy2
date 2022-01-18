@@ -110,7 +110,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
                 assign_id += 1
             # Check for "None"s
             for a in assignments:
-                if a is None: raise Exception(f"a is Nonein event={event}")
+                if a is None: raise Exception(f"assignment={a} is None in event={event}")
             if event_id is None: raise Exception(f"event_id is None in event={event}")
             if trigger is None: raise Exception(f"trigger is None in event={event}")
             if delay is None: raise Exception(f"delay is None in event={event}")
