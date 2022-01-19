@@ -242,8 +242,7 @@ namespace Gillespy
 
 		double DifferentialEquation::evaluate(
 				const double t,
-				double *ode_state,
-				int *ssa_state)
+				double *ode_state)
 		{
 			double sum = 0.0;
 
@@ -254,7 +253,7 @@ namespace Gillespy
 
 			for (auto &formula : formulas)
 			{
-				sum += formula(ode_state, ssa_state);
+				sum += formula(ode_state);
 			}
 
 			return sum;
@@ -293,29 +292,9 @@ namespace Gillespy
 					auto &formula_set = spec.diff_equation.formulas;
 					int spec_diff = rxn.base_reaction->species_change[spec_i];
 
-					switch (spec.partition_mode)
-					{
-					case SimulationState::CONTINUOUS:
-						formula_set.push_back([rxn_i, spec_diff](
-								double *ode_state,
-								int *ssa_state)
-											  {
-												  return spec_diff * Reaction::propensity(rxn_i, ode_state);
-											  });
-						break;
-
-					case SimulationState::DISCRETE:
-						formula_set.push_back([rxn_i, spec_diff](
-								double *ode_state,
-								int *ssa_state)
-											  {
-												  return spec_diff * Reaction::propensity(rxn_i, ssa_state);
-											  });
-						break;
-
-					default:
-						break;
-					}
+					formula_set.push_back([rxn_i, spec_diff](double *state) {
+						return spec_diff * Reaction::propensity(rxn_i, state);
+					});
 				}
 			}
 		}

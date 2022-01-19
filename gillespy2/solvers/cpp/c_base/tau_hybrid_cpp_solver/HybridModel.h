@@ -177,10 +177,10 @@ namespace Gillespy
 		struct DifferentialEquation
 		{
 		public:
-			std::vector<std::function<double(double *, int *)>> formulas;
+			std::vector<std::function<double(double *)>> formulas;
 			std::vector<std::function<double(double, double *, double *, const double *)>> rate_rules;
 
-			double evaluate(double t, double *ode_state, int *ssa_state);
+			double evaluate(double t, double *ode_state);
 		};
 
 		enum SimulationState : unsigned int

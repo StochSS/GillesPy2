@@ -293,9 +293,6 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	std::vector<HybridSpecies> *species = data->species_state;
 	std::vector<HybridReaction> *reactions = data->reaction_state;
 	std::vector<double> &propensities = data->propensities;
-	// Concentrations and reactions are both used for their respective propensity evaulations.
-	// They both should, roughly, reflect the same data, but tau selection requires both.
-	std::vector<int> &populations = data->populations;
 	unsigned int num_species = sim->model->number_species;
 	unsigned int num_reactions = sim->model->number_reactions;
 
@@ -303,17 +300,10 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	// First half is for concentrations, second half is for reaction offsets.
 	realtype *dydt_offsets = &dydt[num_species];
 
-	// Populate the current ODE state into the concentrations vector.
-	// dy/dt results are initialized to zero, and become the change in propensity.
-	unsigned int spec_i;
-	for (spec_i = 0; spec_i < num_species; ++spec_i)
-	{
-		populations[spec_i] = static_cast<int>(Y[spec_i]);
-	}
-
 	// Deterministic reactions generally are "evaluated" by generating dy/dt functions
 	//   for each of their dependent species.
 	// To handle these, we will go ahead and evaluate each species' differential equations.
+	unsigned int spec_i;
 	for (spec_i = 0; spec_i < num_species; ++spec_i)
 	{
 		if ((*species)[spec_i].boundary_condition) {
@@ -322,7 +312,7 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 		}
 		else
 		{
-			dydt[spec_i] = (*species)[spec_i].diff_equation.evaluate(t, Y, populations.data());
+			dydt[spec_i] = (*species)[spec_i].diff_equation.evaluate(t, Y);
 		}
 	}
 
@@ -333,7 +323,7 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 		switch ((*reactions)[rxn_i].mode) {
 		case SimulationState::DISCRETE:
 			// Process stochastic reaction state by updating the root offset for each reaction.
-			propensity = Reaction::propensity(rxn_i, populations.data());
+			propensity = Reaction::propensity(rxn_i, Y);
 			dydt_offsets[rxn_i] = propensity;
 			propensities[rxn_i] = propensity;
 			break;
