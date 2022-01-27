@@ -39,6 +39,12 @@ class SanitizedModel:
         "t": "t",
     }
 
+    # Global functions that aren't present in the `math` package,
+    # as well as functions in Python that have a different name in C++.
+    function_map = {
+        "abs": "abs",
+    }
+
     def __init__(self, model: Model, variable=False):
         self.model = model
         self.variable = variable
@@ -68,6 +74,7 @@ class SanitizedModel:
             # All "system" namespace entries should always be first.
             # Otherwise, user-defined identifiers (like, for example, "gamma") might get overwritten.
             **{name: name for name in math.__dict__.keys()},
+            **self.function_map,
             **self.species_names,
             **self.parameter_names,
             **self.reserved_names,

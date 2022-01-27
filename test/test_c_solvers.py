@@ -27,6 +27,7 @@ from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
 from gillespy2.solvers.cpp import SSACSolver, ODECSolver, TauLeapingCSolver
 from gillespy2.solvers.cpp import TauHybridCSolver
 from gillespy2.solvers.cpp.build.expression import Expression, ExpressionConverter
+from gillespy2.solvers.cpp.build.template_gen import SanitizedModel
 
 
 class ExpressionTestCase:
@@ -84,6 +85,10 @@ class TestCSolvers(unittest.TestCase):
         # Asserts complex order of operations with a large number of variables.
         ExpressionTestCase({"x": "x", "y": "y", "z": "z"}, "(x^2/y^2/z^2)/x^2/y^2/z^2**1/x**1/y**1/z", [
             [5.1, 0.1, 2.0], [0.1, 5.1, 2.0], [2.0, 0.1, 5.1], [2.0, 5.1, 0.1],
+        ]),
+        # Known, builtin math expression functions work.
+        ExpressionTestCase({"x": "x"}, "abs(x)", [
+            [100.0], [100], [-100.0], [-100], [0],
         ]),
     ]
     comparisons = [
@@ -189,7 +194,11 @@ class TestCSolvers(unittest.TestCase):
         def test_expressions(expressions: "list[ExpressionTestCase]", use_bool=False):
             for entry in expressions:
                 expression = ExpressionConverter.convert_str(entry.expression)
-                expr = Expression(namespace=entry.args)
+                expr = Expression(namespace={
+                    **SanitizedModel.reserved_names,
+                    **SanitizedModel.function_map,
+                    **entry.args,
+                })
                 cpp_expr = expr.getexpr_cpp(expression)
                 with self.subTest(msg="Evaluating converted C expressions",
                                   expression=entry.expression,

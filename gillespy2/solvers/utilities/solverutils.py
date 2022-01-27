@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import ast  # for dependency graphing
 import numpy as np
 from gillespy2.core import log, Species
+from gillespy2.core import ModelError
 
 """
 NUMPY SOLVER UTILITIES BELOW
@@ -143,8 +144,11 @@ def species_parse(model, custom_prop_fun):
 
     class SpeciesParser(ast.NodeTransformer):
         def visit_Name(self, node):
-            if isinstance(model.get_element(node.id), Species):
-                parsed_species.append(model.get_element(node.id))
+            try:
+                if isinstance(model.get_element(node.id), Species):
+                    parsed_species.append(model.get_element(node.id))
+            except ModelError:
+                pass
 
     expr = custom_prop_fun
     expr = ast.parse(expr, mode='eval')
