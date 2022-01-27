@@ -867,18 +867,21 @@ class Model(SortableObject, Jsonify):
                 if tempMode == 'dynamic' or tempMode == 'continuous':
                     hybrid_check = True
                     break
-        if can_use_numpy and hybrid_check:
+
+        from gillespy2.solvers.cpp.build.build_engine import BuildEngine
+        can_use_cpp = not len(BuildEngine.get_missing_dependencies())
+
+        if can_use_cpp and hybrid_check:
+            from gillespy2 import TauHybridCSolver
+            return TauHybridCSolver
+        elif can_use_numpy and hybrid_check:
             from gillespy2 import TauHybridSolver
             return TauHybridSolver
-
         elif not can_use_numpy and hybrid_check:
             raise ModelError('TauHybridSolver is the only solver currently that supports '
                              'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
                              'Please install Numpy.')
         
-        from gillespy2.solvers.cpp.build.build_engine import BuildEngine
-        can_use_cpp = not len(BuildEngine.get_missing_dependencies())
-
         if can_use_cpp is False and can_use_numpy and not hybrid_check:
             from gillespy2 import NumPySSASolver
             return NumPySSASolver
