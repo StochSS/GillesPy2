@@ -43,7 +43,7 @@ static BOOL WINAPI handler_name(DWORD signum) {           \
 static void handler_name(int signum) {                    \
 	do handler_code while(0);                             \
 }
-#define GPY_INTERRUPT_INSTALL_HANDLER(handler) signal(SIGINT, signalHandler)
+#define GPY_INTERRUPT_INSTALL_HANDLER(handler) signal(SIGINT, handler)
 #endif
 
 namespace Gillespy
