@@ -34,22 +34,21 @@
 
 namespace Gillespy
 {
+	static volatile bool interrupted = false;
+
+	GPY_INTERRUPT_HANDLER(signal_handler, {
+		interrupted = true;
+	})
+
 	namespace TauHybrid
 	{
-
-		bool interrupted = false;
-
-		void signalHandler(int signum)
-		{
-			interrupted = true;
-		}
-
 		void TauHybridCSolver(HybridSimulation *simulation, std::vector<Event> &events, const double tau_tol)
 		{
 			if (simulation == NULL)
 			{
 				return;
 			}
+			GPY_INTERRUPT_INSTALL_HANDLER(signal_handler);
 
 			Model<double> &model = *(simulation->model);
 			int num_species = model.number_species;

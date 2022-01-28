@@ -32,6 +32,12 @@
 
 namespace Gillespy
 {
+	static volatile bool interrupted = false;
+
+	GPY_INTERRUPT_HANDLER(signal_handler, {
+		interrupted = true;
+	})
+
 	static int f(realtype t, N_Vector y, N_Vector y_dot, void *user_data);
 
 	struct UserData
