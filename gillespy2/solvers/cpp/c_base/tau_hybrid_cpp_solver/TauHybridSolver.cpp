@@ -76,7 +76,7 @@ namespace Gillespy
 			TauArgs<double> tau_args = initialize(model, tau_tol);
 
 			// Simulate for each trajectory
-			for (int traj = 0; traj < num_trajectories; traj++)
+			for (int traj = 0; !interrupted && traj < num_trajectories; traj++)
 			{
 				if (traj > 0)
 				{
@@ -135,7 +135,7 @@ namespace Gillespy
 				// For now, a "guard" is put in place to prevent potentially infinite loops from occurring.
 				unsigned int integration_guard = 1000;
 
-				while (integration_guard > 0 && simulation->current_time < simulation->end_time)
+				while (!interrupted && integration_guard > 0 && simulation->current_time < simulation->end_time)
 				{
 					// Compute current propensity values based on existing state.
 					for (unsigned int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
@@ -155,6 +155,8 @@ namespace Gillespy
 						}
 						sol.data.propensities[rxn_i] = propensity;
 					}
+					if (interrupted)
+						break;
 
 					// Expected tau step is determined.
 					tau_step = select(
@@ -303,7 +305,10 @@ namespace Gillespy
 								current_populations[p_i] = (int) current_state[p_i];
 							}
 						}
-					} while (invalid_state);
+					} while (invalid_state && !interrupted);
+
+					if (interrupted)
+						break;
 
 					// Invalid state after the do-while loop implies that an unrecoverable error has occurred.
 					// While prior results are considered usable, the current integration results are not.

@@ -112,8 +112,8 @@ class TestAllSolvers(unittest.TestCase):
         for solver in self.solvers:
             with self.subTest(solver=solver.name), self.assertLogs(level='WARN'):
                 model = Oregonator()
-                model.timespan(np.linspace(0, 1000000, 101))
-                model.run(solver=solver, timeout=1)
+                model.timespan(np.linspace(0, 1000000, 1001))
+                model.run(solver=solver, timeout=0.1)
 
     def test_basic_solver_import(self):
         from gillespy2.solvers.numpy.basic_tau_leaping_solver import BasicTauLeapingSolver
