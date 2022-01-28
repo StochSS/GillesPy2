@@ -94,8 +94,11 @@ namespace Gillespy
 				for (int spec_i = 0; spec_i < num_species; ++spec_i)
 				{
 					current_state[spec_i] = species[spec_i].initial_population;
+					simulation->current_state[spec_i] = current_state[spec_i];
 					current_populations[spec_i] = species[spec_i].initial_population;
 				}
+				simulation->reset_output_buffer(traj);
+				simulation->output_buffer_range(std::cout);
 
 				// Check for initial event triggers at t=0 (based on initial_value of trigger)
 				std::set<int> event_roots;
@@ -115,7 +118,6 @@ namespace Gillespy
 					spec->partition_mode = spec->user_mode == SimulationState::DYNAMIC
 										   ? SimulationState::DISCRETE
 										   : spec->user_mode;
-					simulation->trajectories[traj][0][spec_i] = current_state[spec_i];
 				}
 
 				// SIMULATION STEP LOOP
@@ -344,9 +346,10 @@ namespace Gillespy
 					{
 						for (int spec_i = 0; spec_i < num_species; ++spec_i)
 						{
-							simulation->trajectories[traj][save_idx][spec_i] = current_state[spec_i];
+							simulation->current_state[spec_i] = current_state[spec_i];
 						}
-						save_time = simulation->timeline[++save_idx];
+						simulation->output_buffer_range(std::cout, save_idx++);
+						save_time = simulation->timeline[save_idx];
 					}
 				}
 
