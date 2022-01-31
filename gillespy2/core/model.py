@@ -857,9 +857,12 @@ class Model(SortableObject, Jsonify):
         """
         from gillespy2.solvers.numpy import can_use_numpy
         hybrid_check = False
-        if len(self.get_all_assignment_rules()) or len(self.get_all_rate_rules())  \
-                or len(self.get_all_function_definitions()) or len(self.get_all_events()):
+        chybrid_check = True
+        if len(self.get_all_rate_rules())  or len(self.get_all_events()):
             hybrid_check = True
+        if len(self.get_all_assignment_rules()) or len(self.get_all_function_definitions()):
+            hybrid_check = True
+            chybrid_check = False
 
         if len(self.get_all_species()) and hybrid_check == False:
             for i in self.get_all_species():
@@ -871,7 +874,7 @@ class Model(SortableObject, Jsonify):
         from gillespy2.solvers.cpp.build.build_engine import BuildEngine
         can_use_cpp = not len(BuildEngine.get_missing_dependencies())
 
-        if can_use_cpp and hybrid_check:
+        if can_use_cpp and hybrid_check and chybrid_check:
             from gillespy2 import TauHybridCSolver
             return TauHybridCSolver
         elif can_use_numpy and hybrid_check:

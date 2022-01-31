@@ -41,7 +41,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         model.add_species([species])
         model.add_rate_rule([rule])
         results = model.run()
-        self.assertEqual(results[0].solver_name, 'TauHybridSolver')
+        self.assertEqual(results[0].solver_name, 'TauHybridCSolver')
 
     def test_add_rate_rule_dict(self):
         model = Example()
@@ -88,7 +88,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         event1.add_assignment([ea1, ea2])
         model.add_event(event1)
         results = model.run()
-        self.assertEqual(results[0].solver_name,'TauHybridSolver')
+        self.assertEqual(results[0].solver_name, 'TauHybridCSolver')
         self.assertEqual(results['Sp'][-1], 1000)
 
     def test_add_stochastic_species_dependent_event(self):
@@ -174,21 +174,21 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         species1 = gillespy2.Species('test_species1', initial_value=1,mode='dynamic')
         model.add_species(species1)
         results = model.run()
-        self.assertEqual(results[0].solver_name, 'TauHybridSolver')
+        self.assertEqual(results[0].solver_name, 'TauHybridCSolver')
 
     def test_ensure_hybrid_continuous_species(self):
         model = Example()
         species1 = gillespy2.Species('test_species1', initial_value=1,mode='continuous')
         model.add_species(species1)
         results = model.run()
-        self.assertEqual(results[0].solver_name, 'TauHybridSolver')
+        self.assertEqual(results[0].solver_name, 'TauHybridCSolver')
 
     def test_ensure_continuous_dynamic_timeout_warning(self):
         model = Example()
         species1 = gillespy2.Species('test_species1', initial_value=1, mode='dynamic')
         model.add_species(species1)
         with self.assertLogs(level='WARN'):
-            results = model.run(timeout=1)
+            results = model.run(solver=TauHybridSolver, timeout=1)
 
     def test_run_example__with_increment_only(self):
         model = ExampleNoTspan()
