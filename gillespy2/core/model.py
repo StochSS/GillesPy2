@@ -900,6 +900,9 @@ class Model(SortableObject, Jsonify):
         from gillespy2.solvers.numpy import can_use_numpy
         from gillespy2.solvers.cpp.build.build_engine import BuildEngine
         can_use_cpp = not len(BuildEngine.get_missing_dependencies())
+        chybrid_check = True
+        if len(self.get_all_assignment_rules()) or len(self.get_all_function_definitions()):
+            chybrid_check = False
 
         if not can_use_cpp and can_use_numpy:
             raise ModelError("Please install C++ or Numpy to use GillesPy2 solvers.")
@@ -927,6 +930,15 @@ class Model(SortableObject, Jsonify):
             else:
                 from gillespy2 import ODESolver
                 return ODESolver
+
+        elif algorithm == 'Tau-Hybrid':
+            if can_use_cpp and chybrid_check:
+                from gillespy2 import TauHybridCSolver
+                return TauHybridCSolver
+            else:
+                from gillespy2 import TauHybridSolver
+                return TauHybridSolver
+
         else:
             raise ModelError("Invalid value for the argument 'algorithm' entered. "
                              "Please enter 'SSA', 'ODE', or 'Tau-leaping'.")
