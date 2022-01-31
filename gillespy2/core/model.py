@@ -874,16 +874,15 @@ class Model(SortableObject, Jsonify):
         from gillespy2.solvers.cpp.build.build_engine import BuildEngine
         can_use_cpp = not len(BuildEngine.get_missing_dependencies())
 
+        if not can_use_cpp and not can_use_numpy:
+            raise ModelError('Dependency Error, cannot run model.')
+
         if can_use_cpp and hybrid_check and chybrid_check:
             from gillespy2 import TauHybridCSolver
             return TauHybridCSolver
         elif can_use_numpy and hybrid_check:
             from gillespy2 import TauHybridSolver
             return TauHybridSolver
-        elif not can_use_numpy and hybrid_check:
-            raise ModelError('TauHybridSolver is the only solver currently that supports '
-                             'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
-                             'Please install Numpy.')
         
         if can_use_cpp is False and can_use_numpy and not hybrid_check:
             from gillespy2 import NumPySSASolver
@@ -931,7 +930,7 @@ class Model(SortableObject, Jsonify):
                 from gillespy2 import ODESolver
                 return ODESolver
 
-        elif algorithm == 'Tau-Hybrid':
+        elif algorithm == 'Hybrid':
             if can_use_cpp and chybrid_check:
                 from gillespy2 import TauHybridCSolver
                 return TauHybridCSolver
