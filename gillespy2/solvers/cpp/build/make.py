@@ -36,7 +36,7 @@ class Make():
         # If not supplied, it should be assumed ethereal and cleaned up
         #  with the rest of the tmp directory.
         if obj_dir is None:
-            self.obj_dir = self.output_dir.joinpath("obj").resolve()
+            self.obj_dir = self.output_dir.joinpath("gillespy2_obj").resolve()
         else:
             self.obj_dir = Path(obj_dir).resolve()
 
@@ -50,9 +50,9 @@ class Make():
             if not path.is_dir():
                 path.mkdir()
 
-        self.output_file = "Simulation.out"
+        self.output_file = "GillesPy2_Simulation.out"
         if os.name == "nt":
-            self.output_file = "Simulation.exe"
+            self.output_file = "GillesPy2_Simulation.exe"
 
         self.output_file = Path(self.output_dir, self.output_file)
 
