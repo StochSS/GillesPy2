@@ -38,6 +38,13 @@ namespace Gillespy
 	double map_propensity(unsigned int reaction_id, unsigned int *S, double *parameters, const double *constants);
 	double map_propensity(unsigned int reaction_id, double *S, double *parameters, const double *constants);
 
+	double map_ssa_propensity(unsigned int reaction_id, int *state, double *parameters, const double *constants);
+	double map_ssa_propensity(unsigned int reaction_id, unsigned int *state, double *parameters, const double *constants);
+	double map_ssa_propensity(unsigned int reaction_id, double *state, double *parameters, const double *constants);
+	double map_ode_propensity(unsigned int reaction_id, int *state, double *parameters, const double *constants);
+	double map_ode_propensity(unsigned int reaction_id, unsigned int *state, double *parameters, const double *constants);
+	double map_ode_propensity(unsigned int reaction_id, double *state, double *parameters, const double *constants);
+
 	template <typename T>
 	void add_reactions(Model<T> &model);
 
