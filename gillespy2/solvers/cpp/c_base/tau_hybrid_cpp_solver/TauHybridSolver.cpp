@@ -158,14 +158,14 @@ namespace Gillespy
 					}
 
 					// Expected tau step is determined.
-					tau_step = select(
+					tau_step = select<double, double>(
 							model,
 							tau_args,
 							tau_tol,
 							simulation->current_time,
 							save_time,
 							sol.data.propensities,
-							current_populations
+							current_state
 					);
 					partition_species(
 							simulation->reaction_state,
