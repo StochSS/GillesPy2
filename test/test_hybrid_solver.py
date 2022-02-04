@@ -204,5 +204,36 @@ class TestBasicTauHybridSolver(unittest.TestCase):
             results = TauHybridSolver.run(model=model, increment=0.2)
 
 
+class TestAllHybridSolvers(unittest.TestCase):
+    from gillespy2.solvers import TauHybridCSolver
+
+    class TruncatedStateModel(gillespy2.Model):
+        def __init__(self):
+            gillespy2.Model.__init__(self, name="TruncatedStateModel")
+            S1 = gillespy2.Species(name="S1", initial_value=0, mode="discrete")
+            rate = gillespy2.Species(name="rate", initial_value=0.9999, mode="continuous")
+            self.add_species([S1, rate])
+            self.add_rate_rule(gillespy2.RateRule(variable="rate", formula="-1/((t+0.9999)**2)"))
+            self.add_reaction(
+                # Because S1 is a "discrete" species, our reaction will be marked "stochastic."
+                gillespy2.Reaction(products={S1: 1}, propensity_function="10.0*rate")
+            )
+    solvers = [
+        TauHybridSolver,
+        TauHybridCSolver,
+    ]
+
+    def test_continuous_state_values(self):
+        """
+        Continuous values should be evaluate appropriately, without being truncated/casted to an integer.
+        """
+        model = TestAllHybridSolvers.TruncatedStateModel()
+        for solver in self.solvers:
+            with self.subTest(solver=solver.name):
+                result = model.run(solver=solver, seed=1)
+                self.assertGreater(result["S1"][-1], 0.0,
+                                   "Reaction never fired; indicates that continuous species is being truncated")
+
+
 if __name__ == '__main__':
     unittest.main()
