@@ -93,7 +93,8 @@ class TauHybridCSolver(GillesPySolver, CSolver):
                     elif variable in sanitized_model.model.listOfParameters:
                         variable = sanitized_model.model.listOfParameters.get(variable)
                     else:
-                        raise ValueError(f"Invalid event assignment {assign}: received name {variable} "
+                        raise ValueError(f"Error in event={event} "
+                                         f"Invalid event assignment {assign}: received name {variable} "
                                          f"Must match the name of a valid Species or Parameter.")
 
                 if isinstance(variable, gillespy2.Species):
@@ -108,6 +109,17 @@ class TauHybridCSolver(GillesPySolver, CSolver):
                 assignments.append(str(assign_id))
                 event_assignment_list.append(assign_str)
                 assign_id += 1
+            # Check for "None"s
+            for a in assignments:
+                if a is None: raise Exception(f"assignment={a} is None in event={event}")
+            if event_id is None: raise Exception(f"event_id is None in event={event}")
+            if trigger is None: raise Exception(f"trigger is None in event={event}")
+            if delay is None: raise Exception(f"delay is None in event={event}")
+            if priority is None: raise Exception(f"priority is None in event={event}")
+            if use_trigger is None: raise Exception(f"use_trigger is None in event={event}")
+            if use_persist is None: raise Exception(f"use_persist is None in event={event}")
+            if initial_value is None: raise Exception(f"initial_value is None in event={event}")
+
             assignments: "str" = " AND ".join(assignments)
             event_list.append(
                 f"EVENT("

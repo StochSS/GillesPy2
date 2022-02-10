@@ -27,11 +27,23 @@ from gillespy2 import ODESolver
 from gillespy2 import NumPySSASolver
 from gillespy2 import TauLeapingSolver
 from gillespy2 import TauHybridSolver
+from gillespy2 import ODECSolver
+from gillespy2 import TauLeapingCSolver
+from gillespy2 import TauHybridCSolver
 
 
 class TestAllSolvers(unittest.TestCase):
 
-    solvers = [SSACSolver, ODESolver, NumPySSASolver, TauLeapingSolver, TauHybridSolver]
+    solvers = [
+        SSACSolver,
+        ODESolver,
+        NumPySSASolver,
+        TauLeapingSolver,
+        TauHybridSolver,
+        ODECSolver,
+        TauLeapingCSolver,
+        TauHybridCSolver,
+    ]
 
     model = Example()
     for sp in model.listOfSpecies.values():
@@ -65,15 +77,15 @@ class TestAllSolvers(unittest.TestCase):
             self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0]['Sp'], np.ndarray))
             self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0]['Sp'][0], np.float))
 
-
     def test_random_seed(self):
         for solver in self.solvers:
-            same_results = self.model.run(solver=solver, seed=1)
-            compare_results = self.model.run(solver=solver,seed=1)
-            self.assertTrue(np.array_equal(same_results.to_array(), compare_results.to_array()))
-            if solver.name == 'ODESolver': continue
-            diff_results = self.model.run(solver=solver, seed=2)
-            self.assertFalse(np.array_equal(diff_results.to_array(),same_results.to_array()))
+            with self.subTest(solver=solver.name):
+                same_results = self.model.run(solver=solver, seed=1)
+                compare_results = self.model.run(solver=solver,seed=1)
+                self.assertTrue(np.array_equal(same_results.to_array(), compare_results.to_array()))
+                if solver.name in ["ODESolver", "ODECSolver"]: continue
+                diff_results = self.model.run(solver=solver, seed=2)
+                self.assertFalse(np.array_equal(diff_results.to_array(), same_results.to_array()))
     
     def test_random_seed_unnamed_reactions(self):
         model = self.model
@@ -82,25 +94,26 @@ class TestAllSolvers(unittest.TestCase):
         unnamed_rxn = gillespy2.Reaction(reactants={}, products={'Sp':1}, rate=k2)
         model.add_reaction(unnamed_rxn)
         for solver in self.solvers:
-            same_results = self.model.run(solver=solver, seed=1)
-            compare_results = self.model.run(solver=solver,seed=1)
-            self.assertTrue(np.array_equal(same_results.to_array(), compare_results.to_array()))
-            if solver.name == 'ODESolver': continue
-            diff_results = self.model.run(solver=solver, seed=2)
-            self.assertFalse(np.array_equal(diff_results.to_array(),same_results.to_array()))
+            with self.subTest(solver=solver.name):
+                same_results = self.model.run(solver=solver, seed=1)
+                compare_results = self.model.run(solver=solver,seed=1)
+                self.assertTrue(np.array_equal(same_results.to_array(), compare_results.to_array()))
+                if solver.name in ["ODESolver", "ODECSolver"]: continue
+                diff_results = self.model.run(solver=solver, seed=2)
+                self.assertFalse(np.array_equal(diff_results.to_array(), same_results.to_array()))
 
     def test_extraneous_args(self):
         for solver in self.solvers:
-            with self.assertLogs(level='WARN'):
+            with self.subTest(solver=solver.name), self.assertLogs(level='WARN'):
                 model = Example()
-                results = model.run(solver=solver, nonsense='ABC')
+                model.run(solver=solver, nonsense='ABC')
 
     def test_timeout(self):
         for solver in self.solvers:
-            with self.assertLogs(level='WARN'):
+            with self.subTest(solver=solver.name), self.assertLogs(level='WARN'):
                 model = Oregonator()
-                model.timespan(np.linspace(0, 1000000, 101))
-                results = model.run(solver=solver, timeout=1)
+                model.timespan(np.linspace(0, 1000000, 1001))
+                model.run(solver=solver, timeout=0.1)
 
     def test_basic_solver_import(self):
         from gillespy2.solvers.numpy.basic_tau_leaping_solver import BasicTauLeapingSolver

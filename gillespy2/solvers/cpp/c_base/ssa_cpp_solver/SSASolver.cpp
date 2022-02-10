@@ -18,40 +18,19 @@
 
 #include <cmath>
 #include <random>
-#include <csignal>
-#include <string.h>
-
-#ifdef _WIN32
-#include <windows.h>
-#undef max
-#endif
-
 #include "SSASolver.h"
 
 namespace Gillespy
 {
 	volatile bool interrupted = false;
 
-#ifdef _WIN32
-	BOOL WINAPI eventHandler(DWORD CtrlType)
-	{
+	GPY_INTERRUPT_HANDLER(signal_handler, {
 		interrupted = true;
-		return TRUE;
-	}
-#endif
-
-	void signalHandler(int signum)
-	{
-		interrupted = true;
-	}
+	})
 
 	void ssa_direct(Simulation<unsigned int> *simulation)
 	{
-#ifdef _WIN32
-		SetConsoleCtrlHandler(eventHandler, TRUE);
-#else
-		signal(SIGINT, signalHandler);
-#endif
+		GPY_INTERRUPT_INSTALL_HANDLER(signal_handler);
 
 		if (simulation)
 		{

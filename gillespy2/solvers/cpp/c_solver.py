@@ -372,7 +372,9 @@ class CSolver:
                 detected.append(feature_name)
 
         if len(detected):
-            raise gillespyError.ModelError(f"Could not run Model.  SBML Feature: {detected} not supported by SSACSolver.")
+            raise gillespyError.ModelError(f"Could not run Model, "
+                                           f"SBML Features not supported by {self.name}: "
+                                           + ", ".join(detected))
 
     def _validate_seed(self, seed: int):
         if seed is None:

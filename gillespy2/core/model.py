@@ -281,28 +281,28 @@ class Model(SortableObject, Jsonify):
 
     def problem_with_name(self, name):
         if name in Model.reserved_names:
-            return ModelError(
+            raise ModelError(
                 'Name "{}" is unavailable. It is reserved for internal GillesPy use. Reserved Names: ({}).'.format(name,
                                                                                                                    Model.reserved_names))
         if name in self.listOfSpecies:
-            return ModelError('Name "{}" is unavailable. A species with that name exists.'.format(name))
+            raise ModelError('Name "{}" is unavailable. A species with that name exists.'.format(name))
         if name in self.listOfParameters:
-            return ModelError('Name "{}" is unavailable. A parameter with that name exists.'.format(name))
+            raise ModelError('Name "{}" is unavailable. A parameter with that name exists.'.format(name))
         if name in self.listOfReactions:
-            return ModelError('Name "{}" is unavailable. A reaction with that name exists.'.format(name))
+            raise ModelError('Name "{}" is unavailable. A reaction with that name exists.'.format(name))
         if name in self.listOfEvents:
-            return ModelError('Name "{}" is unavailable. An event with that name exists.'.format(name))
+            raise ModelError('Name "{}" is unavailable. An event with that name exists.'.format(name))
         if name in self.listOfRateRules:
-            return ModelError('Name "{}" is unavailable. A rate rule with that name exists.'.format(name))
+            raise ModelError('Name "{}" is unavailable. A rate rule with that name exists.'.format(name))
         if name in self.listOfAssignmentRules:
-            return ModelError('Name "{}" is unavailable. An assignment rule with that name exists.'.format(name))
+            raise ModelError('Name "{}" is unavailable. An assignment rule with that name exists.'.format(name))
         if name in self.listOfFunctionDefinitions:
-            return ModelError('Name "{}" is unavailable. A function definition with that name exists.'.format(name))
+            raise ModelError('Name "{}" is unavailable. A function definition with that name exists.'.format(name))
         if name.isdigit():
-            return ModelError('Name "{}" is unavailable. Names must not be numeric strings.'.format(name))
+            raise ModelError('Name "{}" is unavailable. Names must not be numeric strings.'.format(name))
         for special_character in Model.special_characters:
             if special_character in name:
-                return ModelError(
+                raise ModelError(
                     'Name "{}" is unavailable. Names must not contain special characters: {}.'.format(name,
                                                                                                       Model.special_characters))
 
@@ -335,9 +335,7 @@ class Model(SortableObject, Jsonify):
                 self.add_species(S)
         else:
             try:
-                problem = self.problem_with_name(obj.name)
-                if problem is not None:
-                    raise problem
+                self.problem_with_name(obj.name)
                 self.listOfSpecies[obj.name] = obj
                 self._listOfSpecies[obj.name] = 'S{}'.format(len(self._listOfSpecies))
             except Exception as e:
@@ -418,9 +416,7 @@ class Model(SortableObject, Jsonify):
                 self.add_parameter(p)
         else:
             if isinstance(params, Parameter) or type(params).__name__ == 'Parameter':
-                problem = self.problem_with_name(params.name)
-                if problem is not None:
-                    raise problem
+                self.problem_with_name(params.name)
                 self.update_namespace()
                 params._evaluate(self.namespace)
                 self.listOfParameters[params.name] = params
@@ -501,9 +497,7 @@ class Model(SortableObject, Jsonify):
                 self.add_reaction(r)
         else:
             try:
-                problem = self.problem_with_name(reactions.name)
-                if problem is not None:
-                    raise problem
+                self.problem_with_name(reactions.name)
                 reactions.verify()
                 self.validate_reactants_and_products(reactions)
                 if reactions.name is None or reactions.name == '':
@@ -543,9 +537,7 @@ class Model(SortableObject, Jsonify):
                 self.add_rate_rule(rr)
         else:
             try:
-                problem = self.problem_with_name(rate_rules.name)
-                if problem is not None:
-                    raise problem
+                self.problem_with_name(rate_rules.name)
                 if len(self.listOfAssignmentRules) != 0:
                     for i in self.listOfAssignmentRules.values():
                         if rate_rules.variable == i.variable:
@@ -588,9 +580,7 @@ class Model(SortableObject, Jsonify):
                 self.add_event(e)
         else:
             try:
-                problem = self.problem_with_name(event.name)
-                if problem is not None:
-                    raise problem
+                self.problem_with_name(event.name)
                 if event.trigger is None or not hasattr(event.trigger, 'expression'):
                     raise ModelError(
                         'An Event must contain a valid trigger.')
@@ -615,9 +605,7 @@ class Model(SortableObject, Jsonify):
                 self.add_function_definition(fd)
         else:
             try:
-                problem = self.problem_with_name(function_definitions.name)
-                if problem is not None:
-                    raise problem
+                self.problem_with_name(function_definitions.name)
                 self.listOfFunctionDefinitions[function_definitions.name] = function_definitions
             except Exception as e:
                 raise ParameterError(
@@ -635,9 +623,7 @@ class Model(SortableObject, Jsonify):
                 self.add_assignment_rule(ar)
         else:
             try:
-                problem = self.problem_with_name(assignment_rules.name)
-                if problem is not None:
-                    raise problem
+                self.problem_with_name(assignment_rules.name)
                 if len(self.listOfRateRules) != 0:
                     for i in self.listOfRateRules.values():
                         if assignment_rules.variable == i.variable:
@@ -841,7 +827,7 @@ class Model(SortableObject, Jsonify):
             return self.get_assignment_rule(ename)
         if ename in self.listOfFunctionDefinitions:
             return self.get_function_definition(ename)
-        return 'Element not found!'
+        raise ModelError(f"model.get_element(): element={ename} not found")
 
 
     def get_best_solver(self):
@@ -857,9 +843,12 @@ class Model(SortableObject, Jsonify):
         """
         from gillespy2.solvers.numpy import can_use_numpy
         hybrid_check = False
-        if len(self.get_all_assignment_rules()) or len(self.get_all_rate_rules())  \
-                or len(self.get_all_function_definitions()) or len(self.get_all_events()):
+        chybrid_check = True
+        if len(self.get_all_rate_rules())  or len(self.get_all_events()):
             hybrid_check = True
+        if len(self.get_all_assignment_rules()) or len(self.get_all_function_definitions()):
+            hybrid_check = True
+            chybrid_check = False
 
         if len(self.get_all_species()) and hybrid_check == False:
             for i in self.get_all_species():
@@ -867,18 +856,20 @@ class Model(SortableObject, Jsonify):
                 if tempMode == 'dynamic' or tempMode == 'continuous':
                     hybrid_check = True
                     break
-        if can_use_numpy and hybrid_check:
-            from gillespy2 import TauHybridSolver
-            return TauHybridSolver
 
-        elif not can_use_numpy and hybrid_check:
-            raise ModelError('TauHybridSolver is the only solver currently that supports '
-                             'AssignmentRules, RateRules, FunctionDefinitions, or Events. '
-                             'Please install Numpy.')
-        
         from gillespy2.solvers.cpp.build.build_engine import BuildEngine
         can_use_cpp = not len(BuildEngine.get_missing_dependencies())
 
+        if not can_use_cpp and not can_use_numpy:
+            raise ModelError('Dependency Error, cannot run model.')
+
+        if can_use_cpp and hybrid_check and chybrid_check:
+            from gillespy2 import TauHybridCSolver
+            return TauHybridCSolver
+        elif can_use_numpy and hybrid_check:
+            from gillespy2 import TauHybridSolver
+            return TauHybridSolver
+        
         if can_use_cpp is False and can_use_numpy and not hybrid_check:
             from gillespy2 import NumPySSASolver
             return NumPySSASolver
@@ -894,6 +885,9 @@ class Model(SortableObject, Jsonify):
         from gillespy2.solvers.numpy import can_use_numpy
         from gillespy2.solvers.cpp.build.build_engine import BuildEngine
         can_use_cpp = not len(BuildEngine.get_missing_dependencies())
+        chybrid_check = True
+        if len(self.get_all_assignment_rules()) or len(self.get_all_function_definitions()):
+            chybrid_check = False
 
         if not can_use_cpp and can_use_numpy:
             raise ModelError("Please install C++ or Numpy to use GillesPy2 solvers.")
@@ -921,9 +915,18 @@ class Model(SortableObject, Jsonify):
             else:
                 from gillespy2 import ODESolver
                 return ODESolver
+
+        elif algorithm == 'Tau-Hybrid':
+            if can_use_cpp and chybrid_check:
+                from gillespy2 import TauHybridCSolver
+                return TauHybridCSolver
+            else:
+                from gillespy2 import TauHybridSolver
+                return TauHybridSolver
+
         else:
             raise ModelError("Invalid value for the argument 'algorithm' entered. "
-                             "Please enter 'SSA', 'ODE', or 'Tau-leaping'.")
+                             "Please enter 'SSA', 'ODE', 'Tau-leaping', or 'Tau-Hybrid'.")
 
     def run(self, solver=None, timeout=0, t=None, increment=None, show_labels=True, cpp_support=False, algorithm=None,
             **solver_args):

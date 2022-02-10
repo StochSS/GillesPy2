@@ -71,6 +71,6 @@ int main(int argc, char* argv[])
 	Gillespy::TauHybrid::Event::use_events(events);
 
 	TauHybrid::TauHybridCSolver(&simulation, events, tau_tol);
-	simulation.output_results_buffer(std::cout);
+	simulation.output_buffer_final(std::cout);
 	return 0;
 }
