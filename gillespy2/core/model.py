@@ -930,7 +930,7 @@ class Model(SortableObject, Jsonify):
                 from gillespy2 import ODESolver
                 return ODESolver
 
-        elif algorithm == 'Hybrid':
+        elif algorithm == 'Tau-Hybrid':
             if can_use_cpp and chybrid_check:
                 from gillespy2 import TauHybridCSolver
                 return TauHybridCSolver
@@ -940,7 +940,7 @@ class Model(SortableObject, Jsonify):
 
         else:
             raise ModelError("Invalid value for the argument 'algorithm' entered. "
-                             "Please enter 'SSA', 'ODE', or 'Tau-leaping'.")
+                             "Please enter 'SSA', 'ODE', 'Tau-leaping', or 'Tau-Hybrid'.")
 
     def run(self, solver=None, timeout=0, t=None, increment=None, show_labels=True, cpp_support=False, algorithm=None,
             **solver_args):
