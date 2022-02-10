@@ -157,8 +157,6 @@ namespace Gillespy
 		double end_time;
 		double *timeline;
 
-		PType *trajectories_1D;
-		PType ***trajectories;
 		PType *current_state;
 
 		Model<PType> *model;

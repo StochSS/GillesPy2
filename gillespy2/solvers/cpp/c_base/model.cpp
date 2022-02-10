@@ -88,19 +88,6 @@ namespace Gillespy {
 	void init_simulation(Model<TNum> *model, Simulation<TNum> &simulation) {
 		init_timeline(model, simulation);
 
-		unsigned int trajectory_size = simulation.number_timesteps * (model->number_species);
-		simulation.trajectories_1D = new TNum[simulation.number_trajectories * trajectory_size];
-		simulation.trajectories = new TNum * *[simulation.number_trajectories];
-
-		for (unsigned int trajectory = 0; trajectory < simulation.number_trajectories; trajectory++) {
-			simulation.trajectories[trajectory] = new TNum * [simulation.number_timesteps];
-
-			for (unsigned int timestep = 0; timestep < simulation.number_timesteps; timestep++) {
-				simulation.trajectories[trajectory][timestep] =
-					&(simulation.trajectories_1D[trajectory * trajectory_size + timestep * (model->number_species)]);
-			}
-		}
-
 		simulation.current_state = new TNum[model->number_species];
 		// Output interval must lie within the range (0, num_timesteps].
 		// An output interval of 0 signifies to output entire trajectories.
@@ -113,13 +100,7 @@ namespace Gillespy {
 	template <typename TNum>
 	Simulation<TNum>::~Simulation() {
 		delete[] timeline;
-		delete[] trajectories_1D;
-
-		for (unsigned int trajectory = 0; trajectory < number_trajectories; trajectory++) {
-			delete[] trajectories[trajectory];
-		}
-
-		delete[] trajectories;
+		delete[] current_state;
 	}
 
 	template <typename TNum>
@@ -147,7 +128,7 @@ namespace Gillespy {
 				os << timeline[timestep] << ',';
 
 				for (int species = 0; species < model->number_species; species++) {
-					os << (double) trajectories[trajectory][timestep][species] << ',';
+					os << (double) current_state[species] << ',';
 				}
 			}
 		}
