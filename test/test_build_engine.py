@@ -104,7 +104,7 @@ class TestBuildEngine(unittest.TestCase):
         Should result in an expected definitions file and an executable simulation.
         """
         simulation_file = self.build_engine.output_dir.joinpath(
-            "Simulation.exe" if os.name == "nt" else "Simulation.out")
+            "GillesPy2_Simulation.exe" if os.name == "nt" else "GillesPy2_Simulation.out")
 
         for solver_name in self.solver_names:
             with self.subTest(solver=solver_name):
