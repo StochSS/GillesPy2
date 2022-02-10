@@ -33,13 +33,12 @@
 
 namespace Gillespy
 {
-	bool interrupted = false;
+	static volatile bool interrupted = false;
 	std::mt19937_64 generator;
 
-	void signalHandler(int signum)
-	{
+	GPY_INTERRUPT_HANDLER(signal_handler, {
 		interrupted = true;
-	}
+	})
 
 	std::pair<std::map<std::string, int>, double> get_reactions(
 		const Gillespy::Model<unsigned int> *model,
@@ -78,7 +77,7 @@ namespace Gillespy
 
 	void tau_leaper(Gillespy::Simulation<unsigned int> *simulation, const double tau_tol)
 	{
-		signal(SIGINT, signalHandler);
+		GPY_INTERRUPT_INSTALL_HANDLER(signal_handler);
 
 		if (!simulation)
 		{
