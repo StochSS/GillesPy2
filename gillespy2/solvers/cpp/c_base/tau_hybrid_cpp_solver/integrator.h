@@ -58,9 +58,6 @@ namespace Gillespy
 		// In `rootfn`, this means that gout[i] is the "output" of reaction active_reaction_ids[i].
 		// This is used to map the internal reaction number to the actual reaction id.
 		std::vector<unsigned int> active_reaction_ids;
-
-		std::vector<double> concentrations;
-		std::vector<int> populations;
 		std::vector<double> propensities;
 
 		IntegratorData(HybridSimulation *simulation);

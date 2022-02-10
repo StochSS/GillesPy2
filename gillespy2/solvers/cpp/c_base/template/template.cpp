@@ -88,6 +88,84 @@ namespace Gillespy
 		return constants;
 	}
 
+	double map_ssa_propensity(unsigned int reaction_id, int *S, double *P, const double *C)
+	{
+		switch (reaction_id)
+		{
+			#define PROPENSITY(id, func) case(id): return(func);
+			GPY_PROPENSITIES
+			#undef PROPENSITY
+
+		default:
+			return -1.0;
+		}
+	}
+
+	double map_ssa_propensity(unsigned int reaction_id, unsigned int *S, double *P, const double *C)
+	{
+		switch (reaction_id)
+		{
+			#define PROPENSITY(id, func) case(id): return(func);
+			GPY_PROPENSITIES
+			#undef PROPENSITY
+
+		default:
+			return -1.0;
+		}
+	}
+
+	double map_ssa_propensity(unsigned int reaction_id, double *S, double *P, const double *C)
+	{
+		switch (reaction_id)
+		{
+			#define PROPENSITY(id, func) case(id): return(func);
+			GPY_PROPENSITIES
+			#undef PROPENSITY
+
+		default:
+			return -1.0;
+		}
+	}
+
+	double map_ode_propensity(unsigned int reaction_id, int *S, double *P, const double *C)
+	{
+		switch (reaction_id)
+		{
+			#define PROPENSITY(id, func) case(id): return(func);
+			GPY_ODE_PROPENSITIES
+			#undef PROPENSITY
+
+		default:
+			return -1.0;
+		}
+	}
+
+	double map_ode_propensity(unsigned int reaction_id, unsigned int *S, double *P, const double *C)
+	{
+		switch (reaction_id)
+		{
+			#define PROPENSITY(id, func) case(id): return(func);
+			GPY_ODE_PROPENSITIES
+			#undef PROPENSITY
+
+		default:
+			return -1.0;
+		}
+	}
+
+	double map_ode_propensity(unsigned int reaction_id, double *S, double *P, const double *C)
+	{
+		switch (reaction_id)
+		{
+			#define PROPENSITY(id, func) case(id): return(func);
+			GPY_ODE_PROPENSITIES
+			#undef PROPENSITY
+
+		default:
+			return -1.0;
+		}
+	}
+
 	double map_propensity(unsigned int reaction_id, unsigned int *S, double *P, const double *C)
 	{
 		switch (reaction_id)

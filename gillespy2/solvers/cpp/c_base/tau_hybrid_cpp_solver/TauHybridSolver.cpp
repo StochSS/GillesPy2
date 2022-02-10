@@ -87,14 +87,12 @@ namespace Gillespy
 				// TODO: change back double -> hybrid_state, once we figure out how that works
 				EventList event_list;
 				std::vector<double> current_state(num_species);
-				std::vector<int> current_populations(num_species);
 
 				// Initialize the species population for the trajectory.
 				for (int spec_i = 0; spec_i < num_species; ++spec_i)
 				{
 					current_state[spec_i] = species[spec_i].initial_population;
 					simulation->current_state[spec_i] = current_state[spec_i];
-					current_populations[spec_i] = species[spec_i].initial_population;
 				}
 				simulation->reset_output_buffer(traj);
 				simulation->output_buffer_range(std::cout);
@@ -143,32 +141,20 @@ namespace Gillespy
 					for (unsigned int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
 					{
 						HybridReaction &rxn = simulation->reaction_state[rxn_i];
-						double propensity = 0.0;
-						switch (rxn.mode)
-						{
-						case SimulationState::CONTINUOUS:
-							propensity = Reaction::propensity(rxn_i, current_state.data());
-							break;
-						case SimulationState::DISCRETE:
-							propensity = Reaction::propensity(rxn_i, current_populations.data());
-							break;
-						default:
-							break;
-						}
-						sol.data.propensities[rxn_i] = propensity;
+						sol.data.propensities[rxn_i] = rxn.propensity(current_state.data());
 					}
 					if (interrupted)
 						break;
 
 					// Expected tau step is determined.
-					tau_step = select(
+					tau_step = select<double, double>(
 							model,
 							tau_args,
 							tau_tol,
 							simulation->current_time,
 							save_time,
 							sol.data.propensities,
-							current_populations
+							current_state
 					);
 					partition_species(
 							simulation->reaction_state,
@@ -304,7 +290,6 @@ namespace Gillespy
 									current_state[p_i] += population_changes[p_i];
 									result.concentrations[p_i] = current_state[p_i];
 								}
-								current_populations[p_i] = (int) current_state[p_i];
 							}
 						}
 					} while (invalid_state && !interrupted);

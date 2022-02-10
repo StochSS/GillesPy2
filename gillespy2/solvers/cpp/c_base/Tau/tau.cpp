@@ -109,7 +109,7 @@ namespace Gillespy
 		return tau_args;
 	}
 
-	template<typename PType>
+	template<typename PType, typename SType>
 	double select(
 		Gillespy::Model<PType> &model,
 		TauArgs<PType> &tau_args,
@@ -117,7 +117,7 @@ namespace Gillespy
 		const double &current_time,
 		const double &save_time,
 		const std::vector<double> &propensity_values,
-		const std::vector<int> &current_state)
+		const std::vector<SType> &current_state)
 	{
 
 		bool critical = false;  // system-wide flag, true when any reaction is critical
@@ -261,14 +261,14 @@ namespace Gillespy
 
 	// Explicitly instantiate initialize/select functions for DISCRETE simulations
 	template TauArgs<double> initialize<double>(Model<double> &model, double tau_tol);
-	template double select<double>(
+	template double select<double, double>(
 		Model<double> &model,
 		TauArgs<double> &tau_args,
 		const double &tau_tol,
 		const double &current_time,
 		const double &save_time,
 		const std::vector<double> &propensity_values,
-		const std::vector<int> &current_state);
+		const std::vector<double> &current_state);
 
 	// Explicitly instantiate initialize/select functions for HYBRID simulations
 	template TauArgs<unsigned int> initialize<unsigned int>(Model<unsigned int> &model, double tau_tol);
