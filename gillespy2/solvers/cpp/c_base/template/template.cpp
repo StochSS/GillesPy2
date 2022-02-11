@@ -237,6 +237,7 @@ namespace Gillespy
 
 		for (rxn_i = 0; rxn_i < GPY_NUM_REACTIONS; ++rxn_i)
 		{
+			model.reactions[rxn_i].id = rxn_i;
 			for (spec_i = 0; spec_i < GPY_NUM_SPECIES; ++spec_i)
 			{
 				model.reactions[rxn_i].species_change[spec_i] = reactions[rxn_i][spec_i];
