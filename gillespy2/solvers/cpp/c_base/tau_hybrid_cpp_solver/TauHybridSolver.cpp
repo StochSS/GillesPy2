@@ -251,10 +251,6 @@ namespace Gillespy
 										{
 											population_changes[spec_i] +=
 													model.reactions[rxn_i].species_change[spec_i];
-											if (current_state[spec_i] + population_changes[spec_i] < 0)
-											{
-												invalid_state = true;
-											}
 										}
 
 										rxn_state += log(urn.next());
@@ -266,6 +262,16 @@ namespace Gillespy
 								default:
 									break;
 								}
+							}
+						}
+
+						// Explicitly check for invalid population state, now that changes have been tallied.
+						for (int spec_i = 0; spec_i < num_species; ++spec_i)
+						{
+							if (current_state[spec_i] + population_changes[spec_i] < 0)
+							{
+								invalid_state = true;
+								break;
 							}
 						}
 
