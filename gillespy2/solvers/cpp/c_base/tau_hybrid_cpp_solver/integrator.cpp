@@ -212,6 +212,11 @@ bool Integrator::disable_root_finder()
 	return validate(this, CVodeRootInit(cvode_mem, 0, NULL));
 }
 
+void Integrator::set_error_handler(CVErrHandlerFn error_handler)
+{
+	validate(this, CVodeSetErrHandlerFn(cvode_mem, error_handler, nullptr));
+}
+
 URNGenerator::URNGenerator(unsigned long long seed)
 	: uniform(0, 1),
 	  rng(seed)

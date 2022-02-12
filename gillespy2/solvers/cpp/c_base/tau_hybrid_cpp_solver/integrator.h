@@ -151,6 +151,8 @@ namespace Gillespy
 		/// and the underlying SBML event data and reaction data are removed.
 		bool disable_root_finder();
 
+		void set_error_handler(CVErrHandlerFn error_handler);
+
 		IntegrationResults integrate(double *t);
 		IntegrationResults integrate(double *t, std::set<int> &event_roots, std::set<unsigned int> &reaction_roots);
 		IntegratorData data;
