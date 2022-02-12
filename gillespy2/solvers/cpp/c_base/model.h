@@ -201,11 +201,25 @@ namespace Gillespy
 		/// \param os Output stream to write the final buffer contents to.
 		void output_buffer_final(std::ostream &os);
 
+		/// \name set_status
+		///
+		/// \brief Sets the return code of the simulation program.
+		/// \param status Opaque return code value.
+		inline void set_status(uint8_t status) { m_status = status; }
+		inline uint8_t get_status() { return m_status; }
+
 		~Simulation();
+
+		enum SimulationStatus : uint8_t
+		{
+			OK = 0,
+			PAUSED = 33,
+		};
 
 	private:
 		unsigned int last_timestep;
 		unsigned int trajectory_num;
+		uint8_t m_status = 0;
 	};
 
 	template <typename TNum>
