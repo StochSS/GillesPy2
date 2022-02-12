@@ -45,6 +45,39 @@ class TestAllSolvers(unittest.TestCase):
         TauHybridCSolver,
     ]
 
+    sbml_features = {
+        "AssignmentRule": lambda model, variable:
+            model.add_assignment_rule(gillespy2.AssignmentRule(variable=variable, formula="1/(t+1)")),
+        "RateRule": lambda model, variable:
+            model.add_rate_rule(gillespy2.RateRule(variable=variable, formula="2*t")),
+        "Event": lambda model, variable:
+            model.add_event(gillespy2.Event(
+                trigger=gillespy2.EventTrigger(expression="t>1"),
+                assignments=[gillespy2.EventAssignment(variable=variable, expression="100")]
+            )),
+        "FunctionDefinition": lambda model, variable:
+            model.add_function_definition(
+                gillespy2.FunctionDefinition(name="fn", function="variable", args=["variable"])),
+    }
+
+    # List of `sbml_features` that each solver does NOT support.
+    sbml_support_check = {
+        # list(sbml_features.keys()) basically means "supports no SBML features,
+        #   so ensure that all of them raise an error."
+        NumPySSASolver: list(sbml_features.keys()),
+        TauLeapingSolver: list(sbml_features.keys()),
+        ODESolver: list(sbml_features.keys()),
+        TauHybridSolver: [],
+
+        SSACSolver: list(sbml_features.keys()),
+        ODECSolver: list(sbml_features.keys()),
+        TauLeapingCSolver: list(sbml_features.keys()),
+        TauHybridCSolver: [
+            "AssignmentRule",
+            "FunctionDefinition",
+        ],
+    }
+
     model = Example()
     for sp in model.listOfSpecies.values():
         sp.mode = 'discrete'
@@ -52,9 +85,9 @@ class TestAllSolvers(unittest.TestCase):
     labeled_results = {}
     labeled_results_more_trajectories = {}
 
-    for solver in solvers:
-        labeled_results[solver] = model.run(solver=solver, number_of_trajectories=1,seed=1)
-        labeled_results_more_trajectories[solver] = model.run(solver=solver, number_of_trajectories=2)
+    # for solver in solvers:
+    #     labeled_results[solver] = model.run(solver=solver, number_of_trajectories=1,seed=1)
+    #     labeled_results_more_trajectories[solver] = model.run(solver=solver, number_of_trajectories=2)
 
     def test_instantiated(self):
         for solver in self.solvers:
@@ -128,6 +161,24 @@ class TestAllSolvers(unittest.TestCase):
 
         results3 = model.run(solver=BasicTauHybridSolver)
         self.assertTrue(results3[0].solver_name == 'TauHybridSolver')
+
+    @unittest.expectedFailure
+    def test_sbml_feature_validation(self):
+        class TestModel(gillespy2.Model):
+            def __init__(self):
+                gillespy2.Model.__init__(self, name="TestModel")
+                self.add_species(gillespy2.Species(name="S", initial_value=0))
+                self.timespan(np.linspace(0, 10, 11))
+
+        for solver in self.solvers:
+            with self.subTest(solver=solver.name):
+                for sbml_feature_name in self.sbml_support_check.get(solver):
+                    model = TestModel()
+                    with self.subTest(sbml_feature=sbml_feature_name):
+                        add_sbml_feature = self.sbml_features.get(sbml_feature_name)
+                        add_sbml_feature(model, "S")
+                        with self.assertRaises(Exception):
+                            model.run(solver=solver)
 
 
 if __name__ == '__main__':
