@@ -233,10 +233,7 @@ class CSolver:
                 if timeout_event[0]:
                     return SimulationReturnCode.PAUSED
 
-                if return_code not in [0, 33]:
-                    return SimulationReturnCode.FAILED
-
-                return SimulationReturnCode.DONE
+                return self._handle_return_code(return_code)
 
     def _make_args(self, args_dict: "dict[str, str]") -> "list[str]":
         """
@@ -278,6 +275,22 @@ class CSolver:
             self.result.append(data)
 
         return self.result
+
+    def _handle_return_code(self, return_code: "int") -> "int":
+        """
+        Default return code handler; determines whether the simulation succeeded or failed.
+        Intended to be overridden by solver subclasses, which handles solver-specific return codes.
+
+        Does nothing if the return code checks out, otherwise raises an error.
+
+        :param return_code: Return code returned by a simulation.
+        :type return_code: int
+        """
+        if return_code not in [0, 33]:
+            raise gillespyError.ExecutionError("Error encountered while running simulation C++ file "
+                                               f"(return code: {int(return_code)})")
+
+        return SimulationReturnCode.DONE
 
     def _make_resume_data(self, time_stopped: int, simulation_data: numpy.ndarray, t: int):
         """
