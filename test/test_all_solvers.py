@@ -85,9 +85,9 @@ class TestAllSolvers(unittest.TestCase):
     labeled_results = {}
     labeled_results_more_trajectories = {}
 
-    # for solver in solvers:
-    #     labeled_results[solver] = model.run(solver=solver, number_of_trajectories=1,seed=1)
-    #     labeled_results_more_trajectories[solver] = model.run(solver=solver, number_of_trajectories=2)
+    for solver in solvers:
+        labeled_results[solver] = model.run(solver=solver, number_of_trajectories=1,seed=1)
+        labeled_results_more_trajectories[solver] = model.run(solver=solver, number_of_trajectories=2)
 
     def test_instantiated(self):
         for solver in self.solvers:
