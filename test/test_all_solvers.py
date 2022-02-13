@@ -60,21 +60,25 @@ class TestAllSolvers(unittest.TestCase):
                 gillespy2.FunctionDefinition(name="fn", function="variable", args=["variable"])),
     }
 
-    # List of `sbml_features` that each solver does NOT support.
-    sbml_support_check = {
-        # list(sbml_features.keys()) basically means "supports no SBML features,
-        #   so ensure that all of them raise an error."
-        NumPySSASolver: list(sbml_features.keys()),
-        TauLeapingSolver: list(sbml_features.keys()),
-        ODESolver: list(sbml_features.keys()),
-        TauHybridSolver: [],
-
-        SSACSolver: list(sbml_features.keys()),
-        ODECSolver: list(sbml_features.keys()),
-        TauLeapingCSolver: list(sbml_features.keys()),
-        TauHybridCSolver: [
+    # List of supported SBML features for each solver.
+    # When a feature is implemented for a particular solver, add the feature to its list.
+    solver_supported_sbml_features = {
+        NumPySSASolver: [],
+        TauLeapingSolver: [],
+        ODESolver: [],
+        TauHybridSolver: [
             "AssignmentRule",
+            "RateRule",
+            "Event",
             "FunctionDefinition",
+        ],
+
+        SSACSolver: [],
+        ODECSolver: [],
+        TauLeapingCSolver: [],
+        TauHybridCSolver: [
+            "RateRule",
+            "Event",
         ],
     }
 
@@ -170,15 +174,24 @@ class TestAllSolvers(unittest.TestCase):
                 self.add_species(gillespy2.Species(name="S", initial_value=0))
                 self.timespan(np.linspace(0, 10, 11))
 
+        all_features = set(self.sbml_features.keys())
         for solver in self.solvers:
+            unsupported_features = all_features.difference(self.solver_supported_sbml_features.get(solver))
             with self.subTest(solver=solver.name):
-                for sbml_feature_name in self.sbml_support_check.get(solver):
+                for sbml_feature_name in unsupported_features:
                     model = TestModel()
-                    with self.subTest(sbml_feature=sbml_feature_name):
+                    with self.subTest("Unsupported model features raise an error", sbml_feature=sbml_feature_name):
                         add_sbml_feature = self.sbml_features.get(sbml_feature_name)
                         add_sbml_feature(model, "S")
                         with self.assertRaises(Exception):
                             model.run(solver=solver)
+
+                for sbml_feature_name in self.solver_supported_sbml_features.get(solver):
+                    model = TestModel()
+                    with self.subTest("Supported model features validate successfully", sbml_feature=sbml_feature_name):
+                        add_sbml_feature = self.sbml_features.get(sbml_feature_name)
+                        add_sbml_feature(model, "S")
+                        model.run(solver=solver)
 
 
 if __name__ == '__main__':
