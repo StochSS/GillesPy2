@@ -144,6 +144,7 @@ class TauLeapingSolver(GillesPySolver):
         if model is not None and model.get_json_hash() != self.model.get_json_hash():
             raise SimulationError("Model must equal TauLeapingSolver.model.")
         self.model.resolve_parameters()
+        self.validate_sbml_features(model=model)
 
         increment = self.get_increment(increment=increment)
 

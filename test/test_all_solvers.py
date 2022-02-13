@@ -166,7 +166,6 @@ class TestAllSolvers(unittest.TestCase):
         results3 = model.run(solver=BasicTauHybridSolver)
         self.assertTrue(results3[0].solver_name == 'TauHybridSolver')
 
-    @unittest.expectedFailure
     def test_sbml_feature_validation(self):
         class TestModel(gillespy2.Model):
             def __init__(self):
