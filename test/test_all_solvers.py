@@ -183,14 +183,14 @@ class TestAllSolvers(unittest.TestCase):
                         add_sbml_feature = self.sbml_features.get(sbml_feature_name)
                         add_sbml_feature(model, "S")
                         with self.assertRaises(gillespy2.ModelError):
-                            solver.run(model=model)
+                            solver.validate_sbml_features(model=model)
 
                 for sbml_feature_name in self.solver_supported_sbml_features.get(solver):
                     model = TestModel()
                     with self.subTest("Supported model features validate successfully", sbml_feature=sbml_feature_name):
                         add_sbml_feature = self.sbml_features.get(sbml_feature_name)
                         add_sbml_feature(model, "S")
-                        solver.run(model=model)
+                        solver.validate_sbml_features(model=model)
 
 
 if __name__ == '__main__':
