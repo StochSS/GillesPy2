@@ -25,6 +25,11 @@
 
 char ArgParser::match_arg(std::string &token)
 {
+	if (!token.compare("--verbose"))
+	{
+		return 'v';
+	}
+
 	if (!token.compare("--timesteps"))
 	{
 		return 't';
@@ -152,6 +157,10 @@ ArgParser::ArgParser(int argc, char *argv[])
 
 			case 'V':
 				arg_stream >> output_interval;
+				break;
+
+			case 'v':
+				verbose = true;
 				break;
 
 			default:

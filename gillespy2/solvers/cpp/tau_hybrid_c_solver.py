@@ -219,6 +219,8 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             display_args = None
 
         args = self._make_args(args)
+        if debug:
+            args.append("--verbose")
         decoder = IterativeSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
 
         sim_exec = self._build(self.model, self.target, self.variable, False)
