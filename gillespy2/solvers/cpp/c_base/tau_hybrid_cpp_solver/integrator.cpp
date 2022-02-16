@@ -156,7 +156,7 @@ IntegrationResults Integrator::integrate(double *t, std::set<int> &event_roots, 
 
 		for (; root_id < num_rxn_roots; ++root_id)
 		{
-			if (root_results[root_id] != 0)
+			if (root_results[root_id] < 0)
 			{
 				reaction_roots.insert(data.active_reaction_ids[root_id]);
 			}
