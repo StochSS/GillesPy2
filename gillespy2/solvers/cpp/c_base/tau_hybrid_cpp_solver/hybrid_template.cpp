@@ -18,10 +18,13 @@
 
 #include "hybrid_template.h"
 #include "template_params.h"
+#include <cmath>
 
 // , cannot be overridden, so we can't use it as a delimiter
 // Use a separate macro to represent a delimiter
 #define AND ,
+
+using namespace std;
 
 namespace Gillespy
 {
