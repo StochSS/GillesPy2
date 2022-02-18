@@ -48,6 +48,7 @@ class ODECSolver(GillesPySolver, CSolver):
         if model is not None and model.get_json_hash() != self.model.get_json_hash():
             raise SimulationError("Model must equal ODECSolver.model.")
         self.model.resolve_parameters()
+        self.validate_sbml_features(model=model)
 
         increment = self.get_increment(increment=increment)
 
@@ -56,12 +57,6 @@ class ODECSolver(GillesPySolver, CSolver):
 
         self._validate_resume(t, resume)
         self._validate_kwargs(**kwargs)
-        self._validate_sbml_features({
-            "Rate Rules": len(self.model.listOfRateRules),
-            "Assignment Rules": len(self.model.listOfAssignmentRules),
-            "Events": len(self.model.listOfEvents),
-            "Function Definitions": len(self.model.listOfFunctionDefinitions)
-        })
 
         if resume is not None:
             t = abs(t - int(resume["time"][-1]))
