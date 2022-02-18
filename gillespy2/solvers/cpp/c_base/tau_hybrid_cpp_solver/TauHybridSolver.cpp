@@ -32,6 +32,9 @@
 #include "integrator.h"
 #include "tau.h"
 
+static void silent_error_handler(int error_code, const char *module, const char *function_name,
+						  char *message, void *eh_data);
+
 namespace Gillespy
 {
 	static volatile bool interrupted = false;
@@ -42,7 +45,7 @@ namespace Gillespy
 
 	namespace TauHybrid
 	{
-		void TauHybridCSolver(HybridSimulation *simulation, std::vector<Event> &events, const double tau_tol)
+		void TauHybridCSolver(HybridSimulation *simulation, std::vector<Event> &events, const double tau_tol, bool verbose)
 		{
 			if (simulation == NULL)
 			{
@@ -71,6 +74,10 @@ namespace Gillespy
 				y = y0;
 			}
 			Integrator sol(simulation, y, GPY_HYBRID_RELTOL, GPY_HYBRID_ABSTOL);
+			if (!verbose)
+			{
+				sol.set_error_handler(silent_error_handler);
+			}
 
 			// Tau selector initialization. Used to select a valid tau step.
 			TauArgs<double> tau_args = initialize(model, tau_tol);
@@ -251,10 +258,6 @@ namespace Gillespy
 										{
 											population_changes[spec_i] +=
 													model.reactions[rxn_i].species_change[spec_i];
-											if (current_state[spec_i] + population_changes[spec_i] < 0)
-											{
-												invalid_state = true;
-											}
 										}
 
 										rxn_state += log(urn.next());
@@ -266,6 +269,16 @@ namespace Gillespy
 								default:
 									break;
 								}
+							}
+						}
+
+						// Explicitly check for invalid population state, now that changes have been tallied.
+						for (int spec_i = 0; spec_i < num_species; ++spec_i)
+						{
+							if (current_state[spec_i] + population_changes[spec_i] < 0)
+							{
+								invalid_state = true;
+								break;
 							}
 						}
 
@@ -355,4 +368,10 @@ namespace Gillespy
 			}
 		}
 	}
+}
+
+void silent_error_handler(int error_code, const char *module, const char *function_name,
+						  char *message, void *eh_data)
+{
+	// Do nothing
 }

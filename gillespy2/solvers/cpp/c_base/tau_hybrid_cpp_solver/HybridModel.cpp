@@ -200,27 +200,17 @@ namespace Gillespy
 			return m_execution_time > rhs.m_execution_time;
 		}
 
-
-		HybridReaction::HybridReaction()
-				: mode(SimulationState::DISCRETE),
-				  m_base_reaction(nullptr),
-				  m_id(-1)
-		{
-			// Empty constructor body
-		}
-
 		HybridReaction::HybridReaction(Reaction *base_reaction)
-			: HybridReaction()
+			: mode(SimulationState::DISCRETE),
+			  m_base_reaction(base_reaction)
 		{
-			base_reaction = base_reaction;
 			m_id = base_reaction->id;
 		}
 
-		HybridSpecies::HybridSpecies()
+		HybridSpecies::HybridSpecies(Species<double> *base_species)
 				: user_mode(SimulationState::DYNAMIC),
 				  partition_mode(SimulationState::DISCRETE),
-				  switch_tol(0.03),
-				  switch_min(0)
+				  m_base_species(base_species)
 		{
 			// Empty constructor body
 		}
@@ -232,18 +222,16 @@ namespace Gillespy
 		}
 
 		HybridSimulation::HybridSimulation(const Model<double> &model)
-				: Simulation<double>(),
-				  species_state(model.number_species),
-				  reaction_state(model.number_reactions)
+				: Simulation<double>()
 		{
 			for (int spec_i = 0; spec_i < model.number_species; ++spec_i)
 			{
-				species_state[spec_i].base_species = &model.species[spec_i];
+				species_state.emplace_back(HybridSpecies(model.species.get() + spec_i));
 			}
 
 			for (int rxn_i = 0; rxn_i < model.number_reactions; ++rxn_i)
 			{
-				reaction_state[rxn_i].set_base_reaction(&model.reactions[rxn_i]);
+				reaction_state.emplace_back(HybridReaction(model.reactions.get() + rxn_i));
 			}
 		}
 
