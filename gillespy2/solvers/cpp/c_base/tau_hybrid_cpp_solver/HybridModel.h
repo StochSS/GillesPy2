@@ -192,8 +192,6 @@ namespace Gillespy
 
 		struct HybridSpecies
 		{
-			Species<double> *base_species;
-
 			// allows the user to specify if a species' population should definitely be modeled continuously or
 			// discretely
 			// CONTINUOUS or DISCRETE
@@ -222,7 +220,11 @@ namespace Gillespy
 			// If `boundary_condition` is true, then reactants are not consumed, and products are not produced.
 			bool boundary_condition = false;
 
-			HybridSpecies();
+			HybridSpecies() = delete;
+			explicit HybridSpecies(Species<double> *species);
+
+		private:
+			Species<double> *m_base_species;
 		};
 
 		struct HybridReaction
@@ -277,7 +279,7 @@ namespace Gillespy
 				return m_base_reaction;
 			}
 
-			HybridReaction();
+			HybridReaction() = delete;
 			explicit HybridReaction(Reaction *base_reaction);
 
 		private:

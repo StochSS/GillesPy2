@@ -21,10 +21,10 @@ import shutil
 import tempfile
 
 def cleanup_tempfiles():
-	'''
-	Cleanup all tempfiles in gillespy2 build.
-	'''
-	tempdir = tempfile.gettempdir()
-	for file_obj in os.listdir(tempdir):
-		if file_obj.startswith("gillespy2_build"):
-			cleanup_build_files(build_dir=os.path.join(tempdir, file_obj))
+    '''
+    Cleanup all tempfiles in gillespy2 build.
+    '''
+    tempdir = tempfile.gettempdir()
+    for file_obj in os.listdir(tempdir):
+        if file_obj.startswith("gillespy2_build"):
+            shutil.rmtree(os.path.join(tempdir, file_obj))

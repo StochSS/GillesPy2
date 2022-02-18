@@ -25,6 +25,6 @@ namespace Gillespy
 {
 	namespace TauHybrid
 	{
-    	void TauHybridCSolver(HybridSimulation* simulation, std::vector<Event> &events, double tau_tol);
+    	void TauHybridCSolver(HybridSimulation* simulation, std::vector<Event> &events, double tau_tol, bool verbose);
 	}
 }

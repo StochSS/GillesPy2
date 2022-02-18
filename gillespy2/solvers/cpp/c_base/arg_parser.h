@@ -47,6 +47,8 @@ public:
     double switch_tol = 0.0;
     double tau_tol = 0.03;
 
+    bool verbose = false;
+
     ArgParser(int argc, char *argv[]);
     ~ArgParser();
 };
