@@ -568,7 +568,7 @@ class MultiFiringEvent(Model):
         r = Reaction(name='R', reactants={S:1}, products={}, rate=k1) #Multiple reactions
         self.add_reaction([r])
 
-        self.timespan(np.linspace(0, 60, 175))   
+        self.timespan(np.linspace(0, 60, 181))   
 
 __all__ = ['Trichloroethylene', 'LacOperon', 'Schlogl', 'MichaelisMenten',
            'ToggleSwitch', 'Example', 'Tyson2StateOscillator', 'Oregonator',

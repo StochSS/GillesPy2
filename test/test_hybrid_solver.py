@@ -242,13 +242,12 @@ class TestAllHybridSolvers(unittest.TestCase):
         for solver in self.solvers:
             with self.subTest(solver=solver.name):
                 res = model.run(solver=solver, seed=1)
-                self.assertNotEqual(res['Sp'][15], 0)
-                self.assertEqual(res['Sp'][25], 0)
-                self.assertNotEqual(res['Sp'][32], 0)
-                self.assertEqual(res['Sp'][40], 0)
-                self.assertNotEqual(res['Sp'][48], 0)
-                self.assertEqual(res['Sp'][55], 0)
-                self.assertEqual(res['Sp'][60],100)
+                self.assertNotEqual(res['Sp'][45], 0)
+                self.assertEqual(res['Sp'][75], 0)
+                self.assertNotEqual(res['Sp'][96], 0)
+                self.assertEqual(res['Sp'][120], 0)
+                self.assertNotEqual(res['Sp'][144], 0)
+                self.assertEqual(res['Sp'][165], 0)
 
 if __name__ == '__main__':
     unittest.main()
