@@ -98,7 +98,7 @@ class VilarOscillator(Model):
 
 class Dimerization(Model):
     def __init__(self, parameter_values=None):
-        # First call the gillespy2.Model initializer.
+        # First call the Model initializer.
         Model.__init__(self, name="Dimerization")
 
         # Define parameters for the rates of creation and dissociation.
@@ -524,6 +524,51 @@ class RobustModel(Model):
 
         # Timespan
         self.timespan(np.arange(0, 20, 0.05))
+
+class MultiFiringEvent(Model):
+    """                                                                                                                                                                                                                              
+    This is a simple example for mass-action degradation of species S.  We will add two events
+    to demonstrate the usage of events.  The first event will assign the value '0' to our species
+    once time passes 20, and the second event will be triggered once time crosses 30, assigning
+    a value of "100" to our species and changing the value of our degradation rate parameter
+    "k1" from .01 to .1, causing the species to decay more quickly.
+    """                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                     
+    def __init__(self, parameter_values=None):                                                                                                                                                                                       
+        
+        # Initialize the model.                                                                                                                                                                                                      
+        Model.__init__(self, name="Example")
+
+        # Species                                                                                                                                                                                                                    
+        S = Species(name='Sp', initial_value=100, mode='discrete')
+#         ev_time1 = Species(name='ev_time1', initial_value=20)
+#         ev_time2 = Species(name='ev_time2', initial_value=30)
+        self.add_species([S])
+        
+        # Parameters                                                                                                                                                                                                                 
+        k1 = Parameter(name='k1', expression=0.01)
+        ev_time1 = Parameter(name='ev_time1', expression=20)
+        ev_time2 = Parameter(name='ev_time2', expression=30)
+        self.add_parameter([k1, ev_time1, ev_time2])    
+        
+        # Events
+        et = EventTrigger(expression='t>ev_time1')
+        ea = EventAssignment(variable=S, expression='0')
+        ea1 = EventAssignment(variable=ev_time1, expression='ev_time1+15')
+        e = Event(name='event1', trigger=et, assignments=[ea, ea1])
+        
+        et2 = EventTrigger(expression='t>ev_time2', persistent=True)
+        ea2 = EventAssignment(variable=S, expression='100')
+        ea3 = EventAssignment(variable=k1, expression='.1')
+        ea4 = EventAssignment(variable=ev_time2, expression='ev_time2+15')
+        e2 = Event(name='event2', trigger=et2, assignments=[ea2, ea3, ea4])
+        self.add_event([e, e2])
+        
+        #Reactions
+        r = Reaction(name='R', reactants={S:1}, products={}, rate=k1) #Multiple reactions
+        self.add_reaction([r])
+
+        self.timespan(np.linspace(0, 60, 175))   
 
 __all__ = ['Trichloroethylene', 'LacOperon', 'Schlogl', 'MichaelisMenten',
            'ToggleSwitch', 'Example', 'Tyson2StateOscillator', 'Oregonator',

@@ -15,12 +15,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-
 import unittest
 import numpy as np
 import gillespy2
 from gillespy2.core.gillespyError import *
-from example_models import Example, ExampleNoTspan
+from example_models import Example, ExampleNoTspan, MultiFiringEvent
 from gillespy2 import TauHybridSolver
 
 
@@ -238,6 +237,18 @@ class TestAllHybridSolvers(unittest.TestCase):
                 self.assertGreater(result["S1"][-1], 0.0,
                                    "Reaction never fired; indicates that continuous species is being truncated")
 
+    def test_multi_firing_event(self):
+        model = MultiFiringEvent()
+        for solver in self.solvers:
+            with self.subTest(solver=solver.name):
+                res = model.run(solver=solver, seed=1)
+        self.assertNotEqual(res['Sp'][15], 0)
+        self.assertEqual(res['Sp'][25], 0)
+        self.assertNotEqual(res['Sp'][32], 0)
+        self.assertEqual(res['Sp'][40], 0)
+        self.assertNotEqual(res['Sp'][48], 0)
+        self.assertEqual(res['Sp'][55], 0)
+        self.assertEqual(res['Sp'][60],100)
 
 if __name__ == '__main__':
     unittest.main()
