@@ -22,7 +22,7 @@ from threading import Thread, Event
 from scipy.integrate import ode
 from collections import OrderedDict
 import numpy as np
-from gillespy2.core import GillesPySolver, log, gillespyError
+from gillespy2.core import GillesPySolver, log, gillespyError, SimulationError
 from gillespy2.solvers.utilities import solverutils as nputils
 from gillespy2.core.results import Results
 
@@ -116,6 +116,7 @@ class ODESolver(GillesPySolver):
         if model is not None and model.get_json_hash() != self.model.get_json_hash():
             raise SimulationError("Model must equal OSESolver.model.")
         self.model.resolve_parameters()
+        self.validate_sbml_features(model=model)
 
         increment = self.get_increment(increment=increment)
 
@@ -205,7 +206,9 @@ class ODESolver(GillesPySolver):
             while self.result is None:
                 pass
         if hasattr(self, 'has_raised_exception'):
-            raise self.has_raised_exception
+            raise SimulationError(
+                f"Error encountered while running simulation:\nReturn code: {int(self.rc)}.\n"
+            ) from self.has_raised_exception
         
         return Results.build_from_solver_results(self, live_output_options)
 

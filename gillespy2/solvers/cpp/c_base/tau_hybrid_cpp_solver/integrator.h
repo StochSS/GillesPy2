@@ -58,9 +58,6 @@ namespace Gillespy
 		// In `rootfn`, this means that gout[i] is the "output" of reaction active_reaction_ids[i].
 		// This is used to map the internal reaction number to the actual reaction id.
 		std::vector<unsigned int> active_reaction_ids;
-
-		std::vector<double> concentrations;
-		std::vector<int> populations;
 		std::vector<double> propensities;
 
 		IntegratorData(HybridSimulation *simulation);
@@ -154,6 +151,8 @@ namespace Gillespy
 		/// and the underlying SBML event data and reaction data are removed.
 		bool disable_root_finder();
 
+		void set_error_handler(CVErrHandlerFn error_handler);
+
 		IntegrationResults integrate(double *t);
 		IntegrationResults integrate(double *t, std::set<int> &event_roots, std::set<unsigned int> &reaction_roots);
 		IntegratorData data;
@@ -170,7 +169,7 @@ namespace Gillespy
 		unsigned long long seed;
 	public:
 		double next();
-		URNGenerator();
+		URNGenerator() = delete;
 		explicit URNGenerator(unsigned long long seed);
 	};
 

@@ -88,7 +88,7 @@ namespace Gillespy
 			}
 
 			inline bool is_persistent() const { return m_use_persist; }
-			inline bool get_event_id() const { return m_event_id; }
+			inline int get_event_id() const { return m_event_id; }
 
 			EventExecution get_execution(double t,
 					const double *state, int num_state) const;
@@ -177,10 +177,10 @@ namespace Gillespy
 		struct DifferentialEquation
 		{
 		public:
-			std::vector<std::function<double(double *, int *)>> formulas;
+			std::vector<std::function<double(double *)>> formulas;
 			std::vector<std::function<double(double, double *, double *, const double *)>> rate_rules;
 
-			double evaluate(double t, double *ode_state, int *ssa_state);
+			double evaluate(double t, double *ode_state);
 		};
 
 		enum SimulationState : unsigned int
@@ -192,8 +192,6 @@ namespace Gillespy
 
 		struct HybridSpecies
 		{
-			Species<double> *base_species;
-
 			// allows the user to specify if a species' population should definitely be modeled continuously or
 			// discretely
 			// CONTINUOUS or DISCRETE
@@ -222,15 +220,71 @@ namespace Gillespy
 			// If `boundary_condition` is true, then reactants are not consumed, and products are not produced.
 			bool boundary_condition = false;
 
-			HybridSpecies();
+			HybridSpecies() = delete;
+			explicit HybridSpecies(Species<double> *species);
+
+		private:
+			Species<double> *m_base_species;
 		};
 
 		struct HybridReaction
 		{
-			Reaction *base_reaction;
 			SimulationState mode;
 
-			HybridReaction();
+			inline double propensity(double *state) const
+			{
+				return propensity(state, Reaction::s_variables.get(), Reaction::s_constants.get());
+			}
+
+			inline double propensity(double *state, double *parameters, const double *constants) const
+			{
+				switch (mode)
+				{
+				case SimulationState::CONTINUOUS:
+					return ode_propensity(state, parameters, constants);
+				case SimulationState::DISCRETE:
+				default:
+					return ssa_propensity(state, parameters, constants);
+				}
+			}
+
+			inline double ode_propensity(double *state) const
+			{
+				return ode_propensity(state, Reaction::s_variables.get(), Reaction::s_constants.get());
+			}
+
+			inline double ode_propensity(double *state, double *parameters, const double *constants) const
+			{
+				return map_ode_propensity(m_id, state, parameters, constants);
+			}
+
+			inline double ssa_propensity(double *state) const
+			{
+				return ssa_propensity(state, Reaction::s_variables.get(), Reaction::s_constants.get());
+			}
+
+			inline double ssa_propensity(double *state, double *parameters, const double *constants) const
+			{
+				return map_ssa_propensity(m_id, state, parameters, constants);
+			}
+
+			inline void set_base_reaction(Reaction *reaction)
+			{
+				m_base_reaction = reaction;
+				m_id = reaction->id;
+			}
+
+			inline Reaction *get_base_reaction() const
+			{
+				return m_base_reaction;
+			}
+
+			HybridReaction() = delete;
+			explicit HybridReaction(Reaction *base_reaction);
+
+		private:
+			Reaction *m_base_reaction;
+			ReactionId m_id;
 		};
 
 		struct HybridSimulation : Simulation<double>

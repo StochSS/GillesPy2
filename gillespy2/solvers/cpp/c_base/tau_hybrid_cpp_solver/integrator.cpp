@@ -27,8 +27,6 @@ IntegratorData::IntegratorData(
 	int num_species,
 	int num_reactions)
 	: simulation(simulation),
-	  concentrations(std::vector<double>(num_species)),
-	  populations(std::vector<int>(num_species)),
 	  propensities(std::vector<double>(num_reactions)),
 	  species_state(&simulation->species_state),
 	  reaction_state(&simulation->reaction_state) {}
@@ -53,13 +51,6 @@ Integrator::Integrator(HybridSimulation *simulation, N_Vector y0, double reltol,
 	// N_VClone_Serial() does not clone *contents*, we have to do that explicitly.
 	for (int mem_i = 0; mem_i < num_reactions + num_species; ++mem_i) {
 		NV_Ith_S(y, mem_i) = NV_Ith_S(this->y0, mem_i);
-	}
-
-	for (int spec_i = 0; spec_i < num_species; ++spec_i)
-	{
-		data.populations[spec_i]
-			= data.concentrations[spec_i]
-			= simulation->model->species[spec_i].initial_population;
 	}
 
 	for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
@@ -143,6 +134,10 @@ IntegrationResults Integrator::integrate(double *t)
 IntegrationResults Integrator::integrate(double *t, std::set<int> &event_roots, std::set<unsigned int> &reaction_roots)
 {
 	IntegrationResults results = integrate(t);
+	if (status != IntegrationStatus::OK) {
+		return results;
+	}
+
 	unsigned long long num_triggers = data.active_triggers.size();
 	unsigned long long num_rxn_roots = data.active_reaction_ids.size();
 	unsigned long long root_size = data.active_triggers.size() + data.active_reaction_ids.size();
@@ -161,7 +156,7 @@ IntegrationResults Integrator::integrate(double *t, std::set<int> &event_roots, 
 
 		for (; root_id < num_rxn_roots; ++root_id)
 		{
-			if (root_results[root_id] != 0)
+			if (root_results[root_id] < 0)
 			{
 				reaction_roots.insert(data.active_reaction_ids[root_id]);
 			}
@@ -193,7 +188,7 @@ void Integrator::use_reactions(const std::vector<HybridReaction> &reactions)
 			// Reaction root-finder should only be used on discrete-valued reactions.
 			// The required IDs are placed into a reference vector and are mapped back out
 			// when the caller of integrate() retrieves them.
-			data.active_reaction_ids.push_back(reaction.base_reaction->id);
+			data.active_reaction_ids.push_back(reaction.get_base_reaction()->id);
 		}
 	}
 }
@@ -217,9 +212,10 @@ bool Integrator::disable_root_finder()
 	return validate(this, CVodeRootInit(cvode_mem, 0, NULL));
 }
 
-
-URNGenerator::URNGenerator()
-	: uniform(0, 1) {}
+void Integrator::set_error_handler(CVErrHandlerFn error_handler)
+{
+	validate(this, CVodeSetErrHandlerFn(cvode_mem, error_handler, nullptr));
+}
 
 URNGenerator::URNGenerator(unsigned long long seed)
 	: uniform(0, 1),
@@ -293,9 +289,6 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	std::vector<HybridSpecies> *species = data->species_state;
 	std::vector<HybridReaction> *reactions = data->reaction_state;
 	std::vector<double> &propensities = data->propensities;
-	// Concentrations and reactions are both used for their respective propensity evaulations.
-	// They both should, roughly, reflect the same data, but tau selection requires both.
-	std::vector<int> &populations = data->populations;
 	unsigned int num_species = sim->model->number_species;
 	unsigned int num_reactions = sim->model->number_reactions;
 
@@ -303,17 +296,10 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	// First half is for concentrations, second half is for reaction offsets.
 	realtype *dydt_offsets = &dydt[num_species];
 
-	// Populate the current ODE state into the concentrations vector.
-	// dy/dt results are initialized to zero, and become the change in propensity.
-	unsigned int spec_i;
-	for (spec_i = 0; spec_i < num_species; ++spec_i)
-	{
-		populations[spec_i] = static_cast<int>(Y[spec_i]);
-	}
-
 	// Deterministic reactions generally are "evaluated" by generating dy/dt functions
 	//   for each of their dependent species.
 	// To handle these, we will go ahead and evaluate each species' differential equations.
+	unsigned int spec_i;
 	for (spec_i = 0; spec_i < num_species; ++spec_i)
 	{
 		if ((*species)[spec_i].boundary_condition) {
@@ -322,7 +308,7 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 		}
 		else
 		{
-			dydt[spec_i] = (*species)[spec_i].diff_equation.evaluate(t, Y, populations.data());
+			dydt[spec_i] = (*species)[spec_i].diff_equation.evaluate(t, Y);
 		}
 	}
 
@@ -330,10 +316,12 @@ int Gillespy::TauHybrid::rhs(realtype t, N_Vector y, N_Vector ydot, void *user_d
 	// These updates get written directly to the integrator's concentration state
 	for (unsigned int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
 	{
-		switch ((*reactions)[rxn_i].mode) {
+		HybridReaction rxn = (*reactions)[rxn_i];
+
+		switch (rxn.mode) {
 		case SimulationState::DISCRETE:
 			// Process stochastic reaction state by updating the root offset for each reaction.
-			propensity = Reaction::propensity(rxn_i, populations.data());
+			propensity = rxn.ssa_propensity(Y);
 			dydt_offsets[rxn_i] = propensity;
 			propensities[rxn_i] = propensity;
 			break;

@@ -26,6 +26,26 @@
 #include <vector>
 #include <iostream>
 
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) || defined(__WIN32__)
+#include <windows.h>
+#define GPY_PID_GET() ((int) GetCurrentProcessId())
+#define GPY_INTERRUPT_HANDLER(handler_name, handler_code) \
+static BOOL WINAPI handler_name(DWORD signum) {           \
+	do handler_code while(0);                             \
+	return TRUE;										  \
+}
+#define GPY_INTERRUPT_INSTALL_HANDLER(handler) SetConsoleCtrlHandler(handler, TRUE)
+#else
+#include <unistd.h>
+#include <csignal>
+#define GPY_PID_GET() (getpid())
+#define GPY_INTERRUPT_HANDLER(handler_name, handler_code) \
+static void handler_name(int signum) {                    \
+	do handler_code while(0);                             \
+}
+#define GPY_INTERRUPT_INSTALL_HANDLER(handler) signal(SIGINT, handler)
+#endif
+
 namespace Gillespy
 {
 	typedef unsigned int ReactionId;
@@ -137,8 +157,6 @@ namespace Gillespy
 		double end_time;
 		double *timeline;
 
-		PType *trajectories_1D;
-		PType ***trajectories;
 		PType *current_state;
 
 		Model<PType> *model;

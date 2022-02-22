@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
 	add_reactions(model);
 
 	if(seed_time){
-		random_seed = time(NULL);
+		random_seed = time(nullptr) % GPY_PID_GET();
 	}
 	//Simulation INIT
 	TauHybrid::HybridSimulation simulation(model);
@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
 	std::vector<Gillespy::TauHybrid::Event> events;
 	Gillespy::TauHybrid::Event::use_events(events);
 
-	TauHybrid::TauHybridCSolver(&simulation, events, tau_tol);
-	simulation.output_results_buffer(std::cout);
+	TauHybrid::TauHybridCSolver(&simulation, events, tau_tol, parser.verbose);
+	simulation.output_buffer_final(std::cout);
 	return 0;
 }

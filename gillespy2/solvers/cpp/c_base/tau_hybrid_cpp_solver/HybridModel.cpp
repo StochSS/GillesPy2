@@ -200,19 +200,17 @@ namespace Gillespy
 			return m_execution_time > rhs.m_execution_time;
 		}
 
-
-		HybridReaction::HybridReaction()
-				: mode(SimulationState::DISCRETE),
-				  base_reaction(nullptr)
+		HybridReaction::HybridReaction(Reaction *base_reaction)
+			: mode(SimulationState::DISCRETE),
+			  m_base_reaction(base_reaction)
 		{
-			// Empty constructor body
+			m_id = base_reaction->id;
 		}
 
-		HybridSpecies::HybridSpecies()
+		HybridSpecies::HybridSpecies(Species<double> *base_species)
 				: user_mode(SimulationState::DYNAMIC),
 				  partition_mode(SimulationState::DISCRETE),
-				  switch_tol(0.03),
-				  switch_min(0)
+				  m_base_species(base_species)
 		{
 			// Empty constructor body
 		}
@@ -224,26 +222,23 @@ namespace Gillespy
 		}
 
 		HybridSimulation::HybridSimulation(const Model<double> &model)
-				: Simulation<double>(),
-				  species_state(model.number_species),
-				  reaction_state(model.number_reactions)
+				: Simulation<double>()
 		{
 			for (int spec_i = 0; spec_i < model.number_species; ++spec_i)
 			{
-				species_state[spec_i].base_species = &model.species[spec_i];
+				species_state.emplace_back(HybridSpecies(model.species.get() + spec_i));
 			}
 
 			for (int rxn_i = 0; rxn_i < model.number_reactions; ++rxn_i)
 			{
-				reaction_state[rxn_i].base_reaction = &model.reactions[rxn_i];
+				reaction_state.emplace_back(HybridReaction(model.reactions.get() + rxn_i));
 			}
 		}
 
 
 		double DifferentialEquation::evaluate(
 				const double t,
-				double *ode_state,
-				int *ssa_state)
+				double *ode_state)
 		{
 			double sum = 0.0;
 
@@ -254,7 +249,7 @@ namespace Gillespy
 
 			for (auto &formula : formulas)
 			{
-				sum += formula(ode_state, ssa_state);
+				sum += formula(ode_state);
 			}
 
 			return sum;
@@ -273,9 +268,8 @@ namespace Gillespy
 				spec.diff_equation.formulas.clear();
 			}
 
-			for (int rxn_i = 0; rxn_i < reactions.size(); ++rxn_i)
+			for (HybridReaction &rxn : reactions)
 			{
-				HybridReaction rxn = reactions[rxn_i];
 				if (rxn.mode == SimulationState::DISCRETE)
 				{
 					continue;
@@ -284,38 +278,18 @@ namespace Gillespy
 				for (int spec_i = 0; spec_i < species.size(); ++spec_i)
 				{
 					// A species change of 0 indicates that this species is not a dependency for this reaction.
-					if (rxn.base_reaction->species_change[spec_i] == 0)
+					if (rxn.get_base_reaction()->species_change[spec_i] == 0)
 					{
 						continue;
 					}
 
 					HybridSpecies &spec = species[spec_i];
 					auto &formula_set = spec.diff_equation.formulas;
-					int spec_diff = rxn.base_reaction->species_change[spec_i];
+					int spec_diff = rxn.get_base_reaction()->species_change[spec_i];
 
-					switch (spec.partition_mode)
-					{
-					case SimulationState::CONTINUOUS:
-						formula_set.push_back([rxn_i, spec_diff](
-								double *ode_state,
-								int *ssa_state)
-											  {
-												  return spec_diff * Reaction::propensity(rxn_i, ode_state);
-											  });
-						break;
-
-					case SimulationState::DISCRETE:
-						formula_set.push_back([rxn_i, spec_diff](
-								double *ode_state,
-								int *ssa_state)
-											  {
-												  return spec_diff * Reaction::propensity(rxn_i, ssa_state);
-											  });
-						break;
-
-					default:
-						break;
-					}
+					formula_set.emplace_back([&rxn, spec_diff](double *state) {
+						return spec_diff * rxn.propensity(state);
+					});
 				}
 			}
 		}
@@ -342,7 +316,7 @@ namespace Gillespy
 				{
 					// Reaction has a dependency on a species if its dx is positive or negative.
 					// Any species with "dependency" change of 0 is by definition not a dependency.
-					if (rxn.base_reaction->species_change[spec_i] == 0)
+					if (rxn.get_base_reaction()->species_change[spec_i] == 0)
 					{
 						continue;
 					}
@@ -410,7 +384,7 @@ namespace Gillespy
 					// Selected species is either a reactant or a product, depending on whether
 					//   dx is positive or negative.
 					// 0-dx species are not dependencies of this reaction, so dx == 0 is ignored.
-					int spec_dx = rxn.base_reaction->species_change[spec_i];
+					int spec_dx = rxn.get_base_reaction()->species_change[spec_i];
 					if (spec_dx < 0)
 					{
 						// Selected species is a reactant.
@@ -519,14 +493,11 @@ namespace Gillespy
 			// Step 1: Identify any fired event triggers.
 			for (auto &event : m_events)
 			{
-				bool trigger = event.trigger(t, event_state);
-				if (m_trigger_state.at(event.get_event_id()) != trigger)
+				if (m_trigger_state.at(event.get_event_id()) != event.trigger(t, event_state))
 				{
 					double delay = event.delay(t, event_state);
 					EventExecution execution = event.get_execution(t + delay, event_state, output_size);
 
-					// Update trigger state to prevent repeated firings.
-					m_trigger_state.find(event.get_event_id())->second = trigger;
 					if (delay <= 0)
 					{
 						// Immediately put EventExecution on "triggered" pile
@@ -604,10 +575,11 @@ namespace Gillespy
 				m_trigger_pool.erase(event.get_event_id());
 			}
 
-			// Step 5: Update any trigger states to reflect the new trigger value.
+			// Step 5: Update trigger states based on the new simulation state.
+			// This is to account for events that re-assign values that the event triggers depend on.
 			for (auto &event : m_events)
 			{
-				m_trigger_state.find(event.get_event_id())->second = event.trigger(t, event_state);
+				m_trigger_state.at(event.get_event_id()) = event.trigger(t, event_state);
 			}
 
 			return has_active_events();

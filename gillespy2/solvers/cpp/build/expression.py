@@ -50,17 +50,17 @@ class Expression:
             self.namespace = dict({}) if namespace is None else namespace
             self.blacklist = dict({}) if blacklist is None else blacklist
             self.sanitize = sanitize
-            self.invalid_names = []
-            self.invalid_operators = []
+            self.invalid_names = set()
+            self.invalid_operators = set()
 
         def check_blacklist(self, operator):
             operator = type(operator)
             if operator in self.blacklist:
-                self.invalid_operators.append(str(self.blacklist.get(operator)))
+                self.invalid_operators.add(str(self.blacklist.get(operator)))
 
         def visit_Name(self, node: "ast.Name"):
             if node.id not in self.namespace:
-                self.invalid_names.append(node.id)
+                self.invalid_names.add(node.id)
             elif self.sanitize:
                 node.id = self.namespace.get(node.id)
             self.generic_visit(node)
@@ -68,7 +68,7 @@ class Expression:
 
         def visit_Call(self, node: "ast.Call"):
             if node.func.id not in self.namespace:
-                self.invalid_names.append(node.func.id)
+                self.invalid_names.add(node.func.id)
             elif self.sanitize:
                 node.func.id = self.namespace.get(node.func.id)
             self.generic_visit(node)
@@ -199,15 +199,25 @@ class Expression:
 
         return ExpressionResults(invalid_names=validator.invalid_names, invalid_operators=validator.invalid_operators)
 
-    def __get_expr(self, converter: "ExpressionConverter") -> "Optional[str]":
+    def __get_expr(self, statement: "str", converter: "ExpressionConverter") -> "Optional[str]":
         validator = Expression.ValidationVisitor(self.namespace, self.blacklist, self.sanitize)
         validator.visit(converter.tree)
 
+        failures_found = []
+
         if validator.invalid_operators:
-            return None
+            base_msg = "Blacklisted operator"
+            base_msg = f"{base_msg}s" if len(validator.invalid_operators) > 1 else base_msg
+            failures_found.append(f"{base_msg}: {','.join(validator.invalid_operators)}")
 
         if validator.invalid_names:
-            return None
+            base_msg = "Cannot resolve species name"
+            base_msg = f"{base_msg}s" if len(validator.invalid_names) > 1 else base_msg
+            failures_found.append(f"{base_msg}: {','.join(validator.invalid_names)}")
+
+        if len(failures_found) > 0:
+            raise SyntaxError(f"Invalid GillesPy2 expression \"{statement}\"\n"
+                              + "\n".join([f"* {msg}" for msg in failures_found]))
 
         return converter.get_str()
 
@@ -220,7 +230,7 @@ class Expression:
         :returns: Python expression string, if valid. Returns None if validation fails.
         """
         expr = ast.parse(statement)
-        return self.__get_expr(PythonConverter(expr))
+        return self.__get_expr(statement, PythonConverter(expr))
 
     def getexpr_cpp(self, statement: "str") -> "Optional[str]":
         """
@@ -232,7 +242,7 @@ class Expression:
         """
         statement = ExpressionConverter.convert_str(statement)
         expr = ast.parse(statement)
-        return self.__get_expr(CppConverter(expr))
+        return self.__get_expr(statement, CppConverter(expr))
 
 
 class ExpressionResults:
@@ -241,7 +251,7 @@ class ExpressionResults:
     Any expression items which indicate an invalid expression are listed on an ExpressionResults instance.
     Empty lists indicate that the expression is valid.
     """
-    def __init__(self, invalid_names: "list[str]" = None, invalid_operators: "list[str]" = None, is_valid=True):
+    def __init__(self, invalid_names: "set[str]" = None, invalid_operators: "set[str]" = None, is_valid=True):
         """
         Container struct for returning the results of expression validation.
 

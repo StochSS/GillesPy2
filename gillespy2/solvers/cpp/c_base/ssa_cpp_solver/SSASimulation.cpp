@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 	
 	if (seed_time)    
 	{
-		random_seed = time(NULL);
+		random_seed = time(nullptr) % GPY_PID_GET();
 	}
 
 	Simulation<unsigned int> simulation;

@@ -18,7 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from threading import Thread, Event
 from gillespy2.core.results import Results
-from gillespy2.core import GillesPySolver, log, gillespyError
+from gillespy2.core import GillesPySolver, log
+from gillespy2.core.gillespyError import *
 from gillespy2.solvers.utilities import solverutils as nputils
 import random
 import math
@@ -80,6 +81,7 @@ class NumPySSASolver(GillesPySolver):
         if model is not None and model.get_json_hash() != self.model.get_json_hash():
             raise SimulationError("Model must equal NumPySSASolver.model.")
         self.model.resolve_parameters()
+        self.validate_sbml_features(model=model)
 
         increment = self.get_increment(increment=increment)
 
@@ -168,7 +170,9 @@ class NumPySSASolver(GillesPySolver):
             while self.result is None:
                 pass
         if hasattr(self, 'has_raised_exception'):
-            raise self.has_raised_exception
+            raise SimulationError(
+                f"Error encountered while running simulation:\nReturn code: {int(self.rc)}.\n"
+            ) from self.has_raised_exception
 
         return Results.build_from_solver_results(self, live_output_options)
 

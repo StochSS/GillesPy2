@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import ast  # for dependency graphing
 import numpy as np
 from gillespy2.core import log, Species
+from gillespy2.core import ModelError
 
 """
 NUMPY SOLVER UTILITIES BELOW
@@ -91,19 +92,19 @@ def update_species_init_values(listOfSpecies, species, variables, resume = None)
     populations = ''
     for i in range(len(species) - 1):
         if species[i] in variables:
-            populations += '{} '.format(int(variables[species[i]]))
+            populations += '{} '.format(float(variables[species[i]]))
         else:
             if resume is not None:
-                populations += '{} '.format(int(resume[species[i]][-1]))
+                populations += '{} '.format(float(resume[species[i]][-1]))
             else:
-                populations += '{} '.format(int(listOfSpecies[species[i]].initial_value))
+                populations += '{} '.format(float(listOfSpecies[species[i]].initial_value))
     if species[-1] in variables:
-        populations += '{}'.format(int(variables[species[-1]]))
+        populations += '{}'.format(float(variables[species[-1]]))
     else:
         if resume is not None:
-            populations += '{} '.format(int(resume[species[-1]][-1]))
+            populations += '{} '.format(float(resume[species[-1]][-1]))
         else:
-            populations += '{}'.format(int(listOfSpecies[species[-1]].initial_value))
+            populations += '{}'.format(float(listOfSpecies[species[-1]].initial_value))
     return populations
 
 def change_param_values(listOfParameters, parameters, volume, variables):
@@ -143,8 +144,11 @@ def species_parse(model, custom_prop_fun):
 
     class SpeciesParser(ast.NodeTransformer):
         def visit_Name(self, node):
-            if isinstance(model.get_element(node.id), Species):
-                parsed_species.append(model.get_element(node.id))
+            try:
+                if isinstance(model.get_element(node.id), Species):
+                    parsed_species.append(model.get_element(node.id))
+            except ModelError:
+                pass
 
     expr = custom_prop_fun
     expr = ast.parse(expr, mode='eval')

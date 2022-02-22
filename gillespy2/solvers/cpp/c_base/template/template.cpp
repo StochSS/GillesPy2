@@ -88,6 +88,84 @@ namespace Gillespy
 		return constants;
 	}
 
+	double map_ssa_propensity(unsigned int reaction_id, int *S, double *P, const double *C)
+	{
+		switch (reaction_id)
+		{
+			#define PROPENSITY(id, func) case(id): return(func);
+			GPY_PROPENSITIES
+			#undef PROPENSITY
+
+		default:
+			return -1.0;
+		}
+	}
+
+	double map_ssa_propensity(unsigned int reaction_id, unsigned int *S, double *P, const double *C)
+	{
+		switch (reaction_id)
+		{
+			#define PROPENSITY(id, func) case(id): return(func);
+			GPY_PROPENSITIES
+			#undef PROPENSITY
+
+		default:
+			return -1.0;
+		}
+	}
+
+	double map_ssa_propensity(unsigned int reaction_id, double *S, double *P, const double *C)
+	{
+		switch (reaction_id)
+		{
+			#define PROPENSITY(id, func) case(id): return(func);
+			GPY_PROPENSITIES
+			#undef PROPENSITY
+
+		default:
+			return -1.0;
+		}
+	}
+
+	double map_ode_propensity(unsigned int reaction_id, int *S, double *P, const double *C)
+	{
+		switch (reaction_id)
+		{
+			#define PROPENSITY(id, func) case(id): return(func);
+			GPY_ODE_PROPENSITIES
+			#undef PROPENSITY
+
+		default:
+			return -1.0;
+		}
+	}
+
+	double map_ode_propensity(unsigned int reaction_id, unsigned int *S, double *P, const double *C)
+	{
+		switch (reaction_id)
+		{
+			#define PROPENSITY(id, func) case(id): return(func);
+			GPY_ODE_PROPENSITIES
+			#undef PROPENSITY
+
+		default:
+			return -1.0;
+		}
+	}
+
+	double map_ode_propensity(unsigned int reaction_id, double *S, double *P, const double *C)
+	{
+		switch (reaction_id)
+		{
+			#define PROPENSITY(id, func) case(id): return(func);
+			GPY_ODE_PROPENSITIES
+			#undef PROPENSITY
+
+		default:
+			return -1.0;
+		}
+	}
+
 	double map_propensity(unsigned int reaction_id, unsigned int *S, double *P, const double *C)
 	{
 		switch (reaction_id)
@@ -159,6 +237,7 @@ namespace Gillespy
 
 		for (rxn_i = 0; rxn_i < GPY_NUM_REACTIONS; ++rxn_i)
 		{
+			model.reactions[rxn_i].id = rxn_i;
 			for (spec_i = 0; spec_i < GPY_NUM_SPECIES; ++spec_i)
 			{
 				model.reactions[rxn_i].species_change[spec_i] = reactions[rxn_i][spec_i];

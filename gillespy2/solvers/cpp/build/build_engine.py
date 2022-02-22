@@ -91,13 +91,15 @@ class BuildEngine():
 
         # If the output directory is None, create and set it to a temporary directory.
         if self.output_dir is None:
-            self.output_dir = Path(tempfile.mkdtemp())
+            self.output_dir = Path(tempfile.mkdtemp(
+                prefix='gillespy2_build_', dir=os.environ.get('GILLESPY2_TMPDIR'))
+            )
 
         # If object files haven't been compiled yet, go ahead and compile them with make.
         # Precompilation only happens if the cache is enabled but hasn't been built yet.
         # Make target for individual simulation will still succeed if prebuild() isn't called.
-        self.obj_dir = self.output_dir.joinpath("obj")
-        self.template_dir = self.output_dir.joinpath("template")
+        self.obj_dir = self.output_dir.joinpath("gillespy2_obj")
+        self.template_dir = self.output_dir.joinpath("gillespy2_template")
 
         if gillespy2.cache_enabled:
             self.obj_dir = self.__get_cache_dir()
@@ -186,4 +188,4 @@ class BuildEngine():
             return
 
         if self.output_dir.exists():
-            shutil.rmtree(self.output_dir)
+            shutil.rmtree(self.output_dir, ignore_errors=True)

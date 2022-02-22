@@ -21,6 +21,8 @@ from typing import Optional
 from gillespy2.core import Species, Reaction, Parameter, Model, RateRule
 from gillespy2.solvers.cpp.build.expression import Expression
 from gillespy2.core import log
+from gillespy2.core.gillespyError import SimulationError
+
 import math
 
 
@@ -35,6 +37,13 @@ class SanitizedModel:
     """
     reserved_names = {
         "t": "t",
+    }
+
+    # Global functions that aren't present in the `math` package,
+    # as well as functions in Python that have a different name in C++.
+    function_map = {
+        "abs": "abs",
+        "round": "round",
     }
 
     def __init__(self, model: Model, variable=False):
@@ -66,6 +75,7 @@ class SanitizedModel:
             # All "system" namespace entries should always be first.
             # Otherwise, user-defined identifiers (like, for example, "gamma") might get overwritten.
             **{name: name for name in math.__dict__.keys()},
+            **self.function_map,
             **self.species_names,
             **self.parameter_names,
             **self.reserved_names,
@@ -368,7 +378,7 @@ def template_def_species(model: SanitizedModel) -> "dict[str, str]":
     populations = OrderedDict()
 
     for spec_name, spec in model.species.items():
-        populations[spec_name] = str(spec.initial_value)
+        populations[spec_name] = str(float(spec.initial_value))
     # Species names, parsed and formatted
     sanitized_names = [f"SPECIES_NAME({name})" for name in populations.keys()]
     populations = f"{{{','.join(populations.values())}}}"

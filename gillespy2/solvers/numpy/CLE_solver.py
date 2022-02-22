@@ -157,6 +157,7 @@ class CLESolver(GillesPySolver):
         if model is not None and model.get_json_hash() != self.model.get_json_hash():
             raise SimulationError("Model must equal CLESolver.model.")
         self.model.resolve_parameters()
+        self.validate_sbml_features(model=model)
 
         increment = self.get_increment(increment=increment)
 
@@ -250,7 +251,9 @@ class CLESolver(GillesPySolver):
             while self.result is None:
                 pass
         if hasattr(self, 'has_raised_exception'):
-            raise self.has_raised_exception
+            raise SimulationError(
+                f"Error encountered while running simulation:\nReturn code: {int(self.rc)}.\n"
+            ) from self.has_raised_exception
 
         return Results.build_from_solver_results(self, live_output_options)
 

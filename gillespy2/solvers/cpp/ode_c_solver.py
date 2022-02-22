@@ -19,7 +19,8 @@ import numpy as np
 
 from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
 from gillespy2.solvers.utilities import solverutils as cutils
-from gillespy2.core import GillesPySolver, gillespyError, Model
+from gillespy2.core import GillesPySolver, Model
+from gillespy2.core.gillespyError import *
 from gillespy2.core import Results
 
 from .c_solver import CSolver, SimulationReturnCode
@@ -47,6 +48,7 @@ class ODECSolver(GillesPySolver, CSolver):
         if model is not None and model.get_json_hash() != self.model.get_json_hash():
             raise SimulationError("Model must equal ODECSolver.model.")
         self.model.resolve_parameters()
+        self.validate_sbml_features(model=model)
 
         increment = self.get_increment(increment=increment)
 
@@ -55,12 +57,6 @@ class ODECSolver(GillesPySolver, CSolver):
 
         self._validate_resume(t, resume)
         self._validate_kwargs(**kwargs)
-        self._validate_sbml_features({
-            "Rate Rules": len(self.model.listOfRateRules),
-            "Assignment Rules": len(self.model.listOfAssignmentRules),
-            "Events": len(self.model.listOfEvents),
-            "Function Definitions": len(self.model.listOfFunctionDefinitions)
-        })
 
         if resume is not None:
             t = abs(t - int(resume["time"][-1]))

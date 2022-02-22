@@ -32,24 +32,26 @@
 #include "integrator.h"
 #include "tau.h"
 
+static void silent_error_handler(int error_code, const char *module, const char *function_name,
+						  char *message, void *eh_data);
+
 namespace Gillespy
 {
+	static volatile bool interrupted = false;
+
+	GPY_INTERRUPT_HANDLER(signal_handler, {
+		interrupted = true;
+	})
+
 	namespace TauHybrid
 	{
-
-		bool interrupted = false;
-
-		void signalHandler(int signum)
-		{
-			interrupted = true;
-		}
-
-		void TauHybridCSolver(HybridSimulation *simulation, std::vector<Event> &events, const double tau_tol)
+		void TauHybridCSolver(HybridSimulation *simulation, std::vector<Event> &events, const double tau_tol, bool verbose)
 		{
 			if (simulation == NULL)
 			{
 				return;
 			}
+			GPY_INTERRUPT_INSTALL_HANDLER(signal_handler);
 
 			Model<double> &model = *(simulation->model);
 			int num_species = model.number_species;
@@ -72,12 +74,16 @@ namespace Gillespy
 				y = y0;
 			}
 			Integrator sol(simulation, y, GPY_HYBRID_RELTOL, GPY_HYBRID_ABSTOL);
+			if (!verbose)
+			{
+				sol.set_error_handler(silent_error_handler);
+			}
 
 			// Tau selector initialization. Used to select a valid tau step.
 			TauArgs<double> tau_args = initialize(model, tau_tol);
 
 			// Simulate for each trajectory
-			for (int traj = 0; traj < num_trajectories; traj++)
+			for (int traj = 0; !interrupted && traj < num_trajectories; traj++)
 			{
 				if (traj > 0)
 				{
@@ -88,14 +94,15 @@ namespace Gillespy
 				// TODO: change back double -> hybrid_state, once we figure out how that works
 				EventList event_list;
 				std::vector<double> current_state(num_species);
-				std::vector<int> current_populations(num_species);
 
 				// Initialize the species population for the trajectory.
 				for (int spec_i = 0; spec_i < num_species; ++spec_i)
 				{
 					current_state[spec_i] = species[spec_i].initial_population;
-					current_populations[spec_i] = species[spec_i].initial_population;
+					simulation->current_state[spec_i] = current_state[spec_i];
 				}
+				simulation->reset_output_buffer(traj);
+				simulation->output_buffer_range(std::cout);
 
 				// Check for initial event triggers at t=0 (based on initial_value of trigger)
 				std::set<int> event_roots;
@@ -115,7 +122,6 @@ namespace Gillespy
 					spec->partition_mode = spec->user_mode == SimulationState::DYNAMIC
 										   ? SimulationState::DISCRETE
 										   : spec->user_mode;
-					simulation->trajectories[traj][0][spec_i] = current_state[spec_i];
 				}
 
 				// SIMULATION STEP LOOP
@@ -136,36 +142,26 @@ namespace Gillespy
 				// For now, a "guard" is put in place to prevent potentially infinite loops from occurring.
 				unsigned int integration_guard = 1000;
 
-				while (integration_guard > 0 && simulation->current_time < simulation->end_time)
+				while (!interrupted && integration_guard > 0 && simulation->current_time < simulation->end_time)
 				{
 					// Compute current propensity values based on existing state.
 					for (unsigned int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
 					{
 						HybridReaction &rxn = simulation->reaction_state[rxn_i];
-						double propensity = 0.0;
-						switch (rxn.mode)
-						{
-						case SimulationState::CONTINUOUS:
-							propensity = Reaction::propensity(rxn_i, current_state.data());
-							break;
-						case SimulationState::DISCRETE:
-							propensity = Reaction::propensity(rxn_i, current_populations.data());
-							break;
-						default:
-							break;
-						}
-						sol.data.propensities[rxn_i] = propensity;
+						sol.data.propensities[rxn_i] = rxn.propensity(current_state.data());
 					}
+					if (interrupted)
+						break;
 
 					// Expected tau step is determined.
-					tau_step = select(
+					tau_step = select<double, double>(
 							model,
 							tau_args,
 							tau_tol,
 							simulation->current_time,
 							save_time,
 							sol.data.propensities,
-							current_populations
+							current_state
 					);
 					partition_species(
 							simulation->reaction_state,
@@ -262,10 +258,6 @@ namespace Gillespy
 										{
 											population_changes[spec_i] +=
 													model.reactions[rxn_i].species_change[spec_i];
-											if (current_state[spec_i] + population_changes[spec_i] < 0)
-											{
-												invalid_state = true;
-											}
 										}
 
 										rxn_state += log(urn.next());
@@ -277,6 +269,16 @@ namespace Gillespy
 								default:
 									break;
 								}
+							}
+						}
+
+						// Explicitly check for invalid population state, now that changes have been tallied.
+						for (int spec_i = 0; spec_i < num_species; ++spec_i)
+						{
+							if (current_state[spec_i] + population_changes[spec_i] < 0)
+							{
+								invalid_state = true;
+								break;
 							}
 						}
 
@@ -301,10 +303,12 @@ namespace Gillespy
 									current_state[p_i] += population_changes[p_i];
 									result.concentrations[p_i] = current_state[p_i];
 								}
-								current_populations[p_i] = (int) current_state[p_i];
 							}
 						}
-					} while (invalid_state);
+					} while (invalid_state && !interrupted);
+
+					if (interrupted)
+						break;
 
 					// Invalid state after the do-while loop implies that an unrecoverable error has occurred.
 					// While prior results are considered usable, the current integration results are not.
@@ -344,9 +348,10 @@ namespace Gillespy
 					{
 						for (int spec_i = 0; spec_i < num_species; ++spec_i)
 						{
-							simulation->trajectories[traj][save_idx][spec_i] = current_state[spec_i];
+							simulation->current_state[spec_i] = current_state[spec_i];
 						}
-						save_time = simulation->timeline[++save_idx];
+						simulation->output_buffer_range(std::cout, save_idx++);
+						save_time = simulation->timeline[save_idx];
 					}
 				}
 
@@ -363,4 +368,10 @@ namespace Gillespy
 			}
 		}
 	}
+}
+
+void silent_error_handler(int error_code, const char *module, const char *function_name,
+						  char *message, void *eh_data)
+{
+	// Do nothing
 }

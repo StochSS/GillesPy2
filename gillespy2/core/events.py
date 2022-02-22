@@ -70,7 +70,7 @@ class EventAssignment(Jsonify):
                              'valid string expression')
 
     def __str__(self):
-        return self.variable.name + ': ' + self.expression
+        return f"{self.variable}: {self.expression}"
 
 class EventTrigger(Jsonify):
     """

@@ -24,7 +24,7 @@ import numpy as np
 import threading
 import gillespy2
 from gillespy2.solvers.utilities import Tau
-from gillespy2.core import GillesPySolver, log
+from gillespy2.core import GillesPySolver, log, Event, RateRule, AssignmentRule, FunctionDefinition
 from gillespy2.core.gillespyError import *
 from gillespy2.core.results import Results
 
@@ -765,6 +765,15 @@ class TauHybridSolver(GillesPySolver):
                 'event_sensitivity', 'integrator', 'integrator_options', 'timeout')
 
     @classmethod
+    def get_supported_features(cls):
+        return {
+            Event,
+            RateRule,
+            AssignmentRule,
+            FunctionDefinition,
+        }
+
+    @classmethod
     def run(self, model=None, t=20, number_of_trajectories=1, increment=None, seed=None,
             debug=False, profile=False, tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
             integrator_options={}, live_output=None, live_output_options={}, timeout=None, **kwargs):
@@ -827,6 +836,7 @@ class TauHybridSolver(GillesPySolver):
         if model is not None and model.get_json_hash() != self.model.get_json_hash():
             raise SimulationError("Model must equal TauHybridSolver.model.")
         self.model.resolve_parameters()
+        self.validate_sbml_features(model=model)
 
         increment = self.get_increment(increment=increment)
 
@@ -938,7 +948,9 @@ class TauHybridSolver(GillesPySolver):
         except:
             pass
         if hasattr(self, 'has_raised_exception'):
-            raise self.has_raised_exception
+            raise SimulationError(
+                f"Error encountered while running simulation:\nReturn code: {int(self.rc)}.\n"
+            ) from self.has_raised_exception
         
         return Results.build_from_solver_results(self, live_output_options)
 

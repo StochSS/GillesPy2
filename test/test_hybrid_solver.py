@@ -15,12 +15,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-
 import unittest
 import numpy as np
 import gillespy2
 from gillespy2.core.gillespyError import *
-from example_models import Example, ExampleNoTspan
+from example_models import Example, ExampleNoTspan, MultiFiringEvent
 from gillespy2 import TauHybridSolver
 
 
@@ -41,7 +40,8 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         model.add_species([species])
         model.add_rate_rule([rule])
         results = model.run()
-        self.assertEqual(results[0].solver_name, 'TauHybridSolver')
+        valid_solvers = ('TauHybridSolver', 'TauHybridCSolver')
+        self.assertIn(results[0].solver_name, valid_solvers)
 
     def test_add_rate_rule_dict(self):
         model = Example()
@@ -88,7 +88,8 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         event1.add_assignment([ea1, ea2])
         model.add_event(event1)
         results = model.run()
-        self.assertEqual(results[0].solver_name,'TauHybridSolver')
+        valid_solvers = ('TauHybridSolver', 'TauHybridCSolver')
+        self.assertIn(results[0].solver_name, valid_solvers)
         self.assertEqual(results['Sp'][-1], 1000)
 
     def test_add_stochastic_species_dependent_event(self):
@@ -174,21 +175,23 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         species1 = gillespy2.Species('test_species1', initial_value=1,mode='dynamic')
         model.add_species(species1)
         results = model.run()
-        self.assertEqual(results[0].solver_name, 'TauHybridSolver')
+        valid_solvers = ('TauHybridSolver', 'TauHybridCSolver')
+        self.assertIn(results[0].solver_name, valid_solvers)
 
     def test_ensure_hybrid_continuous_species(self):
         model = Example()
         species1 = gillespy2.Species('test_species1', initial_value=1,mode='continuous')
         model.add_species(species1)
         results = model.run()
-        self.assertEqual(results[0].solver_name, 'TauHybridSolver')
+        valid_solvers = ('TauHybridSolver', 'TauHybridCSolver')
+        self.assertIn(results[0].solver_name, valid_solvers)
 
     def test_ensure_continuous_dynamic_timeout_warning(self):
         model = Example()
         species1 = gillespy2.Species('test_species1', initial_value=1, mode='dynamic')
         model.add_species(species1)
         with self.assertLogs(level='WARN'):
-            results = model.run(timeout=1)
+            results = model.run(solver=TauHybridSolver, timeout=1)
 
     def test_run_example__with_increment_only(self):
         model = ExampleNoTspan()
@@ -203,6 +206,48 @@ class TestBasicTauHybridSolver(unittest.TestCase):
             model = Example()
             results = TauHybridSolver.run(model=model, increment=0.2)
 
+
+class TestAllHybridSolvers(unittest.TestCase):
+    from gillespy2.solvers import TauHybridCSolver
+
+    class TruncatedStateModel(gillespy2.Model):
+        def __init__(self):
+            gillespy2.Model.__init__(self, name="TruncatedStateModel")
+            S1 = gillespy2.Species(name="S1", initial_value=0, mode="discrete")
+            rate = gillespy2.Species(name="rate", initial_value=0.9999, mode="continuous")
+            self.add_species([S1, rate])
+            self.add_rate_rule(gillespy2.RateRule(variable="rate", formula="-1/((t+0.9999)**2)"))
+            self.add_reaction(
+                # Because S1 is a "discrete" species, our reaction will be marked "stochastic."
+                gillespy2.Reaction(products={S1: 1}, propensity_function="10.0*rate")
+            )
+    solvers = [
+        TauHybridSolver,
+        TauHybridCSolver,
+    ]
+
+    def test_continuous_state_values(self):
+        """
+        Continuous values should be evaluate appropriately, without being truncated/casted to an integer.
+        """
+        model = TestAllHybridSolvers.TruncatedStateModel()
+        for solver in self.solvers:
+            with self.subTest(solver=solver.name):
+                result = model.run(solver=solver, seed=1)
+                self.assertGreater(result["S1"][-1], 0.0,
+                                   "Reaction never fired; indicates that continuous species is being truncated")
+
+    def test_multi_firing_event(self):
+        model = MultiFiringEvent()
+        for solver in self.solvers:
+            with self.subTest(solver=solver.name):
+                res = model.run(solver=solver, seed=1)
+                self.assertNotEqual(res['Sp'][45], 0)
+                self.assertEqual(res['Sp'][75], 0)
+                self.assertNotEqual(res['Sp'][96], 0)
+                self.assertEqual(res['Sp'][120], 0)
+                self.assertNotEqual(res['Sp'][144], 0)
+                self.assertEqual(res['Sp'][165], 0)
 
 if __name__ == '__main__':
     unittest.main()

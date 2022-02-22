@@ -47,7 +47,7 @@ namespace Gillespy
     template<typename PType>
     TauArgs<PType> initialize(Model<PType> &model, double tau_tol);
 
-    template<typename PType>
+    template<typename PType, typename SType = int>
     double select(
         Model<PType> &model,
         TauArgs<PType> &tau_args,
@@ -55,19 +55,19 @@ namespace Gillespy
         const double &current_time,
         const double &save_time,
         const std::vector<double> &propensity_values,
-        const std::vector<int> &current_state);
+        const std::vector<SType> &current_state);
 
     // Continuous tau args is used by hybrid solver
     template struct TauArgs<double>;
     extern template TauArgs<double> initialize(Model<double> &model, double tau_tol);
-    extern template double select<double>(
+    extern template double select<double, double>(
         Model<double> &model,
         TauArgs<double> &tau_args,
         const double &tau_tol,
         const double &current_time,
         const double &save_time,
         const std::vector<double> &propensity_values,
-        const std::vector<int> &current_state);
+        const std::vector<double> &current_state);
 
     // Discrete tau args is used by tau leaping solver
     template struct TauArgs<unsigned int>;
