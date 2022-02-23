@@ -12,6 +12,14 @@ gillespy2.core.assignmentrule module
    :undoc-members:
    :show-inheritance:
 
+gillespy2.core.cleanup module
+-----------------------------
+
+.. automodule:: gillespy2.core.cleanup
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 gillespy2.core.events module
 ----------------------------
 
@@ -40,6 +48,14 @@ gillespy2.core.gillespySolver module
 ------------------------------------
 
 .. automodule:: gillespy2.core.gillespySolver
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+gillespy2.core.jsonify module
+-----------------------------
+
+.. automodule:: gillespy2.core.jsonify
    :members:
    :undoc-members:
    :show-inheritance:
@@ -107,7 +123,6 @@ gillespy2.core.species module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

@@ -1,0 +1,522 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>gillespy2.solvers.cpp.c_solver &#8212; GillesPy2 1.6.9 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/css/gillespy2_alabaster_customizations.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../../../../_static/img/gillespy2-logo.svg" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../../index.html">
+    <img class="logo" src="../../../../_static/img/gillespy2-logo.svg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=GillesPy2&repo=GillesPy2&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started/installation/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started/basic_usage/basic_usage.html">Basic usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorials/tut_toggle_switch/tut_toggle_switch.html">Tutorial: ODE vs. SSA</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../classes/gillespy2.html">gillespy2 package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for gillespy2.solvers.cpp.c_solver</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">GillesPy2 is a modeling toolkit for biochemical simulation.</span>
+<span class="sd">Copyright (C) 2019-2021 GillesPy2 developers.</span>
+
+<span class="sd">This program is free software: you can redistribute it and/or modify</span>
+<span class="sd">it under the terms of the GNU General Public License as published by</span>
+<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
+<span class="sd">(at your option) any later version.</span>
+
+<span class="sd">This program is distributed in the hope that it will be useful,</span>
+<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="sd">GNU General Public License for more details.</span>
+
+<span class="sd">You should have received a copy of the GNU General Public License</span>
+<span class="sd">along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">signal</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">queue</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="kn">from</span> <span class="nn">enum</span> <span class="k">import</span> <span class="n">IntEnum</span>
+<span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="k">import</span> <span class="n">ThreadPoolExecutor</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">Model</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">Results</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">log</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">gillespyError</span>
+<span class="kn">from</span> <span class="nn">gillespy2.solvers.cpp.c_decoder</span> <span class="k">import</span> <span class="n">SimDecoder</span>
+<span class="kn">from</span> <span class="nn">gillespy2.solvers.cpp.build.build_engine</span> <span class="k">import</span> <span class="n">BuildEngine</span>
+<span class="kn">from</span> <span class="nn">gillespy2.solvers.cpp.build.template_gen</span> <span class="k">import</span> <span class="n">SanitizedModel</span>
+
+<div class="viewcode-block" id="SimulationReturnCode"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.c_solver.SimulationReturnCode">[docs]</a><span class="k">class</span> <span class="nc">SimulationReturnCode</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+    <span class="n">DONE</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">PAUSED</span> <span class="o">=</span> <span class="mi">33</span>
+    <span class="n">FAILED</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span></div>
+
+<div class="viewcode-block" id="CSolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.c_solver.CSolver">[docs]</a><span class="k">class</span> <span class="nc">CSolver</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class implements base behavior that will be needed for C++ solver implementees.</span>
+
+<span class="sd">    :param model: The Model to simulate.</span>
+<span class="sd">    :type model: Model</span>
+
+<span class="sd">    :param output_directory: The working output directory.</span>
+<span class="sd">    :type output_directory: str</span>
+
+<span class="sd">    :param delete_directory: If True then the output_directory will be deleted upon completetion.</span>
+<span class="sd">    :type delete_directory: bool</span>
+
+<span class="sd">    :param resume: Resume data from a previous simulation run.</span>
+
+<span class="sd">    :param variable: Indicates whether the simulation should be variable.</span>
+<span class="sd">    :type variable: bool</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rc</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">delete_directory</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delete_directory</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resume</span> <span class="o">=</span> <span class="n">resume</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variable</span> <span class="o">=</span> <span class="n">variable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">build_engine</span><span class="p">:</span> <span class="n">BuildEngine</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Validate output_directory, ensure that it doesn&#39;t already exist</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output_directory</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">output_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">output_directory</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_directory</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">DirectoryError</span><span class="p">(</span>
+                    <span class="n">f</span><span class="s2">&quot;Could not write to specified output directory: </span><span class="si">{output_directory}</span><span class="s2">&quot;</span>
+                    <span class="s2">&quot; (already exists)&quot;</span>
+                <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_directory</span> <span class="o">=</span> <span class="n">output_directory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delete_directory</span> <span class="o">=</span> <span class="n">delete_directory</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_model</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_engine</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">delete_directory</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">build_engine</span><span class="o">.</span><span class="n">clean</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="s2">&quot;Union[Model, SanitizedModel]&quot;</span><span class="p">,</span> <span class="n">simulation_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate and build the simulation from the specified Model and solver_name into the output_dir.</span>
+
+<span class="sd">        :param model: The Model to simulate.</span>
+<span class="sd">        :type model: gillespy2.Model</span>
+
+<span class="sd">        :param simulation_name: The name of the simulation to execute.</span>
+<span class="sd">        :type simulation_name: str</span>
+
+<span class="sd">        :param variable: If True the simulation will be variable, False if not.</span>
+<span class="sd">        :type variable: bool</span>
+
+<span class="sd">        :param debug: Enables or disables debug behavior.</span>
+<span class="sd">        :type debug: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Prepare the build workspace.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_engine</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_engine</span><span class="o">.</span><span class="n">get_executable_path</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">build_engine</span> <span class="o">=</span> <span class="n">BuildEngine</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output_directory</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">build_engine</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">variable</span><span class="p">)</span>
+            <span class="c1"># Compile the simulation, returning the path of the executable.</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_engine</span><span class="o">.</span><span class="n">build_simulation</span><span class="p">(</span><span class="n">simulation_name</span><span class="p">)</span>
+
+        <span class="c1"># Assume that the simulation has already been built.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_engine</span><span class="o">.</span><span class="n">get_executable_path</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_run_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sim_exec</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">sim_args</span><span class="p">:</span> <span class="s2">&quot;list[str]&quot;</span><span class="p">,</span> <span class="n">decoder</span><span class="p">:</span> <span class="n">SimDecoder</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run the target executable simulation as async.</span>
+
+<span class="sd">        :param sim_exec: The executable simulation to run.</span>
+<span class="sd">        :type sim_exec: str</span>
+
+<span class="sd">        :param sim_args: The arguments to pass on simulation run.</span>
+<span class="sd">        :type sim_args: list[str]</span>
+
+<span class="sd">        :param decoder: The SimDecoder instance that will handle simulation output.</span>
+<span class="sd">        :type decoder: SimDecoder</span>
+
+<span class="sd">        :returns: A future which represents the currently executing run_simulation job.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">executor</span> <span class="o">=</span> <span class="n">ThreadPoolExecutor</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">,</span> <span class="n">sim_exec</span><span class="p">,</span> <span class="n">sim_args</span><span class="p">,</span> <span class="n">decoder</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sim_exec</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">sim_args</span><span class="p">:</span> <span class="s2">&quot;list[str]&quot;</span><span class="p">,</span> <span class="n">decoder</span><span class="p">:</span> <span class="n">SimDecoder</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">display_args</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run the target executable simulation.</span>
+
+<span class="sd">        :param sim_exec: The executable simulation to run.</span>
+<span class="sd">        :type sim_exec: str</span>
+
+<span class="sd">        :param sim_args: The arguments to pass on simulation run.</span>
+<span class="sd">        :type sim_args: list[str]</span>
+
+<span class="sd">        :param decoder: The SimDecoder instance that will handle simulation output.</span>
+<span class="sd">        :type decoder: SimDecoder</span>
+
+<span class="sd">        :param display_args: The kwargs need to setup the live graphing</span>
+<span class="sd">        :type display_args: dict</span>
+
+<span class="sd">        :returns: The return_code of the simulation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Prefix the executable to the sim arguments.</span>
+        <span class="n">sim_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">sim_exec</span><span class="p">]</span> <span class="o">+</span> <span class="n">sim_args</span>
+
+        <span class="c1"># nt and *nix require different methods to force shutdown a running process.</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;nt&quot;</span><span class="p">:</span>
+            <span class="n">proc_kill</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">sim</span><span class="p">:</span> <span class="n">sim</span><span class="o">.</span><span class="n">send_signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">CTRL_BREAK_EVENT</span><span class="p">)</span>
+            <span class="n">platform_args</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;creationflags&quot;</span><span class="p">:</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CREATE_NEW_PROCESS_GROUP</span><span class="p">,</span>
+                <span class="s2">&quot;start_new_session&quot;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="p">}</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">proc_kill</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">sim</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">killpg</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">pid</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">)</span>
+            <span class="n">platform_args</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;start_new_session&quot;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="p">}</span>
+
+        <span class="n">live_grapher</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">display_args</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">live_queue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">def</span> <span class="nf">decoder_cb</span><span class="p">(</span><span class="n">curr_time</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="o">=</span><span class="n">decoder</span><span class="o">.</span><span class="n">trajectories</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">old_entry</span> <span class="o">=</span> <span class="n">live_queue</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">()</span>
+                <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                <span class="n">curr_state</span> <span class="o">=</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span> <span class="n">curr_state</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">curr_state</span><span class="p">))}</span>
+                <span class="n">entry</span> <span class="o">=</span> <span class="p">([</span><span class="n">curr_state</span><span class="p">],</span> <span class="p">[</span><span class="n">curr_time</span><span class="p">],</span> <span class="n">trajectory_base</span><span class="p">)</span>
+                <span class="n">live_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+                
+            <span class="n">decoder</span><span class="o">.</span><span class="n">with_callback</span><span class="p">(</span><span class="n">decoder_cb</span><span class="p">)</span>
+
+            <span class="kn">from</span> <span class="nn">gillespy2.core.liveGraphing</span> <span class="k">import</span> <span class="p">(</span>
+                <span class="n">LiveDisplayer</span><span class="p">,</span> <span class="n">CRepeatTimer</span><span class="p">,</span> <span class="n">valid_graph_params</span>
+            <span class="p">)</span>
+            <span class="n">valid_graph_params</span><span class="p">(</span><span class="n">display_args</span><span class="p">[</span><span class="s1">&#39;live_output_options&#39;</span><span class="p">])</span>
+            <span class="n">live_grapher</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">LiveDisplayer</span><span class="p">(</span><span class="o">**</span><span class="n">display_args</span><span class="p">)</span>
+            <span class="n">display_timer</span> <span class="o">=</span> <span class="n">CRepeatTimer</span><span class="p">(</span>
+                <span class="n">display_args</span><span class="p">[</span><span class="s1">&#39;live_output_options&#39;</span><span class="p">][</span><span class="s1">&#39;interval&#39;</span><span class="p">],</span> <span class="n">live_grapher</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">display</span><span class="p">,</span>
+                <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">live_queue</span><span class="p">,</span> <span class="n">display_args</span><span class="p">[</span><span class="s1">&#39;live_output_options&#39;</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">])</span>
+            <span class="p">)</span>
+
+        <span class="n">timeout_event</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span><span class="p">]</span>
+        <span class="k">with</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">sim_args</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="o">**</span><span class="n">platform_args</span><span class="p">)</span> <span class="k">as</span> <span class="n">simulation</span><span class="p">:</span>
+            <span class="k">def</span> <span class="nf">timeout_kill</span><span class="p">():</span>
+                <span class="n">timeout_event</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">proc_kill</span><span class="p">(</span><span class="n">simulation</span><span class="p">)</span>
+
+            <span class="n">timeout_thread</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">timeout</span><span class="p">,</span> <span class="n">timeout_kill</span><span class="p">)</span>
+            <span class="n">reader_thread</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">decoder</span><span class="o">.</span><span class="n">read</span><span class="p">,</span>
+                                             <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">stdout</span><span class="p">,))</span>
+
+            <span class="k">if</span> <span class="n">timeout</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">timeout_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">reader_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">display_args</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">display_timer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                <span class="n">reader_thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+            
+            <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">live_grapher</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">display_timer</span><span class="o">.</span><span class="n">pause</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">proc_kill</span><span class="p">(</span><span class="n">simulation</span><span class="p">)</span>
+
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">live_grapher</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">display_timer</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+                <span class="n">timeout_thread</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+                <span class="n">return_code</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+                <span class="n">reader_thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">timeout_event</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="k">return</span> <span class="n">SimulationReturnCode</span><span class="o">.</span><span class="n">PAUSED</span>
+
+                <span class="k">if</span> <span class="n">return_code</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">33</span><span class="p">]:</span>
+                    <span class="k">return</span> <span class="n">SimulationReturnCode</span><span class="o">.</span><span class="n">FAILED</span>
+
+                <span class="k">return</span> <span class="n">SimulationReturnCode</span><span class="o">.</span><span class="n">DONE</span>
+
+    <span class="k">def</span> <span class="nf">_make_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args_dict</span><span class="p">:</span> <span class="s2">&quot;dict[str, str]&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;list[str]&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert a dictionary of key, value pairs into a valid Popen argument list.</span>
+<span class="sd">        Note: Do not prefix a key with `-` as this will be handled automatically.</span>
+
+<span class="sd">        :param args_dict: A dictionary of named arguments.</span>
+<span class="sd">        :type args_dict: dict[str, str]</span>
+
+<span class="sd">        :returns: A formatted list of arguments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">args_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">args_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">args_list</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">f</span><span class="s2">&quot;--</span><span class="si">{key}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)])</span>
+
+        <span class="k">return</span> <span class="n">args_list</span>
+
+    <span class="k">def</span> <span class="nf">_format_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectories</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="c1"># Check the dimensionality of the input trajectory.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">trajectories</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;Could not format trajectories, input numpy.ndarray is not 3-dimensional.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># The trajectory count is the first dimention of the input ndarray.</span>
+        <span class="n">trajectory_count</span> <span class="o">=</span> <span class="n">trajectories</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Begin iterating through the trajectories, copying each dimension into simulation_data.</span>
+        <span class="k">for</span> <span class="n">trajectory</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">trajectory_count</span><span class="p">):</span>
+            <span class="c1"># Copy the first index of the third-dimension into the simulation_data dictionary.</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">trajectories</span><span class="p">[</span><span class="n">trajectory</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="p">}</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">)):</span>
+                <span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">trajectories</span><span class="p">[</span><span class="n">trajectory</span><span class="p">,</span> <span class="p">:,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">_make_resume_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_stopped</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">simulation_data</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If the simulation was paused then the output data needs to be trimmed to allow for resume.</span>
+<span class="sd">        In the event the simulation was not paused, no data is changed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># No need to create resume data if the simulation completed without interruption.</span>
+        <span class="c1"># Note that, currently, some C++ solvers write 0 out as the &quot;time stopped&quot; by default.</span>
+        <span class="c1"># This is likely to change in the future.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">time_stopped</span> <span class="o">&lt;</span> <span class="n">t</span> <span class="ow">or</span> <span class="n">time_stopped</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">simulation_data</span>
+
+        <span class="c1"># Find the index of the time step value which is closest to the time stopped.</span>
+        <span class="n">cutoff</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">simulation_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;time&quot;</span><span class="p">],</span> <span class="nb">float</span><span class="p">(</span><span class="n">time_stopped</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">cutoff</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;You have paused the simulation too early, and no points have been calculated past&#39;</span>
+                        <span class="s1">&#39; initial values. A graphic display will not produce expected results.&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Break off any extraneous data which goes past the cutoff time.</span>
+        <span class="c1"># Any data in this case is assumed to be untrusted.</span>
+        <span class="k">for</span> <span class="n">entry_name</span><span class="p">,</span> <span class="n">entry_data</span> <span class="ow">in</span> <span class="n">simulation_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">simulation_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">entry_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry_data</span><span class="p">[:</span><span class="n">cutoff</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">simulation_data</span>
+
+    <span class="k">def</span> <span class="nf">_set_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">species_mappings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sanitized_species_names</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameter_mappings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sanitized_parameter_names</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rc</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">_update_resume_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resume</span><span class="p">:</span> <span class="n">Results</span><span class="p">,</span> <span class="n">simulation_data</span><span class="p">:</span> <span class="s2">&quot;list[dict[str, numpy.ndarray]]&quot;</span><span class="p">,</span> <span class="n">time_stopped</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Modify the simulation output to continue from a previous Results object.</span>
+<span class="sd">        Does not handle the case where the simulation was interrupted again.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># No need to update the resume data if there is no previous data, or not enough.</span>
+        <span class="k">if</span> <span class="n">resume</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">resume</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">simulation_data</span>
+
+        <span class="n">resume_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">resume</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">increment</span> <span class="o">=</span> <span class="n">resume_time</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">resume</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+        <span class="c1"># Replace the simulation&#39;s timespan to continue where the Results object left off.</span>
+        <span class="n">simulation_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="p">(</span><span class="n">resume_time</span><span class="p">),</span>
+                                                   <span class="n">stop</span><span class="o">=</span><span class="p">(</span><span class="n">resume_time</span> <span class="o">+</span> <span class="n">time_stopped</span> <span class="o">+</span> <span class="n">increment</span><span class="p">),</span>
+                                                   <span class="n">step</span><span class="o">=</span><span class="n">increment</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">entry_name</span><span class="p">,</span> <span class="n">entry_data</span> <span class="ow">in</span> <span class="n">simulation_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># The results of the current simulation is treated as an &quot;extension&quot; of the resume data.</span>
+            <span class="c1"># As such, the new simulation output is formed by joining the two end to end.</span>
+            <span class="n">new_data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">resume</span><span class="p">[</span><span class="n">entry_name</span><span class="p">],</span> <span class="n">entry_data</span><span class="p">[</span><span class="mi">1</span><span class="p">:]),</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+            <span class="n">simulation_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">entry_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_data</span>
+
+        <span class="k">return</span> <span class="n">simulation_data</span>
+
+    <span class="k">def</span> <span class="nf">_validate_resume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">resume</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate `resume`. An exception will be thrown if resume[&#39;time&#39;][-1] is &gt; t.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">resume</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="n">resume</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">ExecutionError</span><span class="p">(</span>
+                <span class="s2">&quot;&#39;t&#39; must be greater than previous simulations end time, or set in the run() method as the &quot;</span>
+                <span class="s2">&quot;simulations next end time&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_validate_kwargs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate any additional kwargs passed to the model. If any exist, warn the user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Unsupported keyword argument for solver </span><span class="si">{self.name}</span><span class="s2">: </span><span class="si">{key}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_validate_seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">seed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">seed</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">ModelError</span><span class="p">(</span><span class="s2">&quot;`seed` must be a postive integer.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">seed</span>
+        
+    <span class="k">def</span> <span class="nf">_validate_variables_in_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">SimulationError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Argument to variable &#39;</span><span class="si">{var}</span><span class="s2">&#39; is not a valid variable. Variables must be model species or parameters.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_validate_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">typeof</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="n">typeof</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">SimulationError</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+              <div class="related bottom">
+                &nbsp;
+  <nav id="rellinks">
+    <ul>
+    </ul>
+  </nav>
+              </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;Copyright (C) 2017-2021.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+    <a href="https://github.com/GillesPy2/GillesPy2" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

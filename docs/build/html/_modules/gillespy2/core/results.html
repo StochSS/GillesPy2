@@ -1,18 +1,18 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.core.results &#8212; GillesPy2 1.5.2 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>gillespy2.core.results &#8212; GillesPy2 1.6.9 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/gillespy2_alabaster_customizations.css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -50,16 +50,16 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Getting started</span></p>
+<p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started/installation/installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started/basic_usage/basic_usage.html">Basic usage</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Tutorials</span></p>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorials/tut_toggle_switch/tut_toggle_switch.html">Tutorial: ODE vs. SSA</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../classes/gillespy2.html">gillespy2 package</a></li>
 </ul>
@@ -77,7 +77,7 @@
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -100,9 +100,28 @@
           <div class="body" role="main">
             
   <h1>Source code for gillespy2.core.results</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">warnings</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">GillesPy2 is a modeling toolkit for biochemical simulation.</span>
+<span class="sd">Copyright (C) 2019-2021 GillesPy2 developers.</span>
+
+<span class="sd">This program is free software: you can redistribute it and/or modify</span>
+<span class="sd">it under the terms of the GNU General Public License as published by</span>
+<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
+<span class="sd">(at your option) any later version.</span>
+
+<span class="sd">This program is distributed in the hope that it will be useful,</span>
+<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="sd">GNU General Public License for more details.</span>
+
+<span class="sd">You should have received a copy of the GNU General Public License</span>
+<span class="sd">along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
 <span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.jsonify</span> <span class="k">import</span> <span class="n">Jsonify</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">UserDict</span><span class="p">,</span> <span class="n">UserList</span>
 
 <span class="c1"># List of 50 hex color values used for plotting graphs</span>
@@ -144,7 +163,7 @@
 
     <span class="kn">import</span> <span class="nn">plotly.graph_objs</span> <span class="k">as</span> <span class="nn">go</span>
 
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">species</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trajectory</span><span class="o">.</span><span class="n">data</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trajectory</span><span class="o">.</span><span class="n">data</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">species</span> <span class="o">!=</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span>
 
             <span class="k">if</span> <span class="n">species</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">included_species_list</span> <span class="ow">and</span> <span class="n">included_species_list</span><span class="p">:</span>
@@ -163,7 +182,8 @@
                         <span class="n">y</span><span class="o">=</span><span class="n">trajectory</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">species</span><span class="p">],</span>
                         <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">,</span>
                         <span class="n">name</span><span class="o">=</span><span class="n">species</span><span class="p">,</span>
-                        <span class="n">line</span> <span class="o">=</span> <span class="n">line_dict</span>
+                        <span class="n">line</span><span class="o">=</span><span class="n">line_dict</span><span class="p">,</span>
+                        <span class="n">legendgroup</span><span class="o">=</span><span class="n">species</span>
                     <span class="p">)</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -174,23 +194,28 @@
                         <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">,</span>
                         <span class="n">name</span><span class="o">=</span><span class="n">species</span><span class="p">,</span>
                         <span class="n">line</span><span class="o">=</span><span class="n">line_dict</span><span class="p">,</span>
+                        <span class="n">legendgroup</span><span class="o">=</span><span class="n">species</span><span class="p">,</span>
                         <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span>
                     <span class="p">)</span>
                 <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">trace_list</span>
 
-<div class="viewcode-block" id="Trajectory"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Trajectory">[docs]</a><span class="k">class</span> <span class="nc">Trajectory</span><span class="p">(</span><span class="n">UserDict</span><span class="p">):</span>
+<div class="viewcode-block" id="Trajectory"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Trajectory">[docs]</a><span class="k">class</span> <span class="nc">Trajectory</span><span class="p">(</span><span class="n">UserDict</span><span class="p">,</span> <span class="n">Jsonify</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Trajectory Dict created by a gillespy2 solver containing single trajectory, extends the UserDict object.</span>
 
 <span class="sd">    :param data: A dictionary of trajectory values created by a solver</span>
 <span class="sd">    :type data: UserDict</span>
+
 <span class="sd">    :param model: The name of the model used to create the trajectory</span>
 <span class="sd">    :type model: str</span>
+
 <span class="sd">    :param solver_name: The name of the solver used to create the trajectory</span>
 <span class="sd">    :type solver_name: str</span>
+
 <span class="sd">    :param rc: The solvers status return code.</span>
 <span class="sd">    :type rc: int</span>
+
 <span class="sd">    :param status: The solver status (&#39;Success&#39;,&#39;Timed out&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -216,7 +241,7 @@
         <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Results"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results">[docs]</a><span class="k">class</span> <span class="nc">Results</span><span class="p">(</span><span class="n">UserList</span><span class="p">):</span>
+<div class="viewcode-block" id="Results"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results">[docs]</a><span class="k">class</span> <span class="nc">Results</span><span class="p">(</span><span class="n">UserList</span><span class="p">,</span> <span class="n">Jsonify</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    List of Trajectory objects created by a gillespy2 solver, extends the UserList object.</span>
 
@@ -262,6 +287,12 @@
         <span class="n">combined_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span>
         <span class="k">return</span> <span class="n">Results</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">combined_data</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__add__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">_validate_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">is_valid</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">if</span> <span class="n">reference</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -304,23 +335,56 @@
         <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">size1</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;time&#39;</span><span class="p">])</span>
         <span class="n">size2</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">newArray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">size1</span><span class="p">,</span> <span class="n">size2</span><span class="p">))</span>
 
         <span class="k">for</span> <span class="n">trajectory</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)):</span>
+            <span class="n">newArray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">size1</span><span class="p">,</span> <span class="n">size2</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">trajectory</span><span class="p">]):</span>
                 <span class="n">newArray</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">trajectory</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
             <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newArray</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">results</span></div>
 
+<div class="viewcode-block" id="Results.build_from_solver_results"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.build_from_solver_results">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">build_from_solver_results</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">solver</span><span class="p">,</span> <span class="n">live_output_options</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build a gillespy2.Results object using the provided solver results.</span>
+
+<span class="sd">        :param solver: The solver used to run the simulation.</span>
+<span class="sd">        :type solver: gillespy2.GillesPySolver</span>
+
+<span class="sd">        :param live_output_options: dictionary contains options for live_output. By default {&quot;interval&quot;:1}.</span>
+<span class="sd">            &quot;interval&quot; specifies seconds between displaying.</span>
+<span class="sd">            &quot;clear_output&quot; specifies if display should be refreshed with each display</span>
+<span class="sd">        :type live_output_options: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">solver</span><span class="o">.</span><span class="n">rc</span> <span class="o">==</span> <span class="mi">33</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">log</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;GillesPy2 simulation exceeded timeout.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">solver</span><span class="o">.</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;shape&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">solver</span><span class="o">.</span><span class="n">result</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">solver</span><span class="o">.</span><span class="n">result</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">results_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">solver</span><span class="o">.</span><span class="n">result</span><span class="p">)):</span>
+                <span class="n">temp</span> <span class="o">=</span> <span class="n">Trajectory</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">solver</span><span class="o">.</span><span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">model</span><span class="o">=</span><span class="n">solver</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">solver_name</span><span class="o">=</span><span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">rc</span><span class="o">=</span><span class="n">solver</span><span class="o">.</span><span class="n">rc</span><span class="p">)</span>
+                <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+
+            <span class="n">results</span> <span class="o">=</span> <span class="n">Results</span><span class="p">(</span><span class="n">results_list</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;type&quot;</span> <span class="ow">in</span> <span class="n">live_output_options</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> <span class="n">live_output_options</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;graph&quot;</span><span class="p">:</span>
+                <span class="n">results</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">results</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;number_of_trajectories must be non-negative and non-zero&quot;</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="Results.to_csv"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.to_csv">[docs]</a>    <span class="k">def</span> <span class="nf">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nametag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stamp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        outputs the Results to one or more .csv files in a new directory.</span>
+<span class="sd">        Outputs the Results to one or more .csv files in a new directory.</span>
 
 <span class="sd">        :param nametag: allows the user to optionally &quot;tag&quot; the directory and included files. Defaults to the model</span>
-<span class="sd">        name.</span>
+<span class="sd">            name.</span>
 <span class="sd">        :type nametag: str</span>
+
 <span class="sd">        :param path: the location for the new directory and included files. Defaults to model location.</span>
 <span class="sd">        :type path: str</span>
+
 <span class="sd">        :param stamp: Allows the user to optionally &quot;tag&quot; the directory (not included files). Default is timestamp.</span>
 <span class="sd">        :type stamp: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -355,7 +419,7 @@
                             <span class="n">this_line</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trajectory</span><span class="p">[</span><span class="n">species</span><span class="p">][</span><span class="n">n</span><span class="p">])</span>
                         <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">this_line</span><span class="p">)</span>  <span class="c1"># write one line of the CSV file</span></div>
 
-<div class="viewcode-block" id="Results.plot"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xaxis_label</span><span class="o">=</span><span class="s2">&quot;Time &quot;</span><span class="p">,</span> <span class="n">xscale</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">yscale</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="s2">&quot;Species Population&quot;</span><span class="p">,</span>
+<div class="viewcode-block" id="Results.plot"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xaxis_label</span><span class="o">=</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span> <span class="n">xscale</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">yscale</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span>
              <span class="n">style</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_title</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">multiple_graphs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
              <span class="n">included_species_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">save_png</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span> <span class="mi">10</span><span class="p">)):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -363,23 +427,31 @@
 
 <span class="sd">        :param index: If not none, the index of the Trajectory to be plotted.</span>
 <span class="sd">        :type index: int</span>
+
 <span class="sd">        :param xaxis_label: The label for the x-axis</span>
 <span class="sd">        :type xaxis_label: str</span>
+
 <span class="sd">        :param yaxis_label: The label for the y-axis</span>
 <span class="sd">        :type yaxis_label: str</span>
+
 <span class="sd">        :param title: The title of the graph</span>
 <span class="sd">        :type title: str</span>
+
 <span class="sd">        :param multiple_graphs: IF each trajectory should have its own graph or if they should overlap.</span>
 <span class="sd">        :type multiple_graphs: bool</span>
+
 <span class="sd">        :param included_species_list: A list of strings describing which species to include. By default displays all</span>
-<span class="sd">        species.</span>
+<span class="sd">            species.</span>
 <span class="sd">        :type included_species_list: list</span>
+
 <span class="sd">        :param save_png: Should the graph be saved as a png file. If True, File name is title of graph. If a string is</span>
-<span class="sd">        given, file is named after that string.</span>
+<span class="sd">            given, file is named after that string.</span>
 <span class="sd">        :type save_png: bool or str</span>
+
 <span class="sd">        :param figsize: The size of the graph. A tuple of the form (width,height). Is (18,10) by default.</span>
 <span class="sd">        :type figsize: tuple of ints (x,y)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
         <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Iterable</span>
         <span class="n">trajectory_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -439,31 +511,40 @@
             <span class="k">elif</span> <span class="n">save_png</span><span class="p">:</span>
                 <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">title</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Results.plotplotly"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.plotplotly">[docs]</a>    <span class="k">def</span> <span class="nf">plotplotly</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xaxis_label</span><span class="o">=</span><span class="s2">&quot;Time &quot;</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="s2">&quot;Species Population&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="Results.plotplotly"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.plotplotly">[docs]</a>    <span class="k">def</span> <span class="nf">plotplotly</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xaxis_label</span><span class="o">=</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                    <span class="n">show_title</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">multiple_graphs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">included_species_list</span><span class="o">=</span><span class="p">[],</span>
                    <span class="n">return_plotly_figure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="o">**</span><span class="n">layout_args</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Plots the Results using plotly. Can only be viewed in a Jupyter Notebook.</span>
 
 <span class="sd">        :param index: If not none, the index of the Trajectory to be plotted.</span>
 <span class="sd">        :type index: int</span>
+
 <span class="sd">        :param xaxis_label: The label for the x-axis</span>
 <span class="sd">        :type xaxis_label: str</span>
+
 <span class="sd">        :param yaxis_label: The label for the y-axis</span>
 <span class="sd">        :type yaxis_label: str</span>
+
 <span class="sd">        :param title: The title of the graph</span>
 <span class="sd">        :type title: str</span>
+
 <span class="sd">        :param show_title: If True, title will be shown on graph.</span>
 <span class="sd">        :type show_title: bool</span>
+
 <span class="sd">        :param show_legend: Default True, if False, legend will not be shown on graph.</span>
 <span class="sd">        :type show_legend: bool</span>
+
 <span class="sd">        :param multiple_graphs: IF each trajectory should have its own graph or if they should overlap.</span>
 <span class="sd">        :type multiple_graphs: bool</span>
+
 <span class="sd">        :param included_species_list: A list of strings describing which species to include. By default displays all</span>
-<span class="sd">        species.</span>
+<span class="sd">            species.</span>
 <span class="sd">        :type included_species_list: list</span>
+
 <span class="sd">        :param return_plotly_figure: Whether or not to return a figure dictionary of data(graph object traces) and</span>
-<span class="sd">        layout which may be edited by the user</span>
+<span class="sd">            layout which may be edited by the user</span>
 <span class="sd">        :type return_plotly_figure: bool</span>
+
 <span class="sd">        :param **layout_args: Optional additional arguments to be passed to plotlys layout constructor.</span>
 <span class="sd">        :type **layout_args: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -503,9 +584,9 @@
 
         <span class="k">if</span> <span class="n">multiple_graphs</span><span class="p">:</span>
 
-            <span class="kn">from</span> <span class="nn">plotly</span> <span class="k">import</span> <span class="n">tools</span>
+            <span class="kn">from</span> <span class="nn">plotly</span> <span class="k">import</span> <span class="n">subplots</span>
 
-            <span class="n">fig</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">make_subplots</span><span class="p">(</span><span class="n">print_grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">number_of_trajectories</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">subplots</span><span class="o">.</span><span class="n">make_subplots</span><span class="p">(</span><span class="n">print_grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">number_of_trajectories</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span>
                                                              <span class="nb">int</span><span class="p">(</span><span class="n">number_of_trajectories</span> <span class="o">%</span> <span class="mi">2</span><span class="p">),</span> <span class="n">cols</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">trajectory</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trajectory_list</span><span class="p">):</span>
@@ -534,6 +615,7 @@
                     <span class="n">trace_list</span> <span class="o">=</span> <span class="n">_plotplotly_iterate</span><span class="p">(</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">trace_list</span><span class="o">=</span><span class="n">trace_list</span><span class="p">,</span> <span class="n">included_species_list</span><span class="o">=</span>
                     <span class="n">included_species_list</span><span class="p">)</span>
 
+
             <span class="n">layout</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span>
                 <span class="n">showlegend</span><span class="o">=</span><span class="n">show_legend</span><span class="p">,</span>
                 <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
@@ -553,7 +635,8 @@
 <div class="viewcode-block" id="Results.average_ensemble"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.average_ensemble">[docs]</a>    <span class="k">def</span> <span class="nf">average_ensemble</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate a single Results object with a Trajectory that is made of the means of all trajectories&#39; outputs</span>
-<span class="sd">        :return: the Results object</span>
+
+<span class="sd">        :returns: The Results object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">trajectory_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
@@ -591,11 +674,13 @@
 <span class="sd">        trajectories&#39; outputs.</span>
 
 <span class="sd">        :param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents</span>
-<span class="sd">        the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation</span>
-<span class="sd">        where ddof is 0.</span>
+<span class="sd">            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation</span>
+<span class="sd">            where ddof is 0.</span>
 <span class="sd">        :type ddof: int</span>
-<span class="sd">        :return: the Results object</span>
+
+<span class="sd">        :returns: the Results object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">sqrt</span>
 
         <span class="n">trajectory_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
@@ -634,35 +719,45 @@
         <span class="n">output_results</span> <span class="o">=</span> <span class="n">Results</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="n">output_trajectory</span><span class="p">])</span>  <span class="c1"># package output_trajectory in a Results object</span>
         <span class="k">return</span> <span class="n">output_results</span></div>
 
-<div class="viewcode-block" id="Results.plotplotly_std_dev_range"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.plotplotly_std_dev_range">[docs]</a>    <span class="k">def</span> <span class="nf">plotplotly_std_dev_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xaxis_label</span><span class="o">=</span><span class="s2">&quot;Time &quot;</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="s2">&quot;Species Population&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+
+<div class="viewcode-block" id="Results.plotplotly_mean_stdev"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.plotplotly_mean_stdev">[docs]</a>    <span class="k">def</span> <span class="nf">plotplotly_mean_stdev</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xaxis_label</span><span class="o">=</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                  <span class="n">show_title</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">included_species_list</span><span class="o">=</span><span class="p">[],</span>
                                  <span class="n">return_plotly_figure</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">layout_args</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot a plotly graph depicting standard deviation and the mean graph of a results object</span>
+<span class="sd">        Plot a plotly graph depicting the mean and standard deviation of a results object</span>
 
 <span class="sd">        :param xaxis_label: The label for the x-axis</span>
 <span class="sd">        :type xaxis_label: str</span>
+
 <span class="sd">        :param yaxis_label: The label for the y-axis</span>
 <span class="sd">        :type yaxis_label: str</span>
+
 <span class="sd">        :param title: The title of the graph</span>
 <span class="sd">        :type title: str</span>
+
 <span class="sd">        :param show_title: If True, title will be shown on graph.</span>
 <span class="sd">        :type show_title: bool</span>
+
 <span class="sd">        :param show_legend: Default True, if False, legend will not be shown on graph.</span>
 <span class="sd">        :type show_legend: bool</span>
+
 <span class="sd">        :param included_species_list: A list of strings describing which species to include. By default displays all</span>
-<span class="sd">        species.</span>
+<span class="sd">            species.</span>
 <span class="sd">        :type included_species_list: list</span>
+
 <span class="sd">        :param return_plotly_figure: Whether or not to return a figure dicctionary of data(graph object traces) and</span>
-<span class="sd">        layout which may be edited by the user</span>
+<span class="sd">            layout which may be edited by the user</span>
 <span class="sd">        :type return_plotly_figure: bool</span>
+
 <span class="sd">        :param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents</span>
-<span class="sd">        the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation</span>
-<span class="sd">        where ddof is 0.</span>
+<span class="sd">            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation</span>
+<span class="sd">            where ddof is 0.</span>
 <span class="sd">        :type ddof: int</span>
+
 <span class="sd">        :param **layout_args: Optional additional arguments to be passed to plotlys layout constructor.</span>
 <span class="sd">        :type **layout_args: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="c1"># Backwards compatibility with xaxis_label argument (which duplicates plotly&#39;s xaxis_title argument)</span>
         <span class="k">if</span> <span class="n">layout_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;xaxis_title&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">xaxis_label</span> <span class="o">=</span> <span class="n">layout_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;xaxis_title&#39;</span><span class="p">)</span>
@@ -679,10 +774,10 @@
         <span class="n">init_notebook_mode</span><span class="p">(</span><span class="n">connected</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">show_title</span><span class="p">:</span>
-            <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Standard Deviation Range&#39;</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Mean and Standard Deviation&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">title</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_validate_title</span><span class="p">(</span><span class="n">show_title</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; - Standard Deviation Range&quot;</span><span class="p">)</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_validate_title</span><span class="p">(</span><span class="n">show_title</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; - Mean and Standard Deviation&quot;</span><span class="p">)</span>
 
         <span class="n">trace_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">average_trajectory</span><span class="p">:</span>
@@ -751,36 +846,45 @@
             <span class="k">return</span> <span class="n">fig</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">iplot</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span></div>
+    
 
-<div class="viewcode-block" id="Results.plot_std_dev_range"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.plot_std_dev_range">[docs]</a>    <span class="k">def</span> <span class="nf">plot_std_dev_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xscale</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">yscale</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">xaxis_label</span><span class="o">=</span><span class="s2">&quot;Time &quot;</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="s2">&quot;Species Population&quot;</span>
+<div class="viewcode-block" id="Results.plot_mean_stdev"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.results.Results.plot_mean_stdev">[docs]</a>    <span class="k">def</span> <span class="nf">plot_mean_stdev</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xscale</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">yscale</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">xaxis_label</span><span class="o">=</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span> <span class="n">yaxis_label</span><span class="o">=</span><span class="s2">&quot;Value&quot;</span>
                            <span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_title</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">included_species_list</span><span class="o">=</span><span class="p">[],</span>
                            <span class="n">ddof</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">save_png</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span> <span class="mi">10</span><span class="p">)):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            Plot a matplotlib graph depicting standard deviation and the mean graph of a results object</span>
+<span class="sd">        Plot a matplotlib graph depicting mean and standard deviation of a results object.</span>
 
 <span class="sd">        :param xaxis_label: The label for the x-axis</span>
 <span class="sd">        :type xaxis_label: str</span>
+
 <span class="sd">        :param yaxis_label: The label for the y-axis</span>
 <span class="sd">        :type yaxis_label: str</span>
+
 <span class="sd">        :param title: The title of the graph</span>
 <span class="sd">        :type title: str</span>
+
 <span class="sd">        :param show_title: Default False, if True, title will be displayed on the graph.</span>
 <span class="sd">        :type show_title: bool</span>
+
 <span class="sd">        :param style: Matplotlib style to be displayed on graph.</span>
 <span class="sd">        :type style: str</span>
+
 <span class="sd">        :param show_legend: Default to True, if False, legend will not be shown on graph.</span>
 <span class="sd">        :type show_legend: bool</span>
+
 <span class="sd">        :param included_species_list: A list of strings describing which species to include. By default displays all</span>
-<span class="sd">        species.</span>
+<span class="sd">            species.</span>
 <span class="sd">        :type included_species_list: list</span>
+
 <span class="sd">        :param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents</span>
-<span class="sd">        the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation</span>
-<span class="sd">        where ddof is 0.</span>
+<span class="sd">            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation</span>
+<span class="sd">            where ddof is 0.</span>
 <span class="sd">        :type ddof: int</span>
+
 <span class="sd">        :type save_png: bool or str</span>
+
 <span class="sd">        :param figsize: The size of the graph. A tuple of the form (width,height). Is (18,10) by default.</span>
 <span class="sd">        :type figsize: tuple of ints (x,y)</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">average_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">average_ensemble</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -811,10 +915,10 @@
             <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">average_result</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">average_result</span><span class="p">[</span><span class="n">species</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">show_title</span><span class="p">:</span>
-            <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Standard Deviation Range&#39;</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Mean and Standard Deviation&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">title</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_validate_title</span><span class="p">(</span><span class="n">show_title</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; - Standard Deviation Range&quot;</span><span class="p">)</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_validate_title</span><span class="p">(</span><span class="n">show_title</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; - Mean and Standard Deviation&quot;</span><span class="p">)</span>
 
         <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="n">xaxis_label</span><span class="p">)</span>
@@ -830,7 +934,11 @@
             <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save_png</span><span class="p">)</span>
 
         <span class="k">elif</span> <span class="n">save_png</span><span class="p">:</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">title</span><span class="p">)</span></div></div>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">title</span><span class="p">)</span></div>
+
+
+    <span class="n">plotplotly_std_dev_range</span> <span class="o">=</span>  <span class="n">plotplotly_mean_stdev</span>  <span class="c1"># for backwards compatability, we need to keep the old name around</span>
+    <span class="n">plot_std_dev_range</span> <span class="o">=</span> <span class="n">plot_mean_stdev</span>   <span class="c1"># for backwards compatability, we need to keep the old name around</span></div>
 </pre></div>
 
           </div>
@@ -847,10 +955,10 @@
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;Copyright (C) 2017-2020.
+      &copy;Copyright (C) 2017-2021.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

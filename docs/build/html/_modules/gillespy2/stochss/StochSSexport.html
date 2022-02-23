@@ -1,0 +1,371 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>gillespy2.stochss.StochSSexport &#8212; GillesPy2 1.6.9 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/css/gillespy2_alabaster_customizations.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../../../_static/img/gillespy2-logo.svg" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/img/gillespy2-logo.svg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=GillesPy2&repo=GillesPy2&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/installation/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/basic_usage/basic_usage.html">Basic usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/tut_toggle_switch/tut_toggle_switch.html">Tutorial: ODE vs. SSA</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../classes/gillespy2.html">gillespy2 package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for gillespy2.stochss.StochSSexport</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">GillesPy2 is a modeling toolkit for biochemical simulation.</span>
+<span class="sd">Copyright (C) 2019-2021 GillesPy2 developers.</span>
+
+<span class="sd">This program is free software: you can redistribute it and/or modify</span>
+<span class="sd">it under the terms of the GNU General Public License as published by</span>
+<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
+<span class="sd">(at your option) any later version.</span>
+
+<span class="sd">This program is distributed in the hope that it will be useful,</span>
+<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="sd">GNU General Public License for more details.</span>
+
+<span class="sd">You should have received a copy of the GNU General Public License</span>
+<span class="sd">along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">ast</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+<span class="k">def</span> <span class="nf">__add_events</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">events</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">events</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">s_event</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;compID&quot;</span><span class="p">:</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;defaultID&#39;</span><span class="p">],</span>
+                   <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+                   <span class="s2">&quot;annotation&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;delay&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">delay</span><span class="p">,</span>
+                   <span class="s2">&quot;priority&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">priority</span><span class="p">,</span>
+                   <span class="s2">&quot;triggerExpression&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">expression</span><span class="p">,</span>
+                   <span class="s2">&quot;initialValue&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                   <span class="s2">&quot;persistent&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">persistent</span><span class="p">,</span>
+                   <span class="s2">&quot;useValuesFromTriggerTime&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">use_values_from_trigger_time</span><span class="p">,</span>
+                   <span class="s2">&quot;eventAssignments&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+
+        <span class="n">__add_event_assignments</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="n">s_event</span><span class="p">,</span> <span class="n">assignments</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">assignments</span><span class="p">)</span>
+
+        <span class="n">model</span><span class="p">[</span><span class="s1">&#39;eventsCollection&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s_event</span><span class="p">)</span>
+        <span class="n">model</span><span class="p">[</span><span class="s1">&#39;defaultID&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+
+<span class="k">def</span> <span class="nf">__add_event_assignments</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">assignments</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">assignment</span> <span class="ow">in</span> <span class="n">assignments</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">assignment</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">variable</span> <span class="o">=</span> <span class="n">__get_species</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;species&#39;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="n">variable</span> <span class="o">=</span> <span class="n">__get_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">=</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;parameters&#39;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="n">s_assignment</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;variable&quot;</span><span class="p">:</span> <span class="n">variable</span><span class="p">,</span>
+                        <span class="s2">&quot;expression&quot;</span><span class="p">:</span> <span class="n">assignment</span><span class="o">.</span><span class="n">expression</span><span class="p">}</span>
+        <span class="n">event</span><span class="p">[</span><span class="s1">&#39;eventAssignments&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s_assignment</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">__add_function_definitions</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">function_definitions</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">function_definition</span> <span class="ow">in</span> <span class="n">function_definitions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">variables</span> <span class="o">=</span> <span class="n">function_definition</span><span class="o">.</span><span class="n">get_arg_string</span><span class="p">()</span>
+        <span class="n">expression</span> <span class="o">=</span> <span class="n">function_definition</span><span class="o">.</span><span class="n">function_string</span>
+        <span class="n">function</span> <span class="o">=</span> <span class="s2">&quot;lambda(</span><span class="si">{0}</span><span class="s2">, </span><span class="si">{1}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">expression</span><span class="p">)</span>
+        <span class="n">signature</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">(</span><span class="si">{1}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">variables</span><span class="p">)</span>
+
+        <span class="n">s_function_definition</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;compID&quot;</span><span class="p">:</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;defaultID&#39;</span><span class="p">],</span>
+                                 <span class="s2">&quot;name&quot;</span><span class="p">:</span><span class="n">name</span><span class="p">,</span>
+                                 <span class="s2">&quot;function&quot;</span><span class="p">:</span><span class="n">function</span><span class="p">,</span>
+                                 <span class="s2">&quot;expression&quot;</span><span class="p">:</span><span class="n">expression</span><span class="p">,</span>
+                                 <span class="s2">&quot;variables&quot;</span><span class="p">:</span><span class="n">variables</span><span class="p">,</span>
+                                 <span class="s2">&quot;signature&quot;</span><span class="p">:</span><span class="n">signature</span><span class="p">,</span>
+                                 <span class="s2">&quot;annotation&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">}</span>
+        <span class="n">model</span><span class="p">[</span><span class="s1">&#39;functionDefinitions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s_function_definition</span><span class="p">)</span>
+        <span class="n">model</span><span class="p">[</span><span class="s1">&#39;defaultID&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+
+<span class="k">def</span> <span class="nf">__add_parameters</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">expression</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">parameter</span><span class="o">.</span><span class="n">expression</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">expression</span> <span class="o">=</span> <span class="n">parameter</span><span class="o">.</span><span class="n">expression</span>
+        <span class="n">s_parameter</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;compID&quot;</span><span class="p">:</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;defaultID&#39;</span><span class="p">],</span>
+                       <span class="s2">&quot;name&quot;</span><span class="p">:</span><span class="n">name</span><span class="p">,</span>
+                       <span class="s2">&quot;expression&quot;</span><span class="p">:</span><span class="nb">str</span><span class="p">(</span><span class="n">expression</span><span class="p">),</span>
+                       <span class="s2">&quot;annotation&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">}</span>
+        <span class="n">model</span><span class="p">[</span><span class="s1">&#39;parameters&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s_parameter</span><span class="p">)</span>
+        <span class="n">model</span><span class="p">[</span><span class="s1">&#39;defaultID&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+
+<span class="k">def</span> <span class="nf">__add_reactions</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">reactions</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">reaction</span> <span class="ow">in</span> <span class="n">reactions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">s_reaction</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;compID&quot;</span><span class="p">:</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;defaultID&#39;</span><span class="p">],</span>
+                      <span class="s2">&quot;name&quot;</span><span class="p">:</span><span class="n">name</span><span class="p">,</span>
+                      <span class="s2">&quot;reactionType&quot;</span><span class="p">:</span> <span class="s2">&quot;custom-propensity&quot;</span><span class="p">,</span>
+                      <span class="s2">&quot;massaction&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                      <span class="s2">&quot;propensity&quot;</span><span class="p">:</span> <span class="n">reaction</span><span class="o">.</span><span class="n">propensity_function</span><span class="p">,</span>
+                      <span class="s2">&quot;annotation&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                      <span class="s2">&quot;rate&quot;</span><span class="p">:</span> <span class="p">{},</span>
+                      <span class="s2">&quot;types&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                      <span class="s2">&quot;reactants&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                      <span class="s2">&quot;products&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;reactants&#39;</span><span class="p">,</span> <span class="s1">&#39;products&#39;</span><span class="p">]:</span>
+            <span class="n">__add_stoich_species</span><span class="p">(</span><span class="n">s_reaction</span><span class="o">=</span><span class="n">s_reaction</span><span class="p">,</span> <span class="n">reaction</span><span class="o">=</span><span class="n">reaction</span><span class="p">,</span>
+                                                <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;species&#39;</span><span class="p">])</span>
+        <span class="n">__add_summary</span><span class="p">(</span><span class="n">reaction</span><span class="o">=</span><span class="n">s_reaction</span><span class="p">)</span>
+
+        <span class="n">model</span><span class="p">[</span><span class="s1">&#39;reactions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s_reaction</span><span class="p">)</span>
+        <span class="n">model</span><span class="p">[</span><span class="s1">&#39;defaultID&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+
+<span class="k">def</span> <span class="nf">__add_rules</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">r_type</span><span class="p">,</span> <span class="n">rules</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">rules</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">variable</span> <span class="o">=</span> <span class="n">__get_species</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;species&#39;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">rule</span><span class="o">.</span><span class="n">variable</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="n">variable</span> <span class="o">=</span> <span class="n">__get_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="o">=</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;parameters&#39;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">rule</span><span class="o">.</span><span class="n">variable</span><span class="p">)</span>
+
+        <span class="n">s_rule</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;compID&quot;</span><span class="p">:</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;defaultID&#39;</span><span class="p">],</span>
+                  <span class="s2">&quot;name&quot;</span><span class="p">:</span><span class="n">name</span><span class="p">,</span>
+                  <span class="s2">&quot;expression&quot;</span><span class="p">:</span><span class="n">rule</span><span class="o">.</span><span class="n">formula</span><span class="p">,</span>
+                  <span class="s2">&quot;type&quot;</span><span class="p">:</span><span class="n">r_type</span><span class="p">,</span>
+                  <span class="s2">&quot;variable&quot;</span><span class="p">:</span><span class="n">variable</span><span class="p">,</span>
+                  <span class="s2">&quot;annotation&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">}</span>
+        <span class="n">model</span><span class="p">[</span><span class="s1">&#39;rules&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s_rule</span><span class="p">)</span>
+        <span class="n">model</span><span class="p">[</span><span class="s1">&#39;defaultID&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+
+<span class="k">def</span> <span class="nf">__add_species</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+    <span class="n">modes</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">specie</span> <span class="ow">in</span> <span class="n">species</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">specie</span><span class="o">.</span><span class="n">mode</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">specie</span><span class="o">.</span><span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">modes</span><span class="p">:</span>
+            <span class="n">modes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">specie</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
+        <span class="n">s_species</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;compID&quot;</span><span class="p">:</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;defaultID&#39;</span><span class="p">],</span>
+                     <span class="s2">&quot;name&quot;</span><span class="p">:</span><span class="n">name</span><span class="p">,</span>
+                     <span class="s2">&quot;value&quot;</span><span class="p">:</span><span class="n">specie</span><span class="o">.</span><span class="n">initial_value</span><span class="p">,</span>
+                     <span class="s2">&quot;mode&quot;</span><span class="p">:</span><span class="n">specie</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span>
+                     <span class="s2">&quot;switchTol&quot;</span><span class="p">:</span> <span class="n">specie</span><span class="o">.</span><span class="n">switch_tol</span><span class="p">,</span>
+                     <span class="s2">&quot;switchMin&quot;</span><span class="p">:</span> <span class="n">specie</span><span class="o">.</span><span class="n">switch_min</span><span class="p">,</span>
+                     <span class="s2">&quot;isSwitchTol&quot;</span><span class="p">:</span> <span class="n">specie</span><span class="o">.</span><span class="n">switch_min</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
+                     <span class="s2">&quot;annotation&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                     <span class="s2">&quot;diffusionConst&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span>
+                     <span class="s2">&quot;types&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+        <span class="n">model</span><span class="p">[</span><span class="s1">&#39;species&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s_species</span><span class="p">)</span>
+        <span class="n">model</span><span class="p">[</span><span class="s1">&#39;defaultID&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">modes</span><span class="p">:</span>
+        <span class="n">model</span><span class="p">[</span><span class="s1">&#39;defaultMode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">modes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">model</span><span class="p">[</span><span class="s1">&#39;defaultMode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;dynamic&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">model</span><span class="p">[</span><span class="s1">&#39;defaultMode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">modes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">__add_stoich_species</span><span class="p">(</span><span class="n">s_reaction</span><span class="p">,</span> <span class="n">reaction</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">reaction</span><span class="o">.</span><span class="n">reactants</span> <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;reactants&quot;</span> <span class="k">else</span> <span class="n">reaction</span><span class="o">.</span><span class="n">products</span>
+    <span class="k">for</span> <span class="n">specie</span><span class="p">,</span> <span class="n">ratio</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">stoich_species</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ratio&quot;</span><span class="p">:</span><span class="n">ratio</span><span class="p">,</span>
+                          <span class="s2">&quot;specie&quot;</span><span class="p">:</span><span class="n">__get_species</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">specie</span><span class="o">.</span><span class="n">name</span><span class="p">)}</span>
+        <span class="n">s_reaction</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stoich_species</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">__add_summary</span><span class="p">(</span><span class="n">reaction</span><span class="p">):</span>
+    <span class="n">r_summary</span> <span class="o">=</span> <span class="n">__build_element</span><span class="p">(</span><span class="n">reaction</span><span class="p">[</span><span class="s1">&#39;reactants&#39;</span><span class="p">])</span>
+    <span class="n">p_summary</span> <span class="o">=</span> <span class="n">__build_element</span><span class="p">(</span><span class="n">reaction</span><span class="p">[</span><span class="s1">&#39;products&#39;</span><span class="p">])</span>
+    <span class="n">reaction</span><span class="p">[</span><span class="s1">&#39;summary&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{r_summary}</span><span class="s2"> </span><span class="se">\\</span><span class="s2">rightarrow </span><span class="si">{p_summary}</span><span class="s2">&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">__build_element</span><span class="p">(</span><span class="n">stoich_species</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">stoich_species</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">emptyset&quot;</span>
+
+    <span class="n">elements</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">stoich_species</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">species</span><span class="p">[</span><span class="s1">&#39;specie&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+        <span class="n">ratio</span> <span class="o">=</span> <span class="n">species</span><span class="p">[</span><span class="s1">&#39;ratio&#39;</span><span class="p">]</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{ratio}{name}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">ratio</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">name</span>
+        <span class="n">elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s1">&#39;+&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">__get_parameter</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">parameter</span><span class="p">:</span> <span class="n">parameter</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">name</span><span class="p">,</span> <span class="n">parameters</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">__get_species</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">specie</span><span class="p">:</span> <span class="n">specie</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">name</span><span class="p">,</span> <span class="n">species</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">__write_to_file</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">model_file</span><span class="p">:</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">model_file</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="export"><a class="viewcode-back" href="../../../classes/gillespy2.stochss.html#gillespy2.stochss.StochSSexport.export">[docs]</a><span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_stochss_model</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    GillesPy model to StochSS converter</span>
+
+<span class="sd">    :param model: GillesPy model to be converted to StochSS</span>
+<span class="sd">    :type model: gillespy.Model</span>
+
+<span class="sd">    :param path: Path to the StochSS file for conversion</span>
+<span class="sd">    :type path: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{model.name}</span><span class="s2">.mdl&quot;</span>
+
+    <span class="n">s_model</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;is_spatial&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+               <span class="s2">&quot;defaultID&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+               <span class="s2">&quot;annotation&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+               <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">volume</span><span class="p">,</span>
+               <span class="s2">&quot;modelSettings&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;endSim&quot;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="s2">&quot;timeStep&quot;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="p">)</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;species&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s2">&quot;initialConditions&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s2">&quot;parameters&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s2">&quot;reactions&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s2">&quot;rules&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s2">&quot;eventsCollection&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s2">&quot;functionDefinitions&quot;</span><span class="p">:</span> <span class="p">[]</span>
+              <span class="p">}</span>
+
+    <span class="n">__add_species</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">s_model</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">get_all_species</span><span class="p">())</span>
+    <span class="n">__add_parameters</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">s_model</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">get_all_parameters</span><span class="p">())</span>
+    <span class="n">__add_reactions</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">s_model</span><span class="p">,</span> <span class="n">reactions</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">get_all_reactions</span><span class="p">())</span>
+    <span class="n">__add_events</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">s_model</span><span class="p">,</span> <span class="n">events</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">get_all_events</span><span class="p">())</span>
+    <span class="n">__add_rules</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">s_model</span><span class="p">,</span> <span class="n">r_type</span><span class="o">=</span><span class="s1">&#39;Rate Rule&#39;</span><span class="p">,</span> <span class="n">rules</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">get_all_rate_rules</span><span class="p">())</span>
+    <span class="n">__add_rules</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">s_model</span><span class="p">,</span> <span class="n">r_type</span><span class="o">=</span><span class="s1">&#39;Assignment Rule&#39;</span><span class="p">,</span> <span class="n">rules</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">get_all_assignment_rules</span><span class="p">())</span>
+    <span class="n">__add_function_definitions</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">s_model</span><span class="p">,</span>
+                               <span class="n">function_definitions</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">get_all_function_definitions</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="n">return_stochss_model</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">s_model</span>
+
+    <span class="n">__write_to_file</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">s_model</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">path</span></div>
+</pre></div>
+
+          </div>
+              <div class="related bottom">
+                &nbsp;
+  <nav id="rellinks">
+    <ul>
+    </ul>
+  </nav>
+              </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;Copyright (C) 2017-2021.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+    <a href="https://github.com/GillesPy2/GillesPy2" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>
