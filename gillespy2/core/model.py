@@ -15,7 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-
+import gillespy2
 from gillespy2.core.jsonify import TranslationTable
 from gillespy2.core.reaction import *
 from gillespy2.core.raterule import RateRule
@@ -27,6 +27,7 @@ from gillespy2.core.results import Trajectory,Results
 from collections import OrderedDict
 from gillespy2.core.gillespyError import *
 from .gillespyError import SimulationError
+from typing import Set, Type
 
 try:
     import lxml.etree as eTree
@@ -927,6 +928,24 @@ class Model(SortableObject, Jsonify):
         else:
             raise ModelError("Invalid value for the argument 'algorithm' entered. "
                              "Please enter 'SSA', 'ODE', 'Tau-leaping', or 'Tau-Hybrid'.")
+
+    def get_model_features(self) -> "Set[Type]":
+        """
+        Determine what solver-specific model features are present on the model.
+        Used to validate that the model is compatible with the given solver.
+
+        :returns: Set containing the classes of every solver-specific feature present on the model.
+        """
+        features = set()
+        if len(self.listOfEvents):
+            features.add(gillespy2.Event)
+        if len(self.listOfRateRules):
+            features.add(gillespy2.RateRule)
+        if len(self.listOfAssignmentRules):
+            features.add(gillespy2.AssignmentRule)
+        if len(self.listOfFunctionDefinitions):
+            features.add(gillespy2.FunctionDefinition)
+        return features
 
     def run(self, solver=None, timeout=0, t=None, increment=None, show_labels=True, cpp_support=False, algorithm=None,
             **solver_args):

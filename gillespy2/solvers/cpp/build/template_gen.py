@@ -43,6 +43,7 @@ class SanitizedModel:
     # as well as functions in Python that have a different name in C++.
     function_map = {
         "abs": "abs",
+        "round": "round",
     }
 
     def __init__(self, model: Model, variable=False):

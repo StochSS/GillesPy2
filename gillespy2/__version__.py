@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =============================================================================
 
 
-__version__      = '1.6.8'
+__version__      = '1.6.9'
 
 __title__        = 'GillesPy2'
 __description__  = 'Python interface for Gillespie-style biochemical simulations'

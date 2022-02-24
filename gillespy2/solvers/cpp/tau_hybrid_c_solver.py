@@ -1,7 +1,7 @@
 import gillespy2
 from gillespy2.solvers.cpp.c_decoder import IterativeSimDecoder
 from gillespy2.solvers.utilities import solverutils as cutils
-from gillespy2.core import GillesPySolver, Model
+from gillespy2.core import GillesPySolver, Model, Event, RateRule
 from gillespy2.core.gillespyError import *
 from typing import Union
 from enum import IntEnum
@@ -145,6 +145,13 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         sanitized_model.options["GPY_HYBRID_NUM_EVENT_ASSIGNMENTS"] = str(len(event_assignment_list))
         return sanitized_model
 
+    @classmethod
+    def get_supported_features(cls):
+        return {
+            Event,
+            RateRule,
+        }
+
     def _build(self, model: "Union[Model, SanitizedModel]", simulation_name: str, variable: bool, debug: bool = False,
                custom_definitions=None) -> str:
         variable = variable or len(model.listOfEvents) > 0
@@ -165,7 +172,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
     def run(self=None, model: Model = None, t: int = 20, number_of_trajectories: int = 1, timeout: int = 0,
-            increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={}, 
+            increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
             resume=None, live_output: str = None, live_output_options: dict = {}, tau_step: int = .03, tau_tol=0.03, **kwargs):
 
         if self is None:
@@ -177,6 +184,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         if model is not None and model.get_json_hash() != self.model.get_json_hash():
             raise SimulationError("Model must equal TauHybridCSolver.model.")
         self.model.resolve_parameters()
+        self.validate_sbml_features(model=model)
 
         increment = self.get_increment(increment=increment)
 
@@ -185,10 +193,6 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         self._validate_variables_in_set(variables, self.species + self.parameters)
         self._validate_resume(t, resume)
         self._validate_kwargs(**kwargs)
-        self._validate_sbml_features({
-            "Assignment Rules": len(self.model.listOfAssignmentRules),
-            "Function Definitions": len(self.model.listOfFunctionDefinitions)
-        })
 
         if resume is not None:
             t = abs(t - int(resume["time"][-1]))

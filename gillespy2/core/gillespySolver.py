@@ -16,7 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from .gillespyError import SimulationError
+from .gillespyError import SimulationError, ModelError
+from typing import Set, Type
 
 
 class GillesPySolver:
@@ -80,3 +81,16 @@ class GillesPySolver:
                 """
             )
         return increment
+
+    @classmethod
+    def get_supported_features(cls) -> "Set[Type]":
+        return set()
+
+    @classmethod
+    def validate_sbml_features(cls, model):
+        unsupported_features = model.get_model_features() - cls.get_supported_features()
+        if unsupported_features:
+            unsupported_features = [feature.__name__ for feature in unsupported_features]
+            raise ModelError(f"Could not run Model, "
+                             f"SBML Features not supported by {cls.name}: " +
+                             ", ".join(unsupported_features))

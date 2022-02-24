@@ -493,14 +493,11 @@ namespace Gillespy
 			// Step 1: Identify any fired event triggers.
 			for (auto &event : m_events)
 			{
-				bool trigger = event.trigger(t, event_state);
-				if (m_trigger_state.at(event.get_event_id()) != trigger)
+				if (m_trigger_state.at(event.get_event_id()) != event.trigger(t, event_state))
 				{
 					double delay = event.delay(t, event_state);
 					EventExecution execution = event.get_execution(t + delay, event_state, output_size);
 
-					// Update trigger state to prevent repeated firings.
-					m_trigger_state.find(event.get_event_id())->second = trigger;
 					if (delay <= 0)
 					{
 						// Immediately put EventExecution on "triggered" pile
@@ -576,6 +573,13 @@ namespace Gillespy
 				event.execute(t, event_state);
 				trigger_queue.pop();
 				m_trigger_pool.erase(event.get_event_id());
+			}
+
+			// Step 5: Update trigger states based on the new simulation state.
+			// This is to account for events that re-assign values that the event triggers depend on.
+			for (auto &event : m_events)
+			{
+				m_trigger_state.at(event.get_event_id()) = event.trigger(t, event_state);
 			}
 
 			return has_active_events();

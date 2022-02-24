@@ -378,17 +378,6 @@ class CSolver:
         for key, val in kwargs.items():
             log.warning(f"Unsupported keyword argument for solver {self.name}: {key}")
 
-    def _validate_sbml_features(self, unsupported_features: "dict[str, str]"):
-        detected = [ ]
-        for feature_name, count in unsupported_features.items():
-            if count:
-                detected.append(feature_name)
-
-        if len(detected):
-            raise gillespyError.ModelError(f"Could not run Model, "
-                                           f"SBML Features not supported by {self.name}: "
-                                           + ", ".join(detected))
-
     def _validate_seed(self, seed: int):
         if seed is None:
             return None
