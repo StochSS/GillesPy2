@@ -45,6 +45,43 @@ class TestAllSolvers(unittest.TestCase):
         TauHybridCSolver,
     ]
 
+    sbml_features = {
+        "AssignmentRule": lambda model, variable:
+            model.add_assignment_rule(gillespy2.AssignmentRule(variable=variable, formula="1/(t+1)")),
+        "RateRule": lambda model, variable:
+            model.add_rate_rule(gillespy2.RateRule(variable=variable, formula="2*t")),
+        "Event": lambda model, variable:
+            model.add_event(gillespy2.Event(
+                trigger=gillespy2.EventTrigger(expression="t>1"),
+                assignments=[gillespy2.EventAssignment(variable=variable, expression="100")]
+            )),
+        "FunctionDefinition": lambda model, variable:
+            model.add_function_definition(
+                gillespy2.FunctionDefinition(name="fn", function="variable", args=["variable"])),
+    }
+
+    # List of supported SBML features for each solver.
+    # When a feature is implemented for a particular solver, add the feature to its list.
+    solver_supported_sbml_features = {
+        NumPySSASolver: [],
+        TauLeapingSolver: [],
+        ODESolver: [],
+        TauHybridSolver: [
+            "AssignmentRule",
+            "RateRule",
+            "Event",
+            "FunctionDefinition",
+        ],
+
+        SSACSolver: [],
+        ODECSolver: [],
+        TauLeapingCSolver: [],
+        TauHybridCSolver: [
+            "RateRule",
+            "Event",
+        ],
+    }
+
     model = Example()
     for sp in model.listOfSpecies.values():
         sp.mode = 'discrete'
@@ -128,6 +165,32 @@ class TestAllSolvers(unittest.TestCase):
 
         results3 = model.run(solver=BasicTauHybridSolver)
         self.assertTrue(results3[0].solver_name == 'TauHybridSolver')
+
+    def test_sbml_feature_validation(self):
+        class TestModel(gillespy2.Model):
+            def __init__(self):
+                gillespy2.Model.__init__(self, name="TestModel")
+                self.add_species(gillespy2.Species(name="S", initial_value=0))
+                self.timespan(np.linspace(0, 10, 11))
+
+        all_features = set(self.sbml_features.keys())
+        for solver in self.solvers:
+            unsupported_features = all_features.difference(self.solver_supported_sbml_features.get(solver))
+            with self.subTest(solver=solver.name):
+                for sbml_feature_name in unsupported_features:
+                    model = TestModel()
+                    with self.subTest("Unsupported model features raise an error", sbml_feature=sbml_feature_name):
+                        add_sbml_feature = self.sbml_features.get(sbml_feature_name)
+                        add_sbml_feature(model, "S")
+                        with self.assertRaises(gillespy2.ModelError):
+                            solver.validate_sbml_features(model=model)
+
+                for sbml_feature_name in self.solver_supported_sbml_features.get(solver):
+                    model = TestModel()
+                    with self.subTest("Supported model features validate successfully", sbml_feature=sbml_feature_name):
+                        add_sbml_feature = self.sbml_features.get(sbml_feature_name)
+                        add_sbml_feature(model, "S")
+                        solver.validate_sbml_features(model=model)
 
 
 if __name__ == '__main__':
