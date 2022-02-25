@@ -86,6 +86,8 @@ char ArgParser::match_arg(std::string &token)
 	}
 }
 
+static std::stringstream &fill_stream(std::stringstream &stream, char *argv[]);
+
 ArgParser::ArgParser(int argc, char *argv[])
 {
 	std::stringstream arg_stream;
@@ -136,13 +138,11 @@ ArgParser::ArgParser(int argc, char *argv[])
 				break;
 
 			case 'I':
-				arg_stream = std::stringstream(argv[i] + 1);
-				Gillespy::map_variable_populations(arg_stream);
+				Gillespy::map_variable_populations(fill_stream(arg_stream, &argv[i + 1]));
 				break;
 
 			case 'p':
-				arg_stream = std::stringstream(argv[i] + 1);
-				Gillespy::map_variable_parameters(arg_stream);
+				Gillespy::map_variable_parameters(fill_stream(arg_stream, &argv[i + 1]));
 				break;
 
 			case 'T':
@@ -172,6 +172,13 @@ ArgParser::ArgParser(int argc, char *argv[])
 	increment = increment > 0 ? increment : end / (timesteps - 1);
 	// Output interval must lie within the range (0, num_timesteps]
 	output_interval = std::max(1, std::min(timesteps, output_interval));
+}
+
+std::stringstream &fill_stream(std::stringstream &stream, char *argv[])
+{
+	for (char *arg = argv[0]; arg[0] != '-'; ++arg)
+		stream << arg;
+	return stream;
 }
 
 ArgParser::~ArgParser()
