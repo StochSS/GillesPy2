@@ -185,6 +185,9 @@ namespace Gillespy
 					// If a retry with a smaller tau_step is deemed necessary, this will change.
 					next_time = simulation->current_time + tau_step;
 
+					// Ensure that any previous changes to the current state is reflected by the integrator.
+					std::copy(current_state.begin(), current_state.end(), N_VGetArrayPointer(sol.y));
+
 					// The integration loop continues until a valid solution is found.
 					// Any invalid Tau steps (which cause negative populations) are discarded.
 					sol.save_state();
