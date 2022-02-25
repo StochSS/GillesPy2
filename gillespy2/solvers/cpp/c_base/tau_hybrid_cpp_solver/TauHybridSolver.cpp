@@ -45,7 +45,11 @@ namespace Gillespy
 
 	namespace TauHybrid
 	{
-		void TauHybridCSolver(HybridSimulation *simulation, std::vector<Event> &events, const double tau_tol, bool verbose)
+		void TauHybridCSolver(
+				HybridSimulation *simulation,
+				std::vector<Event> &events,
+				const double tau_tol,
+				Logger &logger)
 		{
 			if (simulation == NULL)
 			{
@@ -74,7 +78,7 @@ namespace Gillespy
 				y = y0;
 			}
 			Integrator sol(simulation, y, GPY_HYBRID_RELTOL, GPY_HYBRID_ABSTOL);
-			if (!verbose)
+			if (logger.get_log_level() == LogLevel::CRIT)
 			{
 				sol.set_error_handler(silent_error_handler);
 			}
@@ -322,7 +326,7 @@ namespace Gillespy
 						// Invalid state after the do-while loop implies that an unrecoverable error has occurred.
 						// While prior results are considered usable, the current integration results are not.
 						// Calling `continue` with an invalid state will discard the results and terminate the trajectory.
-						std::cerr
+						logger.err()
 								<< "[Trajectory #" << traj << "] "
 								<< "Integration guard triggered; problem space too stiff at t="
 								<< simulation->current_time << std::endl;

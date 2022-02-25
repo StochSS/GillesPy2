@@ -222,6 +222,54 @@ namespace Gillespy
 		uint8_t m_status = 0;
 	};
 
+	enum class LogLevel
+	{
+		INFO   = 0,
+		WARN   = 1,
+		ERR    = 2,
+		CRIT   = 3,
+		SILENT = 4,
+	};
+
+	class LogStream
+	{
+	public:
+		virtual LogStream &operator<<(std::ostream &(*output)(std::ostream&)) { return *this; }
+		virtual LogStream &operator<<(const char *output) { return *this; }
+		virtual LogStream &operator<<(int output) { return *this; }
+		virtual LogStream &operator<<(double output) { return *this; }
+	};
+
+	class StdErrLogStream : public LogStream
+	{
+	public:
+		LogStream &operator<<(std::ostream &(*output)(std::ostream&)) override { std::cerr << output; return *this; }
+		LogStream &operator<<(const char *output) override { std::cerr << output; return *this; }
+		LogStream &operator<<(int output) override { std::cerr << output; return *this; }
+		LogStream &operator<<(double output) override { std::cerr << output; return *this; }
+	};
+
+	class Logger
+	{
+		LogLevel m_log_level = LogLevel::CRIT;
+		LogStream m_null = LogStream();
+		StdErrLogStream m_stderr = StdErrLogStream();
+
+	public:
+		LogStream &info();
+		LogStream &warn();
+		LogStream &err();
+		LogStream &crit();
+
+		inline LogLevel get_log_level() { return m_log_level; }
+		inline LogLevel set_log_level(LogLevel log_level)
+		{
+			LogLevel previous = m_log_level;
+			m_log_level = log_level;
+			return previous;
+		}
+	};
+
 	template <typename TNum>
 	void init_simulation(Model<TNum> *model, Simulation<TNum> &simulation);
 
