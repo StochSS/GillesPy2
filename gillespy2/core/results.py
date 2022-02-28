@@ -836,10 +836,10 @@ class Results(UserList, Jsonify):
 
     # for backwards compatability, we need to keep the old name around
     def plotplotly_std_dev_range(self, **kwargs):
-        warnings.warn("The plotplotly_std_dev_range function has been depreciated. This function will be removed in a future release. Please use plotplotly_mean_stdev instead.")
+        warnings.warn("The plotplotly_std_dev_range function has been deprecated. This function will be removed in a future release. Please use plotplotly_mean_stdev instead.")
         self.plotplotly_mean_stdev(**kwargs)
 
     # for backwards compatability, we need to keep the old name around
     def plot_std_dev_range(self, **kwargs):
-        warnings.warn("The plot_std_dev_range function has been depreciated. This function will be removed in a future release. Please use plot_mean_stdev instead.")
+        warnings.warn("The plot_std_dev_range function has been deprecated. This function will be removed in a future release. Please use plot_mean_stdev instead.")
         self.plot_mean_stdev(**kwargs)
