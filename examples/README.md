@@ -5,12 +5,12 @@ The files in this directory are runnable Python examples of using [GillesPy2](ht
 
 * [Start Here](StartHere.ipynb) &ndash; a [Jupyter Notebook](https://jupyter-notebook.readthedocs.io/en/stable/) demonstrating the use of GillesPy2 on a simple Michaelis-Menten model.
 
-* [Models](StartingModels) &ndash; Contains a starting models folder containing two [Jupyter Notebook](https://jupyter-notebook.readthedocs.io/en/stable/), showcasing all GillesPy2 solvers on two data sets, as well as speed comparisons. Also contains an Extra Model folder showcasing various extra models and files.
+* [Models](Models) &ndash; Contains a StartingModels folder containing two [Jupyter Notebook](https://jupyter-notebook.readthedocs.io/en/stable/), showcasing all GillesPy2 algorithms on two data sets. Also contains an ExtraModels folder showcasing various extra models and a subfolder containing speed comparisons, all of which are [Jupyter Notebook](https://jupyter-notebook.readthedocs.io/en/stable/).
 
 * [Advanced Features](AdvancedFeatures) &ndash; examples illustrating more complicated models or features, including how to import SBML files.
 
-* [Data Visualization](DataVisualization) &ndash; a [Jupyter Notebook](https://jupyter-notebook.readthedocs.io/en/stable/) demonstrating various methods of visualizing data with GillesPy2.
+* [Data Visualization](DataVisualization.ipynb) &ndash; a [Jupyter Notebook](https://jupyter-notebook.readthedocs.io/en/stable/) demonstrating various methods of visualizing data with GillesPy2.
 
-* [Results Management](ResultsManagement) &ndash; a [Jupyter Notebook](https://jupyter-notebook.readthedocs.io/en/stable/) demonstrating various methods that can be used to export results data to CSV as well as pickle files.
+* [Results Management](ResultsManagement.ipynb) &ndash; a [Jupyter Notebook](https://jupyter-notebook.readthedocs.io/en/stable/) demonstrating various methods that can be used to export results data to CSV as well as pickle files.
 
 Full documentation for GillesPy2 can be found at https://stochss.github.io/GillesPy2/index.html
