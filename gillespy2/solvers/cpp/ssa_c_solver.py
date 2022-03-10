@@ -46,8 +46,8 @@ class SSACSolver(GillesPySolver, CSolver):
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
             self._set_model(model=model)
-        if model is not None and model.get_json_hash() != self.model.get_json_hash():
-            raise SimulationError("Model must equal SSACSolver.model.")
+        # if model is not None and model.get_json_hash() != self.model.get_json_hash():
+        #     raise SimulationError("Model must equal SSACSolver.model.")
         self.model.resolve_parameters()
         self.validate_sbml_features(model=model)
 
