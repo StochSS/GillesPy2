@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import warnings
+import logging as log
 from datetime import datetime
 from gillespy2.core.gillespyError import *
 from gillespy2.core.jsonify import Jsonify
@@ -836,10 +837,10 @@ class Results(UserList, Jsonify):
 
     # for backwards compatability, we need to keep the old name around
     def plotplotly_std_dev_range(self, **kwargs):
-        log.warning("The plotplotly_std_dev_range function has been deprecated. This function will be removed in a future release. Please use plotplotly_mean_stdev instead.")
+        log.warn("The plotplotly_std_dev_range function has been deprecated. This function will be removed in a future release. Please use plotplotly_mean_stdev instead.")
         self.plotplotly_mean_stdev(**kwargs)
 
     # for backwards compatability, we need to keep the old name around
     def plot_std_dev_range(self, **kwargs):
-        log.warning("The plot_std_dev_range function has been deprecated. This function will be removed in a future release. Please use plot_mean_stdev instead.")
+        log.warn("The plot_std_dev_range function has been deprecated. This function will be removed in a future release. Please use plot_mean_stdev instead.")
         self.plot_mean_stdev(**kwargs)
