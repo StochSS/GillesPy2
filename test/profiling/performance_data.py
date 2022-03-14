@@ -33,8 +33,12 @@ class PerformanceData:
     # Measured as the cumulative time spent on each sampled function of the program.
     sample_time: float = -1.0
 
-    call_list: "dict[str, PerformanceEntry]" = {}
-    worst_entry: "tuple[str, PerformanceEntry]" = ("unknown", PerformanceEntry())
+    call_list: "dict[str, PerformanceEntry]" = None
+    worst_entry: "tuple[str, PerformanceEntry]" = None
+
+    def __init__(self):
+        self.call_list = {}
+        self.worst_entry = ("unknown", PerformanceEntry())
 
     def __str__(self):
         string = f"Total execution time: {round(self.execution_time, 6)}ms ({self.sample_time}ms sampled)\n"

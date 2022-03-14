@@ -35,24 +35,26 @@ from gillespy2.solvers.cpp import TauLeapingCSolver
 
 class MyTestCase(unittest.TestCase):
     def test_print_profiler_results(self):
-        for solver, models in self.solvers.items():
-            print(f"=== === === Solver: {solver.name} === === ===")
+        for solver_name, models in self.solvers.items():
+            print(f"=== === === \tSolver: {solver_name} \t=== === ===")
             for model in models:
-                perf_results = c_profiler.run_profiler(model, solver(model=model))
-                print(f"  === === Model: {model.name} === ===")
-                print(perf_results)
+                print(f"[Model: {model.name}]")
+                perf_results = c_profiler.run_profiler(model, solver_name)
+                print("->", id(perf_results.call_list))
+                print("Call List:")
+                for entry, time in list(perf_results.call_list.items())[:8]:
+                    print(f" * {entry}:\n\t =", f"{time.perf_time:d}ms")
+                print("Execution Time:", f"{perf_results.execution_time:d}ms")
+                print("CPU Time:", f"{perf_results.sample_time:d}ms")
         print(f"=== === === === === === === === === === === === ===")
 
     def setUp(self) -> None:
         self.solvers = {
-            SSACSolver: [
+            SSACSolver.target: [
                 Tyson2StateOscillator()
             ],
-            ODECSolver: [
+            ODECSolver.target: [
                 Oregonator()
-            ],
-            TauLeapingCSolver: [
-                VilarOscillator()
             ],
         }
 
