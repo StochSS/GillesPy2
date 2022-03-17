@@ -198,9 +198,9 @@ class NumPySSASolver(GillesPySolver):
 
         if resume is not None:
             if resume[0].model != self.model:
-                raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
+                raise ModelError('When resuming, one must not alter the model being resumed.')
             if t < resume['time'][-1]:
-                raise gillespyError.ExecutionError(
+                raise ExecutionError(
                     "'t' must be greater than previous simulations end time, or set in the run() method as the "
                     "simulations next end time")
 
