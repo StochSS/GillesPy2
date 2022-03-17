@@ -45,9 +45,11 @@ class ODECSolver(GillesPySolver, CSolver):
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
             self._set_model(model=model)
-        # if model is not None and model.get_json_hash() != self.model.get_json_hash():
-        #     raise SimulationError("Model must equal ODECSolver.model.")
         self.model.resolve_parameters()
+        if model is not None:
+            model.resolve_parameters()
+            if model.get_json_hash() != self.model.get_json_hash():
+                raise SimulationError("Model must equal ODECSolver.model.")
         self.validate_sbml_features(model=model)
 
         increment = self.get_increment(increment=increment)
