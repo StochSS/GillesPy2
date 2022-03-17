@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import random, math, sys, warnings
+import random, math, sys
 from collections import OrderedDict
 from scipy.integrate import ode, LSODA
 import heapq

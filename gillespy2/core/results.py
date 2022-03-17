@@ -16,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import warnings
 from datetime import datetime
 from gillespy2.core.gillespyError import *
 from gillespy2.core.jsonify import Jsonify
@@ -129,9 +128,13 @@ class Trajectory(UserDict, Jsonify):
 
     def __getitem__(self, key):
         if type(key) is int:
-            warnings.warn("Trajectory is of type dictionary. Use trajectory['species'] instead of "
-                          "trajectory[0]['species'] ")
-            return self
+            from gillespy2.core import log
+            species = list(self.data.keys())[key]
+            msg = "Trajectory is of type dictionary."
+            msg += f"Use trajectory['[{species}]'] instead of trajectory[{key}]['{species}']"
+            msg += f"Retrieving trajectory['[{species}]']"
+            log.warning(msg)
+            return self.data[species]
         if key in self.data:
             return self.data[key]
         if hasattr(self.__class__, "__missing__"):
@@ -151,9 +154,11 @@ class Results(UserList, Jsonify):
         self.data = data
 
     def __getattribute__(self, key):
-        if key == 'model' or key == 'solver_name' or key == 'rc' or key == 'status':
+        if key in ('model', 'solver_name', 'rc', 'status'):
             if len(self.data) > 1:
-                warnings.warn("Results is of type list. Use results[i]['model'] instead of results['model'] ")
+                from gillespy2.core import log
+                msg = f"Results is of type list. Use results[i]['{key}'] instead of results['{key}']"
+                log.warning(msg)
             return getattr(Results.__getattribute__(self, key='data')[0], key)
         else: 
             return UserList.__getattribute__(self, key)
@@ -161,9 +166,11 @@ class Results(UserList, Jsonify):
     def __getitem__(self, key):
         if key == 'data':
             return UserList.__getitem__(self, key)
-        if type(key) is str and key != 'data':
+        if isinstance(key, str):
             if len(self.data) > 1:
-                warnings.warn("Results is of type list. Use results[i]['model'] instead of results['model'] ")
+                from gillespy2.core import log
+                msg = f"Results is of type list. Use results[i]['{key}'] instead of results['{key}']"
+                log.warning(msg)
             return self.data[0][key]
         else:
             return(UserList.__getitem__(self,key))
@@ -174,16 +181,14 @@ class Results(UserList, Jsonify):
         consistent_solver = combined_data._validate_solver()
         consistent_model = combined_data._validate_model()
 
-        if consistent_solver is False:
-            warnings.warn("Results objects contain Trajectory objects from multiple solvers.")
+        if not consistent_solver:
+            from gillespy2.core import log
+            log.warning("Results objects contain Trajectory objects from multiple solvers.")
 
-        consistent_model = combined_data._validate_model()
-
-        if consistent_model is False:
+        if not consistent_model:
             raise ValidationError('Results objects contain Trajectory objects from multiple models.')
 
-        combined_data = self.data + other.data
-        return Results(data=combined_data)
+        return combined_data
 
     def __radd__(self, other):
         if other == 0:
@@ -196,9 +201,9 @@ class Results(UserList, Jsonify):
         if reference is not None:
             reference_model = reference
         else:
-            reference_model = self.data[0].model
+            reference_model = self.data[0].model.get_json_hash()
         for trajectory in self.data:
-            if trajectory.model != reference_model:
+            if trajectory.model.get_json_hash() != reference_model:
                 is_valid = False
         return is_valid
 
@@ -383,7 +388,9 @@ class Results(UserList, Jsonify):
             try:
                 plt.style.use(style)
             except:
-                warnings.warn("Invalid matplotlib style. Try using one of the following {}".format(plt.style.available))
+                from gillespy2.core import log
+                msg = f"Invalid matplotlib style. Try using one of the following {plt.style.available}"
+                log.warning(msg)
                 plt.style.use("default")
 
             plt.figure(figsize=figsize)
@@ -585,7 +592,8 @@ class Results(UserList, Jsonify):
         number_of_trajectories = len(trajectory_list)
 
         if ddof == number_of_trajectories:
-            warnings.warn("ddof must be less than the number of trajectories. Using ddof of 0")
+            from gillespy2.core import log
+            log.warning("ddof must be less than the number of trajectories. Using ddof of 0")
             ddof = 0
 
         average_list = self.average_ensemble().data[0]
@@ -793,7 +801,9 @@ class Results(UserList, Jsonify):
         try:
             plt.style.use(style)
         except:
-            warnings.warn("Invalid matplotlib style. Try using one of the following {}".format(plt.style.available))
+            from gillespy2.core import log
+            msg = f"Invalid matplotlib style. Try using one of the following {plt.style.available}"
+            log.warning(msg)
             plt.style.use("default")
 
         plt.figure(figsize=figsize)
