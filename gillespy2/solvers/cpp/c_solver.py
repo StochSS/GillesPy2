@@ -62,7 +62,7 @@ class CSolver:
     rc = 0
 
     def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable: bool = False):
-        if len(BuildEngine.get_missing_dependencies())
+        if len(BuildEngine.get_missing_dependencies()):
             raise gillespyError.SimulationError(
                 "Please install/configure 'g++' and 'make' on your system, to ensure that GillesPy2 C solvers will run properly."
             )
