@@ -152,20 +152,6 @@ class TestAllSolvers(unittest.TestCase):
                 model.timespan(np.linspace(0, 1000000, 1001))
                 model.run(solver=solver, timeout=0.1)
 
-    def test_basic_solver_import(self):
-        from gillespy2.solvers.numpy.basic_tau_leaping_solver import BasicTauLeapingSolver
-        from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
-        from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
-        model = MichaelisMenten()
-        results1 = model.run(solver=BasicTauLeapingSolver)
-        self.assertTrue(results1[0].solver_name == 'TauLeapingSolver')
-
-        results2 = model.run(solver=BasicODESolver)
-        self.assertTrue(results2[0].solver_name == 'ODESolver')
-
-        results3 = model.run(solver=BasicTauHybridSolver)
-        self.assertTrue(results3[0].solver_name == 'TauHybridSolver')
-
     def test_sbml_feature_validation(self):
         class TestModel(gillespy2.Model):
             def __init__(self):
