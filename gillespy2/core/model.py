@@ -925,6 +925,10 @@ class Model(SortableObject, Jsonify):
                 from gillespy2 import TauHybridSolver
                 return TauHybridSolver
 
+        elif algorithm == 'CLE':
+            from gillespy2 import CLESolver
+            return CLESolver
+            
         else:
             raise ModelError("Invalid value for the argument 'algorithm' entered. "
                              "Please enter 'SSA', 'ODE', 'Tau-leaping', or 'Tau-Hybrid'.")
