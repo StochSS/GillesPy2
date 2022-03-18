@@ -48,8 +48,7 @@ class NumPySSASolver(GillesPySolver):
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'timeout')
 
-    @classmethod
-    def run(self, model=None, t=20, number_of_trajectories=1, increment=None, seed=None, debug=False, show_labels=True,
+    def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, seed=None, debug=False, show_labels=True,
             live_output=None, live_output_options={}, timeout=None, resume=None, **kwargs):
 
         """
@@ -72,16 +71,18 @@ class NumPySSASolver(GillesPySolver):
         :returns: a list of each trajectory simulated.
         """
 
-        if isinstance(self, type):
+        if self is None:
             self = NumPySSASolver(model=model)
+
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
             self.model = model
+
         if model is not None and model.get_json_hash() != self.model.get_json_hash():
             raise SimulationError("Model must equal NumPySSASolver.model.")
         self.model.resolve_parameters()
-        self.validate_sbml_features(model=model)
+        self.validate_sbml_features(model=self.model)
 
         increment = self.get_increment(increment=increment)
 
@@ -93,6 +94,9 @@ class NumPySSASolver(GillesPySolver):
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
+
+        if t is None:
+            t = self.model.tspan[-1]
 
         # create numpy array for timeline
         if resume is not None:

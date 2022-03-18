@@ -88,8 +88,7 @@ class TauLeapingSolver(GillesPySolver):
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile','timeout', 'tau_tol')
 
-    @classmethod
-    def run(self, model=None, t=20, number_of_trajectories=1, increment=None, seed=None,
+    def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, seed=None,
             debug=False, profile=False,  live_output=None, live_output_options={},
             timeout=None, resume=None, tau_tol=0.03, **kwargs):
         """
@@ -135,16 +134,18 @@ class TauLeapingSolver(GillesPySolver):
         :returns:
         """
 
-        if isinstance(self, type):
+        if self is None:
             self = TauLeapingSolver(model=model, debug=debug, profile=profile)
+
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
             self.model = model
+
         if model is not None and model.get_json_hash() != self.model.get_json_hash():
             raise SimulationError("Model must equal TauLeapingSolver.model.")
         self.model.resolve_parameters()
-        self.validate_sbml_features(model=model)
+        self.validate_sbml_features(model=self.model)
 
         increment = self.get_increment(increment=increment)
 
@@ -156,6 +157,9 @@ class TauLeapingSolver(GillesPySolver):
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
+
+        if t is None:
+            t = self.model.tspan[-1]
 
         # create numpy array for timeline
         if resume is not None:

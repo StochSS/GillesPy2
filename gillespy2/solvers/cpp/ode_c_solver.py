@@ -35,26 +35,31 @@ class ODECSolver(GillesPySolver, CSolver):
         """
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
-    def run(self=None, model: Model = None, t: int = 20, number_of_trajectories: int = 1, timeout: int = 0,
+    def run(self=None, model: Model = None, t: int = None, number_of_trajectories: int = 1, timeout: int = 0,
             increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
             resume=None, live_output: str = None, live_output_options: dict = {}, **kwargs):
 
         if self is None:
             self = ODECSolver(model, resume=resume)
+
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
             self._set_model(model=model)
+
         if model is not None and model.get_json_hash() != self.model.get_json_hash():
             raise SimulationError("Model must equal ODECSolver.model.")
         self.model.resolve_parameters()
-        self.validate_sbml_features(model=model)
+        self.validate_sbml_features(model=self.model)
 
         increment = self.get_increment(increment=increment)
 
         # Validate parameters prior to running the model.
         self._validate_type(variables, dict, "'variables' argument must be a dictionary.")
 
+        if t is None:
+            t = self.model.tspan[-1]
+            
         self._validate_resume(t, resume)
         self._validate_kwargs(**kwargs)
 

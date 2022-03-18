@@ -773,8 +773,7 @@ class TauHybridSolver(GillesPySolver):
             FunctionDefinition,
         }
 
-    @classmethod
-    def run(self, model=None, t=20, number_of_trajectories=1, increment=None, seed=None,
+    def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, seed=None,
             debug=False, profile=False, tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
             integrator_options={}, live_output=None, live_output_options={}, timeout=None, **kwargs):
         """
@@ -827,16 +826,18 @@ class TauHybridSolver(GillesPySolver):
         :type live_output_options:  str
         """
 
-        if isinstance(self, type):
+        if self is None:
             self = TauHybridSolver(model=model)
+
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
             self.model = model
+
         if model is not None and model.get_json_hash() != self.model.get_json_hash():
             raise SimulationError("Model must equal TauHybridSolver.model.")
         self.model.resolve_parameters()
-        self.validate_sbml_features(model=model)
+        self.validate_sbml_features(model=self.model)
 
         increment = self.get_increment(increment=increment)
 
@@ -877,6 +878,9 @@ class TauHybridSolver(GillesPySolver):
         self.__initialize_state(initial_state, debug)
         initial_state['vol'] = self.model.volume
         initial_state['t'] = 0
+
+        if t is None:
+            t = self.model.tspan[-1]
 
         # create numpy array for timeline
         timeline = np.linspace(0, t, int(round(t / increment + 1)))

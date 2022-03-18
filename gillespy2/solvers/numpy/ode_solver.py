@@ -81,8 +81,7 @@ class ODESolver(GillesPySolver):
         return ('model', 't', 'number_of_trajectories', 'increment', 'integrator', 'integrator_options',
                 'timeout')
 
-    @classmethod
-    def run(self, model=None, t=20, number_of_trajectories=1, increment=None, show_labels=True, integrator='lsoda',
+    def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, show_labels=True, integrator='lsoda',
             integrator_options={}, live_output=None, live_output_options={}, timeout=None, resume=None, **kwargs):
         """
         :param model: gillespy2.model class object
@@ -107,16 +106,18 @@ class ODESolver(GillesPySolver):
             "interval" specifies seconds between displaying.
             "clear_output" specifies if display should be refreshed with each displa
         """
-        if isinstance(self, type):
+        if self is None:
             self = ODESolver(model=model)
+
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
             self.model = model
+
         if model is not None and model.get_json_hash() != self.model.get_json_hash():
             raise SimulationError("Model must equal OSESolver.model.")
         self.model.resolve_parameters()
-        self.validate_sbml_features(model=model)
+        self.validate_sbml_features(model=self.model)
 
         increment = self.get_increment(increment=increment)
 
@@ -131,6 +132,9 @@ class ODESolver(GillesPySolver):
         if number_of_trajectories > 1:
             log.warning("Generating duplicate trajectories for model with ODE Solver. "
                         "Consider running with only 1 trajectory.")
+
+        if t is None:
+            t = self.model.tspan[-1]
 
         if resume is not None:
             # start where we last left off if resuming a simulation
