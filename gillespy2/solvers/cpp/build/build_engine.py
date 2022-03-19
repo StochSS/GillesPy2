@@ -145,7 +145,7 @@ class BuildEngine():
         make = Make(self.makefile, cache_dir, cache_dir)
         make.prebuild()
 
-    def build_simulation(self, simulation_name: str) -> str:
+    def build_simulation(self, simulation_name: "str", definitions: "dict[str, str]") -> str:
         """
         Build the solver to the temp directory.
 
@@ -161,7 +161,7 @@ class BuildEngine():
                 "To fix, call `BuildEngine.prepare()` prior to attempting to build the simulation."
             )
 
-        self.make.build_simulation(simulation_name, template_dir=str(self.template_dir))
+        self.make.build_simulation(simulation_name, template_dir=str(self.template_dir), **definitions)
         return str(self.make.output_file)
 
     def get_executable_path(self) -> str:

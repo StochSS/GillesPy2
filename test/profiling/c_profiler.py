@@ -91,10 +91,14 @@ def run_profiler(model: Model, solver: "str", trajectories=4, timesteps=101, end
     try:
         with tempfile.TemporaryDirectory() as tmp:
             build = BuildEngine(output_dir=tmp)
+            definitions = {
+                "CXXFLAGS": "-pg -std=c++14 -O0",
+                "CFLAGS": "-pg -O0",
+            }
 
             # Prepare the simulation executable.
             build.prepare(model)
-            exe = build.build_simulation(simulation_name=solver, definitions={"CXXFLAGS": "-pg"})
+            exe = build.build_simulation(simulation_name=solver, definitions=definitions)
 
             # Execute the simulation before running the profiler.
             # When profiling compiler flags (-pg) are enabled,

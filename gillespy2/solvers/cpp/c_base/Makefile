@@ -1,7 +1,7 @@
 ### Compiler configuration/settings ###
 CXX := g++
-CFLAGS := -Wall -O3
-CXXFLAGS := -std=c++14 -Wall -O3
+CFLAGS ?= -Wall -O3
+CXXFLAGS ?= -std=c++14 -Wall -O3
 GPY_SOLVER ?= ssa
 GPY_EXE_ARGS ?= --trajectories 1 --timesteps 21 --end 20
 #######################################

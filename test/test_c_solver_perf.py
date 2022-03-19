@@ -40,12 +40,11 @@ class MyTestCase(unittest.TestCase):
             for model in models:
                 print(f"[Model: {model.name}]")
                 perf_results = c_profiler.run_profiler(model, solver_name)
-                print("->", id(perf_results.call_list))
                 print("Call List:")
-                for entry, time in list(perf_results.call_list.items())[:8]:
-                    print(f" * {entry}:\n\t =", f"{time.perf_time:d}ms")
-                print("Execution Time:", f"{perf_results.execution_time:d}ms")
-                print("CPU Time:", f"{perf_results.sample_time:d}ms")
+                for entry, time in list(perf_results.call_list.items())[:10]:
+                    print(f"* {time.perf_time:0.1f}ms:\t{entry}")
+                print("Execution Time:", f"{perf_results.execution_time:0.1f}ms")
+                print("CPU Time:", f"{perf_results.sample_time:0.1f}ms")
         print(f"=== === === === === === === === === === === === ===")
 
     def setUp(self) -> None:
