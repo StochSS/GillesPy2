@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import copy
 from threading import Thread, Event
 from gillespy2.core.results import Results
 from gillespy2.core import GillesPySolver, log
@@ -40,7 +41,7 @@ class NumPySSASolver(GillesPySolver):
         stop_event = None
         result = None
         pause_event = None
-        self.model = model
+        self.model = copy.deepcopy(model)
 
     def get_solver_settings(self):
         """
@@ -77,14 +78,18 @@ class NumPySSASolver(GillesPySolver):
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
-            self.model = model
+            self.model = copy.deepcopy(model)
 
         if model is not None and model.get_json_hash() != self.model.get_json_hash():
             raise SimulationError("Model must equal NumPySSASolver.model.")
         self.model.resolve_parameters()
         self.validate_sbml_features(model=self.model)
 
-        increment = self.get_increment(increment=increment)
+        self.validate_tspan(increment=increment, t=t)
+        if increment is None:
+            increment = self.model.tspan[-1] - self.model.tspan[-2]
+        if t is None:
+            t = self.model.tspan[-1]
 
         self.stop_event = Event()
         self.pause_event = Event()
@@ -94,9 +99,6 @@ class NumPySSASolver(GillesPySolver):
         if len(kwargs) > 0:
             for key in kwargs:
                 log.warning('Unsupported keyword argument to {0} solver: {1}'.format(self.name, key))
-
-        if t is None:
-            t = self.model.tspan[-1]
 
         # create numpy array for timeline
         if resume is not None:

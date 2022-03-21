@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """GillesPy2 Solver for ODE solutions."""
 
+import copy
 from threading import Thread, Event
 from scipy.integrate import ode
 from collections import OrderedDict
@@ -43,7 +44,7 @@ class ODESolver(GillesPySolver):
         stop_event = None
         pause_event = None
         result = None
-        self.model = model
+        self.model = copy.deepcopy(model)
 
     @staticmethod
     def __f(t, y, curr_state, model, c_prop):
@@ -112,14 +113,18 @@ class ODESolver(GillesPySolver):
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
-            self.model = model
+            self.model = copy.deepcopy(model)
 
         if model is not None and model.get_json_hash() != self.model.get_json_hash():
             raise SimulationError("Model must equal OSESolver.model.")
         self.model.resolve_parameters()
         self.validate_sbml_features(model=self.model)
 
-        increment = self.get_increment(increment=increment)
+        self.validate_tspan(increment=increment, t=t)
+        if increment is None:
+            increment = self.model.tspan[-1] - self.model.tspan[-2]
+        if t is None:
+            t = self.model.tspan[-1]
 
         self.stop_event = Event()
         self.pause_event = Event()
@@ -132,9 +137,6 @@ class ODESolver(GillesPySolver):
         if number_of_trajectories > 1:
             log.warning("Generating duplicate trajectories for model with ODE Solver. "
                         "Consider running with only 1 trajectory.")
-
-        if t is None:
-            t = self.model.tspan[-1]
 
         if resume is not None:
             # start where we last left off if resuming a simulation

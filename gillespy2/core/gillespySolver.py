@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import numpy
+
 from .gillespyError import SimulationError, ModelError
 from typing import Set, Type
 
@@ -62,16 +64,29 @@ class GillesPySolver:
 
         raise SimulationError("This abstract solver class cannot be used directly")
 
-    def get_increment(self, increment):
+    def validate_tspan(self, increment, t):
         """
-        Set the default increment value if it was not provided
+        Validate the models time span and set it if not provided.
 
         :param increment: The current value of increment.
         :type increment: int
+
+        :param t: The end time of the simulation.
+        :type t: int
+
+        :raises SimulationError: if timespan and increment are both set by the user or neither are set by the user.
         """
-        if increment is None:
-            return self.model.tspan[-1] - self.model.tspan[-2]
-        if self.model.user_set_tspan:
+        if self.model.tspan is None and increment is None:
+            raise SimulationError(
+                """
+                Failed while preparing to run the model. Neither increment or timespan are set.
+
+                To continue either add a `timespan` definition to your Model or add the 
+                `increment` and `t` arguments to this `solver.run()` call.               
+                """
+            )
+
+        if self.model.tspan is not None and increment is not None:
             raise  SimulationError(
                 """
                 Failed while preparing to run the model. Both increment and timespan are set.
@@ -80,7 +95,10 @@ class GillesPySolver:
                 `increment` argument from this `solver.run()` call.               
                 """
             )
-        return increment
+
+        if self.model.tspan is None:
+            end = 20 + increment if t is None else t + increment
+            self.model.timespan(numpy.arange(0, end, increment))
 
     @classmethod
     def get_supported_features(cls) -> "Set[Type]":

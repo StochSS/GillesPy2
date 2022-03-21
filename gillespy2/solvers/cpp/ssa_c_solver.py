@@ -53,13 +53,14 @@ class SSACSolver(GillesPySolver, CSolver):
         self.model.resolve_parameters()
         self.validate_sbml_features(model=self.model)
 
-        increment = self.get_increment(increment=increment)
+        self.validate_tspan(increment=increment, t=t)
+        if increment is None:
+            increment = self.model.tspan[-1] - self.model.tspan[-2]
+        if t is None:
+            t = self.model.tspan[-1]
 
         # Validate parameters prior to running the model.
         self._validate_type(variables, dict, "'variables' argument must be a dictionary.")
-
-        if t is None:
-            t = self.model.tspan[-1]
 
         self._validate_resume(t, resume)
         self._validate_kwargs(**kwargs)
