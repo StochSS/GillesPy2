@@ -150,7 +150,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
                 self.add_event([event1, event2])
 
         model = EventTestModel()
-        results = model.run()
+        results = model.run(increment=0.05, t=20)
         self.assertGreater(results['S'][-1], 0)
 
     def test_math_name_overlap(self):
@@ -195,7 +195,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
 
     def test_run_example__with_increment_only(self):
         model = ExampleNoTspan()
-        results = TauHybridSolver.run(model=model, increment=0.2)
+        results = TauHybridSolver.run(model=model, increment=0.2, t=20)
 
     def test_run_example__with_tspan_only(self):
         model = Example()
