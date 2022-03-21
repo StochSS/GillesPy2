@@ -233,7 +233,7 @@ class TestAllHybridSolvers(unittest.TestCase):
         model = TestAllHybridSolvers.TruncatedStateModel()
         for solver in self.solvers:
             with self.subTest(solver=solver.name):
-                result = model.run(solver=solver, seed=1)
+                result = model.run(solver=solver, seed=1, increment=0.05, t=20)
                 self.assertGreater(result["S1"][-1], 0.0,
                                    "Reaction never fired; indicates that continuous species is being truncated")
 

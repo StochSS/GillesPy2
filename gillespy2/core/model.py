@@ -654,6 +654,9 @@ class Model(SortableObject, Jsonify):
         :type time_span: numpy ndarray
         """
         
+        if time_span[0] < 0:
+            raise InvalidModelError("Simulation must run from t=0 to end time (must be positive).")
+
         first_diff = time_span[1] - time_span[0]
         other_diff = time_span[2:] - time_span[1:-1]
         isuniform = np.isclose(other_diff, first_diff).all()
