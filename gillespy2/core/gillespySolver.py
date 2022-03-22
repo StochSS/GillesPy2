@@ -15,7 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-
+import copy
 import numpy
 
 from .gillespyError import SimulationError, ModelError
@@ -105,7 +105,7 @@ class GillesPySolver:
             
             first_diff = self.model.tspan[1] - self.model.tspan[0]
             other_diff = self.model.tspan[2:] - self.model.tspan[1:-1]
-            isuniform = np.isclose(other_diff, first_diff).all()
+            isuniform = numpy.isclose(other_diff, first_diff).all()
 
             if not isuniform:
                 raise SimulationError("StochKit only supports uniform timespans")
@@ -118,6 +118,9 @@ class GillesPySolver:
     def validate_model(cls, sol_model, model):
         if model is not None:
             model.resolve_parameters()
+            if model.tspan is None:
+                model = copy.deepcopy(model)
+                model.tspan = sol_model.tspan
             if model.get_json_hash() != sol_model.get_json_hash():
                 raise SimulationError("Model must equal ODECSolver.model.")
 
