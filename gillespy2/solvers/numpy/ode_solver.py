@@ -115,9 +115,8 @@ class ODESolver(GillesPySolver):
                 raise SimulationError("A model is required to run the simulation.")
             self.model = copy.deepcopy(model)
 
-        if model is not None and model.get_json_hash() != self.model.get_json_hash():
-            raise SimulationError("Model must equal OSESolver.model.")
         self.model.resolve_parameters()
+        self.validate_model(self.model, model)
         self.validate_sbml_features(model=self.model)
 
         self.validate_tspan(increment=increment, t=t)

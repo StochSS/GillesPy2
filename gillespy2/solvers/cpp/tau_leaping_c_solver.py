@@ -48,10 +48,7 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
             self._set_model(model=model)
 
         self.model.resolve_parameters()
-        if model is not None:
-            model.resolve_parameters()
-            if model.get_json_hash() != self.model.get_json_hash():
-                raise SimulationError("Model must equal TauLeapingCSolver.model.")
+        self.validate_model(self.model, model)
         self.validate_sbml_features(model=model)
 
         self.validate_tspan(increment=increment, t=t)
