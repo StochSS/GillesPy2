@@ -87,6 +87,13 @@ class GillesPySolver:
         return set()
 
     @classmethod
+    def validate_model(cls, sol_model, model):
+        if model is not None:
+            model.resolve_parameters()
+            if model.get_json_hash() != self.model.get_json_hash():
+                raise SimulationError("Model must equal ODECSolver.model.")
+
+    @classmethod
     def validate_sbml_features(cls, model):
         unsupported_features = model.get_model_features() - cls.get_supported_features()
         if unsupported_features:
