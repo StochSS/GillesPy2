@@ -47,10 +47,12 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
                 raise SimulationError("A model is required to run the simulation.")
             self._set_model(model=model)
 
-        if model is not None and model.get_json_hash() != self.model.get_json_hash():
-            raise SimulationError("Model must equal TauLeapingCSolver.model.")
         self.model.resolve_parameters()
-        self.validate_sbml_features(model=self.model)
+        if model is not None:
+            model.resolve_parameters()
+            if model.get_json_hash() != self.model.get_json_hash():
+                raise SimulationError("Model must equal TauLeapingCSolver.model.")
+        self.validate_sbml_features(model=model)
 
         self.validate_tspan(increment=increment, t=t)
         if increment is None:
@@ -108,7 +110,7 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
         sim_status = self._run(sim_exec, args, decoder, timeout, display_args)
 
         if sim_status == SimulationReturnCode.FAILED:
-            raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:\n"
+            raise ExecutionError("Error encountered while running simulation C++ file:\n"
                 f"Return code: {int(sim_status)}.\n")
 
         trajectories, time_stopped = decoder.get_output()
