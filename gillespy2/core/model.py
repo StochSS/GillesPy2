@@ -712,7 +712,8 @@ class Model(SortableObject, Jsonify):
         :param ename: Name of Event to be removed
         """
         self.listOfEvents.pop(ename)
-        self._listOfEvents.pop(ename)
+        if ename in self._listOfEvents:
+            self._listOfEvents.pop(ename)
 
     def delete_all_events(self):
         """
