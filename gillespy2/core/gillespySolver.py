@@ -108,7 +108,7 @@ class GillesPySolver:
     def validate_model(cls, sol_model, model):
         if model is not None:
             model.resolve_parameters()
-            if model.get_json_hash() != self.model.get_json_hash():
+            if model.get_json_hash() != sol_model.get_json_hash():
                 raise SimulationError("Model must equal ODECSolver.model.")
 
     @classmethod
