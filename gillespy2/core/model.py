@@ -652,19 +652,8 @@ class Model(SortableObject, Jsonify):
         :param time_span: Evenly-spaced list of times at which to sample the species populations during the simulation. 
             Best to use the form np.linspace(<start time>, <end time>, <number of time-points, inclusive>)
         :type time_span: numpy ndarray
-        """
-        
-        if time_span[0] < 0:
-            raise InvalidModelError("Simulation must run from t=0 to end time (must be positive).")
-
-        first_diff = time_span[1] - time_span[0]
-        other_diff = time_span[2:] - time_span[1:-1]
-        isuniform = np.isclose(other_diff, first_diff).all()
-
-        if isuniform:
-            self.tspan = time_span
-        else:
-            raise InvalidModelError("StochKit only supports uniform timespans")
+        """        
+        self.tspan = time_span
 
     def get_reaction(self, rname):
         """

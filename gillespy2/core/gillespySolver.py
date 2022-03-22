@@ -99,6 +99,16 @@ class GillesPySolver:
         if self.model.tspan is None:
             end = 20 + increment if t is None else t + increment
             self.model.timespan(numpy.arange(0, end, increment))
+        else:
+            if time_span[0] < 0:
+                raise SimulationError("Simulation must run from t=0 to end time (t must always be positive).")
+            
+            first_diff = self.model.tspan[1] - self.model.tspan[0]
+            other_diff = self.model.tspan[2:] - self.model.tspan[1:-1]
+            isuniform = np.isclose(other_diff, first_diff).all()
+
+            if not isuniform:
+                raise SimulationError("StochKit only supports uniform timespans")
 
     @classmethod
     def get_supported_features(cls) -> "Set[Type]":
