@@ -100,7 +100,7 @@ class GillesPySolver:
             end = 20 + increment if t is None else t + increment
             self.model.timespan(numpy.arange(0, end, increment))
         else:
-            if time_span[0] < 0:
+            if self.model.tspan[0] < 0:
                 raise SimulationError("Simulation must run from t=0 to end time (t must always be positive).")
             
             first_diff = self.model.tspan[1] - self.model.tspan[0]
