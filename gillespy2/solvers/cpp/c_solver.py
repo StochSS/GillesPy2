@@ -66,6 +66,11 @@ class CSolver:
         if model is None:
             raise SimulationError("A model is required to run the simulation.")
 
+        if len(BuildEngine.get_missing_dependencies()) > 0:
+            raise gillespyError.SimulationError(
+                "Please install/configure 'g++' and 'make' on your system, to ensure that GillesPy2 C solvers will run properly."
+            )
+
         self.delete_directory = False
         self.model = copy.deepcopy(model)
         self.resume = resume
