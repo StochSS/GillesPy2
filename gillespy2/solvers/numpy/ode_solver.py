@@ -111,6 +111,9 @@ class ODESolver(GillesPySolver):
             "clear_output" specifies if display should be refreshed with each displa
         """
         if self is None:
+            # Post deprecation block
+            # raise SimulationError("ODESolver must be instantiated to run the simulation")
+            # Pre deprecation block
             from gillespy2 import log
             log.warning(
                 """

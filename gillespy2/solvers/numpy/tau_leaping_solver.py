@@ -139,6 +139,9 @@ class TauLeapingSolver(GillesPySolver):
         """
 
         if self is None:
+            # Post deprecation block
+            # raise SimulationError("TauLeapingSolver must be instantiated to run the simulation")
+            # Pre deprecation block
             from gillespy2 import log
             log.warning(
                 """

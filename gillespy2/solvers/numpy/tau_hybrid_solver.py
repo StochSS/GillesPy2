@@ -831,6 +831,9 @@ class TauHybridSolver(GillesPySolver):
         """
 
         if self is None:
+            # Post deprecation block
+            # raise SimulationError("TauHybridSolver must be instantiated to run the simulation")
+            # Pre deprecation block
             from gillespy2 import log
             log.warning(
                 """

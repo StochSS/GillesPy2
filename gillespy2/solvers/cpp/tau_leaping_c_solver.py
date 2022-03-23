@@ -36,10 +36,13 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
     def run(self=None, model: Model = None, t: int = None, number_of_trajectories: int = 1, timeout: int = 0,
-            increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={}, 
+            increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
             resume=None, live_output: str = None, live_output_options: dict = {}, tau_tol=0.03, **kwargs):
 
         if self is None:
+            # Post deprecation block
+            # raise SimulationError("TauLeapingCSolver must be instantiated to run the simulation")
+            # Pre deprecation block
             from gillespy2 import log
             log.warning(
                 """

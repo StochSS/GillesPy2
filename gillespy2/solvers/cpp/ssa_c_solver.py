@@ -41,6 +41,9 @@ class SSACSolver(GillesPySolver, CSolver):
             resume=None, live_output: str = None, live_output_options: dict = {}, **kwargs):
 
         if self is None:
+            # Post deprecation block
+            # raise SimulationError("SSACSolver must be instantiated to run the simulation")
+            # Pre deprecation block
             from gillespy2 import log
             log.warning(
                 """
