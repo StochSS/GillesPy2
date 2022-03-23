@@ -72,6 +72,9 @@ class TauHybridSolver(GillesPySolver):
     stop_event = None
 
     def __init__(self, model=None):
+        if model is None:
+            raise SimulationError("A model is required to run the simulation.")
+
         name = 'TauHybridSolver'
         rc = 0
         self.model = copy.deepcopy(model)

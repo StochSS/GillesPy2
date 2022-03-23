@@ -63,6 +63,9 @@ class CSolver:
     rc = 0
 
     def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable: bool = False):
+        if model is None:
+            raise SimulationError("A model is required to run the simulation.")
+
         self.delete_directory = False
         self.model = copy.deepcopy(model)
         self.resume = resume

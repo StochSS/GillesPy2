@@ -43,6 +43,9 @@ class TauLeapingSolver(GillesPySolver):
     result = None
 
     def __init__(self, model=None, debug=False, profile=False):
+        if model is None:
+            raise SimulationError("A model is required to run the simulation.")
+
         name = "TauLeapingSolver"
         rc = 0
         stop_event = None

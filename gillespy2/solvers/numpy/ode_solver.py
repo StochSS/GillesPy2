@@ -39,6 +39,9 @@ class ODESolver(GillesPySolver):
     pause_event = None
 
     def __init__(self, model=None):
+        if model is None:
+            raise SimulationError("A model is required to run the simulation.")
+
         name = "ODESolver"
         rc = 0
         stop_event = None

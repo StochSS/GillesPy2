@@ -36,6 +36,9 @@ class NumPySSASolver(GillesPySolver):
     pause_event = None
 
     def __init__(self, model=None):
+        if model is None:
+            raise SimulationError("A model is required to run the simulation.")
+
         name = 'NumPySSASolver'
         rc = 0
         stop_event = None
