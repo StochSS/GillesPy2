@@ -45,10 +45,13 @@ class TestPauseResume(unittest.TestCase):
 
 
     for solver in solvers:
+        solver = solver(model=model)
         labeled_results[solver] = model.run(solver=solver, show_labels=True)
+
     def test_altered_model_failure(self):
         model = MichaelisMenten()
         for solver in self.solvers:
+            solver = solver(model=model)
             tmpResults = model.run(solver=solver)
             with self.assertRaises(gillespyError.SimulationError):
                 sp1 = Species('sp2',initial_value=5)
@@ -60,6 +63,7 @@ class TestPauseResume(unittest.TestCase):
     def test_resume(self):
         model = self.model
         for solver in self.solvers:
+            solver = solver(model=model)
             self.labeled_results[solver] = model.run(solver=solver, show_labels=True,
                                                      resume=self.labeled_results[solver], t=150)
         for solver in self.solvers:
@@ -69,6 +73,7 @@ class TestPauseResume(unittest.TestCase):
         model = self.model
         for solver in self.solvers:
             with self.assertRaises((gillespyError.ExecutionError, gillespyError.SimulationError)):
+                solver = solver(model=model)
                 self.labeled_results = model.run(solver=solver, show_labels=True, resume=self.labeled_results[solver],
                                                  t=1)
 
@@ -102,7 +107,8 @@ class TestPauseResume(unittest.TestCase):
         # manual, whereas timeout is a set variable
         for solver in solvers:
             model = Oregonator()
-            results = model.run(solver=solver,timeout=1)
+            solver = solver(model=model)
+            results = model.run(solver=solver, timeout=1)
             self.assertFalse(results.to_array()[0][-1][0] == '5.0')
 
 

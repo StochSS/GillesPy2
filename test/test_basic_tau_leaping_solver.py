@@ -25,26 +25,29 @@ from gillespy2.core import results
 
 class TestBasicTauLeapingSolver(unittest.TestCase):
 
+    def setUp(self):
+        self.model = Example()
+        self.model_no_tspan = ExampleNoTspan()
+        self.solver = TauLeapingSolver(model=self.model)
+        self.solver_no_tspan = TauLeapingSolver(model=self.model_no_tspan)
+
     def test_return_type(self):
-        model = Example()
-        results = model.run(solver=TauLeapingSolver, show_labels=False, number_of_trajectories=1)
-        labels_results = model.run(solver=TauLeapingSolver, show_labels=True, number_of_trajectories=1)
-        assert(isinstance(self.results, np.ndarray))
-        assert(isinstance(self.results[0], np.ndarray))
-        assert(isinstance(self.results[0][0], np.ndarray))
-        assert(isinstance(self.results[0][0][0], np.float))
+        results = self.model.run(solver=self.solver, show_labels=False, number_of_trajectories=1)
+        labels_results = self.model.run(solver=self.solver, show_labels=True, number_of_trajectories=1)
+        assert(isinstance(results, np.ndarray))
+        assert(isinstance(results[0], np.ndarray))
+        assert(isinstance(results[0][0], np.ndarray))
+        assert(isinstance(results[0][0][0], np.float))
 
     def test_return_type_show_labels(self):
-        model = Example()
-        results = model.run(solver=TauLeapingSolver, show_labels=False, number_of_trajectories=1)
-        labels_results = model.run(solver=TauLeapingSolver, show_labels=True, number_of_trajectories=1)
-        assert(isinstance(self.labels_results, results))
-        assert(isinstance(self.labels_results['Sp'], np.ndarray))
-        assert(isinstance(self.labels_results['Sp'][0], np.float))
+        results = self.model.run(solver=self.solver, show_labels=False, number_of_trajectories=1)
+        labels_results = self.model.run(solver=self.solver, show_labels=True, number_of_trajectories=1)
+        assert(isinstance(labels_results, results))
+        assert(isinstance(labels_results['Sp'], np.ndarray))
+        assert(isinstance(labels_results['Sp'][0], np.float))
 
     def test_run_example__with_increment_only(self):
-        model = ExampleNoTspan()
-        results = TauLeapingSolver.run(model=model, increment=0.2)
+        results = self.solver_no_tspan.run(increment=0.2)
 
     def test_run_example__with_tspan_only(self):
         model = Example()
@@ -52,8 +55,7 @@ class TestBasicTauLeapingSolver(unittest.TestCase):
 
     def test_run_example__with_tspan_and_increment(self):
         with self.assertRaises(SimulationError):
-            model = Example()
-            results = TauLeapingSolver.run(model=model, increment=0.2)
+            results = self.solver.run(increment=0.2)
 
 if __name__ == '__main__':
     unittest.main()

@@ -24,37 +24,32 @@ from gillespy2.solvers.cpp.ode_c_solver import ODECSolver
 
 
 class TestODECSolver(unittest.TestCase):
-    def test_create(self):
-        model = Example()
-        solver = ODECSolver(model)
+    def setUp(self):
+        self.model = Example()
+        self.solver = ODECSolver(self.model)
+        self.model_no_tspan = Example()
+        self.solver_no_tspan = ODECSolver(self.model_no_tspan)
 
     def test_file_with_directory_name_exists(self):
         with self.assertRaises(DirectoryError):
             temp = tempfile.NamedTemporaryFile()
-            model = Example()
-            solver = ODECSolver(model, temp.name)
+            solver = ODECSolver(self.model, temp.name)
 
     def test_run_example_precompiled(self):
-        model = Example()
-        solver = ODECSolver(model)
-        results = model.run(solver=solver)
+        results = model.run(solver=self.solver)
 
     def test_run_example(self):
-        model = Example()
-        results = model.run(solver=ODECSolver)
+        results = model.run(solver=self.solver)
 
     def test_run_example__with_increment_only(self):
-        model = ExampleNoTspan()
-        results = ODECSolver.run(model=model, increment=0.2)
+        results = self.solver_no_tspan.run(increment=0.2)
 
     def test_run_example__with_tspan_only(self):
-        model = Example()
-        results = ODECSolver.run(model=model)
+        results = self.solver.run()
 
     def test_run_example__with_tspan_and_increment(self):
         with self.assertRaises(SimulationError):
-            model = Example()
-            results = ODECSolver.run(model=model, increment=0.2)
+            results = self.solver.run(increment=0.2)
 
 
 if __name__ == '__main__':
