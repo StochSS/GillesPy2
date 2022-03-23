@@ -40,6 +40,8 @@ class NumPySSASolver(GillesPySolver):
         stop_event = None
         result = None
         pause_event = None
+        if model is None:
+            raise SimulationError("A model is required to run the simulation.")
         self.model = model
 
     def get_solver_settings(self):

@@ -63,7 +63,6 @@ class CSolver:
 
     def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable: bool = False):
         self.delete_directory = False
-        self.model = model
         self.resume = resume
         self.variable = variable
         self.build_engine: BuildEngine = None
@@ -80,8 +79,9 @@ class CSolver:
         self.output_directory = output_directory
         self.delete_directory = delete_directory
 
-        if self.model is not None:
-            self._set_model()
+        if model is None:
+            raise SimulationError("A model is required to run the simulation.")
+        self._set_model(model)
 
     def __del__(self):
         if self.build_engine is None:

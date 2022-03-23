@@ -73,6 +73,8 @@ class TauHybridSolver(GillesPySolver):
     def __init__(self, model=None):
         name = 'TauHybridSolver'
         rc = 0
+        if model is None:
+            raise SimulationError("A model is required to run the simulation.")
         self.model = model
 
     def __toggle_reactions(self, all_compiled, deterministic_reactions, dependencies, 

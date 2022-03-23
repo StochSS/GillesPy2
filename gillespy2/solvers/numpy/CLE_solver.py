@@ -50,6 +50,8 @@ class CLESolver(GillesPySolver):
         stop_event = None
         pause_event = None
         result = None
+        if model is None:
+            raise SimulationError("A model is required to run the simulation.")
         self.model = model
         self.debug = debug
         self.profile = profile
