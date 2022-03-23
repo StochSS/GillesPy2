@@ -983,6 +983,11 @@ class Model(SortableObject, Jsonify):
                 solver = self.get_best_solver_algo(algorithm)
             else:
                 solver = self.get_best_solver()
+            sol_kwargs = {'model': self}
+            if "CSolver" in solver.name and \
+                ("resume" in solver_args or "variables" in solver_args or "live_output" in solver_args):
+                sol_kwargs['variable'] = True
+            solver = solver(**sol_kwargs)
 
         try:
             return solver.run(model=self, t=t, increment=increment, timeout=timeout, **solver_args)
