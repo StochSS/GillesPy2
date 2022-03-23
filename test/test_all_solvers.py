@@ -90,12 +90,13 @@ class TestAllSolvers(unittest.TestCase):
     labeled_results_more_trajectories = {}
 
     for solver in solvers:
-        labeled_results[solver] = model.run(solver=solver, number_of_trajectories=1,seed=1)
+        solver = solver(model=model)
+        labeled_results[solver] = model.run(solver=solver, number_of_trajectories=1, seed=1)
         labeled_results_more_trajectories[solver] = model.run(solver=solver, number_of_trajectories=2)
 
     def test_instantiated(self):
         for solver in self.solvers:
-            self.model.run(solver=solver())
+            self.model.run(solver=solver(model=self.model))
 
     def test_to_array(self):
         for solver in self.solvers:
@@ -117,6 +118,7 @@ class TestAllSolvers(unittest.TestCase):
     def test_random_seed(self):
         for solver in self.solvers:
             with self.subTest(solver=solver.name):
+                solver = solver(model=self.model)
                 same_results = self.model.run(solver=solver, seed=1)
                 compare_results = self.model.run(solver=solver,seed=1)
                 self.assertTrue(np.array_equal(same_results.to_array(), compare_results.to_array()))
@@ -132,6 +134,7 @@ class TestAllSolvers(unittest.TestCase):
         model.add_reaction(unnamed_rxn)
         for solver in self.solvers:
             with self.subTest(solver=solver.name):
+                solver = solver(model=self.model)
                 same_results = self.model.run(solver=solver, seed=1)
                 compare_results = self.model.run(solver=solver,seed=1)
                 self.assertTrue(np.array_equal(same_results.to_array(), compare_results.to_array()))
@@ -143,6 +146,7 @@ class TestAllSolvers(unittest.TestCase):
         for solver in self.solvers:
             with self.subTest(solver=solver.name), self.assertLogs(level='WARN'):
                 model = Example()
+                solver = solver(model=model)
                 model.run(solver=solver, nonsense='ABC')
 
     def test_timeout(self):
@@ -150,6 +154,7 @@ class TestAllSolvers(unittest.TestCase):
             with self.subTest(solver=solver.name), self.assertLogs(level='WARN'):
                 model = Oregonator()
                 model.timespan(np.linspace(0, 1000000, 1001))
+                solver = solver(model=model)
                 model.run(solver=solver, timeout=0.1)
 
     def test_basic_solver_import(self):
