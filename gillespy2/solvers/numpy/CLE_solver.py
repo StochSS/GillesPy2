@@ -152,6 +152,10 @@ class CLESolver(GillesPySolver):
 
         if isinstance(self, type):
             self = CLESolver(model=model, debug=debug, profile=profile)
+        if model is not None:
+            from gillespy2 import log
+            log.warning("model = gillespy2.Model is depricated. Future releases "
+                        "of GillesPy2 may not support this feature.")
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
