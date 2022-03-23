@@ -73,8 +73,6 @@ class TauHybridSolver(GillesPySolver):
     def __init__(self, model=None):
         name = 'TauHybridSolver'
         rc = 0
-        if model is None:
-            raise SimulationError("A model is required to run the simulation.")
         self.model = model
 
     def __toggle_reactions(self, all_compiled, deterministic_reactions, dependencies, 
@@ -831,10 +829,6 @@ class TauHybridSolver(GillesPySolver):
 
         if isinstance(self, type):
             self = TauHybridSolver(model=model)
-        if model is not None:
-            from gillespy2 import log
-            log.warning("model = gillespy2.Model is depricated. Future releases "
-                        "of GillesPy2 may not support this feature.")
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")

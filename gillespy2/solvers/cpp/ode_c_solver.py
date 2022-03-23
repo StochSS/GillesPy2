@@ -41,10 +41,6 @@ class ODECSolver(GillesPySolver, CSolver):
 
         if self is None:
             self = ODECSolver(model, resume=resume)
-        if model is not None:
-            from gillespy2 import log
-            log.warning("model = gillespy2.Model is depricated. Future releases "
-                        "of GillesPy2 may not support this feature.")
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
