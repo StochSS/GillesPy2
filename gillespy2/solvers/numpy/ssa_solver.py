@@ -75,6 +75,10 @@ class NumPySSASolver(GillesPySolver):
         if self is None:
             self = NumPySSASolver(model=model)
 
+        if model is not None:
+            from gillespy2 import log
+            log.warning('model = gillespy2.model is deprecated. Future releases '
+                        'of GillesPy2 may not support this feature.')
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
