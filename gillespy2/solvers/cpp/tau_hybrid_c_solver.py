@@ -172,9 +172,8 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
             self._set_model(model=model)
-        if model is not None and model.get_json_hash() != self.model.get_json_hash():
-            raise SimulationError("Model must equal TauHybridCSolver.model.")
         self.model.resolve_parameters()
+        self.validate_model(self.model, model)
         self.validate_sbml_features(model=model)
 
         increment = self.get_increment(increment=increment)
@@ -231,7 +230,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         sim_status = self._run(sim_exec, args, decoder, timeout, display_args)
 
         if sim_status == SimulationReturnCode.FAILED:
-            raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:\n"
+            raise ExecutionError("Error encountered while running simulation C++ file:\n"
                 f"Return code: {int(sim_status)}.\n")
 
         trajectories, time_stopped = decoder.get_output()

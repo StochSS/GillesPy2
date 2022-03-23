@@ -833,9 +833,8 @@ class TauHybridSolver(GillesPySolver):
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
             self.model = model
-        if model is not None and model.get_json_hash() != self.model.get_json_hash():
-            raise SimulationError("Model must equal TauHybridSolver.model.")
         self.model.resolve_parameters()
+        self.validate_model(self.model, model)
         self.validate_sbml_features(model=model)
 
         increment = self.get_increment(increment=increment)
