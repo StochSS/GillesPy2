@@ -55,7 +55,7 @@ class TestModel(unittest.TestCase):
     def test_delete_reaction(self):
         self.model.delete_reaction('r1')
         self.assertNotIn('r1', self.model.listOfReactions)
-        self.assertNotIn('r1', self._model.listOfReactions)
+        self.assertNotIn('r1', self.model._listOfReactions)
 
     def test_delete_species(self):
         self.model.delete_species('s1')
