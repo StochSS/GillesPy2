@@ -24,7 +24,7 @@ from gillespy2.core.gillespyError import *
 
 class TestModel(unittest.TestCase):
 
-    def setup(self):
+    def setUp(self):
         self.model = RobustModel()
 
     def test_delete_assignment_rule(self):
