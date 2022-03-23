@@ -304,7 +304,7 @@ class TestModel(unittest.TestCase):
             results = model.run(number_of_trajectories = 1, solver = 'non_solver', seed = 1)
 
     def test_model_init_population_false_and_volume_warninag(self):
-        with self.assertRaises(Warning):
+        with self.assertRaises(ModelError):
             model = Model(population = False, volume = 0.9)
 
     def test_model_init_custom_tspan(self):
