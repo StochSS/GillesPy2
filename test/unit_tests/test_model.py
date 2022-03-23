@@ -24,23 +24,23 @@ from gillespy2.core.gillespyError import *
 
 class TestModel(unittest.TestCase):
 
-	def setup(self):
-		self.model = RobustModel()
+    def setup(self):
+        self.model = RobustModel()
 
-	def test_delete_assignment_rule(self):
-        self.model.delete_assignment_rule('k1')
-        self.assertNotIn('k1', self.model.listOfAssignmentRules)
-        self.assertNotIn('k1', self.model._listOfAssignmentRules)
+    def test_delete_assignment_rule(self):
+        self.model.delete_assignment_rule('rr2')
+        self.assertNotIn('rr2', self.model.listOfAssignmentRules)
+        self.assertNotIn('rr2', self.model._listOfAssignmentRules)
 
     def test_delete_event(self):
-        self.model.delete_event('k1')
-        self.assertNotIn('k1', self.model.listOfEvents)
-        self.assertNotIn('k1', self.model._listOfEvents)
+        self.model.delete_event('e1')
+        self.assertNotIn('e1', self.model.listOfEvents)
+        self.assertNotIn('e1', self.model._listOfEvents)
 
     def test_delete_function_definition(self):
-        self.model.delete_function_definition('k1')
-        self.assertNotIn('k1', self.model.listOfFunctionDefinitions)
-        self.assertNotIn('k1', self.model._listOfFunctionDefinitions)
+        self.model.delete_function_definition('multiply')
+        self.assertNotIn('multiply', self.model.listOfFunctionDefinitions)
+        self.assertNotIn('multiply', self.model._listOfFunctionDefinitions)
 
     def test_delete_parameter(self):
         self.model.delete_parameter('k1')
@@ -48,9 +48,9 @@ class TestModel(unittest.TestCase):
         self.assertNotIn('k1', self.model._listOfParameters)
 
     def test_delete_rate_rule(self):
-        self.model.delete_rate_rule('k1')
-        self.assertNotIn('k1', self.model.listOfRateRules)
-        self.assertNotIn('k1', self.model._listOfRateRules)
+        self.model.delete_rate_rule('rr1')
+        self.assertNotIn('rr1', self.model.listOfRateRules)
+        self.assertNotIn('rr1', self.model._listOfRateRules)
 
     def test_delete_reaction(self):
         self.model.delete_reaction('r1')
