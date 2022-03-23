@@ -41,6 +41,15 @@ class SSACSolver(GillesPySolver, CSolver):
             resume=None, live_output: str = None, live_output_options: dict = {}, **kwargs):
 
         if self is None:
+            from gillespy2 import log
+            log.warning(
+                """
+                `gillespy2.Model.run(solver=SSACSolver)` is deprecated.
+
+                You should use `gillespy2.Model.run(solver=SSACSolver(model=gillespy2.Model))
+                Future releases of GillesPy2 may not support this feature.
+                """
+            )
             self = SSACSolver(model, resume=resume)
 
         if model is not None:

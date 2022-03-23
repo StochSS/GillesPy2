@@ -152,6 +152,15 @@ class CLESolver(GillesPySolver):
         """
 
         if self is None:
+            from gillespy2 import log
+            log.warning(
+                """
+                `gillespy2.Model.run(solver=CLESolver)` is deprecated.
+
+                You should use `gillespy2.Model.run(solver=CLESolver(model=gillespy2.Model))
+                Future releases of GillesPy2 may not support this feature.
+                """
+            )
             self = CLESolver(model=model, debug=debug, profile=profile)
         
         if model is not None:

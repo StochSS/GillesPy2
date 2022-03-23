@@ -76,6 +76,15 @@ class NumPySSASolver(GillesPySolver):
         """
 
         if self is None:
+            from gillespy2 import log
+            log.warning(
+                """
+                `gillespy2.Model.run(solver=NumPySSASolver)` is deprecated.
+
+                You should use `gillespy2.Model.run(solver=NumPySSASolver(model=gillespy2.Model))
+                Future releases of GillesPy2 may not support this feature.
+                """
+            )
             self = NumPySSASolver(model=model)
 
         if model is not None:

@@ -167,6 +167,15 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             resume=None, live_output: str = None, live_output_options: dict = {}, tau_step: int = .03, tau_tol=0.03, **kwargs):
 
         if self is None:
+            from gillespy2 import log
+            log.warning(
+                """
+                `gillespy2.Model.run(solver=TauHybridCSolver)` is deprecated.
+
+                You should use `gillespy2.Model.run(solver=TauHybridCSolver(model=gillespy2.Model))
+                Future releases of GillesPy2 may not support this feature.
+                """
+            )
             self = TauHybridCSolver(model, resume=resume)
 
         if model is not None:

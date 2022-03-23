@@ -111,6 +111,15 @@ class ODESolver(GillesPySolver):
             "clear_output" specifies if display should be refreshed with each displa
         """
         if self is None:
+            from gillespy2 import log
+            log.warning(
+                """
+                `gillespy2.Model.run(solver=ODESolver)` is deprecated.
+
+                You should use `gillespy2.Model.run(solver=ODESolver(model=gillespy2.Model))
+                Future releases of GillesPy2 may not support this feature.
+                """
+            )
             self = ODESolver(model=model)
 
         if model is not None:

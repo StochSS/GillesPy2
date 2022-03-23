@@ -40,6 +40,15 @@ class ODECSolver(GillesPySolver, CSolver):
             resume=None, live_output: str = None, live_output_options: dict = {}, **kwargs):
 
         if self is None:
+            from gillespy2 import log
+            log.warning(
+                """
+                `gillespy2.Model.run(solver=ODECSolver)` is deprecated.
+
+                You should use `gillespy2.Model.run(solver=ODECSolver(model=gillespy2.Model))
+                Future releases of GillesPy2 may not support this feature.
+                """
+            )
             self = ODECSolver(model, resume=resume)
 
         if model is not None:

@@ -40,6 +40,15 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
             resume=None, live_output: str = None, live_output_options: dict = {}, tau_tol=0.03, **kwargs):
 
         if self is None:
+            from gillespy2 import log
+            log.warning(
+                """
+                `gillespy2.Model.run(solver=TauLeapingCSolver)` is deprecated.
+
+                You should use `gillespy2.Model.run(solver=TauLeapingCSolver(model=gillespy2.Model))
+                Future releases of GillesPy2 may not support this feature.
+                """
+            )
             self = TauLeapingCSolver(model, resume=resume)
 
         if model is not None:
