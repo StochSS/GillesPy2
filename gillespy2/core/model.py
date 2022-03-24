@@ -990,7 +990,7 @@ class Model(SortableObject, Jsonify):
             solver = solver(**sol_kwargs)
 
         try:
-            return solver.run(model=self, t=t, increment=increment, timeout=timeout, **solver_args)
+            return solver.run(t=t, increment=increment, timeout=timeout, **solver_args)
         except Exception as e:
             raise SimulationError(
                 "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e)
