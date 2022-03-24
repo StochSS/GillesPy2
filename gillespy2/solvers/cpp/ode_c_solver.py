@@ -65,7 +65,7 @@ class ODECSolver(GillesPySolver, CSolver):
 
         self.model.resolve_parameters()
         self.validate_model(self.model, model)
-        self.validate_sbml_features(model=model)
+        self.validate_sbml_features(model=self.model)
 
         self.validate_tspan(increment=increment, t=t)
         if increment is None:
