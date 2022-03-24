@@ -36,10 +36,10 @@ class TestODECSolver(unittest.TestCase):
             solver = ODECSolver(self.model, temp.name)
 
     def test_run_example_precompiled(self):
-        results = model.run(solver=self.solver)
+        results = self.model.run(solver=self.solver)
 
     def test_run_example(self):
-        results = model.run(solver=self.solver)
+        results = self.model.run(solver=self.solver)
 
     def test_run_example__with_increment_only(self):
         results = self.solver_no_tspan.run(increment=0.2)
