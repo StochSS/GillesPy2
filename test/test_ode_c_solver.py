@@ -27,7 +27,7 @@ class TestODECSolver(unittest.TestCase):
     def setUp(self):
         self.model = Example()
         self.solver = ODECSolver(self.model)
-        self.model_no_tspan = Example()
+        self.model_no_tspan = ExampleNoTspan()
         self.solver_no_tspan = ODECSolver(self.model_no_tspan)
 
     def test_file_with_directory_name_exists(self):
