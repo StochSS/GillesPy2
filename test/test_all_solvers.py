@@ -108,7 +108,7 @@ class TestAllSolvers(unittest.TestCase):
             self.assertTrue(isinstance(self.labeled_results[solver.name]['Sp'], np.ndarray))
             self.assertTrue(isinstance(self.labeled_results[solver.name]['Sp'][0], np.float))
 
-            self.assertTrue(isinstance(self.labeled_results[solver][0], Trajectory))
+            self.assertTrue(isinstance(self.labeled_results[solver.name][0], Trajectory))
 
             self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver.name], Results))
             self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver.name][0], Trajectory))
