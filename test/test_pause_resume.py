@@ -46,7 +46,7 @@ class TestPauseResume(unittest.TestCase):
 
     for solver in solvers:
         solver = solver(model=model)
-        labeled_results[solver] = model.run(solver=solver, show_labels=True)
+        labeled_results[solver.name] = model.run(solver=solver, show_labels=True)
 
     def test_altered_model_failure(self):
         model = MichaelisMenten()
@@ -64,17 +64,17 @@ class TestPauseResume(unittest.TestCase):
         model = self.model
         for solver in self.solvers:
             solver = solver(model=model)
-            self.labeled_results[solver] = model.run(solver=solver, show_labels=True,
-                                                     resume=self.labeled_results[solver], t=150)
+            self.labeled_results[solver.name] = model.run(solver=solver, show_labels=True,
+                                                     resume=self.labeled_results[solver.name], t=150)
         for solver in self.solvers:
-            self.assertEqual(int(self.labeled_results[solver][0]['time'][-1]),150)
+            self.assertEqual(int(self.labeled_results[solver.name][0]['time'][-1]),150)
 
     def test_time_fail(self):
         model = self.model
         for solver in self.solvers:
             with self.assertRaises((gillespyError.ExecutionError, gillespyError.SimulationError)):
                 solver = solver(model=model)
-                self.labeled_results = model.run(solver=solver, show_labels=True, resume=self.labeled_results[solver],
+                self.labeled_results = model.run(solver=solver, show_labels=True, resume=self.labeled_results[solver.name],
                                                  t=1)
 
     def test_pause(self):

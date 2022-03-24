@@ -91,8 +91,8 @@ class TestAllSolvers(unittest.TestCase):
 
     for solver in solvers:
         solver = solver(model=model)
-        labeled_results[solver] = model.run(solver=solver, number_of_trajectories=1, seed=1)
-        labeled_results_more_trajectories[solver] = model.run(solver=solver, number_of_trajectories=2)
+        labeled_results[solver.name] = model.run(solver=solver, number_of_trajectories=1, seed=1)
+        labeled_results_more_trajectories[solver.name] = model.run(solver=solver, number_of_trajectories=2)
 
     def test_instantiated(self):
         for solver in self.solvers:
@@ -100,20 +100,20 @@ class TestAllSolvers(unittest.TestCase):
 
     def test_to_array(self):
         for solver in self.solvers:
-            self.assertTrue(isinstance(self.labeled_results[solver].to_array()[0], np.ndarray))
+            self.assertTrue(isinstance(self.labeled_results[solver.name].to_array()[0], np.ndarray))
 
     def test_return_type_show_labels(self):
         for solver in self.solvers:
-            self.assertTrue(isinstance(self.labeled_results[solver], Results))
-            self.assertTrue(isinstance(self.labeled_results[solver]['Sp'], np.ndarray))
-            self.assertTrue(isinstance(self.labeled_results[solver]['Sp'][0], np.float))
+            self.assertTrue(isinstance(self.labeled_results[solver.name], Results))
+            self.assertTrue(isinstance(self.labeled_results[solver.name]['Sp'], np.ndarray))
+            self.assertTrue(isinstance(self.labeled_results[solver.name]['Sp'][0], np.float))
 
             self.assertTrue(isinstance(self.labeled_results[solver][0], Trajectory))
 
-            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver], Results))
-            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0], Trajectory))
-            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0]['Sp'], np.ndarray))
-            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0]['Sp'][0], np.float))
+            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver.name], Results))
+            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver.name][0], Trajectory))
+            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver.name][0]['Sp'], np.ndarray))
+            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver.name][0]['Sp'][0], np.float))
 
     def test_random_seed(self):
         for solver in self.solvers:
