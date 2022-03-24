@@ -78,9 +78,8 @@ class NumPySSASolver(GillesPySolver):
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
             self.model = model
-        if model is not None and model.get_json_hash() != self.model.get_json_hash():
-            raise SimulationError("Model must equal NumPySSASolver.model.")
         self.model.resolve_parameters()
+        self.validate_model(self.model, model)
         self.validate_sbml_features(model=model)
 
         increment = self.get_increment(increment=increment)
@@ -198,9 +197,9 @@ class NumPySSASolver(GillesPySolver):
 
         if resume is not None:
             if resume[0].model != self.model:
-                raise gillespyError.ModelError('When resuming, one must not alter the model being resumed.')
+                raise ModelError('When resuming, one must not alter the model being resumed.')
             if t < resume['time'][-1]:
-                raise gillespyError.ExecutionError(
+                raise ExecutionError(
                     "'t' must be greater than previous simulations end time, or set in the run() method as the "
                     "simulations next end time")
 

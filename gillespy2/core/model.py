@@ -170,9 +170,10 @@ class Model(SortableObject, Jsonify):
         else:
             self.units = "concentration"
             if volume != 1.0:
-                raise Warning(
+                raise ModelError(
                     "Concentration models account for volume implicitly, explicit volume definition is not required. "
-                    "Note: concentration models may only be simulated deterministically.")
+                    "Note: concentration models may only be simulated deterministically."
+                )
 
         self.volume = volume
 
@@ -925,6 +926,10 @@ class Model(SortableObject, Jsonify):
                 from gillespy2 import TauHybridSolver
                 return TauHybridSolver
 
+        elif algorithm == 'CLE':
+            from gillespy2 import CLESolver
+            return CLESolver
+            
         else:
             raise ModelError("Invalid value for the argument 'algorithm' entered. "
                              "Please enter 'SSA', 'ODE', 'Tau-leaping', or 'Tau-Hybrid'.")
@@ -947,7 +952,7 @@ class Model(SortableObject, Jsonify):
             features.add(gillespy2.FunctionDefinition)
         return features
 
-    def run(self, solver=None, timeout=0, t=None, increment=None, show_labels=True, cpp_support=False, algorithm=None,
+    def run(self, solver=None, timeout=0, t=None, increment=None, show_labels=True, algorithm=None,
             **solver_args):
         """
         Function calling simulation of the model. There are a number of
@@ -965,10 +970,6 @@ class Model(SortableObject, Jsonify):
 
         :param solver_args: Solver-specific arguments to be passed to solver.run()
 
-        :param cpp_support: INTERNAL USE ONLY, flag for whether or not a computer has the capability to compile a
-            C++ program.
-        :type cpp_support: bool
-
         :param algorithm: Specify algorithm ('ODE', 'Tau-Leaping', or 'SSA') for GillesPy2 to automatically pick best solver using that algorithm.
         :type algorithm: str
 
@@ -985,8 +986,7 @@ class Model(SortableObject, Jsonify):
 
         if not show_labels:
             from gillespy2.core import log
-            log.warning('show_labels = False is deprecated. Future releases '
-                        'of GillesPy2 may not support this feature.')
+            log.warning('show_labels = False is deprecated. Future releases of GillesPy2 may not support this feature.')
 
         if t is None:
             t = self.tspan[-1]
@@ -1010,17 +1010,9 @@ class Model(SortableObject, Jsonify):
         try:
             return solver.run(model=self, t=t, increment=increment, timeout=timeout, **solver_args)
         except Exception as e:
-            # If user has specified the SSACSolver, but they don't actually have a g++ compiler,
-            # This will throw an error and throw log. IF a user specifies cpp_support == True and don't have a compiler
-            # They would bypass this log.warning and just recieve an error
-            if cpp_support is False and not isinstance(solver, str):
-                if solver.name == 'SSACSolver':
-                    from gillespy2.core import log
-                    log.warning("Please install/configure 'g++' and 'make' on your"
-                                " system, to ensure that GillesPy2 C solvers will"
-                                " run properly.")
             raise SimulationError(
-                "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e))
+                "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e)
+            ) from e
 
 
 class StochMLDocument():

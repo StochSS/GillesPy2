@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import random, math, sys, warnings
+import random, math, sys
 from collections import OrderedDict
 from scipy.integrate import ode, LSODA
 import heapq
@@ -833,9 +833,8 @@ class TauHybridSolver(GillesPySolver):
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
             self.model = model
-        if model is not None and model.get_json_hash() != self.model.get_json_hash():
-            raise SimulationError("Model must equal TauHybridSolver.model.")
         self.model.resolve_parameters()
+        self.validate_model(self.model, model)
         self.validate_sbml_features(model=model)
 
         increment = self.get_increment(increment=increment)
