@@ -922,7 +922,7 @@ class Model(SortableObject, Jsonify):
             
         else:
             raise ModelError("Invalid value for the argument 'algorithm' entered. "
-                             "Please enter 'SSA', 'ODE', 'Tau-leaping', or 'Tau-Hybrid'.")
+                             "Please enter 'SSA', 'ODE', 'CLE', 'Tau-leaping', or 'Tau-Hybrid'.")
 
     def get_model_features(self) -> "Set[Type]":
         """
