@@ -50,12 +50,13 @@ class TestPauseResume(unittest.TestCase):
 
     def test_altered_model_failure(self):
         model = MichaelisMenten()
-        for solver in self.solvers:
-            solver = solver(model=model)
+        for solver_class in self.solvers:
+            solver = solver_class(model=model)
             tmpResults = model.run(solver=solver)
             with self.assertRaises(gillespyError.SimulationError):
                 sp1 = Species('sp2',initial_value=5)
                 model.add_species(sp1)
+                solver = solver_class(model=model)
                 tmpResults = model.run(solver=solver,resume=tmpResults,t=150)
             model.delete_species('sp2')
 
