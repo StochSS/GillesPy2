@@ -150,11 +150,12 @@ class CLESolver(GillesPySolver):
 
         :returns:
         """
+        from gillespy2 import log
+
         if self is None:
             # Post deprecation block
             # raise SimulationError("CLESolver must be instantiated to run the simulation")
             # Pre deprecation block
-            from gillespy2 import log
             log.warning(
                 """
                 `gillespy2.Model.run(solver=CLESolver)` is deprecated.
@@ -166,7 +167,6 @@ class CLESolver(GillesPySolver):
             self = CLESolver(model=model, debug=debug, profile=profile)
         
         if model is not None:
-            from gillespy2 import log
             log.warning('model = gillespy2.model is deprecated. Future releases '
                         'of GillesPy2 may not support this feature.')
         if self.model is None:

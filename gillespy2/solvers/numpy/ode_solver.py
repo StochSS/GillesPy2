@@ -110,11 +110,12 @@ class ODESolver(GillesPySolver):
             "interval" specifies seconds between displaying.
             "clear_output" specifies if display should be refreshed with each displa
         """
+        from gillespy2 import log
+
         if self is None:
             # Post deprecation block
             # raise SimulationError("ODESolver must be instantiated to run the simulation")
             # Pre deprecation block
-            from gillespy2 import log
             log.warning(
                 """
                 `gillespy2.Model.run(solver=ODESolver)` is deprecated.
@@ -126,7 +127,6 @@ class ODESolver(GillesPySolver):
             self = ODESolver(model=model)
 
         if model is not None:
-            from gillespy2 import log
             log.warning('model = gillespy2.model is deprecated. Future releases '
                         'of GillesPy2 may not support this feature.')
         if self.model is None:

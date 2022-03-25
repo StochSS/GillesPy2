@@ -43,7 +43,6 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
             # Post deprecation block
             # raise SimulationError("TauLeapingCSolver must be instantiated to run the simulation")
             # Pre deprecation block
-            from gillespy2 import log
             log.warning(
                 """
                 `gillespy2.Model.run(solver=TauLeapingCSolver)` is deprecated.
@@ -55,7 +54,6 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
             self = TauLeapingCSolver(model, resume=resume)
 
         if model is not None:
-            from gillespy2 import log
             log.warning('model = gillespy2.model is deprecated. Future releases '
                         'of GillesPy2 may not support this feature.')
         if self.model is None:

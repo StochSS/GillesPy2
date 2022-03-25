@@ -137,12 +137,12 @@ class TauLeapingSolver(GillesPySolver):
 
         :returns:
         """
+        from gillespy2 import log
 
         if self is None:
             # Post deprecation block
             # raise SimulationError("TauLeapingSolver must be instantiated to run the simulation")
             # Pre deprecation block
-            from gillespy2 import log
             log.warning(
                 """
                 `gillespy2.Model.run(solver=TauLeapingSolver)` is deprecated.
@@ -154,7 +154,6 @@ class TauLeapingSolver(GillesPySolver):
             self = TauLeapingSolver(model=model, debug=debug, profile=profile)
 
         if model is not None:
-            from gillespy2 import log
             log.warning('model = gillespy2.model is deprecated. Future releases '
                         'of GillesPy2 may not support this feature.')
         if self.model is None:

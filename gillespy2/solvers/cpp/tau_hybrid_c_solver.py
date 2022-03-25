@@ -166,11 +166,12 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
             resume=None, live_output: str = None, live_output_options: dict = {}, tau_step: int = .03, tau_tol=0.03, **kwargs):
 
+        from gillespy2 import log
+
         if self is None:
             # Post deprecation block
             # raise SimulationError("TauHybridCSolver must be instantiated to run the simulation")
             # Pre deprecation block
-            from gillespy2 import log
             log.warning(
                 """
                 `gillespy2.Model.run(solver=TauHybridCSolver)` is deprecated.
@@ -182,7 +183,6 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             self = TauHybridCSolver(model, resume=resume)
 
         if model is not None:
-            from gillespy2 import log
             log.warning('model = gillespy2.model is deprecated. Future releases '
                         'of GillesPy2 may not support this feature.')
         if self.model is None:
