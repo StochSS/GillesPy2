@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import copy
 import random, math, sys
 from collections import OrderedDict
 from scipy.integrate import ode, LSODA
@@ -73,7 +74,7 @@ class TauHybridSolver(GillesPySolver):
     def __init__(self, model=None):
         name = 'TauHybridSolver'
         rc = 0
-        self.model = model
+        self.model = copy.deepcopy(model)
 
     def __toggle_reactions(self, all_compiled, deterministic_reactions, dependencies, 
                             curr_state, det_spec, rr_sets):
@@ -773,8 +774,7 @@ class TauHybridSolver(GillesPySolver):
             FunctionDefinition,
         }
 
-    @classmethod
-    def run(self, model=None, t=20, number_of_trajectories=1, increment=None, seed=None,
+    def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, seed=None,
             debug=False, profile=False, tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
             integrator_options={}, live_output=None, live_output_options={}, timeout=None, **kwargs):
         """
@@ -827,17 +827,23 @@ class TauHybridSolver(GillesPySolver):
         :type live_output_options:  str
         """
 
-        if isinstance(self, type):
+        if self is None:
             self = TauHybridSolver(model=model)
+
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
-            self.model = model
+            self.model = copy.deepcopy(model)
+
         self.model.resolve_parameters()
         self.validate_model(self.model, model)
-        self.validate_sbml_features(model=model)
+        self.validate_sbml_features(model=self.model)
 
-        increment = self.get_increment(increment=increment)
+        self.validate_tspan(increment=increment, t=t)
+        if increment is None:
+            increment = self.model.tspan[-1] - self.model.tspan[-2]
+        if t is None:
+            t = self.model.tspan[-1]
 
         if timeout is not None and timeout > 0:
             for i, s in enumerate(list(self.model._listOfSpecies.keys())):

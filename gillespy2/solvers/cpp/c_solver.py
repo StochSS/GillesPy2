@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os
+import copy
 import subprocess
 import signal
 import threading
@@ -68,7 +69,7 @@ class CSolver:
             )
 
         self.delete_directory = False
-        self.model = model
+        self.model = copy.deepcopy(model)
         self.resume = resume
         self.variable = variable
         self.build_engine: BuildEngine = None
@@ -310,7 +311,7 @@ class CSolver:
 
     def _set_model(self, model=None):
         if model is not None:
-            self.model = model
+            self.model = copy.deepcopy(model)
 
         self._build(self.model, self.target, self.variable, False)
         self.species_mappings = self.model.sanitized_species_names()

@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """GillesPy2 Solver for ODE solutions."""
 
+import copy
 from threading import Thread, Event
 from scipy.integrate import ode
 from collections import OrderedDict
@@ -43,7 +44,7 @@ class ODESolver(GillesPySolver):
         stop_event = None
         pause_event = None
         result = None
-        self.model = model
+        self.model = copy.deepcopy(model)
 
     @staticmethod
     def __f(t, y, curr_state, model, c_prop):
@@ -81,8 +82,7 @@ class ODESolver(GillesPySolver):
         return ('model', 't', 'number_of_trajectories', 'increment', 'integrator', 'integrator_options',
                 'timeout')
 
-    @classmethod
-    def run(self, model=None, t=20, number_of_trajectories=1, increment=None, show_labels=True, integrator='lsoda',
+    def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, show_labels=True, integrator='lsoda',
             integrator_options={}, live_output=None, live_output_options={}, timeout=None, resume=None, **kwargs):
         """
         :param model: gillespy2.model class object
@@ -107,17 +107,23 @@ class ODESolver(GillesPySolver):
             "interval" specifies seconds between displaying.
             "clear_output" specifies if display should be refreshed with each displa
         """
-        if isinstance(self, type):
+        if self is None:
             self = ODESolver(model=model)
+
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
-            self.model = model
+            self.model = copy.deepcopy(model)
+
         self.model.resolve_parameters()
         self.validate_model(self.model, model)
-        self.validate_sbml_features(model=model)
+        self.validate_sbml_features(model=self.model)
 
-        increment = self.get_increment(increment=increment)
+        self.validate_tspan(increment=increment, t=t)
+        if increment is None:
+            increment = self.model.tspan[-1] - self.model.tspan[-2]
+        if t is None:
+            t = self.model.tspan[-1]
 
         self.stop_event = Event()
         self.pause_event = Event()
