@@ -343,15 +343,16 @@ class Model(SortableObject, Jsonify):
                 raise ParameterError("Error using {} as a Species. Reason given: {}".format(obj, e))
         return obj
 
-    def delete_species(self, obj):
+    def delete_species(self, name):
         """
         Removes a species object by name.
 
-        :param obj: Name of the species object to be removed
-        :type obj: str
+        :param name: Name of the species object to be removed
+        :type name: str
         """
-        self.listOfSpecies.pop(obj)
-        self._listOfSpecies.pop(obj)
+        self.listOfSpecies.pop(name)
+        if name in self._listOfSpecies:
+            self._listOfSpecies.pop(name)
 
     def delete_all_species(self):
         """
@@ -426,15 +427,16 @@ class Model(SortableObject, Jsonify):
                 raise ParameterError("Parameter {}  must be of type {}, it is of type {}".format(params, str(type(Parameter)), str(params) ))
         return params
 
-    def delete_parameter(self, obj):
+    def delete_parameter(self, name):
         """
         Removes a parameter object by name.
 
-        :param obj: Name of the parameter object to be removed
-        :type obj: str
+        :param name: Name of the parameter object to be removed
+        :type name: str
         """
-        self.listOfParameters.pop(obj)
-        self._listOfParameters.pop(obj)
+        self.listOfParameters.pop(name)
+        if name in self._listOfParameters:
+            self._listOfParameters.pop(name)
 
     def set_parameter(self, p_name, expression):
         """
@@ -669,12 +671,16 @@ class Model(SortableObject, Jsonify):
         """
         return self.listOfReactions
 
-    def delete_reaction(self, obj):
+    def delete_reaction(self, name):
         """
-        :param obj: Name of Reaction to be removed
+        Removes a reaction object by name.
+
+        :param name: Name of Reaction to be removed,
+        :type name: str
         """
-        self.listOfReactions.pop(obj)
-        self._listOfReactions.pop(obj)
+        self.listOfReactions.pop(name)
+        if name in self._listOfReactions:
+            self._listOfReactions.pop(name)
 
     def delete_all_reactions(self):
         """
@@ -696,14 +702,16 @@ class Model(SortableObject, Jsonify):
         """
         return self.listOfEvents
 
-    def delete_event(self, ename):
+    def delete_event(self, name):
         """
         Removes specified Event from model
 
-        :param ename: Name of Event to be removed
+        :param name: Name of Event to be removed.
+        :type name: str
         """
-        self.listOfEvents.pop(ename)
-        self._listOfEvents.pop(ename)
+        self.listOfEvents.pop(name)
+        if name in self._listOfEvents:
+            self._listOfEvents.pop(name)
 
     def delete_all_events(self):
         """
@@ -725,13 +733,16 @@ class Model(SortableObject, Jsonify):
         """
         return self.listOfRateRules
 
-    def delete_rate_rule(self, rname):
+    def delete_rate_rule(self, name):
         """
         Removes specified Rate Rule from model
-        :param rname: Name of Rate Rule to be removed
+
+        :param name: Name of Rate Rule to be removed.
+        :type name: str
         """
-        self.listOfRateRules.pop(rname)
-        self._listOfRateRules.pop(rname)
+        self.listOfRateRules.pop(name)
+        if name in self._listOfRateRules:
+            self._listOfRateRules.pop(name)
 
     def delete_all_rate_rules(self):
         """
@@ -753,14 +764,16 @@ class Model(SortableObject, Jsonify):
         """
         return self.listOfAssignmentRules
 
-    def delete_assignment_rule(self, aname):
+    def delete_assignment_rule(self, name):
         """
         Removes an assignment rule from a model
 
-        :param aname: Name of AssignmentRule object to be removed from model
+        :param name: Name of AssignmentRule object to be removed from model.
+        :type name: str
         """
-        self.listOfAssignmentRules.pop(aname)
-        self._listOfAssignmentRules.pop(aname)
+        self.listOfAssignmentRules.pop(name)
+        if name in self._listOfAssignmentRules:
+            self._listOfAssignmentRules.pop(name)
 
     def delete_all_assignment_rules(self):
         """
@@ -782,14 +795,16 @@ class Model(SortableObject, Jsonify):
         """
         return self.listOfFunctionDefinitions
 
-    def delete_function_definition(self, fname):
+    def delete_function_definition(self, name):
         """
         Removes specified Function Definition from model
 
-        :param fname: Name of Function Definition to be removed
+        :param name: Name of Function Definition to be removed
+        :type name: str
         """
-        self.listOfFunctionDefinitions.pop(fname)
-        self._listOfFunctionDefinitions.pop(fname)
+        self.listOfFunctionDefinitions.pop(name)
+        if name in self._listOfFunctionDefinitions:
+            self._listOfFunctionDefinitions.pop(name)
 
     def delete_all_function_definitions(self):
         """
