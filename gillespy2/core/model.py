@@ -998,6 +998,8 @@ class Model(SortableObject, Jsonify):
                 solver = self.get_best_solver_algo(algorithm)
             else:
                 solver = self.get_best_solver()
+
+        if not hasattr(solver, "is_instantiated"):
             sol_kwargs = {'model': self}
             if "CSolver" in solver.name and \
                 ("resume" in solver_args or "variables" in solver_args or "live_output" in solver_args):
