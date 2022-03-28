@@ -57,6 +57,7 @@ class CLESolver(GillesPySolver):
         self.model = model
         self.debug = debug
         self.profile = profile
+        self.is_instantiated = True
 
     def __get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions):
         """

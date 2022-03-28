@@ -48,6 +48,7 @@ class ODESolver(GillesPySolver):
         pause_event = None
         result = None
         self.model = copy.deepcopy(model)
+        self.is_instantiated = True
 
     @staticmethod
     def __f(t, y, curr_state, model, c_prop):

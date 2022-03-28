@@ -78,6 +78,7 @@ class TauHybridSolver(GillesPySolver):
         name = 'TauHybridSolver'
         rc = 0
         self.model = copy.deepcopy(model)
+        self.is_instantiated = True
 
     def __toggle_reactions(self, all_compiled, deterministic_reactions, dependencies, 
                             curr_state, det_spec, rr_sets):

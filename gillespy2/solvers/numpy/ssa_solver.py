@@ -45,6 +45,7 @@ class NumPySSASolver(GillesPySolver):
         result = None
         pause_event = None
         self.model = copy.deepcopy(model)
+        self.is_instantiated = True
 
     def get_solver_settings(self):
         """

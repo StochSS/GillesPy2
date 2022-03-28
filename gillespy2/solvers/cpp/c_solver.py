@@ -92,6 +92,8 @@ class CSolver:
         if self.model is not None:
             self._set_model()
 
+        self.is_instantiated = True
+
     def __del__(self):
         if self.build_engine is None:
             return
