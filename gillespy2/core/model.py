@@ -1000,11 +1000,14 @@ class Model(SortableObject, Jsonify):
                 solver = self.get_best_solver()
 
         if not hasattr(solver, "is_instantiated"):
-            sol_kwargs = {'model': self}
-            if "CSolver" in solver.name and \
-                ("resume" in solver_args or "variables" in solver_args or "live_output" in solver_args):
-                sol_kwargs['variable'] = True
-            solver = solver(**sol_kwargs)
+            try:
+                sol_kwargs = {'model': self}
+                if "CSolver" in solver.name and \
+                    ("resume" in solver_args or "variables" in solver_args or "live_output" in solver_args):
+                    sol_kwargs['variable'] = True
+                solver = solver(**sol_kwargs)
+            except Exception as err:
+                raise SimulationError(f"{solver} is not a valid solver.  Reason Given: {err}.") from err
 
         try:
             return solver.run(t=t, increment=increment, timeout=timeout, **solver_args)
