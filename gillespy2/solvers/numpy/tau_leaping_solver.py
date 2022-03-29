@@ -43,6 +43,9 @@ class TauLeapingSolver(GillesPySolver):
     result = None
 
     def __init__(self, model=None, debug=False, profile=False):
+        if model is None:
+            raise SimulationError("A model is required to run the simulation.")
+
         name = "TauLeapingSolver"
         rc = 0
         stop_event = None
@@ -51,6 +54,7 @@ class TauLeapingSolver(GillesPySolver):
         self.model = copy.deepcopy(model)
         self.debug = debug
         self.profile = profile
+        self.is_instantiated = True
 
     def __get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions):
         """
@@ -134,10 +138,25 @@ class TauLeapingSolver(GillesPySolver):
 
         :returns:
         """
+        from gillespy2 import log
 
         if self is None:
+            # Post deprecation block
+            # raise SimulationError("TauLeapingSolver must be instantiated to run the simulation")
+            # Pre deprecation block
+            log.warning(
+                """
+                `gillespy2.Model.run(solver=TauLeapingSolver)` is deprecated.
+
+                You should use `gillespy2.Model.run(solver=TauLeapingSolver(model=gillespy2.Model))
+                Future releases of GillesPy2 may not support this feature.
+                """
+            )
             self = TauLeapingSolver(model=model, debug=debug, profile=profile)
 
+        if model is not None:
+            log.warning('model = gillespy2.model is deprecated. Future releases '
+                        'of GillesPy2 may not support this feature.')
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")

@@ -36,12 +36,26 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
     def run(self=None, model: Model = None, t: int = None, number_of_trajectories: int = 1, timeout: int = 0,
-            increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={}, 
+            increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
             resume=None, live_output: str = None, live_output_options: dict = {}, tau_tol=0.03, **kwargs):
 
         if self is None:
+            # Post deprecation block
+            # raise SimulationError("TauLeapingCSolver must be instantiated to run the simulation")
+            # Pre deprecation block
+            log.warning(
+                """
+                `gillespy2.Model.run(solver=TauLeapingCSolver)` is deprecated.
+
+                You should use `gillespy2.Model.run(solver=TauLeapingCSolver(model=gillespy2.Model))
+                Future releases of GillesPy2 may not support this feature.
+                """
+            )
             self = TauLeapingCSolver(model, resume=resume)
 
+        if model is not None:
+            log.warning('model = gillespy2.model is deprecated. Future releases '
+                        'of GillesPy2 may not support this feature.')
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
@@ -49,7 +63,7 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
 
         self.model.resolve_parameters()
         self.validate_model(self.model, model)
-        self.validate_sbml_features(model=model)
+        self.validate_sbml_features(model=self.model)
 
         self.validate_tspan(increment=increment, t=t)
         if increment is None:

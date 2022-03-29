@@ -30,7 +30,8 @@ class TestExampleModels(unittest.TestCase):
 
     def test_lacOperon_example(self):
         lacOperon_model = LacOperon()
-        results = lacOperon_model.run(solver=ODESolver)
+        solver = ODESolver(model=lacOperon_model)
+        results = lacOperon_model.run(solver=solver)
 
     def test_schlogl_example(self):
         schlogl_model = Schlogl()

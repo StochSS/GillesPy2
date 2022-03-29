@@ -39,9 +39,25 @@ class ODECSolver(GillesPySolver, CSolver):
             increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
             resume=None, live_output: str = None, live_output_options: dict = {}, **kwargs):
 
+        from gillespy2 import log
+
         if self is None:
+            # Post deprecation block
+            # raise SimulationError("ODECSolver must be instantiated to run the simulation")
+            # Pre deprecation block
+            log.warning(
+                """
+                `gillespy2.Model.run(solver=ODECSolver)` is deprecated.
+
+                You should use `gillespy2.Model.run(solver=ODECSolver(model=gillespy2.Model))
+                Future releases of GillesPy2 may not support this feature.
+                """
+            )
             self = ODECSolver(model, resume=resume)
 
+        if model is not None:
+            log.warning('model = gillespy2.model is deprecated. Future releases '
+                        'of GillesPy2 may not support this feature.')
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
@@ -49,7 +65,7 @@ class ODECSolver(GillesPySolver, CSolver):
 
         self.model.resolve_parameters()
         self.validate_model(self.model, model)
-        self.validate_sbml_features(model=model)
+        self.validate_sbml_features(model=self.model)
 
         self.validate_tspan(increment=increment, t=t)
         if increment is None:

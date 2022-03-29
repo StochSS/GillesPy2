@@ -39,12 +39,16 @@ class ODESolver(GillesPySolver):
     pause_event = None
 
     def __init__(self, model=None):
+        if model is None:
+            raise SimulationError("A model is required to run the simulation.")
+
         name = "ODESolver"
         rc = 0
         stop_event = None
         pause_event = None
         result = None
         self.model = copy.deepcopy(model)
+        self.is_instantiated = True
 
     @staticmethod
     def __f(t, y, curr_state, model, c_prop):
@@ -107,9 +111,25 @@ class ODESolver(GillesPySolver):
             "interval" specifies seconds between displaying.
             "clear_output" specifies if display should be refreshed with each displa
         """
+        from gillespy2 import log
+
         if self is None:
+            # Post deprecation block
+            # raise SimulationError("ODESolver must be instantiated to run the simulation")
+            # Pre deprecation block
+            log.warning(
+                """
+                `gillespy2.Model.run(solver=ODESolver)` is deprecated.
+
+                You should use `gillespy2.Model.run(solver=ODESolver(model=gillespy2.Model))
+                Future releases of GillesPy2 may not support this feature.
+                """
+            )
             self = ODESolver(model=model)
 
+        if model is not None:
+            log.warning('model = gillespy2.model is deprecated. Future releases '
+                        'of GillesPy2 may not support this feature.')
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")

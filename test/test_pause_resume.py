@@ -45,14 +45,18 @@ class TestPauseResume(unittest.TestCase):
 
 
     for solver in solvers:
-        labeled_results[solver] = model.run(solver=solver, show_labels=True)
+        solver = solver(model=model)
+        labeled_results[solver.name] = model.run(solver=solver, show_labels=True)
+
     def test_altered_model_failure(self):
         model = MichaelisMenten()
-        for solver in self.solvers:
+        for solver_class in self.solvers:
+            solver = solver_class(model=model)
             tmpResults = model.run(solver=solver)
             with self.assertRaises(gillespyError.SimulationError):
                 sp1 = Species('sp2',initial_value=5)
                 model.add_species(sp1)
+                solver = solver_class(model=model)
                 tmpResults = model.run(solver=solver,resume=tmpResults,t=150)
             model.delete_species('sp2')
 
@@ -60,16 +64,18 @@ class TestPauseResume(unittest.TestCase):
     def test_resume(self):
         model = self.model
         for solver in self.solvers:
-            self.labeled_results[solver] = model.run(solver=solver, show_labels=True,
-                                                     resume=self.labeled_results[solver], t=150)
+            solver = solver(model=model)
+            self.labeled_results[solver.name] = model.run(solver=solver, show_labels=True,
+                                                     resume=self.labeled_results[solver.name], t=150)
         for solver in self.solvers:
-            self.assertEqual(int(self.labeled_results[solver][0]['time'][-1]),150)
+            self.assertEqual(int(self.labeled_results[solver.name][0]['time'][-1]),150)
 
     def test_time_fail(self):
         model = self.model
         for solver in self.solvers:
             with self.assertRaises((gillespyError.ExecutionError, gillespyError.SimulationError)):
-                self.labeled_results = model.run(solver=solver, show_labels=True, resume=self.labeled_results[solver],
+                solver = solver(model=model)
+                self.labeled_results = model.run(solver=solver, show_labels=True, resume=self.labeled_results[solver.name],
                                                  t=1)
 
     def test_pause(self):
@@ -102,7 +108,8 @@ class TestPauseResume(unittest.TestCase):
         # manual, whereas timeout is a set variable
         for solver in solvers:
             model = Oregonator()
-            results = model.run(solver=solver,timeout=1)
+            solver = solver(model=model)
+            results = model.run(solver=solver, timeout=1)
             self.assertFalse(results.to_array()[0][-1][0] == '5.0')
 
 

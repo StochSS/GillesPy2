@@ -72,9 +72,13 @@ class TauHybridSolver(GillesPySolver):
     stop_event = None
 
     def __init__(self, model=None):
+        if model is None:
+            raise SimulationError("A model is required to run the simulation.")
+
         name = 'TauHybridSolver'
         rc = 0
         self.model = copy.deepcopy(model)
+        self.is_instantiated = True
 
     def __toggle_reactions(self, all_compiled, deterministic_reactions, dependencies, 
                             curr_state, det_spec, rr_sets):
@@ -826,10 +830,25 @@ class TauHybridSolver(GillesPySolver):
             "clear_output" specifies if display should be refreshed with each display
         :type live_output_options:  str
         """
+        from gillespy2 import log
 
         if self is None:
+            # Post deprecation block
+            # raise SimulationError("TauHybridSolver must be instantiated to run the simulation")
+            # Pre deprecation block
+            log.warning(
+                """
+                `gillespy2.Model.run(solver=TauHybridSolver)` is deprecated.
+
+                You should use `gillespy2.Model.run(solver=TauHybridSolver(model=gillespy2.Model))
+                Future releases of GillesPy2 may not support this feature.
+                """
+            )
             self = TauHybridSolver(model=model)
 
+        if model is not None:
+            log.warning('model = gillespy2.model is deprecated. Future releases '
+                        'of GillesPy2 may not support this feature.')
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")

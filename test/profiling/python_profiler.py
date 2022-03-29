@@ -42,7 +42,7 @@ def run_profiler(model: Model, solver: GillesPySolver, trajectories=4, timesteps
     profiler = cProfile.Profile()
     profiler.enable()
 
-    solver.run(model=model, number_of_trajectories=trajectories, t=timesteps, timeout=0)
+    solver.run(number_of_trajectories=trajectories, t=timesteps, timeout=0)
 
     profiler.disable()
     stats = pstats.Stats(profiler).strip_dirs().sort_stats(SortKey.TIME)

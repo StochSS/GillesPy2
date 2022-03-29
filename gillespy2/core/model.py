@@ -937,7 +937,7 @@ class Model(SortableObject, Jsonify):
             
         else:
             raise ModelError("Invalid value for the argument 'algorithm' entered. "
-                             "Please enter 'SSA', 'ODE', 'Tau-leaping', or 'Tau-Hybrid'.")
+                             "Please enter 'SSA', 'ODE', 'CLE', 'Tau-leaping', or 'Tau-Hybrid'.")
 
     def get_model_features(self) -> "Set[Type]":
         """
@@ -999,8 +999,18 @@ class Model(SortableObject, Jsonify):
             else:
                 solver = self.get_best_solver()
 
+        if not hasattr(solver, "is_instantiated"):
+            try:
+                sol_kwargs = {'model': self}
+                if "CSolver" in solver.name and \
+                    ("resume" in solver_args or "variables" in solver_args or "live_output" in solver_args):
+                    sol_kwargs['variable'] = True
+                solver = solver(**sol_kwargs)
+            except Exception as err:
+                raise SimulationError(f"{solver} is not a valid solver.  Reason Given: {err}.") from err
+
         try:
-            return solver.run(model=self, t=t, increment=increment, timeout=timeout, **solver_args)
+            return solver.run(t=t, increment=increment, timeout=timeout, **solver_args)
         except Exception as e:
             raise SimulationError(
                 "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e)

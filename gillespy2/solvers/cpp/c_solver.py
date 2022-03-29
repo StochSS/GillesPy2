@@ -63,6 +63,9 @@ class CSolver:
     rc = 0
 
     def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable: bool = False):
+        if model is None:
+            raise gillespyError.SimulationError("A model is required to run the simulation.")
+
         if len(BuildEngine.get_missing_dependencies()) > 0:
             raise gillespyError.SimulationError(
                 "Please install/configure 'g++' and 'make' on your system, to ensure that GillesPy2 C solvers will run properly."
@@ -88,6 +91,8 @@ class CSolver:
 
         if self.model is not None:
             self._set_model()
+
+        self.is_instantiated = True
 
     def __del__(self):
         if self.build_engine is None:

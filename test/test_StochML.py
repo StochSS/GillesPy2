@@ -30,8 +30,10 @@ class TestStochML(unittest.TestCase):
         model = Example()
         stochml = StochMLDocument.from_model(model)
         stochml_model = stochml.to_model('model')
-        stochml_model.run(solver=ODESolver)
-        stochml_model.run(solver=NumPySSASolver)
+        ode_solver = ODESolver(model=stochml_model)
+        stochml_model.run(solver=ode_solver)
+        ssa_solver = NumPySSASolver(model=stochml_model)
+        stochml_model.run(solver=ssa_solver)
 
 
 

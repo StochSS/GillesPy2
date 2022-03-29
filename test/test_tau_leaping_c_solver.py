@@ -35,25 +35,29 @@ class TestTauLeapingCSolver(unittest.TestCase):
 
     def test_run_example_precompiled(self):
         model = Example()
-        solver = TauLeapingCSolver(model)
+        solver = TauLeapingCSolver(model=model)
         results = model.run(solver=solver)
 
     def test_run_example(self):
         model = Example()
-        results = model.run(solver=TauLeapingCSolver)
+        solver = TauLeapingCSolver(model=model)
+        results = model.run(solver=solver)
 
     def test_run_example__with_increment_only(self):
         model = ExampleNoTspan()
-        results = TauLeapingCSolver.run(model=model, increment=0.2)
+        solver = TauLeapingCSolver(model=model)
+        results = solver.run(increment=0.2)
 
     def test_run_example__with_tspan_only(self):
         model = Example()
-        results = TauLeapingCSolver.run(model=model)
+        solver = TauLeapingCSolver(model=model)
+        results = solver.run()
 
     def test_run_example__with_tspan_and_increment(self):
         with self.assertRaises(SimulationError):
             model = Example()
-            results = TauLeapingCSolver.run(model=model, increment=0.2)
+            solver = TauLeapingCSolver(model=model)
+            results = solver.run(increment=0.2)
 
 
 if __name__ == '__main__':
