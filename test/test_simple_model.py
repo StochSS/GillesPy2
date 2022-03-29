@@ -86,11 +86,6 @@ class TestSimpleModel(unittest.TestCase):
             self.model.add_parameter([k1, k2])
         self.assertIn('Name "{}" is unavailable. A parameter with that name exists.'.format(k1.name), str(ex.exception))
 
-    def test_delete_species(self):
-        self.model.delete_species('A')
-        speciesList = self.model.get_all_species()
-        self.assertNotIn('A', speciesList)
-
     def test_delete_all_species(self):
         self.model.delete_all_species()
         speciesList = self.model.get_all_species()
@@ -149,11 +144,6 @@ class TestSimpleModel(unittest.TestCase):
         self.assertEqual('100', parameter.expression)
         self.assertIsInstance(parameter, Parameter, msg='{0} has incorrect type'.format(parameter))
 
-    def test_delete_parameter(self):
-        self.model.delete_parameter('k1')
-        parameterList = self.model.get_all_parameters()
-        self.assertNotIn('k1', parameterList)
-
     def test_delete_all_parameters(self):
         self.model.delete_all_parameters()
         parameterList = self.model.get_all_parameters()
@@ -183,11 +173,6 @@ class TestSimpleModel(unittest.TestCase):
         reactions = self.model.get_all_reactions()
         self.assertIsInstance(reactions['r1'], Reaction, msg='{0} has incorrect type'.format(reactions))
         self.assertIsInstance(reactions['r2'], Reaction, msg='{0} has incorrect type'.format(reactions))
-
-    def test_delete_reaction(self):
-        self.model.delete_reaction('r1')
-        reactionList = self.model.get_all_reactions()
-        self.assertNotIn('r1', reactionList)
 
     def test_delete_all_reactions(self):
         self.model.delete_all_reactions()

@@ -75,11 +75,6 @@ class TestVariableSolvers(unittest.TestCase):
             for solver in self.solverlist:
                 results = self.model.run(solver=solver, variables={'foobar':0})
 
-    def test_run_example(self):
-        notPrecompiled = [SSACSolver, ODECSolver, TauLeapingCSolver, TauHybridCSolver]
-        for solver in notPrecompiled:
-            results = self.model.run(solver=solver)
-
 
 if __name__ == '__main__':
     unittest.main()

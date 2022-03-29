@@ -57,8 +57,10 @@ if __name__ == '__main__':
     import test_check_cpp_support
     import test_jsonify
     import test_notebooks
+    from unit_tests import test_model as unittest_model
 
     modules = [
+        unittest_model,
         test_empty_model,
         test_build_engine,
         test_c_solvers,

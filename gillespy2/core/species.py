@@ -19,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.gillespyError import *
 from gillespy2.core.jsonify import Jsonify
-import numpy as np
 
 class Species(SortableObject, Jsonify):
     """
@@ -82,13 +81,13 @@ class Species(SortableObject, Jsonify):
             raise SpeciesError('Species mode must be either \'continuous\', \'dynamic\', \'discrete\', or '
                                '\'unspecified(default to dynamic for BasicTauHybridSolver)\'.')
         if mode == 'continuous':
-            self.initial_value = np.float(initial_value)
+            self.initial_value = float(initial_value)
         else:
-            if np.int(initial_value) != initial_value:
+            if int(initial_value) != initial_value:
                 raise ValueError(
                     "'initial_value' for Species with mode='discrete' must be an integer value. Change to "
                     "mode='continuous' to use floating point values.")
-            self.initial_value = np.int(initial_value)
+            self.initial_value = int(initial_value)
         if not allow_negative_populations:
             if self.initial_value < 0:
                 raise ValueError('A species initial value must be non-negative unless allow_negative_populations=True')
