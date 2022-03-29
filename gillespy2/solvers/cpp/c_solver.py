@@ -64,7 +64,7 @@ class CSolver:
 
     def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable: bool = False):
         if model is None:
-            raise SimulationError("A model is required to run the simulation.")
+            raise gillespyError.SimulationError("A model is required to run the simulation.")
 
         if len(BuildEngine.get_missing_dependencies()) > 0:
             raise gillespyError.SimulationError(
