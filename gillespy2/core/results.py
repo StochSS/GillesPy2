@@ -357,7 +357,7 @@ class Results(UserList, Jsonify):
         """
 
         import matplotlib.pyplot as plt
-        from collections import Iterable
+        from collections.abc import Iterable
         trajectory_list = []
         if isinstance(index, Iterable):
             for i in index:
@@ -468,7 +468,7 @@ class Results(UserList, Jsonify):
 
         init_notebook_mode(connected=True)
 
-        from collections import Iterable
+        from collections.abc import Iterable
         trajectory_list = []
         if isinstance(index, Iterable):
             for i in index:
