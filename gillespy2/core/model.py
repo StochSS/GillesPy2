@@ -229,6 +229,12 @@ class Model(SortableObject, Jsonify):
 
         return print_string
 
+    def add(self, components):
+        """
+        Reactions, Events, Rate Rules, and Assignment Rules must come after Species and Parameters.
+        """
+        return components
+
     def make_translation_table(self):
         from collections import ChainMap
 
