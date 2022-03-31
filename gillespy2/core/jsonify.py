@@ -195,6 +195,7 @@ class ComplexJsonCoder(JSONEncoder):
 
         self._delegation_table = {
             numpy.ndarray: NdArrayCoder,
+            numpy.int64: Int64Coder,
             set: SetCoder,
             type: TypeCoder
         }
@@ -377,6 +378,20 @@ class NdArrayCoder(Jsonify):
     @staticmethod
     def from_json(obj):
         return numpy.array(obj["data"])
+
+class Int64Coder(Jsonify):
+    """ This JSON coder enables support for  the `numpy.int64` type. """
+
+    @staticmethod
+    def to_dict(obj):
+        return {
+            "data": int(obj),
+            "_type": f"{Int64Coder.__module__}.{Int64Coder.__name__}"
+        }
+
+    @staticmethod
+    def from_json(obj):
+        return numpy.int64(obj["data"])
 
 class SetCoder(Jsonify):
     """ This JSON coder enables support for the `set` type. """
