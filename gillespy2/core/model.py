@@ -15,25 +15,28 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-import gillespy2
-from gillespy2 import (
-    RateRule,
-    Parameter,
-    Species,
-    Reaction,
-    TimeSpan,
-    Event,
-    FunctionDefinition,
-    AssignmentRule
-)
-from gillespy2.core.jsonify import TranslationTable
-from gillespy2.core.reaction import *
 import numpy as np
-from gillespy2.core.results import Trajectory,Results
-from collections import OrderedDict
-from gillespy2.core.gillespyError import *
-from .gillespyError import SimulationError
 from typing import Set, Type
+from collections import OrderedDict
+
+import gillespy2
+from gillespy2.core.assignmentrule import AssignmentRule
+from gillespy2.core.events import Event
+from gillespy2.core.functiondefinition import FunctionDefinition
+from gillespy2.core.parameter import Parameter
+from gillespy2.core.raterule import RateRule
+from gillespy2.core.reaction import Reaction
+from gillespy2.core.species import Species
+from gillespy2.core.timespan import TimeSpan
+from gillespy2.core.jsonify import TranslationTable
+from gillespy2.core.results import Trajectory, Results
+from gillespy2.core.gillespyError import (
+    ParameterError,
+    ModelError,
+    SimulationError,
+    StochMLImportError,
+    InvalidStochMLError
+)
 
 try:
     import lxml.etree as eTree
