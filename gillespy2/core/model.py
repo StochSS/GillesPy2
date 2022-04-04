@@ -234,6 +234,22 @@ class Model(SortableObject, Jsonify):
         """
         Reactions, Events, Rate Rules, and Assignment Rules must come after Species and Parameters.
         """
+        if isinstance(components, AssignmentRule) or type(components).__name__ == AssignmentRule.__name__:
+            self.add_assignment_rule(components)
+        if isinstance(components, Event) or type(components).__name__ == Event.__name__:
+            self.add_event(components)
+        if isinstance(components, FunctionDefinition) or type(components).__name__ == FunctionDefinition.__name__:
+            self.add_function_definition(components)
+        if isinstance(components, Parameter) or type(components).__name__ == Parameter.__name__:
+            self.add_parameter(components)
+        if isinstance(components, RateRule) or type(components).__name__ == RateRule.__name__:
+            self.add_rate_rule(components)
+        if isinstance(components, Reaction) or type(components).__name__ == Reaction.__name__:
+            self.add_reaction(components)
+        if isinstance(components, Species) or type(components).__name__ == Species.__name__:
+            self.add_species(components)
+        if isinstance(components, TimeSpan) or type(components).__name__ == TimeSpan.__name__:
+            self.timespan(components)
         return components
 
     def make_translation_table(self):
