@@ -93,7 +93,7 @@ class TestModel(unittest.TestCase):
         et = gillespy2.EventTrigger(expression="t > 29")
         e1 = gillespy2.Event(name="e1", trigger=et, assignments=[ea])
         divide = gillespy2.FunctionDefinition(name="divide", function="x / y", args=["x", "y"])
-        tspan = TimeSpan(range(100))
+        tspan = gillespy2.TimeSpan(range(100))
 
         model = gillespy2.Model(name="Test Model")
         model.add([s1, k1, r1, rr1, ar1, e1, divide, tspan])
@@ -119,7 +119,7 @@ class TestModel(unittest.TestCase):
         et = gillespy2.EventTrigger(expression="t > 29")
         e1 = gillespy2.Event(name="e1", trigger=et, assignments=[ea])
         divide = gillespy2.FunctionDefinition(name="divide", function="x / y", args=["x", "y"])
-        tspan = TimeSpan(range(100))
+        tspan = gillespy2.TimeSpan(range(100))
 
         model = gillespy2.Model(name="Test Model")
         model.add([ar1, divide, e1, k1, s1, r1, rr1, tspan])
