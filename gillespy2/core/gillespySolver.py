@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import copy
 import numpy
 
+from .timespan import TimeSpan
 from .gillespyError import SimulationError, ModelError
 from typing import Set, Type
 
@@ -97,18 +98,13 @@ class GillesPySolver:
             )
 
         if self.model.tspan is None:
-            end = 20 + increment if t is None else t + increment
-            self.model.timespan(numpy.arange(0, end, increment))
+            tspan = TimeSpan.arange(increment, t=t)
+            self.model.timespan(tspan)
+        elif not isinstance(self.model.tspan, TimeSpan) or type(self.model.tspan).__name__ != "TimeSpan":
+            tspan = TimeSpan(self.model.tspan)
+            self.model.timespan(tspan)
         else:
-            if self.model.tspan[0] < 0:
-                raise SimulationError("Simulation must run from t=0 to end time (t must always be positive).")
-            
-            first_diff = self.model.tspan[1] - self.model.tspan[0]
-            other_diff = self.model.tspan[2:] - self.model.tspan[1:-1]
-            isuniform = numpy.isclose(other_diff, first_diff).all()
-
-            if not isuniform:
-                raise SimulationError("StochKit only supports uniform timespans")
+            self.model.tspan.validate()
 
     @classmethod
     def get_supported_features(cls) -> "Set[Type]":

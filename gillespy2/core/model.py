@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import gillespy2
+from gillespy2.core.timespan import TimeSpan
 from gillespy2.core.jsonify import TranslationTable
 from gillespy2.core.reaction import *
 from gillespy2.core.raterule import RateRule
@@ -659,10 +660,13 @@ class Model(SortableObject, Jsonify):
         timespans. 
 
         :param time_span: Evenly-spaced list of times at which to sample the species populations during the simulation. 
-            Best to use the form np.linspace(<start time>, <end time>, <number of time-points, inclusive>)
-        :type time_span: numpy ndarray
+            Best to use the form gillespy2.TimeSpan(np.linspace(<start time>, <end time>, <number of time-points, inclusive>))
+        :type time_span: gillespy2.TimeSpan | iterator
         """        
-        self.tspan = time_span
+        if isinstance(time_span, TimeSpan) or type(time_span).__name__ == "TimeSpan":
+            self.tspan = time_span
+        else:
+            self.tspan = TimeSpan(time_span)
 
     def get_reaction(self, rname):
         """
