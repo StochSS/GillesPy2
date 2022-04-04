@@ -244,8 +244,8 @@ class Model(SortableObject, Jsonify):
         Reactions, Events, Rate Rules, and Assignment Rules must come after Species and Parameters.
         """
         if isinstance(components, list):
-            p_types = [Species, Parameter, FunctionDefinition, TimeSpan]
-            p_names = [p_type.__name__ for p_type in p_types]
+            p_types = (Species, Parameter, FunctionDefinition, TimeSpan)
+            p_names = (p_type.__name__ for p_type in p_types)
 
             others = []
             for component in components:
