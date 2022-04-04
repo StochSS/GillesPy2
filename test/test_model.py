@@ -69,7 +69,7 @@ class TestModel(unittest.TestCase):
     def test_uniform_timespan(self):
         model = Model()
         model.timespan(np.linspace(0, 1, 100))
-        with self.assertRaises(SimulationError):
+        with self.assertRaises(TimespanError):
             model.timespan(np.array([0, 0.1, 0.5]))
             model.run()
 
