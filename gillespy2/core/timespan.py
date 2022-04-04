@@ -18,9 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
 from collections.abc import Iterator
 
+from gillespy2.core.jsonify import Jsonify
 from .gillespyError import TimespanError
 
-class TimeSpan(Iterator):
+class TimeSpan(Iterator, Jsonify):
     """
     Model timespan that describes the duration to rub the simulation and at which timepoint to sample
     the species populations during the simulation.
