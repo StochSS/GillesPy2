@@ -43,6 +43,9 @@ class TimeSpan(Iterator):
     def __iter__(self):
         return self.items.__iter__()
 
+    def __len__(self):
+        return self.items.__len__()
+
     def __next__(self):
         return self.items.__next__()
 
