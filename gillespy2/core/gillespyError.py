@@ -33,6 +33,10 @@ class ParameterError(ModelError):
     pass
 
 
+class TimespanError(ModelError):
+    pass
+
+
 # Solver specific errors
 class SolverError(Exception):
     pass
