@@ -29,7 +29,7 @@ from gillespy2.core.reaction import Reaction
 from gillespy2.core.species import Species
 from gillespy2.core.timespan import TimeSpan
 from gillespy2.core.sortableobject import SortableObject
-from gillespy2.core.jsonify import TranslationTable
+from gillespy2.core.jsonify import Jsonify, TranslationTable
 from gillespy2.core.results import Trajectory, Results
 from gillespy2.core.gillespyError import (
     ParameterError,
