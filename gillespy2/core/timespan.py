@@ -28,13 +28,15 @@ class TimeSpan(Iterator, Jsonify):
 
     :param items: Evenly-spaced list of times at which to sample the species populations during the simulation. 
             Best to use the form np.linspace(<start time>, <end time>, <number of time-points, inclusive>)
-    :type items: iterator
+    :type items: list, tuple, range, or numpy.ndarray
     """
     def __init__(self, items):
         if isinstance(items, np.ndarray):
             self.items = items
-        else:
+        elif isinstance(items, (list, tuple, range)):
             self.items = np.array(items)
+        else:
+            raise TimespanError("Timespan must be of type: list, tuple, range, or numpy.ndarray.")
 
         self.validate()
 
@@ -64,6 +66,11 @@ class TimeSpan(Iterator, Jsonify):
         :param num_points: Number of sample points for the species populations during the simulation.
         :type num_points: int
         """
+        if t is not None and not isinstance(t, int):
+            raise TimespanError("t must be of type int.")
+        if num_points is not None and not isinstance(num_points, int):
+            raise TimespanError("num_points must be of type int.")
+
         if t is None:
             t = 20
         if num_points is None:
@@ -77,11 +84,16 @@ class TimeSpan(Iterator, Jsonify):
         Creates a timespan using the form np.arange(0, <t, inclusive>, <increment>).
 
         :param increment: Distance between sample points for the species populations during the simulation.
-        :type increment: float
+        :type increment: float | int
 
         :param t: End time for the simulation.
         :type t: int
         """
+        if t is not None and not isinstance(t, int):
+            raise TimespanError("t must be of type int.")
+        if not isinstance(increment, (float, int)):
+            raise TimespanError("increment must be of type float or int.")
+
         if t is None:
             t = 20
         items = np.arange(0, t + increment, increment)
@@ -91,6 +103,11 @@ class TimeSpan(Iterator, Jsonify):
         """
         Validate the models time span
         """
+        if not isinstance(self.items, np.ndarray):
+            if not isinstance(self.items, (list, tuple, range)):
+                raise TimespanError("Timespan must be of type: list, tuple, range, or numpy.ndarray.")
+            self.items = np.array(self.items)
+
         if self.items[0] < 0:
             raise TimespanError("Simulation must run from t=0 to end time (t must always be positive).")
         
