@@ -56,7 +56,7 @@ class TimeSpan(Iterator, Jsonify):
         return self.items.__next__()
 
     @classmethod
-    def linspace(cls, t=None, num_points=None):
+    def linspace(cls, t=20, num_points=None):
         """
         Creates a timespan using the form np.linspace(0, <t>, <num_points, inclusive>).
 
@@ -66,20 +66,18 @@ class TimeSpan(Iterator, Jsonify):
         :param num_points: Number of sample points for the species populations during the simulation.
         :type num_points: int
         """
-        if t is not None and not isinstance(t, int):
-            raise TimespanError("t must be of type int.")
-        if num_points is not None and not isinstance(num_points, int):
-            raise TimespanError("num_points must be of type int.")
+        if t is None or not isinstance(t, int) or t <= 0:
+            raise TimespanError("t must be a positive int.")
+        if num_points is not None and (not isinstance(num_points, int) or num_points <= 0):
+            raise TimespanError("num_points must be a positive int.")
 
-        if t is None:
-            t = 20
         if num_points is None:
             num_points = int(t / 0.05) + 1
         items = np.linspace(0, t, num_points)
         return cls(items)
 
     @classmethod
-    def arange(cls, increment, t=None):
+    def arange(cls, increment, t=20):
         """
         Creates a timespan using the form np.arange(0, <t, inclusive>, <increment>).
 
@@ -89,13 +87,11 @@ class TimeSpan(Iterator, Jsonify):
         :param t: End time for the simulation.
         :type t: int
         """
-        if t is not None and not isinstance(t, int):
-            raise TimespanError("t must be of type int.")
-        if not isinstance(increment, (float, int)):
-            raise TimespanError("increment must be of type float or int.")
+        if t is None or not isinstance(t, int) or t <= 0:
+            raise TimespanError("t must be a positive int.")
+        if not isinstance(increment, (float, int)) or increment <= 0:
+            raise TimespanError("increment must be a positive float or int.")
 
-        if t is None:
-            t = 20
         items = np.arange(0, t + increment, increment)
         return cls(items)
 
@@ -108,6 +104,8 @@ class TimeSpan(Iterator, Jsonify):
                 raise TimespanError("Timespan must be of type: list, tuple, range, or numpy.ndarray.")
             self.items = np.array(self.items)
 
+        if len(self.items) == 0:
+            raise TimespanError("Timespans must contain values.")
         if self.items[0] < 0:
             raise TimespanError("Simulation must run from t=0 to end time (t must always be positive).")
         
@@ -117,3 +115,5 @@ class TimeSpan(Iterator, Jsonify):
 
         if not isuniform:
             raise TimespanError("StochKit only supports uniform timespans.")
+        if first_diff == 0 or np.count_nonzero(other_diff) != len(other_diff):
+            raise TimespanError("Timespan can't contain a single repeating value.")

@@ -77,6 +77,27 @@ class TestTimeSpan(unittest.TestCase):
         tspan = TimeSpan.linspace()
         self.assertEqual(tspan, numpy.linspace(0, 20, 401))
 
+    def test_linspace__t_less_than_1(self):
+        """ Test TimeSpan.linspace with t<1. """
+        test_values = [0, -1, -2, -5, -10]
+        for test_val in test_values:
+            with self.subTest(t=test_val):
+                with self.assertRaises(TimespanError):
+                    tspan = TimeSpan.linspace(t=test_val, num_points=301)
+
+    def test_linspace__num_points_less_than_1(self):
+        """ Test TimeSpan.linspace with num_points<1. """
+        test_values = [0, -1, -2, -5, -10]
+        for test_val in test_values:
+            with self.subTest(num_points=test_val):
+                with self.assertRaises(TimespanError):
+                    tspan = TimeSpan.linspace(t=30, num_points=test_val)
+
+    def test_linspace__t_is_none(self):
+        """ Test TimeSpan.linspace with t=None. """
+        with self.assertRaises(TimespanError):
+            tspan = TimeSpan.linspace(t=None, num_points=401)
+
     def test_linspace__invalid_t_type(self):
         """ Test TimeSpan.linspace with invalid t type. """
         with self.assertRaises(TimespanError):
@@ -96,6 +117,27 @@ class TestTimeSpan(unittest.TestCase):
         """ Test TimeSpan.arange. """
         tspan = TimeSpan.arange(0.1)
         self.assertEqual(tspan, numpy.arange(0, 20.1, 0.1))
+
+    def test_arange__t_less_than_1(self):
+        """ Test TimeSpan.arange with t<1. """
+        test_values = [0, -1, -2, -5, -10]
+        for test_val in test_values:
+            with self.subTest(t=test_val):
+                with self.assertRaises(TimespanError):
+                    tspan = TimeSpan.arange(0.1, t=test_val)
+
+    def test_arange__num_points_less_than_1(self):
+        """ Test TimeSpan.arange with increment<1. """
+        test_values = [0, -1, -2, -5, -10]
+        for test_val in test_values:
+            with self.subTest(imcrement=test_val):
+                with self.assertRaises(TimespanError):
+                    tspan = TimeSpan.arange(test_val, t=30)
+
+    def test_arange__t_is_none(self):
+        """ Test TimeSpan.arange with t=None. """
+        with self.assertRaises(TimespanError):
+            tspan = TimeSpan.arange(0.1, t=None)
 
     def test_arange__invalid_t_type(self):
         """ Test TimeSpan.arange with invalid t type. """
@@ -137,6 +179,22 @@ class TestTimeSpan(unittest.TestCase):
         tspan = TimeSpan(test_tspan)
         with self.assertRaises(TimespanError):
             tspan.items = set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+            tspan.validate()
+
+    def test_validate__empty_timespan(self):
+        """ Test TimeSpan.validate with an empty data structure. """
+        test_tspan = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        tspan = TimeSpan(test_tspan)
+        with self.assertRaises(TimespanError):
+            tspan.items = []
+            tspan.validate()
+
+    def test_validate__all_same_values(self):
+        """ Test TimeSpan.validate with an empty data structure. """
+        test_tspan = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        tspan = TimeSpan(test_tspan)
+        with self.assertRaises(TimespanError):
+            tspan.items = [2, 2, 2, 2, 2, 2, 2, 2, 2]
             tspan.validate()
 
     def test_validate__negative_start(self):
