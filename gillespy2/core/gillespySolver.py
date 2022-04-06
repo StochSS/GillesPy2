@@ -98,7 +98,10 @@ class GillesPySolver:
             )
 
         if self.model.tspan is None:
-            tspan = TimeSpan.arange(increment, t=t)
+            if t is None:
+                tspan = TimeSpan.arange(increment)
+            else:
+                tspan = TimeSpan.arange(increment, t=t)
             self.model.timespan(tspan)
         elif not isinstance(self.model.tspan, TimeSpan) or type(self.model.tspan).__name__ != "TimeSpan":
             tspan = TimeSpan(self.model.tspan)
