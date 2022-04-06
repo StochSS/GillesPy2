@@ -241,7 +241,19 @@ class Model(SortableObject, Jsonify):
 
     def add(self, components):
         """
-        Reactions, Events, Rate Rules, and Assignment Rules must come after Species and Parameters.
+        Adds a component, or list of components to the model. If a list is provided, Species
+        and Parameters are added before other components.  Lists may contain any combination
+        of accepte types other that lists and do not need to be in any particular order.
+
+        :param components: The component or list of components to be added the the model.
+        :type components: Species, Parameters, Reactions, Events, Rate Rules, Assignment Rules, \
+                          FunctionDefinitions, and TimeSpan or list
+
+        :returns: The components that were added to the model.
+        :rtype: Species, Parameters, Reactions, Events, Rate Rules, Assignment Rules, \
+                FunctionDefinitions, and TimeSpan or list
+
+        :raises ModelError: Component is invalid.
         """
         if isinstance(components, list):
             p_types = (Species, Parameter, FunctionDefinition, TimeSpan)

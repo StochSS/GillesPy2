@@ -29,6 +29,8 @@ class TimeSpan(Iterator, Jsonify):
     :param items: Evenly-spaced list of times at which to sample the species populations during the simulation. 
             Best to use the form np.linspace(<start time>, <end time>, <number of time-points, inclusive>)
     :type items: list, tuple, range, or numpy.ndarray
+    
+    :raises TimespanError: items is an invalid type.
     """
     def __init__(self, items):
         if isinstance(items, np.ndarray):
@@ -65,6 +67,11 @@ class TimeSpan(Iterator, Jsonify):
 
         :param num_points: Number of sample points for the species populations during the simulation.
         :type num_points: int
+
+        :returns: Timespan for the model.
+        :rtype: gillespy2.TimeSpan
+
+        :raises TimespanError: t or num_points are None, <= 0, or invalid type.
         """
         if t is None or not isinstance(t, int) or t <= 0:
             raise TimespanError("t must be a positive int.")
@@ -86,6 +93,11 @@ class TimeSpan(Iterator, Jsonify):
 
         :param t: End time for the simulation.
         :type t: int
+
+        :returns: Timespan for the model.
+        :rtype: gillespy2.TimeSpan
+
+        :raises TimespanError: t or increment are None, <= 0, or invalid type.
         """
         if t is None or not isinstance(t, int) or t <= 0:
             raise TimespanError("t must be a positive int.")
@@ -98,6 +110,9 @@ class TimeSpan(Iterator, Jsonify):
     def validate(self):
         """
         Validate the models time span
+
+        :raises TimespanError: Timespan is an invalid type, empty, not uniform, contains a single \
+                               repeated value, or contains a negative initial time.
         """
         if not isinstance(self.items, np.ndarray):
             if not isinstance(self.items, (list, tuple, range)):
