@@ -28,7 +28,7 @@ class TestSpecies(unittest.TestCase):
     '''
     def test_constructor(self):
         """ Test the Species constructor. """
-        species = Species(name="test_species", initial_value=0)
+        species = Species(name="test_species", initial_value=5)
         self.assertEqual(species.name, "test_species")
         self.assertEqual(species.initial_value, 5)
 
@@ -281,7 +281,7 @@ class TestSpecies(unittest.TestCase):
         test_modes = ['discrete', 'dynamic', None]
         for test_mode in test_modes:
             with self.subTest(mode=test_mode):
-                species = Species(name="test_species")
+                species = Species(name="test_species", initial_value=0.1, mode="continuous")
                 with self.assertRaises(SpeciesError):
                     species.mode = test_mode
                     species.validate()
