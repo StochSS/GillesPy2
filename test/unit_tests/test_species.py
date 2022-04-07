@@ -66,7 +66,7 @@ class TestSpecies(unittest.TestCase):
 
     def test_constructor__invalid_initial_value(self):
         """ Test the Species constructor with non-int or non-float initial_value. """
-        test_ivs = [None, "0"]
+        test_ivs = [None, "0%"]
         for test_iv in test_ivs:
             with self.subTest(initial_value=test_iv):
                 with self.assertRaises(SpeciesError):
@@ -182,7 +182,7 @@ class TestSpecies(unittest.TestCase):
 
     def test_set_initial_value__invalid_initial_value(self):
         """ Test Species.set_initial_value with non-int or non-float initial_value. """
-        test_ivs = [None, "0"]
+        test_ivs = [None, "0%"]
         for test_iv in test_ivs:
             with self.subTest(initial_value=test_iv):
                 species = Species(name="test_species")
@@ -241,7 +241,7 @@ class TestSpecies(unittest.TestCase):
 
     def test_validate__invalid_initial_value(self):
         """ Test Species.validate with non-int or non-float initial_value. """
-        test_ivs = [None, "0"]
+        test_ivs = [None, "0%"]
         for test_iv in test_ivs:
             with self.subTest(initial_value=test_iv):
                 species = Species(name="test_species")

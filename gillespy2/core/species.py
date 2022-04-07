@@ -74,6 +74,12 @@ class Species(SortableObject, Jsonify):
         self.switch_min = switch_min
         self.switch_tol = switch_tol
 
+        if isinstance(initial_value, str):
+            try:
+                initial_value = float(initial_value)
+            except ValueError:
+                pass
+
         if initial_value is None:
             raise SpeciesError("initial_value can't be None type.")
         self.validate(initial_value=initial_value)
@@ -101,6 +107,12 @@ class Species(SortableObject, Jsonify):
 
         :raises SpeciesError: If num is non-negative or a decimal number
         """
+        if isinstance(initial_value, str):
+            try:
+                initial_value = float(initial_value)
+            except ValueError:
+                pass
+
         if initial_value is None:
             raise SpeciesError("initial_value can't be None type.")
         self.validate(initial_value=initial_value, coverage="initial_value")
