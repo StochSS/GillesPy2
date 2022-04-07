@@ -15,10 +15,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-
-from gillespy2.core.sortableobject import SortableObject
-from gillespy2.core.gillespyError import *
 from gillespy2.core.jsonify import Jsonify
+from gillespy2.core.sortableobject import SortableObject
+
+from gillespy2.core.gillespyError import SpeciesError
 
 class Species(SortableObject, Jsonify):
     """
@@ -60,7 +60,7 @@ class Species(SortableObject, Jsonify):
         used instead of switch_tol
     :type switch_min: float
 
-    :raises SpeciesError: Arg is of invalid type.
+    :raises SpeciesError: Arg is of invalid type.  Required arg set to None.  Arg value is outside of accepted bounds.
     """
 
     def __init__(self, name=None, initial_value=0, constant=False, boundary_condition=False, mode=None,
@@ -74,14 +74,13 @@ class Species(SortableObject, Jsonify):
         self.switch_min = switch_min
         self.switch_tol = switch_tol
 
+        if initial_value is None:
+            raise SpeciesError("initial_value can't be None type.")
         if isinstance(initial_value, str):
             try:
                 initial_value = float(initial_value)
             except ValueError:
                 pass
-
-        if initial_value is None:
-            raise SpeciesError("initial_value can't be None type.")
         self.validate(initial_value=initial_value)
 
         self.initial_value = float(initial_value) if self.mode == "continuous" else int(initial_value)
@@ -105,16 +104,17 @@ class Species(SortableObject, Jsonify):
         :param initial_value: Initial population (discrete) or concentration (continuous) of this species.
         :type initial_value: int | float
 
-        :raises SpeciesError: If num is non-negative or a decimal number
+        :raises SpeciesError: initial_value is of invalid type.  initial_value set to None.  \
+                              initial_value is a float when mode != 'continuous'. \
+                              initial_value is negative when allow_negative_populations=False.
         """
+        if initial_value is None:
+            raise SpeciesError("initial_value can't be None type.")
         if isinstance(initial_value, str):
             try:
                 initial_value = float(initial_value)
             except ValueError:
                 pass
-
-        if initial_value is None:
-            raise SpeciesError("initial_value can't be None type.")
         self.validate(initial_value=initial_value, coverage="initial_value")
 
         self.initial_value = float(initial_value) if self.mode == "continuous" else int(initial_value)
@@ -129,6 +129,9 @@ class Species(SortableObject, Jsonify):
         :param coverage: The scope of attributes to validate.  Set to an attribute name to restrict validation \
                          to a specific attribute.
         :type coverage: str
+
+        :raises SpeciesError: Attribute is of invalid type.  Required attribute set to None.  \
+                              Attribute is value outside of accepted bounds.
         """
         # Check name
         if coverage in ("all", "name"):
