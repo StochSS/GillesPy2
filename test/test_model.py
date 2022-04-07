@@ -138,20 +138,6 @@ class TestModel(unittest.TestCase):
             """
         )
 
-    def test_valid_initial_value_float(self):
-        species = Species('A', initial_value=1.5, mode='continuous')
-
-    def test_invalid_initial_value_float(self):
-        with self.assertRaises(ValueError):
-            species = Species('A', initial_value=1.5)
-
-    def test_valid_initial_value_negative(self):
-        species = Species('A', initial_value=-1, allow_negative_populations=True)
-
-    def test_invalid_initial_value_negative(self):
-        with self.assertRaises(ValueError):
-            species = Species('A', initial_value=-1)
-
     def test_reaction_invalid_reactant(self):
         model = Model()
         rate = Parameter(name='rate', expression=0.5)
@@ -333,16 +319,6 @@ class TestModel(unittest.TestCase):
         self.assertEqual(model.listOfReactions['r3'].ode_propensity_function, 'rate*A*B')
         self.assertEqual(model.listOfReactions['r4'].ode_propensity_function, 't')
 
-
-    def test_species_setter(self):
-        sp1 = Species('A',initial_value=10)
-        sp1.set_initial_value(5)
-        self.assertEqual(sp1.initial_value,5)
-        with self.assertRaises(SpeciesError):
-            sp1.set_initial_value(-1)
-        sp2 = Species('B',initial_value=5,mode='discrete')
-        with self.assertRaises(SpeciesError):
-            sp2.set_initial_value(.5)
 
     def test_robust_model(self):
         try:
