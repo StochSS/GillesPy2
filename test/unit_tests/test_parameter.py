@@ -158,4 +158,4 @@ class TestParameter(unittest.TestCase):
         start = time.time()
         parameter.validate()
         tic = datetime.utcfromtimestamp(time.time() - start)
-        print(f"Total time to run validate: {tic.strftime("%M mins %S secs %f msecs")}")
+        print(f"Total time to run validate: {tic.strftime('%M mins %S secs %f msecs')}")

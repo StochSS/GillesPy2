@@ -324,4 +324,4 @@ class TestSpecies(unittest.TestCase):
         start = time.time()
         species.validate()
         tic = datetime.utcfromtimestamp(time.time() - start)
-        print(f"Total time to run validate: {tic.strftime('%M mins %S secs %f msecs")}')
+        print(f"Total time to run validate: {tic.strftime('%M mins %S secs %f msecs')}")
