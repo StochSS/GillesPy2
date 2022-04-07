@@ -315,3 +315,13 @@ class TestSpecies(unittest.TestCase):
                 with self.assertRaises(SpeciesError):
                     species.switch_min = test_sm
                     species.validate()
+
+    def test_comp_time_of_validate(self):
+        """ Check the computation time of validate. """
+        species = Species(name="test_species", initial_value=5)
+        import time
+        from datetime import datetime
+        start = time.time()
+        species.validate()
+        tic = datetime.utcfromtimestamp(time.time() - start)
+        print(f"Total time to run validate: {tic.strftime("%M mins %S secs %f msecs")}")

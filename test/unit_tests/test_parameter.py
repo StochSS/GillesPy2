@@ -149,3 +149,13 @@ class TestParameter(unittest.TestCase):
                 with self.assertRaises(ParameterError):
                     parameter.expression = test_exp
                     parameter.validate()
+
+    def test_comp_time_of_validate(self):
+        """ Check the computation time of validate. """
+        parameter = Parameter(name="test_parameter", expression="0.5")
+        import time
+        from datetime import datetime
+        start = time.time()
+        parameter.validate()
+        tic = datetime.utcfromtimestamp(time.time() - start)
+        print(f"Total time to run validate: {tic.strftime("%M mins %S secs %f msecs")}")
