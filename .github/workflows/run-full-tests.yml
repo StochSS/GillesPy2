@@ -2,7 +2,7 @@ name: Run GillesPy2 Tests
 
 on:
   push:
-    branches: [main]
+    branches: [test-feature/gh-actions-update]
 
 jobs:
   run-tests:
