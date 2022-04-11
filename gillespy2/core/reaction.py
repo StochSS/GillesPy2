@@ -160,6 +160,7 @@ class Reaction(SortableObject, Jsonify):
             if isinstance(node.op, (ast.BitXor, ast.Pow)):
                 # ast.Call calls defined function, args include which nodes
                 # are effected by function call
+                pow_func = ast.parse("pow", mode="eval").body
                 call = ast.Call(func=pow_func,
                                 args=[node.left, node.right],
                                 keywords=[])
@@ -300,8 +301,6 @@ class Reaction(SortableObject, Jsonify):
     def __create_custom_propensity(self, propensity_function=None):
         if propensity_function is None:
             propensity_function = self.propensity_function
-        
-        pow_func = ast.parse("pow", mode="eval").body
         
         expr = propensity_function
         expr = expr.replace('^', '**')
