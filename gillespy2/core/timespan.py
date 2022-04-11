@@ -23,7 +23,7 @@ from .gillespyError import TimespanError
 
 class TimeSpan(Iterator, Jsonify):
     """
-    Model timespan that describes the duration to rub the simulation and at which timepoint to sample
+    Model timespan that describes the duration to run the simulation and at which timepoint to sample
     the species populations during the simulation.
 
     :param items: Evenly-spaced list of times at which to sample the species populations during the simulation. 
