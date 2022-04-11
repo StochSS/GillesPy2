@@ -144,14 +144,14 @@ class TestAllSolvers(unittest.TestCase):
 
     def test_extraneous_args(self):
         for solver in self.solvers:
-            with self.subTest(solver=solver.name), self.assertLogs('root', level='WARN'):
+            with self.subTest(solver=solver.name), self.assertLogs('GillesPy2', level='WARN'):
                 model = Example()
                 solver = solver(model=model)
                 model.run(solver=solver, nonsense='ABC')
 
     def test_timeout(self):
         for solver in self.solvers:
-            with self.subTest(solver=solver.name), self.assertLogs('root', level='WARN'):
+            with self.subTest(solver=solver.name), self.assertLogs('GillesPy2', level='WARN'):
                 model = Oregonator()
                 model.timespan(np.linspace(0, 1000000, 1001))
                 solver = solver(model=model)

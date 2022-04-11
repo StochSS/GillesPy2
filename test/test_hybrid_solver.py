@@ -191,7 +191,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         model = Example()
         species1 = gillespy2.Species('test_species1', initial_value=1, mode='dynamic')
         model.add_species(species1)
-        with self.assertLogs('root', level='WARN'):
+        with self.assertLogs('GillesPy2', level='WARN'):
             solver = TauHybridSolver(model=model)
             results = model.run(solver=solver, timeout=1)
 

@@ -34,7 +34,7 @@ from gillespy2.__version__ import __version__
 
 version = __version__
 
-log = logging.getLogger("root")
+log = logging.getLogger("GillesPy2")
 log.setLevel(logging.WARN)
 log.propagate = False
 
