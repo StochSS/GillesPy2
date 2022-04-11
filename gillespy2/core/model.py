@@ -15,19 +15,29 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-import gillespy2
-from gillespy2.core.jsonify import TranslationTable
-from gillespy2.core.reaction import *
-from gillespy2.core.raterule import RateRule
-from gillespy2.core.parameter import Parameter
-from gillespy2.core.species import Species
-from gillespy2.core.reaction import Reaction
 import numpy as np
-from gillespy2.core.results import Trajectory,Results
-from collections import OrderedDict
-from gillespy2.core.gillespyError import *
-from .gillespyError import SimulationError
 from typing import Set, Type
+from collections import OrderedDict
+
+import gillespy2
+from gillespy2.core.assignmentrule import AssignmentRule
+from gillespy2.core.events import Event
+from gillespy2.core.functiondefinition import FunctionDefinition
+from gillespy2.core.parameter import Parameter
+from gillespy2.core.raterule import RateRule
+from gillespy2.core.reaction import Reaction
+from gillespy2.core.species import Species
+from gillespy2.core.timespan import TimeSpan
+from gillespy2.core.sortableobject import SortableObject
+from gillespy2.core.jsonify import Jsonify, TranslationTable
+from gillespy2.core.results import Trajectory, Results
+from gillespy2.core.gillespyError import (
+    ParameterError,
+    ModelError,
+    SimulationError,
+    StochMLImportError,
+    InvalidStochMLError
+)
 
 try:
     import lxml.etree as eTree
@@ -228,6 +238,55 @@ class Model(SortableObject, Jsonify):
                 print_string += '\n' + str(fd)
 
         return print_string
+
+    def add(self, components):
+        """
+        Adds a component, or list of components to the model. If a list is provided, Species
+        and Parameters are added before other components.  Lists may contain any combination
+        of accepted types other than lists and do not need to be in any particular order.
+
+        :param components: The component or list of components to be added the the model.
+        :type components: Species, Parameters, Reactions, Events, Rate Rules, Assignment Rules, \
+                          FunctionDefinitions, and TimeSpan or list
+
+        :returns: The components that were added to the model.
+        :rtype: Species, Parameters, Reactions, Events, Rate Rules, Assignment Rules, \
+                FunctionDefinitions, and TimeSpan or list
+
+        :raises ModelError: Component is invalid.
+        """
+        if isinstance(components, list):
+            p_types = (Species, Parameter, FunctionDefinition, TimeSpan)
+            p_names = (p_type.__name__ for p_type in p_types)
+
+            others = []
+            for component in components:
+                if isinstance(component, p_types) or type(component).__name__ in p_names:
+                    self.add(component)
+                else:
+                    others.append(component)
+
+            for component in others:
+                self.add(component)
+        elif isinstance(components, AssignmentRule) or type(components).__name__ == AssignmentRule.__name__:
+            self.add_assignment_rule(components)
+        elif isinstance(components, Event) or type(components).__name__ == Event.__name__:
+            self.add_event(components)
+        elif isinstance(components, FunctionDefinition) or type(components).__name__ == FunctionDefinition.__name__:
+            self.add_function_definition(components)
+        elif isinstance(components, Parameter) or type(components).__name__ == Parameter.__name__:
+            self.add_parameter(components)
+        elif isinstance(components, RateRule) or type(components).__name__ == RateRule.__name__:
+            self.add_rate_rule(components)
+        elif isinstance(components, Reaction) or type(components).__name__ == Reaction.__name__:
+            self.add_reaction(components)
+        elif isinstance(components, Species) or type(components).__name__ == Species.__name__:
+            self.add_species(components)
+        elif isinstance(components, TimeSpan) or type(components).__name__ == TimeSpan.__name__:
+            self.timespan(components)
+        else:
+            raise ModelError(f"Unsupported component: {type(components)} is not a valid component.")
+        return components
 
     def make_translation_table(self):
         from collections import ChainMap
@@ -653,10 +712,13 @@ class Model(SortableObject, Jsonify):
         timespans. 
 
         :param time_span: Evenly-spaced list of times at which to sample the species populations during the simulation. 
-            Best to use the form np.linspace(<start time>, <end time>, <number of time-points, inclusive>)
-        :type time_span: numpy ndarray
+            Best to use the form gillespy2.TimeSpan(np.linspace(<start time>, <end time>, <number of time-points, inclusive>))
+        :type time_span: gillespy2.TimeSpan | iterator
         """        
-        self.tspan = time_span
+        if isinstance(time_span, TimeSpan) or type(time_span).__name__ == "TimeSpan":
+            self.tspan = time_span
+        else:
+            self.tspan = TimeSpan(time_span)
 
     def get_reaction(self, rname):
         """

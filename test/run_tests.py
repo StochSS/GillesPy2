@@ -58,8 +58,10 @@ if __name__ == '__main__':
     import test_jsonify
     import test_notebooks
     from unit_tests import test_model as unittest_model
+    from unit_tests import test_timespan as unittest_timespan
 
     modules = [
+        unittest_timespan,
         unittest_model,
         test_empty_model,
         test_build_engine,
