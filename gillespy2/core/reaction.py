@@ -120,11 +120,11 @@ class Reaction(SortableObject, Jsonify):
         if self.propensity_function is None:
             self.massaction = True
             self.type = "mass-action"
-            self._create_mass_action()
+            self.__create_mass_action()
         else:
             self.massaction = False
             self.type = "customized"
-            propensity = self._create_custom_propensity()
+            propensity = self.__create_custom_propensity()
             self.propensity_function = propensity
             self.ode_propensity_function = propensity
         
