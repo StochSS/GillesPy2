@@ -74,5 +74,5 @@ int main(int argc, char* argv[]){
 	tau_leaper(&simulation, tau_tol);
 	simulation.output_buffer_final(std::cout);
 
-	return 0;
+	return simulation.get_status();
 }

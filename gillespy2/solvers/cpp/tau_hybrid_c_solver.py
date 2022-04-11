@@ -4,6 +4,7 @@ from gillespy2.solvers.utilities import solverutils as cutils
 from gillespy2.core import GillesPySolver, Model, Event, RateRule
 from gillespy2.core.gillespyError import *
 from typing import Union
+from enum import IntEnum
 from gillespy2.core import Results
 
 from .c_solver import CSolver, SimulationReturnCode
@@ -12,6 +13,9 @@ from gillespy2.solvers.cpp.build.template_gen import SanitizedModel
 class TauHybridCSolver(GillesPySolver, CSolver):
     name = "TauHybridCSolver"
     target = "hybrid"
+
+    class ErrorStatus(IntEnum):
+        LOOP_OVER_INTEGRATE = 1
 
     @classmethod
     def __create_options(cls, sanitized_model: "SanitizedModel") -> "SanitizedModel":
@@ -156,6 +160,11 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             sanitized_model.use_rate_rule(rate_rule)
         return super()._build(sanitized_model, simulation_name, variable, debug)
 
+    def _handle_return_code(self, return_code: "int") -> "int":
+        if return_code == TauHybridCSolver.ErrorStatus.LOOP_OVER_INTEGRATE:
+            raise ExecutionError("Loop over integrate exceeded, problem space is too stiff")
+        return super()._handle_return_code(return_code)
+
     def get_solver_settings(self):
         """
         :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
@@ -250,11 +259,6 @@ class TauHybridCSolver(GillesPySolver, CSolver):
 
         sim_exec = self._build(self.model, self.target, self.variable, False)
         sim_status = self._run(sim_exec, args, decoder, timeout, display_args)
-
-        if sim_status == SimulationReturnCode.FAILED:
-            raise ExecutionError("Error encountered while running simulation C++ file:\n"
-                f"Return code: {int(sim_status)}.\n")
-
         trajectories, time_stopped = decoder.get_output()
 
         simulation_data = self._format_output(trajectories)
