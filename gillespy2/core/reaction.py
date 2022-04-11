@@ -208,8 +208,8 @@ class Reaction(SortableObject, Jsonify):
             self.generic_visit(node)
 
         def visit_Call(self, node):
-            func_name = ToString.substitutions.get(node.func.id) \
-                if node.func.id in ToString.substitutions \
+            func_name = __ToString.substitutions.get(node.func.id) \
+                if node.func.id in __ToString.substitutions \
                 else node.func.id
             self._string_changer(func_name + '(')
             counter = 0
