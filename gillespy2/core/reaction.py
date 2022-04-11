@@ -86,7 +86,7 @@ class Reaction(SortableObject, Jsonify):
         if reactants is None:
             reactants = {}
         if products is None:
-            products = None
+            products = {}
         if isinstance(propensity_function, (int, float)):
             propensity_function = str(propensity_function)
         if isinstance(rate, (int, float)):
@@ -97,7 +97,7 @@ class Reaction(SortableObject, Jsonify):
         self.reactants = {}
         for r in reactants:
             rtype = type(r).__name__
-            if rtype == 'instance':
+            if rtype == 'Species':
                 self.reactants[r.name] = reactants[r]
             else:
                 self.reactants[r] = reactants[r]
@@ -105,7 +105,7 @@ class Reaction(SortableObject, Jsonify):
         self.products = {}
         for p in products:
             rtype = type(p).__name__
-            if rtype == 'instance':
+            if rtype == 'Species':
                 self.products[p.name] = products[p]
             else:
                 self.products[p] = products[p]
@@ -127,7 +127,7 @@ class Reaction(SortableObject, Jsonify):
             propensity = self.__create_custom_propensity()
             self.propensity_function = propensity
             self.ode_propensity_function = propensity
-        
+
     def __str__(self):
         print_string = self.name
         if len(self.reactants):
@@ -434,6 +434,13 @@ class Reaction(SortableObject, Jsonify):
         for id, name in enumerate(names):
             sanitized_propensity = sanitized_propensity.replace(name, "{" + str(id) + "}")
         return sanitized_propensity.format(*replacements)
+
+    def _create_sanitized_reaction(self, n_ndx, species_mappings, parameter_mappings):
+        name = f"R{n_ndx}"
+        reactants = {species_mappings[species.name]: self.reactants[species] for species in self.reactants}
+        products = {species_mappings[species.name]: self.products[species] for species in self.products}
+        propensity_function = self.sanitized_propensity_function(species_mappings, parameter_mappings)
+        return Reaction(name=name, reactants=reactants, products=products, propensity_function=propensity_function)
 
     def setType(self, rxntype):
         """

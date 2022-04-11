@@ -560,7 +560,7 @@ class Model(SortableObject, Jsonify):
         else:
             try:
                 self.problem_with_name(reactions.name)
-                reactions.verify()
+                # reactions.verify()
                 self.validate_reactants_and_products(reactions)
                 if reactions.name is None or reactions.name == '':
                     i = 0
@@ -575,13 +575,9 @@ class Model(SortableObject, Jsonify):
                         raise ModelError("Duplicate name of reaction: {0}".format(reactions.name))
                     self.listOfReactions[reactions.name] = reactions
                 # Build Sanitized reaction as well
-                sanitized_reaction = Reaction(name='R{}'.format(len(self._listOfReactions)))
-                sanitized_reaction.reactants = {self._listOfSpecies[species.name]: reactions.reactants[species] for
-                                                species in reactions.reactants}
-                sanitized_reaction.products = {self._listOfSpecies[species.name]: reactions.products[species] for
-                                               species in reactions.products}
-                sanitized_reaction.propensity_function = reactions.sanitized_propensity_function(self._listOfSpecies,
-                                                                                                 self._listOfParameters)
+                sanitized_reaction = reactions._create_sanitized_reaction(
+                    len(self.listOfReactions), self._listOfSpecies, self._listOfParameters
+                )
                 self._listOfReactions[reactions.name] = sanitized_reaction
             except Exception as e:
                 raise ParameterError("Error using {} as a Reaction. Reason given: {}".format(reactions, e))
