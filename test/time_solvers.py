@@ -70,6 +70,7 @@ def timed_trials(models, solvers, trajectories, number_trials=30, override_numbe
             times[0] = trajectory
             for i in trange(trials, desc = 'Model: {}, Solver: {}, Trajectories: {}'.format(model.name, solver.name, trajectory)):
                 start = timer()
+                solver = solver(model=model)
                 model.run(solver=solver, number_of_trajectories=trajectory)
                 stop = timer()
                 times[1+i] = stop - start

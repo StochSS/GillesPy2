@@ -59,6 +59,7 @@ def timing_battery(number_of_samples, acceptable_deviation):
         print("Testing Model : {} Solver : {}.".format(model.name, solver.name))
         for i in range(number_of_samples):
             try:
+                solver = solver(model=model)
                 standard_results = model.run(stochkit_home=stochkit_home)
                 start = timer()
                 test_results = model.run(solver=solver)

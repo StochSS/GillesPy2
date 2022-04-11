@@ -156,8 +156,8 @@ if not len(model.listOfSpecies):
     model.delete_all_parameters()
     model.add_species(species_to_add)
 # Run simulation and store results
-solver = TauHybridSolver()
 model.tspan = np.linspace(start, duration, steps+1)
+solver = TauHybridSolver(model=model)
 results = model.run(solver=solver, show_labels=True, integrator='Radau',
 integrator_options={'max_step':.25, 'atol':atol, 'rtol':rtol})
 
