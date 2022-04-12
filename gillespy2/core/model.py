@@ -569,7 +569,7 @@ class Model(SortableObject, Jsonify):
                 self.add_reaction(reaction)
         elif isinstance(reactions, Reaction) or type(reactions).__name__ == "Reaction":
             self.problem_with_name(reactions.name)
-            self.resolve_reaction(reaction)
+            self.resolve_reaction(reactions)
             self.listOfReactions[reactions.name] = reactions
             # Build Sanitized reaction as well
             sanitized_reaction = reactions._create_sanitized_reaction(
