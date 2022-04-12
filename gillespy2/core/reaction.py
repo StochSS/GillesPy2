@@ -311,6 +311,13 @@ class Reaction(SortableObject, Jsonify):
         newFunc.visit(expr)
         return newFunc.string
     
+    def _create_sanitized_reaction(self, n_ndx, species_mappings, parameter_mappings):
+        name = f"R{n_ndx}"
+        reactants = {species_mappings[species.name]: self.reactants[species] for species in self.reactants}
+        products = {species_mappings[species.name]: self.products[species] for species in self.products}
+        propensity_function = self.sanitized_propensity_function(species_mappings, parameter_mappings)
+        return Reaction(name=name, reactants=reactants, products=products, propensity_function=propensity_function)
+
     def addProduct(self, *args, **kwargs):
         """
         Add a product to this reaction (deprecated)
@@ -433,13 +440,6 @@ class Reaction(SortableObject, Jsonify):
         for id, name in enumerate(names):
             sanitized_propensity = sanitized_propensity.replace(name, "{" + str(id) + "}")
         return sanitized_propensity.format(*replacements)
-
-    def _create_sanitized_reaction(self, n_ndx, species_mappings, parameter_mappings):
-        name = f"R{n_ndx}"
-        reactants = {species_mappings[species.name]: self.reactants[species] for species in self.reactants}
-        products = {species_mappings[species.name]: self.products[species] for species in self.products}
-        propensity_function = self.sanitized_propensity_function(species_mappings, parameter_mappings)
-        return Reaction(name=name, reactants=reactants, products=products, propensity_function=propensity_function)
 
     def setType(self, rxntype):
         """

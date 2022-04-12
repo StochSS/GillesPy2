@@ -32,6 +32,7 @@ from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.jsonify import Jsonify, TranslationTable
 from gillespy2.core.results import Trajectory, Results
 from gillespy2.core.gillespyError import (
+    SpeciesError,
     ParameterError,
     ModelError,
     SimulationError,
@@ -118,7 +119,7 @@ class Model(SortableObject, Jsonify):
 
     :param name: The name of the model, or an annotation describing it.
     :type name: str
-    
+
     :param population: The type of model being described. A discrete stochastic model is a
         population model (True), a deterministic model is a concentration model
         (False). Automatic conversion from population to concentration models
@@ -127,13 +128,13 @@ class Model(SortableObject, Jsonify):
 
     :param volume: The volume of the system matters when converting to from population to
         concentration form. This will also set a parameter "vol" for use in
-        custom (i.e. non-mass-action) propensity functions.  
-    :type volume: float   
-    
+        custom (i.e. non-mass-action) propensity functions.
+    :type volume: float
+
     :param tspan: The timepoints at which the model should be simulated. If None, a
         default timespan is added. May be set later, see Model.timespan
     :type tspan: numpy ndarray
-    
+
     :param annotation: Option further description of model
     :type annotation: str
     """
@@ -344,7 +345,7 @@ class Model(SortableObject, Jsonify):
                 self._listOfSpecies[species.name] = f'S{len(self._listOfSpecies)}'
             except SpeciesError as err:
                 errmsg = f"Could not add species: {species.name}, Reason given: {err}"
-                raise ModelError(errmsg)
+                raise ModelError(errmsg) from err
         else:
             errmsg = f"species must be of type Species or list of Species not {type(species)}"
             raise ModelError(errmsg)
@@ -420,7 +421,7 @@ class Model(SortableObject, Jsonify):
                 self.add_parameter(param)
         elif isinstance(parameters, Parameter) or type(parameters).__name__ == 'Parameter':
             self.problem_with_name(parameters.name)
-            self.resolve_parameter(parameter)
+            self.resolve_parameter(parameters)
             self.listOfParameters[parameters.name] = parameters
             self._listOfParameters[parameters.name] = f'P{len(self._listOfParameters)}'
         else:
@@ -594,7 +595,7 @@ class Model(SortableObject, Jsonify):
         """
         if name not in self.listOfReactions:
             raise ModelError(f"Reaction {name} could not be found in the model.")
-        return self.listOfReactions[rname]
+        return self.listOfReactions[name]
 
     def get_all_reactions(self):
         """
