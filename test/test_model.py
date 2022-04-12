@@ -264,7 +264,7 @@ class TestModel(unittest.TestCase):
         with self.assertRaises(ModelError):
             model.add_reaction(reaction)
         parameter = 'nonparameter'
-        with self.assertRaises(ParameterError):
+        with self.assertRaises(ModelError):
             model.add_parameter(parameter)
         
     def test_add_event(self):

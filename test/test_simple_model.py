@@ -136,7 +136,6 @@ class TestSimpleModel(unittest.TestCase):
         p_name = 'fake'
         with self.assertRaises(ModelError) as ex:
             parameter = self.model.get_parameter(p_name)
-        self.assertEqual(str(ex.exception), "No parameter named " + p_name)
 
     def test_set_parameter(self):
         self.model.set_parameter('k1', '100')
@@ -206,7 +205,7 @@ class TestSimpleModel(unittest.TestCase):
 
         # Check r2 name & rate is set
         self.assertEqual(reactions['r2'].name, 'r2', msg='Has incorrect expression')
-        self.assertEqual(self.model.get_parameter(reactions['r2'].marate).expression, '10', msg='Has incorrect expression')
+        self.assertEqual(reactions['r2'].marate.expression, '10', msg='Has incorrect expression')
 
     def test_model_has_timespan_correct(self):
         timespan = self.model.tspan

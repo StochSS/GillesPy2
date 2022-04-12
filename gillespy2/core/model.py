@@ -624,7 +624,8 @@ class Model(SortableObject, Jsonify):
                 reaction.marate = self.get_parameter(name)
 
             # Confirm that all species in reactants are part of the model
-            for species, stoichiometry in reaction.reactants.items():
+            for species in list(reaction.reactants.keys()):
+                stoichiometry = reaction.reactants[species]
                 name = species if isinstance(species, str) else species.name
                 stoich_spec = self.get_species(name)
                 if stoich_spec not in reaction.reactants:
@@ -632,7 +633,8 @@ class Model(SortableObject, Jsonify):
                     del reaction.reactants[species]
 
             # Confirm that all species in products are part of the model
-            for species, stoichiometry in reaction.products.items():
+            for species in list(reaction.products.keys()):
+                stoichiometry = reaction.products[species]
                 name = species if isinstance(species, str) else species.name
                 stoich_spec = self.get_species(name)
                 if stoich_spec not in reaction.products:
