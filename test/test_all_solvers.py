@@ -90,33 +90,35 @@ class TestAllSolvers(unittest.TestCase):
     labeled_results_more_trajectories = {}
 
     for solver in solvers:
-        labeled_results[solver] = model.run(solver=solver, number_of_trajectories=1,seed=1)
-        labeled_results_more_trajectories[solver] = model.run(solver=solver, number_of_trajectories=2)
+        solver = solver(model=model)
+        labeled_results[solver.name] = model.run(solver=solver, number_of_trajectories=1, seed=1)
+        labeled_results_more_trajectories[solver.name] = model.run(solver=solver, number_of_trajectories=2)
 
     def test_instantiated(self):
         for solver in self.solvers:
-            self.model.run(solver=solver())
+            self.model.run(solver=solver(model=self.model))
 
     def test_to_array(self):
         for solver in self.solvers:
-            self.assertTrue(isinstance(self.labeled_results[solver].to_array()[0], np.ndarray))
+            self.assertTrue(isinstance(self.labeled_results[solver.name].to_array()[0], np.ndarray))
 
     def test_return_type_show_labels(self):
         for solver in self.solvers:
-            self.assertTrue(isinstance(self.labeled_results[solver], Results))
-            self.assertTrue(isinstance(self.labeled_results[solver]['Sp'], np.ndarray))
-            self.assertTrue(isinstance(self.labeled_results[solver]['Sp'][0], np.float))
+            self.assertTrue(isinstance(self.labeled_results[solver.name], Results))
+            self.assertTrue(isinstance(self.labeled_results[solver.name]['Sp'], np.ndarray))
+            self.assertTrue(isinstance(self.labeled_results[solver.name]['Sp'][0], np.float))
 
-            self.assertTrue(isinstance(self.labeled_results[solver][0], Trajectory))
+            self.assertTrue(isinstance(self.labeled_results[solver.name][0], Trajectory))
 
-            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver], Results))
-            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0], Trajectory))
-            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0]['Sp'], np.ndarray))
-            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0]['Sp'][0], np.float))
+            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver.name], Results))
+            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver.name][0], Trajectory))
+            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver.name][0]['Sp'], np.ndarray))
+            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver.name][0]['Sp'][0], np.float))
 
     def test_random_seed(self):
         for solver in self.solvers:
             with self.subTest(solver=solver.name):
+                solver = solver(model=self.model)
                 same_results = self.model.run(solver=solver, seed=1)
                 compare_results = self.model.run(solver=solver,seed=1)
                 self.assertTrue(np.array_equal(same_results.to_array(), compare_results.to_array()))
@@ -132,6 +134,7 @@ class TestAllSolvers(unittest.TestCase):
         model.add_reaction(unnamed_rxn)
         for solver in self.solvers:
             with self.subTest(solver=solver.name):
+                solver = solver(model=self.model)
                 same_results = self.model.run(solver=solver, seed=1)
                 compare_results = self.model.run(solver=solver,seed=1)
                 self.assertTrue(np.array_equal(same_results.to_array(), compare_results.to_array()))
@@ -143,6 +146,7 @@ class TestAllSolvers(unittest.TestCase):
         for solver in self.solvers:
             with self.subTest(solver=solver.name), self.assertLogs(level='WARN'):
                 model = Example()
+                solver = solver(model=model)
                 model.run(solver=solver, nonsense='ABC')
 
     def test_timeout(self):
@@ -150,21 +154,8 @@ class TestAllSolvers(unittest.TestCase):
             with self.subTest(solver=solver.name), self.assertLogs(level='WARN'):
                 model = Oregonator()
                 model.timespan(np.linspace(0, 1000000, 1001))
+                solver = solver(model=model)
                 model.run(solver=solver, timeout=0.1)
-
-    def test_basic_solver_import(self):
-        from gillespy2.solvers.numpy.basic_tau_leaping_solver import BasicTauLeapingSolver
-        from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
-        from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
-        model = MichaelisMenten()
-        results1 = model.run(solver=BasicTauLeapingSolver)
-        self.assertTrue(results1[0].solver_name == 'TauLeapingSolver')
-
-        results2 = model.run(solver=BasicODESolver)
-        self.assertTrue(results2[0].solver_name == 'ODESolver')
-
-        results3 = model.run(solver=BasicTauHybridSolver)
-        self.assertTrue(results3[0].solver_name == 'TauHybridSolver')
 
     def test_sbml_feature_validation(self):
         class TestModel(gillespy2.Model):

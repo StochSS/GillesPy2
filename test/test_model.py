@@ -69,8 +69,9 @@ class TestModel(unittest.TestCase):
     def test_uniform_timespan(self):
         model = Model()
         model.timespan(np.linspace(0, 1, 100))
-        with self.assertRaises(InvalidModelError):
+        with self.assertRaises(TimespanError):
             model.timespan(np.array([0, 0.1, 0.5]))
+            model.run()
 
     def test_duplicate_parameter_names(self):
         model = Model()
@@ -222,7 +223,8 @@ class TestModel(unittest.TestCase):
         number_points = 11
         model.timespan(np.linspace(0, 1, number_points))
         from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver
-        results = model.run(number_of_trajectories=1, solver=NumPySSASolver, seed=1)
+        solver = NumPySSASolver(model=model)
+        results = model.run(number_of_trajectories=1, solver=solver, seed=1)
         self.assertTrue(len(results['time']) == number_points)
         self.assertTrue(len(results[species1.name]) == number_points)
         self.assertTrue(len(results[species2.name]) == number_points)
@@ -304,7 +306,7 @@ class TestModel(unittest.TestCase):
             results = model.run(number_of_trajectories = 1, solver = 'non_solver', seed = 1)
 
     def test_model_init_population_false_and_volume_warninag(self):
-        with self.assertRaises(Warning):
+        with self.assertRaises(ModelError):
             model = Model(population = False, volume = 0.9)
 
     def test_model_init_custom_tspan(self):

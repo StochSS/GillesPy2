@@ -86,11 +86,13 @@ char ArgParser::match_arg(std::string &token)
 	}
 }
 
+static std::stringstream &fill_stream(std::stringstream &stream, char *argv[]);
+
 ArgParser::ArgParser(int argc, char *argv[])
 {
 	std::stringstream arg_stream;
 
-	for (int i = 1; i < argc; i++) 
+	for (int i = 1; i < argc; i++)
 	{
 		char arg_key;
 		std::string token(argv[i]);
@@ -113,50 +115,46 @@ ArgParser::ArgParser(int argc, char *argv[])
 			arg_key = token[1];
 		}
 
-		// Create a stringstream for datatype parsing.
-		arg_stream << argv[i + 1];
-		std::stringstream arg_stream(argv[i + 1]);
-
 		switch (arg_key) 
 		{
 			case 't':
-				arg_stream >> timesteps;
+				std::stringstream(argv[i + 1]) >> timesteps;
 				break;
 
 			case 'e':
-				arg_stream >> end;
+				std::stringstream(argv[i + 1]) >> end;
 				break;
 
 			case 's':
-				arg_stream >> seed;
+				std::stringstream(argv[i + 1]) >> seed;
 				break;
 
 			case 'S':
-				arg_stream >> switch_tol;
+				std::stringstream(argv[i + 1]) >> switch_tol;
 				break;
 
 			case 'i':
-				arg_stream >> increment;
+				std::stringstream(argv[i + 1]) >> increment;
 				break;
 
 			case 'I':
-				Gillespy::map_variable_populations(arg_stream);
+				Gillespy::map_variable_populations(fill_stream(arg_stream, &argv[i + 1]));
 				break;
 
 			case 'p':
-				Gillespy::map_variable_parameters(arg_stream);
+				Gillespy::map_variable_parameters(fill_stream(arg_stream, &argv[i + 1]));
 				break;
 
 			case 'T':
-				arg_stream >> trajectories;
+				std::stringstream(argv[i + 1]) >> trajectories;
 				break;
 
 			case 'l':
-				arg_stream >> tau_tol;
+				std::stringstream(argv[i + 1]) >> tau_tol;
 				break;
 
 			case 'V':
-				arg_stream >> output_interval;
+				std::stringstream(argv[i + 1]) >> output_interval;
 				break;
 
 			case 'v':
@@ -174,6 +172,13 @@ ArgParser::ArgParser(int argc, char *argv[])
 	increment = increment > 0 ? increment : end / (timesteps - 1);
 	// Output interval must lie within the range (0, num_timesteps]
 	output_interval = std::max(1, std::min(timesteps, output_interval));
+}
+
+std::stringstream &fill_stream(std::stringstream &stream, char *argv[])
+{
+	for (char *arg = argv[0]; arg[0] != '-'; ++arg)
+		stream << arg;
+	return stream;
 }
 
 ArgParser::~ArgParser()

@@ -41,7 +41,8 @@ class TestSBML(unittest.TestCase):
 
         model_path = os.path.join(os.path.dirname(__file__), "assets", "test_sbml.xml")
         sbml_model, errors = import_SBML(model_path)
-        sbml_results = sbml_model.run(solver=ODESolver)
+        solver = ODESolver(model=sbml_model)
+        sbml_results = sbml_model.run(solver=solver, increment=0.05, t=20)
 
     def test_sbml_string_replace(self):
         """

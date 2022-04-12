@@ -33,7 +33,8 @@ class TestCheckCPPSupport(unittest.TestCase):
         from gillespy2 import SSACSolver
         try:
             model = Example()
-            results = model.run(solver=SSACSolver, cpp_support=True)
+            solver = SSACSolver(model=model)
+            results = model.run(solver=solver, cpp_support=True)
             return True
         except Exception as e:
             from gillespy2.core import log

@@ -4,6 +4,7 @@ from gillespy2.solvers.utilities import solverutils as cutils
 from gillespy2.core import GillesPySolver, Model, Event, RateRule
 from gillespy2.core.gillespyError import *
 from typing import Union
+from enum import IntEnum
 from gillespy2.core import Results
 
 from .c_solver import CSolver, SimulationReturnCode
@@ -12,6 +13,9 @@ from gillespy2.solvers.cpp.build.template_gen import SanitizedModel
 class TauHybridCSolver(GillesPySolver, CSolver):
     name = "TauHybridCSolver"
     target = "hybrid"
+
+    class ErrorStatus(IntEnum):
+        LOOP_OVER_INTEGRATE = 1
 
     @classmethod
     def __create_options(cls, sanitized_model: "SanitizedModel") -> "SanitizedModel":
@@ -156,28 +160,54 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             sanitized_model.use_rate_rule(rate_rule)
         return super()._build(sanitized_model, simulation_name, variable, debug)
 
+    def _handle_return_code(self, return_code: "int") -> "int":
+        if return_code == TauHybridCSolver.ErrorStatus.LOOP_OVER_INTEGRATE:
+            raise ExecutionError("Loop over integrate exceeded, problem space is too stiff")
+        return super()._handle_return_code(return_code)
+
     def get_solver_settings(self):
         """
         :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
         """
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
-    def run(self=None, model: Model = None, t: int = 20, number_of_trajectories: int = 1, timeout: int = 0,
+    def run(self=None, model: Model = None, t: int = None, number_of_trajectories: int = 1, timeout: int = 0,
             increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
             resume=None, live_output: str = None, live_output_options: dict = {}, tau_step: int = .03, tau_tol=0.03, **kwargs):
 
+        from gillespy2 import log
+
         if self is None:
+            # Post deprecation block
+            # raise SimulationError("TauHybridCSolver must be instantiated to run the simulation")
+            # Pre deprecation block
+            log.warning(
+                """
+                `gillespy2.Model.run(solver=TauHybridCSolver)` is deprecated.
+
+                You should use `gillespy2.Model.run(solver=TauHybridCSolver(model=gillespy2.Model))
+                Future releases of GillesPy2 may not support this feature.
+                """
+            )
             self = TauHybridCSolver(model, resume=resume)
+
+        if model is not None:
+            log.warning('model = gillespy2.model is deprecated. Future releases '
+                        'of GillesPy2 may not support this feature.')
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
             self._set_model(model=model)
-        if model is not None and model.get_json_hash() != self.model.get_json_hash():
-            raise SimulationError("Model must equal TauHybridCSolver.model.")
-        self.model.resolve_parameters()
-        self.validate_sbml_features(model=model)
 
-        increment = self.get_increment(increment=increment)
+        self.model.resolve_parameters()
+        self.validate_model(self.model, model)
+        self.validate_sbml_features(model=self.model)
+
+        self.validate_tspan(increment=increment, t=t)
+        if increment is None:
+            increment = self.model.tspan[-1] - self.model.tspan[-2]
+        if t is None:
+            t = self.model.tspan[-1]
 
         # Validate parameters prior to running the model.
         self._validate_type(variables, dict, "'variables' argument must be a dictionary.")
@@ -229,11 +259,6 @@ class TauHybridCSolver(GillesPySolver, CSolver):
 
         sim_exec = self._build(self.model, self.target, self.variable, False)
         sim_status = self._run(sim_exec, args, decoder, timeout, display_args)
-
-        if sim_status == SimulationReturnCode.FAILED:
-            raise gillespyError.ExecutionError("Error encountered while running simulation C++ file:\n"
-                f"Return code: {int(sim_status)}.\n")
-
         trajectories, time_stopped = decoder.get_output()
 
         simulation_data = self._format_output(trajectories)

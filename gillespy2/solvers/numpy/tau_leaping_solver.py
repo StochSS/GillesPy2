@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 """Class and methods for the Tau Leaping Solver"""
+import copy
 import random
 import math
 from threading import Thread, Event
@@ -42,14 +43,18 @@ class TauLeapingSolver(GillesPySolver):
     result = None
 
     def __init__(self, model=None, debug=False, profile=False):
+        if model is None:
+            raise SimulationError("A model is required to run the simulation.")
+
         name = "TauLeapingSolver"
         rc = 0
         stop_event = None
         pause_event = None
         result = None
-        self.model = model
+        self.model = copy.deepcopy(model)
         self.debug = debug
         self.profile = profile
+        self.is_instantiated = True
 
     def __get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions):
         """
@@ -88,8 +93,7 @@ class TauLeapingSolver(GillesPySolver):
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile','timeout', 'tau_tol')
 
-    @classmethod
-    def run(self, model=None, t=20, number_of_trajectories=1, increment=None, seed=None,
+    def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, seed=None,
             debug=False, profile=False,  live_output=None, live_output_options={},
             timeout=None, resume=None, tau_tol=0.03, **kwargs):
         """
@@ -134,19 +138,39 @@ class TauLeapingSolver(GillesPySolver):
 
         :returns:
         """
+        from gillespy2 import log
 
-        if isinstance(self, type):
+        if self is None:
+            # Post deprecation block
+            # raise SimulationError("TauLeapingSolver must be instantiated to run the simulation")
+            # Pre deprecation block
+            log.warning(
+                """
+                `gillespy2.Model.run(solver=TauLeapingSolver)` is deprecated.
+
+                You should use `gillespy2.Model.run(solver=TauLeapingSolver(model=gillespy2.Model))
+                Future releases of GillesPy2 may not support this feature.
+                """
+            )
             self = TauLeapingSolver(model=model, debug=debug, profile=profile)
+
+        if model is not None:
+            log.warning('model = gillespy2.model is deprecated. Future releases '
+                        'of GillesPy2 may not support this feature.')
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
-            self.model = model
-        if model is not None and model.get_json_hash() != self.model.get_json_hash():
-            raise SimulationError("Model must equal TauLeapingSolver.model.")
-        self.model.resolve_parameters()
-        self.validate_sbml_features(model=model)
+            self.model = copy.deepcopy(model)
 
-        increment = self.get_increment(increment=increment)
+        self.model.resolve_parameters()
+        self.validate_model(self.model, model)
+        self.validate_sbml_features(model=self.model)
+
+        self.validate_tspan(increment=increment, t=t)
+        if increment is None:
+            increment = self.model.tspan[-1] - self.model.tspan[-2]
+        if t is None:
+            t = self.model.tspan[-1]
 
         self.stop_event = Event()
         self.pause_event = Event()
