@@ -116,7 +116,7 @@ class GillesPySolver:
     @classmethod
     def validate_model(cls, sol_model, model):
         if model is not None:
-            model.resolve_parameters()
+            model.resolve_all_parameters()
             if model.tspan is None:
                 model = copy.deepcopy(model)
                 model.tspan = sol_model.tspan

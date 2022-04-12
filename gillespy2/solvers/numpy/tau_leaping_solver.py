@@ -162,7 +162,7 @@ class TauLeapingSolver(GillesPySolver):
                 raise SimulationError("A model is required to run the simulation.")
             self.model = copy.deepcopy(model)
 
-        self.model.resolve_parameters()
+        self.model.resolve_all_parameters()
         self.validate_model(self.model, model)
         self.validate_sbml_features(model=self.model)
 
