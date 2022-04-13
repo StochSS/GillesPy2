@@ -1,3 +1,4 @@
+import numpy as np
 import gillespy2
 from gillespy2.solvers.cpp.c_decoder import IterativeSimDecoder
 from gillespy2.solvers.utilities import solverutils as cutils

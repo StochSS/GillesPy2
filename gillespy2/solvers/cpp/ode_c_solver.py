@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import numpy as np
 
-from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
+from gillespy2.solvers.cpp.c_decoder import IterativeSimDecoder
 from gillespy2.solvers.utilities import solverutils as cutils
 from gillespy2.core import GillesPySolver, Model
 from gillespy2.core.gillespyError import *
@@ -117,7 +117,7 @@ class ODECSolver(GillesPySolver, CSolver):
             display_args = None
 
         args = self._make_args(args)
-        decoder = BasicSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
+        decoder = IterativeSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
 
         sim_exec = self._build(self.model, self.target, self.variable, False)
         sim_status = self._run(sim_exec, args, decoder, timeout, display_args)
