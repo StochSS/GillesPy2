@@ -78,5 +78,5 @@ int main(int argc, char *argv[]) {
 	ODESolver(&simulation, increment);
 	simulation.output_buffer_final(std::cout);
 
-	return 0;
+	return simulation.get_status();
 }

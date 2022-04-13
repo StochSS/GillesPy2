@@ -33,12 +33,18 @@ from .species import *
 from .timespan import TimeSpan
 from gillespy2.__version__ import __version__
 
-_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-_handler = logging.StreamHandler()
-_handler.setFormatter(_formatter)
 version = __version__
-log = logging.getLogger()
+
+log = logging.getLogger("GillesPy2")
 log.setLevel(logging.WARN)
-log.addHandler(_handler)
+log.propagate = False
+
+if not log.handlers:
+    _formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(_formatter)
+
+    log.addHandler(_handler)
 
 __all__ = [s for s in dir() if not s.startswith('_')]

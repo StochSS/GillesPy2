@@ -74,5 +74,5 @@ int main(int argc, char *argv[])
 	ssa_direct(&simulation);
 	simulation.output_buffer_final(std::cout);
 
-	return 0;
+	return simulation.get_status();
 }

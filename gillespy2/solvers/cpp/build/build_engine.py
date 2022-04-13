@@ -145,15 +145,21 @@ class BuildEngine():
         make = Make(self.makefile, cache_dir, cache_dir)
         make.prebuild()
 
-    def build_simulation(self, simulation_name: str) -> str:
+    def build_simulation(self, simulation_name: "str", definitions: "dict[str, str]" = None) -> str:
         """
         Build the solver to the temp directory.
 
         :param simulation_name: The name of the simulation to build. For example, ODESimulation.
         :type simulation_name: str
 
+        :param definitions: Dictionary of environment variables to be overriden when the Makefile is invoked.
+        Intended for use when running through a debugger environment or profiler.
+        :type definitions: dict[str, str]
+
         :return: The path of the newly build solver executable.
         """
+        if definitions is None:
+            definitions = {}
 
         if self.make is None:
             raise gillespyError.BuildError(
@@ -161,7 +167,7 @@ class BuildEngine():
                 "To fix, call `BuildEngine.prepare()` prior to attempting to build the simulation."
             )
 
-        self.make.build_simulation(simulation_name, template_dir=str(self.template_dir))
+        self.make.build_simulation(simulation_name, template_dir=str(self.template_dir), **definitions)
         return str(self.make.output_file)
 
     def get_executable_path(self) -> str:

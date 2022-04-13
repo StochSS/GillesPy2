@@ -193,6 +193,52 @@ namespace Gillespy {
 		os.flush();
 	}
 
+	LogStream &Logger::info()
+	{
+		switch (m_log_level)
+		{
+		case LogLevel::INFO:
+			return m_stderr;
+		default:
+			return m_null;
+		}
+	}
+
+	LogStream &Logger::warn()
+	{
+		switch (m_log_level)
+		{
+		case LogLevel::WARN:
+		case LogLevel::INFO:
+			return m_stderr;
+		default:
+			return m_null;
+		}
+	}
+
+	LogStream &Logger::err()
+	{
+		switch (m_log_level)
+		{
+		case LogLevel::CRIT:
+		case LogLevel::SILENT:
+			return m_null;
+		default:
+			return m_stderr;
+		}
+	}
+
+	LogStream &Logger::crit()
+	{
+		switch (m_log_level)
+		{
+		case LogLevel::SILENT:
+			return m_null;
+		default:
+			return m_stderr;
+		}
+	}
+
 	// DETERMINISTIC SIMULATIONS: explicit instantation of real-valued data structures.
 	template struct Species<double>;
 	template struct Model<double>;

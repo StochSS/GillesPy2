@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import ast
 import json
 
+from gillespy2.core.jsonify import ComplexJsonCoder
+
 def __add_events(model, events):
     for name, event in events.items():
         s_event = {"compID":model['defaultID'],
@@ -186,7 +188,7 @@ def __get_species(species, name):
 
 def __write_to_file(model, path):
     with open(path, "w") as model_file:
-        json.dump(model, model_file, indent=4, sort_keys=True)
+        json.dump(model, model_file, indent=4, sort_keys=True, cls=ComplexJsonCoder)
 
 
 def export(model, path=None, return_stochss_model=False):
@@ -203,14 +205,19 @@ def export(model, path=None, return_stochss_model=False):
     if path is None:
         path = f"{model.name}.mdl"
 
+    if model.tspan is None:
+        model_settings = {"endSim": 20, "timeStep": 0.05}
+    else:
+        model_settings = {
+            "endSim": model.tspan[-1],
+            "timeStep": model.tspan[-1] / len(model.tspan)
+        }
+
     s_model = {"is_spatial": False,
                "defaultID": 1,
                "annotation": "",
                "volume": model.volume,
-               "modelSettings": {
-                    "endSim": model.tspan[-1],
-                    "timeStep": model.tspan[-1] / len(model.tspan)
-                },
+               "modelSettings": model_settings,
                 "species": [],
                 "initialConditions": [],
                 "parameters": [],
