@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os
+import copy
 import subprocess
 import signal
 import threading
@@ -62,13 +63,16 @@ class CSolver:
     rc = 0
 
     def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable: bool = False):
+        if model is None:
+            raise gillespyError.SimulationError("A model is required to run the simulation.")
+
         if len(BuildEngine.get_missing_dependencies()) > 0:
             raise gillespyError.SimulationError(
                 "Please install/configure 'g++' and 'make' on your system, to ensure that GillesPy2 C solvers will run properly."
             )
 
         self.delete_directory = False
-        self.model = model
+        self.model = copy.deepcopy(model)
         self.resume = resume
         self.variable = variable
         self.build_engine: BuildEngine = None
@@ -87,6 +91,8 @@ class CSolver:
 
         if self.model is not None:
             self._set_model()
+
+        self.is_instantiated = True
 
     def __del__(self):
         if self.build_engine is None:
@@ -238,10 +244,7 @@ class CSolver:
                 if timeout_event[0]:
                     return SimulationReturnCode.PAUSED
 
-                if return_code not in [0, 33]:
-                    return SimulationReturnCode.FAILED
-
-                return SimulationReturnCode.DONE
+                return self._handle_return_code(return_code)
 
     def _make_args(self, args_dict: "dict[str, str]") -> "list[str]":
         """
@@ -284,6 +287,24 @@ class CSolver:
 
         return self.result
 
+    def _handle_return_code(self, return_code: "int") -> "SimulationReturnCode":
+        """
+        Default return code handler; determines whether the simulation succeeded or failed.
+        Intended to be overridden by solver subclasses, which handles solver-specific return codes.
+
+        Does nothing if the return code checks out, otherwise raises an error.
+
+        :param return_code: Return code returned by a simulation.
+        :type return_code: int
+        """
+        if return_code == 33:
+            return SimulationReturnCode.PAUSED
+        if return_code == 0:
+            return SimulationReturnCode.DONE
+
+        raise gillespyError.ExecutionError("Error encountered while running simulation C++ file "
+                                           f"(return code: {int(return_code)})")
+
     def _make_resume_data(self, time_stopped: int, simulation_data: numpy.ndarray, t: int):
         """
         If the simulation was paused then the output data needs to be trimmed to allow for resume.
@@ -310,7 +331,7 @@ class CSolver:
 
     def _set_model(self, model=None):
         if model is not None:
-            self.model = model
+            self.model = copy.deepcopy(model)
 
         self._build(self.model, self.target, self.variable, False)
         self.species_mappings = self.model.sanitized_species_names()

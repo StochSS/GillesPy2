@@ -295,6 +295,11 @@ namespace Gillespy
 			HybridSimulation();
 
 			HybridSimulation(const Model<double> &model);
+
+			enum SIMULATION_STATUS : uint8_t
+			{
+				LOOP_OVER_INTEGRATE = 1,
+			};
 		};
 
 		std::set<int> flag_det_rxns(

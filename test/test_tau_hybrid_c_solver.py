@@ -62,7 +62,8 @@ class TestTauHybridCSolver(unittest.TestCase):
         Rate rule expressions are assumed valid and are tested in the Expressions test case.
         """
         model = RateRuleTestModel()
-        results = model.run(solver=TauHybridCSolver, number_of_trajectories=1)
+        solver = TauHybridCSolver(model=model)
+        results = model.run(solver=solver, number_of_trajectories=1)
 
         self.assertAlmostEqual(results["S1"][-1], 0.0, places=3)
         self.assertAlmostEqual(results["S2"][-1], 0.015, places=3)
@@ -75,7 +76,8 @@ class TestTauHybridCSolver(unittest.TestCase):
         Non-boundary condition species should change with the expected reaction rate.
         """
         model = BoundaryConditionTestModel()
-        results = model.run(solver=TauHybridCSolver, number_of_trajectories=1)
+        solver = TauHybridCSolver(model=model)
+        results = model.run(solver=solver, number_of_trajectories=1)
 
         for spec_name, species in model.listOfSpecies.items():
             with self.subTest(msg="Unexpected species output for boundary condition setting",
@@ -86,16 +88,19 @@ class TestTauHybridCSolver(unittest.TestCase):
 
     def test_run_example__with_increment_only(self):
         model = ExampleNoTspan()
-        results = TauHybridCSolver.run(model=model, increment=0.2)
+        solver = TauHybridCSolver(model=model)
+        results = solver.run(increment=0.2)
 
     def test_run_example__with_tspan_only(self):
         model = Example()
-        results = TauHybridCSolver.run(model=model)
+        solver = TauHybridCSolver(model=model)
+        results = solver.run()
 
     def test_run_example__with_tspan_and_increment(self):
         with self.assertRaises(SimulationError):
             model = Example()
-            results = TauHybridCSolver.run(model=model, increment=0.2)
+            solver = TauHybridCSolver(model=model)
+            results = solver.run(increment=0.2)
 
 
 if __name__ == '__main__':

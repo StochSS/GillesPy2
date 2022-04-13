@@ -77,11 +77,11 @@ class Oregonator(Model):
 
 model = Oregonator()
 if sys.argv[1] == 'NumPySSASolver':
-    results = model.run(solver=NumPySSASolver)
+    results = model.run(solver=NumPySSASolver(model=model))
 elif sys.argv[1] == 'TauLeapingSolver':
-    results = model.run(solver=TauLeapingSolver)
+    results = model.run(solver=TauLeapingSolver(model=model))
 else:
-    results = model.run(solver=ODESolver)
+    results = model.run(solver=ODESolver(model=model))
 
 print(results.to_array()[0][-1][0])
 

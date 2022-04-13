@@ -126,8 +126,8 @@ with open(SETTINGS_FILE, 'r') as settings:
         elif 'steps' in line: steps = int(line.split(': ')[1])
 
 # Run simulation and store results
-solver = NumPySSASolver()
 model.tspan = np.linspace(start, duration, steps+1)
+solver = NumPySSASolver(model=model)
 results = model.run(solver=solver, show_labels=False)
 
 # Create headers for csv file

@@ -23,20 +23,22 @@ from gillespy2 import NumPySSASolver
 
 
 class TestNumPySSASolver(unittest.TestCase):
-    model = Example()
+    
+    def setUp(self):
+        self.model = Example()
+        self.solver = NumPySSASolver(model=self.model)
+        self.model_no_tspan = ExampleNoTspan()
+        self.solver_no_tspan = NumPySSASolver(model=self.model_no_tspan)
 
     def test_run_example__with_increment_only(self):
-        model = ExampleNoTspan()
-        results = NumPySSASolver.run(model=model, increment=0.2)
+        results = self.solver_no_tspan.run(increment=0.2)
 
     def test_run_example__with_tspan_only(self):
-        model = Example()
-        results = NumPySSASolver.run(model=model)
+        results = self.solver.run()
 
     def test_run_example__with_tspan_and_increment(self):
         with self.assertRaises(SimulationError):
-            model = Example()
-            results = NumPySSASolver.run(model=model, increment=0.2)
+            results = self.solver.run(increment=0.2)
     
 
 if __name__ == '__main__':

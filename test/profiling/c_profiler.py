@@ -17,14 +17,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os
+import pathlib
 import re
 import subprocess
+import tempfile
 import time
 from pathlib import Path
 
-from .performance_data import PerformanceData
-from .performance_data import PerformanceEntry
-
+import performance_data
 from gillespy2.core import Model
 from gillespy2.solvers.cpp.c_solver import CSolver
 from gillespy2.solvers.cpp.build.build_engine import BuildEngine
@@ -53,10 +53,10 @@ def parse_gprof_output(output: str):
         block = [b for b in block[3:] if not b.replace(".", "", 1).isnumeric()]
         call_name = "".join(block)
 
-        result = PerformanceEntry(t=t, percent=percent)
+        result = performance_data.PerformanceEntry(t=t, percent=percent)
         return call_name, result, float(cumulative_t)
 
-    results = PerformanceData()
+    results = performance_data.PerformanceData()
     total_time = 0
     worst_time = -1
 
@@ -79,45 +79,43 @@ def parse_gprof_output(output: str):
     return results
 
 
-def run_profiler(model: Model, solver: CSolver, trajectories=4, timesteps=101, end_time=100):
+class CProfiler(object):
     """
-    Run low-level performance tests on the specified solver.
-    Profiling is performed with a system-level profiling tool.
-    Only runtime performance is tested.
-
-    Output is automatically parsed and formatted.
+    Wrapper around compiled model+solver executable, used for retrieving profiler data.
     """
-    # The simulation is built without running the solver directly.
-    # "Steal" the solver's build engine if it exists, otherwise make one.
-    build: BuildEngine = solver.build_engine \
-        if isinstance(solver, CSolver) and solver.build_engine is not None \
-        else BuildEngine()
+    def __init__(self, root_dir: "Path", exe_path: "str"):
+        self.root_dir = root_dir
+        self.exe = exe_path
 
-    try:
-        build.makefile = MAKEFILE_PATH
-        build.prepare(model)
-
-        # Prepare the location where performance data (gmon.out) is written.
-        gmon_env = {
-            "GMON_OUT_PREFIX": f"{str(build.output_dir)}/profile"
+    @staticmethod
+    def build(root: "str", model: Model, solver: "str") -> "CProfiler":
+        build = BuildEngine(output_dir=root)
+        definitions = {
+            "CXXFLAGS": "-pg -std=c++14 -O0",
+            "CFLAGS": "-pg -O0",
         }
 
-        exe = build.build_simulation(simulation_name=solver.target)
+        # Prepare the simulation executable.
+        build.prepare(model)
+        exe = build.build_simulation(simulation_name=solver, definitions=definitions)
 
+        return CProfiler(root_dir=pathlib.Path(root), exe_path=exe)
+
+    def run(self, trajectories=4, timesteps=101, end_time=100) -> "performance_data.PerformanceData":
         # Execute the simulation before running the profiler.
         # When profiling compiler flags (-pg) are enabled,
         #  running the program outputs a profiling data file:
         #  f"{output_dir}/profile.{pid}"
         # This profiler data can then be parsed using gprof.
         process_args = [
-            exe,
-            "-trajectories", str(trajectories),
-            "-timesteps", str(timesteps),
-            "-end", str(end_time),
-            "-increment", str(end_time / (timesteps - 1))
+            self.exe,
+            "-T", str(trajectories),
+            "-t", str(timesteps),
+            "-e", str(end_time),
+            "-i", str(end_time / (timesteps - 1))
         ]
         start = time.perf_counter()
-        subprocess.check_call(args=process_args, stdout=subprocess.DEVNULL, env=gmon_env)
+        subprocess.check_call(args=process_args, stdout=subprocess.DEVNULL, cwd=self.root_dir)
         stop = time.perf_counter()
 
         # Locate gprof profiling metadata in output directory.
@@ -126,9 +124,9 @@ def run_profiler(model: Model, solver: CSolver, trajectories=4, timesteps=101, e
         #   which contains the matching prefix defined above.
         gprof_data: Path = None
 
-        for n in build.output_dir.iterdir():
-            if n.stem == "profile":
-                gprof_data = build.output_dir.joinpath(n.name)
+        for n in self.root_dir.iterdir():
+            if n.stem == "gmon":
+                gprof_data = self.root_dir.joinpath(n.name)
                 break
 
         if gprof_data is None:
@@ -139,15 +137,24 @@ def run_profiler(model: Model, solver: CSolver, trajectories=4, timesteps=101, e
         # Run gprof to process the profiler output.
         # -b = brief, shows minimal output
         # -p = flat profile, discards call graph data
-        gprof_args = ["gprof", "-bp", exe, str(gprof_data)]
-        perf_out = subprocess.check_output(gprof_args).decode("utf-8")
+        gprof_args = ["gprof", "-bp", self.exe, str(gprof_data)]
+        perf_out = subprocess.check_output(gprof_args, stderr=subprocess.DEVNULL).decode("utf-8")
         gprof_data.unlink()
 
         # Parse the resulting output
         performance_results = parse_gprof_output(perf_out)
         performance_results.execution_time = (stop - start) * 1000
-
         return performance_results
 
-    finally:
-        build.clean()
+def run_profiler(model: Model, solver: "str", iterations: "int", trajectories=4, timesteps=101, end_time=100):
+    """
+    Run low-level performance tests on the specified solver.
+    Profiling is performed with a system-level profiling tool.
+    Only runtime performance is tested.
+
+    Output is automatically parsed and formatted.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        profiler = CProfiler.build(root=tmp, model=model, solver=solver)
+        for _ in range(iterations):
+            yield profiler.run(trajectories=trajectories, timesteps=timesteps, end_time=end_time)
