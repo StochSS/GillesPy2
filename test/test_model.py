@@ -298,10 +298,6 @@ class TestModel(unittest.TestCase):
     def test_model_init_custom_tspan(self):
         model = Model(tspan = np.linspace(0, 20, 401))
 
-    def test_parameter_init_unspecified_expression(self):
-        with self.assertRaises(ParameterError):
-            parameter = Parameter(name = 'parameter')
-
     def test_ode_propensity(self):
         model = Model()
         rate = Parameter(name='rate', expression=0.5)
