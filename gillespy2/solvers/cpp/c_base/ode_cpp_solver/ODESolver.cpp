@@ -118,18 +118,13 @@ namespace Gillespy
 		realtype end_time = simulation->end_time;
 		realtype step_length = increment;
 
-		// The time reached by the solver for output.
-		realtype tret = 0;
-
-		int current_time = 0;
 		for (tout = step_length; !interrupted && tout < end_time || cmpf(tout, end_time); tout += step_length)
 		{
 			// CV_NORMAL causes the solver to take internal steps until it has reached or just passed the `tout`
 			// parameter. The solver interpolates in order to return an approximate value of `y(tout)`.
 			// CVode() returns a vector `y0` (or `y(tout)`), and corresponding variable value `t` = `tret` (return time).
 			// With CV_NORMAL `tret` is equal to `tout` and `y0` = `y(tout)`.
-			flag = CVode(cvode_mem, tout, y0, &tret, CV_NORMAL);
-			current_time++;
+			flag = CVode(cvode_mem, tout, y0, &simulation->current_time, CV_NORMAL);
 
 			for (sunindextype species = 0; species < N; species++)
 			{

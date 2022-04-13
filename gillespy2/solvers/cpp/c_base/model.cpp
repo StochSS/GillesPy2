@@ -189,6 +189,7 @@ namespace Gillespy {
 	template<typename PType>
 	void Simulation<PType>::output_buffer_final(std::ostream &os)
 	{
+		std::cerr << "OUT! " << current_time << std::endl;;
 		os << (int) current_time;
 		os.flush();
 	}
