@@ -100,27 +100,26 @@
           <div class="body" role="main">
             
   <h1>Source code for gillespy2.core.parameter</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">GillesPy2 is a modeling toolkit for biochemical simulation.</span>
-<span class="sd">Copyright (C) 2019-2021 GillesPy2 developers.</span>
+<span></span><span class="c1"># GillesPy2 is a modeling toolkit for biochemical simulation.</span>
+<span class="c1"># Copyright (C) 2019-2022 GillesPy2 developers.</span>
 
-<span class="sd">This program is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
 
-<span class="sd">This program is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
 
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
-<span class="kn">from</span> <span class="nn">gillespy2.core.sortableobject</span> <span class="k">import</span> <span class="n">SortableObject</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core.jsonify</span> <span class="k">import</span> <span class="n">Jsonify</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.jsonify</span> <span class="kn">import</span> <span class="n">Jsonify</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.sortableobject</span> <span class="kn">import</span> <span class="n">SortableObject</span>
+
+<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="kn">import</span> <span class="n">ParameterError</span>
 
 <div class="viewcode-block" id="Parameter"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.parameter.Parameter">[docs]</a><span class="k">class</span> <span class="nc">Parameter</span><span class="p">(</span><span class="n">SortableObject</span><span class="p">,</span> <span class="n">Jsonify</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -128,51 +127,36 @@
 <span class="sd">    as a value (scalar). If given an expression, it should be</span>
 <span class="sd">    understood as evaluable in the namespace of a parent Model.</span>
 
-<span class="sd">    :param name: The name by which this parameter is called or referenced in reactions.</span>
+<span class="sd">    :param name: The name by which this parameter is called or referenced in \</span>
+<span class="sd">                 reactions, rate rules, assignment rules, and events.</span>
 <span class="sd">    :type name: str</span>
 
 <span class="sd">    :param expression: String for a function calculating parameter values. Should be</span>
-<span class="sd">        evaluable in namespace of Model.</span>
+<span class="sd">                       evaluable in namespace of Model.</span>
 <span class="sd">    :type expression: str</span>
+
+<span class="sd">    :raises ParameterError: Arg is of invalid type.  Required arg set to None.  Arg value is outside of accepted bounds.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># We allow expression to be passed in as a non-string type. Invalid strings</span>
         <span class="c1"># will be caught below. It is perfectly fine to give a scalar value as the expression.</span>
         <span class="c1"># This can then be evaluated in an empty namespace to the scalar value.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
 
         <span class="k">if</span> <span class="n">expression</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;Parameter expression can not be none&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;initial_value can&#39;t be None type.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="n">expression</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expression</span> <span class="o">=</span> <span class="n">expression</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">expression</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Parameter.set_expression"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.parameter.Parameter.set_expression">[docs]</a>    <span class="k">def</span> <span class="nf">set_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Sets the expression for a parameter.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># We allow expression to be passed in as a non-string type. Invalid</span>
-        <span class="c1"># strings will be caught below. It is perfectly fine to give a scalar</span>
-        <span class="c1"># value as the expression. This can then be evaluated in an empty</span>
-        <span class="c1"># namespace to the scalar value.</span>
-        <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">log</span>
-
-        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;&#39;Parameter.set_expression&#39; has been deprecated, future versions of GillesPy2 will not support&quot;</span>
-                    <span class="s2">&quot; this function. To set expression within a parameter, use Parameter.expression = expression&quot;</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">expression</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;Parameter expression can not be none&quot;</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">expression</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span></div>
-
-
-
-    <span class="k">def</span> <span class="nf">_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">namespace</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="k">def</span> <span class="nf">_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">namespace</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Evaluate the expression and return the (scalar) value in the given</span>
 <span class="sd">        namespace.</span>
@@ -180,12 +164,45 @@
 <span class="sd">        :param namespace: The namespace in which to test evaulation of the parameter,</span>
 <span class="sd">            if it involves other parameters, etc.</span>
 <span class="sd">        :type namespace: dict</span>
+
+<span class="sd">        :raises ParameterError: expression is of invalid type.  expression is set to None. \</span>
+<span class="sd">                                expression is not evaluable within the given namespace.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expression</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">coverage</span><span class="o">=</span><span class="s2">&quot;expression&quot;</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="p">,</span> <span class="n">namespace</span><span class="p">)))</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;Could not evaluate expression: </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">)))</span> <span class="kn">from</span> <span class="nn">error</span>
+            <span class="k">if</span> <span class="n">namespace</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">namespace</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="p">,</span> <span class="n">namespace</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not evaluate expression: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">err</span>
+
+<div class="viewcode-block" id="Parameter.set_expression"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.parameter.Parameter.set_expression">[docs]</a>    <span class="k">def</span> <span class="nf">set_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the expression for a parameter.</span>
+
+<span class="sd">        :raises ParameterError: expression is of invalid type.  expression is set to None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># We allow expression to be passed in as a non-string type. Invalid</span>
+        <span class="c1"># strings will be caught below. It is perfectly fine to give a scalar</span>
+        <span class="c1"># value as the expression. This can then be evaluated in an empty</span>
+        <span class="c1"># namespace to the scalar value.</span>
+        <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">log</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;&#39;Parameter.set_expression&#39; has been deprecated, future versions of GillesPy2 will not support&quot;</span>
+                    <span class="s2">&quot; this function. To set expression within a parameter, use Parameter.expression = expression&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">expression</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;initial_value can&#39;t be None type.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="n">expression</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">expression</span><span class="o">=</span><span class="n">expression</span><span class="p">,</span> <span class="n">coverage</span><span class="o">=</span><span class="s2">&quot;expression&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">expression</span> <span class="o">=</span> <span class="n">expression</span></div>
 
 <div class="viewcode-block" id="Parameter.sanitized_expression"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.parameter.Parameter.sanitized_expression">[docs]</a>    <span class="k">def</span> <span class="nf">sanitized_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species_mappings</span><span class="p">,</span> <span class="n">parameter_mappings</span><span class="p">):</span>
         <span class="n">names</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">species_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">parameter_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
@@ -193,10 +210,46 @@
         <span class="n">replacements</span> <span class="o">=</span> <span class="p">[</span><span class="n">parameter_mappings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">parameter_mappings</span> <span class="k">else</span> <span class="n">species_mappings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
                         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
         <span class="n">sanitized_expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expression</span>
-        <span class="k">for</span> <span class="nb">id</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
             <span class="n">sanitized_expression</span> <span class="o">=</span> <span class="n">sanitized_expression</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
-                <span class="n">name</span><span class="p">,</span> <span class="s2">&quot;{&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">sanitized_expression</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">replacements</span><span class="p">)</span></div></div>
+                <span class="n">name</span><span class="p">,</span> <span class="s2">&quot;{&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sanitized_expression</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">replacements</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.validate"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.parameter.Parameter.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coverage</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate the parameter.</span>
+
+<span class="sd">        :param expression: String for a function calculating parameter values. Should be</span>
+<span class="sd">                           evaluable in namespace of Model.</span>
+<span class="sd">        :type expression: str</span>
+
+<span class="sd">        :param coverage: The scope of attributes to validate.  Set to an attribute name to restrict validation \</span>
+<span class="sd">                         to a specific attribute.</span>
+<span class="sd">        :type coverage: str</span>
+
+<span class="sd">        :raises ParameterError: Attribute is of invalid type.  Required attribute set to None.  \</span>
+<span class="sd">                                Attribute value is outside of accepted bounds.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Check name</span>
+        <span class="k">if</span> <span class="n">coverage</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;name can&#39;t be None type.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;name must be of type str.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;name can&#39;t be an empty string.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check expression</span>
+        <span class="k">if</span> <span class="n">coverage</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;expression&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">expression</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expression</span>
+
+            <span class="k">if</span> <span class="n">expression</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;initial_value can&#39;t be None type.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;expression must be of type str, float, or int.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">expression</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;expression can&#39;t be an empty string.&quot;</span><span class="p">)</span></div></div>
 </pre></div>
 
           </div>

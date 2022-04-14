@@ -100,23 +100,21 @@
           <div class="body" role="main">
             
   <h1>Source code for gillespy2.solvers.stochkit.stochkit_solvers</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">GillesPy2 is a modeling toolkit for biochemical simulation.</span>
-<span class="sd">Copyright (C) 2019-2021 GillesPy2 developers.</span>
+<span></span><span class="c1"># GillesPy2 is a modeling toolkit for biochemical simulation.</span>
+<span class="c1"># Copyright (C) 2019-2022 GillesPy2 developers.</span>
 
-<span class="sd">This program is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
 
-<span class="sd">This program is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
 
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">random</span>
@@ -125,8 +123,8 @@
 <span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">GillesPySolver</span><span class="p">,</span> <span class="n">Model</span><span class="p">,</span> <span class="n">log</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="k">import</span> <span class="n">SimulationError</span><span class="p">,</span> <span class="n">InvalidModelError</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">GillesPySolver</span><span class="p">,</span> <span class="n">Model</span><span class="p">,</span> <span class="n">log</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="kn">import</span> <span class="n">SimulationError</span><span class="p">,</span> <span class="n">InvalidModelError</span>
 
 
 <div class="viewcode-block" id="StochKitBaseSolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.stochkit.html#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver">[docs]</a><span class="k">class</span> <span class="nc">StochKitBaseSolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>

@@ -100,29 +100,27 @@
           <div class="body" role="main">
             
   <h1>Source code for gillespy2.core.reaction</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">GillesPy2 is a modeling toolkit for biochemical simulation.</span>
-<span class="sd">Copyright (C) 2019-2021 GillesPy2 developers.</span>
+<span></span><span class="c1"># GillesPy2 is a modeling toolkit for biochemical simulation.</span>
+<span class="c1"># Copyright (C) 2019-2022 GillesPy2 developers.</span>
 
-<span class="sd">This program is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
 
-<span class="sd">This program is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
 
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
-<span class="kn">from</span> <span class="nn">gillespy2.core.species</span> <span class="k">import</span> <span class="n">Species</span>
-<span class="kn">from</span> <span class="nn">json.encoder</span> <span class="k">import</span> <span class="n">JSONEncoder</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core.sortableobject</span> <span class="k">import</span> <span class="n">SortableObject</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core.jsonify</span> <span class="k">import</span> <span class="n">Jsonify</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.species</span> <span class="kn">import</span> <span class="n">Species</span>
+<span class="kn">from</span> <span class="nn">json.encoder</span> <span class="kn">import</span> <span class="n">JSONEncoder</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.sortableobject</span> <span class="kn">import</span> <span class="n">SortableObject</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.jsonify</span> <span class="kn">import</span> <span class="n">Jsonify</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">import</span> <span class="nn">ast</span>
@@ -172,7 +170,7 @@
 <span class="sd">    results if the order of addition is not preserved.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">reactants</span><span class="o">=</span><span class="p">{},</span> <span class="n">products</span><span class="o">=</span><span class="p">{},</span> <span class="n">propensity_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">massaction</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">reactants</span><span class="o">=</span><span class="p">{},</span> <span class="n">products</span><span class="o">=</span><span class="p">{},</span> <span class="n">propensity_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">massaction</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">annotation</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializes the reaction using short-hand notation.</span>
@@ -180,7 +178,7 @@
 
         <span class="c1"># Metadata</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;rxn{uuid.uuid4()}&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;rxn</span><span class="si">{</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
@@ -272,7 +270,7 @@
                         <span class="s2">&quot;ln&quot;</span><span class="p">:</span> <span class="s2">&quot;log&quot;</span><span class="p">,</span>
                     <span class="p">}</span>
 
-                    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">string</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
                     <span class="k">def</span> <span class="nf">_string_changer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">addition</span><span class="p">):</span>
@@ -338,7 +336,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="o">=</span> <span class="n">__customPropParser</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
         <span class="n">print_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">):</span>

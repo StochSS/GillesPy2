@@ -100,23 +100,21 @@
           <div class="body" role="main">
             
   <h1>Source code for gillespy2.core.jsonify</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">GillesPy2 is a modeling toolkit for biochemical simulation.</span>
-<span class="sd">Copyright (C) 2019-2021 GillesPy2 developers.</span>
+<span></span><span class="c1"># GillesPy2 is a modeling toolkit for biochemical simulation.</span>
+<span class="c1"># Copyright (C) 2019-2022 GillesPy2 developers.</span>
 
-<span class="sd">This program is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
 
-<span class="sd">This program is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
 
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">copy</span>
@@ -124,7 +122,7 @@
 <span class="kn">import</span> <span class="nn">pydoc</span>
 <span class="kn">import</span> <span class="nn">hashlib</span>
 
-<span class="kn">from</span> <span class="nn">json</span> <span class="k">import</span> <span class="n">JSONEncoder</span>
+<span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">JSONEncoder</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span>
 <span class="kn">import</span> <span class="nn">gillespy2</span>
@@ -265,7 +263,7 @@
 
         <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">model_json</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span> <span class="s2">&quot;Jsonify&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span> <span class="s2">&quot;Jsonify&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overload to compare the json of two objects that derive from Jsonify.</span>
 <span class="sd">        This method will not do any additional translation.</span>
@@ -290,13 +288,14 @@
 <span class="sd">    :type encode_private: bool</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">translation_table</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">encode_private</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">translation_table</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">encode_private</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_translation_table</span> <span class="o">=</span> <span class="n">translation_table</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_encode_private</span> <span class="o">=</span> <span class="n">encode_private</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_delegation_table</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span> <span class="n">NdArrayCoder</span><span class="p">,</span>
+            <span class="n">numpy</span><span class="o">.</span><span class="n">int64</span><span class="p">:</span> <span class="n">Int64Coder</span><span class="p">,</span>
             <span class="nb">set</span><span class="p">:</span> <span class="n">SetCoder</span><span class="p">,</span>
             <span class="nb">type</span><span class="p">:</span> <span class="n">TypeCoder</span>
         <span class="p">}</span>
@@ -332,10 +331,10 @@
 
         <span class="c1"># If the model is some subclass of gillespy2.core.model.Model, then manually set its type.</span>
         <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="n">gillespy2</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
-            <span class="n">model</span><span class="p">[</span><span class="s2">&quot;_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{gillespy2.core.Model.__module__}</span><span class="s2">.</span><span class="si">{gillespy2.core.Model.__name__}</span><span class="s2">&quot;</span>
+            <span class="n">model</span><span class="p">[</span><span class="s2">&quot;_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gillespy2</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">Model</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">gillespy2</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">Model</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">model</span><span class="p">[</span><span class="s2">&quot;_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{o.__class__.__module__}</span><span class="s2">.</span><span class="si">{o.__class__.__name__}</span><span class="s2">&quot;</span>
+            <span class="n">model</span><span class="p">[</span><span class="s2">&quot;_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">o</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">o</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
 
         <span class="k">return</span> <span class="n">model</span></div>
 
@@ -357,12 +356,12 @@
         <span class="n">json_type</span> <span class="o">=</span> <span class="n">pydoc</span><span class="o">.</span><span class="n">locate</span><span class="p">(</span><span class="n">json_dict</span><span class="p">[</span><span class="s2">&quot;_type&quot;</span><span class="p">])</span>
 
         <span class="k">if</span> <span class="n">json_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{json_type}</span><span class="s2"> does not exist.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">json_type</span><span class="si">}</span><span class="s2"> does not exist.&quot;</span><span class="p">)</span>
 
         <span class="c1"># If the type is not a subclass of Jsonify, throw an exception.</span>
         <span class="c1"># We do this to prevent the execution of arbitrary code.</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">json_type</span><span class="p">,</span> <span class="n">Jsonify</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{json_type}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">json_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">json_type</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json_dict</span><span class="p">)</span></div></div>
 
@@ -376,7 +375,7 @@
 <span class="sd">    :type to_anon: dict[str, str]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">to_anon</span><span class="p">:</span> <span class="s2">&quot;dict[str, str]&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">to_anon</span><span class="p">:</span> <span class="s2">&quot;dict[str, str]&quot;</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">to_anon</span> <span class="o">=</span> <span class="n">to_anon</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">to_named</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">v</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_anon</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
 
@@ -473,12 +472,26 @@
     <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
-            <span class="s2">&quot;_type&quot;</span><span class="p">:</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{NdArrayCoder.__module__}</span><span class="s2">.</span><span class="si">{NdArrayCoder.__name__}</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;_type&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">NdArrayCoder</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">NdArrayCoder</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="p">}</span></div>
 
 <div class="viewcode-block" id="NdArrayCoder.from_json"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.NdArrayCoder.from_json">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span></div></div>
+
+<div class="viewcode-block" id="Int64Coder"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.Int64Coder">[docs]</a><span class="k">class</span> <span class="nc">Int64Coder</span><span class="p">(</span><span class="n">Jsonify</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This JSON coder enables support for  the `numpy.int64` type. &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Int64Coder.to_dict"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.Int64Coder.to_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span>
+            <span class="s2">&quot;_type&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Int64Coder</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">Int64Coder</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="Int64Coder.from_json"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.Int64Coder.from_json">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span></div></div>
 
 <div class="viewcode-block" id="SetCoder"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.SetCoder">[docs]</a><span class="k">class</span> <span class="nc">SetCoder</span><span class="p">(</span><span class="n">Jsonify</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; This JSON coder enables support for the `set` type. &quot;&quot;&quot;</span>
@@ -487,7 +500,7 @@
     <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span>
-            <span class="s2">&quot;_type&quot;</span><span class="p">:</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{SetCoder.__module__}</span><span class="s2">.</span><span class="si">{SetCoder.__name__}</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;_type&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">SetCoder</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">SetCoder</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="p">}</span></div>
 
 <div class="viewcode-block" id="SetCoder.from_json"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.SetCoder.from_json">[docs]</a>    <span class="nd">@staticmethod</span>
@@ -501,7 +514,7 @@
     <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span>
-            <span class="s2">&quot;_type&quot;</span><span class="p">:</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{TypeCoder.__module__}</span><span class="s2">.</span><span class="si">{TypeCoder.__name__}</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;_type&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">TypeCoder</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">TypeCoder</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="p">}</span></div>
 
 <div class="viewcode-block" id="TypeCoder.from_json"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.jsonify.TypeCoder.from_json">[docs]</a>    <span class="nd">@staticmethod</span>

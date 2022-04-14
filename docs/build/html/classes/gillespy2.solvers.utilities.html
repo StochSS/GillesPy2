@@ -123,18 +123,10 @@
 </section>
 <section id="module-gillespy2.solvers.utilities.Tau">
 <span id="gillespy2-solvers-utilities-tau-module"></span><h2>gillespy2.solvers.utilities.Tau module<a class="headerlink" href="#module-gillespy2.solvers.utilities.Tau" title="Permalink to this headline">¶</a></h2>
-<p>GillesPy2 is a modeling toolkit for biochemical simulation.
-Copyright (C) 2019-2021 GillesPy2 developers.</p>
-<p>This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.</p>
-<p>This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.</p>
-<p>You should have received a copy of the GNU General Public License
-along with this program.  If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>This Python module contains the initialization and selection methods for the Tau-Leaping method described in Cao, Y.;
+Gillespie, D. T.; Petzold, L. R. (2006). “Efficient step size selection for the tau-leaping simulation method” (PDF).
+The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. doi:10.1063/1.2159468. PMID 16460151.
+This module is for use in the basic_tau_leaping_solver and basic_tau_hybrid solver only.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="gillespy2.solvers.utilities.Tau.initialize">
 <span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.utilities.Tau.</span></span><span class="sig-name descname"><span class="pre">initialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/utilities/Tau.html#initialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.utilities.Tau.initialize" title="Permalink to this definition">¶</a></dt>
@@ -155,18 +147,8 @@ The Journal of Chemical Physics. 124 (4): 044109. Bibcode:2006JChPh.124d4109C. d
 </section>
 <section id="module-gillespy2.solvers.utilities.cpp_support_test">
 <span id="gillespy2-solvers-utilities-cpp-support-test-module"></span><h2>gillespy2.solvers.utilities.cpp_support_test module<a class="headerlink" href="#module-gillespy2.solvers.utilities.cpp_support_test" title="Permalink to this headline">¶</a></h2>
-<p>GillesPy2 is a modeling toolkit for biochemical simulation.
-Copyright (C) 2019-2021 GillesPy2 developers.</p>
-<p>This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.</p>
-<p>This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.</p>
-<p>You should have received a copy of the GNU General Public License
-along with this program.  If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
+<p>This file contains a function and variable for testing a machines support of GillesPy2 C++ solvers.
+Used in model.py</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="gillespy2.solvers.utilities.cpp_support_test.check_cpp_support">
 <span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.utilities.cpp_support_test.</span></span><span class="sig-name descname"><span class="pre">check_cpp_support</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/utilities/cpp_support_test.html#check_cpp_support"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.utilities.cpp_support_test.check_cpp_support" title="Permalink to this definition">¶</a></dt>
@@ -175,18 +157,6 @@ along with this program.  If not, see &lt;<a class="reference external" href="ht
 </section>
 <section id="module-gillespy2.solvers.utilities.solverutils">
 <span id="gillespy2-solvers-utilities-solverutils-module"></span><h2>gillespy2.solvers.utilities.solverutils module<a class="headerlink" href="#module-gillespy2.solvers.utilities.solverutils" title="Permalink to this headline">¶</a></h2>
-<p>GillesPy2 is a modeling toolkit for biochemical simulation.
-Copyright (C) 2019-2021 GillesPy2 developers.</p>
-<p>This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.</p>
-<p>This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.</p>
-<p>You should have received a copy of the GNU General Public License
-along with this program.  If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="gillespy2.solvers.utilities.solverutils.change_param_values">
 <span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.utilities.solverutils.</span></span><span class="sig-name descname"><span class="pre">change_param_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">listOfParameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volume</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/utilities/solverutils.html#change_param_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.utilities.solverutils.change_param_values" title="Permalink to this definition">¶</a></dt>
@@ -263,18 +233,6 @@ dictionary containing {species name: {‘dependencies’}:[list of reaction name
 </section>
 <section id="module-gillespy2.solvers.utilities">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-gillespy2.solvers.utilities" title="Permalink to this headline">¶</a></h2>
-<p>GillesPy2 is a modeling toolkit for biochemical simulation.
-Copyright (C) 2019-2021 GillesPy2 developers.</p>
-<p>This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.</p>
-<p>This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.</p>
-<p>You should have received a copy of the GNU General Public License
-along with this program.  If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
 </section>
 </section>
 
@@ -304,7 +262,7 @@ along with this program.  If not, see &lt;<a class="reference external" href="ht
       &copy;Copyright (C) 2017-2021.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -100,25 +100,24 @@
           <div class="body" role="main">
             
   <h1>Source code for gillespy2.solvers.cpp.c_solver</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">GillesPy2 is a modeling toolkit for biochemical simulation.</span>
-<span class="sd">Copyright (C) 2019-2021 GillesPy2 developers.</span>
+<span></span><span class="c1"># GillesPy2 is a modeling toolkit for biochemical simulation.</span>
+<span class="c1"># Copyright (C) 2019-2022 GillesPy2 developers.</span>
 
-<span class="sd">This program is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
 
-<span class="sd">This program is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
 
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">import</span> <span class="nn">signal</span>
 <span class="kn">import</span> <span class="nn">threading</span>
@@ -126,17 +125,17 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span>
 
-<span class="kn">from</span> <span class="nn">enum</span> <span class="k">import</span> <span class="n">IntEnum</span>
-<span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="k">import</span> <span class="n">ThreadPoolExecutor</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">IntEnum</span>
+<span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
 
-<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">Model</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">Results</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">log</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">gillespyError</span>
-<span class="kn">from</span> <span class="nn">gillespy2.solvers.cpp.c_decoder</span> <span class="k">import</span> <span class="n">SimDecoder</span>
-<span class="kn">from</span> <span class="nn">gillespy2.solvers.cpp.build.build_engine</span> <span class="k">import</span> <span class="n">BuildEngine</span>
-<span class="kn">from</span> <span class="nn">gillespy2.solvers.cpp.build.template_gen</span> <span class="k">import</span> <span class="n">SanitizedModel</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">Model</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">Results</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">log</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">gillespyError</span>
+<span class="kn">from</span> <span class="nn">gillespy2.solvers.cpp.c_decoder</span> <span class="kn">import</span> <span class="n">SimDecoder</span>
+<span class="kn">from</span> <span class="nn">gillespy2.solvers.cpp.build.build_engine</span> <span class="kn">import</span> <span class="n">BuildEngine</span>
+<span class="kn">from</span> <span class="nn">gillespy2.solvers.cpp.build.template_gen</span> <span class="kn">import</span> <span class="n">SanitizedModel</span>
 
 <div class="viewcode-block" id="SimulationReturnCode"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.c_solver.SimulationReturnCode">[docs]</a><span class="k">class</span> <span class="nc">SimulationReturnCode</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
     <span class="n">DONE</span> <span class="o">=</span> <span class="mi">0</span>
@@ -163,9 +162,17 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">rc</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">delete_directory</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">delete_directory</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">SimulationError</span><span class="p">(</span><span class="s2">&quot;A model is required to run the simulation.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">BuildEngine</span><span class="o">.</span><span class="n">get_missing_dependencies</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">SimulationError</span><span class="p">(</span>
+                <span class="s2">&quot;Please install/configure &#39;g++&#39; and &#39;make&#39; on your system, to ensure that GillesPy2 C solvers will run properly.&quot;</span>
+            <span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">delete_directory</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">resume</span> <span class="o">=</span> <span class="n">resume</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">variable</span> <span class="o">=</span> <span class="n">variable</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">build_engine</span><span class="p">:</span> <span class="n">BuildEngine</span> <span class="o">=</span> <span class="kc">None</span>
@@ -176,7 +183,7 @@
 
             <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_directory</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">DirectoryError</span><span class="p">(</span>
-                    <span class="n">f</span><span class="s2">&quot;Could not write to specified output directory: </span><span class="si">{output_directory}</span><span class="s2">&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Could not write to specified output directory: </span><span class="si">{</span><span class="n">output_directory</span><span class="si">}</span><span class="s2">&quot;</span>
                     <span class="s2">&quot; (already exists)&quot;</span>
                 <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">output_directory</span> <span class="o">=</span> <span class="n">output_directory</span>
@@ -185,7 +192,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_model</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_instantiated</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_engine</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
 
@@ -291,7 +300,7 @@
                 
             <span class="n">decoder</span><span class="o">.</span><span class="n">with_callback</span><span class="p">(</span><span class="n">decoder_cb</span><span class="p">)</span>
 
-            <span class="kn">from</span> <span class="nn">gillespy2.core.liveGraphing</span> <span class="k">import</span> <span class="p">(</span>
+            <span class="kn">from</span> <span class="nn">gillespy2.core.liveGraphing</span> <span class="kn">import</span> <span class="p">(</span>
                 <span class="n">LiveDisplayer</span><span class="p">,</span> <span class="n">CRepeatTimer</span><span class="p">,</span> <span class="n">valid_graph_params</span>
             <span class="p">)</span>
             <span class="n">valid_graph_params</span><span class="p">(</span><span class="n">display_args</span><span class="p">[</span><span class="s1">&#39;live_output_options&#39;</span><span class="p">])</span>
@@ -335,10 +344,7 @@
                 <span class="k">if</span> <span class="n">timeout_event</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
                     <span class="k">return</span> <span class="n">SimulationReturnCode</span><span class="o">.</span><span class="n">PAUSED</span>
 
-                <span class="k">if</span> <span class="n">return_code</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">33</span><span class="p">]:</span>
-                    <span class="k">return</span> <span class="n">SimulationReturnCode</span><span class="o">.</span><span class="n">FAILED</span>
-
-                <span class="k">return</span> <span class="n">SimulationReturnCode</span><span class="o">.</span><span class="n">DONE</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_return_code</span><span class="p">(</span><span class="n">return_code</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_make_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args_dict</span><span class="p">:</span> <span class="s2">&quot;dict[str, str]&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;list[str]&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -354,7 +360,7 @@
         <span class="n">args_list</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">args_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">args_list</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">f</span><span class="s2">&quot;--</span><span class="si">{key}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)])</span>
+            <span class="n">args_list</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;--</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)])</span>
 
         <span class="k">return</span> <span class="n">args_list</span>
 
@@ -380,6 +386,24 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">_handle_return_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">return_code</span><span class="p">:</span> <span class="s2">&quot;int&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SimulationReturnCode&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Default return code handler; determines whether the simulation succeeded or failed.</span>
+<span class="sd">        Intended to be overridden by solver subclasses, which handles solver-specific return codes.</span>
+
+<span class="sd">        Does nothing if the return code checks out, otherwise raises an error.</span>
+
+<span class="sd">        :param return_code: Return code returned by a simulation.</span>
+<span class="sd">        :type return_code: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">return_code</span> <span class="o">==</span> <span class="mi">33</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">SimulationReturnCode</span><span class="o">.</span><span class="n">PAUSED</span>
+        <span class="k">if</span> <span class="n">return_code</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">SimulationReturnCode</span><span class="o">.</span><span class="n">DONE</span>
+
+        <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">ExecutionError</span><span class="p">(</span><span class="s2">&quot;Error encountered while running simulation C++ file &quot;</span>
+                                           <span class="sa">f</span><span class="s2">&quot;(return code: </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">return_code</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_make_resume_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_stopped</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">simulation_data</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -407,7 +431,7 @@
 
     <span class="k">def</span> <span class="nf">_set_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_build</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">species_mappings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sanitized_species_names</span><span class="p">()</span>
@@ -465,7 +489,7 @@
             <span class="k">return</span>
 
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Unsupported keyword argument for solver </span><span class="si">{self.name}</span><span class="s2">: </span><span class="si">{key}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported keyword argument for solver </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_validate_seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -482,7 +506,7 @@
     <span class="k">def</span> <span class="nf">_validate_variables_in_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">SimulationError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Argument to variable &#39;</span><span class="si">{var}</span><span class="s2">&#39; is not a valid variable. Variables must be model species or parameters.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">SimulationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument to variable &#39;</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">&#39; is not a valid variable. Variables must be model species or parameters.&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_validate_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">typeof</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="n">typeof</span><span class="p">:</span>

@@ -100,35 +100,34 @@
           <div class="body" role="main">
             
   <h1>Source code for gillespy2.solvers.numpy.tau_hybrid_solver</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">GillesPy2 is a modeling toolkit for biochemical simulation.</span>
-<span class="sd">Copyright (C) 2019-2021 GillesPy2 developers.</span>
+<span></span><span class="c1"># GillesPy2 is a modeling toolkit for biochemical simulation.</span>
+<span class="c1"># Copyright (C) 2019-2022 GillesPy2 developers.</span>
 
-<span class="sd">This program is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
 
-<span class="sd">This program is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
 
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
-<span class="kn">import</span> <span class="nn">random</span><span class="o">,</span> <span class="nn">math</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="k">import</span> <span class="n">ode</span><span class="p">,</span> <span class="n">LSODA</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">random</span><span class="o">,</span> <span class="nn">math</span><span class="o">,</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">ode</span><span class="p">,</span> <span class="n">LSODA</span>
 <span class="kn">import</span> <span class="nn">heapq</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">threading</span>
 <span class="kn">import</span> <span class="nn">gillespy2</span>
-<span class="kn">from</span> <span class="nn">gillespy2.solvers.utilities</span> <span class="k">import</span> <span class="n">Tau</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">GillesPySolver</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">Event</span><span class="p">,</span> <span class="n">RateRule</span><span class="p">,</span> <span class="n">AssignmentRule</span><span class="p">,</span> <span class="n">FunctionDefinition</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core.results</span> <span class="k">import</span> <span class="n">Results</span>
+<span class="kn">from</span> <span class="nn">gillespy2.solvers.utilities</span> <span class="kn">import</span> <span class="n">Tau</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">GillesPySolver</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">Event</span><span class="p">,</span> <span class="n">RateRule</span><span class="p">,</span> <span class="n">AssignmentRule</span><span class="p">,</span> <span class="n">FunctionDefinition</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.results</span> <span class="kn">import</span> <span class="n">Results</span>
 
 <span class="n">eval_globals</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="vm">__dict__</span>
 
@@ -149,8 +148,8 @@
 
 <span class="k">def</span> <span class="nf">__xor</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
     <span class="c1"># Eval entry for MathML xor function</span>
-    <span class="kn">from</span> <span class="nn">operator</span> <span class="k">import</span> <span class="n">ixor</span>
-    <span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">reduce</span>
+    <span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">ixor</span>
+    <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
     <span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="n">ixor</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
 
@@ -172,10 +171,14 @@
     <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">stop_event</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="s2">&quot;A model is required to run the simulation.&quot;</span><span class="p">)</span>
+
         <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;TauHybridSolver&#39;</span>
         <span class="n">rc</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_instantiated</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">def</span> <span class="nf">__toggle_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_compiled</span><span class="p">,</span> <span class="n">deterministic_reactions</span><span class="p">,</span> <span class="n">dependencies</span><span class="p">,</span> 
                             <span class="n">curr_state</span><span class="p">,</span> <span class="n">det_spec</span><span class="p">,</span> <span class="n">rr_sets</span><span class="p">):</span>
@@ -549,7 +552,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">max_step_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">100</span>
 
-        <span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
+        <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
         <span class="n">events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">listOfEvents</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
         <span class="n">dense_output</span> <span class="o">=</span> <span class="kc">False</span> 
         <span class="n">int_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">curr_state</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">,</span>
@@ -826,7 +829,7 @@
         <span class="n">sanitized_parameters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sanitized_parameter_names</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">fd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">listOfFunctionDefinitions</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="n">sanitized_function</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">sanitized_function</span><span class="p">(</span><span class="n">sanitized_species</span><span class="p">,</span> <span class="n">sanitized_parameters</span><span class="p">)</span>
-            <span class="n">curr_state</span><span class="p">[</span><span class="n">fd</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;lambda {&#39;, &#39;.join(fd.args)}: </span><span class="si">{sanitized_function}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">eval_globals</span><span class="p">)</span>
+            <span class="n">curr_state</span><span class="p">[</span><span class="n">fd</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;lambda </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fd</span><span class="o">.</span><span class="n">args</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">sanitized_function</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">eval_globals</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">ar</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">listOfAssignmentRules</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">ar</span><span class="o">.</span><span class="n">variable</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">:</span>
@@ -875,8 +878,7 @@
             <span class="n">FunctionDefinition</span><span class="p">,</span>
         <span class="p">}</span></div>
 
-<div class="viewcode-block" id="TauHybridSolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.TauHybridSolver.run">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="TauHybridSolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.TauHybridSolver.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tau_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">event_sensitivity</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="s1">&#39;LSODA&#39;</span><span class="p">,</span>
             <span class="n">integrator_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">live_output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">live_output_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -928,19 +930,39 @@
 <span class="sd">            &quot;clear_output&quot; specifies if display should be refreshed with each display</span>
 <span class="sd">        :type live_output_options:  str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">gillespy2</span> <span class="kn">import</span> <span class="n">log</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Post deprecation block</span>
+            <span class="c1"># raise SimulationError(&quot;TauHybridSolver must be instantiated to run the simulation&quot;)</span>
+            <span class="c1"># Pre deprecation block</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                `gillespy2.Model.run(solver=TauHybridSolver)` is deprecated.</span>
+
+<span class="sd">                You should use `gillespy2.Model.run(solver=TauHybridSolver(model=gillespy2.Model))</span>
+<span class="sd">                Future releases of GillesPy2 may not support this feature.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+            <span class="p">)</span>
             <span class="bp">self</span> <span class="o">=</span> <span class="n">TauHybridSolver</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;model = gillespy2.model is deprecated. Future releases &#39;</span>
+                        <span class="s1">&#39;of GillesPy2 may not support this feature.&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="s2">&quot;A model is required to run the simulation.&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
-        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">model</span><span class="o">.</span><span class="n">get_json_hash</span><span class="p">()</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get_json_hash</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="s2">&quot;Model must equal TauHybridSolver.model.&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">resolve_parameters</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">validate_sbml_features</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
 
-        <span class="n">increment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_increment</span><span class="p">(</span><span class="n">increment</span><span class="o">=</span><span class="n">increment</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">resolve_parameters</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate_sbml_features</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate_tspan</span><span class="p">(</span><span class="n">increment</span><span class="o">=</span><span class="n">increment</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">increment</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">increment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">timeout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">timeout</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">_listOfSpecies</span><span class="o">.</span><span class="n">keys</span><span class="p">())):</span>
@@ -1051,7 +1073,7 @@
             <span class="k">pass</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;has_raised_exception&#39;</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span>
-                <span class="n">f</span><span class="s2">&quot;Error encountered while running simulation:</span><span class="se">\n</span><span class="s2">Return code: {int(self.rc)}.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Error encountered while running simulation:</span><span class="se">\n</span><span class="s2">Return code: </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rc</span><span class="p">)</span><span class="si">}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="p">)</span> <span class="kn">from</span> <span class="nn">self.has_raised_exception</span>
         
         <span class="k">return</span> <span class="n">Results</span><span class="o">.</span><span class="n">build_from_solver_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">live_output_options</span><span class="p">)</span></div>

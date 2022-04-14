@@ -100,42 +100,40 @@
           <div class="body" role="main">
             
   <h1>Source code for gillespy2.solvers.cpp.build.build_engine</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">GillesPy2 is a modeling toolkit for biochemical simulation.</span>
-<span class="sd">Copyright (C) 2019-2021 GillesPy2 developers.</span>
+<span></span><span class="c1"># GillesPy2 is a modeling toolkit for biochemical simulation.</span>
+<span class="c1"># Copyright (C) 2019-2022 GillesPy2 developers.</span>
 
-<span class="sd">This program is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
 
-<span class="sd">This program is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
 
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">gillespy2</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">gillespyError</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">gillespyError</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">template_gen</span>
-<span class="kn">from</span> <span class="nn">.make</span> <span class="k">import</span> <span class="n">Make</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">template_gen</span>
+<span class="kn">from</span> <span class="nn">.make</span> <span class="kn">import</span> <span class="n">Make</span>
 
 
 <div class="viewcode-block" id="BuildEngine"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.build_engine.BuildEngine">[docs]</a><span class="k">class</span> <span class="nc">BuildEngine</span><span class="p">():</span>
     <span class="n">template_definitions_name</span> <span class="o">=</span> <span class="s2">&quot;template_definitions.h&quot;</span>
     <span class="n">template_options_name</span> <span class="o">=</span> <span class="s2">&quot;template_opts.h&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">self_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cpp_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">self_dir</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;../c_base&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">makefile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpp_dir</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;Makefile&quot;</span><span class="p">)</span>
@@ -216,7 +214,7 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">gillespy2</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
             <span class="n">model</span> <span class="o">=</span> <span class="n">template_gen</span><span class="o">.</span><span class="n">SanitizedModel</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="n">variable</span><span class="p">)</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">template_gen</span><span class="o">.</span><span class="n">SanitizedModel</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Build engine expected gillespy2.Model or SanitizedModel type: received {type(model)}&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Build engine expected gillespy2.Model or SanitizedModel type: received </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># Build the template and write it to the temp directory and remove the sample template_definitions header.</span>
         <span class="n">template_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_dir</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">template_definitions_name</span><span class="p">)</span>
@@ -247,15 +245,21 @@
         <span class="n">make</span> <span class="o">=</span> <span class="n">Make</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">makefile</span><span class="p">,</span> <span class="n">cache_dir</span><span class="p">,</span> <span class="n">cache_dir</span><span class="p">)</span>
         <span class="n">make</span><span class="o">.</span><span class="n">prebuild</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="BuildEngine.build_simulation"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.build_engine.BuildEngine.build_simulation">[docs]</a>    <span class="k">def</span> <span class="nf">build_simulation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="BuildEngine.build_simulation"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.build_engine.BuildEngine.build_simulation">[docs]</a>    <span class="k">def</span> <span class="nf">build_simulation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation_name</span><span class="p">:</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">definitions</span><span class="p">:</span> <span class="s2">&quot;dict[str, str]&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build the solver to the temp directory.</span>
 
 <span class="sd">        :param simulation_name: The name of the simulation to build. For example, ODESimulation.</span>
 <span class="sd">        :type simulation_name: str</span>
 
+<span class="sd">        :param definitions: Dictionary of environment variables to be overriden when the Makefile is invoked.</span>
+<span class="sd">        Intended for use when running through a debugger environment or profiler.</span>
+<span class="sd">        :type definitions: dict[str, str]</span>
+
 <span class="sd">        :return: The path of the newly build solver executable.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">definitions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">definitions</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">make</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">BuildError</span><span class="p">(</span>
@@ -263,7 +267,7 @@
                 <span class="s2">&quot;To fix, call `BuildEngine.prepare()` prior to attempting to build the simulation.&quot;</span>
             <span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">make</span><span class="o">.</span><span class="n">build_simulation</span><span class="p">(</span><span class="n">simulation_name</span><span class="p">,</span> <span class="n">template_dir</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">template_dir</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">make</span><span class="o">.</span><span class="n">build_simulation</span><span class="p">(</span><span class="n">simulation_name</span><span class="p">,</span> <span class="n">template_dir</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">template_dir</span><span class="p">),</span> <span class="o">**</span><span class="n">definitions</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">make</span><span class="o">.</span><span class="n">output_file</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BuildEngine.get_executable_path"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.build_engine.BuildEngine.get_executable_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_executable_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>

@@ -100,8 +100,23 @@
           <div class="body" role="main">
             
   <h1>Source code for gillespy2.solvers.cpp.build.expression</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">ast</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span>
+<span></span><span class="c1"># GillesPy2 is a modeling toolkit for biochemical simulation.</span>
+<span class="c1"># Copyright (C) 2019-2022 GillesPy2 developers.</span>
+
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="kn">import</span> <span class="nn">ast</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span>
 
 
 <div class="viewcode-block" id="Expression"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.expression.Expression">[docs]</a><span class="k">class</span> <span class="nc">Expression</span><span class="p">:</span>
@@ -110,7 +125,7 @@
 <span class="sd">    Allows for pre-flight syntax and namespace validations,</span>
 <span class="sd">    as well as converting between Python and C++ expressions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">blacklist</span><span class="p">:</span> <span class="s2">&quot;Union[list[str], dict[ast.operator, str]]&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">namespace</span><span class="p">:</span> <span class="s2">&quot;dict[str, any]&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">sanitize</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -145,7 +160,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span> <span class="o">=</span> <span class="n">sanitize</span>
 
 <div class="viewcode-block" id="Expression.ValidationVisitor"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.expression.Expression.ValidationVisitor">[docs]</a>    <span class="k">class</span> <span class="nc">ValidationVisitor</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">NodeTransformer</span><span class="p">):</span>
-        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                      <span class="n">namespace</span><span class="p">:</span> <span class="s2">&quot;dict[str, str]&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                      <span class="n">blacklist</span><span class="p">:</span> <span class="s2">&quot;dict[ast.operator, str]&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                      <span class="n">sanitize</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -309,17 +324,17 @@
 
         <span class="k">if</span> <span class="n">validator</span><span class="o">.</span><span class="n">invalid_operators</span><span class="p">:</span>
             <span class="n">base_msg</span> <span class="o">=</span> <span class="s2">&quot;Blacklisted operator&quot;</span>
-            <span class="n">base_msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{base_msg}</span><span class="s2">s&quot;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">validator</span><span class="o">.</span><span class="n">invalid_operators</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">base_msg</span>
-            <span class="n">failures_found</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{base_msg}</span><span class="s2">: {&#39;,&#39;.join(validator.invalid_operators)}&quot;</span><span class="p">)</span>
+            <span class="n">base_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_msg</span><span class="si">}</span><span class="s2">s&quot;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">validator</span><span class="o">.</span><span class="n">invalid_operators</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">base_msg</span>
+            <span class="n">failures_found</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_msg</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validator</span><span class="o">.</span><span class="n">invalid_operators</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">validator</span><span class="o">.</span><span class="n">invalid_names</span><span class="p">:</span>
             <span class="n">base_msg</span> <span class="o">=</span> <span class="s2">&quot;Cannot resolve species name&quot;</span>
-            <span class="n">base_msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{base_msg}</span><span class="s2">s&quot;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">validator</span><span class="o">.</span><span class="n">invalid_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">base_msg</span>
-            <span class="n">failures_found</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{base_msg}</span><span class="s2">: {&#39;,&#39;.join(validator.invalid_names)}&quot;</span><span class="p">)</span>
+            <span class="n">base_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_msg</span><span class="si">}</span><span class="s2">s&quot;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">validator</span><span class="o">.</span><span class="n">invalid_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">base_msg</span>
+            <span class="n">failures_found</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_msg</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validator</span><span class="o">.</span><span class="n">invalid_names</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">failures_found</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">SyntaxError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Invalid GillesPy2 expression </span><span class="se">\&quot;</span><span class="si">{statement}</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span>
-                              <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">f</span><span class="s2">&quot;* </span><span class="si">{msg}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="n">failures_found</span><span class="p">]))</span>
+            <span class="k">raise</span> <span class="ne">SyntaxError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid GillesPy2 expression </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">statement</span><span class="si">}</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span>
+                              <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;* </span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="n">failures_found</span><span class="p">]))</span>
 
         <span class="k">return</span> <span class="n">converter</span><span class="o">.</span><span class="n">get_str</span><span class="p">()</span>
 
@@ -353,7 +368,7 @@
 <span class="sd">    Any expression items which indicate an invalid expression are listed on an ExpressionResults instance.</span>
 <span class="sd">    Empty lists indicate that the expression is valid.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">invalid_names</span><span class="p">:</span> <span class="s2">&quot;set[str]&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">invalid_operators</span><span class="p">:</span> <span class="s2">&quot;set[str]&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">is_valid</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">invalid_names</span><span class="p">:</span> <span class="s2">&quot;set[str]&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">invalid_operators</span><span class="p">:</span> <span class="s2">&quot;set[str]&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">is_valid</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Container struct for returning the results of expression validation.</span>
 
@@ -372,7 +387,7 @@
 
 
 <div class="viewcode-block" id="ExpressionConverter"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.expression.ExpressionConverter">[docs]</a><span class="k">class</span> <span class="nc">ExpressionConverter</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">NodeVisitor</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="p">:</span> <span class="s2">&quot;ast.AST&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="p">:</span> <span class="s2">&quot;ast.AST&quot;</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tree</span> <span class="o">=</span> <span class="n">tree</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">expression</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -381,15 +396,15 @@
         <span class="k">return</span> <span class="n">expression</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;^&quot;</span><span class="p">,</span> <span class="s2">&quot;**&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ExpressionConverter.parse_operator"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.expression.ExpressionConverter.parse_operator">[docs]</a>    <span class="k">def</span> <span class="nf">parse_operator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operator</span><span class="p">:</span> <span class="s2">&quot;str&quot;</span><span class="p">):</span>
-        <span class="n">expr</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;({self.expression.pop()}</span><span class="si">{operator}</span><span class="s2">{self.expression.pop()})&quot;</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span><span class="si">}{</span><span class="n">operator</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span><span class="si">}</span><span class="s2">)&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ExpressionConverter.parse_logical"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.expression.ExpressionConverter.parse_logical">[docs]</a>    <span class="k">def</span> <span class="nf">parse_logical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operator</span><span class="p">:</span> <span class="s2">&quot;str&quot;</span><span class="p">):</span>
-        <span class="n">expr</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;{self.expression.pop()} </span><span class="si">{operator}</span><span class="s2"> {self.expression.pop()}&quot;</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">operator</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ExpressionConverter.parse_comparison"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.expression.ExpressionConverter.parse_comparison">[docs]</a>    <span class="k">def</span> <span class="nf">parse_comparison</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comparator</span><span class="p">:</span> <span class="s2">&quot;str&quot;</span><span class="p">):</span>
-        <span class="n">expr</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;{self.expression.pop()} </span><span class="si">{comparator}</span><span class="s2"> {self.expression.pop()}&quot;</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">comparator</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ExpressionConverter.visit_Name"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.expression.ExpressionConverter.visit_Name">[docs]</a>    <span class="k">def</span> <span class="nf">visit_Name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="s2">&quot;ast.Name&quot;</span><span class="p">):</span>
@@ -440,7 +455,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
             <span class="n">arg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="o">.</span><span class="n">pop</span><span class="p">())</span>
         <span class="n">arg_list</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">arg_list</span><span class="p">)</span>
-        <span class="n">expr</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{node.func.id}</span><span class="s2">(</span><span class="si">{arg_list}</span><span class="s2">)&quot;</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">arg_list</span><span class="si">}</span><span class="s2">)&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ExpressionConverter.visit_BoolOp"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.expression.ExpressionConverter.visit_BoolOp">[docs]</a>    <span class="k">def</span> <span class="nf">visit_BoolOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="s2">&quot;ast.BoolOp&quot;</span><span class="p">):</span>
@@ -509,7 +524,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">op</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ExpressionConverter.visit_USub"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.expression.ExpressionConverter.visit_USub">[docs]</a>    <span class="k">def</span> <span class="nf">visit_USub</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="s2">&quot;ast.USub&quot;</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;-{self.expression.pop()}&quot;</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_get_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">:</span> <span class="s2">&quot;ast.AST&quot;</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>

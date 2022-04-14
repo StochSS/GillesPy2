@@ -100,33 +100,32 @@
           <div class="body" role="main">
             
   <h1>Source code for gillespy2.solvers.numpy.ode_solver</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">GillesPy2 is a modeling toolkit for biochemical simulation.</span>
-<span class="sd">Copyright (C) 2019-2021 GillesPy2 developers.</span>
+<span></span><span class="c1"># GillesPy2 is a modeling toolkit for biochemical simulation.</span>
+<span class="c1"># Copyright (C) 2019-2022 GillesPy2 developers.</span>
 
-<span class="sd">This program is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
 
-<span class="sd">This program is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
 
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="sd">&quot;&quot;&quot;GillesPy2 Solver for ODE solutions.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">threading</span> <span class="k">import</span> <span class="n">Thread</span><span class="p">,</span> <span class="n">Event</span>
-<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="k">import</span> <span class="n">ode</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span><span class="p">,</span> <span class="n">Event</span>
+<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">ode</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">GillesPySolver</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">gillespyError</span><span class="p">,</span> <span class="n">SimulationError</span>
-<span class="kn">from</span> <span class="nn">gillespy2.solvers.utilities</span> <span class="k">import</span> <span class="n">solverutils</span> <span class="k">as</span> <span class="n">nputils</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core.results</span> <span class="k">import</span> <span class="n">Results</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">GillesPySolver</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">gillespyError</span><span class="p">,</span> <span class="n">SimulationError</span>
+<span class="kn">from</span> <span class="nn">gillespy2.solvers.utilities</span> <span class="kn">import</span> <span class="n">solverutils</span> <span class="k">as</span> <span class="n">nputils</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.results</span> <span class="kn">import</span> <span class="n">Results</span>
 
 
 <div class="viewcode-block" id="ODESolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.ODESolver">[docs]</a><span class="k">class</span> <span class="nc">ODESolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
@@ -139,13 +138,17 @@
     <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">pause_event</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="s2">&quot;A model is required to run the simulation.&quot;</span><span class="p">)</span>
+
         <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ODESolver&quot;</span>
         <span class="n">rc</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">stop_event</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">pause_event</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_instantiated</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">__f</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">c_prop</span><span class="p">):</span>
@@ -183,8 +186,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;number_of_trajectories&#39;</span><span class="p">,</span> <span class="s1">&#39;increment&#39;</span><span class="p">,</span> <span class="s1">&#39;integrator&#39;</span><span class="p">,</span> <span class="s1">&#39;integrator_options&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;timeout&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ODESolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.ODESolver.run">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="s1">&#39;lsoda&#39;</span><span class="p">,</span>
+<div class="viewcode-block" id="ODESolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.ODESolver.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="s1">&#39;lsoda&#39;</span><span class="p">,</span>
             <span class="n">integrator_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">live_output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">live_output_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param model: gillespy2.model class object</span>
@@ -209,18 +211,39 @@
 <span class="sd">            &quot;interval&quot; specifies seconds between displaying.</span>
 <span class="sd">            &quot;clear_output&quot; specifies if display should be refreshed with each displa</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">gillespy2</span> <span class="kn">import</span> <span class="n">log</span>
+
+        <span class="k">if</span> <span class="bp">self</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Post deprecation block</span>
+            <span class="c1"># raise SimulationError(&quot;ODESolver must be instantiated to run the simulation&quot;)</span>
+            <span class="c1"># Pre deprecation block</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                `gillespy2.Model.run(solver=ODESolver)` is deprecated.</span>
+
+<span class="sd">                You should use `gillespy2.Model.run(solver=ODESolver(model=gillespy2.Model))</span>
+<span class="sd">                Future releases of GillesPy2 may not support this feature.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+            <span class="p">)</span>
             <span class="bp">self</span> <span class="o">=</span> <span class="n">ODESolver</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;model = gillespy2.model is deprecated. Future releases &#39;</span>
+                        <span class="s1">&#39;of GillesPy2 may not support this feature.&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="s2">&quot;A model is required to run the simulation.&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
-        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">model</span><span class="o">.</span><span class="n">get_json_hash</span><span class="p">()</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get_json_hash</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="s2">&quot;Model must equal OSESolver.model.&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">resolve_parameters</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">validate_sbml_features</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
 
-        <span class="n">increment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_increment</span><span class="p">(</span><span class="n">increment</span><span class="o">=</span><span class="n">increment</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">resolve_parameters</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate_sbml_features</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate_tspan</span><span class="p">(</span><span class="n">increment</span><span class="o">=</span><span class="n">increment</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">increment</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">increment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">stop_event</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pause_event</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
@@ -286,13 +309,13 @@
 
             <span class="k">if</span> <span class="n">timeout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">while</span> <span class="n">sim_thread</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
-                    <span class="n">sim_thread</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">.</span><span class="mi">1</span><span class="p">)</span>
-                    <span class="n">time</span> <span class="o">+=</span> <span class="o">.</span><span class="mi">1</span>
+                    <span class="n">sim_thread</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="mf">.1</span><span class="p">)</span>
+                    <span class="n">time</span> <span class="o">+=</span> <span class="mf">.1</span>
                     <span class="k">if</span> <span class="n">time</span> <span class="o">&gt;=</span> <span class="n">timeout</span><span class="p">:</span>
                         <span class="k">break</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">while</span> <span class="n">sim_thread</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
-                    <span class="n">sim_thread</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">.</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">sim_thread</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="mf">.1</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">live_grapher</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">display_timer</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
@@ -309,7 +332,7 @@
                 <span class="k">pass</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;has_raised_exception&#39;</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span>
-                <span class="n">f</span><span class="s2">&quot;Error encountered while running simulation:</span><span class="se">\n</span><span class="s2">Return code: {int(self.rc)}.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Error encountered while running simulation:</span><span class="se">\n</span><span class="s2">Return code: </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rc</span><span class="p">)</span><span class="si">}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="p">)</span> <span class="kn">from</span> <span class="nn">self.has_raised_exception</span>
         
         <span class="k">return</span> <span class="n">Results</span><span class="o">.</span><span class="n">build_from_solver_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">live_output_options</span><span class="p">)</span></div>

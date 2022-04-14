@@ -119,26 +119,43 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </section>
-<section id="gillespy2-sbml-sbmlexport-module">
-<h2>gillespy2.sbml.SBMLexport module<a class="headerlink" href="#gillespy2-sbml-sbmlexport-module" title="Permalink to this headline">¶</a></h2>
+<section id="module-gillespy2.sbml.SBMLexport">
+<span id="gillespy2-sbml-sbmlexport-module"></span><h2>gillespy2.sbml.SBMLexport module<a class="headerlink" href="#module-gillespy2.sbml.SBMLexport" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="gillespy2.sbml.SBMLexport.export">
+<span class="sig-prename descclassname"><span class="pre">gillespy2.sbml.SBMLexport.</span></span><span class="sig-name descname"><span class="pre">export</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/sbml/SBMLexport.html#export"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.sbml.SBMLexport.export" title="Permalink to this definition">¶</a></dt>
+<dd><p>GillesPy model to SBML converter</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>gillespy.Model</em>) – GillesPy model to be converted to SBML</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – Path to the SBML file for conversion</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
-<section id="gillespy2-sbml-sbmlimport-module">
-<h2>gillespy2.sbml.SBMLimport module<a class="headerlink" href="#gillespy2-sbml-sbmlimport-module" title="Permalink to this headline">¶</a></h2>
+<section id="module-gillespy2.sbml.SBMLimport">
+<span id="gillespy2-sbml-sbmlimport-module"></span><h2>gillespy2.sbml.SBMLimport module<a class="headerlink" href="#module-gillespy2.sbml.SBMLimport" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="gillespy2.sbml.SBMLimport.convert">
+<span class="sig-prename descclassname"><span class="pre">gillespy2.sbml.SBMLimport.</span></span><span class="sig-name descname"><span class="pre">convert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gillespy_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/sbml/SBMLimport.html#convert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.sbml.SBMLimport.convert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gillespy2.sbml.SBMLimport.piecewise">
+<span class="sig-prename descclassname"><span class="pre">gillespy2.sbml.SBMLimport.</span></span><span class="sig-name descname"><span class="pre">piecewise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/sbml/SBMLimport.html#piecewise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.sbml.SBMLimport.piecewise" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gillespy2.sbml.SBMLimport.traverse_math">
+<span class="sig-prename descclassname"><span class="pre">gillespy2.sbml.SBMLimport.</span></span><span class="sig-name descname"><span class="pre">traverse_math</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/sbml/SBMLimport.html#traverse_math"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.sbml.SBMLimport.traverse_math" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </section>
 <section id="module-gillespy2.sbml">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-gillespy2.sbml" title="Permalink to this headline">¶</a></h2>
-<p>GillesPy2 is a modeling toolkit for biochemical simulation.
-Copyright (C) 2019-2021 GillesPy2 developers.</p>
-<p>This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.</p>
-<p>This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.</p>
-<p>You should have received a copy of the GNU General Public License
-along with this program.  If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
 </section>
 </section>
 
@@ -168,7 +185,7 @@ along with this program.  If not, see &lt;<a class="reference external" href="ht
       &copy;Copyright (C) 2017-2021.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

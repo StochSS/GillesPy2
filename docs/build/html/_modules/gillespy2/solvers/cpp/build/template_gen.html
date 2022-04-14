@@ -100,30 +100,28 @@
           <div class="body" role="main">
             
   <h1>Source code for gillespy2.solvers.cpp.build.template_gen</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">GillesPy2 is a modeling toolkit for biochemical simulation.</span>
-<span class="sd">Copyright (C) 2019-2021 GillesPy2 developers.</span>
+<span></span><span class="c1"># GillesPy2 is a modeling toolkit for biochemical simulation.</span>
+<span class="c1"># Copyright (C) 2019-2022 GillesPy2 developers.</span>
 
-<span class="sd">This program is free software: you can redistribute it and/or modify</span>
-<span class="sd">it under the terms of the GNU General Public License as published by</span>
-<span class="sd">the Free Software Foundation, either version 3 of the License, or</span>
-<span class="sd">(at your option) any later version.</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
 
-<span class="sd">This program is distributed in the hope that it will be useful,</span>
-<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="sd">GNU General Public License for more details.</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
 
-<span class="sd">You should have received a copy of the GNU General Public License</span>
-<span class="sd">along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Optional</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Reaction</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">,</span> <span class="n">Model</span><span class="p">,</span> <span class="n">RateRule</span>
-<span class="kn">from</span> <span class="nn">gillespy2.solvers.cpp.build.expression</span> <span class="k">import</span> <span class="n">Expression</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="k">import</span> <span class="n">log</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="k">import</span> <span class="n">SimulationError</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Reaction</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">,</span> <span class="n">Model</span><span class="p">,</span> <span class="n">RateRule</span>
+<span class="kn">from</span> <span class="nn">gillespy2.solvers.cpp.build.expression</span> <span class="kn">import</span> <span class="n">Expression</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">log</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="kn">import</span> <span class="n">SimulationError</span>
 
 <span class="kn">import</span> <span class="nn">math</span>
 
@@ -148,7 +146,7 @@
         <span class="s2">&quot;round&quot;</span><span class="p">:</span> <span class="s2">&quot;round&quot;</span><span class="p">,</span>
     <span class="p">}</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">variable</span> <span class="o">=</span> <span class="n">variable</span>
 
@@ -166,7 +164,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">parameter_id</span><span class="p">:</span> <span class="s2">&quot;OrderedDict[str, int]&quot;</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">param_id</span><span class="p">,</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">param_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;P[</span><span class="si">{param_id}</span><span class="s2">]&quot;</span> <span class="k">if</span> <span class="n">variable</span> <span class="k">else</span> <span class="n">f</span><span class="s2">&quot;C[</span><span class="si">{param_id}</span><span class="s2">]&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;P[</span><span class="si">{</span><span class="n">param_id</span><span class="si">}</span><span class="s2">]&quot;</span> <span class="k">if</span> <span class="n">variable</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;C[</span><span class="si">{</span><span class="n">param_id</span><span class="si">}</span><span class="s2">]&quot;</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">parameter_id</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">param_id</span>
         <span class="k">for</span> <span class="n">parameter_name</span><span class="p">,</span> <span class="n">sanitized_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">sanitized_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">parameter_name</span><span class="p">)</span> \
@@ -266,12 +264,12 @@
         <span class="k">if</span> <span class="n">variable</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_names</span><span class="p">:</span>
             <span class="n">sanitized_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_names</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">sanitized_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rate_rules</span><span class="p">:</span>
-                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Duplicate rate rule variable found in C++ solver: </span><span class="si">{variable}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Duplicate rate rule variable found in C++ solver: </span><span class="si">{</span><span class="n">variable</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">rr_sanitized</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">getexpr_cpp</span><span class="p">(</span><span class="n">rate_rule</span><span class="o">.</span><span class="n">formula</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">rr_sanitized</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">rate_rules</span><span class="p">[</span><span class="n">sanitized_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">rr_sanitized</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Could not sanitize rate rule formula expression: </span><span class="si">{rate_rule.formula}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not sanitize rate rule formula expression: </span><span class="si">{</span><span class="n">rate_rule</span><span class="o">.</span><span class="n">formula</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
 <div class="viewcode-block" id="SanitizedModel.get_template"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.template_gen.SanitizedModel.get_template">[docs]</a>    <span class="k">def</span> <span class="nf">get_template</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;dict[str, str]&quot;</span><span class="p">:</span>
@@ -352,7 +350,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Definition dict is transformed into a list of C++ macro definitions, with:</span>
     <span class="c1"># `#define KEY VALUE` format.</span>
-    <span class="n">template_lines</span> <span class="o">=</span> <span class="p">[(</span><span class="n">f</span><span class="s2">&quot;#define </span><span class="si">{key}</span><span class="s2"> </span><span class="si">{value}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">defines</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+    <span class="n">template_lines</span> <span class="o">=</span> <span class="p">[(</span><span class="sa">f</span><span class="s2">&quot;#define </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">defines</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
 
     <span class="c1"># Write generated lines to the template file.</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">template_file</span><span class="p">:</span>
@@ -430,7 +428,7 @@
     <span class="k">for</span> <span class="n">spec_i</span><span class="p">,</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">species_names</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
         <span class="k">if</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">rate_rules</span><span class="p">:</span>
             <span class="n">spec_rr</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">rate_rules</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
-            <span class="n">rr_set</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;RATE_RULE(</span><span class="si">{spec_i}</span><span class="s2">, </span><span class="si">{spec_rr}</span><span class="s2">)&quot;</span><span class="p">)</span>
+            <span class="n">rr_set</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RATE_RULE(</span><span class="si">{</span><span class="n">spec_i</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">spec_rr</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="p">{</span>
         <span class="s2">&quot;GPY_RATE_RULES&quot;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rr_set</span><span class="p">)</span>
@@ -454,7 +452,7 @@
     <span class="c1"># Parameter entries, parsed and formatted</span>
     <span class="n">parameter_set</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">param_id</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
-        <span class="n">parameter_set</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{parameter_type}</span><span class="s2">(</span><span class="si">{param_id}</span><span class="s2">,</span><span class="si">{parameter.expression}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="n">parameter_set</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">parameter_type</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">param_id</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">parameter</span><span class="o">.</span><span class="n">expression</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="p">{</span>
         <span class="s2">&quot;GPY_PARAMETER_VALUES&quot;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parameter_set</span><span class="p">),</span>
@@ -482,8 +480,8 @@
     <span class="k">for</span> <span class="n">spec_name</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">populations</span><span class="p">[</span><span class="n">spec_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">initial_value</span><span class="p">))</span>
     <span class="c1"># Species names, parsed and formatted</span>
-    <span class="n">sanitized_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="s2">&quot;SPECIES_NAME(</span><span class="si">{name}</span><span class="s2">)&quot;</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">populations</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
-    <span class="n">populations</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;{{{&#39;,&#39;.join(populations.values())}}}&quot;</span>
+    <span class="n">sanitized_names</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;SPECIES_NAME(</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">)&quot;</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">populations</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+    <span class="n">populations</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">{{</span><span class="si">{</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">populations</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="si">}</span><span class="se">}}</span><span class="s2">&quot;</span>
 
     <span class="c1"># Match each parameter with its macro definition name</span>
     <span class="k">return</span> <span class="p">{</span>
@@ -508,10 +506,10 @@
 
     <span class="k">for</span> <span class="n">rxn_name</span><span class="p">,</span> <span class="n">reaction</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">stoich</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">reaction</span><span class="p">[</span><span class="n">species</span><span class="p">]))</span> <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">species_names</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
-        <span class="n">reaction_set</span><span class="p">[</span><span class="n">rxn_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;{{{&#39;,&#39;.join(stoich)}}}&quot;</span>
+        <span class="n">reaction_set</span><span class="p">[</span><span class="n">rxn_name</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">{{</span><span class="si">{</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">stoich</span><span class="p">)</span><span class="si">}</span><span class="se">}}</span><span class="s2">&quot;</span>
 
-    <span class="n">reaction_names</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">f</span><span class="s2">&quot;REACTION_NAME(</span><span class="si">{rxn}</span><span class="s2">)&quot;</span> <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">reaction_set</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span>
-    <span class="n">reaction_set</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;{{{&#39;,&#39;.join(reaction_set.values())}}}&quot;</span>
+    <span class="n">reaction_names</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;REACTION_NAME(</span><span class="si">{</span><span class="n">rxn</span><span class="si">}</span><span class="s2">)&quot;</span> <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">reaction_set</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span>
+    <span class="n">reaction_set</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">{{</span><span class="si">{</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">reaction_set</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="si">}</span><span class="se">}}</span><span class="s2">&quot;</span>
 
     <span class="k">return</span> <span class="p">{</span>
         <span class="s2">&quot;GPY_NUM_REACTIONS&quot;</span><span class="p">:</span> <span class="n">num_reactions</span><span class="p">,</span>
@@ -531,10 +529,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">def_keyword</span> <span class="o">=</span> <span class="s2">&quot;ODE_PROPENSITIES&quot;</span> <span class="k">if</span> <span class="n">ode</span> <span class="k">else</span> <span class="s2">&quot;PROPENSITIES&quot;</span>
     <span class="n">propensities</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">ode_propensities</span> <span class="k">if</span> <span class="n">ode</span> <span class="k">else</span> <span class="n">model</span><span class="o">.</span><span class="n">propensities</span>
-    <span class="n">propensities</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="s2">&quot;PROPENSITY(</span><span class="si">{rxn_i}</span><span class="s2">,</span><span class="si">{propensities[rxn]}</span><span class="s2">)&quot;</span> <span class="k">for</span> <span class="n">rxn_i</span><span class="p">,</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
+    <span class="n">propensities</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;PROPENSITY(</span><span class="si">{</span><span class="n">rxn_i</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">propensities</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span> <span class="k">for</span> <span class="n">rxn_i</span><span class="p">,</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
 
     <span class="k">return</span> <span class="p">{</span>
-        <span class="n">f</span><span class="s2">&quot;GPY_</span><span class="si">{def_keyword}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">propensities</span><span class="p">)</span>
+        <span class="sa">f</span><span class="s2">&quot;GPY_</span><span class="si">{</span><span class="n">def_keyword</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">propensities</span><span class="p">)</span>
     <span class="p">}</span></div>
 </pre></div>
 
