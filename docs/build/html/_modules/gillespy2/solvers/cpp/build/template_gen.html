@@ -1,0 +1,569 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>gillespy2.solvers.cpp.build.template_gen &#8212; GillesPy2 1.6.9 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/css/gillespy2_alabaster_customizations.css" />
+    <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/jquery.js"></script>
+    <script src="../../../../../_static/underscore.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../../../../../_static/img/gillespy2-logo.svg" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../../../index.html">
+    <img class="logo" src="../../../../../_static/img/gillespy2-logo.svg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=GillesPy2&repo=GillesPy2&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started/installation/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started/basic_usage/basic_usage.html">Basic usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/tut_toggle_switch/tut_toggle_switch.html">Tutorial: ODE vs. SSA</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../classes/gillespy2.html">gillespy2 package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for gillespy2.solvers.cpp.build.template_gen</h1><div class="highlight"><pre>
+<span></span><span class="c1"># GillesPy2 is a modeling toolkit for biochemical simulation.</span>
+<span class="c1"># Copyright (C) 2019-2022 GillesPy2 developers.</span>
+
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Reaction</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">,</span> <span class="n">Model</span><span class="p">,</span> <span class="n">RateRule</span>
+<span class="kn">from</span> <span class="nn">gillespy2.solvers.cpp.build.expression</span> <span class="kn">import</span> <span class="n">Expression</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">log</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="kn">import</span> <span class="n">SimulationError</span>
+
+<span class="kn">import</span> <span class="nn">math</span>
+
+
+<div class="viewcode-block" id="SanitizedModel"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.template_gen.SanitizedModel">[docs]</a><span class="k">class</span> <span class="nc">SanitizedModel</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Utility class for preparing a model to be passed to a C++ solver.</span>
+<span class="sd">    Ensures that any sanitized mappings are consistent between different mappings.</span>
+<span class="sd">    Wraps around an existing GillesPy2 model to provide sanitized mappings.</span>
+
+<span class="sd">    :param model: GillesPy2 model to produce sanitized mappings of.</span>
+<span class="sd">    :type model: gillespy2.Model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">reserved_names</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;t&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Global functions that aren&#39;t present in the `math` package,</span>
+    <span class="c1"># as well as functions in Python that have a different name in C++.</span>
+    <span class="n">function_map</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;abs&quot;</span><span class="p">:</span> <span class="s2">&quot;abs&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;round&quot;</span><span class="p">:</span> <span class="s2">&quot;round&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variable</span> <span class="o">=</span> <span class="n">variable</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">:</span> <span class="s2">&quot;OrderedDict[str, Species]&quot;</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">species_names</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sanitized_species_names</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">species_id</span><span class="p">:</span> <span class="s2">&quot;OrderedDict[str, int]&quot;</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">spec_id</span><span class="p">,</span> <span class="n">spec_entry</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species_names</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="n">species_name</span><span class="p">,</span> <span class="n">sanitized_name</span> <span class="o">=</span> <span class="n">spec_entry</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">[</span><span class="n">sanitized_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_species</span><span class="p">(</span><span class="n">species_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">species_id</span><span class="p">[</span><span class="n">species_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">spec_id</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span> <span class="s2">&quot;OrderedDict[str, Parameter]&quot;</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="p">:</span> <span class="s2">&quot;OrderedDict[str, str]&quot;</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="p">[</span><span class="s2">&quot;vol&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;P[0]&quot;</span> <span class="k">if</span> <span class="n">variable</span> <span class="k">else</span> <span class="s2">&quot;C[0]&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameter_id</span><span class="p">:</span> <span class="s2">&quot;OrderedDict[str, int]&quot;</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">param_id</span><span class="p">,</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">param_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;P[</span><span class="si">{</span><span class="n">param_id</span><span class="si">}</span><span class="s2">]&quot;</span> <span class="k">if</span> <span class="n">variable</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;C[</span><span class="si">{</span><span class="n">param_id</span><span class="si">}</span><span class="s2">]&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parameter_id</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">param_id</span>
+        <span class="k">for</span> <span class="n">parameter_name</span><span class="p">,</span> <span class="n">sanitized_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">sanitized_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">parameter_name</span><span class="p">)</span> \
+                <span class="k">if</span> <span class="n">parameter_name</span> <span class="o">!=</span> <span class="s2">&quot;vol&quot;</span> <span class="k">else</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">sanitized_name</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">volume</span><span class="p">))</span>
+
+        <span class="n">base_namespace</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="c1"># ORDER IS IMPORTANT HERE!</span>
+            <span class="c1"># All &quot;system&quot; namespace entries should always be first.</span>
+            <span class="c1"># Otherwise, user-defined identifiers (like, for example, &quot;gamma&quot;) might get overwritten.</span>
+            <span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">math</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">()},</span>
+            <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">function_map</span><span class="p">,</span>
+            <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">species_names</span><span class="p">,</span>
+            <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="p">,</span>
+            <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">reserved_names</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expr</span> <span class="o">=</span> <span class="n">Expression</span><span class="p">(</span><span class="n">namespace</span><span class="o">=</span><span class="n">base_namespace</span><span class="p">,</span> <span class="n">blacklist</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;=&quot;</span><span class="p">],</span> <span class="n">sanitize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># SSA Propensities: Maps reaction names to their corresponding propensity function.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">propensities</span><span class="p">:</span> <span class="s2">&quot;OrderedDict[str, str]&quot;</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="c1"># ODE Propensities: Maps reaction names to their corresponding mass-action rate expression.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensities</span><span class="p">:</span> <span class="s2">&quot;OrderedDict[str, str]&quot;</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="c1"># Reactions: maps reaction names to their stoichiometry matrix.</span>
+        <span class="c1"># Stoichiometry matrix maps a sanitized species name to its stoichiometry.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="p">:</span> <span class="s2">&quot;OrderedDict[str, dict[str, int]]&quot;</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="c1"># Rate Rules: maps sanitized species names to their corresponding rate rule expression.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rate_rules</span><span class="p">:</span> <span class="s2">&quot;OrderedDict[str, str]&quot;</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="c1"># Options: custom definitions that can be supplied by the solver, maps macros to their definitions.</span>
+        <span class="c1"># The solver itself may use `options` to supply their own solver-specific definitions.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">:</span> <span class="s2">&quot;OrderedDict[str, str]&quot;</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">reaction</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">get_all_reactions</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">use_reaction</span><span class="p">(</span><span class="n">reaction</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">use_propensity</span><span class="p">(</span><span class="n">reaction</span><span class="p">,</span> <span class="n">ode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">use_propensity</span><span class="p">(</span><span class="n">reaction</span><span class="p">,</span> <span class="n">ode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SanitizedModel.use_propensity"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.template_gen.SanitizedModel.use_propensity">[docs]</a>    <span class="k">def</span> <span class="nf">use_propensity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction</span><span class="p">:</span> <span class="s2">&quot;Reaction&quot;</span><span class="p">,</span> <span class="n">ode</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Populates the given reaction&#39;s propensities into the sanitized model.</span>
+<span class="sd">        Expression conversion and sanitization are automatically applied.</span>
+
+<span class="sd">        :param reaction: Reaction to generate propensities from.</span>
+<span class="sd">        :type reaction: gillespy2.Reaction</span>
+
+<span class="sd">        :param ode: Determines whether the stochastic propensity or ODE mass-action rate is used.</span>
+<span class="sd">        If set to true, the mass-action rate is used instead of the propensity.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">propensities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensities</span> <span class="k">if</span> <span class="n">ode</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">propensities</span>
+        <span class="n">propensity</span> <span class="o">=</span> <span class="n">reaction</span><span class="o">.</span><span class="n">ode_propensity_function</span> <span class="k">if</span> <span class="n">ode</span> <span class="k">else</span> <span class="n">reaction</span><span class="o">.</span><span class="n">propensity_function</span>
+        <span class="n">propensities</span><span class="p">[</span><span class="n">reaction</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">getexpr_cpp</span><span class="p">(</span><span class="n">propensity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SanitizedModel.use_reaction"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.template_gen.SanitizedModel.use_reaction">[docs]</a>    <span class="k">def</span> <span class="nf">use_reaction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction</span><span class="p">:</span> <span class="s2">&quot;Reaction&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SanitizedModel&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds the given reaction to the sanitized model.</span>
+<span class="sd">        Populates the name and stoichiometry matrix into the model.</span>
+
+<span class="sd">        :param reaction: Reaction to add to the sanitized model.</span>
+<span class="sd">        :type reaction: gillespy2.Reaction</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="p">[</span><span class="n">reaction</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">spec</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_names</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
+        <span class="k">for</span> <span class="n">reactant</span><span class="p">,</span> <span class="n">stoich_value</span> <span class="ow">in</span> <span class="n">reaction</span><span class="o">.</span><span class="n">reactants</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reactant</span><span class="p">,</span> <span class="n">Species</span><span class="p">):</span>
+                <span class="n">reactant</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_names</span><span class="p">[</span><span class="n">reactant</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="p">[</span><span class="n">reaction</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">reactant</span><span class="p">]</span> <span class="o">-=</span> <span class="nb">int</span><span class="p">(</span><span class="n">stoich_value</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">product</span><span class="p">,</span> <span class="n">stoich_value</span> <span class="ow">in</span> <span class="n">reaction</span><span class="o">.</span><span class="n">products</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">product</span><span class="p">,</span> <span class="n">Species</span><span class="p">):</span>
+                <span class="n">product</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_names</span><span class="p">[</span><span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="p">[</span><span class="n">reaction</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">product</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">stoich_value</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="SanitizedModel.use_rate_rule"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.template_gen.SanitizedModel.use_rate_rule">[docs]</a>    <span class="k">def</span> <span class="nf">use_rate_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rate_rule</span><span class="p">:</span> <span class="s2">&quot;RateRule&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SanitizedModel&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Attach the given rate rule to the sanitized model.</span>
+<span class="sd">        The rate rule will automatically be validated and sanitized before being applied.</span>
+
+<span class="sd">        :param rate_rule: GillesPy2 RateRule object to attach to the sanitized model.</span>
+<span class="sd">        :type rate_rule: gillespy2.RateRule</span>
+
+<span class="sd">        :returns: Pass-through of sanitized model object.</span>
+<span class="sd">        :rtype: SanitizedModel</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rate_rule</span><span class="o">.</span><span class="n">variable</span><span class="p">,</span> <span class="n">Species</span><span class="p">):</span>
+            <span class="n">variable</span> <span class="o">=</span> <span class="n">rate_rule</span><span class="o">.</span><span class="n">variable</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rate_rule</span><span class="o">.</span><span class="n">variable</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">)</span> <span class="ow">and</span> \
+                    <span class="n">rate_rule</span><span class="o">.</span><span class="n">variable</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">variable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get_species</span><span class="p">(</span><span class="n">rate_rule</span><span class="o">.</span><span class="n">variable</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">errmsg</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            Parameters are not valid variables for the TauHybridCSolver.</span>
+
+<span class="s2">            In order to use this variable it will need to be a gillespy2.Species.</span>
+<span class="s2">            &quot;&quot;&quot;</span>
+            <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="n">errmsg</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">variable</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_names</span><span class="p">:</span>
+            <span class="n">sanitized_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_names</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sanitized_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rate_rules</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Duplicate rate rule variable found in C++ solver: </span><span class="si">{</span><span class="n">variable</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">rr_sanitized</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">getexpr_cpp</span><span class="p">(</span><span class="n">rate_rule</span><span class="o">.</span><span class="n">formula</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">rr_sanitized</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">rate_rules</span><span class="p">[</span><span class="n">sanitized_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">rr_sanitized</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not sanitize rate rule formula expression: </span><span class="si">{</span><span class="n">rate_rule</span><span class="o">.</span><span class="n">formula</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="SanitizedModel.get_template"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.template_gen.SanitizedModel.get_template">[docs]</a>    <span class="k">def</span> <span class="nf">get_template</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;dict[str, str]&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a dictionary of C++ macro definitions from the given model.</span>
+<span class="sd">        The keys of the dictionary contain the name of the macro definition.</span>
+<span class="sd">        The values of the dictionary are the values their corresponding macro should be defined to.</span>
+
+<span class="sd">        :param variable: Set to true to allow for non-constant parameter values.</span>
+<span class="sd">        :type variable: bool</span>
+
+<span class="sd">        :returns: Dictionary of fully-formatted macro definitions.</span>
+<span class="sd">        :rtype: dict[str, str]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">({})</span>
+
+        <span class="c1"># Get definitions for variables</span>
+        <span class="n">parameter_definitions</span> <span class="o">=</span> <span class="n">template_def_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">parameter_definitions</span><span class="p">)</span>
+
+        <span class="c1"># Get definitions for species</span>
+        <span class="n">species_definitions</span> <span class="o">=</span> <span class="n">template_def_species</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">species_definitions</span><span class="p">)</span>
+
+        <span class="c1"># Get definitions for reactions</span>
+        <span class="n">reaction_definitions</span> <span class="o">=</span> <span class="n">template_def_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">reaction_definitions</span><span class="p">)</span>
+
+        <span class="c1"># Get definitions for propensities</span>
+        <span class="n">stoch_propensity_definitions</span> <span class="o">=</span> <span class="n">template_def_propensities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ode_propensity_definitions</span> <span class="o">=</span> <span class="n">template_def_propensities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">stoch_propensity_definitions</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ode_propensity_definitions</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">results</span></div>
+
+<div class="viewcode-block" id="SanitizedModel.get_options"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.template_gen.SanitizedModel.get_options">[docs]</a>    <span class="k">def</span> <span class="nf">get_options</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Optional[dict[str, str]]&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a dictionary of C++ macro definitions for optional parameters of the model.</span>
+<span class="sd">        The keys of the dictionary contain the name of the macro definition.</span>
+<span class="sd">        The values of the dictionary are the values their corresponding macro should be defined to.</span>
+
+<span class="sd">        :returns: Dictionary of fully-formatted macro definitions.</span>
+<span class="sd">        :rtype: dict[str, str]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="n">update_model_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">options</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">options</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span></div></div>
+
+
+<div class="viewcode-block" id="write_template"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.template_gen.write_template">[docs]</a><span class="k">def</span> <span class="nf">write_template</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write template definitions to a specified path. If the file does not exist, one is created.</span>
+<span class="sd">    Definitions are written in `#define KEY VALUES` format.</span>
+
+<span class="sd">    :param model: Model to get the macro definitions of.</span>
+<span class="sd">    :type model: gillespy2.Model</span>
+
+<span class="sd">    :param variable: Set to true to allow for non-constant parameter values.</span>
+<span class="sd">    :type variable: bool</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Get a dictionary of model defines and transform into a list of strings in</span>
+    <span class="c1"># `#define KEY VALUE` format.</span>
+    <span class="n">defines</span> <span class="o">=</span> <span class="n">get_model_defines</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">variable</span><span class="p">)</span>
+    <span class="n">write_definitions</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">defines</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="write_definitions"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.template_gen.write_definitions">[docs]</a><span class="k">def</span> <span class="nf">write_definitions</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">defines</span><span class="p">:</span> <span class="s2">&quot;dict[str, str]&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write the given key-value pairs as a C/C++ template file.</span>
+<span class="sd">    Contents of the given `defines` dict are written as `#define {key} {value}` format.</span>
+
+<span class="sd">    :param path: Absolute filepath of the header file to create (including the `.h` extension.</span>
+<span class="sd">    :type path: str</span>
+
+<span class="sd">    :param defines: Dictionary of key-value pairs representing macro definitions to create.</span>
+<span class="sd">    :type defines: dict[str, str]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Definition dict is transformed into a list of C++ macro definitions, with:</span>
+    <span class="c1"># `#define KEY VALUE` format.</span>
+    <span class="n">template_lines</span> <span class="o">=</span> <span class="p">[(</span><span class="sa">f</span><span class="s2">&quot;#define </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">defines</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+
+    <span class="c1"># Write generated lines to the template file.</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">template_file</span><span class="p">:</span>
+        <span class="n">template_file</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">template_lines</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_model_defines"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.template_gen.get_model_defines">[docs]</a><span class="k">def</span> <span class="nf">get_model_defines</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;dict[str, str]&quot;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a dictionary of C++ macro definitions from the given model.</span>
+<span class="sd">    The keys of the dictionary contain the name of the macro definition.</span>
+<span class="sd">    The values of the dictionary are the values their corresponding macro should be defined to.</span>
+
+<span class="sd">    :param model: Model to get the macro definitions of.</span>
+<span class="sd">    :type model: gillespy2.Model</span>
+
+<span class="sd">    :param variable: Set to true to allow for non-constant parameter values.</span>
+<span class="sd">    :type variable: bool</span>
+
+<span class="sd">    :returns: Dictionary of fully-formatted macro definitions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">sanitized_model</span> <span class="o">=</span> <span class="n">SanitizedModel</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+    <span class="c1"># Get definitions for variables</span>
+    <span class="n">parameter_definitions</span> <span class="o">=</span> <span class="n">template_def_variables</span><span class="p">(</span><span class="n">sanitized_model</span><span class="p">,</span> <span class="n">variable</span><span class="p">)</span>
+    <span class="n">results</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">parameter_definitions</span><span class="p">)</span>
+
+    <span class="c1"># Get definitions for species</span>
+    <span class="n">species_definitions</span> <span class="o">=</span> <span class="n">template_def_species</span><span class="p">(</span><span class="n">sanitized_model</span><span class="p">)</span>
+    <span class="n">results</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">species_definitions</span><span class="p">)</span>
+
+    <span class="c1"># Get definitions for reactions</span>
+    <span class="n">reaction_definitions</span> <span class="o">=</span> <span class="n">template_def_reactions</span><span class="p">(</span><span class="n">sanitized_model</span><span class="p">)</span>
+    <span class="n">results</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">reaction_definitions</span><span class="p">)</span>
+
+    <span class="c1"># Get definitions for propensities</span>
+    <span class="n">stoch_propensity_definitions</span> <span class="o">=</span> <span class="n">template_def_propensities</span><span class="p">(</span><span class="n">sanitized_model</span><span class="p">,</span> <span class="n">ode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">ode_propensity_definitions</span> <span class="o">=</span> <span class="n">template_def_propensities</span><span class="p">(</span><span class="n">sanitized_model</span><span class="p">,</span> <span class="n">ode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">results</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">stoch_propensity_definitions</span><span class="p">)</span>
+    <span class="n">results</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ode_propensity_definitions</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">results</span></div>
+
+
+<div class="viewcode-block" id="update_model_options"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.template_gen.update_model_options">[docs]</a><span class="k">def</span> <span class="nf">update_model_options</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="s2">&quot;SanitizedModel&quot;</span><span class="p">,</span> <span class="n">definitions</span><span class="p">:</span> <span class="s2">&quot;dict[str, str]&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;dict[str, str]&quot;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate the solver-specific options of the `SanitizedModel` with the given definitions.</span>
+<span class="sd">    This includes both solver-defined custom definitions, as well as SBML features.</span>
+
+<span class="sd">    :param model: Sanitized model to populate the options into.</span>
+<span class="sd">    The model itself is not modified.</span>
+<span class="sd">    :type model: SanitizedModel</span>
+
+<span class="sd">    :param definitions: Dictionary of macro definition key-value pairs to pass to the model.</span>
+<span class="sd">    :type definitions: dict[str, str]</span>
+
+<span class="sd">    :returns: Updated dictionary of macro definitions.</span>
+<span class="sd">    Includes both solver-specific definitions provided and SBML features on the model.</span>
+<span class="sd">    :rtype: dict[str, str]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">definitions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">definitions</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">rate_rules</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">definitions</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">template_def_rate_rules</span><span class="p">(</span><span class="n">model</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">definitions</span></div>
+
+
+<div class="viewcode-block" id="template_def_rate_rules"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.template_gen.template_def_rate_rules">[docs]</a><span class="k">def</span> <span class="nf">template_def_rate_rules</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">SanitizedModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;dict[str, str]&quot;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates template definitions for SBML rate rules.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rr_set</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">spec_i</span><span class="p">,</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">species_names</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">rate_rules</span><span class="p">:</span>
+            <span class="n">spec_rr</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">rate_rules</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+            <span class="n">rr_set</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RATE_RULE(</span><span class="si">{</span><span class="n">spec_i</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">spec_rr</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;GPY_RATE_RULES&quot;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rr_set</span><span class="p">)</span>
+    <span class="p">}</span></div>
+
+<div class="viewcode-block" id="template_def_variables"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.template_gen.template_def_variables">[docs]</a><span class="k">def</span> <span class="nf">template_def_variables</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">SanitizedModel</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;dict[str, str]&quot;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Formats the relevant parameters to be passed to a C++ simulation template.</span>
+<span class="sd">    Passed dictionaries/lists are assumed to be sanitized and sorted.</span>
+
+<span class="sd">    :param model: Sanitized model containing runtime definitions.</span>
+<span class="sd">    :type model: SanitizedModel</span>
+
+<span class="sd">    :param variable: Indicates whether the model&#39;s variables should be modifiable at runtime.</span>
+<span class="sd">    :type variable: bool</span>
+
+<span class="sd">    :returns: The result as a list of tuples containing key-value pairs to be templated.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Entries get defined as constant if variable is set to true.</span>
+    <span class="n">parameter_type</span> <span class="o">=</span> <span class="s2">&quot;VARIABLE&quot;</span> <span class="k">if</span> <span class="n">variable</span> <span class="k">else</span> <span class="s2">&quot;CONSTANT&quot;</span>
+    <span class="c1"># Parameter entries, parsed and formatted</span>
+    <span class="n">parameter_set</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">param_id</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+        <span class="n">parameter_set</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">parameter_type</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">param_id</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">parameter</span><span class="o">.</span><span class="n">expression</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;GPY_PARAMETER_VALUES&quot;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parameter_set</span><span class="p">),</span>
+        <span class="c1"># Currently assumes all variable or all constant.</span>
+        <span class="c1"># For partially variable models, modify to compute these two separately.</span>
+        <span class="s2">&quot;GPY_PARAMETER_NUM_VARIABLES&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parameter_set</span><span class="p">))</span> <span class="k">if</span> <span class="n">variable</span> <span class="k">else</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;GPY_PARAMETER_NUM_CONSTANTS&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parameter_set</span><span class="p">))</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">variable</span> <span class="k">else</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="template_def_species"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.template_gen.template_def_species">[docs]</a><span class="k">def</span> <span class="nf">template_def_species</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">SanitizedModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;dict[str, str]&quot;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Passed dictionaries/lists are assumed to be sanitized and sorted.</span>
+<span class="sd">    Formats the relevant species data to be passed to a C++ simulation template.</span>
+
+<span class="sd">    :param model: Sanitized model containing runtime definitions.</span>
+<span class="sd">    :type model: SanitizedModel</span>
+
+<span class="sd">    :returns: Dictionary of macro definitions for species and data related to species.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Parse and format species initial populations</span>
+    <span class="n">num_species</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
+    <span class="n">populations</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">spec_name</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">populations</span><span class="p">[</span><span class="n">spec_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">initial_value</span><span class="p">))</span>
+    <span class="c1"># Species names, parsed and formatted</span>
+    <span class="n">sanitized_names</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;SPECIES_NAME(</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">)&quot;</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">populations</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+    <span class="n">populations</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">{{</span><span class="si">{</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">populations</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="si">}</span><span class="se">}}</span><span class="s2">&quot;</span>
+
+    <span class="c1"># Match each parameter with its macro definition name</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;GPY_INIT_POPULATIONS&quot;</span><span class="p">:</span> <span class="n">populations</span><span class="p">,</span>
+        <span class="s2">&quot;GPY_NUM_SPECIES&quot;</span><span class="p">:</span> <span class="n">num_species</span><span class="p">,</span>
+        <span class="s2">&quot;GPY_SPECIES_NAMES&quot;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sanitized_names</span><span class="p">)</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="template_def_reactions"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.template_gen.template_def_reactions">[docs]</a><span class="k">def</span> <span class="nf">template_def_reactions</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">SanitizedModel</span><span class="p">,</span> <span class="n">ode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;dict[str, str]&quot;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Passed dictionaries/lists are assumed to be sanitized and sorted.</span>
+<span class="sd">    Formats the relevant reactions and propensities to be passed to a C++ simulation template.</span>
+
+<span class="sd">    :param model: Sanitized model containing runtime definitions.</span>
+<span class="sd">    :type model: SanitizedModel</span>
+
+<span class="sd">    :returns: Dictionary of macro definitions for reactions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num_reactions</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">reactions</span><span class="p">))</span>
+    <span class="n">reaction_set</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">rxn_name</span><span class="p">,</span> <span class="n">reaction</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">stoich</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">reaction</span><span class="p">[</span><span class="n">species</span><span class="p">]))</span> <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">species_names</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="n">reaction_set</span><span class="p">[</span><span class="n">rxn_name</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">{{</span><span class="si">{</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">stoich</span><span class="p">)</span><span class="si">}</span><span class="se">}}</span><span class="s2">&quot;</span>
+
+    <span class="n">reaction_names</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;REACTION_NAME(</span><span class="si">{</span><span class="n">rxn</span><span class="si">}</span><span class="s2">)&quot;</span> <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">reaction_set</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span>
+    <span class="n">reaction_set</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">{{</span><span class="si">{</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">reaction_set</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="si">}</span><span class="se">}}</span><span class="s2">&quot;</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;GPY_NUM_REACTIONS&quot;</span><span class="p">:</span> <span class="n">num_reactions</span><span class="p">,</span>
+        <span class="s2">&quot;GPY_REACTIONS&quot;</span><span class="p">:</span> <span class="n">reaction_set</span><span class="p">,</span>
+        <span class="s2">&quot;GPY_REACTION_NAMES&quot;</span><span class="p">:</span> <span class="n">reaction_names</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="template_def_propensities"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.template_gen.template_def_propensities">[docs]</a><span class="k">def</span> <span class="nf">template_def_propensities</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">SanitizedModel</span><span class="p">,</span> <span class="n">ode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;dict[str, str]&quot;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Formats the given list of pre-sorted, pre-sanitized propensities.</span>
+
+<span class="sd">    :param model: Sanitized model containing runtime definitions.</span>
+<span class="sd">    :type model: SanitizedModel</span>
+
+<span class="sd">    :returns: Dictionary containing propensity macro definitions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">def_keyword</span> <span class="o">=</span> <span class="s2">&quot;ODE_PROPENSITIES&quot;</span> <span class="k">if</span> <span class="n">ode</span> <span class="k">else</span> <span class="s2">&quot;PROPENSITIES&quot;</span>
+    <span class="n">propensities</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">ode_propensities</span> <span class="k">if</span> <span class="n">ode</span> <span class="k">else</span> <span class="n">model</span><span class="o">.</span><span class="n">propensities</span>
+    <span class="n">propensities</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;PROPENSITY(</span><span class="si">{</span><span class="n">rxn_i</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">propensities</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span> <span class="k">for</span> <span class="n">rxn_i</span><span class="p">,</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="sa">f</span><span class="s2">&quot;GPY_</span><span class="si">{</span><span class="n">def_keyword</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">propensities</span><span class="p">)</span>
+    <span class="p">}</span></div>
+</pre></div>
+
+          </div>
+              <div class="related bottom">
+                &nbsp;
+  <nav id="rellinks">
+    <ul>
+    </ul>
+  </nav>
+              </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;Copyright (C) 2017-2021.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+    <a href="https://github.com/GillesPy2/GillesPy2" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

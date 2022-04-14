@@ -1,20 +1,18 @@
-"""
-GillesPy2 is a modeling toolkit for biochemical simulation.
-Copyright (C) 2019-2021 GillesPy2 developers.
+# GillesPy2 is a modeling toolkit for biochemical simulation.
+# Copyright (C) 2019-2022 GillesPy2 developers.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 import numpy as np
 import gillespy2
@@ -29,8 +27,8 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         model = Example()
         species = gillespy2.Species('test_species', initial_value=1)
         model.add_species([species])
-        solver = TauHybridSolver()
-        results = solver.run(model=model)
+        solver = TauHybridSolver(model=model)
+        results = solver.run()
         self.assertTrue(len(results) > 0)
 
     def test_add_rate_rule(self):
@@ -150,7 +148,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
                 self.add_event([event1, event2])
 
         model = EventTestModel()
-        results = model.run()
+        results = model.run(increment=0.05, t=20)
         self.assertGreater(results['S'][-1], 0)
 
     def test_math_name_overlap(self):
@@ -161,7 +159,8 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         model.add_parameter([k2])
         gamma_react = gillespy2.Reaction(name='gamma_react', reactants={'gamma': 1}, products={}, rate=k2)
         model.add_reaction([gamma_react])
-        model.run(solver=TauHybridSolver)
+        solver = TauHybridSolver(model=model)
+        model.run(solver=solver)
 
     def test_add_bad_expression_rate_rule_dict(self):
         model = Example()
@@ -190,21 +189,25 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         model = Example()
         species1 = gillespy2.Species('test_species1', initial_value=1, mode='dynamic')
         model.add_species(species1)
-        with self.assertLogs(level='WARN'):
-            results = model.run(solver=TauHybridSolver, timeout=1)
+        with self.assertLogs('GillesPy2', level='WARN'):
+            solver = TauHybridSolver(model=model)
+            results = model.run(solver=solver, timeout=1)
 
     def test_run_example__with_increment_only(self):
         model = ExampleNoTspan()
-        results = TauHybridSolver.run(model=model, increment=0.2)
+        solver = TauHybridSolver(model=model)
+        results = solver.run(increment=0.2, t=20)
 
     def test_run_example__with_tspan_only(self):
         model = Example()
-        results = TauHybridSolver.run(model=model)
+        solver = TauHybridSolver(model=model)
+        results = solver.run()
 
     def test_run_example__with_tspan_and_increment(self):
         with self.assertRaises(SimulationError):
             model = Example()
-            results = TauHybridSolver.run(model=model, increment=0.2)
+            solver = TauHybridSolver(model=model)
+            results = solver.run(increment=0.2)
 
 
 class TestAllHybridSolvers(unittest.TestCase):
@@ -233,7 +236,8 @@ class TestAllHybridSolvers(unittest.TestCase):
         model = TestAllHybridSolvers.TruncatedStateModel()
         for solver in self.solvers:
             with self.subTest(solver=solver.name):
-                result = model.run(solver=solver, seed=1)
+                solver = solver(model=model)
+                result = model.run(solver=solver, seed=1, increment=0.05, t=20)
                 self.assertGreater(result["S1"][-1], 0.0,
                                    "Reaction never fired; indicates that continuous species is being truncated")
 
@@ -241,6 +245,7 @@ class TestAllHybridSolvers(unittest.TestCase):
         model = MultiFiringEvent()
         for solver in self.solvers:
             with self.subTest(solver=solver.name):
+                solver = solver(model=model)
                 res = model.run(solver=solver, seed=1)
                 self.assertNotEqual(res['Sp'][45], 0)
                 self.assertEqual(res['Sp'][75], 0)

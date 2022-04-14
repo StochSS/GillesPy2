@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '../../../')))
 import gillespy2
-import numpy as np
+import numpy
 
 class VilarOscillator(gillespy2.Model):
     def __init__(self, parameter_values=None):

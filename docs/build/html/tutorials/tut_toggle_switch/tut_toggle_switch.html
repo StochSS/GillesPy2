@@ -1,18 +1,19 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Tutorial: ODE vs. SSA &#8212; GillesPy2 1.5.2 documentation</title>
-    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Tutorial: ODE vs. SSA &#8212; GillesPy2 1.6.9 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/gillespy2_alabaster_customizations.css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="gillespy2 package" href="../../classes/gillespy2.html" />
@@ -52,16 +53,16 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Getting started</span></p>
+<p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../getting_started/installation/installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../getting_started/basic_usage/basic_usage.html">Basic usage</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Tutorials</span></p>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial: ODE vs. SSA</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../classes/gillespy2.html">gillespy2 package</a></li>
 </ul>
@@ -79,7 +80,7 @@
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -101,12 +102,12 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="tutorial-ode-vs-ssa">
+  <section id="tutorial-ode-vs-ssa">
 <h1>Tutorial: ODE vs. SSA<a class="headerlink" href="#tutorial-ode-vs-ssa" title="Permalink to this headline">¶</a></h1>
 <p>Deterministic ordinary differential equation (ODE) models of biochemical processes are useful and accurate in the high-concentration limit, but often fail to capture stochastic cellular dynamics accurately because the deterministic continuous formulation assumes spatial homogeneity and continuous biomolecule concentrations.  Nevertheless, ODE simulations are appropriate in some situations.  GillesPy2 includes ODE solvers as well as stochastic solvers, and thus allows you to compare the results of both.  This tutorial demonstrates the use of both ODE and stochastic simulation on the same model.</p>
 <p>First, in a Python script that uses GillesPy2 to perform model simulation, we begin by importing some basic Python packages needed in the rest of the script:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">gillespy2</span>
 <span class="kn">from</span> <span class="nn">gillespy2</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">,</span> <span class="n">Reaction</span>
 <span class="kn">from</span> <span class="nn">gillespy2.solvers.numpy.basic_ode_solver</span> <span class="kn">import</span> <span class="n">BasicODESolver</span>
@@ -114,7 +115,7 @@
 </div>
 <p>Next, we define a model. This is a model based on a publication by Gardner et al. in Nature, 1999, and represents a genetic toggle switch in Escherichia coli.  In GillesPy2, a model is expressed as an object having the parent class <code class="docutils literal notranslate"><span class="pre">Model</span></code>.  Components of the model, such as the reactions, molecular species, and characteristics such as the time span for simulation, are all defined within the subclass definition.  The following Python code represents our model using GillesPy2’s facility:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ToggleSwitch</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
-  <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter_values</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+  <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter_values</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="c1"># Initialize the model.</span>
     <span class="n">Model</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;toggle_switch&quot;</span><span class="p">)</span>
 
@@ -146,11 +147,11 @@
 </div>
 <p>Given the class definition above, the model can be simulated by first instantiating the class object, and then invoking the <code class="docutils literal notranslate"><span class="pre">run()</span></code> method on the object.  Invoking <code class="docutils literal notranslate"><span class="pre">run()</span></code> without any values for the <code class="docutils literal notranslate"><span class="pre">solver</span></code> keyword argument makes GillesPy2 use the basic SSA solver.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">ToggleSwitch</span><span class="p">()</span>
-<span class="n">s_results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">show_labels</span> <span class="o">=</span> <span class="bp">False</span><span class="p">)</span>
+<span class="n">s_results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">show_labels</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>We can run the model again, this time using a deterministic ODE solver.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">d_results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">solver</span> <span class="o">=</span> <span class="n">BasicODESolver</span><span class="p">,</span> <span class="n">show_labels</span> <span class="o">=</span> <span class="bp">False</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">d_results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">solver</span> <span class="o">=</span> <span class="n">BasicODESolver</span><span class="p">,</span> <span class="n">show_labels</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Now, let’s plot the results of the two methods.  First, a plot of the stochastic simulation results:</p>
@@ -171,7 +172,7 @@
 </pre></div>
 </div>
 <img alt="../../_images/ode.png" class="align-center" src="../../_images/ode.png" />
-</div>
+</section>
 
 
           </div>
@@ -196,10 +197,10 @@
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;Copyright (C) 2017-2020.
+      &copy;Copyright (C) 2017-2021.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

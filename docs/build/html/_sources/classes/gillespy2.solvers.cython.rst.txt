@@ -12,7 +12,6 @@ gillespy2.solvers.cython.cython\_ssa\_solver module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

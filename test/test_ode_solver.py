@@ -1,20 +1,18 @@
-"""
-GillesPy2 is a modeling toolkit for biochemical simulation.
-Copyright (C) 2019-2021 GillesPy2 developers.
+# GillesPy2 is a modeling toolkit for biochemical simulation.
+# Copyright (C) 2019-2022 GillesPy2 developers.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import unittest
 import sys
@@ -31,15 +29,16 @@ class TestBasicODESolver(unittest.TestCase):
 
     def test_run_example(self):
         model = Example()
+        solver = ODESolver(model=model)
         for i in [1, self.number_of_trajectories]:
             for label in [True, False]:
                 with self.subTest(number_of_trajectories=i, show_labels=label):
                     if i > 1:
-                        with self.assertLogs(level='WARN'):
-                            results = model.run(solver=ODESolver, show_labels=label, number_of_trajectories=i)
+                        with self.assertLogs('GillesPy2', level='WARN'):
+                            results = model.run(solver=solver, show_labels=label, number_of_trajectories=i)
                         self.assertEqual(len(results), i)
                     else:
-                        results = model.run(solver=ODESolver, show_labels=label, number_of_trajectories=i)
+                        results = model.run(solver=solver, show_labels=label, number_of_trajectories=i)
 
                     if i > 1 or not label:
                         for result in results[1:]:
@@ -62,21 +61,25 @@ class TestBasicODESolver(unittest.TestCase):
                 self.add_reaction([r])
                 self.timespan(np.linspace(0, 100, 101))
         model = StoichTestModel()
-        result = model.run(solver=ODESolver)
+        solver = ODESolver(model=model)
+        result = model.run(solver=solver)
         self.assertAlmostEqual(result['B'][-1], 5, places=3)
 
     def test_run_example__with_increment_only(self):
         model = ExampleNoTspan()
-        results = ODESolver.run(model=model, increment=0.2)
+        solver = ODESolver(model=model)
+        results = solver.run(increment=0.2)
 
     def test_run_example__with_tspan_only(self):
         model = Example()
-        results = ODESolver.run(model=model)
+        solver = ODESolver(model=model)
+        results = solver.run()
 
     def test_run_example__with_tspan_and_increment(self):
         with self.assertRaises(SimulationError):
             model = Example()
-            results = ODESolver.run(model=model, increment=0.2)
+            solver = ODESolver(model=model)
+            results = solver.run(increment=0.2)
 
 
     def test_stoch3(self):
@@ -93,7 +96,8 @@ class TestBasicODESolver(unittest.TestCase):
                 self.add_reaction([r])
                 self.timespan(np.linspace(0, 100, 101))
         model = StochTestModel()
-        result = model.run(solver=ODESolver)
+        solver = ODESolver(model=model)
+        result = model.run(solver=solver)
         sys.stderr.write(f"\ntest_shoch3(): B={result['B'][-1]}\n\n")
         self.assertGreater(result['B'][-1], 5)
 

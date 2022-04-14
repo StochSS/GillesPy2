@@ -1,20 +1,18 @@
-"""
-GillesPy2 is a modeling toolkit for biochemical simulation.
-Copyright (C) 2019-2021 GillesPy2 developers.
+# GillesPy2 is a modeling toolkit for biochemical simulation.
+# Copyright (C) 2019-2022 GillesPy2 developers.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import unittest
 import numpy
@@ -86,11 +84,6 @@ class TestSimpleModel(unittest.TestCase):
             self.model.add_parameter([k1, k2])
         self.assertIn('Name "{}" is unavailable. A parameter with that name exists.'.format(k1.name), str(ex.exception))
 
-    def test_delete_species(self):
-        self.model.delete_species('A')
-        speciesList = self.model.get_all_species()
-        self.assertNotIn('A', speciesList)
-
     def test_delete_all_species(self):
         self.model.delete_all_species()
         speciesList = self.model.get_all_species()
@@ -149,11 +142,6 @@ class TestSimpleModel(unittest.TestCase):
         self.assertEqual('100', parameter.expression)
         self.assertIsInstance(parameter, Parameter, msg='{0} has incorrect type'.format(parameter))
 
-    def test_delete_parameter(self):
-        self.model.delete_parameter('k1')
-        parameterList = self.model.get_all_parameters()
-        self.assertNotIn('k1', parameterList)
-
     def test_delete_all_parameters(self):
         self.model.delete_all_parameters()
         parameterList = self.model.get_all_parameters()
@@ -183,11 +171,6 @@ class TestSimpleModel(unittest.TestCase):
         reactions = self.model.get_all_reactions()
         self.assertIsInstance(reactions['r1'], Reaction, msg='{0} has incorrect type'.format(reactions))
         self.assertIsInstance(reactions['r2'], Reaction, msg='{0} has incorrect type'.format(reactions))
-
-    def test_delete_reaction(self):
-        self.model.delete_reaction('r1')
-        reactionList = self.model.get_all_reactions()
-        self.assertNotIn('r1', reactionList)
 
     def test_delete_all_reactions(self):
         self.model.delete_all_reactions()

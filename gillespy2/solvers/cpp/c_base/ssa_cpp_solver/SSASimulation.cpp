@@ -1,6 +1,6 @@
 /*
  * GillesPy2 is a modeling toolkit for biochemical simulation.
- * Copyright (C) 2019-2021 GillesPy2 developers.
+ * Copyright (C) 2019-2022 GillesPy2 developers.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,5 +74,5 @@ int main(int argc, char *argv[])
 	ssa_direct(&simulation);
 	simulation.output_buffer_final(std::cout);
 
-	return 0;
+	return simulation.get_status();
 }
