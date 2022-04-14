@@ -7,7 +7,7 @@ GillesPy2 is an open-source Python package for stochastic simulation of biochemi
 Getting a copy of GillesPy2
 ***************************
 
-The latest version of GillesPy2 can be found on `PyPI <https://pypi.org/project/gillespy2>`_.  The source code is available on `GitHub <https://github.com/GillesPy2/GillesPy2>`_.  GillesPy2 is licensed under the GNU General Public License version 3.
+The latest version of GillesPy2 can be found on `PyPI <https://pypi.org/project/gillespy2>`_.  The source code is available on `GitHub <https://github.com/StochSS/GillesPy2>`_.  GillesPy2 is licensed under the GNU General Public License version 3.
 
 .. raw:: html
    
@@ -18,7 +18,7 @@ The latest version of GillesPy2 can be found on `PyPI <https://pypi.org/project/
 Getting help
 ************
 
-If you find any problem with GillesPy2 or this documentation, please report it using `the GitHub issue tracker <https://github.com/GillesPy2/GillesPy2/issues>`_ for the project.  You can also contact the main author, Dr. `Brian Drawert <http://www.cs.unca.edu/~drawert>`_, directly with questions and suggestions.
+If you find any problem with GillesPy2 or this documentation, please report it using `the GitHub issue tracker <https://github.com/StochSS/GillesPy2/issues>`_ for the project.  You can also contact the main author, Dr. `Brian Drawert <https://github.com/briandrawert>`_, directly with questions and suggestions.
 
 
 Documentation

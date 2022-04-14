@@ -12,30 +12,6 @@ gillespy2.solvers.numpy.CLE\_solver module
    :undoc-members:
    :show-inheritance:
 
-gillespy2.solvers.numpy.basic\_ode\_solver module
--------------------------------------------------
-
-.. automodule:: gillespy2.solvers.numpy.basic_ode_solver
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-gillespy2.solvers.numpy.basic\_tau\_hybrid\_solver module
----------------------------------------------------------
-
-.. automodule:: gillespy2.solvers.numpy.basic_tau_hybrid_solver
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-gillespy2.solvers.numpy.basic\_tau\_leaping\_solver module
-----------------------------------------------------------
-
-.. automodule:: gillespy2.solvers.numpy.basic_tau_leaping_solver
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 gillespy2.solvers.numpy.ode\_solver module
 ------------------------------------------
 

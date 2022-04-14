@@ -124,6 +124,14 @@ gillespy2.core.species module
    :undoc-members:
    :show-inheritance:
 
+gillespy2.core.timespan module
+------------------------------
+
+.. automodule:: gillespy2.core.timespan
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
