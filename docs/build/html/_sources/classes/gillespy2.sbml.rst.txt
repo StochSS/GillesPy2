@@ -4,6 +4,14 @@ gillespy2.sbml package
 Submodules
 ----------
 
+gillespy2.sbml.SBMLexport module
+--------------------------------
+
+.. automodule:: gillespy2.sbml.SBMLexport
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 gillespy2.sbml.SBMLimport module
 --------------------------------
 
@@ -11,7 +19,6 @@ gillespy2.sbml.SBMLimport module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

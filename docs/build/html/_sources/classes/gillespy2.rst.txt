@@ -5,10 +5,12 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    gillespy2.core
    gillespy2.sbml
    gillespy2.solvers
+   gillespy2.stochss
 
 Module contents
 ---------------

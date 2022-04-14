@@ -1,18 +1,18 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>gillespy2.sbml.SBMLimport &#8212; GillesPy2 1.5.2 documentation</title>
-    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>gillespy2.sbml.SBMLimport &#8212; GillesPy2 1.6.9 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/gillespy2_alabaster_customizations.css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -50,16 +50,16 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Getting started</span></p>
+<p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started/installation/installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started/basic_usage/basic_usage.html">Basic usage</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Tutorials</span></p>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorials/tut_toggle_switch/tut_toggle_switch.html">Tutorial: ODE vs. SSA</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../classes/gillespy2.html">gillespy2 package</a></li>
 </ul>
@@ -77,7 +77,7 @@
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -100,14 +100,34 @@
           <div class="body" role="main">
             
   <h1>Source code for gillespy2.sbml.SBMLimport</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span></span><span class="c1"># GillesPy2 is a modeling toolkit for biochemical simulation.</span>
+<span class="c1"># Copyright (C) 2019-2022 GillesPy2 developers.</span>
+
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">gillespy2</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">libsbml</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;libsbml is required to convert SBML files for GillesPy.&#39;</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">gillespyError</span>
 
 
 <span class="n">init_state</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;INF&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="s1">&#39;NaN&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">}</span>
@@ -148,13 +168,13 @@
 <span class="k">def</span> <span class="nf">__get_math</span><span class="p">(</span><span class="n">math</span><span class="p">):</span>
     <span class="n">math_str</span> <span class="o">=</span> <span class="n">libsbml</span><span class="o">.</span><span class="n">formulaToL3String</span><span class="p">(</span><span class="n">math</span><span class="p">)</span>
     <span class="n">replacements</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;ln&#39;</span><span class="p">:</span> <span class="s1">&#39;log&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;^&#39;</span><span class="p">:</span> <span class="s1">&#39;**&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;&amp;&amp;&#39;</span><span class="p">:</span> <span class="s1">&#39;and&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;||&#39;</span><span class="p">:</span> <span class="s1">&#39;or&#39;</span>
+        <span class="sa">r</span><span class="s1">&#39;\bln\b&#39;</span><span class="p">:</span> <span class="s1">&#39;log&#39;</span><span class="p">,</span>
+        <span class="sa">r</span><span class="s1">&#39;\^&#39;</span><span class="p">:</span> <span class="s1">&#39;**&#39;</span><span class="p">,</span>
+        <span class="sa">r</span><span class="s1">&#39;\&amp;\&amp;&#39;</span><span class="p">:</span> <span class="s1">&#39;and&#39;</span><span class="p">,</span>
+        <span class="sa">r</span><span class="s1">&#39;\|\|&#39;</span><span class="p">:</span> <span class="s1">&#39;or&#39;</span>
         <span class="p">}</span>
     <span class="k">for</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span> <span class="ow">in</span> <span class="n">replacements</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">math_str</span> <span class="o">=</span> <span class="n">math_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+        <span class="n">math_str</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">,</span> <span class="n">math_str</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">math_str</span>
 
 <span class="k">def</span> <span class="nf">__get_species</span><span class="p">(</span><span class="n">sbml_model</span><span class="p">,</span> <span class="n">gillespy_model</span><span class="p">,</span> <span class="n">errors</span><span class="p">):</span>
@@ -205,7 +225,10 @@
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sbml_model</span><span class="o">.</span><span class="n">getNumParameters</span><span class="p">()):</span>
         <span class="n">parameter</span> <span class="o">=</span> <span class="n">sbml_model</span><span class="o">.</span><span class="n">getParameter</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
         <span class="n">name</span> <span class="o">=</span> <span class="n">parameter</span><span class="o">.</span><span class="n">getId</span><span class="p">()</span>
-        <span class="n">value</span> <span class="o">=</span> <span class="n">parameter</span><span class="o">.</span><span class="n">getValue</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">parameter</span><span class="o">.</span><span class="n">isSetValue</span><span class="p">():</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">parameter</span><span class="o">.</span><span class="n">getValue</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">init_state</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 
         <span class="c1"># GillesPy2 represents non-constant parameters as species</span>
@@ -222,9 +245,12 @@
         <span class="n">name</span> <span class="o">=</span> <span class="n">compartment</span><span class="o">.</span><span class="n">getId</span><span class="p">()</span>
         <span class="n">value</span> <span class="o">=</span> <span class="n">compartment</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span>
 
-        <span class="n">gillespy_parameter</span> <span class="o">=</span> <span class="n">gillespy2</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
-        <span class="n">init_state</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-        <span class="n">gillespy_model</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">([</span><span class="n">gillespy_parameter</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;vol&quot;</span><span class="p">:</span>
+            <span class="n">gillespy_model</span><span class="o">.</span><span class="n">volume</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gillespy_parameter</span> <span class="o">=</span> <span class="n">gillespy2</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">init_state</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="n">gillespy_model</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">([</span><span class="n">gillespy_parameter</span><span class="p">])</span>
 
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    for i in range(sbml_model.getNumCompartments()):</span>
@@ -249,6 +275,12 @@
 
 <span class="k">def</span> <span class="nf">__get_kinetic_law</span><span class="p">(</span><span class="n">sbml_model</span><span class="p">,</span> <span class="n">gillespy_model</span><span class="p">,</span> <span class="n">reaction</span><span class="p">):</span>
     <span class="n">kinetic_law</span> <span class="o">=</span> <span class="n">reaction</span><span class="o">.</span><span class="n">getKineticLaw</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">kinetic_law</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">InvalidModelError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Failed to load SBML model: Reaction &#39;</span><span class="si">{</span><span class="n">reaction</span><span class="si">}</span><span class="s2">&#39; is missing its propensity function.&quot;</span>
+        <span class="p">)</span>
+
     <span class="n">tree</span> <span class="o">=</span> <span class="n">kinetic_law</span><span class="o">.</span><span class="n">getMath</span><span class="p">()</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">kinetic_law</span><span class="o">.</span><span class="n">getListOfParameters</span><span class="p">()</span>
     <span class="n">local_params</span> <span class="o">=</span> <span class="n">kinetic_law</span><span class="o">.</span><span class="n">getListOfLocalParameters</span><span class="p">()</span>
@@ -310,7 +342,12 @@
 <span class="k">def</span> <span class="nf">__get_rules</span><span class="p">(</span><span class="n">sbml_model</span><span class="p">,</span> <span class="n">gillespy_model</span><span class="p">,</span> <span class="n">errors</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sbml_model</span><span class="o">.</span><span class="n">getNumRules</span><span class="p">()):</span>
         <span class="n">rule</span> <span class="o">=</span> <span class="n">sbml_model</span><span class="o">.</span><span class="n">getRule</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-        <span class="n">rule_name</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">getId</span><span class="p">()</span>
+
+        <span class="c1"># If the SBML object does not contain an ID attribute create a unique rule_name from the variable name.</span>
+        <span class="n">rule_name</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">getIdAttribute</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">rule_name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">rule_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;ar_</span><span class="si">{</span><span class="n">rule</span><span class="o">.</span><span class="n">getId</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+
         <span class="n">rule_variable</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">getVariable</span><span class="p">()</span>
         <span class="n">rule_string</span> <span class="o">=</span> <span class="n">__get_math</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">getMath</span><span class="p">())</span>
         <span class="k">if</span> <span class="n">rule_variable</span> <span class="ow">in</span> <span class="n">gillespy_model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">:</span>
@@ -489,10 +526,10 @@
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;Copyright (C) 2017-2020.
+      &copy;Copyright (C) 2017-2021.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
