@@ -1,20 +1,18 @@
-"""
-GillesPy2 is a modeling toolkit for biochemical simulation.
-Copyright (C) 2019-2021 GillesPy2 developers.
+# GillesPy2 is a modeling toolkit for biochemical simulation.
+# Copyright (C) 2019-2022 GillesPy2 developers.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import unittest
 from example_models import RobustModel, Example, ExampleNoTspan
@@ -137,20 +135,6 @@ class TestModel(unittest.TestCase):
             Failed while testing Model.run() behavior when both `timespan` and `increment` are set.
             """
         )
-
-    def test_valid_initial_value_float(self):
-        species = Species('A', initial_value=1.5, mode='continuous')
-
-    def test_invalid_initial_value_float(self):
-        with self.assertRaises(ValueError):
-            species = Species('A', initial_value=1.5)
-
-    def test_valid_initial_value_negative(self):
-        species = Species('A', initial_value=-1, allow_negative_populations=True)
-
-    def test_invalid_initial_value_negative(self):
-        with self.assertRaises(ValueError):
-            species = Species('A', initial_value=-1)
 
     def test_reaction_invalid_reactant(self):
         model = Model()
@@ -312,10 +296,6 @@ class TestModel(unittest.TestCase):
     def test_model_init_custom_tspan(self):
         model = Model(tspan = np.linspace(0, 20, 401))
 
-    def test_parameter_init_unspecified_expression(self):
-        with self.assertRaises(ParameterError):
-            parameter = Parameter(name = 'parameter')
-
     def test_ode_propensity(self):
         model = Model()
         rate = Parameter(name='rate', expression=0.5)
@@ -333,16 +313,6 @@ class TestModel(unittest.TestCase):
         self.assertEqual(model.listOfReactions['r3'].ode_propensity_function, 'rate*A*B')
         self.assertEqual(model.listOfReactions['r4'].ode_propensity_function, 't')
 
-
-    def test_species_setter(self):
-        sp1 = Species('A',initial_value=10)
-        sp1.set_initial_value(5)
-        self.assertEqual(sp1.initial_value,5)
-        with self.assertRaises(SpeciesError):
-            sp1.set_initial_value(-1)
-        sp2 = Species('B',initial_value=5,mode='discrete')
-        with self.assertRaises(SpeciesError):
-            sp2.set_initial_value(.5)
 
     def test_robust_model(self):
         try:

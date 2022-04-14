@@ -1,6 +1,6 @@
 /*
  * GillesPy2 is a modeling toolkit for biochemical simulation.
- * Copyright (C) 2019-2021 GillesPy2 developers.
+ * Copyright (C) 2019-2022 GillesPy2 developers.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -194,7 +194,7 @@ namespace Gillespy
 
 					// This is a temporary fix. Ideally, invalid state should allow for integrator options change.
 					// For now, a "guard" is put in place to prevent potentially infinite loops from occurring.
-					unsigned int integration_guard = 3;
+					unsigned int integration_guard = 1000;
 
 					do
 					{
