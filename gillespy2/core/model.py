@@ -13,9 +13,18 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from ast import Assign
 import numpy as np
-from typing import Set, Type
+from typing import Set, Type, Union
 from collections import OrderedDict
+
+from typing import (
+    List,
+    Dict,
+    Union,
+    Iterable,
+    AbstractSet
+)
 
 import gillespy2
 from gillespy2.core.assignmentrule import AssignmentRule
@@ -29,6 +38,7 @@ from gillespy2.core.timespan import TimeSpan
 from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.jsonify import Jsonify, TranslationTable
 from gillespy2.core.results import Trajectory, Results
+from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import (
     ParameterError,
     ModelError,
@@ -48,8 +58,18 @@ except:
     import re
     no_pretty_print = True
 
+# A component can be one or more of the following types.
+Component = Union[
+    Species,
+    Parameter,
+    Reaction,
+    Event,
+    RateRule,
+    AssignmentRule
+]
 
-def import_SBML(filename, name=None, gillespy_model=None):
+
+def import_SBML(filename: str, name: str = None, gillespy_model: "Model" = None):
     """
     SBML to GillesPy model converter. NOTE: non-mass-action rates
     in terms of concentrations may not be converted for population
@@ -73,7 +93,7 @@ def import_SBML(filename, name=None, gillespy_model=None):
     return convert(filename, model_name=name, gillespy_model=gillespy_model)
 
 
-def export_SBML(gillespy_model, filename=None):
+def export_SBML(gillespy_model: "Model", filename: str = None):
     """
     GillesPy model to SBML converter
 
@@ -91,7 +111,7 @@ def export_SBML(gillespy_model, filename=None):
     return export(gillespy_model, path=filename)
 
 
-def export_StochSS(gillespy_model, filename=None, return_stochss_model=False):
+def export_StochSS(gillespy_model: "Model", filename: str = None, return_stochss_model: bool = False):
     """
     GillesPy model to StochSS converter
 
@@ -140,7 +160,14 @@ class Model(SortableObject, Jsonify):
     reserved_names = ['vol']
     special_characters = ['[', ']', '+', '-', '*', '/', '.', '^']
 
-    def __init__(self, name="", population=True, volume=1.0, tspan=None, annotation="model"):
+    def __init__(
+        self, 
+        name: str = "", 
+        population: bool = True, 
+        volume: float = 1.0, 
+        tspan: "TimeSpan" = None, 
+        annotation: str = "model"
+    ):
         """ Create an empty model. """
 
         # The name that the model is referenced by (should be a String)
@@ -199,7 +226,7 @@ class Model(SortableObject, Jsonify):
         self._hash_private_vars = False
         self._generate_translation_table = True
 
-    def __str__(self):
+    def __str__(self) -> str:
         divider = '\n**********\n'
 
         def decorate(header):
@@ -237,15 +264,13 @@ class Model(SortableObject, Jsonify):
 
         return print_string
 
-    def add(self, components):
+    def add(self, components: Union[Component, List[Component]]) -> Union[Component, List[Component]]:
         """
         Adds a component, or list of components to the model. If a list is provided, Species
         and Parameters are added before other components.  Lists may contain any combination
         of accepted types other than lists and do not need to be in any particular order.
 
         :param components: The component or list of components to be added the the model.
-        :type components: Species, Parameters, Reactions, Events, Rate Rules, Assignment Rules, \
-                          FunctionDefinitions, and TimeSpan or list
 
         :returns: The components that were added to the model.
         :rtype: Species, Parameters, Reactions, Events, Rate Rules, Assignment Rules, \
@@ -253,6 +278,7 @@ class Model(SortableObject, Jsonify):
 
         :raises ModelError: Component is invalid.
         """
+
         if isinstance(components, list):
             p_types = (Species, Parameter, FunctionDefinition, TimeSpan)
             p_names = (p_type.__name__ for p_type in p_types)
@@ -286,7 +312,7 @@ class Model(SortableObject, Jsonify):
             raise ModelError(f"Unsupported component: {type(components)} is not a valid component.")
         return components
 
-    def make_translation_table(self):
+    def make_translation_table(self) -> TranslationTable:
         from collections import ChainMap
 
         species = self.listOfSpecies.values()
@@ -313,19 +339,19 @@ class Model(SortableObject, Jsonify):
 
         return TranslationTable(to_anon=translation_table)
 
-    def serialize(self):
+    def serialize(self) -> str:
         """ Serializes the Model object to valid StochML. """
         self.resolve_parameters()
         doc = StochMLDocument().from_model(self)
         return doc.to_string()
 
-    def update_namespace(self):
+    def update_namespace(self) -> None:
         """ Create a dict with flattened parameter and species objects. """
         self.namespace = OrderedDict([])
         for param in self.listOfParameters:
             self.namespace[param] = self.listOfParameters[param].value
 
-    def sanitized_species_names(self):
+    def sanitized_species_names(self) -> OrderedDict:
         """
         Generate a dictionary mapping user chosen species names to simplified formats which will be used
         later on by GillesPySolvers evaluating reaction propensity functions.
@@ -337,7 +363,7 @@ class Model(SortableObject, Jsonify):
             species_name_mapping[name] = 'S[{}]'.format(i)
         return species_name_mapping
 
-    def problem_with_name(self, name):
+    def problem_with_name(self, name: str) -> None:
         if name in Model.reserved_names:
             raise ModelError(
                 'Name "{}" is unavailable. It is reserved for internal GillesPy use. Reserved Names: ({}).'.format(name,
@@ -364,23 +390,24 @@ class Model(SortableObject, Jsonify):
                     'Name "{}" is unavailable. Names must not contain special characters: {}.'.format(name,
                                                                                                       Model.special_characters))
 
-    def get_species(self, s_name):
+    def get_species(self, s_name: str) -> Species:
         """
         Returns a species object by name.
 
         :param s_name: Name of the species object to be returned:
         :type s_name: str
         """
+
         return self.listOfSpecies[s_name]
 
-    def get_all_species(self):
+    def get_all_species(self) -> Dict[str, Species]:
         """
         :returns: A dict of all species in the model, of the form:
             {name : species object}
         """
         return self.listOfSpecies
 
-    def add_species(self, obj):
+    def add_species(self, obj: Union[Species, List[Species]]) -> Union[Species, List[Species]]:
         """
         Adds a species, or list of species to the model.
 
@@ -400,7 +427,7 @@ class Model(SortableObject, Jsonify):
                 raise ParameterError("Error using {} as a Species. Reason given: {}".format(obj, e))
         return obj
 
-    def delete_species(self, name):
+    def delete_species(self, name: str) -> None:
         """
         Removes a species object by name.
 
@@ -411,14 +438,14 @@ class Model(SortableObject, Jsonify):
         if name in self._listOfSpecies:
             self._listOfSpecies.pop(name)
 
-    def delete_all_species(self):
+    def delete_all_species(self) -> None:
         """
         Removes all species from the model object.
         """
         self.listOfSpecies.clear()
         self._listOfSpecies.clear()
 
-    def set_units(self, units):
+    def set_units(self, units: str) -> None:
         """
         Sets the units of the model to either "population" or "concentration"
 
@@ -430,7 +457,7 @@ class Model(SortableObject, Jsonify):
         else:
             raise ModelError("units must be either concentration or population (case insensitive)")
 
-    def sanitized_parameter_names(self):
+    def sanitized_parameter_names(self) -> Dict[str, Parameter]:
         """
         Generate a dictionary mapping user chosen parameter names to simplified formats which will be used
         later on by GillesPySolvers evaluating reaction propensity functions.
@@ -444,7 +471,7 @@ class Model(SortableObject, Jsonify):
                 parameter_name_mapping[name] = 'P{}'.format(i)
         return parameter_name_mapping
 
-    def get_parameter(self, p_name):
+    def get_parameter(self, p_name: str) -> Parameter:
         """
         Returns a parameter object by name.
 
@@ -456,14 +483,14 @@ class Model(SortableObject, Jsonify):
         except:
             raise ModelError("No parameter named " + p_name)
 
-    def get_all_parameters(self):
+    def get_all_parameters(self) -> Dict[str, Parameter]:
         """
         :returns: A dict of all parameters in the model, of the form:
             {name : parameter object}
         """
         return self.listOfParameters
 
-    def add_parameter(self, params):
+    def add_parameter(self, params: Union[Parameter, List[Parameter]]) -> Union[Parameter, List[Parameter]]:
         """
         Adds a parameter, or list of parameters to the model.
 
@@ -484,7 +511,7 @@ class Model(SortableObject, Jsonify):
                 raise ParameterError("Parameter {}  must be of type {}, it is of type {}".format(params, str(type(Parameter)), str(params) ))
         return params
 
-    def delete_parameter(self, name):
+    def delete_parameter(self, name: str) -> None:
         """
         Removes a parameter object by name.
 
@@ -495,7 +522,7 @@ class Model(SortableObject, Jsonify):
         if name in self._listOfParameters:
             self._listOfParameters.pop(name)
 
-    def set_parameter(self, p_name, expression):
+    def set_parameter(self, p_name: str, expression: str) -> None:
         """
         Set the value of an existing parameter "pname" to "expression".
 
@@ -511,7 +538,7 @@ class Model(SortableObject, Jsonify):
         p.expression = expression
         p._evaluate()
 
-    def resolve_parameters(self):
+    def resolve_parameters(self) -> None:
         """ Internal function:
         attempt to resolve all parameter expressions to scalar floats.
         This methods must be called before exporting the model.
@@ -520,12 +547,12 @@ class Model(SortableObject, Jsonify):
         for param in self.listOfParameters:
             self.listOfParameters[param]._evaluate(self.namespace)
 
-    def delete_all_parameters(self):
+    def delete_all_parameters(self) -> None:
         """ Deletes all parameters from model. """
         self.listOfParameters.clear()
         self._listOfParameters.clear()
 
-    def validate_reactants_and_products(self, reactions):
+    def validate_reactants_and_products(self, reactions: List[Reaction]) -> None:
         for reactant in list(reactions.reactants.keys()):
             if isinstance(reactant, str):
                 if reactant not in self.listOfSpecies.keys():
@@ -542,7 +569,7 @@ class Model(SortableObject, Jsonify):
                 reactions.products[self.listOfSpecies[product]] = reactions.products[product]
                 del reactions.products[product]
 
-    def add_reaction(self, reactions):
+    def add_reaction(self, reactions: Union[Reaction, List[Reaction]]) -> Union[Reaction, List[Reaction]]:
         """
         Adds a reaction, or list of reactions to the model.
 
@@ -585,7 +612,7 @@ class Model(SortableObject, Jsonify):
                 raise ParameterError("Error using {} as a Reaction. Reason given: {}".format(reactions, e))
         return reactions
 
-    def add_rate_rule(self, rate_rules):
+    def add_rate_rule(self, rate_rules: Union[RateRule, List[RateRule]]) -> Union[RateRule, List[RateRule]]:
         """
         Adds a rate rule, or list of rate rules to the model.
 
@@ -627,7 +654,7 @@ class Model(SortableObject, Jsonify):
                 raise ParameterError("Error using {} as a Rate Rule. Reason given: {}".format(rate_rules, e))
         return rate_rules
 
-    def add_event(self, event):
+    def add_event(self, event: Union[Event, List[Event]]) -> Union[Event, List[Event]]:
         """
         Adds an event, or list of events to the model.
 
@@ -652,7 +679,7 @@ class Model(SortableObject, Jsonify):
                 raise ParameterError("Error using {} as Event. Reason given: {}".format(event, e))
         return event
 
-    def add_function_definition(self, function_definitions):
+    def add_function_definition(self, function_definitions: Union[FunctionDefinition, List[FunctionDefinition]]):
         """
         Add FunctionDefinition or list of FunctionDefinitions
 
@@ -671,7 +698,7 @@ class Model(SortableObject, Jsonify):
                 raise ParameterError(
                     "Error using {} as a Function Definition. Reason given: {}".format(function_definitions, e))
 
-    def add_assignment_rule(self, assignment_rules):
+    def add_assignment_rule(self, assignment_rules: Union[AssignmentRule, List[AssignmentRule]]):
         """
         Add AssignmentRule or list of AssignmentRules to the model object.
 
@@ -704,7 +731,7 @@ class Model(SortableObject, Jsonify):
             except Exception as e:
                 raise ParameterError("Error using {} as a Assignment Rule. Reason given: {}".format(assignment_rules, e))
 
-    def timespan(self, time_span):
+    def timespan(self, time_span: Union[TimeSpan, Iterable[int]]):
         """
         Set the time span of simulation. StochKit does not support non-uniform
         timespans. 
@@ -718,20 +745,20 @@ class Model(SortableObject, Jsonify):
         else:
             self.tspan = TimeSpan(time_span)
 
-    def get_reaction(self, rname):
+    def get_reaction(self, rname: str) -> Reaction:
         """
         :param rname: name of reaction to return
         :returns: Reaction object
         """
         return self.listOfReactions[rname]
 
-    def get_all_reactions(self):
+    def get_all_reactions(self) -> Dict[str, Reaction]:
         """
         :returns: dict of all Reaction objects
         """
         return self.listOfReactions
 
-    def delete_reaction(self, name):
+    def delete_reaction(self, name: str) -> None:
         """
         Removes a reaction object by name.
 
@@ -742,27 +769,27 @@ class Model(SortableObject, Jsonify):
         if name in self._listOfReactions:
             self._listOfReactions.pop(name)
 
-    def delete_all_reactions(self):
+    def delete_all_reactions(self) -> None:
         """
         Clears all reactions in model
         """
         self.listOfReactions.clear()
         self._listOfReactions.clear()
 
-    def get_event(self, ename):
+    def get_event(self, ename: str) -> Event:
         """
         :param ename: Name of Event to get
         :returns: Event object
         """
         return self.listOfEvents[ename]
 
-    def get_all_events(self):
+    def get_all_events(self) -> Dict[str, Event]:
         """
         :returns: dict of all Event objects
         """
         return self.listOfEvents
 
-    def delete_event(self, name):
+    def delete_event(self, name: str) -> None:
         """
         Removes specified Event from model
 
@@ -773,27 +800,27 @@ class Model(SortableObject, Jsonify):
         if name in self._listOfEvents:
             self._listOfEvents.pop(name)
 
-    def delete_all_events(self):
+    def delete_all_events(self) -> None:
         """
         Clears models events
         """
         self.listOfEvents.clear()
         self._listOfEvents.clear()
 
-    def get_rate_rule(self, rname):
+    def get_rate_rule(self, rname: str) -> RateRule:
         """
         :param rname: Name of Rate Rule to get
         :returns: RateRule object
         """
         return self.listOfRateRules[rname]
 
-    def get_all_rate_rules(self):
+    def get_all_rate_rules(self) -> Dict[str, RateRule]:
         """
         :returns: dict of all Rate Rule objects
         """
         return self.listOfRateRules
 
-    def delete_rate_rule(self, name):
+    def delete_rate_rule(self, name: str) -> None:
         """
         Removes specified Rate Rule from model
 
@@ -804,27 +831,27 @@ class Model(SortableObject, Jsonify):
         if name in self._listOfRateRules:
             self._listOfRateRules.pop(name)
 
-    def delete_all_rate_rules(self):
+    def delete_all_rate_rules(self) -> None:
         """
         Clears all of models Rate Rules
         """
         self.listOfRateRules.clear()
         self._listOfRateRules.clear()
 
-    def get_assignment_rule(self, aname):
+    def get_assignment_rule(self, aname: str) -> AssignmentRule:
         """
         :param aname: Name of Assignment Rule to get
         :returns: Assignment Rule object
         """
         return self.listOfAssignmentRules[aname]
 
-    def get_all_assignment_rules(self):
+    def get_all_assignment_rules(self) -> Dict[str, AssignmentRule]:
         """
         :returns: dict of models Assignment Rules
         """
         return self.listOfAssignmentRules
 
-    def delete_assignment_rule(self, name):
+    def delete_assignment_rule(self, name: str) -> None:
         """
         Removes an assignment rule from a model
 
@@ -835,27 +862,27 @@ class Model(SortableObject, Jsonify):
         if name in self._listOfAssignmentRules:
             self._listOfAssignmentRules.pop(name)
 
-    def delete_all_assignment_rules(self):
+    def delete_all_assignment_rules(self) -> None:
         """
         Clears all assignment rules from model
         """
         self.listOfAssignmentRules.clear()
         self._listOfAssignmentRules.clear()
 
-    def get_function_definition(self, fname):
+    def get_function_definition(self, fname: str) -> FunctionDefinition:
         """
         :param fname: name of Function to get
         :returns: FunctionDefinition object
         """
         return self.listOfFunctionDefinitions[fname]
 
-    def get_all_function_definitions(self):
+    def get_all_function_definitions(self) -> Dict[str, FunctionDefinition]:
         """
         :returns: Dict of models function definitions
         """
         return self.listOfFunctionDefinitions
 
-    def delete_function_definition(self, name):
+    def delete_function_definition(self, name: str) -> None:
         """
         Removes specified Function Definition from model
 
@@ -866,14 +893,14 @@ class Model(SortableObject, Jsonify):
         if name in self._listOfFunctionDefinitions:
             self._listOfFunctionDefinitions.pop(name)
 
-    def delete_all_function_definitions(self):
+    def delete_all_function_definitions(self) -> None:
         """
         Clears all Function Definitions from a model
         """
         self.listOfFunctionDefinitions.clear()
         self._listOfFunctionDefinitions.clear()
 
-    def get_element(self, ename):
+    def get_element(self, ename: str) -> Union[Component, FunctionDefinition]:
         """
         Get element specified by name.
 
@@ -897,7 +924,7 @@ class Model(SortableObject, Jsonify):
         raise ModelError(f"model.get_element(): element={ename} not found")
 
 
-    def get_best_solver(self):
+    def get_best_solver(self) -> GillesPySolver:
         """
         Finds best solver for the users simulation. Currently, AssignmentRules, RateRules, FunctionDefinitions,
         Events, and Species with a dynamic, or continuous population must use the TauHybridSolver.
@@ -945,7 +972,7 @@ class Model(SortableObject, Jsonify):
             from gillespy2 import SSACSolver
             return SSACSolver
 
-    def get_best_solver_algo(self, algorithm):
+    def get_best_solver_algo(self, algorithm: str) -> GillesPySolver:
         """
         If user has specified a particular algorithm, we return either the Python or C++ version of that algorithm
         """
@@ -999,7 +1026,7 @@ class Model(SortableObject, Jsonify):
             raise ModelError("Invalid value for the argument 'algorithm' entered. "
                              "Please enter 'SSA', 'ODE', 'CLE', 'Tau-leaping', or 'Tau-Hybrid'.")
 
-    def get_model_features(self) -> "Set[Type]":
+    def get_model_features(self) -> AbstractSet[Union[Event, RateRule, AssignmentRule, FunctionDefinition]]:
         """
         Determine what solver-specific model features are present on the model.
         Used to validate that the model is compatible with the given solver.
@@ -1017,8 +1044,16 @@ class Model(SortableObject, Jsonify):
             features.add(gillespy2.FunctionDefinition)
         return features
 
-    def run(self, solver=None, timeout=0, t=None, increment=None, show_labels=True, algorithm=None,
-            **solver_args):
+    def run(
+        self, 
+        solver: GillesPySolver = None, 
+        timeout: int = 0, 
+        t: int = None, 
+        increment: float = None, 
+        show_labels: bool = True, 
+        algorithm: str = None,
+        **solver_args
+    ) -> Results:
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -1087,7 +1122,7 @@ class StochMLDocument():
         self.annotation = None
 
     @classmethod
-    def from_model(cls, model):
+    def from_model(cls, model: Model) -> "StochMLDocument":
         """
         Creates an StochKit XML document from an exisiting Model object.
         This method assumes that all the parameters in the model are already
@@ -1159,7 +1194,7 @@ class StochMLDocument():
         return md
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> "StochMLDocument":
         """ Intializes the document from an exisiting native StochKit XML
         file read from disk. """
         tree = eTree.parse(filepath)
@@ -1169,7 +1204,7 @@ class StochMLDocument():
         return md
 
     @classmethod
-    def from_string(cls, string):
+    def from_string(cls, string: str) -> "StochMLDocument":
         """ Intializes the document from an exisiting native StochKit XML
         file read from disk. """
         root = eTree.fromString(string)
@@ -1178,7 +1213,7 @@ class StochMLDocument():
         md.document = root
         return md
 
-    def to_model(self, name):
+    def to_model(self, name: str) -> Model:
         """ Instantiates a Model object from a StochMLDocument. """
 
         # Empty model
@@ -1355,7 +1390,7 @@ class StochMLDocument():
 
         return model
 
-    def to_string(self):
+    def to_string(self) -> str:
         """ Returns  the document as a string. """
         try:
             doc = eTree.tostring(self.document, pretty_print=True)
@@ -1370,7 +1405,7 @@ class StochMLDocument():
             prettyXml = text_re.sub(">\g<1></", uglyXml)
             return prettyXml
 
-    def __species_to_element(self, S):
+    def __species_to_element(self, S: Species):
         e = eTree.Element('Species')
         idElement = eTree.Element('Id')
         idElement.text = S.name
@@ -1387,7 +1422,7 @@ class StochMLDocument():
 
         return e
 
-    def __parameter_to_element(self, P):
+    def __parameter_to_element(self, P: Parameter):
         e = eTree.Element('Parameter')
         idElement = eTree.Element('Id')
         idElement.text = P.name
@@ -1397,7 +1432,7 @@ class StochMLDocument():
         e.append(expressionElement)
         return e
 
-    def __reaction_to_element(self, R, model_volume):
+    def __reaction_to_element(self, R: Reaction, model_volume: float):
         e = eTree.Element('Reaction')
 
         idElement = eTree.Element('Id')
