@@ -1137,9 +1137,14 @@ class Model(SortableObject, Jsonify):
 
         :param solver_args: Additional solver-specific arguments to be passed to :code:`solver.run()`.
 
-        :returns:  If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is
-            True,returns a Results object that inherits UserList and contains one or more Trajectory objects that
-            inherit UserDict. Results object supports graphing and csv export.
+        :returns: A :class:`~gillespy2.core.results.Results` object which contains one or more computed
+            :class:`~gillespy2.core.trajectory.Trajectory` objects. Helper functions on the results object can
+            then be used to graph, manipulate, or export the data.
+
+            .. note::
+                If :code:`show_labels = False` then this function will return a two-dimensional :class:`numpy.ndarray`
+                containing species population data.
+
         """
 
         if not show_labels:
