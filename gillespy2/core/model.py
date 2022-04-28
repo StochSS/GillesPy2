@@ -19,7 +19,9 @@ from collections import OrderedDict
 from typing import (
     List,
     Dict,
+    Tuple,
     Union,
+    Optional,
     Iterable,
     AbstractSet
 )
@@ -58,29 +60,34 @@ except:
 
 # A component can be one or more of the following types.
 Component = Union[
-    Species,
-    Parameter,
-    Reaction,
     Event,
+    Species,
+    TimeSpan,
+    Reaction,
     RateRule,
-    AssignmentRule
+    Parameter,
+    AssignmentRule,
+    FunctionDefinition,
 ]
 
 
-def import_SBML(filename: str, name: str = None, gillespy_model: "Model" = None):
+def import_SBML(
+    filename: str, 
+    name: str = None, 
+    gillespy_model: "Model" = None
+) -> Tuple["Model", List[str]]:
     """
     SBML to GillesPy model converter. NOTE: non-mass-action rates
     in terms of concentrations may not be converted for population
     simulation. Use caution when importing SBML.
 
     :param filename: Path to the SBML file for conversion.
-    :type filename: str
-
     :param name: Name of the resulting model
-    :type name: str
-
     :param gillespy_model: If desired, the SBML model may be added to an existing GillesPy model
-    :type gillespy_model: gillespy.Model
+
+    :returns: A tuple which contains (1) the converted GillesPy2 Model and (2) a list of error strings.
+
+    :raises ImportError: If :class:`gillespy2.sbml.SBMLImport` could not be imported.
     """
 
     try:
@@ -91,15 +98,17 @@ def import_SBML(filename: str, name: str = None, gillespy_model: "Model" = None)
     return convert(filename, model_name=name, gillespy_model=gillespy_model)
 
 
-def export_SBML(gillespy_model: "Model", filename: str = None):
+def export_SBML(gillespy_model: "Model", filename: str = None) -> str:
     """
     GillesPy model to SBML converter
 
     :param gillespy_model: GillesPy model to be converted to SBML
-    :type gillespy_model: gillespy.Model
+    :param filename: Path to the SBML file for conversion. If set to None then the SBML document
+        will be exported to a file with name :code:`f"{model.name}.xml"`.
 
-    :param filename: Path to the SBML file for conversion
-    :type filename: str
+    :returns: The path of exported SBML document.
+
+    :raises ImportError: If :class:`gillespy2.sbml.SBMLExport` could not be imported.
     """
     try:
         from gillespy2.sbml.SBMLexport import export
@@ -109,15 +118,21 @@ def export_SBML(gillespy_model: "Model", filename: str = None):
     return export(gillespy_model, path=filename)
 
 
-def export_StochSS(gillespy_model: "Model", filename: str = None, return_stochss_model: bool = False):
+def export_StochSS(
+    gillespy_model: "Model", 
+    filename: str = None, 
+    return_stochss_model: bool = False
+) -> Union[str, Dict]:
     """
     GillesPy model to StochSS converter
 
     :param gillespy_model: GillesPy model to be converted to StochSS
-    :type gillespy_model: gillespy.Model
-
     :param filename: Path to the StochSS file for conversion
-    :type filename: str
+
+    :returns: If `return_stochss_model` is True then a this function will return a StochSS model dictionary. 
+        If False, then the path of the StochSS model file is returned instead.
+
+    :raises ImportError: If :class:`gillespy2.stochss.StochSSExport` could not be imported. 
     """
     try:
         from gillespy2.stochss.StochSSexport import export
@@ -133,25 +148,20 @@ class Model(SortableObject, Jsonify):
     parameters, species.
 
     :param name: The name of the model, or an annotation describing it.
-    :type name: str
     
     :param population: The type of model being described. A discrete stochastic model is a
         population model (True), a deterministic model is a concentration model
         (False). Automatic conversion from population to concentration models
         may be used, by setting the volume parameter.
-    :type population: bool
 
     :param volume: The volume of the system matters when converting to from population to
         concentration form. This will also set a parameter "vol" for use in
         custom (i.e. non-mass-action) propensity functions.  
-    :type volume: float   
     
     :param tspan: The timepoints at which the model should be simulated. If None, a
-        default timespan is added. May be set later, see Model.timespan
-    :type tspan: numpy ndarray
+        default timespan is added. Can also be set with :meth:`~gillespy2.core.model.Model.timespan`.
     
-    :param annotation: Option further description of model
-    :type annotation: str
+    :param annotation: Optional further description of model
     """
 
     # reserved names for model species/parameter names, volume, and operators.
@@ -163,7 +173,7 @@ class Model(SortableObject, Jsonify):
         name: str = "", 
         population: bool = True, 
         volume: float = 1.0, 
-        tspan: "TimeSpan" = None, 
+        tspan: Union[TimeSpan, Iterable[int]] = None, 
         annotation: str = "model"
     ):
         """ Create an empty model. """
@@ -264,17 +274,25 @@ class Model(SortableObject, Jsonify):
 
     def add(self, components: Union[Component, List[Component]]) -> Union[Component, List[Component]]:
         """
-        Adds a component, or list of components to the model. If a list is provided, Species
-        and Parameters are added before other components.  Lists may contain any combination
-        of accepted types other than lists and do not need to be in any particular order.
+        Adds a component, or list of components to the model. 
+
+        If a list is provided, Species and Parameters are added before other components.  
+        Lists may contain any combination of accepted types other than lists and do not need to be in any particular order.
+
+        The :code:`components` argument can be one or more of the following types:
+            - :class:`gillespy2.Species`
+            - :class:`gillespy2.Parameter`
+            - :class:`gillespy2.Reaction`
+            - :class:`gillespy2.Event`
+            - :class:`gillespy2.RateRule`
+            - :class:`gillespy2.AssignmentRule`
+            - :class:`gillespy2.FunctionDefinition`
+            - :class:`gillespy2.TimeSpan`
 
         :param components: The component or list of components to be added the the model.
-
         :returns: The components that were added to the model.
-        :rtype: Species, Parameters, Reactions, Events, Rate Rules, Assignment Rules, \
-                FunctionDefinitions, and TimeSpan or list
 
-        :raises ModelError: Component is invalid.
+        :raises ModelError: :code:`components` or an element within are of incorrect type.
         """
 
         if isinstance(components, list):
@@ -349,12 +367,13 @@ class Model(SortableObject, Jsonify):
         for param in self.listOfParameters:
             self.namespace[param] = self.listOfParameters[param].value
 
-    def sanitized_species_names(self) -> OrderedDict:
+    def sanitized_species_names(self) -> Dict[str, str]:
         """
         Generate a dictionary mapping user chosen species names to simplified formats which will be used
         later on by GillesPySolvers evaluating reaction propensity functions.
 
-        :returns: the dictionary mapping user species names to their internal GillesPy notation.
+        :returns: A dictionary which maps user-defined :class:`gillespy2.Species` names to their 
+            internal gillespy2 notation.
         """
         species_name_mapping = OrderedDict([])
         for i, name in enumerate(self.listOfSpecies.keys()):
@@ -393,7 +412,6 @@ class Model(SortableObject, Jsonify):
         Returns a species object by name.
 
         :param s_name: Name of the species object to be returned:
-        :type s_name: str
         """
 
         return self.listOfSpecies[s_name]
@@ -410,7 +428,6 @@ class Model(SortableObject, Jsonify):
         Adds a species, or list of species to the model.
 
         :param obj: The species or list of species to be added to the model object
-        :type obj: Species, or list of species
         """
 
         if isinstance(obj, list):
@@ -430,7 +447,6 @@ class Model(SortableObject, Jsonify):
         Removes a species object by name.
 
         :param name: Name of the species object to be removed
-        :type name: str
         """
         self.listOfSpecies.pop(name)
         if name in self._listOfSpecies:
@@ -448,14 +464,15 @@ class Model(SortableObject, Jsonify):
         Sets the units of the model to either "population" or "concentration"
 
         :param units: Either "population" or "concentration"
-        :type units: str
+
+        :raises ModelError: If :code:`units.lower()` is some other value.
         """
         if units.lower() == 'concentration' or units.lower() == 'population':
             self.units = units.lower()
         else:
             raise ModelError("units must be either concentration or population (case insensitive)")
 
-    def sanitized_parameter_names(self) -> Dict[str, Parameter]:
+    def sanitized_parameter_names(self) -> Dict[str, str]:
         """
         Generate a dictionary mapping user chosen parameter names to simplified formats which will be used
         later on by GillesPySolvers evaluating reaction propensity functions.
@@ -474,7 +491,6 @@ class Model(SortableObject, Jsonify):
         Returns a parameter object by name.
 
         :param p_name: Name of the parameter object to be returned
-        :type p_name: str
         """
         try:
             return self.listOfParameters[p_name]
@@ -493,7 +509,6 @@ class Model(SortableObject, Jsonify):
         Adds a parameter, or list of parameters to the model.
 
         :param params:  The parameter or list of parameters to be added to the model object.
-        :type params: Parameter, or list of parameters
         """
         if isinstance(params, list):
             for p in sorted(params):
@@ -514,7 +529,6 @@ class Model(SortableObject, Jsonify):
         Removes a parameter object by name.
 
         :param name: Name of the parameter object to be removed
-        :type name: str
         """
         self.listOfParameters.pop(name)
         if name in self._listOfParameters:
@@ -525,11 +539,9 @@ class Model(SortableObject, Jsonify):
         Set the value of an existing parameter "pname" to "expression".
 
         :param p_name: Name of the parameter whose value will be set.
-        :type p_name: str
 
         :param expression: String that may be executed in C, describing the value of the
             parameter. May reference other parameters by name. (e.g. "k1*4")
-        :type expression: str
         """
 
         p = self.listOfParameters[p_name]
@@ -571,9 +583,18 @@ class Model(SortableObject, Jsonify):
         """
         Adds a reaction, or list of reactions to the model.
 
-        :param reactions: The reaction or list of reaction objects to be added to the model
-            object.
-        :type reactions: Reaction, or list of Reactions
+        :param reactions: The reaction or list of reaction objects to be added to the model object.
+
+        :raises ModelError: If :meth:`~gillespy2.core.Model.problem_with_name` invalidates the name of one or more 
+            :class:`~gillespy2.core.reaction Reaction` objects.
+        :raises ModelError: If :meth:`~gillespy2.core.Model.validate_reactants_and_products` invalidates the reactants
+            and/or products on a :class:`~gillespy2.core.reaction.Reaction` object.
+        :raises ModelError: If :code:`reactions` contains multiple :class:`~gillespy2.core.reaction.Reaction` objects with the same name.
+
+        :raises ReactionError: If :meth:`gillespy2.core.reaction.Reaction.verify` invalidates the
+            :class:`~gillespy2.core.reaction.Reaction` object.
+
+        :raises ParameterError: If some other error occurs while adding the :class:`~gillespy2.core.reaction.Reaction` object.
         """
 
         # TODO, make sure that you cannot overwrite an existing reaction
@@ -615,7 +636,6 @@ class Model(SortableObject, Jsonify):
         Adds a rate rule, or list of rate rules to the model.
 
         :param rate_rules: The rate rule or list of rate rule objects to be added to the model object.
-        :type rate_rules: RateRule, or list of RateRules
         """
         if isinstance(rate_rules, list):
             for rr in sorted(rate_rules):
@@ -1044,7 +1064,7 @@ class Model(SortableObject, Jsonify):
 
     def run(
         self, 
-        solver: GillesPySolver = None, 
+        solver: Optional[GillesPySolver] = None, 
         timeout: int = 0, 
         t: int = None, 
         increment: float = None, 
@@ -1053,33 +1073,73 @@ class Model(SortableObject, Jsonify):
         **solver_args
     ) -> Results:
         """
-        Function calling simulation of the model. There are a number of
-        parameters to be set here.
+        Run a simulation with the current :class:`~gillespy2.core.model.Model` instance.
 
-        :param solver: The solver by which to simulate the model. This solver object may
-            be initialized separately to specify an algorithm. Optional, defaults to ssa solver.
-        :type solver: gillespy.GillesPySolver
+        A solver can be specified to tweak simulation results and improve simulation runtime. This package offers 
+        multiple different algorithms implemented in either C++ or Python. We recommend the use of 
+        :meth:`~gillespy2.core.model.Model.get_best_solver` to determine the best solver for your use-case.
+        
+        Simulations can be paused by issuing a keyboard interrupt during runtime. This is achieved by pressing 
+        Control + C or the *stop* button within a Jupyter Notebook session. The :class:`~gillespy2.core.results.Results`
+        object returned after the interrupt can be used to resume the simulation at a later time.
 
-        :param timeout: Allows a time_out value in seconds to be sent to a signal handler, restricting simulation run-time
-        :type timeout: int
+        To resume a simulation, pass the :class:`~gillespy2.core.results.Results` object to this method,
+        ensuring that :code:`t` is set to the time the resumed simulation will end.
 
-        :param t: End time of simulation
-        :type t: int
+        .. code-block:: python
 
-        :param solver_args: Solver-specific arguments to be passed to solver.run()
+            model = MichaelisMenten()
+            results = model.run()
 
-        :param algorithm: Specify algorithm ('ODE', 'Tau-Leaping', or 'SSA') for GillesPy2 to automatically pick best solver using that algorithm.
-        :type algorithm: str
+            # Control + C 
+
+            results = model.run(resume=results, t=x)
+
+        .. warning::
+            Pause / resume functionality is only supported for single trajectory simulations. :code:`t` must be set or 
+            unexpected behavior may occur.
+
+            .. code-block:: text
+
+                <>=======()
+               (/\___   /|\\\\          ()==========<>_
+                     \_/ | \\\\        //|\   ______/ \)
+                       \_|  \\\\      // | \_/
+                         \|\/|\_   //  /\/
+                          (--)\ \_//  /
+                         //_/\_\/ /  |
+                        @@/  |=\  \  |
+                             \_=\_ \ |
+                               \==\ \|\_ 
+                            __(\===\(  )\\
+                           (((~) __(_/   |
+                                (((~) \  /
+                                ______/ /
+                                '------'
+
+        .. note::
+            :code:`show_labels = False` has been deprecated and may not be supported in future versions of this software.
+
+        :param solver: The solver by which to simulate the current :class:`~gillespy2.core.model.Model`.
+            An already initialized solver can also be passed via this keyword argument. A solver will be automatically
+            chosen if this argument is :code:`None`. 
+
+            See :code:`algorithm` to specify an algorithm *type*.
+
+        :param timeout: The timeout, in seconds, to restrict simulation runtime.
+
+        :param t: The end time of the simulation.
+
+        :param algorithm: The algorithm to compute the simulation with. A specific solver will be automatically chosen
+            based on the value of this argument with :meth:`~gillespy2.core.model.Model.get_best_solver_algo`.
+
+            Possible values: :code:`"ODE"`, :code:`"Tau-Leaping"`, or :code:`"SSA"`.
+
+        :param solver_args: Additional solver-specific arguments to be passed to :code:`solver.run()`.
 
         :returns:  If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is
             True,returns a Results object that inherits UserList and contains one or more Trajectory objects that
             inherit UserDict. Results object supports graphing and csv export.
-
-        To pause a simulation and retrieve data before the simulation, keyboard interrupt the simulation by pressing
-        control+c or pressing stop on a jupyter notebook. To resume a simulation, pass your previously ran results
-        into the run method, and set t = to the time you wish the resuming simulation to end (run(resume=results, t=x)).
-        
-        **Pause/Resume is only supported for SINGLE TRAJECTORY simulations. T MUST BE SET OR UNEXPECTED BEHAVIOR MAY OCCUR.**
         """
 
         if not show_labels:
