@@ -64,6 +64,12 @@ extensions = [
     'sphinx.ext.todo',
 ]
 
+# Disable full module names in instances when the scope is already evident.
+add_module_names = False
+
+# Use short typehint format instead of long. This omits module names from types.
+autodoc_typehints_format = "short"
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -197,6 +203,11 @@ html_theme_options = {
 
 html_css_files = [
     'css/gillespy2_alabaster_customizations.css',
+]
+
+# This script inserts breaks after each parameter in a function definition.
+html_js_files = [
+    'js/gillespy2_alabaster_customizations.js',
 ]
 
 # -- Options for todo extension ----------------------------------------------
