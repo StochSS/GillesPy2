@@ -131,6 +131,15 @@ code {
   background-color: var(--codeBackgroundColor) !important;
 }
 
+/* Add padding to the bottoms of parameter lists. */
+.field-list .field-odd {
+  padding-bottom: 1rem;
+}
+
+.field-list .field-even {
+  padding-bottom: 1rem;
+}
+
 /* Egregious hack to get rid of "Navigation" text in sidebar.
    This should be done by changing the template, but figuring
    out how to create the right template would take me 100x longer.
