@@ -1,3 +1,20 @@
+:root {
+  --codeBackgroundColor: #f8f8f8;
+  --inlineCodeBackgroundColor: #f8f8f8;
+  --codeBlue: #0000ff;
+  --codeGreen: #008000;
+  --dividerColor: rgba(0, 0, 0, 0.08);
+  --faintFontColor: rgba(0, 0, 0, 0.6);
+  --fontColor: #252630;
+  --linkColor: #2980b9;
+  --mainBackgroundColor: white;
+  --mainNavColor: #3889ce;
+  --notificationBannerColor: #176bb0;
+  --searchHighlightColor: #fff150;
+  --sidebarColor: white;
+  --navbarHeight: 4rem;
+}
+
 @font-face {
   font-family: 'fira-code';
   src: url('../fonts/FiraCode-Retina.ttf');
@@ -8,12 +25,13 @@
   src: url('../fonts/Roboto-Regular.ttf');
 }
 
-body {
-  font-family: 'roboto';
+/* Expand page width a little bit. 940px -> 1024px. */
+div.document {
+  width: 1024px;
 }
 
-.sig {
-  font-family: 'fira-code' !important;
+body {
+  font-family: 'roboto';
 }
 
 p.logo {
@@ -36,6 +54,81 @@ h2 {
 
 h3 {
   font-family: 'roboto' !important;
+}
+
+li p {
+  margin: 0 0 0.5rem 0;
+}
+
+dd ul, ol {
+  padding-left: 1rem;
+}
+
+dl.field-list {
+  margin-bottom: 0.5rem;
+}
+
+dl.py {
+  margin-bottom: 2rem;
+}
+
+dt.sig {
+  font-size: 0.9em;
+  padding: 1rem;
+  background-color: var(--codeBackgroundColor);
+  border-radius: 0.2rem;
+  border-left: 5px solid rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+em.property {
+  color: var(--sidebarColor);
+  font-weight: bold;
+}
+
+span.sig-name {
+  color: var(--codeBlue);
+  font-weight: bold;
+}
+
+em.property {
+  color: var(--codeGreen);
+}
+
+em.sig-param {
+  margin-left: 2rem;
+}
+
+/* Set the foreground color of the argument's default value. */
+em.sig-param span.default_value {
+  color: var(--codeGreen);
+}
+
+/* The name of the parameter. */
+em.sig-param > span:first-child {
+  font-weight: bold;
+}
+
+/* Inline code blocks. */
+code {
+  padding: 2px 4px;
+  background-color: var(--inlineCodeBackgroundColor);
+  border-radius: 0.2rem;
+  font-size: 0.9em;
+}
+
+/* Set parameter names in function parameter lists to monospace. */
+.simple li strong {
+  font-family: 'monospace';
+}
+
+/* Set code block and `note` background colors to the same as function defs. */
+.highlight-python {
+  background-color: var(--codeBackgroundColor) !important;
+}
+
+.note {
+  background-color: var(--codeBackgroundColor) !important;
 }
 
 /* Egregious hack to get rid of "Navigation" text in sidebar.
