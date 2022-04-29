@@ -1142,8 +1142,8 @@ class Model(SortableObject, Jsonify):
             then be used to graph, manipulate, or export the data.
 
             .. note::
-                If :code:`show_labels = False` then this function will return a two-dimensional :class:`numpy.ndarray`
-                containing species population data.
+                If :code:`show_labels = False` this function will return a two-dimensional :class:`numpy.ndarray`
+                that contains species population data.
 
         """
 
