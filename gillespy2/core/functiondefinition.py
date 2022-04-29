@@ -16,25 +16,35 @@
 
 import uuid
 
+from typing import (
+    Dict,
+    List
+)
+
 from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.jsonify import Jsonify
 
 class FunctionDefinition(SortableObject, Jsonify):
     """
-    Object representation defining an evaluable function to be used during
-    simulation of a GillesPy2 model
+    A :class:`FunctionDefinition` is the object representation of a mathematical function to be evaluated during the
+    simulation of a :class:`~gillespy2.core.model.Model`.
 
-    :param name: Name of the function to be made and called
-    :type name: str
+    :param name: The name by which this function will be called and referenced.
 
-    :param function: Defined function body of operation to be performed.
-    :type function: str
+    :param function: The mathematical function to be evaluated within the context of :code:`variables` and
+        :class:`~gillespy2.core.model.Model` at simulation runtime.
 
-    :param variables: String names of Variables to be used as arguments to function.
-    :type variables: list[str]
+    :param variables: A list of variable names to be used within the simulation context of :code:`function` at runtime.
+
+    :raises TypeError: If :code:`function` is :code:`None`.
     """
 
-    def __init__(self, name="", function=None, args=[]):
+    def __init__(
+        self, 
+        name: str = "", 
+        function: str = None, 
+        args: List[str] = []
+    ):
         if function is None:
             raise TypeError("Function string provided for FunctionDefinition cannot be None")
 
@@ -46,18 +56,24 @@ class FunctionDefinition(SortableObject, Jsonify):
         self.args = args
 
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.name}: Args: {self.args}, Expression: {self.function_string}"
 
     def get_arg_string(self) -> str:
         """
-        Convert function's argument list into a comma-separated formatted string.
+        Converts this :class:`FunctionDefinition` object's :code:`self.args` list into a comma-separated formatted
+        string.
 
-        :returns: Argument list as a comma-separated formatted string.
+        :returns: `self.args` argument list as a comma-separated formatted string.
         """
+
         return ','.join(self.args)
 
-    def sanitized_function(self, species_mappings, parameter_mappings):
+    def sanitized_function(
+        self, 
+        species_mappings: Dict[str, str], 
+        parameter_mappings: Dict[str, str]
+    ) -> str:
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
                        reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
