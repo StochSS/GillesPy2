@@ -16,30 +16,40 @@
 
 import uuid
 
+from typing import (
+    List,
+    Union
+)
+
+from gillespy2.core.species import Species
+from gillespy2.core.parameter import Parameter
+
 from gillespy2.core.gillespyError import *
 from gillespy2.core.jsonify import Jsonify
 
 
 class EventAssignment(Jsonify):
     """
-    An EventAssignment describes a change to be performed to the current model
-    simulation.  This is assignment can either be fired at the time its
-    associated trigger changes from false to true, or after a specified delay,
-    depending on how the Event to which it is assigned is configured.
+    An :class:`EventAssignment` describes a change to the current :class:`~gillespy2.core.model.Model` that will
+    be conditionally executed during a simulation. This assignment can either be fired at the time its associated
+    :class:`EventTrigger` transitions from :code:`False` to :code:`True`, or after a delay if one is configured within 
+    the :class:`Event` this object is assigned to.
 
-    :param variable: Target model component to be modified by the EventAssignment
-        expression. Valid target variables include gillespy2 Species,
-        Parameters, and Compartments.
-    :type variable: gillespy2.Species, gillespy2.Parameter
+    :param name: The name by which this :class:`EventAssignment` object will be identified.
 
-    :param expression: String to be evaluated when the event is fired.  This expression must
-        be evaluable within the model namespace, and the results of it's
-        evaluation will be assigned to the EventAssignment variable.
-    :type expression: str
+    :param variable: The target model component that will be modified by :code:`expression`.
 
+    :param expression: The string to be evaluated when the event is fired. This expression must be evaluatable
+        within the context of a :class:`~gillespy2.core.model.Model` namespace. Results of this expression's
+        evaluation will be assigned to the :class:`EventAssignment` variable.
     """
 
-    def __init__(self, name=None, variable=None, expression=None):
+    def __init__(
+        self, 
+        name: str = None, 
+        variable: Union[Species, Parameter] = None, 
+        expression: str = None
+    ):
 
         if name in (None, ""):
             self.name = f'evn{uuid.uuid4()}'.replace('-', '_')
@@ -67,11 +77,14 @@ class EventAssignment(Jsonify):
                              'GillesPy2 Event Assignment expression requires a '
                              'valid string expression')
 
-    def __str__(self):
+    def __str__(self) ->  str:
         return f"{self.variable}: {self.expression}"
 
 class EventTrigger(Jsonify):
     """
+    An :class:`EventTrigger` reacts to changes in the :class:`gillespy2.core.model.Model` simulation environment to 
+    fire one or more :class:`EventAssignment` objects.
+
     Trigger detects changes in model/environment conditions in order to fire an
     event.  A Trigger contains an expression, a mathematical function which can
     be evaluated to a boolean value within a model's namespace.  Upon
@@ -79,17 +92,21 @@ class EventTrigger(Jsonify):
     execution of an event's list of assignments if no delay is present, otherwise,
     the delay evaluation will be initialized.
 
-    :param expression: String for a function calculating EventTrigger values. Should be evaluable
-        in namespace of Model.
-    :type expression: str
+    :param expression: A math expression which evaluates to a boolean result with respect to the simulation context
+        of the running model. Upon transition from :code:`False` to :code:`True`, one or more :class:`EventAssignment`
+        objects can either be executed immediately or after a designated delay. This expression should be evaluatable
+        within the namespace of the current :class:`~gillespy2.core.model.Model`. 
 
-    :param value: Value of EventTrigger at simulation start, with time t=0
-    :type value: bool
+    :param value: The initial boolean state of this :class:`EventTrigger` at time :code:`t = 0`. 
 
-    :param persistent: Determines if trigger condition is persistent or not
-    :type persistent: bool
+    :param persistent: Determines if the trigger condition is persistent.
     """
-    def __init__(self, expression=None, initial_value = False, persistent = False):
+    def __init__(
+        self, 
+        expression: str = None, 
+        initial_value: bool = False, 
+        persistent: bool = False
+    ):
 
         if isinstance(expression, str):
             self.expression = expression
@@ -125,61 +142,34 @@ class Event(Jsonify):
     as a value (scalar). If given an assignment_expression, it should be
     understood as evaluable in the namespace of a parent Model.
 
-    :param name: The name by which this Event is called or referenced in reactions.
-    :type name: str
+    :param name: The name by which this :class:`Event` is called or referenced in reactions.
 
-    :param assignments: List of EventAssignments to be executed at trigger or delay
-    :type assignments: str
+    :param assignments: A list of :class:`EventAssignment` objects which, upon execution, mutate the simulation state
+        of the current :class:`~gillespy2.core.model.Model`. Assignments can be executed immediately or after a delay
+        as defined by the :code:`delay` argument.
 
-    :param trigger: contains math expression which can be evaluated to
-        a boolean result.  Upon the transition from 'False' to 'True',
-        event assignments may be executed immediately, or after a
-        designated delay.
-    :type trigger: EventTrigger
+    :param trigger: A :class:`EventTrigger` which evaluates, in the context of the current 
+        :class:`~gillespy2.core.model.Model` namespace, to a boolean result. Upon transition from :code:`False` to 
+        :code:`True`, one or more :class:`EventAssignment` objects will be executed immediately or after a specified 
+        delay.
 
-    :param delay: contains math expression evaluable within model namespace.
-        This expression designates a delay between the trigger of
-        an event and the execution of its assignments.
-    :type delay: str
+    :param delay: A math expression which evaluates the delay between the state transition of an :class:`EventTrigger`
+        and the subsequent execution of one or more :class:`EventAssignment` objects. Must be evaluatable within the
+        context of the current :class:`~gillespy2.core.model.Model` namespace.
 
-    :param priority: Contains math expression evaluable within model namespace.
-    :type priority: str
-
-    :type use_values_from_trigger_time: bool
+    :param priority: A math expression that is evaluatable within the current :class:`~gillespy2.core.model.Model`
+        namespace.
     """
 
-    def __eq__(self, other):
-        return str(self) == str(other)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __gt__(self, other):
-        return not self.__le__(other)
-
-    def __ge__(self, other):
-        return not self.__lt__(other)
-
-    def __lt__(self, other):
-        return str(self) < str(other)
-
-    def __le__(self, other):
-        return str(self) <= str(other)
-
-    def __hash__(self):
-        if hasattr(self, '_hash'):
-            return self._hash
-        if hasattr(self, 'id'):
-            self._hash = hash(self.id)
-        elif hasattr(self, 'name'):
-            self._hash = hash(self.name)
-        else:
-            self._hash = hash(self)
-        return self._hash
-
-    def __init__(self, name="", delay=None, assignments=[], priority="0", trigger=None,
-                 use_values_from_trigger_time=False):
-
+    def __init__(
+        self, 
+        name: str = "", 
+        delay: str = None, 
+        assignments: List[EventAssignment] = [], 
+        priority: str = "0", 
+        trigger: EventTrigger = None,
+        use_values_from_trigger_time: bool = False
+    ):
         # Events can contain any number of assignments
         self.assignments = []
 
@@ -227,7 +217,37 @@ class Event(Jsonify):
             raise EventError(
                 'use_values_from_trigger_time requires bool')
 
-    def __str__(self):
+
+    def __eq__(self, other: EventAssignment) -> bool:
+        return str(self) == str(other)
+
+    def __ne__(self, other: EventAssignment) -> bool:
+        return not self.__eq__(other)
+
+    def __gt__(self, other: EventAssignment) -> bool:
+        return not self.__le__(other)
+
+    def __ge__(self, other: EventAssignment) -> bool:
+        return not self.__lt__(other)
+
+    def __lt__(self, other: EventAssignment) -> bool:
+        return str(self) < str(other)
+
+    def __le__(self, other: EventAssignment) -> bool:
+        return str(self) <= str(other)
+
+    def __hash__(self) -> int:
+        if hasattr(self, '_hash'):
+            return self._hash
+        if hasattr(self, 'id'):
+            self._hash = hash(self.id)
+        elif hasattr(self, 'name'):
+            self._hash = hash(self.name)
+        else:
+            self._hash = hash(self)
+        return self._hash
+
+    def __str__(self) -> str:
         print_string = self.name
         print_string += '\n\tTrigger: ' + str(self.trigger)
         if len(self.assignments):
@@ -239,12 +259,15 @@ class Event(Jsonify):
                     print_string += '\n\t\t' + a.variable.name + ': ' + a.expression
         return print_string
 
-    def add_assignment(self, assignment):
+    def add_assignment(
+        self, 
+        assignment: Union[EventAssignment, List[EventAssignment]]
+    ) -> Union[EventAssignment, List[EventAssignment]]:
         """
-        Adds an EventAssignment or a list of EventAssignment.
+        Adds one or more :class:`EventAssignment` objects.
 
-        :param assignment: The event or list of events to be added to this event.
-        :type assignment: EventAssignment or list[EventAssignment]
+        :param assignment: The :class:`EventAssignment` or list of :class:`EventAssignment` objects to be added to
+            this event.
         """
 
         if hasattr(assignment, 'variable'):
