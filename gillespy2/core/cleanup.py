@@ -18,10 +18,11 @@ import os
 import shutil
 import tempfile
 
-def cleanup_tempfiles():
-    '''
-    Cleanup all tempfiles in gillespy2 build.
-    '''
+def cleanup_tempfiles() -> None:
+    """
+    Cleanup all temporary files from a gillespy2 build.
+    """
+
     tempdir = tempfile.gettempdir()
     for file_obj in os.listdir(tempdir):
         if file_obj.startswith("gillespy2_build"):
