@@ -17,6 +17,7 @@
 import uuid
 
 from typing import (
+    Dict,
     List,
     Union
 )
@@ -42,6 +43,11 @@ class EventAssignment(Jsonify):
     :param expression: The string to be evaluated when the event is fired. This expression must be evaluatable
         within the context of a :class:`~gillespy2.core.model.Model` namespace. Results of this expression's
         evaluation will be assigned to the :class:`EventAssignment` variable.
+
+    :raises EventError: If the :code:`variable` argument is not of type :class:`~gillespy2.core.species.Species` or
+        :class:`~gillespy2.core.parameter.Parameter`.
+
+    :raises EventError: If the :code:`expression` argument is not of type :code:`str`.
     """
 
     def __init__(
@@ -82,15 +88,12 @@ class EventAssignment(Jsonify):
 
 class EventTrigger(Jsonify):
     """
-    An :class:`EventTrigger` reacts to changes in the :class:`gillespy2.core.model.Model` simulation environment to 
-    fire one or more :class:`EventAssignment` objects.
-
-    Trigger detects changes in model/environment conditions in order to fire an
-    event.  A Trigger contains an expression, a mathematical function which can
-    be evaluated to a boolean value within a model's namespace.  Upon
-    transitioning from 'false' to 'true', this trigger will cause the immediate
-    execution of an event's list of assignments if no delay is present, otherwise,
-    the delay evaluation will be initialized.
+    An :class:`EventTrigger` reacts to changes in the :class:`~gillespy2.core.model.Model` simulation context to fire
+    one or more :class:`EventAssignment` objects. A trigger contains a mathematical function which evaluates to a
+    boolean result, also known as an :code:`expression`. The state transition of this function from :code:`False` to
+    :code:`True` causes the execution of one or more of the parent :class:`Event` object's :class:`EventAssignment`
+    instances. If the :code:`delay` parameter is specified within the :class:`Event` constructor then execution will
+    occur after an evaluated delay.
 
     :param expression: A math expression which evaluates to a boolean result with respect to the simulation context
         of the running model. Upon transition from :code:`False` to :code:`True`, one or more :class:`EventAssignment`
@@ -100,6 +103,10 @@ class EventTrigger(Jsonify):
     :param value: The initial boolean state of this :class:`EventTrigger` at time :code:`t = 0`. 
 
     :param persistent: Determines if the trigger condition is persistent.
+
+    :raises EventError: If :code:`expression` is not of type :code:`str`.
+    :raises EventError: If :code:`initial_value` is not of type :code:`bool`.
+    :raises EventError: If :code:`persistent` is not of type :code:`bool`.
     """
     def __init__(
         self, 
@@ -122,10 +129,15 @@ class EventTrigger(Jsonify):
             self.persistent = persistent
         else:
             raise EventError('EventTrigger.persistent must be bool')
-    def __str__(self):
+
+    def __str__(self) -> str:
         return self.expression
 
-    def sanitized_expression(self, species_mappings, parameter_mappings):
+    def sanitized_expression(
+        self, 
+        species_mappings: Dict[str, str], 
+        parameter_mappings: Dict[str, str]
+    ) -> str:
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
                        reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
@@ -159,6 +171,19 @@ class Event(Jsonify):
 
     :param priority: A math expression that is evaluatable within the current :class:`~gillespy2.core.model.Model`
         namespace.
+
+    :raises EventError: If :code:`name` is not of type :code:`str`.
+
+    :raises EventError: If :code:`trigger` is an invalid :class:`EventTrigger` instance. Specifically, no
+        :code:`expression` property could be found. e.g :code:`EventTrigger.expression`.
+
+    :raises EventError: If :code:`delay` is not of type :code:`str` and not of value :code:`None`.
+
+    :raises EventError: If :code:`assignments` is not of type :class:`EventAssignment` or contains one or more objects
+        that are not of type :class:`EventAssignment`. Specifically, no :code:`variable` property could be found. e.g
+        :code:`EventAssignment.variable`.
+
+    :raises EventError: If :code:`use_values_from_trigger_time` is not of type :code:`bool`.
     """
 
     def __init__(
@@ -264,10 +289,19 @@ class Event(Jsonify):
         assignment: Union[EventAssignment, List[EventAssignment]]
     ) -> Union[EventAssignment, List[EventAssignment]]:
         """
-        Adds one or more :class:`EventAssignment` objects.
-
+        Adds one or more :class:`EventAssignment` objects to this :class:`Event` instance.
+    
         :param assignment: The :class:`EventAssignment` or list of :class:`EventAssignment` objects to be added to
             this event.
+
+        :raises EventError: If :code:`assignment` is not of type :class:`EventAssignment` or contains one or more
+            objects that are not of type :class:`EventAssignment`.
+
+        :raises ModelError: If :code:`assignment` is neither of type :class:`EventAssignment` or a list of
+            :class:`EventAssignment`.
+
+        :returns: One or more :class:`EventAssignment` objects that were successfully added to this :class:`Event`.
+        :rtype: Union[EventAssignment, List[EventAssignment]]
         """
 
         if hasattr(assignment, 'variable'):
