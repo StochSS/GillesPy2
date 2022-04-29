@@ -16,26 +16,36 @@
 
 import uuid
 
+from typing import (
+    Dict,
+    Union
+)
+
+from gillespy2.core.species import Species
+from gillespy2.core.parameter import Parameter
+
 from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.jsonify import Jsonify
 
 
 class AssignmentRule(SortableObject, Jsonify):
     """
-    An AssignmentRule is used to express equations that set the values of
-    variables.  This would correspond to a function in the form of x = f(V)
+    An :class:`AssignmentRule` is used to express equations that set the values of
+    variables. This would correspond to a function in the form of :code:`x = f(V)`.
 
-    :param name: Name of the Rule
-    :type name: str
+    :param variable: Target :class:`~gillespy2.core.species.Species` or :class:`~gillespy2.core.parameter.Parameter`
+        that this rule will modify.
 
-    :param variable: Target Species/Parameter to be modified by rule
-    :type variable: str
-
-    :param formula: String representation of formula to be evaluated
-    :type formula: str
+    :param name: The name that this rule will be referenced by.
+    :param formula: The string representation of the formula to evaluate.
     """
 
-    def __init__(self, variable=None, formula=None, name=None):
+    def __init__(
+        self, 
+        variable: Union[Species, Parameter] = None, 
+        formula: str = None, 
+        name: str = None
+    ):
         if name in (None, ""):
             self.name = f'ar{uuid.uuid4()}'.replace('-', '_')
         else:
@@ -43,10 +53,14 @@ class AssignmentRule(SortableObject, Jsonify):
         self.variable = variable
         self.formula = formula
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.variable + ': ' + self.formula
 
-    def sanitized_formula(self, species_mappings, parameter_mappings):
+    def sanitized_formula(
+        self, 
+        species_mappings: Dict[str, str],
+        parameter_mappings: Dict[str, str]
+    ) -> str:
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
                        reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
