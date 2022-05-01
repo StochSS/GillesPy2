@@ -25,9 +25,6 @@
 #include <queue>
 #include <list>
 
-#define GPY_HYBRID_ABSTOL 1e-8
-#define GPY_HYBRID_RELTOL 1e-8
-
 namespace Gillespy
 {
 	namespace TauHybrid
@@ -300,6 +297,10 @@ namespace Gillespy
 			{
 				LOOP_OVER_INTEGRATE = 1,
 			};
+
+			double rtol = 1e-9;
+			double atol = 1e-12;
+			double max_step = 0.25;
 		};
 
 		std::set<int> flag_det_rxns(

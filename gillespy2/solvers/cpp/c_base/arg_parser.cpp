@@ -80,6 +80,21 @@ char ArgParser::match_arg(std::string &token)
 		return 'V';
 	}
 
+	if (!token.compare("--rtol"))
+	{
+		return 'R';
+	}
+
+	if (!token.compare("--atol"))
+	{
+		return 'A';
+	}
+
+	if (!token.compare("--max_step"))
+	{
+		return 'M';
+	}
+
 	else
 	{
 		return 0;
@@ -159,6 +174,18 @@ ArgParser::ArgParser(int argc, char *argv[])
 
 			case 'v':
 				verbose = true;
+				break;
+
+			case 'R':
+				std::stringstream(argv[i + 1]) >> rtol;
+				break;
+
+			case 'A':
+				std::stringstream(argv[i + 1]) >> atol;
+				break;
+
+			case 'M':
+				std::stringstream(argv[i + 1]) >> max_step;
 				break;
 
 			default:

@@ -77,7 +77,7 @@ namespace Gillespy
 			{
 				y = y0;
 			}
-			Integrator sol(simulation, y, GPY_HYBRID_RELTOL, GPY_HYBRID_ABSTOL);
+			Integrator sol(simulation, y, simulation->rtol, simulation->atol);
 			if (logger.get_log_level() == LogLevel::CRIT)
 			{
 				sol.set_error_handler(silent_error_handler);

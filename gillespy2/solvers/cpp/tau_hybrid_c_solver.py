@@ -5,6 +5,7 @@ from gillespy2.solvers.utilities import solverutils as cutils
 from gillespy2.core import GillesPySolver, Model, Event, RateRule
 from gillespy2.core.gillespyError import *
 from typing import Union
+from typing import Set
 from enum import IntEnum
 from gillespy2.core import Results
 
@@ -153,6 +154,10 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             RateRule,
         }
 
+    @classmethod
+    def get_supported_integrator_options(cls) -> "Set[str]":
+        return { "rtol", "atol", "max_step" }
+
     def _build(self, model: "Union[Model, SanitizedModel]", simulation_name: str, variable: bool, debug: bool = False,
                custom_definitions=None) -> str:
         variable = variable or len(model.listOfEvents) > 0
@@ -174,7 +179,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
 
     def run(self=None, model: Model = None, t: int = None, number_of_trajectories: int = 1, timeout: int = 0,
             increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
-            resume=None, live_output: str = None, live_output_options: dict = {}, tau_step: int = .03, tau_tol=0.03, **kwargs):
+            resume=None, live_output: str = None, live_output_options: dict = {}, tau_step: int = .03, tau_tol=0.03, integrator_options: "dict[str, float]" = None, **kwargs):
 
         from gillespy2 import log
 
@@ -237,6 +242,9 @@ class TauHybridCSolver(GillesPySolver, CSolver):
                 "init_pop": populations,
                 "parameters": parameter_values
             })
+        if integrator_options is not None:
+            integrator_options = TauHybridCSolver.validate_integrator_options(integrator_options)
+            args.update(integrator_options)
 
         seed = self._validate_seed(seed)
         if seed is not None:
@@ -259,6 +267,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         decoder = IterativeSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
 
         sim_exec = self._build(self.model, self.target, self.variable, False)
+        print(args)
         sim_status = self._run(sim_exec, args, decoder, timeout, display_args)
         trajectories, time_stopped = decoder.get_output()
 

@@ -63,6 +63,9 @@ int main(int argc, char* argv[])
 	simulation.number_timesteps = number_timesteps;
 	simulation.number_trajectories = number_trajectories;
 	simulation.output_interval = parser.output_interval;
+	simulation.rtol = parser.rtol;
+	simulation.atol = parser.atol;
+	simulation.max_step = parser.max_step;
 	init_simulation(&model, simulation);
 	Gillespy::TauHybrid::map_species_modes(simulation.species_state);
 	Gillespy::TauHybrid::map_rate_rules(simulation.species_state);
