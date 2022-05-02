@@ -122,6 +122,10 @@ code {
   font-family: 'monospace';
 }
 
+.simple p strong {
+  font-family: 'monospace';
+}
+
 /* Set code block and `note` background colors to the same as function defs. */
 .highlight-python {
   background-color: var(--codeBackgroundColor) !important;
