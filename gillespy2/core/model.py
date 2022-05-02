@@ -77,15 +77,18 @@ def import_SBML(
     gillespy_model: "Model" = None
 ) -> Tuple["Model", List[str]]:
     """
-    SBML to GillesPy model converter. NOTE: non-mass-action rates
-    in terms of concentrations may not be converted for population
-    simulation. Use caution when importing SBML.
+    SBML to gillespy2 :class:`Model` converter.
 
-    :param filename: Path to the SBML file for conversion.
-    :param name: Name of the resulting model
-    :param gillespy_model: If desired, the SBML model may be added to an existing GillesPy model
+    .. note::
+        Mass-action rates *not* in terms of concentration may not be converted correctly to a population-based
+        simulation. Use caution when using this function to convert SBML to :class:`Model`.
+
+    :param filename: The path of the SBML file to convert.
+    :param name: The name to give the resulting :class:`Model`.
+    :param gillespy2_model: An already existing :class:`Model` object that the SBML model will be added to.
 
     :returns: A tuple which contains (1) the converted GillesPy2 Model and (2) a list of error strings.
+    :rtype: Tuple[Model, List[str]]
 
     :raises ImportError: If :class:`gillespy2.sbml.SBMLImport` could not be imported.
     """
@@ -100,13 +103,14 @@ def import_SBML(
 
 def export_SBML(gillespy_model: "Model", filename: str = None) -> str:
     """
-    GillesPy model to SBML converter
+    gillespy2 :class:`Model` to SBML converter.
 
-    :param gillespy_model: GillesPy model to be converted to SBML
-    :param filename: Path to the SBML file for conversion. If set to None then the SBML document
-        will be exported to a file with name :code:`f"{model.name}.xml"`.
+    :param gillespy2_model: The gillespy2 :class:`Model` to convert to SBML.
+    :param filename: The path of the new SBML document. If `None` then the SBML document will be written to a file with
+        the name :code:`f"{model.name}".xml`.
 
-    :returns: The path of exported SBML document.
+    :returns: The path on disk of the exported SBML document.
+    :rtype: str
 
     :raises ImportError: If :class:`gillespy2.sbml.SBMLExport` could not be imported.
     """
@@ -124,13 +128,14 @@ def export_StochSS(
     return_stochss_model: bool = False
 ) -> Union[str, Dict]:
     """
-    GillesPy model to StochSS converter
+    gillespy2 :class:`Model` to StochSS model converter.
 
-    :param gillespy_model: GillesPy model to be converted to StochSS
-    :param filename: Path to the StochSS file for conversion
+    :param gillespy2_model: The gillespy2 :class:`Model` to be converted to a StochSS-compatible model.
+    :param filename: The path on disk of the exported StochSS model.
 
-    :returns: If `return_stochss_model` is True then a this function will return a StochSS model dictionary. 
-        If False, then the path of the StochSS model file is returned instead.
+    :returns: If :code:`return_stochss_model = True` then this function will return a StochSS model dictionary. 
+        If :code:`False` then the path of the StochSS model file is returned instead.
+    :rtype: Union[str, Dict]
 
     :raises ImportError: If :class:`gillespy2.stochss.StochSSExport` could not be imported. 
     """
@@ -147,21 +152,28 @@ class Model(SortableObject, Jsonify):
     Representation of a well mixed biochemical model. Contains reactions,
     parameters, species.
 
-    :param name: The name of the model, or an annotation describing it.
+    :param name: The name of the model or an annotation which describes it.
     
-    :param population: The type of model being described. A discrete stochastic model is a
-        population model (True), a deterministic model is a concentration model
-        (False). Automatic conversion from population to concentration models
-        may be used, by setting the volume parameter.
+    :param population: The type of model being described. A discrete stochastic model is a population model
+        (:code:`population = True`), a deterministic model is a concentration model (:code:`population = False`). A
+        population model can be automatically converted to a concentration model by setting the :code:`volume` parameter.
 
-    :param volume: The volume of the system matters when converting to from population to
-        concentration form. This will also set a parameter "vol" for use in
-        custom (i.e. non-mass-action) propensity functions.  
+    :param volume: The volume of the system. This parameter is needed when converting a model from population to
+        concentration. This also sets the parameter :code:`"vol"` for use in custom (i.e. non-mass-action) propensity
+        functions.
+
+    :param tspan: The timepoint at which the model should be simulated. If :code:`None` then a default timespan is
+        selected. This model property can also be set with :meth:`timespan`.
     
-    :param tspan: The timepoints at which the model should be simulated. If None, a
-        default timespan is added. Can also be set with :meth:`~gillespy2.core.model.Model.timespan`.
-    
-    :param annotation: Optional further description of model
+    :param annotation: An optional description of the model.
+
+    :raises ModelError: If :code:`population = False` and :code:`volume != 1.0`. This occurs because a concentration
+        model implicitly accounts for volume. It is important to note that :code:`population = True` sets
+        :code:`self.units = "population"`, and :code:`population = False` sets :code:`self.units = "concentation"`. The
+        latter case, in combination with :code:`volume != 1.0`, is what causes this error to occur.
+
+        .. note::
+            Concentration models (e.g :code:`self.units = "concentration"`) may only be simulated deterministically.
     """
 
     # reserved names for model species/parameter names, volume, and operators.
@@ -274,10 +286,10 @@ class Model(SortableObject, Jsonify):
 
     def add(self, components: Union[Component, List[Component]]) -> Union[Component, List[Component]]:
         """
-        Adds a component, or list of components to the model. 
+        Adds one or more components to the :class:`Model`.
 
-        If a list is provided, Species and Parameters are added before other components.  
-        Lists may contain any combination of accepted types other than lists and do not need to be in any particular order.
+        If a list is provided then :class:`~gillespy2.core.species.Species` and
+        :class:`~gillespy2.core.parameter.Parameter` objects are added before other components.
 
         The :code:`components` argument can be one or more of the following types:
             - :class:`gillespy2.Species`
@@ -289,10 +301,12 @@ class Model(SortableObject, Jsonify):
             - :class:`gillespy2.FunctionDefinition`
             - :class:`gillespy2.TimeSpan`
 
-        :param components: The component or list of components to be added the the model.
-        :returns: The components that were added to the model.
+        :param components: The component(s) to add to the :class:`Model`.
 
-        :raises ModelError: :code:`components` or an element within are of incorrect type.
+        :returns: The components that were added to the model.
+        :rtype: One or more objects with type defined in the docstring above.
+
+        :raises ModelError: If :code:`components` contains an element of incorrect type.
         """
 
         if isinstance(components, list):
@@ -356,24 +370,36 @@ class Model(SortableObject, Jsonify):
         return TranslationTable(to_anon=translation_table)
 
     def serialize(self) -> str:
-        """ Serializes the Model object to valid StochML. """
+        """ 
+        Converts the current :class:`Model` object to StochML.
+
+        :returns: The contents of the newly created StochML document.
+        :rtype: str
+        """
         self.resolve_parameters()
         doc = StochMLDocument().from_model(self)
         return doc.to_string()
 
     def update_namespace(self) -> None:
-        """ Create a dict with flattened parameter and species objects. """
+        """
+        Creates the internal :code:`namespace` property by flattening :code:`self.listOfParameters` into a dictionary
+        of :code:`(parameter, parameter.value)` pairs.
+
+        This function mutates the interior state of this :class:`Model` object.
+        """
         self.namespace = OrderedDict([])
         for param in self.listOfParameters:
             self.namespace[param] = self.listOfParameters[param].value
 
     def sanitized_species_names(self) -> Dict[str, str]:
         """
-        Generate a dictionary mapping user chosen species names to simplified formats which will be used
-        later on by GillesPySolvers evaluating reaction propensity functions.
+        Generates a dictionary which maps user-defined :class:`~gillespy2.core.species.Species` names to the simplified
+        formats used by solvers when evaluating :class:`~gillespy2.core.reaction.Reaction` propensity functions.
 
-        :returns: A dictionary which maps user-defined :class:`gillespy2.Species` names to their 
-            internal gillespy2 notation.
+        :returns: A dictionary which maps user-defined :class:`~gillespy2.core.species.Species` names to their internal
+            gillespy2 notation.
+
+        :rtype: Dict[str, str]
         """
         species_name_mapping = OrderedDict([])
         for i, name in enumerate(self.listOfSpecies.keys()):
@@ -381,6 +407,40 @@ class Model(SortableObject, Jsonify):
         return species_name_mapping
 
     def problem_with_name(self, name: str) -> None:
+        """
+        Validation function which ensures that :code:`name`:
+
+        1. Does not collide with reserved gillespy2 keywords.
+        2. Is not already in use by another object in this :class:`Model` instance.
+        3. Does not contain any reserved characters.
+
+        This function will raise an exception if :code:`name` is invalidated by any of the previous cases.
+
+        A list of reserved names can be accessed via the :const:`Model.reserved_names` property (e.g
+        :code:`print(Model.reserved_names)`).
+
+        A list of reserved characters can be accessed via the :const:`Model.special_characters` property (e.g
+        :code:`print(Model.special_characters)`).
+
+        :param name: The name to validate against the reserved keywords list and other already set identifiers.
+        
+        :raises ModelError: If :code:`name` is reserved for internal gillespy2 use.
+
+        :raises ModelError: If :code:`name` is already in use by any one of the following types:
+
+            - :class:`gillespy2.core.species.Species`
+            - :class:`gillespy2.core.parameter.Parameter`
+            - :class:`gillespy2.core.reaction.Reaction`
+            - :class:`gillespy2.core.events.Event`
+            - :class:`gillespy2.core.raterule.RateRule`
+            - :class:`gillespy2.core.assignmentrule.AssignmentRule`
+            - :class:`gillespy2.core.functiondefinition.FunctionDefinition`
+
+        :raises ModelError: If :code:`name` is a numeric string -- e.g :code:`name.isdigit() == True`.
+
+        :raises ModelError: If :code:`name` contains one or more reserved special characters.
+        """
+
         if name in Model.reserved_names:
             raise ModelError(
                 'Name "{}" is unavailable. It is reserved for internal GillesPy use. Reserved Names: ({}).'.format(name,
@@ -409,25 +469,38 @@ class Model(SortableObject, Jsonify):
 
     def get_species(self, s_name: str) -> Species:
         """
-        Returns a species object by name.
+        Returns a :class:`~gillespy2.core.species.Species` object by name.
 
-        :param s_name: Name of the species object to be returned:
+        :param s_name: The name of the species object to return.
+
+        :returns: The species object.
+        :rtype: Species
+
+        :raises KeyError: If a species with name :code:`s_name` does not exist.
         """
 
         return self.listOfSpecies[s_name]
 
     def get_all_species(self) -> Dict[str, Species]:
         """
-        :returns: A dict of all species in the model, of the form:
-            {name : species object}
+        Returns all :class:`~gillespy2.core.species.Species` objects attached to this :class:`Model` instance.
+
+        :returns: A dictionary of species of the form :code:`{ name: Species }`
+        :rtype: Dict[str, Species]
         """
         return self.listOfSpecies
 
     def add_species(self, obj: Union[Species, List[Species]]) -> Union[Species, List[Species]]:
         """
-        Adds a species, or list of species to the model.
+        Adds one or more :class:`~gillespy2.core.species.Species` objects to this :class:`Model` instance.
 
-        :param obj: The species or list of species to be added to the model object
+        :param obj: The species or list of species objects to be added to this model.
+
+        :returns: One or more species objects that were successfully added to this :class:`Model`. 
+        :rtype: Union[Species, List[Species]]
+
+        :raises ModelError: If :meth:`Model.problem_with_name` invalidates the name of one or more species objects.
+        :raises ParameterError: If some other error occurs while adding the species object(s).
         """
 
         if isinstance(obj, list):
@@ -444,9 +517,10 @@ class Model(SortableObject, Jsonify):
 
     def delete_species(self, name: str) -> None:
         """
-        Removes a species object by name.
+        Removes a :class:`~gillespy2.core.species.Species` object from this :class:`Model` instance by name.
 
-        :param name: Name of the species object to be removed
+        :param name: The name of the species object to remove.
+        :raises KeyError: If a species with name :code:`name` does not exist.
         """
         self.listOfSpecies.pop(name)
         if name in self._listOfSpecies:
@@ -454,16 +528,16 @@ class Model(SortableObject, Jsonify):
 
     def delete_all_species(self) -> None:
         """
-        Removes all species from the model object.
+        Removes all :class:`~gillespy2.core.species.Species` objects attached to this :class:`Model` instance.
         """
         self.listOfSpecies.clear()
         self._listOfSpecies.clear()
 
     def set_units(self, units: str) -> None:
         """
-        Sets the units of the model to either "population" or "concentration"
+        Sets the units of this :class:`Model` instance to either :code:`"population"` or :code:`"concentration"`.
 
-        :param units: Either "population" or "concentration"
+        :param units: Either :code:`"population"` or :code:`"concentration"`.
 
         :raises ModelError: If :code:`units.lower()` is some other value.
         """
@@ -474,10 +548,14 @@ class Model(SortableObject, Jsonify):
 
     def sanitized_parameter_names(self) -> Dict[str, str]:
         """
-        Generate a dictionary mapping user chosen parameter names to simplified formats which will be used
-        later on by GillesPySolvers evaluating reaction propensity functions.
+        Generates a dictionary which maps user-defined :class:`~gillespy2.core.parameter.Parameter` names to the
+        simplified formats used by solvers when evaluating :class:`~gillespy2.core.reaction.Reaction` propensity
+        functions.
 
-        :returns: the dictionary mapping user parameter names to their internal GillesPy notation.
+        :returns: A dictionary which maps user-defined :class:`~gillespy2.core.parameter.Parameter` names to their
+            internal gillespy2 notation.
+
+        :rtype: Dict[str, str]
         """
         parameter_name_mapping = OrderedDict()
         parameter_name_mapping['vol'] = 'V'
@@ -487,10 +565,15 @@ class Model(SortableObject, Jsonify):
         return parameter_name_mapping
 
     def get_parameter(self, p_name: str) -> Parameter:
-        """
-        Returns a parameter object by name.
+        """        
+        Returns a :class:`~gillespy2.core.parameter.Parameter` object by name.
 
-        :param p_name: Name of the parameter object to be returned
+        :param p_name: The name of the parameter object to return.
+
+        :returns: The parameter object.
+        :rtype: Parameter
+
+        :raises ModelError: If a parameter with name :code:`p_name` does not exist.
         """
         try:
             return self.listOfParameters[p_name]
@@ -499,16 +582,24 @@ class Model(SortableObject, Jsonify):
 
     def get_all_parameters(self) -> Dict[str, Parameter]:
         """
-        :returns: A dict of all parameters in the model, of the form:
-            {name : parameter object}
+        Returns all :class:`~gillespy2.core.parameter.Parameter` objects attached to this :class:`Model` instance.
+
+        :returns: A dictionary of species of the form :code:`{ name: Parameter }`
+        :rtype: Dict[str, Species]
         """
         return self.listOfParameters
 
     def add_parameter(self, params: Union[Parameter, List[Parameter]]) -> Union[Parameter, List[Parameter]]:
         """
-        Adds a parameter, or list of parameters to the model.
+        Adds one or more :class:`~gillespy2.core.parameter.Parameter` objects to this :class:`Model` instance.
 
-        :param params:  The parameter or list of parameters to be added to the model object.
+        :param params: The parameter or list of parameter objects to be added to the model object.
+
+        :raises ModelError: If :meth:`Model.problem_with_name` invalidates the name of one or more 
+            :class:`~gillespy2.core.parameter.Parameter` objects.
+
+        :raises ParameterError: If one or more elements within :code:`params` are not of type
+            :class:`~gillespy2.core.parameter.Parameter`.
         """
         if isinstance(params, list):
             for p in sorted(params):
@@ -526,9 +617,11 @@ class Model(SortableObject, Jsonify):
 
     def delete_parameter(self, name: str) -> None:
         """
-        Removes a parameter object by name.
+        Removes a :class:`~gillespy2.core.parameter.Parameter` object from this :class:`Model` by name.
 
-        :param name: Name of the parameter object to be removed
+        :param name: The name of the parameter object to remove.
+
+        :raises KeyError: If a parameter with name :code:`name` does not exist.
         """
         self.listOfParameters.pop(name)
         if name in self._listOfParameters:
@@ -536,12 +629,12 @@ class Model(SortableObject, Jsonify):
 
     def set_parameter(self, p_name: str, expression: str) -> None:
         """
-        Set the value of an existing parameter "pname" to "expression".
+        Sets the expression of a :class:`~gillespy2.core.parameter.Parameter` on this :class:`Model` instance.
 
-        :param p_name: Name of the parameter whose value will be set.
+        :param p_name: The name of the parameter whose :code:`expression` property will be set. 
 
-        :param expression: String that may be executed in C, describing the value of the
-            parameter. May reference other parameters by name. (e.g. "k1*4")
+        :param expression: The expression to be applied, written as a string evaluatable by a solver during a
+            simulation. reference other parameters by name -- e.g :code:`"k1 * 4`.
         """
 
         p = self.listOfParameters[p_name]
@@ -549,20 +642,41 @@ class Model(SortableObject, Jsonify):
         p._evaluate()
 
     def resolve_parameters(self) -> None:
-        """ Internal function:
-        attempt to resolve all parameter expressions to scalar floats.
-        This methods must be called before exporting the model.
+        """ 
+        This function is for internal use.
+
+        Attempt to resolve all :class:`~gillespy2.core.parameter.Parameter` expressions to scalar floats. This method
+        must be called **prior** to exporting this :class:`Model` instance.
         """
         self.update_namespace()
         for param in self.listOfParameters:
             self.listOfParameters[param]._evaluate(self.namespace)
 
     def delete_all_parameters(self) -> None:
-        """ Deletes all parameters from model. """
+        """ 
+        Removes all :class:`~gillespy2.core.parameter.Parameter` objects attached to this :class:`Model` instance.
+        """
         self.listOfParameters.clear()
         self._listOfParameters.clear()
 
     def validate_reactants_and_products(self, reactions: List[Reaction]) -> None:
+        """
+        Validates one or more :class:`~gillespy2.core.reaction.Reaction` objects against this :class:`Model` instance's
+        internal state. 
+
+        More specifically, this function ensures that reactants and products on a
+        :class:`~gillespy2.core.reaction.Reaction` object reference :class:`~gillesp2.core.species.Species` that exist
+        within :attr:`Model.listOfSpecies`.
+
+        :param reactions: The reactions to validate.
+
+        :raises ModelError: If a reactant in :code:`reactions` references a species in :attr:`Model.listOfSpecies` that
+            does not exist.
+
+        :raises ModelError: If a product in :code:`reactions` references a species in :attr:`Model.listOfSpecies` that
+            does not exist.
+        """
+
         for reactant in list(reactions.reactants.keys()):
             if isinstance(reactant, str):
                 if reactant not in self.listOfSpecies.keys():
@@ -581,14 +695,16 @@ class Model(SortableObject, Jsonify):
 
     def add_reaction(self, reactions: Union[Reaction, List[Reaction]]) -> Union[Reaction, List[Reaction]]:
         """
-        Adds a reaction, or list of reactions to the model.
+        Adds one or more :class:`~gillespy2.core.reaction.Reaction` objects to this :class:`Model` instance.
 
         :param reactions: The reaction or list of reaction objects to be added to the model object.
 
         :raises ModelError: If :meth:`~gillespy2.core.Model.problem_with_name` invalidates the name of one or more 
             :class:`~gillespy2.core.reaction Reaction` objects.
+
         :raises ModelError: If :meth:`~gillespy2.core.Model.validate_reactants_and_products` invalidates the reactants
             and/or products on a :class:`~gillespy2.core.reaction.Reaction` object.
+
         :raises ModelError: If :code:`reactions` contains multiple :class:`~gillespy2.core.reaction.Reaction` objects with the same name.
 
         :raises ReactionError: If :meth:`gillespy2.core.reaction.Reaction.verify` invalidates the
@@ -633,9 +749,36 @@ class Model(SortableObject, Jsonify):
 
     def add_rate_rule(self, rate_rules: Union[RateRule, List[RateRule]]) -> Union[RateRule, List[RateRule]]:
         """
-        Adds a rate rule, or list of rate rules to the model.
+        Adds one or more :class:`~gillespy2.core.raterule.RateRule` objects to this :class:`Model` instance.
 
-        :param rate_rules: The rate rule or list of rate rule objects to be added to the model object.
+        :param rate_rules: The rate rule or list of rate rules to be added to this model.
+
+        :returns: One or more rate rule objects that were successfully added to this :class:`Model`.
+        :rtype: Union[RateRule, List[RateRule]]
+
+        :raises ModelError: If :func:`Model.problem_with_name` invalidates the name of one or more
+            :class:`~gillespy2.core.raterule.RateRule` objects.
+
+        :raises ModelError: If the :code:`variable` property of a :class:`~gillespy2.core.raterule.RateRule` instance
+            is already set within a :class:`~gillespy2.core.assignmentrule.AssignmentRule` or
+            :class:`~gillespy2.core.raterule.RateRule` attached to this :class:`Model`.
+
+        :raises ModelError: If one or more rate rules in :code:`rate_rules` has the same :code:`name` as a
+            :class:`~gillespy2.core.raterule.RateRule` on this :class:`Model` instance.
+
+        :raises ModelError: If one or more rate rules in :code:`rate_rules` has an invalid :attr:`RateRule.formula`
+            value. Specifically, if :code:`RateRule.formula == ""`.
+
+        :raises ModelError: If one or more rate rules in :code:`rate_rules` has a :attr:`RateRule.variable` value of
+            :code:`None`.
+
+        :raises ModelError: If one or more rate rules in :code:`rate_rules` has a :attr:`RateRule.variable` which
+            references a :class:`~gillespy2.core.species.Species` or :class:`~gillespy2.core.parameter.Parameter`
+            that does not exist. This function specifically checks that :attr:`RateRule.variable` exists in either
+            :attr:`Model.listOfSpecies` and :attr:`Model.listOfParameters` and, if not, raises an error.
+
+        :raises ParameterError: If some other error occurs while adding the :class:`~gillespy2.core.raterule.RateRule`
+            object(s).
         """
         if isinstance(rate_rules, list):
             for rr in sorted(rate_rules):
@@ -674,10 +817,19 @@ class Model(SortableObject, Jsonify):
 
     def add_event(self, event: Union[Event, List[Event]]) -> Union[Event, List[Event]]:
         """
-        Adds an event, or list of events to the model.
+        Adds one or more :class:`~gillespy2.core.events.Event` to this :class:`Model` instance.
 
-        :param event: The event or list of event objects to be added to the model object.
-        :type event: Event, or list of Events
+        :param event: The event or list of events to be added to this model.
+
+        :returns: One or more event objects that were successfully added this :class:`Model`.
+        :rtype: Union[Event, List[Event]]
+
+        :raises ModelError: If one or more :class:`~gillespy2.core.events.Event` objects contain an invalid
+            :attr:`Event.trigger` value. Specifically, it is asserted that :code:`Event.trigger` is not :code:`None` and
+            the trigger contains the :code:`"expression"` property.
+
+        :raises ParameterError: If some other error occurs while adding the :class:`~gillespy2.core.events.Event`
+            object(s).
         """
 
         if isinstance(event, list):
@@ -699,11 +851,19 @@ class Model(SortableObject, Jsonify):
 
     def add_function_definition(self, function_definitions: Union[FunctionDefinition, List[FunctionDefinition]]):
         """
-        Add FunctionDefinition or list of FunctionDefinitions
+        Adds one or more :class:`~gillespy2.core.functiondefinition.FunctionDefinition` to this :class:`Model`
+        instance.
 
-        :param function_definitions: The FunctionDefinition, or list of FunctionDefinitions to be added to the model
-            object.
-        :type function_definitions: FunctionDefinition or list of FunctionDefinitions.
+        :param function_definitions: One or more function definition objects to be added to this model.
+
+        :returns: One or more function definition objects that were successfully added to this :class:`Model`.
+        :rtype: Union[FunctionDefinition, List[FunctionDefinition]]
+
+        :raises ModelError: If :func:`Model.problem_with_name` invalidates the name of one or more
+            :class:`~gillespy2.core.functiondefinition.FunctionDefinition` objects.
+
+        :raises ParameterError:  If some other error occurs while adding the 
+            :class:`~gillespy2.core.functiondefinition.FunctionDefinition` object.
         """
         if isinstance(function_definitions, list):
             for fd in function_definitions:
@@ -718,10 +878,31 @@ class Model(SortableObject, Jsonify):
 
     def add_assignment_rule(self, assignment_rules: Union[AssignmentRule, List[AssignmentRule]]):
         """
-        Add AssignmentRule or list of AssignmentRules to the model object.
+        Adds one or more :class:`~gillespy2.core.assignmentrule.AssignmentRule` objects to the :class:`Model`.
 
-        :param assignment_rules: The AssignmentRule or list of AssignmentRules to be added to the model object.
-        :type assignment_rules: AssignmentRule or list of AssignmentRules
+        :param assignment_rules: One or more :class:`~gillespy2.core.assignmentrule.AssignmentRule` objects. If multiple
+            are provided then they must be within a list.
+
+        :returns: One or more assignment rule objects that were successfully added to this :class:`Model`.
+        :rtype: Union[AssignmentRule, List[AssignmentRule]]
+
+        :raises ModelError: If the :code:`variable` property of a :class:`~gillespy2.core.assignmentrule.AssignmentRule` instance
+            is already set within a :class:`~gillespy2.core.assignmentrule.AssignmentRule` or
+            :class:`~gillespy2.core.raterule.RateRule` attached to this :class:`Model`.
+
+        :raises ModelError: If one or more assignment rules in :code:`assignment_rules` has the same :code:`name` as a
+            :class:`~gillespy2.core.assignmentrule.AssignmentRule` on this :class:`Model` instance.
+
+        :raises ModelError: If one or more assignment rules in :code:`assignment_rules` has an invalid :attr:`AssignmentRule.formula`
+            value. Specifically, if :code:`AssignmentRule.formula == ""`.
+
+        :raises ModelError: If one or more assignment rules in :code:`assignment_rules` has a :attr:`AssignmentRule.variable` value of
+            :code:`None`.
+
+        :raises ModelError: If :func:`Model.problem_with_name` invalidates the name of one or more
+            :class:`~gillespy2.core.assignmentrule.AssignmentRule` objects.
+
+        :raises ModelError: 
         """
         if isinstance(assignment_rules, list):
             for ar in assignment_rules:
@@ -749,14 +930,16 @@ class Model(SortableObject, Jsonify):
             except Exception as e:
                 raise ParameterError("Error using {} as a Assignment Rule. Reason given: {}".format(assignment_rules, e))
 
-    def timespan(self, time_span: Union[TimeSpan, Iterable[int]]):
+    def timespan(self, time_span: Union[TimeSpan, Iterable[int]]) -> None:
         """
-        Set the time span of simulation. StochKit does not support non-uniform
-        timespans. 
+        Sets the timespan of the simulation.
 
-        :param time_span: Evenly-spaced list of times at which to sample the species populations during the simulation. 
-            Best to use the form gillespy2.TimeSpan(np.linspace(<start time>, <end time>, <number of time-points, inclusive>))
-        :type time_span: gillespy2.TimeSpan | iterator
+        .. note::
+            StochKit **only** supports uniform timespans.
+
+        :param time_span: The evently-spaced list of times at which :class:`~gillespy2.core.species.Species` populations
+            are sampled during the simulation. It is recommended to use the :class:`~gillespy2.core timespan.TimeSpan`
+            class instead of a list, :code:`numpy.ndarray`, or some other iterable collection.
         """        
         if isinstance(time_span, TimeSpan) or type(time_span).__name__ == "TimeSpan":
             self.tspan = time_span
@@ -765,23 +948,33 @@ class Model(SortableObject, Jsonify):
 
     def get_reaction(self, rname: str) -> Reaction:
         """
-        :param rname: name of reaction to return
-        :returns: Reaction object
+        Returns a :class:`~gillespy2.core.reaction.Reaction` on this :class:`Model` by name.
+
+        :param rname: The name of the reaction to return.
+
+        :returns: The reaction with name :class:`rname`.
+        :rtype: Reaction
+
+        :raises KeyError: If a :class:`~gillespy2.core.reaction.Reaction` with name :code:`rname` does not exist on
+            this :class:`Model`.
         """
         return self.listOfReactions[rname]
 
     def get_all_reactions(self) -> Dict[str, Reaction]:
         """
-        :returns: dict of all Reaction objects
+        Returns all :class:`~gillespy2.core.reaction.Reaction` objects attached to this :class:`Model` instance.
+
+        :returns: A dictionary of reactions of the form :code:`{ name: Reaction }`.
+        :rtype: Dict[str, Reaction]
         """
         return self.listOfReactions
 
     def delete_reaction(self, name: str) -> None:
         """
-        Removes a reaction object by name.
-
-        :param name: Name of Reaction to be removed,
-        :type name: str
+        Removes a :class:`~gillespy2.core.reaction.Reaction` object from this :class:`Model` by name.
+        
+        :param name: The name of the reaction to remove.
+        :raises KeyError: If a reaction with name :code:`name` does not exist.
         """
         self.listOfReactions.pop(name)
         if name in self._listOfReactions:
@@ -789,30 +982,40 @@ class Model(SortableObject, Jsonify):
 
     def delete_all_reactions(self) -> None:
         """
-        Clears all reactions in model
+        Removes all :class:`~gillespy2.core.reaction.Reaction` objects attached to this :class:`Model` instance.
         """
         self.listOfReactions.clear()
         self._listOfReactions.clear()
 
     def get_event(self, ename: str) -> Event:
         """
-        :param ename: Name of Event to get
-        :returns: Event object
+        Returns an :class:`~gillespy2.core.events.Event` on this :class:`Model` by name.
+        
+        :param ename: The name of the event to return.
+
+        :returns: An event with name :code:`ename`.
+        :rtype: Event
+
+        :raises KeyError: If a :class:`~gillespy2.core.events.Event` with name :code:`ename` does not exist on this
+            :class:`Model`.
         """
         return self.listOfEvents[ename]
 
     def get_all_events(self) -> Dict[str, Event]:
         """
-        :returns: dict of all Event objects
+        Returns all :class:`~gillespy2.core.events.Event` objects attached to this :class:`Model` instance.
+
+        :returns: A dictionary of events of the form :code:`{ name: Event }`.
+        :rtype: Dict[str, Event]
         """
         return self.listOfEvents
 
     def delete_event(self, name: str) -> None:
         """
-        Removes specified Event from model
+        Removes an :class:`~gillespy2.core.events.Event` object from this :class:`Model` by name.
 
-        :param name: Name of Event to be removed.
-        :type name: str
+        :param name: The name of the event object to remove.
+        :raises KeyError: If an event with name :code:`name` does not exist.
         """
         self.listOfEvents.pop(name)
         if name in self._listOfEvents:
@@ -820,30 +1023,40 @@ class Model(SortableObject, Jsonify):
 
     def delete_all_events(self) -> None:
         """
-        Clears models events
+        Removes all :class:`~gillespy2.core.events.Event` objects attached to this :class:`Model` instance.
         """
         self.listOfEvents.clear()
         self._listOfEvents.clear()
 
     def get_rate_rule(self, rname: str) -> RateRule:
         """
-        :param rname: Name of Rate Rule to get
-        :returns: RateRule object
+        Returns a :class:`~gillespy2.core.raterule.RateRule` on this :class:`Model` by name.
+
+        :param p_name: The name of the rate rule to return.
+        
+        :returns: The rate rule object.
+        :rtype: RateRule
+
+        :raises KeyError: If a rate rule with name :class:`~gillespy2.core.raterule.RateRule` does not exist on this
+            :class:`Model`.
         """
         return self.listOfRateRules[rname]
 
     def get_all_rate_rules(self) -> Dict[str, RateRule]:
         """
-        :returns: dict of all Rate Rule objects
+        Returns all :class:`~gillespy2.core.raterule.RateRule` objects attached to this :class:`Model`.
+
+        :returns: A dictionary of event objects of the form :code:`{ name: RateRule }`.
+        :rtype: Dict[str, RateRule]
         """
         return self.listOfRateRules
 
     def delete_rate_rule(self, name: str) -> None:
         """
-        Removes specified Rate Rule from model
+        Removes a :class:`~gillespy2.core.raterule.RateRule` from this :class:`Model` by name.
 
-        :param name: Name of Rate Rule to be removed.
-        :type name: str
+        :param name: The name of the rate rule object to remove.
+        :raises KeyError: If a rate rule with name :code:`name` does not exist.
         """
         self.listOfRateRules.pop(name)
         if name in self._listOfRateRules:
@@ -851,30 +1064,43 @@ class Model(SortableObject, Jsonify):
 
     def delete_all_rate_rules(self) -> None:
         """
-        Clears all of models Rate Rules
+        Removes all :class:`~gillesp2.core.raterule.RateRule` objects attached to this :class:`Model` instance.
         """
         self.listOfRateRules.clear()
         self._listOfRateRules.clear()
 
     def get_assignment_rule(self, aname: str) -> AssignmentRule:
         """
-        :param aname: Name of Assignment Rule to get
-        :returns: Assignment Rule object
+        Returns an :class:`~gillespy2.core.assignmentrule.AssignmentRule` on this :class:`Model` by name.
+
+        :param aname: The name of the assignment rule to return.
+
+        :returns: An :class:`~gillespy2.core.assignmentrule.AssignmentRule` with name :code:`aname`.
+        :rtype: AssignmentRule
+
+        :raises KeyError: If an :class:`~gillespy2.core.assignmenrrule.AssignmentRule` with name :code:`aname` does not
+            exist on this :class:`Model`.
+
         """
         return self.listOfAssignmentRules[aname]
 
     def get_all_assignment_rules(self) -> Dict[str, AssignmentRule]:
         """
-        :returns: dict of models Assignment Rules
+        Returns all :class:`~gillespy2.core.assignmentrule.AssignmentRule` objects attached to this :class:`Model`
+        instance.
+
+        :returns A dictionary of assignment rules of the form :code:`{ name: AssignmentRule }`.
+        :rtype: Dict[str, AssignmentRule]
         """
         return self.listOfAssignmentRules
 
     def delete_assignment_rule(self, name: str) -> None:
         """
-        Removes an assignment rule from a model
+        Removes an :class:`~gillespy2.core.assignmentrule.AssignmentRule` object from this :class:`Model` by name.
 
-        :param name: Name of AssignmentRule object to be removed from model.
-        :type name: str
+        :param name: The name of the assignment rule to remove.
+        :raises KeyError: If an :class:`~gillespy2.core.assignmentrule.AssignmentRule` with name :code:`name` does not
+            exist.
         """
         self.listOfAssignmentRules.pop(name)
         if name in self._listOfAssignmentRules:
@@ -882,30 +1108,42 @@ class Model(SortableObject, Jsonify):
 
     def delete_all_assignment_rules(self) -> None:
         """
-        Clears all assignment rules from model
+        Removes all :class:`~gillespy2.core.assignmentrule.AssigmentRule` objects attached to this :class:`Model`.
         """
         self.listOfAssignmentRules.clear()
         self._listOfAssignmentRules.clear()
 
     def get_function_definition(self, fname: str) -> FunctionDefinition:
         """
-        :param fname: name of Function to get
-        :returns: FunctionDefinition object
+        Returns a :class:`~gillespy2.functiondefinition.FunctionDefinition` on this :class:`Model` by name.
+
+        :param fname: The name of the function definition to return. 
+        
+        :returns: The function definition object.
+        :rtype: FunctionDefinition
+
+        :raises KeyError: If a :class:`~gillespy2.functiondefinition.FunctionDefinition` with name :code:`rname` does not exist on this :class:`Model`.
         """
         return self.listOfFunctionDefinitions[fname]
 
     def get_all_function_definitions(self) -> Dict[str, FunctionDefinition]:
         """
-        :returns: Dict of models function definitions
+        Returns all :class:`~gillespy2.functiondefinition.FunctionDefinition` objects attached to this :class:`Model`.
+
+        :returns: A dictionary of :class:`~gillespy2.functiondefinition.FunctionDefinition` objects of the form:
+            :code:`{ name: FunctionDefinition }`.
+
+        :rtype: Dict[str, FunctionDefinition]
         """
         return self.listOfFunctionDefinitions
 
     def delete_function_definition(self, name: str) -> None:
         """
-        Removes specified Function Definition from model
+        Removes a :class:`~gillespy2.functiondefinition.FunctionDefinition` object from this :class:`Model` by name.
 
-        :param name: Name of Function Definition to be removed
-        :type name: str
+        :param name: The name of the :class:`~gillespy2.functiondefinition.FunctionDefinition` to remove.
+        :raises KeyError: If a :class:`~gillespy2.functiondefinition.FunctionDefinition` with name :code:`name` does 
+            not exist.
         """
         self.listOfFunctionDefinitions.pop(name)
         if name in self._listOfFunctionDefinitions:
@@ -913,17 +1151,32 @@ class Model(SortableObject, Jsonify):
 
     def delete_all_function_definitions(self) -> None:
         """
-        Clears all Function Definitions from a model
+        Removes all :class:`~gillespy2.functiondefinition.FunctionDefinition` objects attached to this :class:`Model`
+        instance.
         """
         self.listOfFunctionDefinitions.clear()
         self._listOfFunctionDefinitions.clear()
 
-    def get_element(self, ename: str) -> Union[Component, FunctionDefinition]:
+    def get_element(self, ename: str) -> Component:
         """
-        Get element specified by name.
+        Returns an element attached to this :class:`Model` instance by name.
 
-        :param ename: name of element to search for
-        :returns: value of element, or 'element not found'
+        This function will return one of the following types:
+            - :class:`gillespy2.Species`
+            - :class:`gillespy2.Parameter`
+            - :class:`gillespy2.Reaction`
+            - :class:`gillespy2.Event`
+            - :class:`gillespy2.RateRule`
+            - :class:`gillespy2.AssignmentRule`
+            - :class:`gillespy2.FunctionDefinition`
+            - :class:`gillespy2.TimeSpan`
+
+        :param ename: The name of the element to return.
+
+        :returns: The element object.
+        :rtype: One or more objects with type defined in the docstring above.
+
+        :raises ModelError: If an element with name :code:`ename` does not exist on this :class:`Model`.
         """
         if ename in self.listOfReactions:
             return self.get_reaction(ename)
@@ -944,14 +1197,45 @@ class Model(SortableObject, Jsonify):
 
     def get_best_solver(self) -> GillesPySolver:
         """
-        Finds best solver for the users simulation. Currently, AssignmentRules, RateRules, FunctionDefinitions,
-        Events, and Species with a dynamic, or continuous population must use the TauHybridSolver.
+        Returns the best solver for the current :class:`Model` instance. Currently,
+        :class:`~gillespy2.core.assignmentrule.AssignmentRule`, :class:`~gillespy2.core.raterule.RateRule`,
+        :class:`~gillespy2.core.functiondefinition.FunctionDefinition`, :class:`~gillespy2.core.events.Event`, and
+        :class:`~gillespy2.core.species.Species` with a dynamic or continuous population must use either
+        :class:`~gillespy2.solvers.numpy.tau_hybrid_solver.TauHybridSolver` or
+        :class:`~gillespy2.solvers.cpp.tau_hybrid_c_solver.TauHybridCSolver`.
 
-        :param precompile: If True, and the model contains no AssignmentRules, RateRules, FunctionDefinitions, Events,
-            or Species with a dynamic or continuous population, it will choose SSACSolver
-        :type precompile: bool
+        Optimized C++ solvers require :code:`gcc` and :code:`make` to be installed on the host system to run
+        simulations. One can determine which dependencies are missing like so:
 
-        :returns: gillespy2.gillespySolver
+        .. code-block:: python
+
+            from gillespy2.solvers.cpp.build.build_engine import BuildEngine
+
+            print(BuildEngine.get_missing_dependencies())
+
+        A model can still be simulated if dependencies are missing, however, with the :code:`numpy` suite of solvers.
+        These are functionally identical to their C++ counterparts, but aren't as performant.
+
+        The following cases can be used to determine which solver implementation will be chosen based on your Python
+        environment.
+
+        If :meth:`BuildEngine.get_missing_dependencies` returns a list of length :code:`0`:
+
+            - :class:`~gillespy2.solvers.cpp.ode_c_solver.ODECSolver`
+            - :class:`~gillespy2.solvers.cpp.ssa_c_solver.SSACSolver`
+            - :class:`~gillespy2.solvers.cpp.tau_hybrid_c_solver.TauHybridCSolver`
+            - :class:`~gillespy2.solvers.cpp.tau_leaping_c_solver.TauLeapingCSolver`
+
+        If :meth:`BuildEngine.get_missing_dependencies` returns a list of length :code:`> 0`:
+
+            - :class:`~gillespy2.solvers.numpy.CLE_solver.CLESolver`
+            - :class:`~gillespy2.solvers.numpy.ode_solver.ODESolver`
+            - :class:`~gillespy2.solvers.numpy.ssa_solver.NumPySSASolver`
+            - :class:`~gillespy2.solvers.numpy.tau_hybrid_solver.TauHybridSolver`
+            - :class:`~gillespy2.solvers.numpy.tau_leaping_solver.TauLeapingSolver`
+
+        :returns: The chosen solver type.
+        :rtype: A solver of inherited type :class:`~gillespy2.core.gillespySolver.GillesPySolver`.
         """
         from gillespy2.solvers.numpy import can_use_numpy
         hybrid_check = False
@@ -992,7 +1276,26 @@ class Model(SortableObject, Jsonify):
 
     def get_best_solver_algo(self, algorithm: str) -> GillesPySolver:
         """
-        If user has specified a particular algorithm, we return either the Python or C++ version of that algorithm
+        Returns the best solver implementation for the specified algorithm *type*. 
+
+        Specifically, :meth:`BuildEngine.get_missing_dependencies` is used to determine if the current Python
+        environment (and by extension, the host machine) is missing C++ build dependencies. See
+        :meth:`Model.get_best_solver` for a more thorough explanation on the usage of
+        :class:`~gillespy2.solvers.cpp.build.build_engine.BuildEngine` and how to interpret its results.
+
+        :param algorithm: The name of the algorithm to be used. Must be one of the following values:
+
+            - :code:`"CLE"`
+            - :code:`"ODE"`
+            - :code:`"SSA"`
+            - :code:`"Tau-Hybrid"`
+            - :code:`"Tau-Leaping"`
+
+        :returns: The solver type whose implementation is best suited for the current Python environment.
+        :rtype: Refer to :meth:`Model.get_best_solver` for a thorough overview of what may be returned.
+
+        :raises ModelError: If neither :code:`numpy` or C++ build dependencies are installed.
+        :raises ModelError: If :code:`algorithm` is of some other value.
         """
         from gillespy2.solvers.numpy import can_use_numpy
         from gillespy2.solvers.cpp.build.build_engine import BuildEngine
@@ -1046,10 +1349,11 @@ class Model(SortableObject, Jsonify):
 
     def get_model_features(self) -> AbstractSet[Union[Event, RateRule, AssignmentRule, FunctionDefinition]]:
         """
-        Determine what solver-specific model features are present on the model.
-        Used to validate that the model is compatible with the given solver.
+        Returns a list of solver-specific features that are present within this :class:`Model`. This is used to
+        determine if the current :class:`Model` is compatible with a solver.
 
-        :returns: Set containing the classes of every solver-specific feature present on the model.
+        :returns: A set containing the classes of every solver-specific feature present within this model.
+        :rtype: AbstractSet[Union[Event, RateRule, AssignmentRule, FunctionDefinition]]
         """
         features = set()
         if len(self.listOfEvents):
@@ -1098,24 +1402,6 @@ class Model(SortableObject, Jsonify):
         .. warning::
             Pause / resume functionality is only supported for single trajectory simulations. :code:`t` must be set or 
             unexpected behavior may occur.
-
-            .. code-block:: text
-
-                <>=======()
-               (/\___   /|\\\\          ()==========<>_
-                     \_/ | \\\\        //|\   ______/ \)
-                       \_|  \\\\      // | \_/
-                         \|\/|\_   //  /\/
-                          (--)\ \_//  /
-                         //_/\_\/ /  |
-                        @@/  |=\  \  |
-                             \_=\_ \ |
-                               \==\ \|\_ 
-                            __(\===\(  )\\
-                           (((~) __(_/   |
-                                (((~) \  /
-                                ______/ /
-                                '------'
 
         .. note::
             :code:`show_labels = False` has been deprecated and may not be supported in future versions of this software.
@@ -1187,7 +1473,7 @@ class StochMLDocument():
     @classmethod
     def from_model(cls, model: Model) -> "StochMLDocument":
         """
-        Creates an StochKit XML document from an exisiting Model object.
+        Creates an StochKit XML document from an exisiting :class:`Model` object.
         This method assumes that all the parameters in the model are already
         resolved to scalar floats (see Model.resolveParamters).
 
@@ -1200,13 +1486,18 @@ class StochMLDocument():
         .. code-block:: python
 
             document = StochMLDocument.fromModel(model)
-            print document.toString()
+            print(document.toString())
 
         You SHOULD do:
 
         .. code-block:: python
 
-            print model.serialize()
+            print(model.serialize())
+
+        :param model: The :class:`Model` instance to convert to a StochML document.
+
+        :returns: The newly created StochML document.
+        :rtype: StochMLDocument
 
         """
 
@@ -1258,8 +1549,14 @@ class StochMLDocument():
 
     @classmethod
     def from_file(cls, filepath: str) -> "StochMLDocument":
-        """ Intializes the document from an exisiting native StochKit XML
-        file read from disk. """
+        """ 
+        Reads, parses, and returns a StochML document from a file on disk.
+
+        :param filepath: The path of the StochML document on disk.
+
+        :returns: The parsed StochML document.
+        :rtype: StochMLDocument
+        """
         tree = eTree.parse(filepath)
         root = tree.getroot()
         md = cls()
@@ -1268,8 +1565,14 @@ class StochMLDocument():
 
     @classmethod
     def from_string(cls, string: str) -> "StochMLDocument":
-        """ Intializes the document from an exisiting native StochKit XML
-        file read from disk. """
+        """
+        Returns a StochML document parsed from the specified string's contents.
+
+        :param string: The string to be parsed.
+
+        :returns: The parsed StochMLDocument.
+        :rtype: StochMLDocument
+        """
         root = eTree.fromString(string)
 
         md = cls()
@@ -1277,7 +1580,15 @@ class StochMLDocument():
         return md
 
     def to_model(self, name: str) -> Model:
-        """ Instantiates a Model object from a StochMLDocument. """
+        """
+        Returns the gillespy2 :class:`Model` representation of the current :class:`StochMLDocument` instance.
+
+        :param name: The name of the newly created :class:`Model` object. If unset, the current :class:`StochMLDocument`
+            instance will be parsed for a name instead.
+
+        :returns: The newly created :class:`Model` object.
+        :rtype: Model
+        """
 
         # Empty model
         model = Model(name=name)
@@ -1454,7 +1765,12 @@ class StochMLDocument():
         return model
 
     def to_string(self) -> str:
-        """ Returns  the document as a string. """
+        """
+        Returns the string representation of the current :class:`StochMLDocument` instance.
+
+        :returns: The string representation of the current StochMLDocument.
+        :rtype: str
+        """
         try:
             doc = eTree.tostring(self.document, pretty_print=True)
             return doc.decode("utf-8")
