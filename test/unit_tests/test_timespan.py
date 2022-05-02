@@ -41,7 +41,7 @@ class TestTimeSpan(unittest.TestCase):
         for test_tspan in test_tspans:
             with self.subTest(tspan=test_tspan, tspan_type=type(test_tspan)):
                 tspan = TimeSpan(test_tspan)
-                self.assertEqual(test_tspan, numpy.array(test_tspan))
+                self.assertEqual(tspan, numpy.array(test_tspan))
 
     def test_constructor__invalid_type(self):
         """ Test the TimeSpan constructor with an invalid data structure type. """
