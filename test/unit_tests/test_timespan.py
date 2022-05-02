@@ -33,7 +33,7 @@ class TestTimeSpan(unittest.TestCase):
 
     def test_constructor__valid_data_structures(self):
         """ Test the TimeSpan constructor with valid data structures. """
-        test_tspans [
+        test_tspans = [
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
             (1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
             range(11)
