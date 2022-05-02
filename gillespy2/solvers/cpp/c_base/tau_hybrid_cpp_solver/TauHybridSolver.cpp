@@ -35,6 +35,8 @@
 static void silent_error_handler(int error_code, const char *module, const char *function_name,
 						  char *message, void *eh_data);
 
+#define INTEGRATION_GUARD_MAX 1000
+
 namespace Gillespy
 {
 	static volatile bool interrupted = false;
@@ -48,8 +50,9 @@ namespace Gillespy
 		void TauHybridCSolver(
 				HybridSimulation *simulation,
 				std::vector<Event> &events,
-				const double tau_tol,
-				Logger &logger)
+				Logger &logger,
+				double tau_tol,
+				SolverConfiguration config)
 		{
 			if (simulation == NULL)
 			{
@@ -77,7 +80,7 @@ namespace Gillespy
 			{
 				y = y0;
 			}
-			Integrator sol(simulation, y, simulation->rtol, simulation->atol);
+			Integrator sol(simulation, y, config.rel_tol, config.abs_tol);
 			if (logger.get_log_level() == LogLevel::CRIT)
 			{
 				sol.set_error_handler(silent_error_handler);
@@ -194,7 +197,7 @@ namespace Gillespy
 
 					// This is a temporary fix. Ideally, invalid state should allow for integrator options change.
 					// For now, a "guard" is put in place to prevent potentially infinite loops from occurring.
-					unsigned int integration_guard = 1000;
+					unsigned int integration_guard = INTEGRATION_GUARD_MAX;
 
 					do
 					{
@@ -335,6 +338,10 @@ namespace Gillespy
 								<< simulation->current_time << std::endl;
 						simulation->set_status(HybridSimulation::LOOP_OVER_INTEGRATE);
 						continue;
+					}
+					else
+					{
+						integration_guard = INTEGRATION_GUARD_MAX;
 					}
 
 					// ===== <EVENT HANDLING> =====

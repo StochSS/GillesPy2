@@ -267,7 +267,6 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         decoder = IterativeSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
 
         sim_exec = self._build(self.model, self.target, self.variable, False)
-        print(args)
         sim_status = self._run(sim_exec, args, decoder, timeout, display_args)
         trajectories, time_stopped = decoder.get_output()
 

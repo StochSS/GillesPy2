@@ -63,9 +63,6 @@ int main(int argc, char* argv[])
 	simulation.number_timesteps = number_timesteps;
 	simulation.number_trajectories = number_trajectories;
 	simulation.output_interval = parser.output_interval;
-	simulation.rtol = parser.rtol;
-	simulation.atol = parser.atol;
-	simulation.max_step = parser.max_step;
 	init_simulation(&model, simulation);
 	Gillespy::TauHybrid::map_species_modes(simulation.species_state);
 	Gillespy::TauHybrid::map_rate_rules(simulation.species_state);
@@ -76,7 +73,14 @@ int main(int argc, char* argv[])
 	if (parser.verbose)
 		logger.set_log_level(LogLevel::INFO);
 
-	TauHybrid::TauHybridCSolver(&simulation, events, tau_tol, logger);
+	// Configure solver options from command-line arguments (or defaults)
+	SolverConfiguration config = {
+		parser.rtol,
+		parser.atol,
+		parser.max_step,
+	};
+
+	TauHybrid::TauHybridCSolver(&simulation, events, logger, tau_tol, config);
 	simulation.output_buffer_final(std::cout);
 	return simulation.get_status();
 }

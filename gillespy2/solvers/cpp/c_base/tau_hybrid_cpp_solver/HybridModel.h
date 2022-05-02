@@ -297,10 +297,6 @@ namespace Gillespy
 			{
 				LOOP_OVER_INTEGRATE = 1,
 			};
-
-			double rtol = 1e-9;
-			double atol = 1e-12;
-			double max_step = 0.25;
 		};
 
 		std::set<int> flag_det_rxns(

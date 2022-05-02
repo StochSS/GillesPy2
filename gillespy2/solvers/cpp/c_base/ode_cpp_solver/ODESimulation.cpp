@@ -74,8 +74,15 @@ int main(int argc, char *argv[]) {
 
 	init_simulation(&model, simulation);
 
+	// Configure solver based on command-line arguments (or defaults)
+	SolverConfiguration config = {
+		parser.rtol,
+		parser.atol,
+		parser.max_step,
+	};
+
 	simulation.reset_output_buffer(0);
-	ODESolver(&simulation, increment);
+	ODESolver(&simulation, increment, config);
 	simulation.output_buffer_final(std::cout);
 
 	return simulation.get_status();
