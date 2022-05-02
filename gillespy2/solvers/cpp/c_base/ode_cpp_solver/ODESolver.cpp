@@ -87,6 +87,12 @@ namespace Gillespy
 		// Initialize the ODE solver and set tolerances.
 		flag = CVodeInit(cvode_mem, f, t0, y0);
 		flag = CVodeSStolerances(cvode_mem, config.rel_tol, config.abs_tol);
+		switch (CVodeSetMaxStep(cvode_mem, config.max_step))
+		{
+			case CV_ILL_INPUT:
+				std::cerr << "Bad step size: " << config.max_step << std::endl;
+				break;
+		}
 
 		// Initialize and select the linear solver module.
 		// SUNSPMR: Iterative Solver (compatible with serial, threaded, parallel, and user suppoed NVector).

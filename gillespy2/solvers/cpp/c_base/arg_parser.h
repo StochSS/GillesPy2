@@ -46,7 +46,7 @@ public:
     double increment = 0.0;
     double switch_tol = 0.0;
     double tau_tol = 0.03;
-    double max_step = 0.25;
+    double max_step = 0.0; // max_step of 0.0 is the default; CVODE interprets this as "infinity," aka "no limit to step size"
     double rtol = 1e-9;
     double atol = 1e-12;
 

@@ -217,6 +217,14 @@ void Integrator::set_error_handler(CVErrHandlerFn error_handler)
 	validate(this, CVodeSetErrHandlerFn(cvode_mem, error_handler, nullptr));
 }
 
+bool Integrator::configure(SolverConfiguration config)
+{
+	return (
+		validate(this, CVodeSStolerances(cvode_mem, config.rel_tol, config.abs_tol))
+		&& validate(this, CVodeSetMaxStep(cvode_mem, config.max_step))
+	);
+}
+
 URNGenerator::URNGenerator(unsigned long long seed)
 	: uniform(0, 1),
 	  rng(seed)

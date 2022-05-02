@@ -86,6 +86,16 @@ namespace Gillespy
 				sol.set_error_handler(silent_error_handler);
 			}
 
+			// Configure user-specified solver tolerances.
+			if (!sol.configure(config))
+			{
+				logger.warn() << "Received invalid tolerances: {"
+					<< "rtol = " << config.rel_tol
+					<< ", atol = " << config.abs_tol
+					<< ", max_step = " << config.max_step
+					<< "}" << std::endl;
+			}
+
 			// Tau selector initialization. Used to select a valid tau step.
 			TauArgs<double> tau_args = initialize(model, tau_tol);
 
