@@ -31,23 +31,17 @@ class TestTimeSpan(unittest.TestCase):
         tspan = TimeSpan(test_tspan)
         self.assertEqual(tspan, test_tspan)
 
-    def test_constructor__list(self):
-        """ Test the TimeSpan constructor with list data structure. """
-        test_tspan = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        tspan = TimeSpan(test_tspan)
-        self.assertEqual(tspan, numpy.array(test_tspan))
-
-    def test_constructor__tuple(self):
-        """ Test the TimeSpan constructor with tuple data structure. """
-        test_tspan = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-        tspan = TimeSpan(test_tspan)
-        self.assertEqual(tspan, numpy.array(test_tspan))
-
-    def test_constructor__range(self):
-        """ Test the TimeSpan constructor with range data structure. """
-        test_tspan = range(11)
-        tspan = TimeSpan(test_tspan)
-        self.assertEqual(tspan, numpy.array(test_tspan))
+    def test_constructor__valid_data_structures(self):
+        """ Test the TimeSpan constructor with valid data structures. """
+        test_tspans = [
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            (1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+            range(11)
+        ]
+        for test_tspan in test_tspans:
+            with self.subTest(tspan=test_tspan, tspan_type=type(test_tspan)):
+                tspan = TimeSpan(test_tspan)
+                self.assertEqual(tspan, numpy.array(test_tspan))
 
     def test_constructor__invalid_type(self):
         """ Test the TimeSpan constructor with an invalid data structure type. """
@@ -99,7 +93,7 @@ class TestTimeSpan(unittest.TestCase):
     def test_linspace__invalid_t_type(self):
         """ Test TimeSpan.linspace with invalid t type. """
         with self.assertRaises(TimespanError):
-            tspan = TimeSpan.linspace(t=20.5, num_points=401)
+            tspan = TimeSpan.linspace(t=[20.5], num_points=401)
 
     def test_linspace__invalid_num_points_type(self):
         """ Test TimeSpan.linspace with invalid num_points type. """
@@ -140,7 +134,7 @@ class TestTimeSpan(unittest.TestCase):
     def test_arange__invalid_t_type(self):
         """ Test TimeSpan.arange with invalid t type. """
         with self.assertRaises(TimespanError):
-            tspan = TimeSpan.arange(0.05, t=20.5)
+            tspan = TimeSpan.arange(0.05, t=[20.5])
 
     def test_arange__invalid_increment(self):
         """ Test TimeSpan.arange with invalid increment type. """
