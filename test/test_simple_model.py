@@ -134,7 +134,6 @@ class TestSimpleModel(unittest.TestCase):
         p_name = 'fake'
         with self.assertRaises(ModelError) as ex:
             parameter = self.model.get_parameter(p_name)
-        self.assertEqual(str(ex.exception), "No parameter named " + p_name)
 
     def test_set_parameter(self):
         self.model.set_parameter('k1', '100')

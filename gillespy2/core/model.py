@@ -40,6 +40,7 @@ from gillespy2.core.jsonify import Jsonify, TranslationTable
 from gillespy2.core.results import Trajectory, Results
 from gillespy2.core.gillespySolver import GillesPySolver
 from gillespy2.core.gillespyError import (
+    SpeciesError,
     ParameterError,
     ModelError,
     SimulationError,
@@ -72,8 +73,8 @@ Component = Union[
 
 
 def import_SBML(
-    filename: str, 
-    name: str = None, 
+    filename: str,
+    name: str = None,
     gillespy_model: "Model" = None
 ) -> Tuple["Model", List[str]]:
     """
@@ -123,8 +124,8 @@ def export_SBML(gillespy_model: "Model", filename: str = None) -> str:
 
 
 def export_StochSS(
-    gillespy_model: "Model", 
-    filename: str = None, 
+    gillespy_model: "Model",
+    filename: str = None,
     return_stochss_model: bool = False
 ) -> Union[str, Dict]:
     """
@@ -133,11 +134,11 @@ def export_StochSS(
     :param gillespy2_model: The gillespy2 :class:`Model` to be converted to a StochSS-compatible model.
     :param filename: The path on disk of the exported StochSS model.
 
-    :returns: If :code:`return_stochss_model = True` then this function will return a StochSS model dictionary. 
+    :returns: If :code:`return_stochss_model = True` then this function will return a StochSS model dictionary.
         If :code:`False` then the path of the StochSS model file is returned instead.
     :rtype: Union[str, Dict]
 
-    :raises ImportError: If :class:`gillespy2.stochss.StochSSExport` could not be imported. 
+    :raises ImportError: If :class:`gillespy2.stochss.StochSSExport` could not be imported.
     """
     try:
         from gillespy2.stochss.StochSSexport import export
@@ -153,7 +154,7 @@ class Model(SortableObject, Jsonify):
     parameters, species.
 
     :param name: The name of the model or an annotation which describes it.
-    
+
     :param population: The type of model being described. A discrete stochastic model is a population model
         (:code:`population = True`), a deterministic model is a concentration model (:code:`population = False`). A
         population model can be automatically converted to a concentration model by setting the :code:`volume` parameter.
@@ -164,7 +165,7 @@ class Model(SortableObject, Jsonify):
 
     :param tspan: The timepoint at which the model should be simulated. If :code:`None` then a default timespan is
         selected. This model property can also be set with :meth:`timespan`.
-    
+
     :param annotation: An optional description of the model.
 
     :raises ModelError: If :code:`population = False` and :code:`volume != 1.0`. This occurs because a concentration
@@ -181,11 +182,11 @@ class Model(SortableObject, Jsonify):
     special_characters = ['[', ']', '+', '-', '*', '/', '.', '^']
 
     def __init__(
-        self, 
-        name: str = "", 
-        population: bool = True, 
-        volume: float = 1.0, 
-        tspan: Union[TimeSpan, Iterable[int]] = None, 
+        self,
+        name: str = "",
+        population: bool = True,
+        volume: float = 1.0,
+        tspan: Union[TimeSpan, Iterable[int]] = None,
         annotation: str = "model"
     ):
         """ Create an empty model. """
@@ -284,6 +285,76 @@ class Model(SortableObject, Jsonify):
 
         return print_string
 
+    def problem_with_name(self, name: str) -> None:
+        """
+        Validation function which ensures that :code:`name`:
+
+        1. Does not collide with reserved gillespy2 keywords.
+        2. Is not already in use by another object in this :class:`Model` instance.
+        3. Does not contain any reserved characters.
+
+        This function will raise an exception if :code:`name` is invalidated by any of the previous cases.
+
+        A list of reserved names can be accessed via the :const:`Model.reserved_names` property (e.g
+        :code:`print(Model.reserved_names)`).
+
+        A list of reserved characters can be accessed via the :const:`Model.special_characters` property (e.g
+        :code:`print(Model.special_characters)`).
+
+        :param name: The name to validate against the reserved keywords list and other already set identifiers.
+
+        :raises ModelError: If :code:`name` is reserved for internal gillespy2 use.
+
+        :raises ModelError: If :code:`name` is already in use by any one of the following types:
+
+            - :class:`gillespy2.core.species.Species`
+            - :class:`gillespy2.core.parameter.Parameter`
+            - :class:`gillespy2.core.reaction.Reaction`
+            - :class:`gillespy2.core.events.Event`
+            - :class:`gillespy2.core.raterule.RateRule`
+            - :class:`gillespy2.core.assignmentrule.AssignmentRule`
+            - :class:`gillespy2.core.functiondefinition.FunctionDefinition`
+
+        :raises ModelError: If :code:`name` is a numeric string -- e.g :code:`name.isdigit() == True`.
+
+        :raises ModelError: If :code:`name` contains one or more reserved special characters.
+        """
+        if name in Model.reserved_names:
+            raise ModelError(
+                'Name "{}" is unavailable. It is reserved for internal GillesPy use. Reserved Names: ({}).'.format(name,
+                                                                                                                   Model.reserved_names))
+        if name in self.listOfSpecies:
+            raise ModelError('Name "{}" is unavailable. A species with that name exists.'.format(name))
+        if name in self.listOfParameters:
+            raise ModelError('Name "{}" is unavailable. A parameter with that name exists.'.format(name))
+        if name in self.listOfReactions:
+            raise ModelError('Name "{}" is unavailable. A reaction with that name exists.'.format(name))
+        if name in self.listOfEvents:
+            raise ModelError('Name "{}" is unavailable. An event with that name exists.'.format(name))
+        if name in self.listOfRateRules:
+            raise ModelError('Name "{}" is unavailable. A rate rule with that name exists.'.format(name))
+        if name in self.listOfAssignmentRules:
+            raise ModelError('Name "{}" is unavailable. An assignment rule with that name exists.'.format(name))
+        if name in self.listOfFunctionDefinitions:
+            raise ModelError('Name "{}" is unavailable. A function definition with that name exists.'.format(name))
+        if name.isdigit():
+            raise ModelError('Name "{}" is unavailable. Names must not be numeric strings.'.format(name))
+        for special_character in Model.special_characters:
+            if special_character in name:
+                raise ModelError(
+                    'Name "{}" is unavailable. Names must not contain special characters: {}.'.format(name,
+                                                                                                      Model.special_characters))
+    def update_namespace(self) -> None:
+        """
+        Creates the internal :code:`namespace` property by flattening :code:`self.listOfParameters` into a dictionary
+        of :code:`(parameter, parameter.value)` pairs.
+
+        This function mutates the interior state of this :class:`Model` object.
+        """
+        self.namespace = OrderedDict([])
+        for param in self.listOfParameters:
+            self.namespace[param] = self.listOfParameters[param].value
+
     def add(self, components: Union[Component, List[Component]]) -> Union[Component, List[Component]]:
         """
         Adds one or more components to the :class:`Model`.
@@ -308,7 +379,6 @@ class Model(SortableObject, Jsonify):
 
         :raises ModelError: If :code:`components` contains an element of incorrect type.
         """
-
         if isinstance(components, list):
             p_types = (Species, Parameter, FunctionDefinition, TimeSpan)
             p_names = (p_type.__name__ for p_type in p_types)
@@ -342,6 +412,393 @@ class Model(SortableObject, Jsonify):
             raise ModelError(f"Unsupported component: {type(components)} is not a valid component.")
         return components
 
+    def add_species(self, species: Union[Species, List[Species]]) -> Union[Species, List[Species]]:
+        """
+        Adds one or more :class:`~gillespy2.core.species.Species` objects to this :class:`Model` instance.
+
+        :param species: The species or list of species objects to be added to this model.
+
+        :returns: One or more species objects that were successfully added to this :class:`Model`.
+        :rtype: Union[Species, List[Species]]
+
+        :raises ModelError: If :meth:`Model.problem_with_name` invalidates the name of one or more species objects.
+        :raises ModelError: If :code:`species` contains an element of incorrect type or if :meth:`Species.validate` fails.
+        :raises ModelError: If some other error occurs while adding the species object(s).
+        """
+        if isinstance(species, list):
+            for spec in sorted(species):
+                self.add_species(spec)
+        elif isinstance(species, Species) or type(species).__name__ == "Species":
+            try:
+                species.validate()
+                self.problem_with_name(species.name)
+                self.listOfSpecies[species.name] = species
+                self._listOfSpecies[species.name] = f'S{len(self._listOfSpecies)}'
+            except SpeciesError as err:
+                errmsg = f"Could not add species: {species.name}, Reason given: {err}"
+                raise ModelError(errmsg) from err
+        else:
+            errmsg = f"species must be of type Species or list of Species not {type(species)}"
+            raise ModelError(errmsg)
+        return species
+
+    def delete_species(self, name: str) -> None:
+        """
+        Removes a :class:`~gillespy2.core.species.Species` object from this :class:`Model` instance by name.
+
+        :param name: The name of the species object to remove.
+        :raises KeyError: If a species with name :code:`name` does not exist.
+        """
+        self.listOfSpecies.pop(name)
+        if name in self._listOfSpecies:
+            self._listOfSpecies.pop(name)
+
+    def delete_all_species(self) -> None:
+        """
+        Removes all :class:`~gillespy2.core.species.Species` objects attached to this :class:`Model` instance.
+        """
+        self.listOfSpecies.clear()
+        self._listOfSpecies.clear()
+
+    def get_species(self, name: str) -> Species:
+        """
+        Returns a :class:`~gillespy2.core.species.Species` object by name.
+
+        :param name: The name of the species object to return.
+
+        :returns: The species object.
+        :rtype: Species
+
+        :raises KeyError: If a species with name :code:`name` does not exist.
+        """
+        if name not in self.listOfSpecies:
+            raise ModelError(f"Species {name} could not be found in the model.")
+        return self.listOfSpecies[name]
+
+    def get_all_species(self) -> Dict[str, Species]:
+        """
+        Returns all :class:`~gillespy2.core.species.Species` objects attached to this :class:`Model` instance.
+
+        :returns: A dictionary of species of the form :code:`{ name: Species }`
+        :rtype: Dict[str, Species]
+        """
+        return self.listOfSpecies
+
+    def sanitized_species_names(self) -> Dict[str, str]:
+        """
+        Generates a dictionary which maps user-defined :class:`~gillespy2.core.species.Species` names to the simplified
+        formats used by solvers when evaluating :class:`~gillespy2.core.reaction.Reaction` propensity functions.
+
+        :returns: A dictionary which maps user-defined :class:`~gillespy2.core.species.Species` names to their internal
+            gillespy2 notation.
+
+        :rtype: Dict[str, str]
+        """
+        species_name_mapping = OrderedDict([])
+        for i, name in enumerate(self.listOfSpecies.keys()):
+            species_name_mapping[name] = 'S[{}]'.format(i)
+        return species_name_mapping
+
+    def add_parameter(self, parameters: Union[Parameter, List[Parameter]]) -> Union[Parameter, List[Parameter]]:
+        """
+        Adds one or more :class:`~gillespy2.core.parameter.Parameter` objects to this :class:`Model` instance.
+
+        :param parameters: The parameter or list of parameter objects to be added to the model object.
+
+        :raises ModelError: If :meth:`Model.problem_with_name` invalidates the name of one or more
+            :class:`~gillespy2.core.parameter.Parameter` objects.
+
+        :raises ParameterError: If one or more elements within :code:`parameters` are not of type
+            :class:`~gillespy2.core.parameter.Parameter`.
+        """
+        if isinstance(parameters, list):
+            for param in sorted(parameters):
+                self.add_parameter(param)
+        elif isinstance(parameters, Parameter) or type(parameters).__name__ == 'Parameter':
+            self.problem_with_name(parameters.name)
+            self.resolve_parameter(parameters)
+            self.listOfParameters[parameters.name] = parameters
+            self._listOfParameters[parameters.name] = f'P{len(self._listOfParameters)}'
+        else:
+            errmsg = f"parameters must be of type Parameter or list of Parameter not {type(parameters)}"
+            raise ModelError(errmsg)
+        return parameters
+
+    def delete_parameter(self, name: str) -> None:
+        """
+        Removes a :class:`~gillespy2.core.parameter.Parameter` object from this :class:`Model` by name.
+
+        :param name: The name of the parameter object to remove.
+
+        :raises KeyError: If a parameter with name :code:`name` does not exist.
+        """
+        self.listOfParameters.pop(name)
+        if name in self._listOfParameters:
+            self._listOfParameters.pop(name)
+
+    def delete_all_parameters(self) -> None:
+        """
+        Removes all :class:`~gillespy2.core.parameter.Parameter` objects attached to this :class:`Model` instance.
+        """
+        self.listOfParameters.clear()
+        self._listOfParameters.clear()
+
+    def get_parameter(self, name: str) -> Parameter:
+        """
+        Returns a :class:`~gillespy2.core.parameter.Parameter` object by name.
+
+        :param name: The name of the parameter object to return.
+
+        :returns: The parameter object.
+        :rtype: Parameter
+
+        :raises ModelError: If a parameter with name :code:`name` does not exist.
+        """
+        if name not in self.listOfParameters:
+            raise ModelError(f"Parameter {name} could not be found in the model.")
+        return self.listOfParameters[name]
+
+    def get_all_parameters(self) -> Dict[str, Parameter]:
+        """
+        Returns all :class:`~gillespy2.core.parameter.Parameter` objects attached to this :class:`Model` instance.
+
+        :returns: A dictionary of species of the form :code:`{ name: Parameter }`
+        :rtype: Dict[str, Species]
+        """
+        return self.listOfParameters
+
+    def resolve_parameter(self, parameter: Parameter) -> None:
+        """
+        This function is for internal use.
+
+        Attempt to resolve the given :class:`~gillespy2.core.parameter.Parameter` expressions to scalar floats.
+        This method must be called **prior** to exporting this :class:`Model` instance.
+
+        :param parameter: The target parameter to resolve.
+
+        :raises ModelError: If the :code:`parameter` can't be resolved.
+        """
+        try:
+            parameter.validate()
+            self.update_namespace()
+            parameter._evaluate(self.namespace)
+        except ParameterError as err:
+            raise ModelError(f"Could not add/resolve parameter: {parameter.name}, Reason given: {err}") from err
+
+    def resolve_all_parameters(self) -> None:
+        """
+        This function is for internal use.
+
+        Attempt to resolve all :class:`~gillespy2.core.parameter.Parameter` expressions to scalar floats. This method
+        must be called **prior** to exporting this :class:`Model` instance.
+        """
+        for _, parameter in self.listOfParameters.items():
+            self.resolve_parameter(parameter)
+
+    def sanitized_parameter_names(self) -> Dict[str, str]:
+        """
+        Generates a dictionary which maps user-defined :class:`~gillespy2.core.parameter.Parameter` names to the
+        simplified formats used by solvers when evaluating :class:`~gillespy2.core.reaction.Reaction` propensity
+        functions.
+
+        :returns: A dictionary which maps user-defined :class:`~gillespy2.core.parameter.Parameter` names to their
+            internal gillespy2 notation.
+
+        :rtype: Dict[str, str]
+        """
+        parameter_name_mapping = OrderedDict()
+        parameter_name_mapping['vol'] = 'V'
+        for i, name in enumerate(self.listOfParameters.keys()):
+            if name not in parameter_name_mapping:
+                parameter_name_mapping[name] = 'P{}'.format(i)
+        return parameter_name_mapping
+
+    def set_parameter(self, p_name: str, expression: str) -> None:
+        """
+        Sets the expression of a :class:`~gillespy2.core.parameter.Parameter` on this :class:`Model` instance (Deprecated).
+
+        :param p_name: The name of the parameter whose :code:`expression` property will be set.
+
+        :param expression: The expression to be applied, written as a string evaluatable by a solver during a
+            simulation. reference other parameters by name -- e.g :code:`"k1 * 4`.
+        """
+        from gillespy2.core import log
+        log.warning(
+            """
+            Model.set_parameter has been deprecated.  Future releases of GillesPy2 may
+            not support this feature.  Parameter.expression should only be set in the constructor.
+            """
+        )
+
+        parameter = self.listOfParameters[p_name]
+        parameter.expression = expression
+        self.resolve_parameter(parameter)
+
+    def add_reaction(self, reactions: Union[Reaction, List[Reaction]]) -> Union[Reaction, List[Reaction]]:
+        """
+        Adds one or more :class:`~gillespy2.core.reaction.Reaction` objects to this :class:`Model` instance.
+
+        :param reactions: The reaction or list of reaction objects to be added to the model object.
+
+        :raises ModelError: If :meth:`~gillespy2.core.Model.problem_with_name` invalidates the name of one or more
+            :class:`~gillespy2.core.reaction Reaction` objects.
+
+        :raises ModelError: If :meth:`~gillespy2.core.Model.validate_reactants_and_products` invalidates the reactants
+            and/or products on a :class:`~gillespy2.core.reaction.Reaction` object.
+
+        :raises ModelError: If :code:`reactions` contains multiple :class:`~gillespy2.core.reaction.Reaction` objects with the same name.
+
+        :raises ReactionError: If :meth:`gillespy2.core.reaction.Reaction.verify` invalidates the
+            :class:`~gillespy2.core.reaction.Reaction` object.
+
+        :raises ParameterError: If some other error occurs while adding the :class:`~gillespy2.core.reaction.Reaction` object.
+        """
+        if isinstance(reactions, list):
+            for reaction in sorted(reactions):
+                self.add_reaction(reaction)
+        elif isinstance(reactions, Reaction) or type(reactions).__name__ == "Reaction":
+            self.problem_with_name(reactions.name)
+            self.resolve_reaction(reactions)
+            self.listOfReactions[reactions.name] = reactions
+            # Build Sanitized reaction as well
+            sanitized_reaction = reactions._create_sanitized_reaction(
+                len(self.listOfReactions), self._listOfSpecies, self._listOfParameters
+            )
+            self._listOfReactions[reactions.name] = sanitized_reaction
+        else:
+            errmsg = f"reactions must be of type Reaction or list of Reaction not {type(reactions)}"
+            raise ModelError(errmsg)
+        return reactions
+
+    def delete_reaction(self, name: str) -> None:
+        """
+        Removes a :class:`~gillespy2.core.reaction.Reaction` object from this :class:`Model` by name.
+
+        :param name: The name of the reaction to remove.
+        :raises KeyError: If a reaction with name :code:`name` does not exist.
+        """
+        self.listOfReactions.pop(name)
+        if name in self._listOfReactions:
+            self._listOfReactions.pop(name)
+
+    def delete_all_reactions(self) -> None:
+        """
+        Removes all :class:`~gillespy2.core.reaction.Reaction` objects attached to this :class:`Model` instance.
+        """
+        self.listOfReactions.clear()
+        self._listOfReactions.clear()
+
+    def get_reaction(self, name: str) -> Reaction:
+        """
+        Returns a :class:`~gillespy2.core.reaction.Reaction` on this :class:`Model` by name.
+
+        :param name: The name of the reaction to return.
+
+        :returns: The reaction with name :class:`name`.
+        :rtype: Reaction
+
+        :raises KeyError: If a :class:`~gillespy2.core.reaction.Reaction` with name :code:`name` does not exist on
+            this :class:`Model`.
+        """
+        if name not in self.listOfReactions:
+            raise ModelError(f"Reaction {name} could not be found in the model.")
+        return self.listOfReactions[name]
+
+    def get_all_reactions(self) -> Dict[str, Reaction]:
+        """
+        Returns all :class:`~gillespy2.core.reaction.Reaction` objects attached to this :class:`Model` instance.
+
+        :returns: A dictionary of reactions of the form :code:`{ name: Reaction }`.
+        :rtype: Dict[str, Reaction]
+        """
+        return self.listOfReactions
+
+    def resolve_reaction(self, reaction: Reaction) -> None:
+        """
+        This function is for internal use.
+
+        Validates the given :class:`~gillespy2.core.reaction.Reaction` object against this :class:`Model` instance's
+        internal state.
+
+        More specifically, this function ensures that reactants and products on a
+        :class:`~gillespy2.core.reaction.Reaction` object reference :class:`~gillesp2.core.species.Species` that exist
+        within :attr:`Model.listOfSpecies`.
+
+        :param reaction: The reaction to validate.
+
+        :raises ModelError: If a reactant in :code:`reaction` references a species in :attr:`Model.listOfSpecies` that
+            does not exist.
+
+        :raises ModelError: If a product in :code:`reaction` references a species in :attr:`Model.listOfSpecies` that
+            does not exist.
+        """
+        try:
+            reaction.validate()
+
+            # If the rate parameter exists in the reaction, confirm that it is a part of the model
+            if reaction.marate is not None:
+                name = reaction.marate if isinstance(reaction.marate, str) else reaction.marate.name
+                reaction.marate = self.get_parameter(name)
+
+            # Confirm that all species in reactants are part of the model
+            for species in list(reaction.reactants.keys()):
+                stoichiometry = reaction.reactants[species]
+                name = species if isinstance(species, str) else species.name
+                stoich_spec = self.get_species(name)
+                if stoich_spec not in reaction.reactants:
+                    reaction.reactants[stoich_spec] = stoichiometry
+                    del reaction.reactants[species]
+
+            # Confirm that all species in products are part of the model
+            for species in list(reaction.products.keys()):
+                stoichiometry = reaction.products[species]
+                name = species if isinstance(species, str) else species.name
+                stoich_spec = self.get_species(name)
+                if stoich_spec not in reaction.products:
+                    reaction.products[stoich_spec] = stoichiometry
+                    del reaction.products[species]
+        except ModelError as err:
+            raise ModelError(f"Could not add/resolve reaction: {reaction.name}, Reason given: {err}") from err
+
+    def resolve_all_reactions(self) -> None:
+        """
+        This function is for internal use.
+
+        Ensure that the rate and all reactants and products are present in the model
+        for all reactions.  This methods must be called before exporting the model.
+        """
+        for _, reaction in self.listOfReactions.items():
+            self.resolve_reaction(reaction)
+
+    def validate_reactants_and_products(self, reactions: List[Reaction]) -> None:
+        """
+        This function is for internal use (Deprecated).
+
+        Validates the given :class:`~gillespy2.core.reaction.Reaction` object against this :class:`Model` instance's
+        internal state.
+
+        More specifically, this function ensures that reactants and products on a
+        :class:`~gillespy2.core.reaction.Reaction` object reference :class:`~gillesp2.core.species.Species` that exist
+        within :attr:`Model.listOfSpecies`.
+
+        :param reactions: The reactions to validate.
+
+        :raises ModelError: If a reactant in :code:`reactions` references a species in :attr:`Model.listOfSpecies` that
+            does not exist.
+
+        :raises ModelError: If a product in :code:`reactions` references a species in :attr:`Model.listOfSpecies` that
+            does not exist.
+        """
+        from gillespy2.core import log
+        log.warning(
+            """
+            Model.validate_reactants_and_products has been deprecated. Future releases of
+            GillesPy2 may not support this feature.  Use Model.resolve_reaction instead.
+            """
+        )
+
+        self.resolve_reaction(reactions)
+
     def make_translation_table(self) -> TranslationTable:
         from collections import ChainMap
 
@@ -370,168 +827,15 @@ class Model(SortableObject, Jsonify):
         return TranslationTable(to_anon=translation_table)
 
     def serialize(self) -> str:
-        """ 
+        """
         Converts the current :class:`Model` object to StochML.
 
         :returns: The contents of the newly created StochML document.
         :rtype: str
         """
-        self.resolve_parameters()
+        self.resolve_all_parameters()
         doc = StochMLDocument().from_model(self)
         return doc.to_string()
-
-    def update_namespace(self) -> None:
-        """
-        Creates the internal :code:`namespace` property by flattening :code:`self.listOfParameters` into a dictionary
-        of :code:`(parameter, parameter.value)` pairs.
-
-        This function mutates the interior state of this :class:`Model` object.
-        """
-        self.namespace = OrderedDict([])
-        for param in self.listOfParameters:
-            self.namespace[param] = self.listOfParameters[param].value
-
-    def sanitized_species_names(self) -> Dict[str, str]:
-        """
-        Generates a dictionary which maps user-defined :class:`~gillespy2.core.species.Species` names to the simplified
-        formats used by solvers when evaluating :class:`~gillespy2.core.reaction.Reaction` propensity functions.
-
-        :returns: A dictionary which maps user-defined :class:`~gillespy2.core.species.Species` names to their internal
-            gillespy2 notation.
-
-        :rtype: Dict[str, str]
-        """
-        species_name_mapping = OrderedDict([])
-        for i, name in enumerate(self.listOfSpecies.keys()):
-            species_name_mapping[name] = 'S[{}]'.format(i)
-        return species_name_mapping
-
-    def problem_with_name(self, name: str) -> None:
-        """
-        Validation function which ensures that :code:`name`:
-
-        1. Does not collide with reserved gillespy2 keywords.
-        2. Is not already in use by another object in this :class:`Model` instance.
-        3. Does not contain any reserved characters.
-
-        This function will raise an exception if :code:`name` is invalidated by any of the previous cases.
-
-        A list of reserved names can be accessed via the :const:`Model.reserved_names` property (e.g
-        :code:`print(Model.reserved_names)`).
-
-        A list of reserved characters can be accessed via the :const:`Model.special_characters` property (e.g
-        :code:`print(Model.special_characters)`).
-
-        :param name: The name to validate against the reserved keywords list and other already set identifiers.
-        
-        :raises ModelError: If :code:`name` is reserved for internal gillespy2 use.
-
-        :raises ModelError: If :code:`name` is already in use by any one of the following types:
-
-            - :class:`gillespy2.core.species.Species`
-            - :class:`gillespy2.core.parameter.Parameter`
-            - :class:`gillespy2.core.reaction.Reaction`
-            - :class:`gillespy2.core.events.Event`
-            - :class:`gillespy2.core.raterule.RateRule`
-            - :class:`gillespy2.core.assignmentrule.AssignmentRule`
-            - :class:`gillespy2.core.functiondefinition.FunctionDefinition`
-
-        :raises ModelError: If :code:`name` is a numeric string -- e.g :code:`name.isdigit() == True`.
-
-        :raises ModelError: If :code:`name` contains one or more reserved special characters.
-        """
-
-        if name in Model.reserved_names:
-            raise ModelError(
-                'Name "{}" is unavailable. It is reserved for internal GillesPy use. Reserved Names: ({}).'.format(name,
-                                                                                                                   Model.reserved_names))
-        if name in self.listOfSpecies:
-            raise ModelError('Name "{}" is unavailable. A species with that name exists.'.format(name))
-        if name in self.listOfParameters:
-            raise ModelError('Name "{}" is unavailable. A parameter with that name exists.'.format(name))
-        if name in self.listOfReactions:
-            raise ModelError('Name "{}" is unavailable. A reaction with that name exists.'.format(name))
-        if name in self.listOfEvents:
-            raise ModelError('Name "{}" is unavailable. An event with that name exists.'.format(name))
-        if name in self.listOfRateRules:
-            raise ModelError('Name "{}" is unavailable. A rate rule with that name exists.'.format(name))
-        if name in self.listOfAssignmentRules:
-            raise ModelError('Name "{}" is unavailable. An assignment rule with that name exists.'.format(name))
-        if name in self.listOfFunctionDefinitions:
-            raise ModelError('Name "{}" is unavailable. A function definition with that name exists.'.format(name))
-        if name.isdigit():
-            raise ModelError('Name "{}" is unavailable. Names must not be numeric strings.'.format(name))
-        for special_character in Model.special_characters:
-            if special_character in name:
-                raise ModelError(
-                    'Name "{}" is unavailable. Names must not contain special characters: {}.'.format(name,
-                                                                                                      Model.special_characters))
-
-    def get_species(self, s_name: str) -> Species:
-        """
-        Returns a :class:`~gillespy2.core.species.Species` object by name.
-
-        :param s_name: The name of the species object to return.
-
-        :returns: The species object.
-        :rtype: Species
-
-        :raises KeyError: If a species with name :code:`s_name` does not exist.
-        """
-
-        return self.listOfSpecies[s_name]
-
-    def get_all_species(self) -> Dict[str, Species]:
-        """
-        Returns all :class:`~gillespy2.core.species.Species` objects attached to this :class:`Model` instance.
-
-        :returns: A dictionary of species of the form :code:`{ name: Species }`
-        :rtype: Dict[str, Species]
-        """
-        return self.listOfSpecies
-
-    def add_species(self, obj: Union[Species, List[Species]]) -> Union[Species, List[Species]]:
-        """
-        Adds one or more :class:`~gillespy2.core.species.Species` objects to this :class:`Model` instance.
-
-        :param obj: The species or list of species objects to be added to this model.
-
-        :returns: One or more species objects that were successfully added to this :class:`Model`. 
-        :rtype: Union[Species, List[Species]]
-
-        :raises ModelError: If :meth:`Model.problem_with_name` invalidates the name of one or more species objects.
-        :raises ParameterError: If some other error occurs while adding the species object(s).
-        """
-
-        if isinstance(obj, list):
-            for S in sorted(obj):
-                self.add_species(S)
-        else:
-            try:
-                self.problem_with_name(obj.name)
-                self.listOfSpecies[obj.name] = obj
-                self._listOfSpecies[obj.name] = 'S{}'.format(len(self._listOfSpecies))
-            except Exception as e:
-                raise ParameterError("Error using {} as a Species. Reason given: {}".format(obj, e))
-        return obj
-
-    def delete_species(self, name: str) -> None:
-        """
-        Removes a :class:`~gillespy2.core.species.Species` object from this :class:`Model` instance by name.
-
-        :param name: The name of the species object to remove.
-        :raises KeyError: If a species with name :code:`name` does not exist.
-        """
-        self.listOfSpecies.pop(name)
-        if name in self._listOfSpecies:
-            self._listOfSpecies.pop(name)
-
-    def delete_all_species(self) -> None:
-        """
-        Removes all :class:`~gillespy2.core.species.Species` objects attached to this :class:`Model` instance.
-        """
-        self.listOfSpecies.clear()
-        self._listOfSpecies.clear()
 
     def set_units(self, units: str) -> None:
         """
@@ -545,207 +849,6 @@ class Model(SortableObject, Jsonify):
             self.units = units.lower()
         else:
             raise ModelError("units must be either concentration or population (case insensitive)")
-
-    def sanitized_parameter_names(self) -> Dict[str, str]:
-        """
-        Generates a dictionary which maps user-defined :class:`~gillespy2.core.parameter.Parameter` names to the
-        simplified formats used by solvers when evaluating :class:`~gillespy2.core.reaction.Reaction` propensity
-        functions.
-
-        :returns: A dictionary which maps user-defined :class:`~gillespy2.core.parameter.Parameter` names to their
-            internal gillespy2 notation.
-
-        :rtype: Dict[str, str]
-        """
-        parameter_name_mapping = OrderedDict()
-        parameter_name_mapping['vol'] = 'V'
-        for i, name in enumerate(self.listOfParameters.keys()):
-            if name not in parameter_name_mapping:
-                parameter_name_mapping[name] = 'P{}'.format(i)
-        return parameter_name_mapping
-
-    def get_parameter(self, p_name: str) -> Parameter:
-        """        
-        Returns a :class:`~gillespy2.core.parameter.Parameter` object by name.
-
-        :param p_name: The name of the parameter object to return.
-
-        :returns: The parameter object.
-        :rtype: Parameter
-
-        :raises ModelError: If a parameter with name :code:`p_name` does not exist.
-        """
-        try:
-            return self.listOfParameters[p_name]
-        except:
-            raise ModelError("No parameter named " + p_name)
-
-    def get_all_parameters(self) -> Dict[str, Parameter]:
-        """
-        Returns all :class:`~gillespy2.core.parameter.Parameter` objects attached to this :class:`Model` instance.
-
-        :returns: A dictionary of species of the form :code:`{ name: Parameter }`
-        :rtype: Dict[str, Species]
-        """
-        return self.listOfParameters
-
-    def add_parameter(self, params: Union[Parameter, List[Parameter]]) -> Union[Parameter, List[Parameter]]:
-        """
-        Adds one or more :class:`~gillespy2.core.parameter.Parameter` objects to this :class:`Model` instance.
-
-        :param params: The parameter or list of parameter objects to be added to the model object.
-
-        :raises ModelError: If :meth:`Model.problem_with_name` invalidates the name of one or more 
-            :class:`~gillespy2.core.parameter.Parameter` objects.
-
-        :raises ParameterError: If one or more elements within :code:`params` are not of type
-            :class:`~gillespy2.core.parameter.Parameter`.
-        """
-        if isinstance(params, list):
-            for p in sorted(params):
-                self.add_parameter(p)
-        else:
-            if isinstance(params, Parameter) or type(params).__name__ == 'Parameter':
-                self.problem_with_name(params.name)
-                self.update_namespace()
-                params._evaluate(self.namespace)
-                self.listOfParameters[params.name] = params
-                self._listOfParameters[params.name] = 'P{}'.format(len(self._listOfParameters))
-            else:
-                raise ParameterError("Parameter {}  must be of type {}, it is of type {}".format(params, str(type(Parameter)), str(params) ))
-        return params
-
-    def delete_parameter(self, name: str) -> None:
-        """
-        Removes a :class:`~gillespy2.core.parameter.Parameter` object from this :class:`Model` by name.
-
-        :param name: The name of the parameter object to remove.
-
-        :raises KeyError: If a parameter with name :code:`name` does not exist.
-        """
-        self.listOfParameters.pop(name)
-        if name in self._listOfParameters:
-            self._listOfParameters.pop(name)
-
-    def set_parameter(self, p_name: str, expression: str) -> None:
-        """
-        Sets the expression of a :class:`~gillespy2.core.parameter.Parameter` on this :class:`Model` instance.
-
-        :param p_name: The name of the parameter whose :code:`expression` property will be set. 
-
-        :param expression: The expression to be applied, written as a string evaluatable by a solver during a
-            simulation. reference other parameters by name -- e.g :code:`"k1 * 4`.
-        """
-
-        p = self.listOfParameters[p_name]
-        p.expression = expression
-        p._evaluate()
-
-    def resolve_parameters(self) -> None:
-        """ 
-        This function is for internal use.
-
-        Attempt to resolve all :class:`~gillespy2.core.parameter.Parameter` expressions to scalar floats. This method
-        must be called **prior** to exporting this :class:`Model` instance.
-        """
-        self.update_namespace()
-        for param in self.listOfParameters:
-            self.listOfParameters[param]._evaluate(self.namespace)
-
-    def delete_all_parameters(self) -> None:
-        """ 
-        Removes all :class:`~gillespy2.core.parameter.Parameter` objects attached to this :class:`Model` instance.
-        """
-        self.listOfParameters.clear()
-        self._listOfParameters.clear()
-
-    def validate_reactants_and_products(self, reactions: List[Reaction]) -> None:
-        """
-        Validates one or more :class:`~gillespy2.core.reaction.Reaction` objects against this :class:`Model` instance's
-        internal state. 
-
-        More specifically, this function ensures that reactants and products on a
-        :class:`~gillespy2.core.reaction.Reaction` object reference :class:`~gillesp2.core.species.Species` that exist
-        within :attr:`Model.listOfSpecies`.
-
-        :param reactions: The reactions to validate.
-
-        :raises ModelError: If a reactant in :code:`reactions` references a species in :attr:`Model.listOfSpecies` that
-            does not exist.
-
-        :raises ModelError: If a product in :code:`reactions` references a species in :attr:`Model.listOfSpecies` that
-            does not exist.
-        """
-
-        for reactant in list(reactions.reactants.keys()):
-            if isinstance(reactant, str):
-                if reactant not in self.listOfSpecies.keys():
-                    raise ModelError(
-                        'reactant: {0} for reaction {1} -- not found in model.listOfSpecies'.format(reactant,
-                                                                                                    reactions.name))
-                reactions.reactants[self.listOfSpecies[reactant]] = reactions.reactants[reactant]
-                del reactions.reactants[reactant]
-        for product in list(reactions.products.keys()):
-            if isinstance(product, str):
-                if product not in self.listOfSpecies.keys():
-                    raise ModelError('product: {0} for reaction {1} -- not found in model.listOfSpecies'.format(product,
-                                                                                                                reactions.name))
-                reactions.products[self.listOfSpecies[product]] = reactions.products[product]
-                del reactions.products[product]
-
-    def add_reaction(self, reactions: Union[Reaction, List[Reaction]]) -> Union[Reaction, List[Reaction]]:
-        """
-        Adds one or more :class:`~gillespy2.core.reaction.Reaction` objects to this :class:`Model` instance.
-
-        :param reactions: The reaction or list of reaction objects to be added to the model object.
-
-        :raises ModelError: If :meth:`~gillespy2.core.Model.problem_with_name` invalidates the name of one or more 
-            :class:`~gillespy2.core.reaction Reaction` objects.
-
-        :raises ModelError: If :meth:`~gillespy2.core.Model.validate_reactants_and_products` invalidates the reactants
-            and/or products on a :class:`~gillespy2.core.reaction.Reaction` object.
-
-        :raises ModelError: If :code:`reactions` contains multiple :class:`~gillespy2.core.reaction.Reaction` objects with the same name.
-
-        :raises ReactionError: If :meth:`gillespy2.core.reaction.Reaction.verify` invalidates the
-            :class:`~gillespy2.core.reaction.Reaction` object.
-
-        :raises ParameterError: If some other error occurs while adding the :class:`~gillespy2.core.reaction.Reaction` object.
-        """
-
-        # TODO, make sure that you cannot overwrite an existing reaction
-        if isinstance(reactions, list):
-            for r in sorted(reactions):
-                self.add_reaction(r)
-        else:
-            try:
-                self.problem_with_name(reactions.name)
-                reactions.verify()
-                self.validate_reactants_and_products(reactions)
-                if reactions.name is None or reactions.name == '':
-                    i = 0
-                    while True:
-                        if 'reaction{}'.format(i) in self.listOfReactions:
-                            i += 1
-                        else:
-                            self.listOfReactions['reaction{}'.format(i)] = reactions
-                            break
-                else:
-                    if reactions.name in self.listOfReactions:
-                        raise ModelError("Duplicate name of reaction: {0}".format(reactions.name))
-                    self.listOfReactions[reactions.name] = reactions
-                # Build Sanitized reaction as well
-                sanitized_reaction = Reaction(name='R{}'.format(len(self._listOfReactions)))
-                sanitized_reaction.reactants = {self._listOfSpecies[species.name]: reactions.reactants[species] for
-                                                species in reactions.reactants}
-                sanitized_reaction.products = {self._listOfSpecies[species.name]: reactions.products[species] for
-                                               species in reactions.products}
-                sanitized_reaction.propensity_function = reactions.sanitized_propensity_function(self._listOfSpecies,
-                                                                                                 self._listOfParameters)
-                self._listOfReactions[reactions.name] = sanitized_reaction
-            except Exception as e:
-                raise ParameterError("Error using {} as a Reaction. Reason given: {}".format(reactions, e))
-        return reactions
 
     def add_rate_rule(self, rate_rules: Union[RateRule, List[RateRule]]) -> Union[RateRule, List[RateRule]]:
         """
@@ -862,7 +965,7 @@ class Model(SortableObject, Jsonify):
         :raises ModelError: If :func:`Model.problem_with_name` invalidates the name of one or more
             :class:`~gillespy2.core.functiondefinition.FunctionDefinition` objects.
 
-        :raises ParameterError:  If some other error occurs while adding the 
+        :raises ParameterError:  If some other error occurs while adding the
             :class:`~gillespy2.core.functiondefinition.FunctionDefinition` object.
         """
         if isinstance(function_definitions, list):
@@ -902,7 +1005,7 @@ class Model(SortableObject, Jsonify):
         :raises ModelError: If :func:`Model.problem_with_name` invalidates the name of one or more
             :class:`~gillespy2.core.assignmentrule.AssignmentRule` objects.
 
-        :raises ModelError: 
+        :raises ModelError:
         """
         if isinstance(assignment_rules, list):
             for ar in assignment_rules:
@@ -940,57 +1043,16 @@ class Model(SortableObject, Jsonify):
         :param time_span: The evently-spaced list of times at which :class:`~gillespy2.core.species.Species` populations
             are sampled during the simulation. It is recommended to use the :class:`~gillespy2.core timespan.TimeSpan`
             class instead of a list, :code:`numpy.ndarray`, or some other iterable collection.
-        """        
+        """
         if isinstance(time_span, TimeSpan) or type(time_span).__name__ == "TimeSpan":
             self.tspan = time_span
         else:
             self.tspan = TimeSpan(time_span)
 
-    def get_reaction(self, rname: str) -> Reaction:
-        """
-        Returns a :class:`~gillespy2.core.reaction.Reaction` on this :class:`Model` by name.
-
-        :param rname: The name of the reaction to return.
-
-        :returns: The reaction with name :class:`rname`.
-        :rtype: Reaction
-
-        :raises KeyError: If a :class:`~gillespy2.core.reaction.Reaction` with name :code:`rname` does not exist on
-            this :class:`Model`.
-        """
-        return self.listOfReactions[rname]
-
-    def get_all_reactions(self) -> Dict[str, Reaction]:
-        """
-        Returns all :class:`~gillespy2.core.reaction.Reaction` objects attached to this :class:`Model` instance.
-
-        :returns: A dictionary of reactions of the form :code:`{ name: Reaction }`.
-        :rtype: Dict[str, Reaction]
-        """
-        return self.listOfReactions
-
-    def delete_reaction(self, name: str) -> None:
-        """
-        Removes a :class:`~gillespy2.core.reaction.Reaction` object from this :class:`Model` by name.
-        
-        :param name: The name of the reaction to remove.
-        :raises KeyError: If a reaction with name :code:`name` does not exist.
-        """
-        self.listOfReactions.pop(name)
-        if name in self._listOfReactions:
-            self._listOfReactions.pop(name)
-
-    def delete_all_reactions(self) -> None:
-        """
-        Removes all :class:`~gillespy2.core.reaction.Reaction` objects attached to this :class:`Model` instance.
-        """
-        self.listOfReactions.clear()
-        self._listOfReactions.clear()
-
     def get_event(self, ename: str) -> Event:
         """
         Returns an :class:`~gillespy2.core.events.Event` on this :class:`Model` by name.
-        
+
         :param ename: The name of the event to return.
 
         :returns: An event with name :code:`ename`.
@@ -1033,7 +1095,7 @@ class Model(SortableObject, Jsonify):
         Returns a :class:`~gillespy2.core.raterule.RateRule` on this :class:`Model` by name.
 
         :param p_name: The name of the rate rule to return.
-        
+
         :returns: The rate rule object.
         :rtype: RateRule
 
@@ -1117,8 +1179,8 @@ class Model(SortableObject, Jsonify):
         """
         Returns a :class:`~gillespy2.functiondefinition.FunctionDefinition` on this :class:`Model` by name.
 
-        :param fname: The name of the function definition to return. 
-        
+        :param fname: The name of the function definition to return.
+
         :returns: The function definition object.
         :rtype: FunctionDefinition
 
@@ -1142,7 +1204,7 @@ class Model(SortableObject, Jsonify):
         Removes a :class:`~gillespy2.functiondefinition.FunctionDefinition` object from this :class:`Model` by name.
 
         :param name: The name of the :class:`~gillespy2.functiondefinition.FunctionDefinition` to remove.
-        :raises KeyError: If a :class:`~gillespy2.functiondefinition.FunctionDefinition` with name :code:`name` does 
+        :raises KeyError: If a :class:`~gillespy2.functiondefinition.FunctionDefinition` with name :code:`name` does
             not exist.
         """
         self.listOfFunctionDefinitions.pop(name)
@@ -1265,7 +1327,7 @@ class Model(SortableObject, Jsonify):
         elif can_use_numpy and hybrid_check:
             from gillespy2 import TauHybridSolver
             return TauHybridSolver
-        
+
         if can_use_cpp is False and can_use_numpy and not hybrid_check:
             from gillespy2 import NumPySSASolver
             return NumPySSASolver
@@ -1276,7 +1338,7 @@ class Model(SortableObject, Jsonify):
 
     def get_best_solver_algo(self, algorithm: str) -> GillesPySolver:
         """
-        Returns the best solver implementation for the specified algorithm *type*. 
+        Returns the best solver implementation for the specified algorithm *type*.
 
         Specifically, :meth:`BuildEngine.get_missing_dependencies` is used to determine if the current Python
         environment (and by extension, the host machine) is missing C++ build dependencies. See
@@ -1342,7 +1404,7 @@ class Model(SortableObject, Jsonify):
         elif algorithm == 'CLE':
             from gillespy2 import CLESolver
             return CLESolver
-            
+
         else:
             raise ModelError("Invalid value for the argument 'algorithm' entered. "
                              "Please enter 'SSA', 'ODE', 'CLE', 'Tau-leaping', or 'Tau-Hybrid'.")
@@ -1367,23 +1429,23 @@ class Model(SortableObject, Jsonify):
         return features
 
     def run(
-        self, 
-        solver: Optional[GillesPySolver] = None, 
-        timeout: int = 0, 
-        t: int = None, 
-        increment: float = None, 
-        show_labels: bool = True, 
+        self,
+        solver: Optional[GillesPySolver] = None,
+        timeout: int = 0,
+        t: int = None,
+        increment: float = None,
+        show_labels: bool = True,
         algorithm: str = None,
         **solver_args
     ) -> Results:
         """
         Run a simulation with the current :class:`~gillespy2.core.model.Model` instance.
 
-        A solver can be specified to tweak simulation results and improve simulation runtime. This package offers 
-        multiple different algorithms implemented in either C++ or Python. We recommend the use of 
+        A solver can be specified to tweak simulation results and improve simulation runtime. This package offers
+        multiple different algorithms implemented in either C++ or Python. We recommend the use of
         :meth:`~gillespy2.core.model.Model.get_best_solver` to determine the best solver for your use-case.
-        
-        Simulations can be paused by issuing a keyboard interrupt during runtime. This is achieved by pressing 
+
+        Simulations can be paused by issuing a keyboard interrupt during runtime. This is achieved by pressing
         Control + C or the *stop* button within a Jupyter Notebook session. The :class:`~gillespy2.core.results.Results`
         object returned after the interrupt can be used to resume the simulation at a later time.
 
@@ -1395,12 +1457,12 @@ class Model(SortableObject, Jsonify):
             model = MichaelisMenten()
             results = model.run()
 
-            # Control + C 
+            # Control + C
 
             results = model.run(resume=results, t=x)
 
         .. warning::
-            Pause / resume functionality is only supported for single trajectory simulations. :code:`t` must be set or 
+            Pause / resume functionality is only supported for single trajectory simulations. :code:`t` must be set or
             unexpected behavior may occur.
 
         .. note::
@@ -1408,7 +1470,7 @@ class Model(SortableObject, Jsonify):
 
         :param solver: The solver by which to simulate the current :class:`~gillespy2.core.model.Model`.
             An already initialized solver can also be passed via this keyword argument. A solver will be automatically
-            chosen if this argument is :code:`None`. 
+            chosen if this argument is :code:`None`.
 
             See :code:`algorithm` to specify an algorithm *type*.
 
@@ -1430,7 +1492,6 @@ class Model(SortableObject, Jsonify):
             .. note::
                 If :code:`show_labels = False` this function will return a two-dimensional :class:`numpy.ndarray`
                 that contains species population data.
-
         """
 
         if not show_labels:
@@ -1479,8 +1540,8 @@ class StochMLDocument():
 
         Note, this method is intended to be used internally by the models
         'serialization' function, which performs additional operations and
-        tests on the model prior to writing out the XML file. 
-        
+        tests on the model prior to writing out the XML file.
+
         You should NOT do:
 
         .. code-block:: python
@@ -1549,7 +1610,7 @@ class StochMLDocument():
 
     @classmethod
     def from_file(cls, filepath: str) -> "StochMLDocument":
-        """ 
+        """
         Reads, parses, and returns a StochML document from a file on disk.
 
         :param filepath: The path of the StochML document on disk.
