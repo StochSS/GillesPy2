@@ -305,12 +305,8 @@ class Reaction(SortableObject, Jsonify):
         self.propensity_function = self.__create_custom_propensity(propensity_function=propensity_function)
         self.ode_propensity_function = self.__create_custom_propensity(propensity_function=ode_propensity_function)
     
-    def __create_custom_propensity(self, propensity_function=None):
-        if propensity_function is None:
-            propensity_function = self.propensity_function
-        
-        expr = propensity_function
-        expr = expr.replace('^', '**')
+    def __create_custom_propensity(self, propensity_function):
+        expr = propensity_function.replace('^', '**')
         expr = ast.parse(expr, mode='eval')
         expr = self.__ExpressionParser().visit(expr)
         
