@@ -1,20 +1,18 @@
-"""
-GillesPy2 is a modeling toolkit for biochemical simulation.
-Copyright (C) 2019-2021 GillesPy2 developers.
+# GillesPy2 is a modeling toolkit for biochemical simulation.
+# Copyright (C) 2019-2022 GillesPy2 developers.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
 from collections.abc import Iterator
 
@@ -63,7 +61,7 @@ class TimeSpan(Iterator, Jsonify):
         Creates a timespan using the form np.linspace(0, <t>, <num_points, inclusive>).
 
         :param t: End time for the simulation.
-        :type t: int
+        :type t: float | int
 
         :param num_points: Number of sample points for the species populations during the simulation.
         :type num_points: int
@@ -73,8 +71,8 @@ class TimeSpan(Iterator, Jsonify):
 
         :raises TimespanError: t or num_points are None, <= 0, or invalid type.
         """
-        if t is None or not isinstance(t, int) or t <= 0:
-            raise TimespanError("t must be a positive int.")
+        if t is None or not isinstance(t, (int, float)) or t <= 0:
+            raise TimespanError("t must be a positive float or int.")
         if num_points is not None and (not isinstance(num_points, int) or num_points <= 0):
             raise TimespanError("num_points must be a positive int.")
 
@@ -92,15 +90,15 @@ class TimeSpan(Iterator, Jsonify):
         :type increment: float | int
 
         :param t: End time for the simulation.
-        :type t: int
+        :type t: float | int
 
         :returns: Timespan for the model.
         :rtype: gillespy2.TimeSpan
 
         :raises TimespanError: t or increment are None, <= 0, or invalid type.
         """
-        if t is None or not isinstance(t, int) or t <= 0:
-            raise TimespanError("t must be a positive int.")
+        if t is None or not isinstance(t, (int, float)) or t <= 0:
+            raise TimespanError("t must be a positive floar or int.")
         if not isinstance(increment, (float, int)) or increment <= 0:
             raise TimespanError("increment must be a positive float or int.")
 

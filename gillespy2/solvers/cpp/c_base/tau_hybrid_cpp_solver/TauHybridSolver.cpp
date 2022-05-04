@@ -1,6 +1,6 @@
 /*
  * GillesPy2 is a modeling toolkit for biochemical simulation.
- * Copyright (C) 2019-2021 GillesPy2 developers.
+ * Copyright (C) 2019-2022 GillesPy2 developers.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,11 @@ namespace Gillespy
 
 	namespace TauHybrid
 	{
-		void TauHybridCSolver(HybridSimulation *simulation, std::vector<Event> &events, const double tau_tol, bool verbose)
+		void TauHybridCSolver(
+				HybridSimulation *simulation,
+				std::vector<Event> &events,
+				const double tau_tol,
+				Logger &logger)
 		{
 			if (simulation == NULL)
 			{
@@ -74,7 +78,7 @@ namespace Gillespy
 				y = y0;
 			}
 			Integrator sol(simulation, y, GPY_HYBRID_RELTOL, GPY_HYBRID_ABSTOL);
-			if (!verbose)
+			if (logger.get_log_level() == LogLevel::CRIT)
 			{
 				sol.set_error_handler(silent_error_handler);
 			}
@@ -138,17 +142,15 @@ namespace Gillespy
 				// An invalid simulation state indicates that an unrecoverable error has occurred,
 				//   and the trajectory should terminate early.
 				bool invalid_state = false;
-				// This is a temporary fix. Ideally, invalid state should allow for integrator options change.
-				// For now, a "guard" is put in place to prevent potentially infinite loops from occurring.
-				unsigned int integration_guard = 1000;
 
-				while (!interrupted && integration_guard > 0 && simulation->current_time < simulation->end_time)
+
+				while (!interrupted && !invalid_state && simulation->current_time < simulation->end_time)
 				{
 					// Compute current propensity values based on existing state.
 					for (unsigned int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
 					{
 						HybridReaction &rxn = simulation->reaction_state[rxn_i];
-						sol.data.propensities[rxn_i] = rxn.propensity(current_state.data());
+						sol.data.propensities[rxn_i] = rxn.ssa_propensity(current_state.data());
 					}
 					if (interrupted)
 						break;
@@ -183,9 +185,16 @@ namespace Gillespy
 					// If a retry with a smaller tau_step is deemed necessary, this will change.
 					next_time = simulation->current_time + tau_step;
 
+					// Ensure that any previous changes to the current state is reflected by the integrator.
+					std::copy(current_state.begin(), current_state.end(), N_VGetArrayPointer(sol.y));
+
 					// The integration loop continues until a valid solution is found.
 					// Any invalid Tau steps (which cause negative populations) are discarded.
 					sol.save_state();
+
+					// This is a temporary fix. Ideally, invalid state should allow for integrator options change.
+					// For now, a "guard" is put in place to prevent potentially infinite loops from occurring.
+					unsigned int integration_guard = 1000;
 
 					do
 					{
@@ -198,87 +207,86 @@ namespace Gillespy
 						if (sol.status == IntegrationStatus::BAD_STEP_SIZE)
 						{
 							invalid_state = true;
-							// Breaking early causes `invalid_state` to remain set,
-							//   resulting in an early termination of the trajectory.
-							break;
-						}
-
-						// The integrator has, at this point, been validated.
-						// Any errors beyond this point is assumed to be a stochastic state failure.
-
-						// 0-initialize our population_changes array.
-						for (int p_i = 0; p_i < num_species; ++p_i)
-						{
-							population_changes[p_i] = 0;
-						}
-
-						// Start with the species concentration as a baseline value.
-						// Stochastic reactions will update populations relative to their concentrations.
-						for (int spec_i = 0; spec_i < num_species; ++spec_i)
-						{
-							current_state[spec_i] = result.concentrations[spec_i];
-						}
-
-						if (!rxn_roots.empty())
-						{
-							// "Direct" roots found; these are executed manually
-							for (unsigned int rxn_i : rxn_roots)
-							{
-								// "Fire" a reaction by recording changes in dependent species.
-								// If a negative value is detected, break without saving changes.
-								for (int spec_i = 0; spec_i < num_species; ++spec_i)
-								{
-									// Unlike the Tau-leaping version of reaction firings,
-									// it is not possible to have a negative state occur in direct reactions.
-									population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i];
-									result.reactions[rxn_i] = log(urn.next());
-								}
-							}
-							rxn_roots.clear();
 						}
 						else
 						{
-							// The newly-updated reaction_states vector may need to be reconciled now.
-							// A positive reaction_state means reactions have potentially fired.
-							// NOTE: it is possible for a population to swing negative, where a smaller Tau is needed.
-							for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
+							// The integrator has, at this point, been validated.
+							// Any errors beyond this point is assumed to be a stochastic state failure.
+
+							// 0-initialize our population_changes array.
+							for (int p_i = 0; p_i < num_species; ++p_i)
 							{
-								// Temporary variable for the reaction's state.
-								// Does not get updated unless the changes are deemed valid.
-								double rxn_state = result.reactions[rxn_i];
+								population_changes[p_i] = 0;
+							}
 
-								switch (simulation->reaction_state[rxn_i].mode)
+							// Start with the species concentration as a baseline value.
+							// Stochastic reactions will update populations relative to their concentrations.
+							for (int spec_i = 0; spec_i < num_species; ++spec_i)
+							{
+								current_state[spec_i] = result.concentrations[spec_i];
+							}
+
+							if (!rxn_roots.empty())
+							{
+								// "Direct" roots found; these are executed manually
+								for (unsigned int rxn_i : rxn_roots)
 								{
-								case SimulationState::DISCRETE:
-									while (rxn_state >= 0)
+									// "Fire" a reaction by recording changes in dependent species.
+									// If a negative value is detected, break without saving changes.
+									for (int spec_i = 0; spec_i < num_species; ++spec_i)
 									{
-										// "Fire" a reaction by recording changes in dependent species.
-										// If a negative value is detected, break without saving changes.
-										for (int spec_i = 0; spec_i < num_species; ++spec_i)
-										{
-											population_changes[spec_i] +=
-													model.reactions[rxn_i].species_change[spec_i];
-										}
-
-										rxn_state += log(urn.next());
+										// Unlike the Tau-leaping version of reaction firings,
+										// it is not possible to have a negative state occur in direct reactions.
+										population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i];
+										result.reactions[rxn_i] = log(urn.next());
 									}
-									result.reactions[rxn_i] = rxn_state;
-									break;
+								}
+								rxn_roots.clear();
+							}
+							else
+							{
+								// The newly-updated reaction_states vector may need to be reconciled now.
+								// A positive reaction_state means reactions have potentially fired.
+								// NOTE: it is possible for a population to swing negative, where a smaller Tau is needed.
+								for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
+								{
+									// Temporary variable for the reaction's state.
+									// Does not get updated unless the changes are deemed valid.
+									double rxn_state = result.reactions[rxn_i];
 
-								case SimulationState::CONTINUOUS:
-								default:
-									break;
+									switch (simulation->reaction_state[rxn_i].mode)
+									{
+									case SimulationState::DISCRETE:
+										while (rxn_state >= 0)
+										{
+											// "Fire" a reaction by recording changes in dependent species.
+											// If a negative value is detected, break without saving changes.
+											for (int spec_i = 0; spec_i < num_species; ++spec_i)
+											{
+												population_changes[spec_i] +=
+														model.reactions[rxn_i].species_change[spec_i];
+											}
+
+											rxn_state += log(urn.next());
+										}
+										result.reactions[rxn_i] = rxn_state;
+										break;
+
+									case SimulationState::CONTINUOUS:
+									default:
+										break;
+									}
 								}
 							}
-						}
 
-						// Explicitly check for invalid population state, now that changes have been tallied.
-						for (int spec_i = 0; spec_i < num_species; ++spec_i)
-						{
-							if (current_state[spec_i] + population_changes[spec_i] < 0)
+							// Explicitly check for invalid population state, now that changes have been tallied.
+							for (int spec_i = 0; spec_i < num_species; ++spec_i)
 							{
-								invalid_state = true;
-								break;
+								if (current_state[spec_i] + population_changes[spec_i] < 0)
+								{
+									invalid_state = true;
+									break;
+								}
 							}
 						}
 
@@ -286,6 +294,13 @@ namespace Gillespy
 						// Only update state with the given population changes if valid.
 						if (invalid_state)
 						{
+							if (--integration_guard == 0)
+							{
+								// Breaking early causes `invalid_state` to remain set,
+								//   resulting in an early termination of the trajectory.
+								break;
+							}
+
 							sol.restore_state();
 							tau_step /= 2;
 							next_time = simulation->current_time + tau_step;
@@ -309,13 +324,18 @@ namespace Gillespy
 
 					if (interrupted)
 						break;
-
-					// Invalid state after the do-while loop implies that an unrecoverable error has occurred.
-					// While prior results are considered usable, the current integration results are not.
-					// Calling `continue` with an invalid state will discard the results and terminate the trajectory.
-					integration_guard = invalid_state
-										? integration_guard - 1
-										: 1000;
+					else if (invalid_state)
+					{
+						// Invalid state after the do-while loop implies that an unrecoverable error has occurred.
+						// While prior results are considered usable, the current integration results are not.
+						// Calling `continue` with an invalid state will discard the results and terminate the trajectory.
+						logger.err()
+								<< "[Trajectory #" << traj << "] "
+								<< "Integration guard triggered; problem space too stiff at t="
+								<< simulation->current_time << std::endl;
+						simulation->set_status(HybridSimulation::LOOP_OVER_INTEGRATE);
+						continue;
+					}
 
 					// ===== <EVENT HANDLING> =====
 					if (!event_list.has_active_events())
@@ -355,16 +375,13 @@ namespace Gillespy
 					}
 				}
 
-				if (integration_guard == 0)
-				{
-					std::cerr
-							<< "[Trajectory #" << traj << "] "
-							<< "Integration guard triggered; problem space too stiff at t="
-							<< simulation->current_time << std::endl;
-				}
-
 				// End of trajectory
 				delete[] population_changes;
+			}
+
+			if (interrupted)
+			{
+				simulation->set_status(HybridSimulation::OK);
 			}
 		}
 	}

@@ -1,20 +1,18 @@
-"""
-GillesPy2 is a modeling toolkit for biochemical simulation.
-Copyright (C) 2019-2021 GillesPy2 developers.
+# GillesPy2 is a modeling toolkit for biochemical simulation.
+# Copyright (C) 2019-2022 GillesPy2 developers.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import shutil
@@ -145,15 +143,21 @@ class BuildEngine():
         make = Make(self.makefile, cache_dir, cache_dir)
         make.prebuild()
 
-    def build_simulation(self, simulation_name: str) -> str:
+    def build_simulation(self, simulation_name: "str", definitions: "dict[str, str]" = None) -> str:
         """
         Build the solver to the temp directory.
 
         :param simulation_name: The name of the simulation to build. For example, ODESimulation.
         :type simulation_name: str
 
+        :param definitions: Dictionary of environment variables to be overriden when the Makefile is invoked.
+        Intended for use when running through a debugger environment or profiler.
+        :type definitions: dict[str, str]
+
         :return: The path of the newly build solver executable.
         """
+        if definitions is None:
+            definitions = {}
 
         if self.make is None:
             raise gillespyError.BuildError(
@@ -161,7 +165,7 @@ class BuildEngine():
                 "To fix, call `BuildEngine.prepare()` prior to attempting to build the simulation."
             )
 
-        self.make.build_simulation(simulation_name, template_dir=str(self.template_dir))
+        self.make.build_simulation(simulation_name, template_dir=str(self.template_dir), **definitions)
         return str(self.make.output_file)
 
     def get_executable_path(self) -> str:

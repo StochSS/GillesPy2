@@ -1,6 +1,6 @@
 /*
  * GillesPy2 is a modeling toolkit for biochemical simulation.
- * Copyright (C) 2019-2021 GillesPy2 developers.
+ * Copyright (C) 2019-2022 GillesPy2 developers.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -191,6 +191,52 @@ namespace Gillespy {
 	{
 		os << (int) current_time;
 		os.flush();
+	}
+
+	LogStream &Logger::info()
+	{
+		switch (m_log_level)
+		{
+		case LogLevel::INFO:
+			return m_stderr;
+		default:
+			return m_null;
+		}
+	}
+
+	LogStream &Logger::warn()
+	{
+		switch (m_log_level)
+		{
+		case LogLevel::WARN:
+		case LogLevel::INFO:
+			return m_stderr;
+		default:
+			return m_null;
+		}
+	}
+
+	LogStream &Logger::err()
+	{
+		switch (m_log_level)
+		{
+		case LogLevel::CRIT:
+		case LogLevel::SILENT:
+			return m_null;
+		default:
+			return m_stderr;
+		}
+	}
+
+	LogStream &Logger::crit()
+	{
+		switch (m_log_level)
+		{
+		case LogLevel::SILENT:
+			return m_null;
+		default:
+			return m_stderr;
+		}
 	}
 
 	// DETERMINISTIC SIMULATIONS: explicit instantation of real-valued data structures.
