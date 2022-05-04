@@ -47,6 +47,10 @@ class Reaction(SortableObject, Jsonify):
         namespace of the reaction using C operations.
     :type propensity_function: str
 
+    :param ode_propensity_function: The custom ode propensity function for the reaction. Must be evaluable in the
+        namespace of the reaction using C operations.
+    :type ode_propensity_function: str
+
     :param massaction: (deprecated) The switch to use a mass-action reaction. If set to True, a rate value is required.
     :type massaction: bool
 
@@ -69,7 +73,7 @@ class Reaction(SortableObject, Jsonify):
     results if the order of addition is not preserved.
     """
     def __init__(self, name=None, reactants=None, products=None, propensity_function=None,
-                 rate=None, annotation=None, massaction=None):
+                 ode_propensity_function=None, rate=None, annotation=None, massaction=None):
         if massaction is not None:
             from gillespy2.core import log
             log.warning(
@@ -81,37 +85,37 @@ class Reaction(SortableObject, Jsonify):
 
         if name is None:
             name = f'rxn{uuid.uuid4()}'.replace('-', '_')
-        if reactants is None:
-            reactants = {}
-        if products is None:
-            products = {}
         if isinstance(propensity_function, (int, float)):
             propensity_function = str(propensity_function)
+        if isinstance(ode_propensity_function, (int, float)):
+            ode_propensity_function = str(ode_propensity_function)
         if isinstance(rate, (int, float)):
             rate = str(rate)
         
         self.name = name
         
         self.reactants = {}
-        for r in reactants:
-            rtype = type(r).__name__
-            if rtype == 'Species':
-                self.reactants[r.name] = reactants[r]
-            else:
-                self.reactants[r] = reactants[r]
+        if reactants is not None and isinstance(reactants, dict):
+            for r in reactants:
+                rtype = type(r).__name__
+                if rtype == 'Species':
+                    self.reactants[r.name] = reactants[r]
+                else:
+                    self.reactants[r] = reactants[r]
         
         self.products = {}
-        for p in products:
-            rtype = type(p).__name__
-            if rtype == 'Species':
-                self.products[p.name] = products[p]
-            else:
-                self.products[p] = products[p]
-        
-        self.propensity_function = propensity_function
+        if products is not None and isinstance(products, dict):
+            for p in products:
+                rtype = type(p).__name__
+                if rtype == 'Species':
+                    self.products[p.name] = products[p]
+                else:
+                    self.products[p] = products[p]
+            
         self.marate = rate
-        self.ode_propensity_function = None
         self.annotation = annotation
+        self.propensity_function = propensity_function
+        self.ode_propensity_function = ode_propensity_function
         
         self.validate()
         
@@ -122,9 +126,14 @@ class Reaction(SortableObject, Jsonify):
         else:
             self.massaction = False
             self.type = "customized"
-            propensity = self.__create_custom_propensity()
+            if self.propensity_function is None:
+                self.propensity_function = self.ode_propensity_function
+            if self.ode_propensity_function is None:
+                self.ode_propensity_function = self.propensity_function
+            propensity = self.__create_custom_propensity(self.propensity_function)
             self.propensity_function = propensity
-            self.ode_propensity_function = propensity
+            ode_propensity = self.__create_custom_propensity(self.ode_propensity_function)
+            self.ode_propensity_function = ode_propensity
 
     def __str__(self):
         print_string = self.name
