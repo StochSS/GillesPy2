@@ -119,7 +119,7 @@ class Reaction(SortableObject, Jsonify):
         
         self.validate()
         
-        if self.propensity_function is None:
+        if self.marate is not None:
             self.massaction = True
             self.type = "mass-action"
             self.__create_mass_action()
@@ -459,6 +459,57 @@ class Reaction(SortableObject, Jsonify):
         #     raise ReactionError("Annotation cannot be None.")
         self.annotation = annotation
 
+    def set_propensities(self, propensity_function=None, ode_propensity_function=None):
+        """
+        Change the reaction to a customized reaction and set the propensities.
+
+        :param propensity_function: The custom propensity function for the reaction. Must be evaluable in the
+            namespace of the reaction using C operations.
+        :type propensity_function: str
+
+        :param ode_propensity_function: The custom ode propensity function for the reaction. Must be evaluable in the
+            namespace of the reaction using C operations.
+        :type ode_propensity_function: str
+        """
+        if isinstance(propensity_function, (int, float)):
+            propensity_function = str(propensity_function)
+        if isinstance(ode_propensity_function, (int, float)):
+            ode_propensity_function = str(ode_propensity_function)
+        
+        self.validate(propensity_function=propensity_function, ode_propensity_function=ode_propensity_function)
+
+        self.propensity_function = propensity_function
+        self.ode_propensity_function = ode_propensity_function
+        self.marate = None
+
+        self.massaction = False
+        self.type = "customized"
+        if self.propensity_function is None:
+            self.propensity_function = self.ode_propensity_function
+        if self.ode_propensity_function is None:
+            self.ode_propensity_function = self.propensity_function
+        propensity = self.__create_custom_propensity(self.propensity_function)
+        self.propensity_function = propensity
+        ode_propensity = self.__create_custom_propensity(self.ode_propensity_function)
+        self.ode_propensity_function = ode_propensity
+
+    def set_rate(self, rate):
+        """
+        Change the reaction to a mass-action reaction and set the rate.
+
+        :param rate: The rate of the mass-action reaction, take care to note the units.
+        :type rate: int | float | str | Parameter
+        """
+        if isinstance(rate, (int, float)):
+            rate = str(rate)
+
+        self.validate(rate=rate, coverage="rate")
+
+        self.marate = rate
+        self.massaction = True
+        self.type = "mass-action"
+        self.__create_mass_action()
+
     def setType(self, rxntype):
         """
         Sets reaction type to either "mass-action" or "customized" (deprecated)
@@ -492,7 +543,7 @@ class Reaction(SortableObject, Jsonify):
 
         return temp
 
-    def validate(self):
+    def validate(self, propensity_function=None, ode_propensity_function=None, rate=None, coverage="all"):
         """
         Check if the reaction is properly formatted.
         Does nothing on sucesss, raises and error on failure.
