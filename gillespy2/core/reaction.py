@@ -474,7 +474,7 @@ class Reaction(SortableObject, Jsonify):
             """
         )
 
-        if rxntype.lower() not in {'mass-action', 'customized'}:
+        if rxntype.lower() not in ('mass-action', 'customized'):
             raise ReactionError("Invalid reaction type.")
         self.type = rxntype.lower()
 
