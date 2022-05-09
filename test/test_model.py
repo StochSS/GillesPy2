@@ -262,7 +262,7 @@ class TestModel(unittest.TestCase):
         with self.assertRaises(ModelError):
             model.add_reaction(reaction)
         parameter = 'nonparameter'
-        with self.assertRaises(ParameterError):
+        with self.assertRaises(ModelError):
             model.add_parameter(parameter)
         
     def test_add_event(self):
@@ -308,9 +308,9 @@ class TestModel(unittest.TestCase):
         r3 = Reaction(name='r3', reactants={'A':1, 'B':1}, products={}, rate=rate)
         r4 = Reaction(name='r4', reactants={'A':1}, products={}, propensity_function='t')
         model.add_reaction([r1, r2, r3, r4])
-        self.assertEqual(model.listOfReactions['r1'].ode_propensity_function, 'rate*A')
-        self.assertEqual(model.listOfReactions['r2'].ode_propensity_function, 'rate*A*A')
-        self.assertEqual(model.listOfReactions['r3'].ode_propensity_function, 'rate*A*B')
+        self.assertEqual(model.listOfReactions['r1'].ode_propensity_function, '(rate*A)')
+        self.assertEqual(model.listOfReactions['r2'].ode_propensity_function, '((rate*A)*A)')
+        self.assertEqual(model.listOfReactions['r3'].ode_propensity_function, '((rate*A)*B)')
         self.assertEqual(model.listOfReactions['r4'].ode_propensity_function, 't')
 
 
