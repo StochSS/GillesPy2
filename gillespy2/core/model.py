@@ -532,24 +532,6 @@ class Model(SortableObject, Jsonify):
         parameter.expression = expression
         self.resolve_parameter(parameter)
 
-    def delete_reaction(self, name):
-        """
-        Removes a reaction object by name.
-
-        :param name: Name of the reaction object to be removed.
-        :type name: str
-        """
-        self.listOfReactions.pop(name)
-        if name in self._listOfReactions:
-            self._listOfReactions.pop(name)
-
-    def delete_all_reactions(self):
-        """
-        Removes all reactions from the model object.
-        """
-        self.listOfReactions.clear()
-        self._listOfReactions.clear()
-
     def add_reaction(self, reactions):
         """
         Adds a reaction, or list of reactions to the model.
@@ -578,6 +560,24 @@ class Model(SortableObject, Jsonify):
             errmsg = f"reactions must be of type Reaction or list of Reaction not {type(reactions)}"
             raise ModelError(errmsg)
         return reactions
+
+    def delete_reaction(self, name):
+        """
+        Removes a reaction object by name.
+
+        :param name: Name of the reaction object to be removed.
+        :type name: str
+        """
+        self.listOfReactions.pop(name)
+        if name in self._listOfReactions:
+            self._listOfReactions.pop(name)
+
+    def delete_all_reactions(self):
+        """
+        Removes all reactions from the model object.
+        """
+        self.listOfReactions.clear()
+        self._listOfReactions.clear()
 
     def get_reaction(self, name):
         """
