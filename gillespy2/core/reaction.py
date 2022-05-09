@@ -20,6 +20,7 @@ from json.encoder import JSONEncoder
 import numpy as np
 
 from gillespy2.core.species import Species
+from gillespy2.core.parameter import Parameter
 from gillespy2.core.jsonify import Jsonify
 from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.gillespyError import ReactionError
@@ -83,7 +84,7 @@ class Reaction(SortableObject, Jsonify):
                 """
             )
 
-        if name is None:
+        if name is None or name == "":
             name = f'rxn{uuid.uuid4()}'.replace('-', '_')
         if isinstance(propensity_function, (int, float)):
             propensity_function = str(propensity_function)
@@ -93,9 +94,16 @@ class Reaction(SortableObject, Jsonify):
             rate = str(rate)
         
         self.name = name
-        
         self.reactants = {}
-        if reactants is not None and isinstance(reactants, dict):
+        self.products = {}
+        self.marate = rate
+        self.annotation = annotation
+        self.propensity_function = propensity_function
+        self.ode_propensity_function = ode_propensity_function
+        
+        self.validate(reactants=reactants, products=products)
+        
+        if reactants is not None:
             for r in reactants:
                 rtype = type(r).__name__
                 if rtype == 'Species':
@@ -103,8 +111,7 @@ class Reaction(SortableObject, Jsonify):
                 else:
                     self.reactants[r] = reactants[r]
         
-        self.products = {}
-        if products is not None and isinstance(products, dict):
+        if products is not None:
             for p in products:
                 rtype = type(p).__name__
                 if rtype == 'Species':
@@ -112,17 +119,10 @@ class Reaction(SortableObject, Jsonify):
                 else:
                     self.products[p] = products[p]
             
-        self.marate = rate
-        self.annotation = annotation
-        self.propensity_function = propensity_function
-        self.ode_propensity_function = ode_propensity_function
-        
-        self.validate()
-        
         if self.marate is not None:
             self.massaction = True
             self.type = "mass-action"
-            self.__create_mass_action()
+            self._create_mass_action()
         else:
             self.massaction = False
             self.type = "customized"
@@ -130,10 +130,12 @@ class Reaction(SortableObject, Jsonify):
                 self.propensity_function = self.ode_propensity_function
             if self.ode_propensity_function is None:
                 self.ode_propensity_function = self.propensity_function
-            propensity = self.__create_custom_propensity(self.propensity_function)
+            propensity = self._create_custom_propensity(self.propensity_function)
             self.propensity_function = propensity
-            ode_propensity = self.__create_custom_propensity(self.ode_propensity_function)
+            ode_propensity = self._create_custom_propensity(self.ode_propensity_function)
             self.ode_propensity_function = ode_propensity
+
+        self.validate(coverage="initialized")
 
     def __str__(self):
         print_string = self.name
@@ -252,7 +254,7 @@ class Reaction(SortableObject, Jsonify):
             self._string_changer('-')
             self.generic_visit(node)
     
-    def __create_mass_action(self):
+    def _create_mass_action(self):
         """
         Initializes the mass action propensity function given
         self.reactants and a single parameter value.
@@ -264,14 +266,14 @@ class Reaction(SortableObject, Jsonify):
         total_stoch = 0
         for r in sorted(self.reactants):
             total_stoch += self.reactants[r]
-        # if total_stoch > 2:
-        #     raise ReactionError(
-        #         """
-        #         Reaction: A mass-action reaction cannot involve more than two of
-        #         one species or one of two species. To declare a custom propensity,
-        #         replace 'rate' with 'propensity_function'.
-        #         """
-        #     )
+        if total_stoch > 2:
+            raise ReactionError(
+                """
+                Reaction: A mass-action reaction cannot involve more than two of
+                one species or one of two species. To declare a custom propensity,
+                replace 'rate' with 'propensity_function'.
+                """
+            )
 
         # Case EmptySet -> Y
 
@@ -279,7 +281,7 @@ class Reaction(SortableObject, Jsonify):
         if rtype == 'Parameter':
             self.marate = self.marate.name
         elif rtype in ('int', 'float'):
-            self.marate = str(self.rate)
+            self.marate = str(self.marate)
 
         propensity_function = self.marate
         ode_propensity_function = self.marate
@@ -302,10 +304,10 @@ class Reaction(SortableObject, Jsonify):
         elif order == 0:
             propensity_function += " * vol"
 
-        self.propensity_function = self.__create_custom_propensity(propensity_function=propensity_function)
-        self.ode_propensity_function = self.__create_custom_propensity(propensity_function=ode_propensity_function)
+        self.propensity_function = self._create_custom_propensity(propensity_function=propensity_function)
+        self.ode_propensity_function = self._create_custom_propensity(propensity_function=ode_propensity_function)
     
-    def __create_custom_propensity(self, propensity_function):
+    def _create_custom_propensity(self, propensity_function):
         expr = propensity_function.replace('^', '**')
         expr = ast.parse(expr, mode='eval')
         expr = self.__ExpressionParser().visit(expr)
@@ -346,16 +348,18 @@ class Reaction(SortableObject, Jsonify):
         Add a product to this reaction
 
         :param species: Species object to be produced by the reaction
-        :type species: spatialpy.core.species.Species
+        :type species: spatialpy.core.species.Species | str
 
         :param stoichiometry: Stoichiometry of this product.
         :type stoichiometry: int
         """
-        # if not (isinstance(species, (str, Species)) or type(species).__name__ == 'Species'):
-        #     raise ReactionError("species must be of type string or SpatialPy.Species. ")
-        # if not isinstance(stoichiometry, int) or stoichiometry <= 0:
-        #     raise ReactionError("Stoichiometry must be a positive integer.")
-        name = species if isinstance(species, str) else species.name
+        name = species.name if type(species).__name__ == 'Species' else species
+
+        try:
+            self.validate(products={name: stoichiometry}, coverage="products")
+        except TypeError as err:
+            raise ReactionError(f"Failed to validate product. Reason given: {err}") from err
+
         self.products[name] = stoichiometry
         
     def addReactant(self, *args, **kwargs):
@@ -388,12 +392,18 @@ class Reaction(SortableObject, Jsonify):
         :param stoichiometry: Stoichiometry of this participant reactant
         :type stoichiometry: int
         """
-        # if not (isinstance(species, (str, Species)) or type(species).__name__ == 'Species'):
-        #     raise ReactionError("Species must be of type string or spatialpy.Species. ")
-        # if not isinstance(stoichiometry, int) or stoichiometry <= 0:
-        #     raise ReactionError("Stoichiometry must be a positive integer.")
-        name = species if isinstance(species, str) else species.name
+        name = species.name if type(species).__name__ == 'Species' else species
+
+        try:
+            self.validate(reactants={name: stoichiometry}, coverage="reactants")
+        except TypeError as err:
+            raise ReactionError(f"Failed to validate reactant. Reason given: {err}") from err
+
         self.reactants[name] = stoichiometry
+        if self.massaction and self.type == "mass-action":
+            self._create_mass_action()
+
+            self.validate(coverage="initialized")
     
     def Annotate(self, *args, **kwargs):
         """
@@ -425,7 +435,7 @@ class Reaction(SortableObject, Jsonify):
             """
         )
 
-        self.__create_mass_action(*args, **kwargs)
+        self._create_mass_action(*args, **kwargs)
 
     @classmethod
     def from_json(cls, json_object):
@@ -435,6 +445,11 @@ class Reaction(SortableObject, Jsonify):
         # Same as in to_dict(), but we need to reverse it back into its original representation.
         new.products = { x["key"]: x["value"] for x in json_object["products"] }
         new.reactants = { x["key"]: x["value"] for x in json_object["reactants"] }
+
+        if new.massaction and new.type == "mass-action" and new.marate is not None:
+            new._create_mass_action()
+
+        new.validate(coverage="all")
 
         return new
     
@@ -455,8 +470,11 @@ class Reaction(SortableObject, Jsonify):
         :param annotation: Annotation note to be added to reaction
         :type annotation: str
         """
-        # if annotation is None:
-        #     raise ReactionError("Annotation cannot be None.")
+        if annotation is None:
+            raise ReactionError("annotation can't be None type.")
+
+        self.validate(coverage="annotation", annotation=annotation)
+
         self.annotation = annotation
 
     def set_propensities(self, propensity_function=None, ode_propensity_function=None):
@@ -476,7 +494,7 @@ class Reaction(SortableObject, Jsonify):
         if isinstance(ode_propensity_function, (int, float)):
             ode_propensity_function = str(ode_propensity_function)
         
-        self.validate(propensity_function=propensity_function, ode_propensity_function=ode_propensity_function)
+        self.validate(propensity_function=propensity_function, ode_propensity_function=ode_propensity_function, coverage="propensities")
 
         self.propensity_function = propensity_function
         self.ode_propensity_function = ode_propensity_function
@@ -488,10 +506,12 @@ class Reaction(SortableObject, Jsonify):
             self.propensity_function = self.ode_propensity_function
         if self.ode_propensity_function is None:
             self.ode_propensity_function = self.propensity_function
-        propensity = self.__create_custom_propensity(self.propensity_function)
+        propensity = self._create_custom_propensity(self.propensity_function)
         self.propensity_function = propensity
-        ode_propensity = self.__create_custom_propensity(self.ode_propensity_function)
+        ode_propensity = self._create_custom_propensity(self.ode_propensity_function)
         self.ode_propensity_function = ode_propensity
+
+        self.validate(coverage="initialized")
 
     def set_rate(self, rate):
         """
@@ -500,15 +520,20 @@ class Reaction(SortableObject, Jsonify):
         :param rate: The rate of the mass-action reaction, take care to note the units.
         :type rate: int | float | str | Parameter
         """
+        if rate is None:
+            raise ReactionError("rate can't be None type")
+        
         if isinstance(rate, (int, float)):
             rate = str(rate)
 
-        self.validate(rate=rate, coverage="rate")
+        self.validate(marate=rate, coverage="marate")
 
         self.marate = rate
         self.massaction = True
         self.type = "mass-action"
-        self.__create_mass_action()
+        self._create_mass_action()
+
+        self.validate(coverage="initialized")
 
     def setType(self, rxntype):
         """
@@ -543,18 +568,131 @@ class Reaction(SortableObject, Jsonify):
 
         return temp
 
-    def validate(self, propensity_function=None, ode_propensity_function=None, rate=None, coverage="all"):
+    def validate(self, reactants=None, products=None, propensity_function=None,
+                 ode_propensity_function=None, marate=None, annotation=None, coverage="build"):
         """
         Check if the reaction is properly formatted.
         Does nothing on sucesss, raises and error on failure.
         """
-        # if self.marate is None and self.propensity_function is None:
-        #     raise ReactionError("You must specify either a mass-action rate or a propensity function")
-        # if self.marate is None and self.propensity_function is not None:
-        #     if self.propensity_function.strip() == '':
-        #         raise ReactionError("Propensity Function cannot be empty string.")
-        # if len(self.reactants) == 0 and len(self.products) == 0:
-        #     raise ReactionError("You must have a non-zero number of reactants or products.")
+        if coverage in ("all", "build", "name"):
+            if self.name is None:
+                raise ReactionError("name can't be None type.")
+            if not isinstance(self.name, str):
+                raise ReactionError("name must be of type str.")
+            if self.name == "":
+                raise ReactionError("name can't be an empty string.")
+
+        if coverage in ("all", "build", "reactants"):
+            if self.reactants is None:
+                raise ReactionError("recants can't be None type.")
+
+            if reactants is None:
+                reactants = self.reactants
+
+            if reactants is not None:
+                if not isinstance(reactants, dict):
+                    raise ReactionError("reactants must be of type dict.")
+
+                for species, stoichiometry in reactants.items():
+                    if species is None:
+                        raise ReactionError("species in reactants can't be None type.")
+                    if not (isinstance(species, (str, Species)) or type(species).__name__ == 'Species'):
+                        raise ReactionError("species in reactants must be of type str or GillesPy2.Species.")
+                    if species == "":
+                        raise ReactionError("species in reactants can't be an empty string.")
+
+                    if stoichiometry is None:
+                        raise ReactionError("stoichiometry in reactants can't be None type.")
+                    if not isinstance(stoichiometry, int) or stoichiometry <= 0:
+                        raise ReactionError("stoichiometry in reactants must greater than 0 and of type int.")
+
+        if coverage in ("all", "build", "products"):
+            if self.products is None:
+                raise ReactionError("products can't be None type.")
+
+            if products is None:
+                products = self.products
+
+            if products is not None:
+                if not isinstance(products, dict):
+                    raise ReactionError("products must be of type dict.")
+
+                for species, stoichiometry in products.items():
+                    if species is None:
+                        raise ReactionError("species in products can't be None Type.")
+                    if not (isinstance(species, (str, Species)) or type(species).__name__ == 'Species'):
+                        raise ReactionError("species in products must be of type str or GillesPy2.Species.")
+                    if species == "":
+                        raise ReactionError("species in products can't be an empty string.")
+
+                    if stoichiometry is None:
+                        raise ReactionError("stoichiometry in products can't be None type.")
+                    if not isinstance(stoichiometry, int) or stoichiometry <= 0:
+                        raise ReactionError("stoichiometry in products must greater than 0 and of type int.")
+        
+        if coverage in ("all", "build", "propensities"):
+            if propensity_function is None:
+                propensity_function = self.propensity_function
+
+            if propensity_function is not None:
+                if not isinstance(propensity_function, str):
+                    raise ReactionError("propensity_function must be of type str.")
+                if propensity_function == "":
+                    raise ReactionError("propensity_function can't be an empty string.")
+
+        if coverage in ("all", "build", "propensities"):
+            if ode_propensity_function is None:
+                ode_propensity_function = self.ode_propensity_function
+
+            if ode_propensity_function is not None:
+                if not isinstance(ode_propensity_function, str):
+                    raise ReactionError("ode_propensity_function must be of type str.")
+                if ode_propensity_function == "":
+                    raise ReactionError("ode_propensity_function can't be an empty string.")
+
+        if coverage in ("all", "build", "marate"):
+            if marate is None:
+                marate = self.marate
+
+            if marate is not None:
+                if not (isinstance(marate, (str, Parameter)) or type(marate).__name__ == 'Parameter'):
+                    raise ReactionError("rate must be of type str or GillesPy2.Parameter.")
+                if marate == "":
+                    raise ReactionError("rate can't be an empty string.")
+
+        if coverage == "build" and not hasattr(self, "massaction"):
+            has_prop = propensity_function is not None or ode_propensity_function is not None
+            if marate is not None and has_prop:
+                raise ReactionError("You cannot set the rate and simultaneously set propensity functions.")
+            if marate is None and not has_prop:
+                raise ReactionError("You must specify either a mass-action rate or propensity functions.")
+
+        if coverage in ("all", "build", "annotation"):
+            if annotation is None:
+                annotation = self.annotation
+
+            if annotation is not None and not isinstance(annotation, str):
+                raise ReactionError("annotation must be of type str.")
+
+        if coverage in ("all", "initialized"):
+            if len(self.reactants) == 0 and len(self.products) == 0:
+                raise ReactionError("You must have a non-zero number of reactants or products.")
+            if self.propensity_function is None:
+                raise ReactionError("propensity_function can't be None type.")
+            if self.ode_propensity_function is None:
+                raise ReactionError("ode_propensity_function can't be None type.")
+            if self.marate is None:
+                if self.massaction and self.type == "mass-action":
+                    raise ReactionError("You must specify either a mass-action rate or propensity functions")
+                if self.massaction or self.type == "mass-action":
+                    errmsg = "Invalid customized reaction. Customized reactions require massaction=False and type='customized'"
+                    raise ReactionError(errmsg)
+            else:
+                if not self.massaction and self.type == "customized":
+                    raise ReactionError("You cannot set the rate and simultaneously set propensity functions.")
+                if not self.massaction or self.type == "customized":
+                    errmsg = "Invalid mass-action reaction. Mass-action reactions require massaction=True and type='mass-action'"
+                    raise ReactionError(errmsg)
     
     def verify(self, *args, **kwargs):
         """
