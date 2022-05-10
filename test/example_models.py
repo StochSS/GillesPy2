@@ -272,7 +272,7 @@ class Schlogl(Model):
 
         self.add_parameter([k1, k2])
 
-        j1 = Reaction(name="j1", reactants={s1: 1, s4: 1}, products={s4: 2.0}, rate=k1)
+        j1 = Reaction(name="j1", reactants={s1: 1, s4: 1}, products={s4: 2}, rate=k1)
         j2 = Reaction(name="j2", reactants={s2: 1, s4: 1}, products={s3: 1}, rate=k2)
 
         self.add_reaction([j1, j2])
