@@ -288,6 +288,8 @@ class Reaction(SortableObject, Jsonify):
 
         # There are only three ways to get 'total_stoch==2':
         for reactant in self.reactants:
+            if isinstance(reactant, Species) or type(reactant).__name__ == "Species":
+                reactant = reactant.name
             # Case 1: 2X -> Y
             if self.reactants[reactant] == 2:
                 propensity_function = f"0.5 * {propensity_function} * {reactant} * ({reactant} - 1) / vol"
