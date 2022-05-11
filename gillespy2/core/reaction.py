@@ -120,6 +120,9 @@ class Reaction(SortableObject, Jsonify):
                     self.products[p] = products[p]
             
         if self.marate is not None:
+            rtype = type(self.marate).__name__
+            if rtype == 'Parameter':
+                self.marate = self.marate.name
             self.massaction = True
             self.type = "mass-action"
             self._create_mass_action()
@@ -277,19 +280,21 @@ class Reaction(SortableObject, Jsonify):
 
         # Case EmptySet -> Y
 
-        rtype = type(self.marate).__name__
-        if rtype == 'Parameter':
-            self.marate = self.marate.name
-        elif rtype in ('int', 'float'):
-            self.marate = str(self.marate)
-
-        propensity_function = self.marate
-        ode_propensity_function = self.marate
+        if isinstance(self.marate, Parameter) or type(self.marate).__name__ == "Parameter":
+            propensity_function = self.marate.name
+            ode_propensity_function = self.marate.name
+        else:
+            if isinstance(self.marate, (int, float)):
+                self.marate = str(self.marate)
+            propensity_function = self.marate
+            ode_propensity_function = self.marate
 
         # There are only three ways to get 'total_stoch==2':
-        for reactant in self.reactants:
+        for reactant, stoichiometry in self.reactants.items():
+            if isinstance(reactant, Species) or type(reactant).__name__ == "Species":
+                reactant = reactant.name
             # Case 1: 2X -> Y
-            if self.reactants[reactant] == 2:
+            if stoichiometry == 2:
                 propensity_function = f"0.5 * {propensity_function} * {reactant} * ({reactant} - 1) / vol"
                 ode_propensity_function += f" * {reactant} * {reactant}"
             else:
@@ -523,7 +528,9 @@ class Reaction(SortableObject, Jsonify):
         if rate is None:
             raise ReactionError("rate can't be None type")
         
-        if isinstance(rate, (int, float)):
+        if isinstance(rate, Parameter) or type(rate).__name__ == "Parameter":
+            rate = rate.name
+        elif isinstance(rate, (int, float)):
             rate = str(rate)
 
         self.validate(marate=rate, coverage="marate")

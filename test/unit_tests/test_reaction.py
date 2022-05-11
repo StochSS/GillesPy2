@@ -408,6 +408,14 @@ class TestReaction(unittest.TestCase):
         self.assertEqual(self.valid_ma_reaction.propensity_function, "((((0.5*k1)*X)*(X-1))/vol)")
         self.assertEqual(self.valid_ma_reaction.ode_propensity_function, "((k1*X)*X)")
 
+    def test__create_mass_action__species_obj_reactant(self):
+        """ Test Reaction._create_mass_action when reactants is keyed by species object. """
+        test_species = Species(name="A", initial_value=1)
+        self.valid_ma_reaction.reactants = {test_species: 1}
+        self.valid_ma_reaction._create_mass_action()
+        self.assertEqual(self.valid_ma_reaction.propensity_function, "(k1*A)")
+        self.assertEqual(self.valid_ma_reaction.ode_propensity_function, "(k1*A)")
+
     def test__create_custom_propensity__exponent(self):
         """ Test Reaction._create_custom_propensity with a propensity containing exponents. """
         test_propensities = ["1/A^2", "1/A**2"]
