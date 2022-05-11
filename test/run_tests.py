@@ -55,18 +55,8 @@ if __name__ == '__main__':
     import test_check_cpp_support
     import test_jsonify
     import test_notebooks
-    from unit_tests import test_species as unittest_species
-    from unit_tests import test_parameter as unittest_parameter
-    from unit_tests import test_reaction as unittest_reaction
-    from unit_tests import test_timespan as unittest_timespan
-    from unit_tests import test_model as unittest_model
 
     modules = [
-        unittest_species,
-        unittest_parameter,
-        unittest_reaction,
-        unittest_timespan,
-        unittest_model,
         test_empty_model,
         test_build_engine,
         test_c_solvers,
