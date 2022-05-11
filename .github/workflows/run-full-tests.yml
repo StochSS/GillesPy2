@@ -32,4 +32,4 @@ jobs:
         pip install nbformat
         
     - name: Run tests
-      run: coverage run --source=gillespy2 --omit=gillespy2/solvers/stochkit/* test/run_tests.py -m develop
+      run: coverage run --source=gillespy2 --omit=gillespy2/solvers/stochkit/* test/run_integration_tests.py -m develop
