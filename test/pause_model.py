@@ -21,6 +21,7 @@ import numpy as np
 from gillespy2 import NumPySSASolver
 from gillespy2 import TauLeapingSolver
 from gillespy2 import ODESolver
+from gillespy2 import TauHybridSolver
 import sys
 np.set_printoptions(suppress=True)
 
@@ -73,14 +74,20 @@ class Oregonator(Model):
         else:
             self.timespan(np.linspace(0, 5, 500001))
 
-model = Oregonator()
-if sys.argv[1] == 'NumPySSASolver':
-    results = model.run(solver=NumPySSASolver(model=model))
-elif sys.argv[1] == 'TauLeapingSolver':
-    results = model.run(solver=TauLeapingSolver(model=model))
-else:
-    results = model.run(solver=ODESolver(model=model))
+def make_solver(which_solver: str, model: Model):
+    solver_dict = {solver.name: solver for solver in [
+        NumPySSASolver,
+        TauLeapingSolver,
+        ODESolver,
+        TauHybridSolver,
+    ]}
+    solver_class = solver_dict.get(which_solver)
+    return solver_class(model=model)
 
-print(results.to_array()[0][-1][0])
+def run_test(which_solver: str):
+    solver = make_solver(which_solver, model=Oregonator())
+    results = solver.run()
+    print(results.to_array()[0][-1][0])
 
-
+if __name__ == "__main__":
+    run_test(sys.argv[1])
