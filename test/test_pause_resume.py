@@ -108,7 +108,7 @@ class TestPauseResume(unittest.TestCase):
                 time.sleep(2)
                 oskill(p)
                 out, err = p.communicate()
-                if p.returncode != 0:
+                if p.returncode > 1:
                     self.fail(f"Returned status code: {p.returncode}")
                 return out.decode("utf-8").rstrip()
 
