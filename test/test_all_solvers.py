@@ -18,7 +18,7 @@ import unittest
 import numpy as np
 
 import gillespy2
-from example_models import Example, Oregonator, MichaelisMenten
+from example_models import build_example, build_oregonator, build_michaelis_menten
 from gillespy2.core.results import Results, Trajectory
 from gillespy2 import SSACSolver
 from gillespy2 import ODESolver
@@ -80,7 +80,7 @@ class TestAllSolvers(unittest.TestCase):
         ],
     }
 
-    model = Example()
+    model = build_example()
     for sp in model.listOfSpecies.values():
         sp.mode = 'discrete'
     results = {}
@@ -143,31 +143,31 @@ class TestAllSolvers(unittest.TestCase):
     def test_extraneous_args(self):
         for solver in self.solvers:
             with self.subTest(solver=solver.name), self.assertLogs('GillesPy2', level='WARN'):
-                model = Example()
+                model = build_example()
                 solver = solver(model=model)
                 model.run(solver=solver, nonsense='ABC')
 
     def test_timeout(self):
         for solver in self.solvers:
             with self.subTest(solver=solver.name), self.assertLogs('GillesPy2', level='WARN'):
-                model = Oregonator()
+                model = build_oregonator()
                 model.timespan(np.linspace(0, 1000000, 1001))
                 solver = solver(model=model)
                 model.run(solver=solver, timeout=0.1)
 
     def test_sbml_feature_validation(self):
-        class TestModel(gillespy2.Model):
-            def __init__(self):
-                gillespy2.Model.__init__(self, name="TestModel")
-                self.add_species(gillespy2.Species(name="S", initial_value=0))
-                self.timespan(np.linspace(0, 10, 11))
+        def build_model(parameter_values=None):
+            model = gillespy2.Model(name="TestModel")
+            model.add_species(gillespy2.Species(name="S", initial_value=0))
+            model.timespan(np.linspace(0, 10, 11))
+            return model
 
         all_features = set(self.sbml_features.keys())
         for solver in self.solvers:
             unsupported_features = all_features.difference(self.solver_supported_sbml_features.get(solver))
             with self.subTest(solver=solver.name):
                 for sbml_feature_name in unsupported_features:
-                    model = TestModel()
+                    model = build_model()
                     with self.subTest("Unsupported model features raise an error", sbml_feature=sbml_feature_name):
                         add_sbml_feature = self.sbml_features.get(sbml_feature_name)
                         add_sbml_feature(model, "S")
@@ -175,7 +175,7 @@ class TestAllSolvers(unittest.TestCase):
                             solver.validate_sbml_features(model=model)
 
                 for sbml_feature_name in self.solver_supported_sbml_features.get(solver):
-                    model = TestModel()
+                    model = build_model()
                     with self.subTest("Supported model features validate successfully", sbml_feature=sbml_feature_name):
                         add_sbml_feature = self.sbml_features.get(sbml_feature_name)
                         add_sbml_feature(model, "S")

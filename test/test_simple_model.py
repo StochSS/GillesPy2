@@ -20,35 +20,35 @@ from gillespy2.core import Model, Species, Reaction, Parameter, RateRule
 from gillespy2.core.gillespyError import *
 
 
-class SimpleHybridModel(Model):
-    def __init__(self, parameter_values=None):
-        Model.__init__(self, name="Simple_Hybrid_Model")
-
-        # Species
-        A = Species(name='A', initial_value=0)
-        B = Species(name='B', initial_value=0)
-        self.add_species([A, B])
-
-        # Parameters
-        k1 = Parameter(name='k1', expression=1)
-        k2 = Parameter(name='k2', expression=10)
-        self.add_parameter([k1, k2])
-
-        # Rate Rule
-        rate_rule = RateRule(name='Brate', variable='B', formula="cos(t)")
-        self.add_rate_rule(rate_rule)
-
-        # Reactions
-        r1 = Reaction(name='r1', reactants={A: 1}, products={}, propensity_function="k1*B")
-        r2 = Reaction(name='r2', reactants={}, products={B: 1}, rate=k2)
-        self.add_reaction([r1, r2])
-
-        self.timespan(numpy.linspace(0, 1, 11))
-
-
 class TestSimpleModel(unittest.TestCase):
     def setUp(self):
-        self.model = SimpleHybridModel()
+
+        def build_model(parameter_values=None):
+            model = Model(name="Simple_Hybrid_Model")
+
+            # Species
+            A = Species(name='A', initial_value=0)
+            B = Species(name='B', initial_value=0)
+            model.add_species([A, B])
+
+            # Parameters
+            k1 = Parameter(name='k1', expression=1)
+            k2 = Parameter(name='k2', expression=10)
+            model.add_parameter([k1, k2])
+
+            # Rate Rule
+            rate_rule = RateRule(name='Brate', variable='B', formula="cos(t)")
+            model.add_rate_rule(rate_rule)
+
+            # Reactions
+            r1 = Reaction(name='r1', reactants={A: 1}, products={}, propensity_function="k1*B")
+            r2 = Reaction(name='r2', reactants={}, products={B: 1}, rate=k2)
+            model.add_reaction([r1, r2])
+
+            model.timespan(numpy.linspace(0, 1, 11))
+            return model
+
+        self.model = build_model()
 
 #    def test_this_should_fail(self):
 #        name = self.model.name

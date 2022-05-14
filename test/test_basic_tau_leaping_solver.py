@@ -16,7 +16,7 @@
 
 import unittest
 import numpy as np
-from example_models import Example, ExampleNoTspan
+from example_models import build_example, build_example_no_tspan
 from gillespy2 import TauLeapingSolver
 from gillespy2.core.gillespyError import SimulationError
 from gillespy2.core import results
@@ -24,8 +24,8 @@ from gillespy2.core import results
 class TestBasicTauLeapingSolver(unittest.TestCase):
 
     def setUp(self):
-        self.model = Example()
-        self.model_no_tspan = ExampleNoTspan()
+        self.model = build_example()
+        self.model_no_tspan = build_example_no_tspan()
         self.solver = TauLeapingSolver(model=self.model)
         self.solver_no_tspan = TauLeapingSolver(model=self.model_no_tspan)
 
@@ -48,7 +48,7 @@ class TestBasicTauLeapingSolver(unittest.TestCase):
         results = self.solver_no_tspan.run(increment=0.2)
 
     def test_run_example__with_tspan_only(self):
-        model = Example()
+        model = build_example()
         results = TauLeapingSolver.run(model=model)
 
     def test_run_example__with_tspan_and_increment(self):
