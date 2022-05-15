@@ -18,6 +18,8 @@ import unittest
 import numpy as np
 import subprocess
 import sys
+import threading
+import multiprocessing
 from example_models import MichaelisMenten, Oregonator
 from gillespy2.core.results import Results, Trajectory
 from gillespy2.core import Species
@@ -35,6 +37,17 @@ import signal
 import time
 import os
 
+def timeout_process(t, pid):
+    os_signal = signal.SIGINT if os.name != "nt" else signal.CTRL_C_EVENT
+    def timeout_kill():
+        os.kill(pid, os_signal)
+    
+    timer = threading.Timer(t, timeout_kill)
+    try:
+        timer.start()
+        timer.join()
+    except:
+        timer.cancel()
 
 class TestPauseResume(unittest.TestCase):
     py_solvers = [
@@ -46,8 +59,8 @@ class TestPauseResume(unittest.TestCase):
     c_solvers = [
         SSACSolver,
         ODECSolver,
-        # TauLeapingCSolver,
-        # TauHybridCSolver,
+        TauLeapingCSolver,
+        TauHybridCSolver,
     ]
     solvers = [
         *py_solvers,
@@ -56,13 +69,16 @@ class TestPauseResume(unittest.TestCase):
 
     model = MichaelisMenten()
     labeled_results = {}
+    pre_built_solvers = {}
     labeled_results_more_trajectories = {}
 
+    @staticmethod
     def setUpClass():
         for sp in TestPauseResume.model.listOfSpecies.values():
             sp.mode = 'discrete'
-        for solver in TestPauseResume.solvers:
-            solver = solver(model=TestPauseResume.model)
+        for solver_class in TestPauseResume.solvers:
+            solver = solver_class(model=TestPauseResume.model)
+            TestPauseResume.pre_built_solvers[solver.name] = solver
             TestPauseResume.labeled_results[solver.name] = solver.run()
 
     def test_altered_model_failure(self):
@@ -93,30 +109,23 @@ class TestPauseResume(unittest.TestCase):
         for solver in self.solvers:
             with self.subTest(solver=solver.name), self.assertRaises((gillespyError.ExecutionError, gillespyError.SimulationError)):
                 solver = solver(model=model)
-                self.labeled_results = model.run(solver=solver, show_labels=True, resume=self.labeled_results[solver.name],
-                                                 t=1)
+                self.labeled_results[solver.name] = model.run(solver=solver, show_labels=True, resume=self.labeled_results[solver.name], t=1)
 
+    @unittest.expectedFailure
     def test_pause(self):
-        def try_solver_time(solver_name):
-            if os.name == "nt":
-                popen_args = { "creationflags": subprocess.CREATE_NEW_PROCESS_GROUP }
-                oskill = lambda proc: proc.send_signal(signal.CTRL_BREAK_EVENT)
-            else:
-                popen_args = { "start_new_session": True }
-                oskill = lambda proc: os.kill(proc.pid, signal.SIGINT)
-            with subprocess.Popen([sys.executable, model_path, solver_name], stdout=subprocess.PIPE, **popen_args) as p:
-                time.sleep(2)
-                oskill(p)
-                out, err = p.communicate()
-                if p.returncode > 1:
-                    self.fail(f"Returned status code: {p.returncode}")
-                return out.decode("utf-8").rstrip()
-
-        model_path = os.path.join(os.path.dirname(__file__), 'pause_model.py')
-        solvers = [solver.name for solver in self.py_solvers]
-        for solver_name in solvers:
-            with self.subTest("Send SIGINT to external process", solver=solver_name):
-                self.assertNotEqual(try_solver_time(solver_name), "5.0")
+        for solver_name, solver in self.pre_built_solvers.items():
+            with self.subTest("Send SIGINT during C++ solver execution", solver=solver_name):
+                timer = multiprocessing.Process(target=timeout_process, args=(2.0, os.getpid()))
+                try:
+                    timer.start()
+                    result = solver.run(t=1_000.0)
+                    # This "cancels" the timer process, however it's theoretically possible for this to fail,
+                    # if the timeout process sends its SIGINT after solver.run() but before it gets a SIGTERM.
+                    # Setting the `t` arg of `timeout_process` to be sufficiently large should make this unlikely.
+                    timer.terminate()
+                except KeyboardInterrupt:
+                    self.fail("solver.run() did not properly handle KeyboardInterrupt exception")
+                self.assertLess(result["time"][-1], solver.model.tspan[-1])
 
     def test_timeout(self):
         # For the C solvers, timeouts behave identical to a keyboard interrupt, and would return the same data, if
