@@ -1,6 +1,6 @@
 /*
  * GillesPy2 is a modeling toolkit for biochemical simulation.
- * Copyright (C) 2019-2021 GillesPy2 developers.
+ * Copyright (C) 2019-2022 GillesPy2 developers.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,7 +90,7 @@ ArgParser::ArgParser(int argc, char *argv[])
 {
 	std::stringstream arg_stream;
 
-	for (int i = 1; i < argc; i++) 
+	for (int i = 1; i < argc; i++)
 	{
 		char arg_key;
 		std::string token(argv[i]);
@@ -113,50 +113,48 @@ ArgParser::ArgParser(int argc, char *argv[])
 			arg_key = token[1];
 		}
 
-		// Create a stringstream for datatype parsing.
-		arg_stream << argv[i + 1];
-		std::stringstream arg_stream(argv[i + 1]);
-
 		switch (arg_key) 
 		{
 			case 't':
-				arg_stream >> timesteps;
+				std::stringstream(argv[i + 1]) >> timesteps;
 				break;
 
 			case 'e':
-				arg_stream >> end;
+				std::stringstream(argv[i + 1]) >> end;
 				break;
 
 			case 's':
-				arg_stream >> seed;
+				std::stringstream(argv[i + 1]) >> seed;
 				break;
 
 			case 'S':
-				arg_stream >> switch_tol;
+				std::stringstream(argv[i + 1]) >> switch_tol;
 				break;
 
 			case 'i':
-				arg_stream >> increment;
+				std::stringstream(argv[i + 1]) >> increment;
 				break;
 
 			case 'I':
+				arg_stream = std::stringstream(argv[i + 1]);
 				Gillespy::map_variable_populations(arg_stream);
 				break;
 
 			case 'p':
+				arg_stream = std::stringstream(argv[i + 1]);
 				Gillespy::map_variable_parameters(arg_stream);
 				break;
 
 			case 'T':
-				arg_stream >> trajectories;
+				std::stringstream(argv[i + 1]) >> trajectories;
 				break;
 
 			case 'l':
-				arg_stream >> tau_tol;
+				std::stringstream(argv[i + 1]) >> tau_tol;
 				break;
 
 			case 'V':
-				arg_stream >> output_interval;
+				std::stringstream(argv[i + 1]) >> output_interval;
 				break;
 
 			case 'v':

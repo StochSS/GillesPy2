@@ -1,21 +1,20 @@
-"""
-GillesPy2 is a modeling toolkit for biochemical simulation.
-Copyright (C) 2019-2021 GillesPy2 developers.
+# GillesPy2 is a modeling toolkit for biochemical simulation.
+# Copyright (C) 2019-2022 GillesPy2 developers.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import copy
 import random, math, sys
 from collections import OrderedDict
 from scipy.integrate import ode, LSODA
@@ -71,9 +70,13 @@ class TauHybridSolver(GillesPySolver):
     stop_event = None
 
     def __init__(self, model=None):
+        if model is None:
+            raise SimulationError("A model is required to run the simulation.")
+
         name = 'TauHybridSolver'
         rc = 0
-        self.model = model
+        self.model = copy.deepcopy(model)
+        self.is_instantiated = True
 
     def __toggle_reactions(self, all_compiled, deterministic_reactions, dependencies, 
                             curr_state, det_spec, rr_sets):
@@ -773,8 +776,7 @@ class TauHybridSolver(GillesPySolver):
             FunctionDefinition,
         }
 
-    @classmethod
-    def run(self, model=None, t=20, number_of_trajectories=1, increment=None, seed=None,
+    def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, seed=None,
             debug=False, profile=False, tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
             integrator_options={}, live_output=None, live_output_options={}, timeout=None, **kwargs):
         """
@@ -826,18 +828,39 @@ class TauHybridSolver(GillesPySolver):
             "clear_output" specifies if display should be refreshed with each display
         :type live_output_options:  str
         """
+        from gillespy2 import log
 
-        if isinstance(self, type):
+        if self is None:
+            # Post deprecation block
+            # raise SimulationError("TauHybridSolver must be instantiated to run the simulation")
+            # Pre deprecation block
+            log.warning(
+                """
+                `gillespy2.Model.run(solver=TauHybridSolver)` is deprecated.
+
+                You should use `gillespy2.Model.run(solver=TauHybridSolver(model=gillespy2.Model))
+                Future releases of GillesPy2 may not support this feature.
+                """
+            )
             self = TauHybridSolver(model=model)
+
+        if model is not None:
+            log.warning('model = gillespy2.model is deprecated. Future releases '
+                        'of GillesPy2 may not support this feature.')
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
-            self.model = model
-        self.model.resolve_parameters()
-        self.validate_model(self.model, model)
-        self.validate_sbml_features(model=model)
+            self.model = copy.deepcopy(model)
 
-        increment = self.get_increment(increment=increment)
+        self.model.resolve_all_parameters()
+        self.validate_model(self.model, model)
+        self.validate_sbml_features(model=self.model)
+
+        self.validate_tspan(increment=increment, t=t)
+        if increment is None:
+            increment = self.model.tspan[-1] - self.model.tspan[-2]
+        if t is None:
+            t = self.model.tspan[-1]
 
         if timeout is not None and timeout > 0:
             for i, s in enumerate(list(self.model._listOfSpecies.keys())):

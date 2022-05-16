@@ -1,20 +1,18 @@
-"""
-GillesPy2 is a modeling toolkit for biochemical simulation.
-Copyright (C) 2019-2021 GillesPy2 developers.
+# GillesPy2 is a modeling toolkit for biochemical simulation.
+# Copyright (C) 2019-2022 GillesPy2 developers.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import cProfile
 
@@ -42,7 +40,7 @@ def run_profiler(model: Model, solver: GillesPySolver, trajectories=4, timesteps
     profiler = cProfile.Profile()
     profiler.enable()
 
-    solver.run(model=model, number_of_trajectories=trajectories, t=timesteps, timeout=0)
+    solver.run(number_of_trajectories=trajectories, t=timesteps, timeout=0)
 
     profiler.disable()
     stats = pstats.Stats(profiler).strip_dirs().sort_stats(SortKey.TIME)

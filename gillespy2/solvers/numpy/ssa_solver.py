@@ -1,21 +1,20 @@
-"""
-GillesPy2 is a modeling toolkit for biochemical simulation.
-Copyright (C) 2019-2021 GillesPy2 developers.
+# GillesPy2 is a modeling toolkit for biochemical simulation.
+# Copyright (C) 2019-2022 GillesPy2 developers.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import copy
 from threading import Thread, Event
 from gillespy2.core.results import Results
 from gillespy2.core import GillesPySolver, log
@@ -35,12 +34,16 @@ class NumPySSASolver(GillesPySolver):
     pause_event = None
 
     def __init__(self, model=None):
+        if model is None:
+            raise SimulationError("A model is required to run the simulation.")
+
         name = 'NumPySSASolver'
         rc = 0
         stop_event = None
         result = None
         pause_event = None
-        self.model = model
+        self.model = copy.deepcopy(model)
+        self.is_instantiated = True
 
     def get_solver_settings(self):
         """
@@ -48,8 +51,7 @@ class NumPySSASolver(GillesPySolver):
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'timeout')
 
-    @classmethod
-    def run(self, model=None, t=20, number_of_trajectories=1, increment=None, seed=None, debug=False, show_labels=True,
+    def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, seed=None, debug=False, show_labels=True,
             live_output=None, live_output_options={}, timeout=None, resume=None, **kwargs):
 
         """
@@ -71,18 +73,39 @@ class NumPySSASolver(GillesPySolver):
 
         :returns: a list of each trajectory simulated.
         """
+        from gillespy2 import log
 
-        if isinstance(self, type):
+        if self is None:
+            # Post deprecation block
+            # raise SimulationError("NumPySSASolver must be instantiated to run the simulation")
+            # Pre deprecation block
+            log.warning(
+                """
+                `gillespy2.Model.run(solver=NumPySSASolver)` is deprecated.
+
+                You should use `gillespy2.Model.run(solver=NumPySSASolver(model=gillespy2.Model))
+                Future releases of GillesPy2 may not support this feature.
+                """
+            )
             self = NumPySSASolver(model=model)
+
+        if model is not None:
+            log.warning('model = gillespy2.model is deprecated. Future releases '
+                        'of GillesPy2 may not support this feature.')
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
-            self.model = model
-        self.model.resolve_parameters()
-        self.validate_model(self.model, model)
-        self.validate_sbml_features(model=model)
+            self.model = copy.deepcopy(model)
 
-        increment = self.get_increment(increment=increment)
+        self.model.resolve_all_parameters()
+        self.validate_model(self.model, model)
+        self.validate_sbml_features(model=self.model)
+
+        self.validate_tspan(increment=increment, t=t)
+        if increment is None:
+            increment = self.model.tspan[-1] - self.model.tspan[-2]
+        if t is None:
+            t = self.model.tspan[-1]
 
         self.stop_event = Event()
         self.pause_event = Event()

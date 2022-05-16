@@ -1,6 +1,6 @@
 /*
  * GillesPy2 is a modeling toolkit for biochemical simulation.
- * Copyright (C) 2019-2021 GillesPy2 developers.
+ * Copyright (C) 2019-2022 GillesPy2 developers.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -295,6 +295,11 @@ namespace Gillespy
 			HybridSimulation();
 
 			HybridSimulation(const Model<double> &model);
+
+			enum SIMULATION_STATUS : uint8_t
+			{
+				LOOP_OVER_INTEGRATE = 1,
+			};
 		};
 
 		std::set<int> flag_det_rxns(

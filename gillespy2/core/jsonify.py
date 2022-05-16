@@ -1,20 +1,18 @@
-"""
-GillesPy2 is a modeling toolkit for biochemical simulation.
-Copyright (C) 2019-2021 GillesPy2 developers.
+# GillesPy2 is a modeling toolkit for biochemical simulation.
+# Copyright (C) 2019-2022 GillesPy2 developers.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
 import copy
@@ -195,6 +193,7 @@ class ComplexJsonCoder(JSONEncoder):
 
         self._delegation_table = {
             numpy.ndarray: NdArrayCoder,
+            numpy.int64: Int64Coder,
             set: SetCoder,
             type: TypeCoder
         }
@@ -377,6 +376,20 @@ class NdArrayCoder(Jsonify):
     @staticmethod
     def from_json(obj):
         return numpy.array(obj["data"])
+
+class Int64Coder(Jsonify):
+    """ This JSON coder enables support for  the `numpy.int64` type. """
+
+    @staticmethod
+    def to_dict(obj):
+        return {
+            "data": int(obj),
+            "_type": f"{Int64Coder.__module__}.{Int64Coder.__name__}"
+        }
+
+    @staticmethod
+    def from_json(obj):
+        return numpy.int64(obj["data"])
 
 class SetCoder(Jsonify):
     """ This JSON coder enables support for the `set` type. """

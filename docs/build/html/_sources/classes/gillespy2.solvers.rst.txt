@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    gillespy2.solvers.cpp
    gillespy2.solvers.cython

@@ -1,22 +1,21 @@
-"""
-GillesPy2 is a modeling toolkit for biochemical simulation.
-Copyright (C) 2019-2021 GillesPy2 developers.
+# GillesPy2 is a modeling toolkit for biochemical simulation.
+# Copyright (C) 2019-2022 GillesPy2 developers.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Class and methods for the CLE Solver"""
+import copy
 import random
 import math
 from threading import Thread, Event
@@ -45,6 +44,9 @@ class CLESolver(GillesPySolver):
     result = None
 
     def __init__(self, model=None, debug=False, profile=False):
+        if model is None:
+            raise SimulationError("A model is required to run the simulation.")
+
         name = "CLESolver"
         rc = 0
         stop_event = None
@@ -53,6 +55,7 @@ class CLESolver(GillesPySolver):
         self.model = model
         self.debug = debug
         self.profile = profile
+        self.is_instantiated = True
 
     def __get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions):
         """
@@ -101,8 +104,7 @@ class CLESolver(GillesPySolver):
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile','timeout', 'tau_tol')
 
-    @classmethod
-    def run(self, model=None, t=20, number_of_trajectories=1, increment=None, seed=None,
+    def run(self=None, model=None, t=20, number_of_trajectories=1, increment=None, seed=None,
             debug=False, profile=False,  live_output=None, live_output_options={},
             timeout=None, resume=None, tau_tol=0.03, **kwargs):
         """
@@ -147,18 +149,39 @@ class CLESolver(GillesPySolver):
 
         :returns:
         """
+        from gillespy2 import log
 
-        if isinstance(self, type):
+        if self is None:
+            # Post deprecation block
+            # raise SimulationError("CLESolver must be instantiated to run the simulation")
+            # Pre deprecation block
+            log.warning(
+                """
+                `gillespy2.Model.run(solver=CLESolver)` is deprecated.
+
+                You should use `gillespy2.Model.run(solver=CLESolver(model=gillespy2.Model))
+                Future releases of GillesPy2 may not support this feature.
+                """
+            )
             self = CLESolver(model=model, debug=debug, profile=profile)
+        
+        if model is not None:
+            log.warning('model = gillespy2.model is deprecated. Future releases '
+                        'of GillesPy2 may not support this feature.')
         if self.model is None:
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
-            self.model = model
-        self.model.resolve_parameters()
+            self.model = copy.deepcopy(model)
+        
+        self.model.resolve_all_parameters()
         self.validate_model(self.model, model)
-        self.validate_sbml_features(model=model)
+        self.validate_sbml_features(model=self.model)
 
-        increment = self.get_increment(increment=increment)
+        self.validate_tspan(increment=increment, t=t)
+        if increment is None:
+            increment = self.model.tspan[-1] - self.model.tspan[-2]
+        if t is None:
+            t = self.model.tspan[-1]
 
         self.stop_event = Event()
         self.pause_event = Event()

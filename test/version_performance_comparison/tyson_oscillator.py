@@ -125,5 +125,6 @@ if __name__ == '__main__':
     tic = time.time()
     for _ in range(10):
         tyson_model = Tyson2StateOscillator()
-        trajectories = tyson_model.run(solver=SSACSolver)
+        solver = SSACSolver(model=model)
+        trajectories = tyson_model.run(solver=solver)
     print((time.time() - tic)/10)

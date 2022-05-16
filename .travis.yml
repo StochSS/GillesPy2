@@ -36,7 +36,8 @@ install:
   - pip3 install cython
   - pip3 install coverage
 script:
-  - "coverage run --source=gillespy2 --omit=gillespy2/solvers/stochkit/* test/run_tests.py -m develop"
+  - "coverage run --source=gillespy2 --omit=gillespy2/solvers/stochkit/* test/run_unit_tests.py -m develop"
+  - "coverage run --source=gillespy2 --omit=gillespy2/solvers/stochkit/* test/run_integration_tests.py -m develop"
 deploy:
   # API token stored in env var PYPI_PASSWORD on Travis CI
   provider: pypi

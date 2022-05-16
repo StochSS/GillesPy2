@@ -1,20 +1,18 @@
-"""
-GillesPy2 is a modeling toolkit for biochemical simulation.
-Copyright (C) 2019-2021 GillesPy2 developers.
+# GillesPy2 is a modeling toolkit for biochemical simulation.
+# Copyright (C) 2019-2022 GillesPy2 developers.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import gillespy2
@@ -213,26 +211,45 @@ def __get_reactions(sbml_model, gillespy_model, errors):
         p_set = set()
         # get reactants
         for j in range(reaction.getNumReactants()):
-            species = reaction.getReactant(j)
-            if species.getSpecies() == "EmptySet": continue
+            reactant = reaction.getReactant(j)
+            species = reactant.getSpecies()
+
+            if species == "EmptySet": continue
             else:
-                if species.getSpecies() in r_set:
-                    reactants[species.getSpecies()] += species.getStoichiometry()
+                stoichiometry = reactant.getStoichiometry()
+                if isinstance(stoichiometry, float):
+                    if int(stoichiometry) != stoichiometry:
+                        logmsg = f"Reaction {name} contains a float stoichiometry for reactant {species}.  "
+                        logmsg += "Please check your model as this may cause inaccuracies in the results."
+                        gillespy2.log.warning(logmsg)
+                    stoichiometry = int(stoichiometry)
+    
+                if species in r_set:
+                    reactants[species] += stoichiometry
                 else:
-                    r_set.add(species.getSpecies())
-                    reactants[species.getSpecies()] = species.getStoichiometry()
+                    r_set.add(species)
+                    reactants[species] = stoichiometry
 
         # get products
         for j in range(reaction.getNumProducts()):
-            species = reaction.getProduct(j)
+            product = reaction.getProduct(j)
+            species = product.getSpecies()
 
-            if species.getSpecies() == "EmptySet": continue
+            if species == "EmptySet": continue
             else:
-                if species.getSpecies() in p_set:
-                    products[species.getSpecies()] += species.getStoichiometry()
+                stoichiometry = product.getStoichiometry()
+                if isinstance(stoichiometry, float):
+                    if int(stoichiometry) != stoichiometry:
+                        logmsg = f"Reaction {name} contains a float stoichiometry for product {species}.  "
+                        logmsg += "Please check your model as this may cause inaccuracies in the results."
+                        gillespy2.log.warning(logmsg)
+                    stoichiometry = int(stoichiometry)
+
+                if species in p_set:
+                    products[species] += stoichiometry
                 else:
-                    p_set.add(species.getSpecies())
-                    products[species.getSpecies()] = species.getStoichiometry()
+                    p_set.add(species)
+                    products[species] = stoichiometry
 
         gillespy_reaction = gillespy2.Reaction(name=name, reactants=reactants, products=products,
                                              propensity_function=propensity)

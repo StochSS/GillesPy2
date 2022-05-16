@@ -1,20 +1,18 @@
-"""
-GillesPy2 is a modeling toolkit for biochemical simulation.
-Copyright (C) 2019-2021 GillesPy2 developers.
+# GillesPy2 is a modeling toolkit for biochemical simulation.
+# Copyright (C) 2019-2022 GillesPy2 developers.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import unittest
 import numpy as np
@@ -34,91 +32,92 @@ from gillespy2 import TauHybridCSolver
 
 class TestAllSolvers(unittest.TestCase):
 
-    solvers = [
-        SSACSolver,
-        ODESolver,
-        NumPySSASolver,
-        TauLeapingSolver,
-        TauHybridSolver,
-        ODECSolver,
-        TauLeapingCSolver,
-        TauHybridCSolver,
-    ]
+    @classmethod
+    def setUpClass(cls):
+        cls.solvers = [
+            SSACSolver,
+            ODESolver,
+            NumPySSASolver,
+            TauLeapingSolver,
+            TauHybridSolver,
+            ODECSolver,
+            TauLeapingCSolver,
+            TauHybridCSolver,
+        ]
 
-    sbml_features = {
-        "AssignmentRule": lambda model, variable:
-            model.add_assignment_rule(gillespy2.AssignmentRule(variable=variable, formula="1/(t+1)")),
-        "RateRule": lambda model, variable:
-            model.add_rate_rule(gillespy2.RateRule(variable=variable, formula="2*t")),
-        "Event": lambda model, variable:
-            model.add_event(gillespy2.Event(
-                trigger=gillespy2.EventTrigger(expression="t>1"),
-                assignments=[gillespy2.EventAssignment(variable=variable, expression="100")]
-            )),
-        "FunctionDefinition": lambda model, variable:
-            model.add_function_definition(
-                gillespy2.FunctionDefinition(name="fn", function="variable", args=["variable"])),
-    }
+        cls.sbml_features = {
+            "AssignmentRule": lambda model, variable:
+                model.add_assignment_rule(gillespy2.AssignmentRule(variable=variable, formula="1/(t+1)")),
+            "RateRule": lambda model, variable:
+                model.add_rate_rule(gillespy2.RateRule(variable=variable, formula="2*t")),
+            "Event": lambda model, variable:
+                model.add_event(gillespy2.Event(
+                    trigger=gillespy2.EventTrigger(expression="t>1"),
+                    assignments=[gillespy2.EventAssignment(variable=variable, expression="100")]
+                )),
+            "FunctionDefinition": lambda model, variable:
+                model.add_function_definition(
+                    gillespy2.FunctionDefinition(name="fn", function="variable", args=["variable"])),
+        }
 
-    # List of supported SBML features for each solver.
-    # When a feature is implemented for a particular solver, add the feature to its list.
-    solver_supported_sbml_features = {
-        NumPySSASolver: [],
-        TauLeapingSolver: [],
-        ODESolver: [],
-        TauHybridSolver: [
-            "AssignmentRule",
-            "RateRule",
-            "Event",
-            "FunctionDefinition",
-        ],
+        # List of supported SBML features for each solver.
+        # When a feature is implemented for a particular solver, add the feature to its list.
+        cls.solver_supported_sbml_features = {
+            NumPySSASolver: [],
+            TauLeapingSolver: [],
+            ODESolver: [],
+            TauHybridSolver: [
+                "AssignmentRule",
+                "RateRule",
+                "Event",
+                "FunctionDefinition",
+            ],
 
-        SSACSolver: [],
-        ODECSolver: [],
-        TauLeapingCSolver: [],
-        TauHybridCSolver: [
-            "RateRule",
-            "Event",
-        ],
-    }
+            SSACSolver: [],
+            ODECSolver: [],
+            TauLeapingCSolver: [],
+            TauHybridCSolver: [
+                "RateRule",
+                "Event",
+            ],
+        }
 
-    model = Example()
-    for sp in model.listOfSpecies.values():
-        sp.mode = 'discrete'
-    results = {}
-    labeled_results = {}
-    labeled_results_more_trajectories = {}
+        cls.model = Example()
 
-    for solver in solvers:
-        labeled_results[solver] = model.run(solver=solver, number_of_trajectories=1,seed=1)
-        labeled_results_more_trajectories[solver] = model.run(solver=solver, number_of_trajectories=2)
+        cls.results = {}
+        cls.labeled_results = {}
+        cls.labeled_results_more_trajectories = {}
+    
+    def test_extraneous_args(self):
+        for solver in self.solvers:
+            with self.subTest(solver=solver.name), self.assertLogs('GillesPy2', level='WARN'):
+                model = Example()
+                solver = solver(model=model)
+                model.run(solver=solver, nonsense='ABC')
 
     def test_instantiated(self):
+        for sp in self.model.listOfSpecies.values():
+            sp.mode = 'discrete'
+
         for solver in self.solvers:
-            self.model.run(solver=solver())
-
-    def test_to_array(self):
-        for solver in self.solvers:
-            self.assertTrue(isinstance(self.labeled_results[solver].to_array()[0], np.ndarray))
-
-    def test_return_type_show_labels(self):
-        for solver in self.solvers:
-            self.assertTrue(isinstance(self.labeled_results[solver], Results))
-            self.assertTrue(isinstance(self.labeled_results[solver]['Sp'], np.ndarray))
-            self.assertTrue(isinstance(self.labeled_results[solver]['Sp'][0], np.float))
-
-            self.assertTrue(isinstance(self.labeled_results[solver][0], Trajectory))
-
-            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver], Results))
-            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0], Trajectory))
-            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0]['Sp'], np.ndarray))
-            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver][0]['Sp'][0], np.float))
+            with self.subTest(solver=solver.name):
+                solver = solver(model=self.model)
+                if "ODE" in solver.name:
+                    self.labeled_results[solver.name] = self.model.run(solver=solver, number_of_trajectories=1)
+                else:
+                    self.labeled_results[solver.name] = self.model.run(solver=solver, number_of_trajectories=1, seed=1)
+                self.labeled_results_more_trajectories[solver.name] = self.model.run(solver=solver, number_of_trajectories=2)
 
     def test_random_seed(self):
         for solver in self.solvers:
             with self.subTest(solver=solver.name):
-                same_results = self.model.run(solver=solver, seed=1)
-                compare_results = self.model.run(solver=solver,seed=1)
+                solver = solver(model=self.model)
+                if "ODE" in solver.name:
+                    same_results = self.model.run(solver=solver)
+                    compare_results = self.model.run(solver=solver)
+                else:
+                    same_results = self.model.run(solver=solver, seed=1)
+                    compare_results = self.model.run(solver=solver,seed=1)
                 self.assertTrue(np.array_equal(same_results.to_array(), compare_results.to_array()))
                 if solver.name in ["ODESolver", "ODECSolver"]: continue
                 diff_results = self.model.run(solver=solver, seed=2)
@@ -132,25 +131,30 @@ class TestAllSolvers(unittest.TestCase):
         model.add_reaction(unnamed_rxn)
         for solver in self.solvers:
             with self.subTest(solver=solver.name):
-                same_results = self.model.run(solver=solver, seed=1)
-                compare_results = self.model.run(solver=solver,seed=1)
+                solver = solver(model=self.model)
+                if "ODE" in solver.name:
+                    same_results = self.model.run(solver=solver)
+                    compare_results = self.model.run(solver=solver)
+                else:
+                    same_results = self.model.run(solver=solver, seed=1)
+                    compare_results = self.model.run(solver=solver,seed=1)
                 self.assertTrue(np.array_equal(same_results.to_array(), compare_results.to_array()))
                 if solver.name in ["ODESolver", "ODECSolver"]: continue
                 diff_results = self.model.run(solver=solver, seed=2)
                 self.assertFalse(np.array_equal(diff_results.to_array(), same_results.to_array()))
 
-    def test_extraneous_args(self):
+    def test_return_type_show_labels(self):
         for solver in self.solvers:
-            with self.subTest(solver=solver.name), self.assertLogs(level='WARN'):
-                model = Example()
-                model.run(solver=solver, nonsense='ABC')
+            self.assertTrue(isinstance(self.labeled_results[solver.name], Results))
+            self.assertTrue(isinstance(self.labeled_results[solver.name]['Sp'], np.ndarray))
+            self.assertTrue(isinstance(self.labeled_results[solver.name]['Sp'][0], np.float))
 
-    def test_timeout(self):
-        for solver in self.solvers:
-            with self.subTest(solver=solver.name), self.assertLogs(level='WARN'):
-                model = Oregonator()
-                model.timespan(np.linspace(0, 1000000, 1001))
-                model.run(solver=solver, timeout=0.1)
+            self.assertTrue(isinstance(self.labeled_results[solver.name][0], Trajectory))
+
+            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver.name], Results))
+            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver.name][0], Trajectory))
+            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver.name][0]['Sp'], np.ndarray))
+            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver.name][0]['Sp'][0], np.float))
 
     def test_sbml_feature_validation(self):
         class TestModel(gillespy2.Model):
@@ -177,6 +181,18 @@ class TestAllSolvers(unittest.TestCase):
                         add_sbml_feature = self.sbml_features.get(sbml_feature_name)
                         add_sbml_feature(model, "S")
                         solver.validate_sbml_features(model=model)
+
+    def test_timeout(self):
+        for solver in self.solvers:
+            with self.subTest(solver=solver.name), self.assertLogs('GillesPy2', level='WARN'):
+                model = Oregonator()
+                model.timespan(np.linspace(0, 1000000, 1001))
+                solver = solver(model=model)
+                model.run(solver=solver, timeout=0.1)
+
+    def test_to_array(self):
+        for solver in self.solvers:
+            self.assertTrue(isinstance(self.labeled_results[solver.name].to_array()[0], np.ndarray))
 
 
 if __name__ == '__main__':
