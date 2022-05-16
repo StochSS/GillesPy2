@@ -63,13 +63,8 @@ namespace Gillespy
 				}
 
 				double propensity_sum;
-				while (simulation->current_time < (simulation->end_time))
+				while (!interrupted && simulation->current_time < (simulation->end_time))
 				{
-					if (interrupted)
-					{
-						break;
-					}
-
 					//Sum propensities
 					propensity_sum = 0;
 					for (unsigned int reaction_number = 0; reaction_number < ((simulation->model)->number_reactions); reaction_number++)
@@ -124,9 +119,9 @@ namespace Gillespy
 					}
 				}
 
-				
 				// Copy final state for rest of entries
-				if (entry_count < simulation->number_timesteps)
+				// Do not copy if interrupted! Produces wildly inaccurate results.
+				if (!interrupted && entry_count < simulation->number_timesteps)
 				{
 					simulation->current_time = simulation->timeline[simulation->number_timesteps - 1];
 					simulation->output_buffer_range(std::cout, simulation->number_timesteps - 1);
