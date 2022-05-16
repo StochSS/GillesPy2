@@ -271,7 +271,7 @@ def build_schlogl(parameter_values=None):
 
     model.add_parameter([k1, k2])
 
-    j1 = Reaction(name="j1", reactants={s1: 1, s4: 1}, products={s4: 2.0}, rate=k1)
+    j1 = Reaction(name="j1", reactants={s1: 1, s4: 1}, products={s4: 2}, rate=k1)
     j2 = Reaction(name="j2", reactants={s2: 1, s4: 1}, products={s3: 1}, rate=k2)
 
     model.add_reaction([j1, j2])
@@ -569,7 +569,3 @@ __all__ = [
     'build_example', 'build_example_no_tspan', 'build_tyson_2_state_oscillator', 'build_oregonator',
     'build_vilar_oscillator', 'build_dimerization', 'build_degradation', 'build_robust_model', 'build_multi_firing_event'
 ]
-
-# __all__ = ['Trichloroethylene', 'LacOperon', 'Schlogl', 'MichaelisMenten', 'MultiFiringEvent',
-#            'ToggleSwitch', 'Example', 'ExampleNoTspan', 'Tyson2StateOscillator', 'Oregonator',
-#            'VilarOscillator', 'Dimerization', 'Degradation', 'RobustModel']
