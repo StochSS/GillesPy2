@@ -16,11 +16,11 @@
 
 import unittest
 import numpy as np
-import subprocess
-import sys
+import signal
 import threading
 import multiprocessing
 from example_models import MichaelisMenten, Oregonator
+from gillespy2.core.model import Model
 from gillespy2.core.results import Results, Trajectory
 from gillespy2.core import Species
 from gillespy2 import NumPySSASolver
@@ -32,12 +32,16 @@ from gillespy2 import ODECSolver
 from gillespy2 import TauLeapingCSolver
 from gillespy2 import TauHybridCSolver
 from gillespy2.core import gillespyError
-import subprocess
-import signal
-import time
 import os
 
+
 def timeout_process(t, pid):
+    """
+    Delegate function executed by the `multiprocessing` package,
+    which sends a keyboard interrupt to the specified process.
+    The test runner is expected to execute independently,
+    reacting to the interrupt sent by this background process.
+    """
     os_signal = signal.SIGINT if os.name != "nt" else signal.CTRL_C_EVENT
     def timeout_kill():
         os.kill(pid, os_signal)
@@ -48,6 +52,24 @@ def timeout_process(t, pid):
         timer.join()
     except:
         timer.cancel()
+
+def hybrid_model(model: Model, mode: str = 'discrete'):
+    """
+    Accepts and returns a model after modifying all species to use the specified mode.
+    Used as a clean way to declare the same model for multiple hybrid solver configs.
+    """
+    for spec in model.listOfSpecies.values():
+        spec.mode = mode
+    return model
+
+def model_time(model: Model, time: float, increment: float = 1.0):
+    """
+    Accepts and returns a model after modifying its timespan to use the given time range.
+    Used as a clean way to declare the same model with different timespans.
+    """
+    model.timespan(np.linspace(0, time, int(1 + (time / increment))))
+    return model
+
 
 class TestPauseResume(unittest.TestCase):
     py_solvers = [
@@ -67,9 +89,30 @@ class TestPauseResume(unittest.TestCase):
         *c_solvers,
     ]
 
+    # Models used for testing different solvers' interrupts.
+    interrupt_models = {
+        "ode": model_time(MichaelisMenten(), 10_000, 0.01),
+        "ssa": Oregonator(),
+        "discrete": hybrid_model(Oregonator(), 'discrete'),
+        "continuous": hybrid_model(Oregonator(), 'continuous'),
+    }
+
+    # Match each solver class to a preferred model to construct it with.
+    # References the keys in the `interrupt_models` table.
+    interrupt_solvers = {
+        ODESolver: ["ode"],
+        NumPySSASolver: ["ssa"],
+        TauLeapingSolver: ["ssa"],
+        ODECSolver: ["ode"],
+        SSACSolver: ["ssa"],
+        TauLeapingCSolver: ["ssa"],
+        # TauHybridSolver: ["continuous", "discrete"],
+        TauHybridCSolver: ["continuous", "discrete"],
+    }
+
     model = MichaelisMenten()
     labeled_results = {}
-    pre_built_solvers = {}
+    pre_built_solvers = []
     labeled_results_more_trajectories = {}
 
     @staticmethod
@@ -78,8 +121,15 @@ class TestPauseResume(unittest.TestCase):
             sp.mode = 'discrete'
         for solver_class in TestPauseResume.solvers:
             solver = solver_class(model=TestPauseResume.model)
-            TestPauseResume.pre_built_solvers[solver.name] = solver
             TestPauseResume.labeled_results[solver.name] = solver.run()
+
+        # Construct pre-built solvers for interrupt tests
+        # These are intentionally designed to run ~30s and are hand-picked for each solver.
+        for solver_class, model_type_list in TestPauseResume.interrupt_solvers.items():
+            for model_type in model_type_list:
+                model = TestPauseResume.interrupt_models.get(model_type)
+                solver = solver_class(model=model)
+                TestPauseResume.pre_built_solvers.append(solver)
 
     def test_altered_model_failure(self):
         model = MichaelisMenten()
@@ -111,21 +161,22 @@ class TestPauseResume(unittest.TestCase):
                 solver = solver(model=model)
                 self.labeled_results[solver.name] = model.run(solver=solver, show_labels=True, resume=self.labeled_results[solver.name], t=1)
 
-    @unittest.expectedFailure
     def test_pause(self):
-        for solver_name, solver in self.pre_built_solvers.items():
-            with self.subTest("Send SIGINT during C++ solver execution", solver=solver_name):
-                timer = multiprocessing.Process(target=timeout_process, args=(2.0, os.getpid()))
+        for solver in self.pre_built_solvers:
+            with self.subTest("Send SIGINT during C++ solver execution", solver=solver.name):
+                timer = multiprocessing.Process(target=timeout_process, args=(0.5, os.getpid()))
                 try:
                     timer.start()
-                    result = solver.run(t=1_000.0)
+                    result = solver.run()
                     # This "cancels" the timer process, however it's theoretically possible for this to fail,
                     # if the timeout process sends its SIGINT after solver.run() but before it gets a SIGTERM.
                     # Setting the `t` arg of `timeout_process` to be sufficiently large should make this unlikely.
                     timer.terminate()
                 except KeyboardInterrupt:
                     self.fail("solver.run() did not properly handle KeyboardInterrupt exception")
-                self.assertLess(result["time"][-1], solver.model.tspan[-1])
+                max_time = result["time"].max()
+                self.assertGreater(max_time, 0.0)
+                self.assertLess(max_time, solver.model.tspan[-1])
 
     def test_timeout(self):
         # For the C solvers, timeouts behave identical to a keyboard interrupt, and would return the same data, if
