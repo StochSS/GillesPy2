@@ -33,7 +33,7 @@ def build_vilar_oscillator(parameter_values=None):
     # Set System Volume
     model.volume = 1
 
-    # Define Species
+    # Define Variables (GillesPy2.Species)
     Da = gillespy2.Species(name="Da", initial_value=1, mode="discrete")
     Da_prime = gillespy2.Species(name="Da_prime", initial_value=0, mode="discrete")
     Ma = gillespy2.Species(name="Ma", initial_value=0, mode="discrete")
@@ -44,7 +44,7 @@ def build_vilar_oscillator(parameter_values=None):
     A = gillespy2.Species(name="A", initial_value=0, mode="discrete")
     R = gillespy2.Species(name="R", initial_value=0, mode="discrete")
 
-    # Add Species to Model
+    # Add Vairables to Model
     model.add_species([Da, Da_prime, Ma, Dr, Dr_prime, Mr, C, A, R])
 
     # Define Parameters

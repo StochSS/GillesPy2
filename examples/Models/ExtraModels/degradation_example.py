@@ -86,10 +86,10 @@ def build_protein_decay(parameter_values=None):
     # Instantiate Model
     model = gillespy2.Model(name="Protein Decay")
 
-    # Define Species
+    # Define Variables (GillesPy2.Species)
     protein = gillespy2.Species(name='protein', initial_value=50)
 
-    # Add Species to Model
+    # Add Variables to Model
     model.add_species(protein)
 
     # Define Parameters
@@ -100,7 +100,7 @@ def build_protein_decay(parameter_values=None):
 
     # Define Reactions
     reaction = gillespy2.Reaction(
-        name="decay", rate=decayrate, reactants={protein: 1}, products={}
+        name="decay", rate='decayrate', reactants={'protein': 1}, products={}
     )
 
     # Add Reactions to Model

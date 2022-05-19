@@ -80,6 +80,13 @@ def build_dimerization(parameter_values=None):
     # Initialize Model
     model = gillespy2.Model(name="Dimerization")
 
+    # Define Variables (GillesPy2.Species)
+    m = gillespy2.Species(name='monomer', initial_value=30)
+    d = gillespy2.Species(name='dimer',   initial_value=0)
+
+    # Add Variables to Model
+    model.add_species([m, d])
+
     # Define Parameters
     k_c = gillespy2.Parameter(name='k_c', expression=0.005)
     k_d = gillespy2.Parameter(name='k_d', expression=0.08)
@@ -87,19 +94,12 @@ def build_dimerization(parameter_values=None):
     # Add Parameters to Model
     model.add_parameter([k_c, k_d])
 
-    # Define Species
-    m = gillespy2.Species(name='monomer', initial_value=30)
-    d = gillespy2.Species(name='dimer',   initial_value=0)
-
-    # Add Species to Model
-    model.add_species([m, d])
-
     # Define Reactions
     r_creation = gillespy2.Reaction(
-        name="r_creation", reactants={m: 2}, products={d: 1}, rate=k_c
+        name="r_creation", reactants={'monomer': 2}, products={'dimer': 1}, rate='k_c'
     )
     r_dissociation = gillespy2.Reaction(
-        name="r_dissociation", reactants={d: 1}, products={m: 2}, rate=k_d
+        name="r_dissociation", reactants={'dimer': 1}, products={'monomer': 2}, rate='k_d'
     )
 
     # Add Reactions to Model

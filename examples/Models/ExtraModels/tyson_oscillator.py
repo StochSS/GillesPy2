@@ -60,17 +60,18 @@ except:
 # concentration units. Volume here = 300.
 
 def build_tyson_oscillator(parameter_values=None):
+    # Initialize Model
     model = gillespy2.Model(name="tyson-2-state")
     
     # Set System Volume
     model.volume = 300
     
-    # Define Species
+    # Define Variables (GillesPy2.Species)
     # Initial values of each species (concentration converted to pop.)
     X = gillespy2.Species(name='X', initial_value=int(0.65609071 * model.volume))
     Y = gillespy2.Species(name='Y', initial_value=int(0.85088331 * model.volume))
     
-    # Add Species to Model
+    # Add Variables to Model
     model.add_species([X, Y])
 
     # Define Parameters
@@ -88,17 +89,17 @@ def build_tyson_oscillator(parameter_values=None):
     # Define Reactions
     # creation of X:
     rxn1 = gillespy2.Reaction(
-        name='X production', reactants={}, products={X: 1}, propensity_function='vol*1/(1+(Y*Y/((vol*vol))))'
+        name='X production', reactants={}, products={'X': 1}, propensity_function='vol*1/(1+(Y*Y/((vol*vol))))'
     )
     # degradadation of X:
-    rxn2 = gillespy2.Reaction(name='X degradation', reactants={X: 1}, products={}, rate=kdx)
+    rxn2 = gillespy2.Reaction(name='X degradation', reactants={'X': 1}, products={}, rate='kdx')
     # creation of Y:
-    rxn3 = gillespy2.Reaction(name='Y production', reactants={X: 1}, products={X: 1, Y: 1}, rate=kt)
+    rxn3 = gillespy2.Reaction(name='Y production', reactants={'X': 1}, products={'X': 1, 'Y': 1}, rate='kt')
     # degradation of Y:
-    rxn4 = gillespy2.Reaction(name='Y degradation', reactants={Y: 1}, products={}, rate=kd)
+    rxn4 = gillespy2.Reaction(name='Y degradation', reactants={'Y': 1}, products={}, rate='kd')
     # nonlinear Y term:
     rxn5 = gillespy2.Reaction(
-        name='Y nonlin', reactants={Y: 1}, products={}, propensity_function='Y/(a0 + a1*(Y/vol)+a2*Y*Y/(vol*vol))'
+        name='Y nonlin', reactants={'Y': 1}, products={}, propensity_function='Y/(a0 + a1*(Y/vol)+a2*Y*Y/(vol*vol))'
     )
 
     # Add Reactions to Model
