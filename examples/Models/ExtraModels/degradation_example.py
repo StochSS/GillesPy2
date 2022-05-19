@@ -56,9 +56,14 @@
 # 2019-07-26 <mhucka@caltech.edu> Created.
 # =============================================================================
 
-import matplotlib.pyplot as plt
-import numpy
+# Setup the Environment
+# .............................................................................
+import os
 import sys
+sys.path.insert(1, os.path.abspath(os.path.join(os.getcwd(), '../')))
+
+# MatPlotLib is used for creating custom visualizations
+import matplotlib.pyplot as plt
 
 try:
     import gillespy2
@@ -75,60 +80,50 @@ except:
     sys.exit()
 
 
-# Model definition.
+# Build the Protein Decay Model
 # .............................................................................
-# In GillesPy2, a model to be simulated is expressed as an object having the
-# parent class "Model".  Components of the model to be simulated, such as the
-# reactions, molecular species, and the time span for simulation, are all
-# defined within the class definition.
+def build_protein_decay(parameter_values=None):
+    # Instantiate Model
+    model = gillespy2.Model(name="Protein Decay")
 
-class ProteinDecay(gillespy2.Model):
-    def __init__(self, parameter_values=None):
-        # First call the gillespy2.Model initializer.
-        super().__init__(self)
+    # Define Species
+    protein = gillespy2.Species(name='protein', initial_value=50)
 
-        # Define a parameter that represents the rate of decay.
-        decayrate = gillespy2.Parameter(name='decayrate', expression=0.05)
-        self.add_parameter([decayrate])
+    # Add Species to Model
+    model.add_species(protein)
 
-        # Define a molecular species representing the protein; "initial_value"
-        # sets the number of molecules initial present of simulation.
-        protein = gillespy2.Species(name='protein', initial_value=50)
-        self.add_species([protein])
+    # Define Parameters
+    decayrate = gillespy2.Parameter(name='decayrate', expression=0.05)
 
-        # Define the reaction representing the decay process.  In GillesPy2,
-        # the list of reactants and products for a Reaction object are each a
-        # Python dictionary in which the dictionary keys are Species objects
-        # and the values are stoichiometries of the species in the reaction.
-        # (In this example, we have only one reactant, and no products.) The
-        # "rate" for the Reaction object is a Parameter representing the
-        # propensity of this reaction firing.)
-        reaction = gillespy2.Reaction(name="decay", rate=decayrate,
-                                      reactants={protein:1}, products={})
-        self.add_reaction([reaction])
+    # Add Parameters to Model
+    model.add_parameter(decayrate)
 
-        # Set the timespan for the simulation.
-        self.timespan(numpy.linspace(0, 100, 101))
+    # Define Reactions
+    reaction = gillespy2.Reaction(
+        name="decay", rate=decayrate, reactants={protein: 1}, products={}
+    )
+
+    # Add Reactions to Model
+    model.add_reaction(reaction)
+
+    # Define Timespan
+    tspan = gillespy2.TimeSpan.linspace(t=100, num_points=101)
+
+    # Set Model Timespan
+    model.timespan(tspan)
+    return model
+
+# Instantiate the Model
+model = build_protein_decay()
 
 
-# Model simulation.
+# Run the Simulations
 # .............................................................................
-# A simulation in GillesPy2 is performed by first instantiating the model to
-# be simulated, and then invoking the "run" method on that object.  The
-# results of the simulation are the output of "run".
+trajectory = model.run()
 
-model = ProteinDecay()
-output = model.run()
 
-# The format of the results from a model run is is an array of values for
-# different time points.  The plotting code below creates a plot of the
-# single trajectory found in the output.  To simplify the code slightly,
-# we set the variable "trajectory" to the relevant part of the output array.
-
-trajectory = output[0]      # There is only one species, hence one value
-
-# Finally, we create a figure, plot the values, label the plot, and display it.
-
+# Visualizations
+# .............................................................................
 plt.figure(figsize=(8, 5))
 plt.plot(trajectory['time'], trajectory['protein'], 'r', label='Protein')
 plt.plot([0], [11])

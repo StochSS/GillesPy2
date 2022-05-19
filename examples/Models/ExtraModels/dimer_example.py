@@ -50,9 +50,14 @@
 # 2019-07-26 <mhucka@caltech.edu> Created.
 # =============================================================================
 
-import matplotlib.pyplot as plt
-import numpy
+# Setup the Environment
+# .............................................................................
+import os
 import sys
+sys.path.insert(1, os.path.abspath(os.path.join(os.getcwd(), '../')))
+
+# MatPlotLib is used for creating custom visualizations
+import matplotlib.pyplot as plt
 
 try:
     import gillespy2
@@ -69,62 +74,63 @@ except:
     sys.exit()
 
 
-# Model definition.
+# Build the Dimerization Model
 # .............................................................................
-# In GillesPy2, a model to be simulated is expressed as an object having the
-# parent class "Model".  Components of the model to be simulated, such as the
-# reactions, molecular species, and the time span for simulation, are all
-# defined within the class definition.
+def build_dimerization(parameter_values=None):
+    # Initialize Model
+    model = gillespy2.Model(name="Dimerization")
 
-class Dimerization(gillespy2.Model):
-    def __init__(self, parameter_values=None):
-        # First call the gillespy2.Model initializer.
-        super().__init__(self)
+    # Define Parameters
+    k_c = gillespy2.Parameter(name='k_c', expression=0.005)
+    k_d = gillespy2.Parameter(name='k_d', expression=0.08)
 
-        # Define parameters for the rates of creation and dissociation.
-        k_c = gillespy2.Parameter(name='k_c', expression=0.005)
-        k_d = gillespy2.Parameter(name='k_d', expression=0.08)
-        self.add_parameter([k_c, k_d])
+    # Add Parameters to Model
+    model.add_parameter([k_c, k_d])
 
-        # Define variables for the molecular species representing M and D.
-        m = gillespy2.Species(name='monomer', initial_value=30)
-        d = gillespy2.Species(name='dimer',   initial_value=0)
-        self.add_species([m, d])
+    # Define Species
+    m = gillespy2.Species(name='monomer', initial_value=30)
+    d = gillespy2.Species(name='dimer',   initial_value=0)
 
-        # Define the reactions representing the process.  In GillesPy2,
-        # the list of reactants and products for a Reaction object are each a
-        # Python dictionary in which the dictionary keys are Species objects
-        # and the values are stoichiometries of the species in the reaction.
-        r_creation     = gillespy2.Reaction(name="r_creation", rate=k_c,
-                                            reactants={m:2}, products={d:1})
-        r_dissociation = gillespy2.Reaction(name="r_dissociation", rate=k_d,
-                                            reactants={d:1}, products={m:2})
-        self.add_reaction([r_creation, r_dissociation])
+    # Add Species to Model
+    model.add_species([m, d])
 
-        # Set the timespan for the simulation.
-        self.timespan(numpy.linspace(0, 100, 101))
+    # Define Reactions
+    r_creation = gillespy2.Reaction(
+        name="r_creation", reactants={m: 2}, products={d: 1}, rate=k_c
+    )
+    r_dissociation = gillespy2.Reaction(
+        name="r_dissociation", reactants={d: 1}, products={m: 2}, rate=k_d
+    )
+
+    # Add Reactions to Model
+    model.add_reaction([r_creation, r_dissociation])
+
+    # Define Timespan
+    tspan = gillespy2.TimeSpan.linspace(t=100, num_points=101)
+
+    # Set Model Timespan
+    model.timespan(tspan)
+    return model
+
+# Instantiate the Model
+model = build_dimerization()
 
 
-# Model simulation.
+# Run the Simulations
 # .............................................................................
-# A simulation in GillesPy2 is performed by first instantiating the model to
-# be simulated, and then invoking the "run" method on that object.  The
-# results of the simulation are the output of "run".
-#
 # In this example, we will run the simulation 10 times, by passing the argument
 # "number_of_trajectories" to the "run" method.
-
-model = Dimerization()
 output = model.run(number_of_trajectories=10)
 
-# The format of the results from a model run is is an array of values for
+
+# Visualizations
+# .............................................................................
+# The format of the results from a model run is an array of values for
 # different time points.  There will be one subarray for each trajectory.
 # Here, we plot each of the 10 trajectories in the same figure.
-
 plt.figure(figsize=(8, 5))
 
-for index in range(0, 10):
-    trajectory = output[index]
+for trajectory in output:
     plt.plot(trajectory['time'], trajectory['monomer'], 'r')
     plt.plot(trajectory['time'], trajectory['dimer'],   'b')
 
