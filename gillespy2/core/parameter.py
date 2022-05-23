@@ -43,8 +43,6 @@ class Parameter(SortableObject, Jsonify):
         self.value = None
         self.name = name
 
-        if expression is None:
-            raise ParameterError("initial_value can't be None type.")
         if isinstance(expression, (int, float)):
             expression = str(expression)
         self.expression = expression
@@ -52,7 +50,7 @@ class Parameter(SortableObject, Jsonify):
         self.validate()
 
     def __str__(self):
-        return self.name + ': ' + str(self.expression)
+        return f"{self.name}: {self.expression}"
 
     def _evaluate(self, namespace=None):
         """
@@ -76,7 +74,9 @@ class Parameter(SortableObject, Jsonify):
                 namespace = {}
             self.value = float(eval(self.expression, namespace))
         except Exception as err:
-            raise ParameterError(f"Could not evaluate expression: {err}.") from err
+            raise ParameterError(
+                f"Could not evaluate expression: '{self.expression}'. Reason given: {err}."
+            ) from err
 
     def set_expression(self, expression):
         """
