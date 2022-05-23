@@ -70,7 +70,7 @@ GillesPy2 provides simple object-oriented abstractions for defining a model of a
 1. Create a `GillesPy2.Model` containing molecular species, parameters, and reactions (or import it from an [SBML](http://sbml.org) file)
 2. Invoke the model's `.run()` method.
 
-The `run()` method can be customized using keyword arguments to select different solvers, random seed, data return type and more.  For more detailed examples on how to use GillesPy2, please see the [Getting Started](https://github.com/StochSS/GillesPy2/tree/main/examples/StartHere.ipynb) Jupyter notebook contained in the [examples](https://github.com/StochSS/GillesPy2/tree/main/examples) subdirectory.
+The `run()` method can be customized using keyword arguments to select different solvers, random seed, data return type and more.  For more detailed examples on how to use GillesPy2, please see the [Getting Started](https://github.com/StochSS/GillesPy2/tree/main/examples/Start_Here.ipynb) Jupyter notebook contained in the [examples](https://github.com/StochSS/GillesPy2/tree/main/examples) subdirectory.
 
 ### _Simple example to illustrate the use of GillesPy2_
 
