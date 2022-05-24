@@ -16,12 +16,12 @@
 
 import unittest
 import numpy as np
-from example_models import Example
+from example_models import build_example
 from gillespy2 import TauLeapingSolver
 
 
 class TestBasicTauLeapingSolver(unittest.TestCase):
-    model = Example()
+    model = build_example()
     
 
 if __name__ == '__main__':

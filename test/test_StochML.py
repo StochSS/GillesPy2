@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import unittest
-from example_models import Example
+from example_models import build_example
 from gillespy2.core import Model, StochMLDocument
 from gillespy2.core.gillespyError import *
 from gillespy2 import ODESolver
@@ -25,7 +25,7 @@ from gillespy2 import NumPySSASolver
 class TestStochML(unittest.TestCase):
 
     def test_StochML_from_and_to_model(self):
-        model = Example()
+        model = build_example()
         stochml = StochMLDocument.from_model(model)
         stochml_model = stochml.to_model('model')
         ode_solver = ODESolver(model=stochml_model)
