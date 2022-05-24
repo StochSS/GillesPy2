@@ -55,6 +55,7 @@ if __name__ == '__main__':
     import test_check_cpp_support
     import test_jsonify
     import test_notebooks
+    import test_c_decode
 
     modules = [
         test_empty_model,
@@ -78,7 +79,8 @@ if __name__ == '__main__':
         test_propensity_parser,
         test_check_cpp_support,
         test_jsonify,
-        test_notebooks
+        test_notebooks,
+        test_c_decode
     ]
 
     for module in modules:
