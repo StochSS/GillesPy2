@@ -107,7 +107,8 @@ def create_dimerization(parameter_values=None):
     model.add_reaction([r_c, r_d])
 
     # Set the timespan for the simulation.
-    model.timespan(numpy.linspace(0, 100, 101))
+    tspan = gillespy2.TimeSpan.linspace(t=100, num_points=101)
+    model.timespan(tspan)
     return model
 ```
 
