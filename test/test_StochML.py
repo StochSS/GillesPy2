@@ -14,6 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 import unittest
 from example_models import build_example
 from gillespy2.core import Model, StochMLDocument
@@ -28,6 +33,7 @@ class TestStochML(unittest.TestCase):
         model = build_example()
         stochml = StochMLDocument.from_model(model)
         stochml_model = stochml.to_model('model')
+        stochml_model.timespan(model.tspan)
         ode_solver = ODESolver(model=stochml_model)
         stochml_model.run(solver=ode_solver)
         ssa_solver = NumPySSASolver(model=stochml_model)

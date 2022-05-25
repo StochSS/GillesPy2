@@ -1218,6 +1218,9 @@ class StochMLDocument():
         d = eTree.Element('Description')
 
         #
+        model.resolve_all_parameters()
+        model.resolve_all_reactions()
+
         if model.units.lower() == "concentration":
             d.set('units', model.units.lower())
 
@@ -1246,7 +1249,9 @@ class StochMLDocument():
             params.append(md.__parameter_to_element(
                 model.listOfParameters[pname]))
 
-        params.append(md.__parameter_to_element(Parameter(name='vol', expression=model.volume)))
+        vol = Parameter(name='vol', expression=model.volume)
+        vol._evaluate()
+        params.append(md.__parameter_to_element(vol))
 
         md.document.append(params)
 
@@ -1366,14 +1371,13 @@ class StochMLDocument():
             except:
                 raise InvalidStochMLError("Reaction has no name.")
 
-            reaction = Reaction(name=name, reactants={}, products={})
-
             # Type may be 'mass-action','customized'
             try:
-                type = reac.find('Type').text
+                r_type = reac.find('Type').text
             except:
                 raise InvalidStochMLError("No reaction type specified.")
 
+            g_reactants = {}
             reactants = reac.find('Reactants')
             try:
                 for ss in reactants.iter('SpeciesReference'):
@@ -1387,13 +1391,14 @@ class StochMLDocument():
                     try:
                         # The sref list should only contain one element if
                         # the XML file is valid.
-                        reaction.reactants[sref] = stoch
+                        g_reactants[sref] = stoch
                     except Exception as e:
                         StochMLImportError(e)
             except:
                 # Yes, this is correct. 'reactants' can be None
                 pass
 
+            g_products = {}
             products = reac.find('Products')
             try:
                 for ss in products.iter('SpeciesReference'):
@@ -1403,16 +1408,15 @@ class StochMLDocument():
                     try:
                         # The sref list should only contain one element if
                         # the XML file is valid.
-                        reaction.products[sref] = stoch
+                        g_products[sref] = stoch
                     except Exception as e:
                         raise StochMLImportError(e)
             except:
                 # Yes, this is correct. 'products' can be None
                 pass
 
-            if type == 'mass-action':
-                reaction.massaction = True
-                reaction.type = 'mass-action'
+            kwargs = {}
+            if r_type == 'mass-action':
                 # If it is mass-action, a parameter reference is needed.
                 # This has to be a reference to a species instance. We
                 # explicitly disallow a scalar value to be passed as the
@@ -1420,7 +1424,7 @@ class StochMLDocument():
                 try:
                     ratename = reac.find('Rate').text
                     try:
-                        reaction.marate = model.listOfParameters[ratename]
+                        kwargs['rate'] = model.listOfParameters[ratename]
                     except KeyError as k:
                         # No paramter name is given. This is a valid use case
                         # in StochKit. We generate a name for the paramter,
@@ -1431,25 +1435,24 @@ class StochMLDocument():
                         p = Parameter(name=generated_rate_name,
                                       expression=ratename)
                         # Try to evaluate the parameter to set its value
-                        p._evaluate()
                         model.add_parameter(p)
-                        reaction.marate = model.listOfParameters[
-                            generated_rate_name]
-
-                    reaction.create_mass_action()
+                        kwargs['rate'] = model.listOfParameters[generated_rate_name]
                 except Exception as e:
                     raise
-            elif type == 'customized':
+            elif r_type == 'customized':
                 try:
                     propfunc = reac.find('PropensityFunction').text
                 except Exception as e:
                     raise InvalidStochMLError(
                         "Found a customized propensity function, but no expression was given. {}".format(e))
-                reaction.propensity_function = propfunc
-                reaction.ode_propensity_function = propfunc
+                kwargs['propensity_function'] = propfunc
             else:
                 raise InvalidStochMLError(
                     "Unsupported or no reaction type given for reaction" + name)
+
+            reaction = Reaction(
+                name=name, reactants=g_reactants, products=g_products, **kwargs
+            )
 
             model.add_reaction(reaction)
 
