@@ -20,10 +20,10 @@ from gillespy2.core.model import Model
 
 class TestEmptyModel(unittest.TestCase):
     def setUp(self):
-        def build_model(parameter_values=None):
+        def create_empty_model(parameter_values=None):
             return Model()
 
-        self.model = build_model()
+        self.model = create_empty_model()
 
     def test_model_creation(self):
         name = self.model.name

@@ -17,15 +17,15 @@
 import unittest
 import tempfile
 from gillespy2.core.gillespyError import DirectoryError, SimulationError
-from example_models import build_example, build_example_no_tspan
+from example_models import create_decay, create_decay_no_tspan
 from gillespy2.solvers.cpp.ode_c_solver import ODECSolver
 
 
 class TestODECSolver(unittest.TestCase):
     def setUp(self):
-        self.model = build_example()
+        self.model = create_decay()
         self.solver = ODECSolver(self.model)
-        self.model_no_tspan = build_example_no_tspan()
+        self.model_no_tspan = create_decay_no_tspan()
         self.solver_no_tspan = ODECSolver(self.model_no_tspan)
 
     def test_file_with_directory_name_exists(self):

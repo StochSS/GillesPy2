@@ -18,7 +18,7 @@ import unittest
 import numpy as np
 import subprocess
 from shutil import which
-from example_models import build_michaelis_menten, build_oregonator
+from example_models import create_michaelis_menten, create_oregonator
 from gillespy2.core.results import Results, Trajectory
 from gillespy2.core import Species
 from gillespy2 import SSACSolver
@@ -35,7 +35,7 @@ import os
 class TestPauseResume(unittest.TestCase):
     solvers = [SSACSolver, ODESolver, NumPySSASolver, TauLeapingSolver]
 
-    model = build_michaelis_menten()
+    model = create_michaelis_menten()
     for sp in model.listOfSpecies.values():
         sp.mode = 'discrete'
     labeled_results = {}
@@ -47,7 +47,7 @@ class TestPauseResume(unittest.TestCase):
         labeled_results[solver.name] = model.run(solver=solver, show_labels=True)
 
     def test_altered_model_failure(self):
-        model = build_michaelis_menten()
+        model = create_michaelis_menten()
         for solver_class in self.solvers:
             solver = solver_class(model=model)
             tmpResults = model.run(solver=solver)
@@ -105,7 +105,7 @@ class TestPauseResume(unittest.TestCase):
         # and KeyBoardInterrupt send the same signal to the subprocess, the only difference is KeyBoardInterrupt is
         # manual, whereas timeout is a set variable
         for solver in solvers:
-            model = build_oregonator()
+            model = create_oregonator()
             solver = solver(model=model)
             results = model.run(solver=solver, timeout=1)
             self.assertFalse(results.to_array()[0][-1][0] == '5.0')

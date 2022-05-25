@@ -17,13 +17,13 @@ import sys
 sys.path.insert(1, "../")
 import unittest
 
-from example_models import build_robust_model
+from example_models import create_robust_model
 from gillespy2.core.gillespyError import *
 
 class TestModel(unittest.TestCase):
 
     def setUp(self):
-        self.model = build_robust_model()
+        self.model = create_robust_model()
 
     def test_model_add__assignment_rule(self):
         from gillespy2 import AssignmentRule
