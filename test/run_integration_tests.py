@@ -44,6 +44,7 @@ if __name__ == '__main__':
     import test_ssa_c_solver
     import test_variable_solvers
     import test_tau_leaping_c_solver
+    import test_tau_leaping_solver
     import test_tau_hybrid_c_solver
     import test_SBML
     import test_example_models
@@ -65,6 +66,7 @@ if __name__ == '__main__':
         test_ode_solver,
         test_ode_c_solver,
         test_tau_leaping_c_solver,
+        test_tau_leaping_solver,
         test_tau_hybrid_c_solver,
         test_hybrid_solver,
         test_simple_model,

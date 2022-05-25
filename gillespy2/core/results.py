@@ -238,12 +238,12 @@ class Results(UserList, Jsonify):
         size1 = len(self.data[0]['time'])
         size2 = len(self.data[0])
 
-        for trajectory in range(0,len(self.data)):
+        for trajectory in range(0, len(self.data)):
             newArray = np.zeros((size1, size2))
             for i, key in enumerate(self.data[trajectory]):
                 newArray[:, i] = self.data[trajectory][key]
             results.append(newArray)
-        return results
+        return np.array(results)
 
     @classmethod
     def build_from_solver_results(cls, solver, live_output_options):
