@@ -50,7 +50,7 @@ except:
     sys.exit()
 
 
-# Build the Tyson Oscillator Model
+# Create the Tyson Oscillator Model
 # .............................................................................
 # Parameter values  for this biochemical system are given in concentration
 # units. However, stochastic systems must use population values. For example,
@@ -59,7 +59,7 @@ except:
 # include the parameter "vol" in order to convert population units to
 # concentration units. Volume here = 300.
 
-def build_tyson_oscillator(parameter_values=None):
+def create_tyson_oscillator(parameter_values=None):
     # Initialize Model
     model = gillespy2.Model(name="tyson-2-state")
     
@@ -115,7 +115,7 @@ def build_tyson_oscillator(parameter_values=None):
 
 if __name__ == '__main__':
     # Initialize the Model
-    tyson_model = build_tyson_oscillator()
+    tyson_model = create_tyson_oscillator()
 
     
     # Run the Simulations
