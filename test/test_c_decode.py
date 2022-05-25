@@ -35,7 +35,7 @@ class TestCDecode(unittest.TestCase):
         self.model = build_degradation()
         tspan = gillespy2.TimeSpan.linspace(t=300, num_points=301)
         self.model.timespan(tspan)
-        solvers = [
+        self.solvers = [
             # Solver and List of trajectory numbers to try
             (ODECSolver(model=self.model), [1]),
             (SSACSolver(model=self.model), [1, 3]),
