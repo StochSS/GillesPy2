@@ -141,7 +141,10 @@ def __get_compartments(sbml_model, gillespy_model):
     for i in range(sbml_model.getNumCompartments()):
         compartment = sbml_model.getCompartment(i)
         name = compartment.getId()
-        value = compartment.getSize()
+        if compartment.isSetSize():
+            value = compartment.getSize()
+        else:
+            value = 1
 
         if name == "vol":
             gillespy_model.volume = value

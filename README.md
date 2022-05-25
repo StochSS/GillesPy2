@@ -2,7 +2,7 @@
 <img src="https://raw.githubusercontent.com/StochSS/GillesPy2/develop/.graphics/gillespy2-logo.png">
 </p>
 
-GillesPy2 is a Python 3 package for stochastic simulation of biochemical systems.  It offers an object-oriented approach for creating mathematical models of biological systems, as well as a variety of methods for performing time simulation of those models.  The methods include the [Gillespie direct method (SSA)](https://en.wikipedia.org/wiki/Gillespie_algorithm), several variant stochastic simulation methods including [tau-leaping](https://en.wikipedia.org/wiki/Tau-leaping), and numerical integration of ODEs.  The solvers support a variety of user environments, with optimized code for C++, [Cython](https://cython.org), and [NumPy](https://numpy.org).  GillesPy2 also supports [SBML](https://en.wikipedia.org/wiki/SBML).
+GillesPy2 is a Python 3 package for stochastic simulation of biochemical systems.  It offers an object-oriented approach for creating mathematical models of biological systems, as well as a variety of methods for performing time simulation of those models.  The methods include the [Gillespie direct method (SSA)](https://en.wikipedia.org/wiki/Gillespie_algorithm), several variant stochastic simulation methods including [tau-Leaping](https://en.wikipedia.org/wiki/Tau-leaping), and numerical integration of ODEs.  The solvers support a variety of user environments, with optimized code for C++, [Cython](https://cython.org), and [NumPy](https://numpy.org).  GillesPy2 also supports [SBML](https://en.wikipedia.org/wiki/SBML).
 
 <table><tr><td><b>
 <img width="20%" align="right" src="https://raw.githubusercontent.com/StochSS/GillesPy2/develop/.graphics/stochss-logo.png">
@@ -85,7 +85,7 @@ The `run()` method can be customized using keyword arguments to select different
 In GillesPy2, a model is expressed as an object having the parent class `Model`.  Components of the model, such as the reactions, molecular species, and characteristics such as the time span for simulation, are all defined within the subclass definition.  The following Python code represents our dimerization model using GillesPy2's facility:
 
 ```python
-def build_model(parameter_values=None):
+def create_dimerization(parameter_values=None):
     # First call the gillespy2.Model initializer.
     model = gillespy2.model(name='Dimerization')
 
@@ -107,14 +107,15 @@ def build_model(parameter_values=None):
     model.add_reaction([r_c, r_d])
 
     # Set the timespan for the simulation.
-    model.timespan(numpy.linspace(0, 100, 101))
+    tspan = gillespy2.TimeSpan.linspace(t=100, num_points=101)
+    model.timespan(tspan)
     return model
 ```
 
 Given the class definition above, the model can be simulated by first instantiating the class object, and then invoking the `run()` method on the object.  The following code will run the model 10 times to produce 10 sample trajectories:
 
 ```python
-model = build_model()
+model = create_dimerization()
 results = model.run(number_of_trajectories=10)
 ```
 
