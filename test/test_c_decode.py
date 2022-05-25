@@ -3,11 +3,11 @@ import unittest
 import numpy as np
 import io
 from gillespy2.solvers import ODECSolver, SSACSolver, TauLeapingCSolver, TauHybridCSolver
-from example_models import Degradation
+from example_models import build_degradation
 from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder, IterativeSimDecoder
 
 class TestCDecode(unittest.TestCase):
-    model = Degradation()
+    model = build_degradation()
     solvers = [
         # Solver     List of trajectory numbers to try
         (ODECSolver,        [1]),

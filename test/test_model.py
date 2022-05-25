@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import unittest
-from example_models import RobustModel, Example, ExampleNoTspan
+from example_models import build_robust_model, build_example, build_example_no_tspan
 from gillespy2.core import Model, Species, Reaction, Parameter
 from gillespy2.core.gillespyError import *
 from gillespy2.core.model import export_StochSS
@@ -109,7 +109,7 @@ class TestModel(unittest.TestCase):
             model.add_reaction(reaction2)
 
     def test_model_run_with_both_increment_and_timespan(self):
-        model = Example()
+        model = build_example()
 
         try:
             model.run(increment=4)
@@ -285,7 +285,7 @@ class TestModel(unittest.TestCase):
 
     def test_robust_model(self):
         try:
-            model = RobustModel()
+            model = build_robust_model()
             model.run()
         
         except ModelError as e:
@@ -298,7 +298,7 @@ class TestModel(unittest.TestCase):
             self.fail(f"An unknown exception occured while testing the RobustModel: {e}")
 
     def test_stochss_export(self):
-        model = RobustModel()
+        model = build_robust_model()
         tempdir = tempfile.mkdtemp()
         stochss_model_path = os.path.join(tempdir, "robust_model.mdl")
         try:
@@ -309,16 +309,16 @@ class TestModel(unittest.TestCase):
             os.rmdir(tempdir)
 
     def test_run_example__with_increment_only(self):
-        model = ExampleNoTspan()
+        model = build_example_no_tspan()
         results = model.run(t=20, increment=0.2)
 
     def test_run_example__with_tspan_only(self):
-        model = Example()
+        model = build_example()
         results = model.run()
 
     def test_run_example__with_tspan_and_increment(self):
         with self.assertRaises(SimulationError):
-            model = Example()
+            model = build_example()
             results = model.run(t=20, increment=0.2)
 
 if __name__ == '__main__':

@@ -18,14 +18,14 @@ from pathlib import Path
 import unittest
 import shutil
 import os
-import example_models
+from example_models import build_dimerization
 
 import gillespy2
 from gillespy2.solvers.cpp.build.build_engine import BuildEngine
 
 
 class TestBuildEngine(unittest.TestCase):
-    test_model = example_models.Dimerization()
+    test_model = build_dimerization()
 
     # List of solver names.
     # Each entry represents the Makefile target for a C++ solver.

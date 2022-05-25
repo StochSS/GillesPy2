@@ -24,21 +24,21 @@ from gillespy2.core.jsonify import TranslationTable
 
 class TestJsonModels(unittest.TestCase):
     models = [
-        Example,
-        MichaelisMenten,
-        VilarOscillator,
-        Dimerization,
-        Trichloroethylene,
-        ToggleSwitch,
-        Tyson2StateOscillator,
-        Oregonator,
+        build_example,
+        build_michaelis_menten,
+        build_vilar_oscillator,
+        build_dimerization,
+        build_trichloroethylene,
+        build_toggle_switch,
+        build_tyson_2_state_oscillator,
+        build_oregonator,
     ]
 
     runnable_models = [
-        Example,
-        MichaelisMenten,
-        Tyson2StateOscillator,
-        Schlogl
+        build_example,
+        build_michaelis_menten,
+        build_tyson_2_state_oscillator,
+        build_schlogl
     ]
 
     def test_equality_of_named_models(self):
@@ -51,7 +51,7 @@ class TestJsonModels(unittest.TestCase):
 
             self.assertEqual(
                 target, 
-                model.from_json(target.to_json())
+                Model.from_json(target.to_json())
             )
 
     def test_equality_of_anon_models(self):
@@ -65,7 +65,7 @@ class TestJsonModels(unittest.TestCase):
 
             self.assertEqual(
                 anon_target, 
-                model.from_json(anon_target.to_json())
+                Model.from_json(anon_target.to_json())
             )
 
     def test_equality_of_named_results(self):
@@ -175,7 +175,7 @@ class TestJsonModels(unittest.TestCase):
             model_1_json = model_1.to_anon().to_json()
 
             # Convert the JSON back into a Model object.
-            model_2 = model.from_json(model_1_json)
+            model_2 = Model.from_json(model_1_json)
 
             # Assert that the anonymized model_1 and the new model_2 are identical.
             self.assertEquals(
@@ -194,8 +194,8 @@ class TestJsonModels(unittest.TestCase):
 
     def test_model_hash_whitespace_accuracy(self):
         """ Test that differences in whitespace do not change the hash of a model. """
-        model_no_whitespace = MichaelisMenten()
-        model_with_whitespace = MichaelisMenten()
+        model_no_whitespace = build_michaelis_menten()
+        model_with_whitespace = build_michaelis_menten()
 
          
         X = Species(name="X", initial_value=int(0.65609071 * 300.0))

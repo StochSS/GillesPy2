@@ -24,9 +24,9 @@ from unittest import TestCase
 
 from profiling import python_profiler
 
-from example_models import Oregonator
-from example_models import VilarOscillator
-from example_models import Tyson2StateOscillator
+from example_models import build_oregonator
+from example_models import build_vilar_oscillator
+from example_models import build_tyson_2_state_oscillator
 
 from gillespy2.solvers.numpy.ode_solver import ODESolver
 from gillespy2.solvers.numpy.ssa_solver import NumPySSASolver
@@ -37,13 +37,13 @@ class TestPythonSolverPerf(TestCase):
     def setUp(self) -> None:
         self.solvers = {
             NumPySSASolver: [
-                Tyson2StateOscillator()
+                build_tyson_2_state_oscillator()
             ],
             ODESolver: [
-                Oregonator()
+                build_oregonator()
             ],
             TauLeapingSolver: [
-                VilarOscillator()
+                build_vilar_oscillator()
             ],
         }
 
