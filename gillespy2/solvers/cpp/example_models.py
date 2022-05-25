@@ -35,7 +35,3 @@ def create_decay(parameter_values=None):
     model.add_reaction([rxn1])
     model.timespan(np.linspace(0, 20, 101))
     return model
-
-
-__all__ = ['Trichloroethylene', 'LacOperon', 'Schlogl', 'MichaelisMenten',
-           'ToggleSwitch', 'build_model', 'Tyson2StateOscillator', 'Oregonator']
