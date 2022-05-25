@@ -85,7 +85,7 @@ The `run()` method can be customized using keyword arguments to select different
 In GillesPy2, a model is expressed as an object having the parent class `Model`.  Components of the model, such as the reactions, molecular species, and characteristics such as the time span for simulation, are all defined within the subclass definition.  The following Python code represents our dimerization model using GillesPy2's facility:
 
 ```python
-def build_model(parameter_values=None):
+def create_dimerization(parameter_values=None):
     # First call the gillespy2.Model initializer.
     model = gillespy2.model(name='Dimerization')
 
@@ -114,7 +114,7 @@ def build_model(parameter_values=None):
 Given the class definition above, the model can be simulated by first instantiating the class object, and then invoking the `run()` method on the object.  The following code will run the model 10 times to produce 10 sample trajectories:
 
 ```python
-model = build_model()
+model = create_dimerization()
 results = model.run(number_of_trajectories=10)
 ```
 
