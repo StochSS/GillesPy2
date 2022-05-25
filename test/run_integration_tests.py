@@ -46,6 +46,7 @@ if __name__ == '__main__':
     import test_tau_leaping_c_solver
     import test_tau_hybrid_c_solver
     import test_SBML
+    import test_StochML
     import test_example_models
     import test_all_solvers
     import test_sys_init
@@ -71,6 +72,7 @@ if __name__ == '__main__':
         test_variable_solvers,
         test_pause_resume,
         test_SBML,
+        test_StochML,
         test_example_models,
         test_all_solvers,
         test_sys_init,
