@@ -40,6 +40,7 @@ def run_profiler(model: Model, solver: GillesPySolver, trajectories=4, timesteps
     profiler = cProfile.Profile()
     profiler.enable()
 
+    solver = solver(model=model)
     solver.run(number_of_trajectories=trajectories, t=timesteps, timeout=0)
 
     profiler.disable()
