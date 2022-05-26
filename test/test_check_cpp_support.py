@@ -27,10 +27,10 @@ class TestCheckCPPSupport(unittest.TestCase):
         self.assertEqual(not len(BuildEngine.get_missing_dependencies()), self.old_check_cpp_support())
 
     def old_check_cpp_support(self):
-        from gillespy2.solvers.cpp.example_models import Example
+        from gillespy2.solvers.cpp.example_models import build_model
         from gillespy2 import SSACSolver
         try:
-            model = Example()
+            model = build_model()
             solver = SSACSolver(model=model)
             results = model.run(solver=solver, cpp_support=True)
             return True

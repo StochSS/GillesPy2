@@ -24,6 +24,9 @@ class TestSpecies(unittest.TestCase):
     Unit tests for gillespy2.Species.
     ################################################################################################
     '''
+    def setUp(self):
+        self.species = Species(name="test_species", initial_value=5)
+
     def test_constructor(self):
         """ Test the Species constructor. """
         species = Species(name="test_species", initial_value=5)
@@ -159,167 +162,152 @@ class TestSpecies(unittest.TestCase):
 
     def test___str___(self):
         """ Test Species.__str__ method. """
-        species = Species(name="test_species")
-        self.assertIsInstance(str(species), str)
+        self.assertIsInstance(str(self.species), str)
 
     def test_set_initial_value__negative_initial_value(self):
         """ Test Species.set_initial_value with negative initial_value. """
-        species = Species(name="test_species")
         with self.assertRaises(SpeciesError):
-            species.set_initial_value(-1)
+            self.species.set_initial_value(-1)
 
     def test_set_initial_value__negative_initial_value_allowed(self):
         """
         Test Species.set_initial_value with negative initial_value and allow_negative_populations.
         """
-        species = Species(
-            name="test_species", allow_negative_populations=True
-        )
-        species.set_initial_value(-1)
-        self.assertEqual(species.initial_value, -1)
+        self.species.allow_negative_populations = True
+        self.species.set_initial_value(-1)
+        self.assertEqual(self.species.initial_value, -1)
 
     def test_set_initial_value__invalid_initial_value(self):
         """ Test Species.set_initial_value with non-int or non-float initial_value. """
         test_ivs = [None, "0%"]
         for test_iv in test_ivs:
             with self.subTest(initial_value=test_iv):
-                species = Species(name="test_species")
                 with self.assertRaises(SpeciesError):
-                    species.set_initial_value(test_iv)
+                    self.species.set_initial_value(test_iv)
 
     def test_set_initial_value__continuous_mode_float_initial_value(self):
         """ Test Species.set_initial_value with continuous mode and float initial value. """
-        species = Species(name="test_species", mode="continuous")
-        species.set_initial_value(0.1)
-        self.assertIsInstance(species.initial_value, float)
-        self.assertEqual(species.initial_value, 0.1)
+        self.species.mode = "continuous"
+        self.species.set_initial_value(0.1)
+        self.assertIsInstance(self.species.initial_value, float)
+        self.assertEqual(self.species.initial_value, 0.1)
 
     def test_set_initial_value__continuous_mode_int_initial_value(self):
         """ Test Species.set_initial_value with continuous mode and int initial value. """
-        species = Species(name="test_species", mode="continuous")
-        species.set_initial_value(1)
-        self.assertIsInstance(species.initial_value, float)
-        self.assertEqual(species.initial_value, 1.0)
+        self.species.mode = "continuous"
+        self.species.set_initial_value(1)
+        self.assertIsInstance(self.species.initial_value, float)
+        self.assertEqual(self.species.initial_value, 1.0)
 
     def test_set_initial_value__non_continuous_mode_float_initial_value(self):
         """ Test Species.set_initial_value with non-continuous mode and float initial value. """
         test_modes = ['discrete', 'dynamic', None]
         for test_mode in test_modes:
             with self.subTest(mode=test_mode):
-                species = Species(name="test_species", mode=test_mode)
+                self.species.mode = test_mode
                 with self.assertRaises(SpeciesError):
-                    species.set_initial_value(0.1)
+                    self.species.set_initial_value(0.1)
 
     def test_set_initial_value__non_continuous_mode_int_initial_value(self):
         """ Test Species.set_initial_value with non-continuous mode and int initial value. """
         test_modes = ['discrete', 'dynamic', None]
         for test_mode in test_modes:
             with self.subTest(mode=test_mode):
-                species = Species(name="test_species", mode=test_mode)
-                species.set_initial_value(1)
-                self.assertIsInstance(species.initial_value, int)
-                self.assertEqual(species.initial_value, 1)
+                self.species.mode = test_mode
+                self.species.set_initial_value(1)
+                self.assertIsInstance(self.species.initial_value, int)
+                self.assertEqual(self.species.initial_value, 1)
 
     def test_validate__invalid_name(self):
         """ Test Species.validate with non-str or empty str name. """
         test_names = ["", None, 0]
         for test_name in test_names:
             with self.subTest(name=test_name):
-                species = Species(name="test_species")
                 with self.assertRaises(SpeciesError):
-                    species.name = test_name
-                    species.validate()
+                    self.species.name = test_name
+                    self.species.validate()
 
     def test_validate__negative_initial_value(self):
         """ Test Species.validate with negative initial_value. """
-        species = Species(name="test_species")
         with self.assertRaises(SpeciesError):
-            species.initial_value = -1
-            species.validate()
+            self.species.initial_value = -1
+            self.species.validate()
 
     def test_validate__invalid_initial_value(self):
         """ Test Species.validate with non-int or non-float initial_value. """
         test_ivs = [None, "0%"]
         for test_iv in test_ivs:
             with self.subTest(initial_value=test_iv):
-                species = Species(name="test_species")
                 with self.assertRaises(SpeciesError):
-                    species.initial_value = test_iv
-                    species.validate()
+                    self.species.initial_value = test_iv
+                    self.species.validate()
 
     def test_validate__invalid_constant(self):
         """ Test Species.validate with non-bool constant. """
         test_constants = [None, "True"]
         for test_constant in test_constants:
             with self.subTest(constant=test_constant):
-                species = Species(name="test_species")
                 with self.assertRaises(SpeciesError):
-                    species.constant = test_constant
-                    species.validate()
+                    self.species.constant = test_constant
+                    self.species.validate()
 
     def test_validate__invalid_boundary_condition(self):
         """ Test Species.validate with non-bool boundary_condition. """
         test_bcs = [None, "True"]
         for test_bc in test_bcs:
             with self.subTest(boundary_condition=test_bc):
-                species = Species(name="test_species")
                 with self.assertRaises(SpeciesError):
-                    species.boundary_condition = test_bc
-                    species.validate()
+                    self.species.boundary_condition = test_bc
+                    self.species.validate()
 
     def test_validate__invalid_mode(self):
         """ Test Species.validate with and invalid mode. """
-        species = Species(name="test_species")
         with self.assertRaises(SpeciesError):
-            species.mode = "deterministic"
-            species.validate()
+            self.species.mode = "deterministic"
+            self.species.validate()
 
     def test_validate__non_continuous_mode_float_initial_value(self):
         """ Test Species.validate with non-continuous mode and float initial value. """
         test_modes = ['discrete', 'dynamic', None]
         for test_mode in test_modes:
             with self.subTest(mode=test_mode):
-                species = Species(name="test_species", initial_value=0.1, mode="continuous")
                 with self.assertRaises(SpeciesError):
-                    species.mode = test_mode
-                    species.validate()
+                    self.species.initial_value = 0.5
+                    self.species.mode = test_mode
+                    self.species.validate()
 
     def test_validate__invalid_allow_negative_populations(self):
         """ Test Species.validate with non-bool allow_negative_populations. """
         test_anps = [None, "True"]
         for test_anp in test_anps:
             with self.subTest(allow_negative_populations=test_anp):
-                species = Species(name="test_species")
                 with self.assertRaises(SpeciesError):
-                    species.allow_negative_populations = test_anp
-                    species.validate()
+                    self.species.allow_negative_populations = test_anp
+                    self.species.validate()
 
     def test_validate__invalid_switch_tol(self):
         """ Test Species.validate with non-int, -float switch_tol. """
         test_sts = [None, "1%", -1]
         for test_st in test_sts:
             with self.subTest(switch_tol=test_st):
-                species = Species(name="test_species")
                 with self.assertRaises(SpeciesError):
-                    species.switch_tol = test_st
-                    species.validate()
+                    self.species.switch_tol = test_st
+                    self.species.validate()
 
     def test_validate__invalid_switch_min(self):
         """ Test Species.validate with non-int, -float switch_min. """
         test_sms = [None, "1%", -1]
         for test_sm in test_sms:
             with self.subTest(switch_min=test_sm):
-                species = Species(name="test_species")
                 with self.assertRaises(SpeciesError):
-                    species.switch_min = test_sm
-                    species.validate()
+                    self.species.switch_min = test_sm
+                    self.species.validate()
 
     def test_comp_time_of_validate(self):
         """ Check the computation time of validate. """
-        species = Species(name="test_species", initial_value=5)
         import time
         from datetime import datetime
         start = time.time()
-        species.validate()
+        self.species.validate()
         tic = datetime.utcfromtimestamp(time.time() - start)
         print(f"Total time to run validate: {tic.strftime('%M mins %S secs %f msecs')}")
