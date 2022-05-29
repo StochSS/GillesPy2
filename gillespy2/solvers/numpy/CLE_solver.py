@@ -30,7 +30,6 @@ class CLESolver(GillesPySolver):
     """
     A Chemical Langevin Equation Solver for GillesPy2 models.
 
-    TODO: fix
     This solver uses an algorithm calculates
     multiple reactions in a single step over a given tau step size.  The change in propensities
     over this step are bounded by bounding the relative change in state, yielding greatly improved
@@ -142,12 +141,16 @@ class CLESolver(GillesPySolver):
             display.
         :type live_output_options: dict
 
-        :param timeout:
-        :param resume:
-        :param tau_tol:
-        :param kwargs:
+        :param timeout: If set, if simulation takes longer than timeout, will exit.
+        :type timeout: int
+        
+        :param resume: Result of a previously run simulation, to be resumed
+        
+        :param tau_tol: Tolerance level for Tau leaping algorithm.  Larger tolerance values will
+            result in larger tau steps. Default value is 0.03.
+        :type tau_tol: float
 
-        :returns:
+        :returns: a list of each trajectory simulated.
         """
         from gillespy2 import log
 

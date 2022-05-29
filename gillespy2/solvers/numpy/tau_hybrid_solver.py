@@ -827,6 +827,8 @@ class TauHybridSolver(GillesPySolver):
             "interval" specifies seconds between displaying.
             "clear_output" specifies if display should be refreshed with each display
         :type live_output_options:  str
+        
+        :returns: a list of each trajectory simulated.
         """
         from gillespy2 import log
 

@@ -88,26 +88,41 @@ class ODESolver(GillesPySolver):
             integrator_options={}, live_output=None, live_output_options={}, timeout=None, resume=None, **kwargs):
         """
         :param model: gillespy2.model class object
+        :type model: gillespy2.Model
+        
         :param t: end time of simulation
-        :param number_of_trajectories: Should be 1.
-            This is deterministic and will always have same results
+        :type t: int
+        
+        :param number_of_trajectories: Should be 1. This is deterministic and will always have same results
+        :type number_of_trajectories: int
+            
         :param increment: time step increment for plotting
+        :type increment: float
+        
         :param integrator: integrator to be used form scipy.integrate.ode. Options include 'vode', 'zvode', 'lsoda',
             'dopri5', and 'dop853'.  For more details,
             see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html
+        :type integrator: str
 
         :param integrator_options: a dictionary containing options to the scipy integrator. for a list of options,
             see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.
             Example use: {max_step : 0, rtol : .01}
+        :type integrator_options: dict
 
         :param timeout: If set, if simulation takes longer than timeout, will exit.
         :type timeout: int
 
         :param resume: Result of a previously run simulation, to be resumed
+        
         :param live_output: str The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+        :type live_output: str
+        
         :param live_output_options: dictionary contains options for live_output. By default {"interval":1}.
             "interval" specifies seconds between displaying.
-            "clear_output" specifies if display should be refreshed with each displa
+            "clear_output" specifies if display should be refreshed with each display
+        :type live_output_options:  str
+        
+        :returns: a list of each trajectory simulated.
         """
         from gillespy2 import log
 
