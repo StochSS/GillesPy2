@@ -106,7 +106,7 @@ class TauLeapingSolver(GillesPySolver):
         :param t: Simulation run time
         :type t: int
 
-        :param number_of_trajectories: Number of trajectories to simulate
+        :param number_of_trajectories: Number of trajectories to simulate. By default number_of_trajectories = 1.
         :type number_of_trajectories: int
 
         :param increment: Save point increment for recording data

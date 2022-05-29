@@ -811,7 +811,7 @@ class TauHybridSolver(GillesPySolver):
         :type tau_tol: float
 
         :param event_sensitivity: Number of data points to be inspected between integration
-            steps/save points for event detection
+            steps/save points for event detection. Default event_sensitivity = 100
         :type event_sensitivity: int
 
         :param integrator_options:  contains options to the scipy integrator. by default, this includes
@@ -827,6 +827,9 @@ class TauHybridSolver(GillesPySolver):
             "interval" specifies seconds between displaying.
             "clear_output" specifies if display should be refreshed with each display
         :type live_output_options:  str
+
+        :param timeout: If set, if simulation takes longer than timeout, will exit.
+        :type timeout: int
         
         :returns: a list of each trajectory simulated.
         """
