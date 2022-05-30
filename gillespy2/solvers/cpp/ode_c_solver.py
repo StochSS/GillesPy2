@@ -27,6 +27,14 @@ class ODECSolver(GillesPySolver, CSolver):
     name = "ODECSolver"
     target = "ode"
 
+    @staticmethod
+    def get_supported_integrator_options():
+        return {
+            "rtol",
+            "atol",
+            "max_step",
+        }
+
     def get_solver_settings(self):
         """
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
@@ -35,7 +43,7 @@ class ODECSolver(GillesPySolver, CSolver):
 
     def run(self=None, model: Model = None, t: int = None, number_of_trajectories: int = 1, timeout: int = 0,
             increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
-            resume=None, live_output: str = None, live_output_options: dict = {}, **kwargs):
+            resume=None, live_output: str = None, live_output_options: dict = {}, integrator_options: "dict[str, float]" = None, **kwargs):
 
         from gillespy2 import log
 
@@ -98,6 +106,9 @@ class ODECSolver(GillesPySolver, CSolver):
                 "init_pop": populations,
                 "parameters": parameter_values
             })
+        if integrator_options is not None:
+            integrator_options = ODECSolver.validate_integrator_options(integrator_options)
+            args.update(integrator_options)
 
         seed = self._validate_seed(seed)
         if seed is not None:

@@ -21,7 +21,6 @@ class TestCSolverIntegrators(unittest.TestCase):
             solver_class(model=cls.test_model) for solver_class in cls.integrator_solvers
         ]
 
-    @unittest.expectedFailure
     def test_tolerance_options_accepted(self):
         """
         Ensure that passing --rtol, --atol, etc. as integrator options is validated successfully.
