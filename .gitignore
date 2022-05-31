@@ -69,3 +69,9 @@ __pycache__
 .coverage
 htmlcov
 /build
+.idea/workspace.xml
+.idea/vcs.xml
+.idea/modules.xml
+.idea/misc.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/GillesPy2.iml

@@ -61,7 +61,7 @@ class NumPySSASolver(GillesPySolver):
         :type model: GillesPy2.model
         
         :param t: The end time of the solver.
-        :type t: int
+        :type t: int or float
         
         :param number_of_trajectories: The number of times to sample the chemical master equation. Each
             trajectory will be returned at the end of the simulation. By default number_of_trajectories = 1.
@@ -88,8 +88,10 @@ class NumPySSASolver(GillesPySolver):
         :type timeout: int
         
         :param resume: Result of a previously run simulation, to be resumed.
+        :type resume: gillespy2.core.results
 
-        :returns: a list of each trajectory simulated.
+        :returns: A result object containing the results of the simulation
+        :rtype: gillespy2.core.results
         """
         from gillespy2 import log
 

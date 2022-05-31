@@ -91,7 +91,7 @@ class ODESolver(GillesPySolver):
         :type model: gillespy2.Model
         
         :param t: end time of simulation
-        :type t: int
+        :type t: int or float
         
         :param number_of_trajectories: Should be 1. This is deterministic and will always have same results
         :type number_of_trajectories: int
@@ -121,8 +121,10 @@ class ODESolver(GillesPySolver):
         :type timeout: int
         
         :param resume: Result of a previously run simulation, to be resumed
+        :type resume: gillespy2.core.results
         
-        :returns: a list of each trajectory simulated.
+        :returns: A result object containing the results of the simulation
+        :rtype: gillespy2.core.results
         """
         from gillespy2 import log
 

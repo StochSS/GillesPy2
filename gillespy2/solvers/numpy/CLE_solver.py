@@ -116,7 +116,7 @@ class CLESolver(GillesPySolver):
         :type model: gillespy2.Model
 
         :param t: Simulation run time
-        :type t: int
+        :type t: int or float
 
         :param number_of_trajectories: Number of trajectories to simulate
         :type number_of_trajectories: int
@@ -145,12 +145,14 @@ class CLESolver(GillesPySolver):
         :type timeout: int
         
         :param resume: Result of a previously run simulation, to be resumed
+        :type resume: gillespy2.core.results
         
         :param tau_tol: Tolerance level for Tau leaping algorithm.  Larger tolerance values will
             result in larger tau steps. Default value is 0.03.
         :type tau_tol: float
 
-        :returns: a list of each trajectory simulated.
+        :returns: A result object containing the results of the simulation
+        :rtype: gillespy2.core.results
         """
         from gillespy2 import log
 

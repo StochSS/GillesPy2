@@ -787,7 +787,7 @@ class TauHybridSolver(GillesPySolver):
         :type model: GillesPy2.model
 
         :param t: Simulation run time
-        :type t: int
+        :type t: int or float
 
         :param number_of_trajectories: The number of times to sample the chemical master equation. Each
             trajectory will be returned at the end of the simulation.
@@ -831,7 +831,8 @@ class TauHybridSolver(GillesPySolver):
         :param timeout: If set, if simulation takes longer than timeout, will exit.
         :type timeout: int
         
-        :returns: a list of each trajectory simulated.
+        :returns: A result object containing the results of the simulation
+        :rtype: gillespy2.core.results
         """
         from gillespy2 import log
 
