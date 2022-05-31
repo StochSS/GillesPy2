@@ -92,5 +92,6 @@ class Make():
             f"Return code: {result.returncode}"
             f"- stdout: {result.stdout.decode('utf-8', errors='ignore')}\n"
             f"- stderr: {result.stderr.decode('utf-8', errors='ignore')}\n"
-            f"- makefile: {self.makefile}\n"
-            f"- make_args: {make_args}\n")
+            f"- make_cmd: {make_cmd}\n"
+            f"- os.listdir({str(self.cbase_dir)}): {os.listdir(self.cbase_dir)}\n"
+            )
