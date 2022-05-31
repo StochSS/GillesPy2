@@ -34,7 +34,10 @@ class BuildEngine():
     def __init__(self, debug: bool = False, output_dir: str = None):
         self.self_dir = Path(__file__).parent
         self.cpp_dir = self.self_dir.joinpath("../c_base").resolve()
-        self.makefile = self.cpp_dir.joinpath("Makefile")
+        if os.system() == 'Windows':
+            self.makefile = self.cpp_dir.joinpath("Makefile.win32")
+        else:
+            self.makefile = self.cpp_dir.joinpath("Makefile")
         self.src_template_dir = self.cpp_dir.joinpath("template")
         self.output_dir = output_dir
 
