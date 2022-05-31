@@ -113,7 +113,7 @@ def __add_rate_rules(rate_rule_list, model):
     for name, rule in rate_rule_list.items():
         r_rule = model.createRateRule()
         r_rule.setId(name)
-        r_rule.setVariable(rule.variable)
+        r_rule.setVariable(rule.variable.name)
         formula = __get_math(rule.formula)
         r_rule.setMath(formula)
 
@@ -121,7 +121,7 @@ def __add_assignment_rules(assignment_rule_list, model):
     for name, rule in assignment_rule_list.items():
         a_rule = model.createAssignmentRule()
         a_rule.setId(name)
-        a_rule.setVariable(rule.variable)
+        a_rule.setVariable(rule.variable.name)
         formula = __get_math(rule.formula)
         a_rule.setMath(formula)
 
