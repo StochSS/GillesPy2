@@ -49,7 +49,7 @@ namespace Gillespy
         return (fabs(A - B) < FLT_EPSILON);
     }
 
-	void ODESolver(Simulation<double> *simulation, double increment)
+	void ODESolver(Simulation<double> *simulation, double increment, SolverConfiguration config)
 	{
 		GPY_INTERRUPT_INSTALL_HANDLER(signal_handler);
 
@@ -63,10 +63,6 @@ namespace Gillespy
 		// Allocate memory for data passed into RHS.
 		UserData *data = new UserData();
 		data->my_sim = simulation;
-
-		// Init the absolute and real tolerances of the system.
-		realtype abstol = 1e-5;
-		realtype reltol = 1e-5;
 
 		// Init the initial conditions.
 		sunindextype N = (simulation->model)->number_species;
@@ -90,7 +86,13 @@ namespace Gillespy
 
 		// Initialize the ODE solver and set tolerances.
 		flag = CVodeInit(cvode_mem, f, t0, y0);
-		flag = CVodeSStolerances(cvode_mem, reltol, abstol);
+		flag = CVodeSStolerances(cvode_mem, config.rel_tol, config.abs_tol);
+		switch (CVodeSetMaxStep(cvode_mem, config.max_step))
+		{
+			case CV_ILL_INPUT:
+				std::cerr << "Bad step size: " << config.max_step << std::endl;
+				break;
+		}
 
 		// Initialize and select the linear solver module.
 		// SUNSPMR: Iterative Solver (compatible with serial, threaded, parallel, and user suppoed NVector).

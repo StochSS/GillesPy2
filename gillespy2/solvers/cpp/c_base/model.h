@@ -222,6 +222,16 @@ namespace Gillespy
 		uint8_t m_status = 0;
 	};
 
+	/// \name SolverConfiguration
+	/// \brief Container struct for ODE-specific configuration data.
+	/// Used in ODE and Hybrid solvers to configure SUNDIALS solvers.
+	struct SolverConfiguration
+	{
+		double rel_tol;
+		double abs_tol;
+		double max_step;
+	};
+
 	enum class LogLevel
 	{
 		INFO   = 0,

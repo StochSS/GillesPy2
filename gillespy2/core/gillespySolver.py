@@ -112,6 +112,10 @@ class GillesPySolver:
         return set()
 
     @classmethod
+    def get_supported_integrator_options(cls) -> "Set[str]":
+        return set()
+
+    @classmethod
     def validate_model(cls, sol_model, model):
         if model is not None:
             model.resolve_all_parameters()
@@ -129,3 +133,8 @@ class GillesPySolver:
             raise ModelError(f"Could not run Model, "
                              f"SBML Features not supported by {cls.name}: " +
                              ", ".join(unsupported_features))
+
+    @classmethod
+    def validate_integrator_options(cls, options: "dict[str, float]") -> "dict[str, float]":
+        return { option: value for option, value in options.items() if option in cls.get_supported_integrator_options() }
+
