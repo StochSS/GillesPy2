@@ -1072,7 +1072,6 @@ class Model(SortableObject, Jsonify):
 
     def serialize(self):
         """ Serializes the Model object to valid StochML. """
-        self._resolve_all_parameters()
         doc = StochMLDocument().from_model(self)
         return doc.to_string()
 
@@ -1207,6 +1206,25 @@ class Model(SortableObject, Jsonify):
         if len(self.listOfFunctionDefinitions):
             features.add(gillespy2.FunctionDefinition)
         return features
+
+    def compile_prep(self):
+        """
+        Prepare the model for export or simulation.
+        """
+        for _, species in self.listOfSpecies.items():
+            species.validate()
+        self._resolve_all_parameters()
+        self._resolve_all_reactions()
+        self._resolve_all_rate_rules()
+        self._resolve_all_assignment_rules()
+        self._resolve_all_events()
+
+        if self.tspan is not None:
+            if not isinstance(self.tspan, TimeSpan) or type(self.tspan).__name__ != "TimeSpan":
+                tspan = TimeSpan(self.tspan)
+                self.timespan(tspan)
+            else:
+                self.tspan.validate()
 
     def run(self, solver=None, timeout=0, t=None, increment=None, show_labels=True, algorithm=None,
             **solver_args):
@@ -1364,9 +1382,8 @@ class StochMLDocument():
 
         d = eTree.Element('Description')
 
-        #
-        model._resolve_all_parameters()
-        model._resolve_all_reactions()
+        # Prepare model for export
+        model.compile_prep()
 
         if model.units.lower() == "concentration":
             d.set('units', model.units.lower())
