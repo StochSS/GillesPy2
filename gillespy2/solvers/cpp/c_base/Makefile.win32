@@ -8,8 +8,8 @@ GPY_EXE_ARGS ?= --trajectories 1 --timesteps 21 --end 20
 .PHONY: run clean build profile ode ssa tau_leap hybrid
 
 ### Input directories ###
-CBASE_DIR ?= .
-TEMPLATE_DIR ?= $(CBASE_DIR)\template
+CBASE_DIR ?= .                         #should be overridden by command line
+TEMPLATE_DIR ?= $(CBASE_DIR)\template  #should be overridden by command line
 TEMPLATE_CPP := $(TEMPLATE_DIR)\template.cpp
 SUNDIALS_SRC := $(CBASE_DIR)\Sundials\src
 SUNDIALS_INC := $(CBASE_DIR)\Sundials\include
