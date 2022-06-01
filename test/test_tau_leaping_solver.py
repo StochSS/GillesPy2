@@ -21,15 +21,15 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 import unittest
 import numpy as np
-from example_models import build_example, build_example_no_tspan
+from example_models import create_decay, create_decay_no_tspan
 from gillespy2 import Results, TauLeapingSolver
 from gillespy2.core.gillespyError import SimulationError
 
 class TestBasicTauLeapingSolver(unittest.TestCase):
 
     def setUp(self):
-        self.model = build_example()
-        self.model_no_tspan = build_example_no_tspan()
+        self.model = create_decay()
+        self.model_no_tspan = create_decay_no_tspan()
         self.solver = TauLeapingSolver(model=self.model)
         self.solver_no_tspan = TauLeapingSolver(model=self.model_no_tspan)
 

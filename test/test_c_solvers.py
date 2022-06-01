@@ -18,7 +18,7 @@ import unittest
 import numpy
 import io
 import os
-from example_models import build_dimerization
+from example_models import create_dimerization
 import subprocess
 import tempfile
 from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder
@@ -47,7 +47,7 @@ class TestCSolvers(unittest.TestCase):
       play nice with the build engine and template gen.
     """
 
-    test_model = build_dimerization()
+    test_model = create_dimerization()
     base_solvers = [
         SSACSolver,
         ODECSolver,

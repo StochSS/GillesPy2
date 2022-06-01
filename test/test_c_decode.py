@@ -25,14 +25,14 @@ import numpy as np
 import io
 import gillespy2
 from gillespy2.solvers import ODECSolver, SSACSolver, TauLeapingCSolver, TauHybridCSolver
-from example_models import build_degradation
+from example_models import create_degradation
 from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder, IterativeSimDecoder
 
 class TestCDecode(unittest.TestCase):
     decoders = [BasicSimDecoder, IterativeSimDecoder]
 
     def setUp(self):
-        self.model = build_degradation()
+        self.model = create_degradation()
         tspan = gillespy2.TimeSpan.linspace(t=300, num_points=301)
         self.model.timespan(tspan)
         self.solvers = [

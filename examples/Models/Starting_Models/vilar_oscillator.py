@@ -25,9 +25,9 @@ except:
     sys.exit()
 
 
-# Build the Vilar Oscillator Model
+# Create the Vilar Oscillator Model
 # .............................................................................
-def build_vilar_oscillator(parameter_values=None):
+def create_vilar_oscillator(parameter_values=None):
     model = gillespy2.Model(name="VilarOscillator")
     
     # Set System Volume

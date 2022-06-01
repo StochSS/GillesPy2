@@ -23,7 +23,7 @@ from gillespy2.core.gillespyError import *
 class TestSimpleModel(unittest.TestCase):
     def setUp(self):
 
-        def build_model(parameter_values=None):
+        def create_simple_hybrid_model(parameter_values=None):
             model = Model(name="Simple_Hybrid_Model")
 
             # Species
@@ -48,7 +48,7 @@ class TestSimpleModel(unittest.TestCase):
             model.timespan(numpy.linspace(0, 1, 11))
             return model
 
-        self.model = build_model()
+        self.model = create_simple_hybrid_model()
 
 #    def test_this_should_fail(self):
 #        name = self.model.name

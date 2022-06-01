@@ -20,7 +20,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 import unittest
-from example_models import build_example
+from example_models import create_decay
 from gillespy2.core import Model, StochMLDocument
 from gillespy2.core.gillespyError import *
 from gillespy2 import ODESolver
@@ -30,7 +30,7 @@ from gillespy2 import NumPySSASolver
 class TestStochML(unittest.TestCase):
 
     def test_StochML_from_and_to_model(self):
-        model = build_example()
+        model = create_decay()
         stochml = StochMLDocument.from_model(model)
         stochml_model = stochml.to_model('model')
         stochml_model.timespan(model.tspan)

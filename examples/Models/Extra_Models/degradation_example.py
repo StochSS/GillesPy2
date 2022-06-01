@@ -80,9 +80,9 @@ except:
     sys.exit()
 
 
-# Build the Protein Decay Model
+# Create the Protein Decay Model
 # .............................................................................
-def build_protein_decay(parameter_values=None):
+def create_protein_decay(parameter_values=None):
     # Instantiate Model
     model = gillespy2.Model(name="Protein Decay")
 
@@ -114,7 +114,7 @@ def build_protein_decay(parameter_values=None):
     return model
 
 # Instantiate the Model
-model = build_protein_decay()
+model = create_protein_decay()
 
 
 # Run the Simulations

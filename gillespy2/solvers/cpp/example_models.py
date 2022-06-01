@@ -18,7 +18,7 @@ from gillespy2.core import Model, Species, Reaction, Parameter
 import numpy as np
 
 
-def build_model(parameter_values=None):
+def create_decay(parameter_values=None):
     """
     This is a simple example for mass-action degradation of species S.
     """
@@ -35,7 +35,3 @@ def build_model(parameter_values=None):
     model.add_reaction([rxn1])
     model.timespan(np.linspace(0, 20, 101))
     return model
-
-
-__all__ = ['Trichloroethylene', 'LacOperon', 'Schlogl', 'MichaelisMenten',
-           'ToggleSwitch', 'build_model', 'Tyson2StateOscillator', 'Oregonator']

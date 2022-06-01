@@ -25,7 +25,7 @@ from gillespy2 import TauHybridCSolver
 import numpy as np
 
 class EventFeatures(unittest.TestCase):
-    def build_base_event_model(s1, s2, rate):
+    def create_base_event_model(s1, s2, rate):
         model = gillespy2.Model(name="BasicEventModel")
 
         s1 = gillespy2.Species(name="S1", initial_value=s1, mode="continuous")
@@ -42,7 +42,7 @@ class EventFeatures(unittest.TestCase):
         return model
 
     def test_event_with_time_trigger(self):
-        model = EventFeatures.build_base_event_model(s1=0, s2=0, rate=0.0)
+        model = EventFeatures.create_base_event_model(s1=0, s2=0, rate=0.0)
         event = gillespy2.Event(name="ev1", assignments=[
             gillespy2.EventAssignment(variable=model.get_species('S1'), expression="100.0"),
             gillespy2.EventAssignment(variable=model.get_parameter('k1'), expression="1.0")
@@ -58,7 +58,7 @@ class EventFeatures(unittest.TestCase):
         self.assertAlmostEqual(s1 + s2, 100.0, places=1)
 
     def test_event_with_species_trigger(self):
-        model = EventFeatures.build_base_event_model(s1=100, s2=0, rate=10.0)
+        model = EventFeatures.create_base_event_model(s1=100, s2=0, rate=10.0)
         event = gillespy2.Event(name="ev1", assignments=[
             gillespy2.EventAssignment(variable=model.get_species('S1'), expression="100.0"),
             gillespy2.EventAssignment(variable=model.get_parameter('k1'), expression="0.0")
@@ -74,7 +74,7 @@ class EventFeatures(unittest.TestCase):
         self.assertFalse(np.any(result["S1"] <= 90.0), "Expected S1 > 90 for entire simulation")
 
     def test_delay_trigger_persistent(self):
-        model = EventFeatures.build_base_event_model(s1=100, s2=0, rate=1.0)
+        model = EventFeatures.create_base_event_model(s1=100, s2=0, rate=1.0)
         event1 = gillespy2.Event(name="ev1", assignments=[
             gillespy2.EventAssignment(variable=model.get_species('S1'), expression="0"),
             gillespy2.EventAssignment(variable=model.get_species('S2'), expression="0"),
@@ -100,7 +100,7 @@ class EventFeatures(unittest.TestCase):
         self.assertEqual(s2, 200, "Persistent event failed to fire")
 
     def test_trigger_priorities(self):
-        model = EventFeatures.build_base_event_model(s1=100, s2=0, rate=1.0)
+        model = EventFeatures.create_base_event_model(s1=100, s2=0, rate=1.0)
         event1 = gillespy2.Event(name="ev1", assignments=[
             gillespy2.EventAssignment(variable=model.get_species('S1'), expression="100"),
             gillespy2.EventAssignment(variable=model.get_species('S2'), expression="100"),
@@ -120,7 +120,7 @@ class EventFeatures(unittest.TestCase):
         self.assertEqual(s2, 100, "Events fired in an incorrect order")
 
     def test_use_values_from_trigger_time(self):
-        model = EventFeatures.build_base_event_model(s1=100, s2=0, rate=1.0)
+        model = EventFeatures.create_base_event_model(s1=100, s2=0, rate=1.0)
         event = gillespy2.Event(name="ev1", assignments=[
             gillespy2.EventAssignment(variable=model.get_species('S1'), expression="S2"),
             gillespy2.EventAssignment(variable=model.get_parameter('k1'), expression="0.0"),
@@ -134,7 +134,7 @@ class EventFeatures(unittest.TestCase):
         self.assertGreater(s2, s1, "Event assignment did not assign values from trigger time")
 
     def test_initial_values(self):
-        model = EventFeatures.build_base_event_model(s1=0, s2=100.0, rate=1.0)
+        model = EventFeatures.create_base_event_model(s1=0, s2=100.0, rate=1.0)
 
         event = gillespy2.Event(name="ev1", assignments=[
             gillespy2.EventAssignment(variable=model.get_species('S1'), expression="S2/2"),
