@@ -818,7 +818,8 @@ class Results(UserList, Jsonify):
             upperBound = [a+b for a, b in zip(average_result[species], stddev_trajectory[species])]
 
             plt.fill_between(average_result['time'], lowerBound, upperBound, color='whitesmoke')
-            plt.plot(average_result['time'], lowerBound, upperBound, color='grey', linestyle='dashed')
+            plt.plot(average_result['time'], upperBound, color='grey', linestyle='dashed')
+            plt.plot(average_result['time'], lowerBound, color='grey', linestyle='dashed')
             plt.plot(average_result['time'], average_result[species], label=species)
 
         if not show_title:
