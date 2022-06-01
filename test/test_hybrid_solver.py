@@ -49,7 +49,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         rule3 = gillespy2.RateRule(name='rule3', variable=species3, formula='sin(t)')
         rate_rule_dict = {'rule2': rule2, 'rule3': rule3}
         model.add_species([species2, species3])
-        with self.assertRaises(ParameterError):
+        with self.assertRaises(ModelError):
             model.add_rate_rule(rate_rule_dict)
 
     def test_add_bad_species_rate_rule_dict(self):
