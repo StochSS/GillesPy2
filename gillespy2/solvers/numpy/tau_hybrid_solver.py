@@ -783,7 +783,7 @@ class TauHybridSolver(GillesPySolver):
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
         objects and will inherit those parameters which are passed with the model as the arguments this run function.
 
-        :param model: GillesPy2 model object to simulate
+        :param model: GillesPy2 model object to simulate (Deprecated)
         :type model: GillesPy2.model
 
         :param t: Simulation run time
@@ -826,7 +826,7 @@ class TauHybridSolver(GillesPySolver):
         :param live_output_options: contains options for live_output. By default {"interval":1}.
             "interval" specifies seconds between displaying.
             "clear_output" specifies if display should be refreshed with each display
-        :type live_output_options:  str
+        :type live_output_options:  dict
 
         :param timeout: If set, if simulation takes longer than timeout, will exit.
         :type timeout: int

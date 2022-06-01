@@ -57,7 +57,7 @@ class NumPySSASolver(GillesPySolver):
         """
         Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
 
-        :param model: The model on which the solver will operate.
+        :param model: The model on which the solver will operate. (Deprecated)
         :type model: GillesPy2.model
         
         :param t: The end time of the solver.
@@ -82,7 +82,7 @@ class NumPySSASolver(GillesPySolver):
         :param live_output_options: dictionary contains options for live_output. By default {"interval":1}.
             "interval" specifies seconds between displaying.
             "clear_output" specifies if display should be refreshed with each display
-        :type live_output_options:  str
+        :type live_output_options:  dict
         
         :param timeout: If set, if simulation takes longer than timeout, will exit.
         :type timeout: int

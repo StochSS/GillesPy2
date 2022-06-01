@@ -87,7 +87,7 @@ class ODESolver(GillesPySolver):
     def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, show_labels=True, integrator='lsoda',
             integrator_options={}, live_output=None, live_output_options={}, timeout=None, resume=None, **kwargs):
         """
-        :param model: gillespy2.model class object
+        :param model: gillespy2.model class object (Deprecated)
         :type model: gillespy2.Model
         
         :param t: end time of simulation
@@ -115,7 +115,7 @@ class ODESolver(GillesPySolver):
         :param live_output_options: dictionary contains options for live_output. By default {"interval":1}.
             "interval" specifies seconds between displaying.
             "clear_output" specifies if display should be refreshed with each display
-        :type live_output_options:  str
+        :type live_output_options:  dict
         
         :param timeout: If set, if simulation takes longer than timeout, will exit.
         :type timeout: int

@@ -100,7 +100,7 @@ class TauLeapingSolver(GillesPySolver):
         and will inherit those parameters which are passed with the model
         as the arguments this run function.
 
-        :param model: GillesPy2 model object to simulate
+        :param model: GillesPy2 model object to simulate (Deprecated)
         :type model: gillespy2.Model
 
         :param t: Simulation run time
