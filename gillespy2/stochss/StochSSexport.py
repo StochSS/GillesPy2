@@ -200,6 +200,8 @@ def export(model, path=None, return_stochss_model=False):
     :type path: str
     """
 
+    model.compile_prep()
+
     if path is None:
         path = f"{model.name}.mdl"
 

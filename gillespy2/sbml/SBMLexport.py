@@ -150,6 +150,8 @@ def export(model, path=None):
     :type path: str
     """
 
+    model.compile_prep()
+
     if path is None:
         path = f"{model.name}.xml"
 
