@@ -17,44 +17,44 @@
 import unittest
 import tempfile
 from gillespy2.core.gillespyError import DirectoryError, SimulationError
-from example_models import build_example, build_example_no_tspan
+from example_models import create_decay, create_decay_no_tspan
 from gillespy2.solvers.cpp.ssa_c_solver import SSACSolver
 
 
 class TestSSACSolver(unittest.TestCase):
     def test_create(self):
-        model = build_example()
+        model = create_decay()
         solver = SSACSolver(model)
 
     def test_file_with_directory_name_exists(self):
         with self.assertRaises(DirectoryError):
             temp = tempfile.NamedTemporaryFile()
-            model = build_example()
+            model = create_decay()
             solver = SSACSolver(model, temp.name)
 
     def test_run_example_precompiled(self):
-        model = build_example()
+        model = create_decay()
         solver = SSACSolver(model)
         results = model.run(solver=solver)
 
     def test_run_example(self):
-        model = build_example()
+        model = create_decay()
         solver = SSACSolver(model=model)
         results = model.run(solver=solver)
 
     def test_run_example__with_increment_only(self):
-        model = build_example_no_tspan()
+        model = create_decay_no_tspan()
         solver = SSACSolver(model=model)
         results = solver.run(increment=0.2)
 
     def test_run_example__with_tspan_only(self):
-        model = build_example()
+        model = create_decay()
         solver = SSACSolver(model=model)
         results = solver.run()
 
     def test_run_example__with_tspan_and_increment(self):
         with self.assertRaises(SimulationError):
-            model = build_example()
+            model = create_decay()
             solver = SSACSolver(model=model)
             results = solver.run(increment=0.2)
 

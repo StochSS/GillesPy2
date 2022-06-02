@@ -108,9 +108,9 @@ def __add_reactions(model, reactions):
 def __add_rules(model, r_type, rules):
     for name, rule in rules.items():
         try:
-            variable = __get_species(species=model['species'], name=rule.variable)
+            variable = __get_species(species=model['species'], name=rule.variable.name)
         except IndexError:
-            variable = __get_parameter(parameters=model['parameters'], name=rule.variable)
+            variable = __get_parameter(parameters=model['parameters'], name=rule.variable.name)
 
         s_rule = {"compID":model['defaultID'],
                   "name":name,
@@ -199,6 +199,8 @@ def export(model, path=None, return_stochss_model=False):
     :param path: Path to the StochSS file for conversion
     :type path: str
     """
+
+    model.compile_prep()
 
     if path is None:
         path = f"{model.name}.mdl"

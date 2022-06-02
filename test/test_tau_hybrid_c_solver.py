@@ -3,7 +3,7 @@ import unittest
 import gillespy2
 import numpy
 from gillespy2 import TauHybridCSolver
-from example_models import build_example, build_example_no_tspan
+from example_models import create_decay, create_decay_no_tspan
 from gillespy2.core.gillespyError import SimulationError
 
 
@@ -16,7 +16,7 @@ class TestTauHybridCSolver(unittest.TestCase):
 
         # The output has a roughly predictable output, each species (approx.) approaching a particular value:
         #   S1 -> 0     S2 -> 0.15      S3 -> 1.0 (should be approx. constant throughout)
-        def build_model(parameter_values=None):
+        def create_rate_rule_test_model(parameter_values=None):
             model = gillespy2.Model(name="RateRuleTestModel")
             s1 = gillespy2.Species(name="S1", initial_value=0.015, mode='continuous')
             s2 = gillespy2.Species(name="S2", initial_value=0.0, mode='continuous')
@@ -34,7 +34,7 @@ class TestTauHybridCSolver(unittest.TestCase):
             model.timespan(numpy.linspace(0, 20, 51))
             return model
 
-        model = build_model()
+        model = create_rate_rule_test_model()
         solver = TauHybridCSolver(model=model)
         results = model.run(solver=solver, number_of_trajectories=1)
 
@@ -49,7 +49,7 @@ class TestTauHybridCSolver(unittest.TestCase):
         Non-boundary condition species should change with the expected reaction rate.
         """
         
-        def build_model(parameter_values=None):
+        def create_boundary_condition_test_model(parameter_values=None):
             model = gillespy2.Model(name="BoundaryConditionTestModel")
             s1 = gillespy2.Species(name="S1", boundary_condition=True, initial_value=0.001, mode='continuous')
             s2 = gillespy2.Species(name="S2", boundary_condition=False, initial_value=0.002, mode='continuous')
@@ -75,7 +75,7 @@ class TestTauHybridCSolver(unittest.TestCase):
             model.timespan(numpy.linspace(0, 20, 51))
             return model
 
-        model = build_model()
+        model = create_boundary_condition_test_model()
         solver = TauHybridCSolver(model=model)
         results = model.run(solver=solver, number_of_trajectories=1)
 
@@ -87,18 +87,18 @@ class TestTauHybridCSolver(unittest.TestCase):
                 self.assertTrue(species.boundary_condition == is_uniform)
 
     def test_run_example__with_increment_only(self):
-        model = build_example_no_tspan()
+        model = create_decay_no_tspan()
         solver = TauHybridCSolver(model=model)
         results = solver.run(increment=0.2)
 
     def test_run_example__with_tspan_only(self):
-        model = build_example()
+        model = create_decay()
         solver = TauHybridCSolver(model=model)
         results = solver.run()
 
     def test_run_example__with_tspan_and_increment(self):
         with self.assertRaises(SimulationError):
-            model = build_example()
+            model = create_decay()
             solver = TauHybridCSolver(model=model)
             results = solver.run(increment=0.2)
 

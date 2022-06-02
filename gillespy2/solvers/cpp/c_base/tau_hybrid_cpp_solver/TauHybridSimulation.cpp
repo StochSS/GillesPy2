@@ -73,7 +73,14 @@ int main(int argc, char* argv[])
 	if (parser.verbose)
 		logger.set_log_level(LogLevel::INFO);
 
-	TauHybrid::TauHybridCSolver(&simulation, events, tau_tol, logger);
+	// Configure solver options from command-line arguments (or defaults)
+	SolverConfiguration config = {
+		parser.rtol,
+		parser.atol,
+		parser.max_step,
+	};
+
+	TauHybrid::TauHybridCSolver(&simulation, events, logger, tau_tol, config);
 	simulation.output_buffer_final(std::cout);
 	return simulation.get_status();
 }

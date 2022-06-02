@@ -24,7 +24,7 @@ from gillespy2 import ODESolver
 import sys
 np.set_printoptions(suppress=True)
 
-def build_model(parameter_values=None):
+def create_oregonator(parameter_values=None):
     # Superclass initialization
     model = Model(name="Oregonator")
 
@@ -72,7 +72,7 @@ def build_model(parameter_values=None):
         model.timespan(np.linspace(0, 5, 500001))
     return model
 
-model = build_model()
+model = create_oregonator()
 if sys.argv[1] == 'NumPySSASolver':
     results = model.run(solver=NumPySSASolver(model=model))
 elif sys.argv[1] == 'TauLeapingSolver':

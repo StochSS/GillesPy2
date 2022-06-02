@@ -101,20 +101,19 @@ class GillesPySolver:
             else:
                 tspan = TimeSpan.arange(increment, t=t)
             self.model.timespan(tspan)
-        elif not isinstance(self.model.tspan, TimeSpan) or type(self.model.tspan).__name__ != "TimeSpan":
-            tspan = TimeSpan(self.model.tspan)
-            self.model.timespan(tspan)
-        else:
-            self.model.tspan.validate()
 
     @classmethod
     def get_supported_features(cls) -> "Set[Type]":
         return set()
 
     @classmethod
+    def get_supported_integrator_options(cls) -> "Set[str]":
+        return set()
+
+    @classmethod
     def validate_model(cls, sol_model, model):
         if model is not None:
-            model.resolve_all_parameters()
+            model.compile_prep()
             if model.tspan is None:
                 model = copy.deepcopy(model)
                 model.tspan = sol_model.tspan
@@ -129,3 +128,8 @@ class GillesPySolver:
             raise ModelError(f"Could not run Model, "
                              f"SBML Features not supported by {cls.name}: " +
                              ", ".join(unsupported_features))
+
+    @classmethod
+    def validate_integrator_options(cls, options: "dict[str, float]") -> "dict[str, float]":
+        return { option: value for option, value in options.items() if option in cls.get_supported_integrator_options() }
+

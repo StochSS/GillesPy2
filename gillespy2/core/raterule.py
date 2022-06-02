@@ -43,7 +43,8 @@ class RateRule(SortableObject, Jsonify):
 
     def __str__(self):
         try:
-            return self.name + ': Var: ' + self.variable + ': ' + self.formula
+            var_name = self.variable if isinstance(self.variable, str) else self.variable.name
+            return f"{self.name}: Var: {var_name}: {self.formula}"
         except:
             return 'Rate Rule: {} contains an invalid variable or formula'.format(self.name)
 

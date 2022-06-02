@@ -30,7 +30,7 @@ from gillespy2.core import (
 import numpy as np
 
 
-def build_vilar_oscillator(parameter_values=None):
+def create_vilar_oscillator(parameter_values=None):
     model = Model(name="VilarOscillator")
     model.volume = 1
 
@@ -94,7 +94,7 @@ def build_vilar_oscillator(parameter_values=None):
     return model
 
 
-def build_dimerization(parameter_values=None):
+def create_dimerization(parameter_values=None):
     # First call the Model initializer.
     model = Model(name="Dimerization")
 
@@ -123,7 +123,7 @@ def build_dimerization(parameter_values=None):
     return model
 
 
-def build_trichloroethylene(parameter_values=None):
+def create_trichloroethylene(parameter_values=None):
     """
     UNCA iGEM 2017 Metabolic Channel.
     """
@@ -163,7 +163,7 @@ def build_trichloroethylene(parameter_values=None):
     return model
 
 
-def build_lac_operon(parameter_values=None):
+def create_lac_operon(parameter_values=None):
     """
     Heath LS, Cao Y. Problem Solving Handbook in Computational Biology and Bioinformatics. Springer; 2014.
     """
@@ -249,7 +249,7 @@ def build_lac_operon(parameter_values=None):
     return model
 
 
-def build_schlogl(parameter_values=None):
+def create_schlogl(parameter_values=None):
     """
     Schlogl F. Chemical reaction models for non-equilibrium phase transitions. Zeitschrift for Physik.
     1972;253: 147–161. doi:10.1007/bf01379769
@@ -279,7 +279,7 @@ def build_schlogl(parameter_values=None):
     return model
 
 
-def build_michaelis_menten(parameter_values=None):
+def create_michaelis_menten(parameter_values=None):
     # initialize Model
     model = Model(name="Michaelis_Menten")
 
@@ -307,7 +307,7 @@ def build_michaelis_menten(parameter_values=None):
     return model
 
 
-def build_toggle_switch(parameter_values=None):
+def create_toggle_switch(parameter_values=None):
     """
     Gardner et al. Nature (1999)Construction of a genetic toggle switch in Escherichia coli
     (Transcription from 
@@ -335,7 +335,7 @@ def build_toggle_switch(parameter_values=None):
     return model
 
 
-def build_example(parameter_values=None):
+def create_decay(parameter_values=None):
     """
     This is a simple example for mass-action degradation of species S.
     """
@@ -355,7 +355,7 @@ def build_example(parameter_values=None):
     return model
 
 
-def build_example_no_tspan(parameter_values=None):
+def create_decay_no_tspan(parameter_values=None):
     """
     This is a simple example for mass-action degradation of species S.
     """
@@ -374,7 +374,7 @@ def build_example_no_tspan(parameter_values=None):
     return model
 
 
-def build_tyson_2_state_oscillator(parameter_values=None):
+def create_tyson_2_state_oscillator(parameter_values=None):
     """
     Here, as a test case, we run a simple two-state oscillator (Novak & Tyson
     2008) as an example of a stochastic reaction system.
@@ -417,7 +417,7 @@ def build_tyson_2_state_oscillator(parameter_values=None):
     model.timespan(np.linspace(0, 100, 101))
     return model
 
-def build_oregonator(parameter_values = None):
+def create_oregonator(parameter_values = None):
     # Oregonator system
     # http://www.scholarpedia.org/article/Oregonator
 
@@ -468,7 +468,7 @@ def build_oregonator(parameter_values = None):
     return model
 
 
-def build_degradation(model_name="Degradation", parameter_values=None):
+def create_degradation(model_name="Degradation", parameter_values=None):
     model = Model(name=model_name)
     
     A = Species(name="A", initial_value=2000)
@@ -483,7 +483,7 @@ def build_degradation(model_name="Degradation", parameter_values=None):
     return model
 
 
-def build_robust_model(parameter_values=None):
+def create_robust_model(parameter_values=None):
     model = Model(name="test1")
     model.volume = 1
 
@@ -522,7 +522,7 @@ def build_robust_model(parameter_values=None):
     model.timespan(np.arange(0, 20, 0.05))
     return model
 
-def build_multi_firing_event(parameter_values=None):                                                                                                                                                                                       
+def create_multi_firing_event(parameter_values=None):                                                                                                                                                                                       
     """                                                                                                                                                                                                                              
     This is a simple example for mass-action degradation of species S.  We will add two events
     to demonstrate the usage of events.  The first event will assign the value '0' to our species
@@ -565,7 +565,8 @@ def build_multi_firing_event(parameter_values=None):
     return model
 
 __all__ = [
-    'build_trichloroethylene', 'build_lac_operon', 'build_schlogl', 'build_michaelis_menten', 'build_toggle_switch',
-    'build_example', 'build_example_no_tspan', 'build_tyson_2_state_oscillator', 'build_oregonator',
-    'build_vilar_oscillator', 'build_dimerization', 'build_degradation', 'build_robust_model', 'build_multi_firing_event'
+    'create_trichloroethylene', 'create_lac_operon', 'create_schlogl', 'create_michaelis_menten',
+    'create_decay', 'create_decay_no_tspan', 'create_tyson_2_state_oscillator', 'create_oregonator',
+    'create_vilar_oscillator', 'create_dimerization', 'create_degradation', 'create_robust_model',
+    'create_multi_firing_event', 'create_toggle_switch'
 ]

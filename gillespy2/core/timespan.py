@@ -40,6 +40,9 @@ class TimeSpan(Iterator, Jsonify):
 
         self.validate()
 
+    def __str__(self):
+        return self.items.__str__()
+
     def __eq__(self, o):
         return self.items.__eq__(o).all()
 

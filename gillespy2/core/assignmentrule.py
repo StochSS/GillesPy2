@@ -44,7 +44,8 @@ class AssignmentRule(SortableObject, Jsonify):
         self.formula = formula
 
     def __str__(self):
-        return self.variable + ': ' + self.formula
+        var_name = self.variable if isinstance(self.variable, str) else self.variable.name
+        return f"{self.name}: Var: {var_name}: {self.formula}"
 
     def sanitized_formula(self, species_mappings, parameter_mappings):
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),

@@ -24,21 +24,21 @@ from gillespy2.core.jsonify import TranslationTable
 
 class TestJsonModels(unittest.TestCase):
     models = [
-        build_example,
-        build_michaelis_menten,
-        build_vilar_oscillator,
-        build_dimerization,
-        build_trichloroethylene,
-        build_toggle_switch,
-        build_tyson_2_state_oscillator,
-        build_oregonator,
+        create_decay,
+        create_michaelis_menten,
+        create_vilar_oscillator,
+        create_dimerization,
+        create_trichloroethylene,
+        create_toggle_switch,
+        create_tyson_2_state_oscillator,
+        create_oregonator,
     ]
 
     runnable_models = [
-        build_example,
-        build_michaelis_menten,
-        build_tyson_2_state_oscillator,
-        build_schlogl
+        create_decay,
+        create_michaelis_menten,
+        create_tyson_2_state_oscillator,
+        create_schlogl
     ]
 
     def test_equality_of_named_models(self):
@@ -194,8 +194,8 @@ class TestJsonModels(unittest.TestCase):
 
     def test_model_hash_whitespace_accuracy(self):
         """ Test that differences in whitespace do not change the hash of a model. """
-        model_no_whitespace = build_michaelis_menten()
-        model_with_whitespace = build_michaelis_menten()
+        model_no_whitespace = create_michaelis_menten()
+        model_with_whitespace = create_michaelis_menten()
 
          
         X = Species(name="X", initial_value=int(0.65609071 * 300.0))

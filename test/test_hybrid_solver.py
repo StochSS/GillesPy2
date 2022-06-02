@@ -17,14 +17,14 @@ import unittest
 import numpy as np
 import gillespy2
 from gillespy2.core.gillespyError import *
-from example_models import build_example, build_example_no_tspan, build_multi_firing_event
+from example_models import create_decay, create_decay_no_tspan, create_multi_firing_event
 from gillespy2 import TauHybridSolver
 
 
 class TestBasicTauHybridSolver(unittest.TestCase):
 
     def test_null_timeout(self):
-        model = build_example()
+        model = create_decay()
         species = gillespy2.Species('test_species', initial_value=1)
         model.add_species([species])
         solver = TauHybridSolver(model=model)
@@ -32,7 +32,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         self.assertTrue(len(results) > 0)
 
     def test_add_rate_rule(self):
-        model = build_example()
+        model = create_decay()
         species = gillespy2.Species('test_species', initial_value=1)
         rule = gillespy2.RateRule(name='rr1',formula='test_species+1',variable='test_species')
         model.add_species([species])
@@ -42,24 +42,24 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         self.assertIn(results[0].solver_name, valid_solvers)
 
     def test_add_rate_rule_dict(self):
-        model = build_example()
+        model = create_decay()
         species2 = gillespy2.Species('test_species2', initial_value=2, mode='continuous')
         species3 = gillespy2.Species('test_species3', initial_value=3, mode='continuous')
         rule2 = gillespy2.RateRule('rule2', species2, 'cos(t)')
         rule3 = gillespy2.RateRule(name='rule3', variable=species3, formula='sin(t)')
         rate_rule_dict = {'rule2': rule2, 'rule3': rule3}
         model.add_species([species2, species3])
-        with self.assertRaises(ParameterError):
+        with self.assertRaises(ModelError):
             model.add_rate_rule(rate_rule_dict)
 
     def test_add_bad_species_rate_rule_dict(self):
-        model = build_example()
+        model = create_decay()
         rule = gillespy2.RateRule(formula='sin(t)')
         with self.assertRaises(ModelError):
             model.add_rate_rule(rule)
 
     def test_add_assignment_rule(self):
-        model = build_example()
+        model = create_decay()
         species = gillespy2.Species('test_species4', initial_value=1)
         rule = gillespy2.AssignmentRule(name='ar1', variable=species.name, formula='2')
         model.add_species([species])
@@ -70,14 +70,14 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         self.assertEqual(results[0].solver_name,'TauHybridSolver')
 
     def test_add_function_definition(self):
-        model = build_example()
+        model = create_decay()
         funcdef = gillespy2.FunctionDefinition(name='fun', function='Sp+1')
         model.add_function_definition(funcdef)
         results = model.run()
         self.assertEqual(results[0].solver_name,'TauHybridSolver')
 
     def test_add_continuous_species_dependent_event(self):
-        model = build_example()
+        model = create_decay()
         model.listOfSpecies['Sp'].mode = 'continuous'
         eventTrig = gillespy2.EventTrigger(expression='Sp <= 90', initial_value=True, )
         event1 = gillespy2.Event(name='event1', trigger=eventTrig)
@@ -91,7 +91,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         self.assertEqual(results['Sp'][-1], 1000)
 
     def test_add_stochastic_species_dependent_event(self):
-        model = build_example()
+        model = create_decay()
         model.listOfSpecies['Sp'].mode = 'discrete'
         eventTrig = gillespy2.EventTrigger(expression='Sp <= 90', initial_value=True, )
         event1 = gillespy2.Event(name='event1', trigger=eventTrig)
@@ -103,7 +103,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         self.assertEqual(results['Sp'][-1], 1000)
         
     def test_add_continuous_time_dependent_event(self):
-        model = build_example()
+        model = create_decay()
         model.listOfSpecies['Sp'].mode = 'continuous'
         eventTrig = gillespy2.EventTrigger(expression='t >= 10', initial_value=True, )
         event1 = gillespy2.Event(name='event1', trigger=eventTrig)
@@ -115,7 +115,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         self.assertEqual(results['Sp'][-1], 1000)
         
     def test_add_stochastic_time_dependent_event(self):
-        model = build_example()
+        model = create_decay()
         model.listOfSpecies['Sp'].mode = 'discrete'
         eventTrig = gillespy2.EventTrigger(expression='t >= 10', initial_value=True, )
         event1 = gillespy2.Event(name='event1', trigger=eventTrig)
@@ -127,7 +127,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         self.assertEqual(results['Sp'][-1], 1000)
         
     def test_add_param_event(self):
-        def build_model(parameter_values=None):
+        def create_event_test_model(parameter_values=None):
             model = gillespy2.Model(name='Event Test Model')
             model.add_species([gillespy2.Species(name='S', initial_value=0)])
             model.add_parameter(gillespy2.Parameter(name='event_tracker',
@@ -147,12 +147,12 @@ class TestBasicTauHybridSolver(unittest.TestCase):
             model.add_event([event1, event2])
             return model
 
-        model = build_model()
+        model = create_event_test_model()
         results = model.run(increment=0.05, t=20)
         self.assertGreater(results['S'][-1], 0)
 
     def test_math_name_overlap(self):
-        model = build_example()
+        model = create_decay()
         gamma = gillespy2.Species('gamma',initial_value=2, mode='continuous')
         model.add_species([gamma])
         k2 = gillespy2.Parameter(name='k2', expression=1)
@@ -163,14 +163,14 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         model.run(solver=solver)
 
     def test_add_bad_expression_rate_rule_dict(self):
-        model = build_example()
+        model = create_decay()
         species2 = gillespy2.Species('test_species2', initial_value=2, mode='continuous')
         rule = gillespy2.RateRule(variable=species2, formula='')
         with self.assertRaises(ModelError):
             model.add_rate_rule(rule)
 
     def test_ensure_hybrid_dynamic_species(self):
-        model = build_example()
+        model = create_decay()
         species1 = gillespy2.Species('test_species1', initial_value=1,mode='dynamic')
         model.add_species(species1)
         results = model.run()
@@ -178,7 +178,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         self.assertIn(results[0].solver_name, valid_solvers)
 
     def test_ensure_hybrid_continuous_species(self):
-        model = build_example()
+        model = create_decay()
         species1 = gillespy2.Species('test_species1', initial_value=1,mode='continuous')
         model.add_species(species1)
         results = model.run()
@@ -186,7 +186,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         self.assertIn(results[0].solver_name, valid_solvers)
 
     def test_ensure_continuous_dynamic_timeout_warning(self):
-        model = build_example()
+        model = create_decay()
         species1 = gillespy2.Species('test_species1', initial_value=1, mode='dynamic')
         model.add_species(species1)
         with self.assertLogs('GillesPy2', level='WARN'):
@@ -194,18 +194,18 @@ class TestBasicTauHybridSolver(unittest.TestCase):
             results = model.run(solver=solver, timeout=1)
 
     def test_run_example__with_increment_only(self):
-        model = build_example_no_tspan()
+        model = create_decay_no_tspan()
         solver = TauHybridSolver(model=model)
         results = solver.run(increment=0.2, t=20)
 
     def test_run_example__with_tspan_only(self):
-        model = build_example()
+        model = create_decay()
         solver = TauHybridSolver(model=model)
         results = solver.run()
 
     def test_run_example__with_tspan_and_increment(self):
         with self.assertRaises(SimulationError):
-            model = build_example()
+            model = create_decay()
             solver = TauHybridSolver(model=model)
             results = solver.run(increment=0.2)
 
@@ -223,7 +223,7 @@ class TestAllHybridSolvers(unittest.TestCase):
         Continuous values should be evaluate appropriately, without being truncated/casted to an integer.
         """
         
-        def build_model(parameter_values=None):
+        def create_truncated_state_model(parameter_values=None):
             model = gillespy2.Model(name="TruncatedStateModel")
             S1 = gillespy2.Species(name="S1", initial_value=0, mode="discrete")
             rate = gillespy2.Species(name="rate", initial_value=0.9999, mode="continuous")
@@ -235,7 +235,7 @@ class TestAllHybridSolvers(unittest.TestCase):
             )
             return model
 
-        model = build_model()
+        model = create_truncated_state_model()
         for solver in self.solvers:
             with self.subTest(solver=solver.name):
                 solver = solver(model=model)
@@ -244,7 +244,7 @@ class TestAllHybridSolvers(unittest.TestCase):
                                    "Reaction never fired; indicates that continuous species is being truncated")
 
     def test_multi_firing_event(self):
-        model = build_multi_firing_event()
+        model = create_multi_firing_event()
         for solver in self.solvers:
             with self.subTest(solver=solver.name):
                 solver = solver(model=model)

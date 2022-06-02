@@ -23,7 +23,7 @@ from gillespy2.core.gillespyError import *
 class TestSimpleModel(unittest.TestCase):
     def setUp(self):
 
-        def build_model(parameter_values=None):
+        def create_simple_hybrid_model(parameter_values=None):
             model = Model(name="Simple_Hybrid_Model")
 
             # Species
@@ -48,7 +48,7 @@ class TestSimpleModel(unittest.TestCase):
             model.timespan(numpy.linspace(0, 1, 11))
             return model
 
-        self.model = build_model()
+        self.model = create_simple_hybrid_model()
 
 #    def test_this_should_fail(self):
 #        name = self.model.name
@@ -159,7 +159,7 @@ class TestSimpleModel(unittest.TestCase):
 
     def test_model_has_rate_rules(self):
         rate_rules = self.model.listOfRateRules
-        self.assertEqual(rate_rules['Brate'].variable, 'B', msg='Has incorrect species')
+        self.assertEqual(rate_rules['Brate'].variable.name, 'B', msg='Has incorrect species')
         self.assertEqual(rate_rules['Brate'].formula, 'cos(t)', msg='{0} has incorrect type'.format(rate_rules))
 
     def test_get_reaction(self):

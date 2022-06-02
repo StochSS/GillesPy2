@@ -288,7 +288,7 @@ def __get_rules(sbml_model, gillespy_model, errors):
             gillespy_rule = gillespy2.AssignmentRule(name=rule_name, variable=rule_variable,
                 formula=rule_string)
             gillespy_model.add_assignment_rule(gillespy_rule)
-            init_state[gillespy_rule.variable]=eval(gillespy_rule.formula, {**init_state, **eval_globals})
+            init_state[gillespy_rule.variable.name]=eval(gillespy_rule.formula, {**init_state, **eval_globals})
 
         if rule.isRate():
             gillespy_rule = gillespy2.RateRule(name=rule_name, variable=rule_variable,

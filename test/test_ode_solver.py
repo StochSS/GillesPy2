@@ -19,7 +19,7 @@ import sys
 sys.path.append("..")
 import numpy as np
 import gillespy2
-from example_models import build_example, build_example_no_tspan
+from example_models import create_decay, create_decay_no_tspan
 from gillespy2 import ODESolver
 from gillespy2.core.gillespyError import SimulationError
 
@@ -28,7 +28,7 @@ class TestBasicODESolver(unittest.TestCase):
     number_of_trajectories = 10
 
     def test_run_example(self):
-        model = build_example()
+        model = create_decay()
         solver = ODESolver(model=model)
         for i in [1, self.number_of_trajectories]:
             for label in [True, False]:
@@ -49,7 +49,7 @@ class TestBasicODESolver(unittest.TestCase):
                                 self.assertTrue(np.array_equal(results[0], result))
 
     def test_stoich2(self):
-        def build_model(parameter_values=None):
+        def create_stoch_test_1(parameter_values=None):
             model = gillespy2.Model(name='StochTest1')
             A = gillespy2.Species(name='A', initial_value=10)
             B = gillespy2.Species(name='B', initial_value=0)
@@ -61,30 +61,30 @@ class TestBasicODESolver(unittest.TestCase):
             model.timespan(np.linspace(0, 100, 101))
             return model
     
-        model = build_model()
+        model = create_stoch_test_1()
         solver = ODESolver(model=model)
         result = model.run(solver=solver)
         self.assertAlmostEqual(result['B'][-1], 5, places=3)
 
     def test_run_example__with_increment_only(self):
-        model = build_example_no_tspan()
+        model = create_decay_no_tspan()
         solver = ODESolver(model=model)
         results = solver.run(increment=0.2)
 
     def test_run_example__with_tspan_only(self):
-        model = build_example()
+        model = create_decay()
         solver = ODESolver(model=model)
         results = solver.run()
 
     def test_run_example__with_tspan_and_increment(self):
         with self.assertRaises(SimulationError):
-            model = build_example()
+            model = create_decay()
             solver = ODESolver(model=model)
             results = solver.run(increment=0.2)
 
 
     def test_stoch3(self):
-        def build_model(parameter_values=None):
+        def create_stoch_test_1(parameter_values=None):
             model = gillespy2.Model(name='StochTest1')
             A = gillespy2.Species(name='A', initial_value=10)
             B = gillespy2.Species(name='B', initial_value=0)
@@ -97,7 +97,7 @@ class TestBasicODESolver(unittest.TestCase):
             model.timespan(np.linspace(0, 100, 101))
             return model
 
-        model = build_model()
+        model = create_stoch_test_1()
         solver = ODESolver(model=model)
         result = model.run(solver=solver)
         sys.stderr.write(f"\ntest_shoch3(): B={result['B'][-1]}\n\n")

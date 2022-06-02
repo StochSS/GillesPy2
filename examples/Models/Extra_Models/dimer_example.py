@@ -74,9 +74,9 @@ except:
     sys.exit()
 
 
-# Build the Dimerization Model
+# Create the Dimerization Model
 # .............................................................................
-def build_dimerization(parameter_values=None):
+def create_dimerization(parameter_values=None):
     # Initialize Model
     model = gillespy2.Model(name="Dimerization")
 
@@ -113,7 +113,7 @@ def build_dimerization(parameter_values=None):
     return model
 
 # Instantiate the Model
-model = build_dimerization()
+model = create_dimerization()
 
 
 # Run the Simulations

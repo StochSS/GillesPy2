@@ -151,6 +151,10 @@ namespace Gillespy
 		/// and the underlying SBML event data and reaction data are removed.
 		bool disable_root_finder();
 
+		/// @brief Configures CVODE to use the user-supplied configuration data.
+		/// If all configurations were applied successfully, returns true. Otherwise, returns false.
+		bool configure(SolverConfiguration config);
+
 		void set_error_handler(CVErrHandlerFn error_handler);
 
 		IntegrationResults integrate(double *t);

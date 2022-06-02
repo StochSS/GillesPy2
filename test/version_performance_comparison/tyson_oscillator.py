@@ -37,7 +37,7 @@ except:
 # reactions, molecular species, and the time span for simualtion, are all
 # defined within the class definition.
 
-def build_model(parameter_values=None):
+def create_tyson_2_state(parameter_values=None):
     """
     Here, as a test case, we run a simple two-state oscillator (Novak & Tyson
     2008) as an example of a stochastic reaction system.
@@ -122,7 +122,7 @@ if __name__ == '__main__':
     from gillespy2 import SSACSolver
     tic = time.time()
     for _ in range(10):
-        tyson_model = build_model()
+        tyson_model = create_tyson_2_state()
         solver = SSACSolver(model=tyson_model)
         trajectories = tyson_model.run(solver=solver)
     print((time.time() - tic)/10)

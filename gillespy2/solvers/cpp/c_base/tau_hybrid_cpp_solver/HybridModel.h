@@ -25,9 +25,6 @@
 #include <queue>
 #include <list>
 
-#define GPY_HYBRID_ABSTOL 1e-8
-#define GPY_HYBRID_RELTOL 1e-8
-
 namespace Gillespy
 {
 	namespace TauHybrid
