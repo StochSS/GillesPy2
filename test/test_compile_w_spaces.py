@@ -24,7 +24,6 @@ import sys
 import copy
 import numpy
 import shutil
-from example_models import *
 
 
 class TestCompileWSpaces(unittest.TestCase):
@@ -39,27 +38,26 @@ class TestCompileWSpaces(unittest.TestCase):
         # 
         try:
             # create a model
-#            model = gillespy2.Model(name="test_compile_model")
-#            model.add_species([
-#                gillespy2.Species(name='A', initial_value=10, mode='continious'),
-#                gillespy2.Species(name='B', initial_value=10), mode='continious')
-#            ])
-#            model.add_parameter([
-#                gillespy2.Parameter(name='k1', expression=1),
-#                gillespy2.Parameter(name='k2', expression=10)
-#            ])
-#            model.add_rate_rule([
-#                gillespy2.RateRule(name='Brate', variable='B', formula="cos(t)")
-#            ])
-#            model.add_reaction([
-#                gillespy2.Reaction(reactants={'A': 1}, products={}, 
-#                                   propensity_function="k1*B"),
-#                gillespy2.Reaction(reactants={}, products={'B': 1}, 
-#                                   rate='k2')
-#            ])
-#            model.timespan(numpy.array([0., 5., 10.]))                
-#
-            model = create_robust_model()
+            model = gillespy2.Model(name="test_compile_model")
+            model.add_species([
+                gillespy2.Species(name='A', initial_value=10),
+                gillespy2.Species(name='B', initial_value=10), 
+            ])
+            model.add_parameter([
+                gillespy2.Parameter(name='k1', expression=1),
+                gillespy2.Parameter(name='k2', expression=10)
+            ])
+            #model.add_rate_rule([
+            #    gillespy2.RateRule(name='Brate', variable='B', formula="cos(t)")
+            #])
+            model.add_reaction([
+                gillespy2.Reaction(reactants={'A': 1}, products={}, 
+                                   propensity_function="k1*B"),
+                gillespy2.Reaction(reactants={}, products={'B': 1}, 
+                                   rate='k2')
+            ])
+            model.timespan(numpy.array([0., 5., 10.]))                
+
             # run the model
             result = model.run()
         finally:
@@ -67,6 +65,9 @@ class TestCompileWSpaces(unittest.TestCase):
             sys.path = old_path
             shutil.rmtree(prefix_base_dir)
         # Checks
+        with open("/tmp/test.log", "a") as logfile:
+            logfile.write('gillespy2.__file__: '+gillespy2.__file__+"\n")
+            logfile.write('prefix_base_dir: '+prefix_base_dir+"\n")
         self.assertTrue(gillespy2.__file__ == prefix_base_dir+'/A SPACE/gillespy2/__init__.py')
 
 
