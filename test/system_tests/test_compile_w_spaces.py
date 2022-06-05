@@ -26,6 +26,8 @@ import unittest
 import tempfile
 import platform
 
+
+
 class TestCompileWSpaces(unittest.TestCase):
     
     def setUp(self):
@@ -49,22 +51,29 @@ class TestCompileWSpaces(unittest.TestCase):
         ]
 
         # create a model
-        model = gillespy2.Model(name="test_compile_model")
-        model.add_species([
-            gillespy2.Species(name='A', initial_value=100),
-            gillespy2.Species(name='B', initial_value=100), 
-        ])
-        model.add_parameter([
-            gillespy2.Parameter(name='k1', expression=1),
-            gillespy2.Parameter(name='k2', expression=10)
-        ])
-        model.add_reaction([
-            gillespy2.Reaction(reactants={'A': 1}, products={}, 
-                               propensity_function="k1*B"),
-            gillespy2.Reaction(reactants={}, products={'B': 1}, 
-                               rate='k2')
-        ])
-        model.timespan(numpy.array([0., 5., 10.]))                
+        model = Model(name="Michaelis_Menten")
+
+        # parameters
+        rate1 = Parameter(name='rate1', expression=0.0017)
+        rate2 = Parameter(name='rate2', expression=0.5)
+        rate3 = Parameter(name='rate3', expression=0.1)
+        model.add_parameter([rate1, rate2, rate3])
+
+        # Species
+        A = Species(name='A', initial_value=301)
+        B = Species(name='B', initial_value=120)
+        C = Species(name='C', initial_value=0)
+        D = Species(name='D', initial_value=0)
+        model.add_species([A, B, C, D])
+
+        # reactions
+        r1 = Reaction(name="r1", reactants={A: 1, B: 1}, products={C: 1}, rate=rate1)
+
+        r2 = Reaction(name="r2", reactants={C: 1}, products={A: 1, B: 1}, rate=rate2)
+
+        r3 = Reaction(name="r3", reactants={C: 1}, products={B: 1, D: 1}, rate=rate3)
+        model.add_reaction([r1, r2, r3])
+        model.timespan(np.linspace(0, 100, 101))
 
         # run the model
         for solver in self.solvers:
@@ -76,7 +85,5 @@ class TestCompileWSpaces(unittest.TestCase):
                     result = model.run(solver=solver)
                     self.assertTrue(gillespy2.__file__ == os.path.join(self.prefix_base_dir, 'A SPACE/gillespy2/__init__.py'))
 
-
 if __name__ == '__main__':
     unittest.main()
-
