@@ -51,8 +51,8 @@ class TestCompileWSpaces(unittest.TestCase):
         # create a model
         model = gillespy2.Model(name="test_compile_model")
         model.add_species([
-            gillespy2.Species(name='A', initial_value=10),
-            gillespy2.Species(name='B', initial_value=10), 
+            gillespy2.Species(name='A', initial_value=100),
+            gillespy2.Species(name='B', initial_value=100), 
         ])
         model.add_parameter([
             gillespy2.Parameter(name='k1', expression=1),
