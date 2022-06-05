@@ -33,7 +33,7 @@ class TestCompileWSpaces(unittest.TestCase):
         gpy_host_dir = os.path.join(self.prefix_base_dir, 'A SPACE')
         os.mkdir(gpy_host_dir)
         shutil.copytree(
-            os.path.abspath(os.path.join(os.path.dirname(__file__)), "../gillespy2"),
+            os.path.abspath(os.path.join(os.path.dirname(__file__), "../gillespy2")),
             os.path.join(gpy_host_dir, 'gillespy2')
         )
         self.old_path = copy.copy(sys.path)
