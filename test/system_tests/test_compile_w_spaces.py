@@ -30,14 +30,10 @@ class TestCompileWSpaces(unittest.TestCase):
     
     def setUp(self):
         self.prefix_base_dir = tempfile.mkdtemp()
-        gpy_host_dir = os.path.join(self.prefix_base_dir, 'A SPACE')
-        os.mkdir(gpy_host_dir)
-        shutil.copytree(
-            os.path.abspath(os.path.join(os.path.dirname(__file__), "../gillespy2")),
-            os.path.join(gpy_host_dir, 'gillespy2')
-        )
+        os.mkdir(f'{self.prefix_base_dir}/A SPACE')
+        shutil.copytree(f"{os.path.abspath(os.path.dirname(__file__))}/../gillespy2", f'{self.prefix_base_dir}/A SPACE/gillespy2')
         self.old_path = copy.copy(sys.path)
-        sys.path.insert(0, gpy_host_dir)
+        sys.path.insert(0, f'{self.prefix_base_dir}/A SPACE/')
         import gillespy2
         self.solvers = [
             gillespy2.ODECSolver,
