@@ -51,27 +51,27 @@ class TestCompileWSpaces(unittest.TestCase):
         ]
 
         # create a model
-        model = Model(name="Michaelis_Menten")
+        model = gillespy2.Model(name="Michaelis_Menten")
 
         # parameters
-        rate1 = Parameter(name='rate1', expression=0.0017)
-        rate2 = Parameter(name='rate2', expression=0.5)
-        rate3 = Parameter(name='rate3', expression=0.1)
+        rate1 = gillespy2.Parameter(name='rate1', expression=0.0017)
+        rate2 = gillespy2.Parameter(name='rate2', expression=0.5)
+        rate3 = gillespy2.Parameter(name='rate3', expression=0.1)
         model.add_parameter([rate1, rate2, rate3])
 
         # Species
-        A = Species(name='A', initial_value=301)
-        B = Species(name='B', initial_value=120)
-        C = Species(name='C', initial_value=0)
-        D = Species(name='D', initial_value=0)
+        A = gillespy2.Species(name='A', initial_value=301)
+        B = gillespy2.Species(name='B', initial_value=120)
+        C = gillespy2.Species(name='C', initial_value=0)
+        D = gillespy2.Species(name='D', initial_value=0)
         model.add_species([A, B, C, D])
 
         # reactions
-        r1 = Reaction(name="r1", reactants={A: 1, B: 1}, products={C: 1}, rate=rate1)
+        r1 = gillespy2.Reaction(name="r1", reactants={A: 1, B: 1}, products={C: 1}, rate=rate1)
 
-        r2 = Reaction(name="r2", reactants={C: 1}, products={A: 1, B: 1}, rate=rate2)
+        r2 = gillespy2.Reaction(name="r2", reactants={C: 1}, products={A: 1, B: 1}, rate=rate2)
 
-        r3 = Reaction(name="r3", reactants={C: 1}, products={B: 1, D: 1}, rate=rate3)
+        r3 = gillespy2.Reaction(name="r3", reactants={C: 1}, products={B: 1, D: 1}, rate=rate3)
         model.add_reaction([r1, r2, r3])
         model.timespan(np.linspace(0, 100, 101))
 
