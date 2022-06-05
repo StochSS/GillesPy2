@@ -79,8 +79,8 @@ class TestCompileWSpaces(unittest.TestCase):
         for solver in self.solvers:
             with self.subTest(solver=solver.name):
                 if platform.system() == "Windows":
-                    # with self.assertRaises(gillespy2.SimulationError):
-                    model.run(solver=solver)
+                    with self.assertRaises(gillespy2.SimulationError):
+                        model.run(solver=solver)
                 else:
                     result = model.run(solver=solver)
                     self.assertTrue(gillespy2.__file__ == os.path.join(self.prefix_base_dir, 'A SPACE/gillespy2/__init__.py'))

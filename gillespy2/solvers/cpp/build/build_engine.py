@@ -36,6 +36,10 @@ class BuildEngine():
         self.self_dir = Path(__file__).parent
         self.cpp_dir = self.self_dir.joinpath("../c_base").resolve()
         if platform.system() == 'Windows':
+            if " " in gillespy2.__file__:
+                raise SimulationError(
+                    "GillesPy2 does not support spaces in its path on Windows systems."
+                )
             self.makefile = self.cpp_dir.joinpath("Makefile.win32")
         else:
             self.makefile = self.cpp_dir.joinpath("Makefile")
