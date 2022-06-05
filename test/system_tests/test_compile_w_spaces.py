@@ -73,7 +73,7 @@ class TestCompileWSpaces(unittest.TestCase):
 
         r3 = gillespy2.Reaction(name="r3", reactants={C: 1}, products={B: 1, D: 1}, rate=rate3)
         model.add_reaction([r1, r2, r3])
-        model.timespan(np.linspace(0, 100, 101))
+        model.timespan(gillespy2.TimeSpan.linspace(t=100, num_points=101))
 
         # run the model
         for solver in self.solvers:
