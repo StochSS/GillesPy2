@@ -17,58 +17,63 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import unittest
 import os
-import tempfile
 import sys
 import copy
 import numpy
 import shutil
-
+import unittest
+import tempfile
+import platform
 
 class TestCompileWSpaces(unittest.TestCase):
     
-    def test_compile_w_spaces(self):
-        prefix_base_dir = tempfile.mkdtemp()
+    def setUp(self):
+        self.prefix_base_dir = tempfile.mkdtemp()
         os.mkdir(prefix_base_dir+'/A SPACE')
         shutil.copytree(os.path.abspath(os.path.dirname(__file__))+"/../gillespy2",prefix_base_dir+'/A SPACE/gillespy2')
-        old_path = copy.copy(sys.path)
+        self.old_path = copy.copy(sys.path)
         sys.path.insert(0,prefix_base_dir+'/A SPACE/')
         import gillespy2
-        # 
-        try:
-            # create a model
-            model = gillespy2.Model(name="test_compile_model")
-            model.add_species([
-                gillespy2.Species(name='A', initial_value=10),
-                gillespy2.Species(name='B', initial_value=10), 
-            ])
-            model.add_parameter([
-                gillespy2.Parameter(name='k1', expression=1),
-                gillespy2.Parameter(name='k2', expression=10)
-            ])
-            #model.add_rate_rule([
-            #    gillespy2.RateRule(name='Brate', variable='B', formula="cos(t)")
-            #])
-            model.add_reaction([
-                gillespy2.Reaction(reactants={'A': 1}, products={}, 
-                                   propensity_function="k1*B"),
-                gillespy2.Reaction(reactants={}, products={'B': 1}, 
-                                   rate='k2')
-            ])
-            model.timespan(numpy.array([0., 5., 10.]))                
+        self.solvers = [
+            gillespy2.ODECSolver,
+            gillespy2.SSACSolver,
+            gillespy2.TauLeapingCSolver,
+            gillespy2.TauHybridCSolver
+        ]
+        
+    def tearDown(self):
+        sys.path = self.old_path
+        shutil.rmtree(self.prefix_base_dir)
 
-            # run the model
-            result = model.run()
-        finally:
-            # Cleanup
-            sys.path = old_path
-            shutil.rmtree(prefix_base_dir)
-        # Checks
-        with open("/tmp/test.log", "a") as logfile:
-            logfile.write('gillespy2.__file__: '+gillespy2.__file__+"\n")
-            logfile.write('prefix_base_dir: '+prefix_base_dir+"\n")
-        self.assertTrue(gillespy2.__file__ == prefix_base_dir+'/A SPACE/gillespy2/__init__.py')
+    def test_compile_w_spaces(self):
+        # create a model
+        model = gillespy2.Model(name="test_compile_model")
+        model.add_species([
+            gillespy2.Species(name='A', initial_value=10),
+            gillespy2.Species(name='B', initial_value=10), 
+        ])
+        model.add_parameter([
+            gillespy2.Parameter(name='k1', expression=1),
+            gillespy2.Parameter(name='k2', expression=10)
+        ])
+        model.add_reaction([
+            gillespy2.Reaction(reactants={'A': 1}, products={}, 
+                               propensity_function="k1*B"),
+            gillespy2.Reaction(reactants={}, products={'B': 1}, 
+                               rate='k2')
+        ])
+        model.timespan(numpy.array([0., 5., 10.]))                
+
+        # run the model
+        for solver in self.solvers:
+            with self.subTest(solver=solver.name):
+                if platform.system() == "Windows":
+                    with self.assertRaises(gillespy2.SimulationError):
+                        model.run(solver=solver)
+                else:
+                    result = model.run(solver=solver)
+                    self.assertTrue(gillespy2.__file__ == os.path.join(self.prefix_base_dir, 'A SPACE/gillespy2/__init__.py'))
 
 
 if __name__ == '__main__':
