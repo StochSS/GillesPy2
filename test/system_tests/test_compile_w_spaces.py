@@ -34,6 +34,12 @@ class TestCompileWSpaces(unittest.TestCase):
         shutil.copytree(os.path.abspath(os.path.dirname(__file__)+"/../../gillespy2"),self.prefix_base_dir+'/A SPACE/gillespy2')
         self.old_path = copy.copy(sys.path)
         sys.path.insert(0,self.prefix_base_dir+'/A SPACE/')
+        
+    def tearDown(self):
+        sys.path = self.old_path
+        shutil.rmtree(self.prefix_base_dir)
+
+    def test_compile_w_spaces(self):
         import gillespy2
         self.solvers = [
             gillespy2.ODECSolver,
@@ -41,12 +47,7 @@ class TestCompileWSpaces(unittest.TestCase):
             gillespy2.TauLeapingCSolver,
             gillespy2.TauHybridCSolver
         ]
-        
-    def tearDown(self):
-        sys.path = self.old_path
-        shutil.rmtree(self.prefix_base_dir)
 
-    def test_compile_w_spaces(self):
         # create a model
         model = gillespy2.Model(name="test_compile_model")
         model.add_species([
