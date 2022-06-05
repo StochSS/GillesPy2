@@ -31,7 +31,7 @@ class TestCompileWSpaces(unittest.TestCase):
     def setUp(self):
         self.prefix_base_dir = tempfile.mkdtemp()
         os.mkdir(self.prefix_base_dir+'/A SPACE')
-        shutil.copytree(os.path.abspath(os.path.dirname(__file__))+"/../gillespy2",self.prefix_base_dir+'/A SPACE/gillespy2')
+        shutil.copytree(os.path.abspath(os.path.dirname(__file__)+"/../gillespy2"),self.prefix_base_dir+'/A SPACE/gillespy2')
         self.old_path = copy.copy(sys.path)
         sys.path.insert(0,self.prefix_base_dir+'/A SPACE/')
         import gillespy2
