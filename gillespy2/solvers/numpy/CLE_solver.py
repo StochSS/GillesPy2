@@ -30,10 +30,13 @@ class CLESolver(GillesPySolver):
     """
     A Chemical Langevin Equation Solver for GillesPy2 models.
 
-    This solver uses an algorithm calculates
+    This solver uses an algorithm that calculates
     multiple reactions in a single step over a given tau step size.  The change in propensities
     over this step are bounded by bounding the relative change in state, yielding greatly improved
     run-time performance with very little trade-off in accuracy.
+
+    :param GillesPySolver: A gillespy2 solver object
+    :type GillesPySolver: gillespy2.Gillespysolver
     """
 
     name = "CLESolver"
@@ -100,6 +103,7 @@ class CLESolver(GillesPySolver):
     def get_solver_settings(self):
         """
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :rtype: Tuple
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile','timeout', 'tau_tol')
 
@@ -136,7 +140,7 @@ class CLESolver(GillesPySolver):
         :param live_output: The type of output to be displayed by solver. Can be "progress", "text", or "graph".
         :type live_output: str
 
-        :param live_output_options: COntains options for live_output. By default {"interval":1}. "interval"
+        :param live_output_options: Contains options for live_output. By default {"interval":1}. "interval"
             specifies seconds between displaying. "clear_output" specifies if display should be refreshed with each
             display.
         :type live_output_options: dict
@@ -145,14 +149,14 @@ class CLESolver(GillesPySolver):
         :type timeout: int
         
         :param resume: Result of a previously run simulation, to be resumed
-        :type resume: gillespy2.core.results
+        :type resume: gillespy2.Results
         
         :param tau_tol: Tolerance level for Tau leaping algorithm.  Larger tolerance values will
             result in larger tau steps. Default value is 0.03.
         :type tau_tol: float
 
         :returns: A result object containing the results of the simulation
-        :rtype: gillespy2.core.results
+        :rtype: gillespy2.Results
         """
         from gillespy2 import log
 

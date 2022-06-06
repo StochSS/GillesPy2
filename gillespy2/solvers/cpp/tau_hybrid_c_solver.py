@@ -12,6 +12,18 @@ from .c_solver import CSolver, SimulationReturnCode
 from gillespy2.solvers.cpp.build.template_gen import SanitizedModel
 
 class TauHybridCSolver(GillesPySolver, CSolver):
+    """
+    This Solver uses a root-finding interpretation of the direct SSA method,
+    along with ODE solvers to simulate ODE and Stochastic systems
+    interchangeably or simultaneously.
+
+    :param GillesPySolver: A gillespy2 solver object
+    :type GillesPySolver: gillespy2.Gillespysolver
+
+    :param CSolver: A gillespy2 Csolver object used to compile and create C++ solver
+    :type CSolver: gillespy2.C_solver
+    """
+
     name = "TauHybridCSolver"
     target = "hybrid"
 
@@ -169,12 +181,51 @@ class TauHybridCSolver(GillesPySolver, CSolver):
     def get_solver_settings(self):
         """
         :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :rtype: Tuple
         """
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
     def run(self=None, model: Model = None, t: int = None, number_of_trajectories: int = 1, timeout: int = 0,
             increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
             resume=None, live_output: str = None, live_output_options: dict = {}, tau_step: int = .03, tau_tol=0.03, **kwargs):
+
+        """
+        :param model: gillespy2.model class object (Deprecated)
+        :type model: gillespy2.Model
+
+        :param t: end time of simulation
+        :type t: int
+
+        :param number_of_trajectories: Should be 1. This is deterministic and will always have same results
+        :type number_of_trajectories: int
+
+        :param timeout: If set, if simulation takes longer than timeout, will exit.
+        :type timeout: int
+
+        :param increment: time step increment for plotting
+        :type increment: float
+
+        :param seed: The random seed for the simulation. Optional, defaults to None.
+        :type seed: int
+
+        :param resume: Result of a previously run simulation, to be resumed
+        :type resume: gillespy2.Results
+
+        :param live_output: str The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+        :type live_output: str
+
+        :param live_output_options: dictionary contains options for live_output. By default {"interval":1}.
+            "interval" specifies seconds between displaying.
+            "clear_output" specifies if display should be refreshed with each display
+        :type live_output_options:  dict
+
+        :param tau_tol: Tolerance level for Tau leaping algorithm.  Larger tolerance values will
+        result in larger tau steps. Default value is 0.03.
+        :type tau_tol: float
+
+        :returns: A result object containing the results of the simulation
+        :rtype: gillespy2.Results
+        """
 
         from gillespy2 import log
 

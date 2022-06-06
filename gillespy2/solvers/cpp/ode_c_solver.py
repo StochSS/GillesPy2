@@ -24,18 +24,64 @@ from gillespy2.core import Results
 from .c_solver import CSolver, SimulationReturnCode
 
 class ODECSolver(GillesPySolver, CSolver):
+    """
+    This Solver produces the deterministic continuous solution via Ordinary Differential Equations.
+    Uses integrators from scipy.integrate.ode to perform calculations used to produce solutions.
+
+    :param GillesPySolver: A gillespy2 solver object
+    :type GillesPySolver: gillespy2.Gillespysolver
+
+    :param CSolver: A gillespy2 Csolver object used to compile and create C++ solver
+    :type CSolver: gillespy2.C_solver
+    """
+
     name = "ODECSolver"
     target = "ode"
 
     def get_solver_settings(self):
         """
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :rtype: Tuple
         """
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
     def run(self=None, model: Model = None, t: int = None, number_of_trajectories: int = 1, timeout: int = 0,
             increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
             resume=None, live_output: str = None, live_output_options: dict = {}, **kwargs):
+
+        """
+        :param model: gillespy2.model class object (Deprecated)
+        :type model: gillespy2.Model
+
+        :param t: end time of simulation
+        :type t: int
+
+        :param number_of_trajectories: Should be 1. This is deterministic and will always have same results
+        :type number_of_trajectories: int
+
+        :param timeout: If set, if simulation takes longer than timeout, will exit.
+        :type timeout: int
+
+        :param increment: time step increment for plotting
+        :type increment: float
+
+        :param seed: The random seed for the simulation. Optional, defaults to None.
+        :type seed: int
+
+        :param resume: Result of a previously run simulation, to be resumed
+        :type resume: gillespy2.Results
+
+        :param live_output: str The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+        :type live_output: str
+
+        :param live_output_options: dictionary contains options for live_output. By default {"interval":1}.
+            "interval" specifies seconds between displaying.
+            "clear_output" specifies if display should be refreshed with each display
+        :type live_output_options:  dict
+
+        :returns: A result object containing the results of the simulation
+        :rtype: gillespy2.Results
+        """
 
         from gillespy2 import log
 

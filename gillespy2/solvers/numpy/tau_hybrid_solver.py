@@ -63,6 +63,10 @@ class TauHybridSolver(GillesPySolver):
     This Solver uses a root-finding interpretation of the direct SSA method,
     along with ODE solvers to simulate ODE and Stochastic systems
     interchangeably or simultaneously.
+    Uses integrators from scipy.integrate.ode to perform calculations used to produce solutions.
+
+    :param GillesPySolver: A gillespy2 solver object
+    :type GillesPySolver: gillespy2.Gillespysolver
     """
     name = "TauHybridSolver"
     rc = 0
@@ -763,6 +767,7 @@ class TauHybridSolver(GillesPySolver):
     def get_solver_settings(self):
         """
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :rtype: Tuple
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile', 'tau_tol',
                 'event_sensitivity', 'integrator', 'integrator_options', 'timeout')
@@ -832,7 +837,7 @@ class TauHybridSolver(GillesPySolver):
         :type timeout: int
         
         :returns: A result object containing the results of the simulation
-        :rtype: gillespy2.core.results
+        :rtype: gillespy2.Results
         """
         from gillespy2 import log
 

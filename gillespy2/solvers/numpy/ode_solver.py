@@ -28,7 +28,11 @@ from gillespy2.core.results import Results
 
 class ODESolver(GillesPySolver):
     """
-    This Solver produces the deterministic continuous solution via ODE.
+    This Solver produces the deterministic continuous solution via Ordinary Differential Equations.
+    Uses integrators from scipy.integrate.ode to perform calculations used to produce solutions.
+
+    :param GillesPySolver: A gillespy2 solver object
+    :type GillesPySolver: gillespy2.Gillespysolver
     """
     name = "ODESolver"
     rc = 0
@@ -80,6 +84,7 @@ class ODESolver(GillesPySolver):
     def get_solver_settings(self):
         """
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :rtype: Tuple
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'integrator', 'integrator_options',
                 'timeout')
@@ -121,10 +126,10 @@ class ODESolver(GillesPySolver):
         :type timeout: int
         
         :param resume: Result of a previously run simulation, to be resumed
-        :type resume: gillespy2.core.results
+        :type resume: gillespy2.Results
         
         :returns: A result object containing the results of the simulation
-        :rtype: gillespy2.core.results
+        :rtype: gillespy2.Results
         """
         from gillespy2 import log
 

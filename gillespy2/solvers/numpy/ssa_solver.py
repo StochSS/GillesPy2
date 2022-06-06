@@ -27,6 +27,14 @@ np.set_printoptions(suppress=True)
 
 
 class NumPySSASolver(GillesPySolver):
+
+    """
+    This solver produces simulations of systems via Stochastic Simulation Algorithm.
+
+    :param GillesPySolver: A gillespy2 solver object
+    :type GillesPySolver: gillespy2.Gillespysolver
+    """
+
     name = "NumPySSASolver"
     rc = 0
     stop_event = None
@@ -48,6 +56,7 @@ class NumPySSASolver(GillesPySolver):
     def get_solver_settings(self):
         """
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :rtype: Tuple
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'timeout')
 
@@ -88,10 +97,10 @@ class NumPySSASolver(GillesPySolver):
         :type timeout: int
         
         :param resume: Result of a previously run simulation, to be resumed.
-        :type resume: gillespy2.core.results
+        :type resume: gillespy2.Results
 
         :returns: A result object containing the results of the simulation
-        :rtype: gillespy2.core.results
+        :rtype: gillespy2.Results
         """
         from gillespy2 import log
 
