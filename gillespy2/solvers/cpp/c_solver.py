@@ -20,6 +20,7 @@ import subprocess
 import signal
 import threading
 import queue
+import platform
 
 import numpy
 
@@ -27,6 +28,7 @@ from enum import IntEnum
 from concurrent.futures import ThreadPoolExecutor
 from typing import Union
 
+import gillespy2
 from gillespy2.core import Model
 from gillespy2.core import Results
 from gillespy2.core import log
@@ -68,6 +70,9 @@ class CSolver:
             raise gillespyError.SimulationError(
                 "Please install/configure 'g++' and 'make' on your system, to ensure that GillesPy2 C solvers will run properly."
             )
+
+        if platform.system() == "Windows" and " " in gillespy2.__file__:
+            raise gillespy2Error.SimulationError("GillesPy2 does not support spaces in its path on Windows systems.")
 
         self.delete_directory = False
         self.model = copy.deepcopy(model)

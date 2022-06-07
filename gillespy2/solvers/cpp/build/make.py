@@ -91,4 +91,6 @@ class Make():
         raise gillespyError.BuildError(f"Error encountered during execution of Makefile target: '{target}'.\n"
             f"Return code: {result.returncode}"
             f"- stdout: {result.stdout.decode('utf-8', errors='ignore')}\n"
-            f"- stderr: {result.stderr.decode('utf-8', errors='ignore')}\n")
+            f"- stderr: {result.stderr.decode('utf-8', errors='ignore')}\n"
+            f"- make_cmd: {make_cmd}\n"
+            f"- os.listdir({os.path.join(self.cbase_dir,'template')}): {os.listdir(os.path.join(self.cbase_dir,'template'))}\n")

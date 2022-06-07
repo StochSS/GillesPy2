@@ -13,6 +13,7 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import platform
 import numpy as np
 from typing import Set, Type
 from collections import OrderedDict
@@ -1115,7 +1116,9 @@ class Model(SortableObject, Jsonify):
                     break
 
         from gillespy2.solvers.cpp.build.build_engine import BuildEngine
-        can_use_cpp = not len(BuildEngine.get_missing_dependencies())
+        missing_deps = BuildEngine.get_missing_dependencies()
+        windows_space = platform.system() == "Windows" and " " in gillespy2.__file__
+        can_use_cpp = len(missing_deps) == 0 and not windows_space
 
         if not can_use_cpp and not can_use_numpy:
             raise ModelError('Dependency Error, cannot run model.')
@@ -1141,7 +1144,9 @@ class Model(SortableObject, Jsonify):
         """
         from gillespy2.solvers.numpy import can_use_numpy
         from gillespy2.solvers.cpp.build.build_engine import BuildEngine
-        can_use_cpp = not len(BuildEngine.get_missing_dependencies())
+        missing_deps = BuildEngine.get_missing_dependencies()
+        windows_space = platform.system() == "Windows" and " " in gillespy2.__file__
+        can_use_cpp = len(missing_deps) == 0 and not windows_space
         chybrid_check = True
         if len(self.get_all_assignment_rules()) or len(self.get_all_function_definitions()):
             chybrid_check = False

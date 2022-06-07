@@ -22,7 +22,7 @@ TAU_HYBRID_SOLVER_PATH := $(CBASE_DIR)/tau_hybrid_cpp_solver
 
 ### Output directories ###
 OBJ_DIR ?= $(CBASE_DIR)
-INCLUDES := -I"$(CBASE_DIR)" -I"$(SUNDIALS_INC)" -I"$(TEMPLATE_DIR)" -I"$(TAU_DIR)"
+INCLUDES := -I$(CBASE_DIR) -I$(SUNDIALS_INC) -I$(TEMPLATE_DIR) -I$(TAU_DIR)
 SUNDIALS_OBJ ?= $(OBJ_DIR)
 OUTPUT_DIR ?= $(CBASE_DIR)
 ifeq ($(OS),Windows_NT)
@@ -65,26 +65,26 @@ GPY_OBJ_SSA := $(GPY_SRC_SSA:%.cpp=$(OBJ_DIR)/%.o)
 GPY_SRC_TAU = TauLeapingSimulation.cpp TauLeapingSolver.cpp
 GPY_OBJ_TAU := $(GPY_SRC_TAU:%.cpp=$(OBJ_DIR)/%.o)
 
-$(GPY_OBJ): 
-	$(CXX) $(CXXFLAGS) -c -o $@ "$(CBASE_DIR)/$(notdir $(basename $*)).cpp" $(INCLUDES)
+$(GPY_OBJ): $(OBJ_DIR)/%.o: $(CBASE_DIR)/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $^ $(INCLUDES)
 
-$(GPY_OBJ_HYBRID): 
-	$(CXX) $(CXXFLAGS) -c -o $@ "$(TAU_HYBRID_SOLVER_PATH)/$(notdir $(basename $*)).cpp" $(INCLUDES)
+$(GPY_OBJ_HYBRID): $(OBJ_DIR)/%.o: $(TAU_HYBRID_SOLVER_PATH)/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $^ $(INCLUDES)
 
-$(GPY_OBJ_ODE): 
-	$(CXX) $(CXXFLAGS) -c -o $@ "$(ODE_SOLVER_PATH)/$(notdir $(basename $*)).cpp" $(INCLUDES)
+$(GPY_OBJ_ODE): $(OBJ_DIR)/%.o: $(ODE_SOLVER_PATH)/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $^ $(INCLUDES)
 
-$(GPY_OBJ_SSA):
-	$(CXX) $(CXXFLAGS) -c -o $@ "$(SSA_SOLVER_PATH)/$(notdir $(basename $*)).cpp" $(INCLUDES)
+$(GPY_OBJ_SSA): $(OBJ_DIR)/%.o: $(SSA_SOLVER_PATH)/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $^ $(INCLUDES)
 
-$(GPY_OBJ_TAU):
-	$(CXX) $(CXXFLAGS) -c -o $@ "$(TAU_LEAPING_SOLVER_PATH)/$(notdir $(basename $*)).cpp" $(INCLUDES)
+$(GPY_OBJ_TAU): $(OBJ_DIR)/%.o: $(TAU_LEAPING_SOLVER_PATH)/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $^ $(INCLUDES)
 
-$(GPY_OBJ_TAUBASE):
-	$(CXX) $(CXXFLAGS) -c -o $@ "$(TAU_DIR)/$(notdir $(basename $*)).cpp" $(INCLUDES)
+$(GPY_OBJ_TAUBASE): $(OBJ_DIR)/%.o: $(TAU_DIR)/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $^ $(INCLUDES)
 
-$(SUNDIALS_OBJ)/%.o: 
-	$(CXX) -c -o $@ "$(SUNDIALS_SRC)/$*.c" $(CFLAGS) -I"$(SUNDIALS_INC)"
+$(SUNOBJ_PATHS): $(SUNDIALS_OBJ)/%.o: $(SUNDIALS_SRC)/%.c
+	$(CXX) -c -o $@ $< $(CFLAGS) -I$(SUNDIALS_INC)
 sundials: $(SUNOBJ_PATHS) ;
 
 ##########################
