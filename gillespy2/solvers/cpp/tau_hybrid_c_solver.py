@@ -208,6 +208,10 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         :param seed: The random seed for the simulation. Optional, defaults to None.
         :type seed: int
 
+        :param variables: Dictionary of names of species to be overridden as keys and their values are the value
+            that replaces the value tied to that species.
+        :type variables: dict
+
         :param resume: Result of a previously run simulation, to be resumed
         :type resume: gillespy2.Results
 
