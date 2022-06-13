@@ -243,11 +243,11 @@ namespace Gillespy
 		// If selected tau exceeds save time, integrate to save time
 		if (tau > 0)
 		{
-			tau = std::max(tau, 1e-10);
-
 			if (save_time - current_time > 0)
 			{
-				tau = std::min(tau, save_time - current_time);
+                if(tau > save_time - current_time){
+                    tau = save_time - current_time; 
+                }
 			}
 		}
 
@@ -255,6 +255,7 @@ namespace Gillespy
 		{
 			tau = save_time - current_time;
 		}
+        tau = std::max(tau, 1e-10);
 
 		return tau;
 	}
