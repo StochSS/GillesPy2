@@ -593,13 +593,11 @@ class TauHybridSolver(GillesPySolver):
         prev_curr_state = curr_state.copy()
         prev_curr_time = curr_time
         loop_count = 0
-        # check to see if we are starting in an invalid state (this happens sometimes)
         neg_state = False
-        for s in self.model.listOfSpecies.keys():
-            if curr_state[s] < 0:
-                neg_state = True
+        # check to see if we are starting in an invalid state (this could happen)
+        (neg_state, neg_err_message) = self.__simulate_negative_state_check(self.model.listOfSpecies, curr_state)
         if neg_state:
-            raise Exception(f"Negative state when starting a step. curr_state={curr_state} species={species} self.model.listOfSpecies={species} ")
+            raise Exception(f"Negative state when starting a step. curr_state={curr_state} species={species} self.model.listOfSpecies={species}\nerror_message: {neg_err_message} ")
             
             
         starting_curr_state=curr_state.copy()
@@ -633,6 +631,7 @@ class TauHybridSolver(GillesPySolver):
         (neg_state, loop_err_message) = self.__simulate_negative_state_check(species_modified, curr_state)
 
         if neg_state:
+            neg_state = False
             # Redo this step, with a smaller Tau.  Until a single SSA reaction occurs
             y0 = prev_y0.copy()
             curr_state = prev_curr_state.copy()
@@ -642,15 +641,16 @@ class TauHybridSolver(GillesPySolver):
             min_tau = None
             rxn_selected = None
             for rname,rcnt in rxn_count.items():
-                if rcnt > 0:
+                if rcnt > 0 and propensities[rname] > 0.0:
                     # estimate the zero crossing time
                     rxn_times[rname] = -1* curr_state[rname] / propensities[rname]
                     if min_tau is None or min_tau > rxn_times[rname]:
                         min_tau = rxn_times[rname]
                         rxn_selected = rname
-            if rxn_selected is None: raise Exception("Negative State detected in step, and no reaction found to fire.\n\n error_message={loop_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}  ")
+            if rxn_selected is None: raise Exception(f"Negative State detected in step, and no reaction found to fire.\n\n error_message={loop_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}\nrxn_times={rxn_times}  ")
 
             tau_step = min_tau #estimated time to the first stochatic reaction
+
             sol, curr_time = self.__integrate(integrator, integrator_options, curr_state,
                                           y0, curr_time, propensities, y_map,
                                           compiled_reactions,
@@ -662,11 +662,12 @@ class TauHybridSolver(GillesPySolver):
                                           tau_step,
                                           pure_ode)
 
+            # only update the selected reaction
             species_modified,rxn_count = self.__update_stochastic_rxn_states(compiled_reactions, curr_state, only_update=rxn_selected)
 
             (neg_state, loop_err_message) = self.__simulate_negative_state_check(species_modified, curr_state)
             if neg_state:
-                raise Exception("Negative State detected in step, after single SSA step.\n\n error_message={loop_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}  ")
+                raise Exception(f"Negative State detected in step, after single SSA step.\n\n error_message={loop_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}\nrxn_selected={rxn_selected}  ")
 
 
         # Now update the step and trajectories for this step of the simulation.
