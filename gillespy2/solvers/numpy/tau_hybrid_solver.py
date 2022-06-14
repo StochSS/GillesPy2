@@ -604,8 +604,8 @@ class TauHybridSolver(GillesPySolver):
         starting_tau_step=tau_step
         species_modified=None
         rxn_count=None
-
         loop_err_message=""
+
         #while True:
         #    loop_count += 1
         #    if loop_count > 1:
@@ -625,15 +625,20 @@ class TauHybridSolver(GillesPySolver):
 
         # Occasionally, a tau step can result in an overly-aggressive
         # forward step and cause a species population to fall below 0,
-        # which would result in an erroneous simulation.  If this occurs,
-        # back simulation up one step and attempt forward simulation using
-        # a smaller tau step.
+        # which would result in an erroneous simulation. 
+        #    (PREVIOUS METHOD:)If this occurs, back simulation up one step
+        #    and attempt forward simulation using a smaller tau step.
+        # (NEW METHOD:) Instead we estimate the time to the first 
+        # stochatic reaction firing (assume constant propensities) and
+        # simulate the ODE system until that time, fire that reaction 
+        # and continue the simulation.
         (neg_state, loop_err_message) = self.__simulate_negative_state_check(species_modified, curr_state)
 
         if neg_state:
             neg_state = False
             # Redo this step, with a smaller Tau.  Until a single SSA reaction occurs
             y0 = prev_y0.copy()
+            curr_state_after = prev_curr_state.copy()
             curr_state = prev_curr_state.copy()
             curr_time = prev_curr_time
 
@@ -647,7 +652,7 @@ class TauHybridSolver(GillesPySolver):
                     if min_tau is None or min_tau > rxn_times[rname]:
                         min_tau = rxn_times[rname]
                         rxn_selected = rname
-            if rxn_selected is None: raise Exception(f"Negative State detected in step, and no reaction found to fire.\n\n error_message={loop_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}\nrxn_times={rxn_times}  ")
+            if rxn_selected is None: raise Exception(f"Negative State detected in step, and no reaction found to fire.\n\n error_message={loop_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}\nrxn_times={rxn_times}\ncompiled_reactions={compiled_reactions}\ncurr_state_after={curr_state_after}  ")
 
             tau_step = min_tau #estimated time to the first stochatic reaction
 
@@ -667,7 +672,7 @@ class TauHybridSolver(GillesPySolver):
 
             (neg_state, loop_err_message) = self.__simulate_negative_state_check(species_modified, curr_state)
             if neg_state:
-                raise Exception(f"Negative State detected in step, after single SSA step.\n\n error_message={loop_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}\nrxn_selected={rxn_selected}  ")
+                raise Exception(f"Negative State detected in step, after single SSA step.\n\n error_message={loop_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}\nrxn_selected={rxn_selected}\ncompiled_reactions={compiled_reactions}\ncurr_state_after={curr_state_after}   ")
 
 
         # Now update the step and trajectories for this step of the simulation.
@@ -678,7 +683,7 @@ class TauHybridSolver(GillesPySolver):
             if time > curr_time:
                 break
             # if a solution is given for it
-            trajectory_index = np.where(self.model.tspan == time)[0][0]
+            trajectory_index = np.where(self.model.tspan == time)[0][0] #TODO: this is expensive, can we eliminte?
             assignment_state = curr_state.copy()
             for s in range(len(species)):
                 # Get ODE Solutions
