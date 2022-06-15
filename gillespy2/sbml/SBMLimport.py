@@ -403,11 +403,19 @@ def __resolve_evals(gillespy_model, init_state):
         if not len(successful): break
         for var in successful: del postponed_evals[var]
 
-def convert(filename, model_name=None, gillespy_model=None):
+def convert(filename, model_name=None, gillespy_model=None, report_silently_with_sbml_error=False):
 
     sbml_model, errors = __read_sbml_model(filename)
+    
     if sbml_model is None:
-        return None, errors
+        if report_silently_with_sbml_error:
+            return None, errors
+        raise SBMLError(f"SBML model import failed.  Reason Given: \n\t{'\n\t'.join(errors)}")
+
+    if len(errors) > 0 and not report_silently_with_sbml_error:
+        from gillespy2 import log
+        log.warning(f"Error were detected in the SBML model.  Error: \n\t{'\n\t'.join(errors)}")
+
     if model_name is None:
         model_name = sbml_model.getName()
     if gillespy_model is None:
