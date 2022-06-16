@@ -21,5 +21,5 @@
 
 namespace Gillespy
 {
-	void ssa_direct(Simulation<unsigned int> *simulation);
+    void ssa_direct(Simulation<unsigned int> *simulation);
 }
