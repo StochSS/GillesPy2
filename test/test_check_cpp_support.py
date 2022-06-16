@@ -21,14 +21,14 @@ what is expected by the previous try/catch implementation.
 
 import unittest
 from gillespy2.solvers.cpp.build.build_engine import BuildEngine
+from example_models import create_decay
+from gillespy2 import SSACSolver
 
 class TestCheckCPPSupport(unittest.TestCase):
     def test_check_cpp_support(self):
         self.assertEqual(not len(BuildEngine.get_missing_dependencies()), self.old_check_cpp_support())
 
     def old_check_cpp_support(self):
-        from gillespy2.solvers.cpp.example_models import create_decay
-        from gillespy2 import SSACSolver
         try:
             model = create_decay()
             solver = SSACSolver(model=model)
