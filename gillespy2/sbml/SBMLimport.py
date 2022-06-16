@@ -410,11 +410,13 @@ def convert(filename, model_name=None, gillespy_model=None, report_silently_with
     if sbml_model is None:
         if report_silently_with_sbml_error:
             return None, errors
-        raise SBMLError(f"SBML model import failed.  Reason Given: \n\t{'\n\t'.join(errors)}")
+        errs = '\n\t'.join(errors)
+        raise SBMLError(f"SBML model import failed.  Reason Given: \n\t{errs}")
 
     if len(errors) > 0 and not report_silently_with_sbml_error:
         from gillespy2 import log
-        log.warning(f"Error were detected in the SBML model.  Error: \n\t{'\n\t'.join(errors)}")
+        errs = '\n\t'.join(errors)
+        log.warning(f"Error were detected in the SBML model.  Error: \n\t{errs}")
 
     if model_name is None:
         model_name = sbml_model.getName()
