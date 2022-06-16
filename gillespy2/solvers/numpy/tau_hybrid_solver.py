@@ -430,7 +430,7 @@ class TauHybridSolver(GillesPySolver):
             rxn_count[rxn] = 0
             if only_update is not None:  # for a single SSA step
                 if rxn == only_update:
-                    curr_state[rxn] += math.log(random.uniform(0, 1))
+                    curr_state[rxn] = math.log(random.uniform(0, 1)) #set this value, needs to be <0
                     rxn_count[rxn] = 1
             else:  # for a normal Tau-step
                 while curr_state[rxn] > 0:
@@ -555,14 +555,20 @@ class TauHybridSolver(GillesPySolver):
 
         return sol, curr_time
 
-    def __simulate_negative_state_check(self, species_modified, curr_state):
-            neg_state = False
-            loop_err_message=""
+    def __simulate_invalid_state_check(self, species_modified, curr_state, compiled_reactions):
+            invalid_state = False
+            err_message=""
+            # check each species to see if they are negative
             for s in species_modified.keys():
                 if curr_state[s] < 0:
-                    neg_state = True
-                    loop_err_message += f"'{s}' has negative state '{curr_state[s]}'"
-            return (neg_state, loop_err_message) 
+                    invalid_state = True
+                    err_message += f"'{s}' has negative state '{curr_state[s]}'"
+#            # check each reaction to see if it is >=0. If we take a single SSA step, this could be >0 for the non-selected reactions
+#            for r in compiled_reactions.keys():
+#                if curr_state[r] >= 0:
+#                    invalid_state = True
+#                    err_message += f"'{r}' has non-negative value '{curr_state[r]}'"
+            return (invalid_state, err_message) 
 
     def __simulate(self, integrator, integrator_options, curr_state, y0, curr_time,
                    propensities, species, parameters, compiled_reactions,
@@ -589,18 +595,19 @@ class TauHybridSolver(GillesPySolver):
         """
 
         event_queue = []
-        prev_y0 = y0.copy()
-        prev_curr_state = curr_state.copy()
+        prev_y0 = copy.deepcopy(y0)
+        prev_curr_state = copy.deepcopy(curr_state)
         prev_curr_time = curr_time
         loop_count = 0
-        neg_state = False
+        invalid_state = False
         # check to see if we are starting in an invalid state (this could happen)
-        (neg_state, neg_err_message) = self.__simulate_negative_state_check(self.model.listOfSpecies, curr_state)
-        if neg_state:
-            raise Exception(f"Negative state when starting a step. curr_state={curr_state} species={species} self.model.listOfSpecies={species}\nerror_message: {neg_err_message} ")
-            
-            
-        starting_curr_state=curr_state.copy()
+        (invalid_state, invalid_err_message) = self.__simulate_invalid_state_check(self.model.listOfSpecies, curr_state, compiled_reactions)
+        if invalid_state:
+            raise Exception(f"Invalid state when starting a step. curr_state={curr_state} compiled_reactions={compiled_reactions}\nerror_message: {invalid_err_message} ")
+
+        
+        starting_curr_state = copy.deepcopy(curr_state)
+        starting_propensities = copy.deepcopy(propensities)
         starting_tau_step=tau_step
         species_modified=None
         rxn_count=None
@@ -632,14 +639,16 @@ class TauHybridSolver(GillesPySolver):
         # stochatic reaction firing (assume constant propensities) and
         # simulate the ODE system until that time, fire that reaction 
         # and continue the simulation.
-        (neg_state, loop_err_message) = self.__simulate_negative_state_check(species_modified, curr_state)
+        (invalid_state, invalid_err_message) = self.__simulate_invalid_state_check(species_modified, curr_state, compiled_reactions)
 
-        if neg_state:
-            neg_state = False
+        if invalid_state:
+            invalid_state = False
             # Redo this step, with a smaller Tau.  Until a single SSA reaction occurs
-            y0 = prev_y0.copy()
-            curr_state_after = prev_curr_state.copy()
-            curr_state = prev_curr_state.copy()
+            y0 = copy.deepcopy(prev_y0)
+            curr_state_after = copy.deepcopy(curr_state)
+            curr_state = copy.deepcopy(prev_curr_state)
+            propensities_after = copy.deepcopy(propensities)
+            propensities = copy.deepcopy(starting_propensities)
             curr_time = prev_curr_time
 
             rxn_times = OrderedDict()
@@ -652,7 +661,7 @@ class TauHybridSolver(GillesPySolver):
                     if min_tau is None or min_tau > rxn_times[rname]:
                         min_tau = rxn_times[rname]
                         rxn_selected = rname
-            if rxn_selected is None: raise Exception(f"Negative State detected in step, and no reaction found to fire.\n\n error_message={loop_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}\nrxn_times={rxn_times}\ncompiled_reactions={compiled_reactions}\ncurr_state_after={curr_state_after}  ")
+            if rxn_selected is None: raise Exception(f"Negative State detected in step, and no reaction found to fire.\n\n error_message={invalid_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}\nrxn_times={rxn_times}\ncompiled_reactions={compiled_reactions}\ncurr_state_after={curr_state_after}\n propensities_after={propensities_after}\nstarting_propensities={starting_propensities}\n  ")
 
             tau_step = min_tau #estimated time to the first stochatic reaction
 
@@ -668,11 +677,13 @@ class TauHybridSolver(GillesPySolver):
                                           pure_ode)
 
             # only update the selected reaction
+            first_rxn_count = copy.deepcopy(rxn_count)
+            first_err_message = invalid_err_message
             species_modified,rxn_count = self.__update_stochastic_rxn_states(compiled_reactions, curr_state, only_update=rxn_selected)
 
-            (neg_state, loop_err_message) = self.__simulate_negative_state_check(species_modified, curr_state)
-            if neg_state:
-                raise Exception(f"Negative State detected in step, after single SSA step.\n\n error_message={loop_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}\nrxn_selected={rxn_selected}\ncompiled_reactions={compiled_reactions}\ncurr_state_after={curr_state_after}   ")
+            (invalid_state, invalid_err_message) = self.__simulate_invalid_state_check(species_modified, curr_state, compiled_reactions)
+            if invalid_state:
+                raise Exception(f"Negative State detected in step, after single SSA step.\n\n error_message={invalid_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}\nrxn_selected={rxn_selected}\ncompiled_reactions={compiled_reactions}\ncurr_state_after={curr_state_after} \n propensities_after={propensities_after}\nstarting_propensities={starting_propensities}\nfirst_rxn_count={first_rxn_count}\n first_err_message={first_err_message}\n 2nd_tau_step={tau_step}  ")
 
 
         # Now update the step and trajectories for this step of the simulation.
@@ -684,7 +695,7 @@ class TauHybridSolver(GillesPySolver):
                 break
             # if a solution is given for it
             trajectory_index = np.where(self.model.tspan == time)[0][0] #TODO: this is expensive, can we eliminte?
-            assignment_state = curr_state.copy()
+            assignment_state = copy.deepcopy(curr_state)
             for s in range(len(species)):
                 # Get ODE Solutions
                 trajectory[trajectory_index][s + 1] = sol.y[s]
@@ -761,7 +772,7 @@ class TauHybridSolver(GillesPySolver):
                 compiled_rate_rules[rr.variable] = compile(rr.formula, '<string>', 'eval')
         compiled_inactive_reactions = OrderedDict()
 
-        compiled_propensities = compiled_reactions.copy()
+        compiled_propensities = copy.deepcopy(compiled_reactions)
 
         return compiled_reactions, compiled_rate_rules, compiled_inactive_reactions, compiled_propensities
 
