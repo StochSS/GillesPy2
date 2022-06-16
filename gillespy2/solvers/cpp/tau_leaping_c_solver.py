@@ -30,12 +30,6 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
     multiple reactions in a single step over a given tau step size.  The change in propensities
     over this step are bounded by bounding the relative change in state, yielding greatly improved
     run-time performance with very little trade-off in accuracy.
-
-    :param GillesPySolver: A gillespy2 solver object
-    :type GillesPySolver: gillespy2.Gillespysolver
-
-    :param CSolver: A gillespy2 Csolver object used to compile and create C++ solver
-    :type CSolver: gillespy2.C_solver
     """
 
     name = "TauLeapingCSolver"
@@ -43,8 +37,9 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
 
     def get_solver_settings(self):
         """
+        Returns a list of arguments supported by the tau_leaping_c_solver.run
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
-        :rtype: Tuple
+        :rtype: tuple
         """
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
@@ -53,7 +48,7 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
             resume=None, live_output: str = None, live_output_options: dict = {}, tau_tol=0.03, **kwargs):
 
         """
-        :param model: gillespy2.model class object (Deprecated)
+        :param model: The model on which the solver will operate. (Deprecated)
         :type model: gillespy2.Model
 
         :param t: end time of simulation

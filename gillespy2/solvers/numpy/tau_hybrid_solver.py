@@ -65,8 +65,8 @@ class TauHybridSolver(GillesPySolver):
     interchangeably or simultaneously.
     Uses integrators from scipy.integrate.ode to perform calculations used to produce solutions.
 
-    :param GillesPySolver: A gillespy2 solver object
-    :type GillesPySolver: gillespy2.Gillespysolver
+    :param model: The model on which the solver will operate. (Deprecated)
+    :type model: GillesPy2.model
     """
     name = "TauHybridSolver"
     rc = 0
@@ -766,8 +766,9 @@ class TauHybridSolver(GillesPySolver):
     @classmethod
     def get_solver_settings(self):
         """
+        Returns a list of arguments supported by the tau_hybrid_solver.run
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
-        :rtype: Tuple
+        :rtype: tuple
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile', 'tau_tol',
                 'event_sensitivity', 'integrator', 'integrator_options', 'timeout')
@@ -788,8 +789,8 @@ class TauHybridSolver(GillesPySolver):
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
         objects and will inherit those parameters which are passed with the model as the arguments this run function.
 
-        :param model: GillesPy2 model object to simulate (Deprecated)
-        :type model: GillesPy2.model
+        :param model: The model on which the solver will operate. (Deprecated)
+        :type model: gillespy2.Model
 
         :param t: Simulation run time
         :type t: int or float

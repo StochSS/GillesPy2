@@ -31,8 +31,8 @@ class ODESolver(GillesPySolver):
     This Solver produces the deterministic continuous solution via Ordinary Differential Equations.
     Uses integrators from scipy.integrate.ode to perform calculations used to produce solutions.
 
-    :param GillesPySolver: A gillespy2 solver object
-    :type GillesPySolver: gillespy2.Gillespysolver
+    :param model: The model on which the solver will operate. (Deprecated)
+    :type model: GillesPy2.model
     """
     name = "ODESolver"
     rc = 0
@@ -83,8 +83,9 @@ class ODESolver(GillesPySolver):
     @classmethod
     def get_solver_settings(self):
         """
+        Returns a list of arguments supported by the ode_solver.run
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
-        :rtype: Tuple
+        :rtype: tuple
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'integrator', 'integrator_options',
                 'timeout')
@@ -92,7 +93,7 @@ class ODESolver(GillesPySolver):
     def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, show_labels=True, integrator='lsoda',
             integrator_options={}, live_output=None, live_output_options={}, timeout=None, resume=None, **kwargs):
         """
-        :param model: gillespy2.model class object (Deprecated)
+        :param model: The model on which the solver will operate. (Deprecated)
         :type model: gillespy2.Model
         
         :param t: end time of simulation

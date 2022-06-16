@@ -35,8 +35,8 @@ class CLESolver(GillesPySolver):
     over this step are bounded by bounding the relative change in state, yielding greatly improved
     run-time performance with very little trade-off in accuracy.
 
-    :param GillesPySolver: A gillespy2 solver object
-    :type GillesPySolver: gillespy2.Gillespysolver
+    :param model: The model on which the solver will operate. (Deprecated)
+    :type model: GillesPy2.model
     """
 
     name = "CLESolver"
@@ -102,8 +102,9 @@ class CLESolver(GillesPySolver):
     @classmethod
     def get_solver_settings(self):
         """
+        Returns a list of arguments supported by the CLE_solver.run
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
-        :rtype: Tuple
+        :rtype: tuple
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile','timeout', 'tau_tol')
 
@@ -116,7 +117,7 @@ class CLESolver(GillesPySolver):
         and will inherit those parameters which are passed with the model
         as the arguments this run function.
 
-        :param model: GillesPy2 model object to simulate (Deprecated)
+        :param model: The model on which the solver will operate. (Deprecated)
         :type model: gillespy2.Model
 
         :param t: Simulation run time

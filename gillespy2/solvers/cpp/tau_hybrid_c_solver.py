@@ -16,12 +16,6 @@ class TauHybridCSolver(GillesPySolver, CSolver):
     This Solver uses a root-finding interpretation of the direct SSA method,
     along with ODE solvers to simulate ODE and Stochastic systems
     interchangeably or simultaneously.
-
-    :param GillesPySolver: A gillespy2 solver object
-    :type GillesPySolver: gillespy2.Gillespysolver
-
-    :param CSolver: A gillespy2 Csolver object used to compile and create C++ solver
-    :type CSolver: gillespy2.C_solver
     """
 
     name = "TauHybridCSolver"
@@ -180,8 +174,9 @@ class TauHybridCSolver(GillesPySolver, CSolver):
 
     def get_solver_settings(self):
         """
+        Returns a list of arguments supported by the tau_hybrid_c_solver.run
         :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
-        :rtype: Tuple
+        :rtype: tuple
         """
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
@@ -190,7 +185,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             resume=None, live_output: str = None, live_output_options: dict = {}, tau_step: int = .03, tau_tol=0.03, **kwargs):
 
         """
-        :param model: gillespy2.model class object (Deprecated)
+        :param model: The model on which the solver will operate. (Deprecated)
         :type model: gillespy2.Model
 
         :param t: end time of simulation

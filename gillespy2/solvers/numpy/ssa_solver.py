@@ -31,8 +31,8 @@ class NumPySSASolver(GillesPySolver):
     """
     This solver produces simulations of systems via Stochastic Simulation Algorithm.
 
-    :param GillesPySolver: A gillespy2 solver object
-    :type GillesPySolver: gillespy2.Gillespysolver
+    :param model: The model on which the solver will operate. (Deprecated)
+    :type model: GillesPy2.model
     """
 
     name = "NumPySSASolver"
@@ -55,8 +55,9 @@ class NumPySSASolver(GillesPySolver):
 
     def get_solver_settings(self):
         """
+        Returns a list of arguments supported by the ssa_solver.run
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
-        :rtype: Tuple
+        :rtype: tuple
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'timeout')
 
@@ -67,7 +68,7 @@ class NumPySSASolver(GillesPySolver):
         Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
 
         :param model: The model on which the solver will operate. (Deprecated)
-        :type model: GillesPy2.model
+        :type model: gillespy2.Model
         
         :param t: The end time of the solver.
         :type t: int or float

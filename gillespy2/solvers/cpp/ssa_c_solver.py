@@ -27,12 +27,6 @@ from .c_solver import CSolver, SimulationReturnCode
 class SSACSolver(GillesPySolver, CSolver):
     """
     This solver produces simulations of systems via Stochastic Simulation Algorithm.
-
-    :param GillesPySolver: A gillespy2 solver object
-    :type GillesPySolver: gillespy2.Gillespysolver
-
-    :param CSolver: A gillespy2 Csolver object used to compile and create C++ solver
-    :type CSolver: gillespy2.C_solver
     """
 
     name = "SSACSolver"
@@ -40,8 +34,9 @@ class SSACSolver(GillesPySolver, CSolver):
 
     def get_solver_settings(self):
         """
+        Returns a list of arguments supported by the ssa_c_solver.run
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
-        :rtype: Tuple
+        :rtype: tuple
         """
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
@@ -52,7 +47,7 @@ class SSACSolver(GillesPySolver, CSolver):
         from gillespy2 import log
 
         """
-            :param model: gillespy2.model class object (Deprecated)
+            :param model: The model on which the solver will operate. (Deprecated)
             :type model: gillespy2.Model
 
             :param t: end time of simulation
