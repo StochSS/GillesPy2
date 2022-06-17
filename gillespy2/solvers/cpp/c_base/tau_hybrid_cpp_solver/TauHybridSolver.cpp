@@ -47,8 +47,11 @@ namespace Gillespy
 
 	namespace TauHybrid
 	{
+        bool TakeIntegrationStep(Integrator&sol, double next_time, int*population_changes, std::vector<double>*current_state, std::set<unsigned int>*rxn_roots,  HybridSimulation*simulation, URNGenerator*urn){
+                TauHybrid::TakeIntegrationStep(sol, nextime, population_changes, current_state, rxn_roots, simulation, urn, -1);
+        }
 
-        bool TakeIntegrationStep(Integrator*sol, int*population_changes, std::vector<double>*current_state, std::set<unsigned int>*rxn_roots,  HybridSimulation*simulation, URNGenerator*urn){
+        bool TakeIntegrationStep(Integrator&sol, double next_time, int*population_changes, std::vector<double>*current_state, std::set<unsigned int>*rxn_roots,  HybridSimulation*simulation, URNGenerator*urn, int only_reaction_to_fire){
             Model<double> &model = *(simulation->model);
             int num_species = model.number_species;
             // Integration Step
@@ -58,7 +61,7 @@ namespace Gillespy
             if (sol.status == IntegrationStatus::BAD_STEP_SIZE)
             {
                 std::cerr << "IntegrationStatus::BAD_STEP_SIZE sol.status="<<sol.status<<"\n";
-                return false
+                return false;
             }
             else
             {
@@ -109,21 +112,25 @@ namespace Gillespy
                         switch (simulation->reaction_state[rxn_i].mode)
                         {
                         case SimulationState::DISCRETE:
-                            if(rxn_state > 0){
-                                unsigned int rxn_count = 0;
+                            unsigned int rxn_count = 0;
+                            if(only_reaction_to_fire == rxn_i){
+                                    std::cerr << "Firing single SSA reaction "<< rxn_i<<"\n";
+                                    rxn_state = log(urn.next());
+                                
+                            }else if(rxn_state > 0){
                                 while (rxn_state >= 0) {
                                     // "Fire" a reaction by recording changes in dependent species.
                                     // If a negative value is detected, break without saving changes. (<-- this is not implemented)
                                     rxn_state += log(urn.next());
                                     rxn_count++;
                                 }
-                                if(rxn_count > 0){
-                                    for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-                                        population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i] * rxn_count;
-                                    }
-                                }
-                                result.reactions[rxn_i] = rxn_state;
                             }
+                            if(rxn_count > 0){
+                                for (int spec_i = 0; spec_i < num_species; ++spec_i) {
+                                    population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i] * rxn_count;
+                                }
+                            }
+                            result.reactions[rxn_i] = rxn_state;
                             break;
 
                         case SimulationState::CONTINUOUS:
@@ -312,7 +319,7 @@ namespace Gillespy
 
 					do
 					{
-                        invalid_state = TauHybrid::TakeIntegrationStep(sol, populaton_changes, current_state, rxn_roots, simulation, urn);
+                        invalid_state = TauHybrid::TakeIntegrationStep(sol, next_time, populaton_changes, current_state, rxn_roots, simulation, urn);
                         if(!invalid_state){
                             invalid_state = TauHybrid::NegativeStateCheck(num_species, current_state, population_changes);
                         }
@@ -324,14 +331,9 @@ namespace Gillespy
                                 current_state[spec_i] = species[spec_i].initial_population;
                                 simulation->current_state[spec_i] = current_state[spec_i];
                             }
-							sol.restore_state();
-                            // re-compute current propensity values based on existing state.
-                            for (unsigned int rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
-                                HybridReaction &rxn = simulation->reaction_state[rxn_i];
-                                sol.data.propensities[rxn_i] = rxn.ssa_propensity(current_state.data());
-                            }
-                            //TODO: the above code blocks should re-initialize the state, is this correct?
-
+                            // Restore the solver to the intial step state
+                            sol.restore_state();
+                            //The above code blocks should re-initialize the state, is this correct?
 
                             // estimate the time to the first stochatic reaction by assuming constant propensities
                             double min_tau = 0.0;
@@ -343,13 +345,23 @@ namespace Gillespy
                                 // Python code:
                                 //rxn_times[rname] = -1* curr_state[rname] / propensities[rname]
                                 // C++ code:
-                                double est_tau = -1*  rxn.value / rxn.ssa_propensity(current_state.data());
-                                //TODO: the above line is wrong, what is the correct code here?
+                                double *rxn_value = sol.get_reaction_state()
+                                double est_tau = -1*  rxn_value[rxn_i] / rxn.ssa_propensity(current_state.data());
 
+                                if(rxn_selected == -1 || est_tau < min_tau ){
+                                    min_tau = est_tau;
+                                    rxn_selected = rxn_i;
+                                }
                             }
+                            if(rxn_selected == -1){
+                                invalid_state = true;
+                                break;
+                            }
+                            // Use the found tau-step for single SSA
+					        next_time = simulation->current_time + min_tau;
 
                             // Integreate the system forward
-                            invalid_state = TauHybrid::TakeIntegrationStep(sol, populaton_changes, current_state, rxn_roots, simulation, urn);
+                            invalid_state = TauHybrid::TakeIntegrationStep(sol, next_time, populaton_changes, current_state, rxn_roots, simulation, urn, rxn_selected);
                             if(!invalid_state){
                                 invalid_state = TauHybrid::NegativeStateCheck(num_species, current_state, population_changes);
                             }
