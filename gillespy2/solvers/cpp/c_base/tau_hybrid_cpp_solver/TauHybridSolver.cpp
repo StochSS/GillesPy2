@@ -35,7 +35,7 @@
 static void silent_error_handler(int error_code, const char *module, const char *function_name,
 						  char *message, void *eh_data);
 
-#define INTEGRATION_GUARD_MAX 1000
+#define INTEGRATION_GUARD_MAX 1
 
 namespace Gillespy
 {
@@ -47,6 +47,107 @@ namespace Gillespy
 
 	namespace TauHybrid
 	{
+
+        bool TakeIntegrationStep(Integrator*sol, int*population_changes, std::vector<double>*current_state, std::set<unsigned int>*rxn_roots,  HybridSimulation*simulation, URNGenerator*urn){
+            Model<double> &model = *(simulation->model);
+            int num_species = model.number_species;
+            // Integration Step
+            // For deterministic reactions, the concentrations are updated directly.
+            // For stochastic reactions, integration updates the rxn_offsets vector.
+            IntegrationResults result = sol.integrate(&next_time, event_roots, rxn_roots, urn);
+            if (sol.status == IntegrationStatus::BAD_STEP_SIZE)
+            {
+                std::cerr << "IntegrationStatus::BAD_STEP_SIZE sol.status="<<sol.status<<"\n";
+                return false
+            }
+            else
+            {
+                // The integrator has, at this point, been validated.
+                // Any errors beyond this point is assumed to be a stochastic state failure.
+
+                // 0-initialize our population_changes array.
+                for (int p_i = 0; p_i < num_species; ++p_i)
+                {
+                    population_changes[p_i] = 0;
+                }
+
+                // Start with the species concentration as a baseline value.
+                // Stochastic reactions will update populations relative to their concentrations.
+                for (int spec_i = 0; spec_i < num_species; ++spec_i)
+                {
+                    current_state[spec_i] = result.concentrations[spec_i]; 
+                }
+
+                if (!rxn_roots.empty())
+                {
+                    // "Direct" roots found; these are executed manually
+                    for (unsigned int rxn_i : rxn_roots)
+                    {
+                        // "Fire" a reaction by recording changes in dependent species.
+                        // If a negative value is detected, break without saving changes.
+                        for (int spec_i = 0; spec_i < num_species; ++spec_i)
+                        {
+                            // Unlike the Tau-leaping version of reaction firings,
+                            // it is not possible to have a negative state occur in direct reactions.
+                            population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i];
+                            result.reactions[rxn_i] = log(urn.next());
+                        }
+                    }
+                    rxn_roots.clear();
+                }
+                else
+                {
+                    // The newly-updated reaction_states vector may need to be reconciled now.
+                    // A positive reaction_state means reactions have potentially fired.
+                    // NOTE: it is possible for a population to swing negative, where a smaller Tau is needed.
+                    for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
+                    {
+                        // Temporary variable for the reaction's state.
+                        // Does not get updated unless the changes are deemed valid.
+                        double rxn_state = result.reactions[rxn_i];
+
+                        switch (simulation->reaction_state[rxn_i].mode)
+                        {
+                        case SimulationState::DISCRETE:
+                            if(rxn_state > 0){
+                                unsigned int rxn_count = 0;
+                                while (rxn_state >= 0) {
+                                    // "Fire" a reaction by recording changes in dependent species.
+                                    // If a negative value is detected, break without saving changes. (<-- this is not implemented)
+                                    rxn_state += log(urn.next());
+                                    rxn_count++;
+                                }
+                                if(rxn_count > 0){
+                                    for (int spec_i = 0; spec_i < num_species; ++spec_i) {
+                                        population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i] * rxn_count;
+                                    }
+                                }
+                                result.reactions[rxn_i] = rxn_state;
+                            }
+                            break;
+
+                        case SimulationState::CONTINUOUS:
+                        default:
+                            break;
+                        }
+                    }
+                }
+        }
+
+        bool NegativeStateCheck(int num_species, int*population_changes, std::vector<double>*current_state){
+            // Explicitly check for invalid population state, now that changes have been tallied.
+            bool invalid_state = false;
+            for (int spec_i = 0; spec_i < num_species; ++spec_i)
+            {
+                if (current_state[spec_i] + population_changes[spec_i] < 0)
+                {
+                    invalid_state = true;
+                    break;
+                }
+            }
+            return invalid_state;
+        }
+
 		void TauHybridCSolver(
 				HybridSimulation *simulation,
 				std::vector<Event> &events,
@@ -211,116 +312,57 @@ namespace Gillespy
 
 					do
 					{
-						invalid_state = false;
+                        invalid_state = TauHybrid::TakeIntegrationStep(sol, populaton_changes, current_state, rxn_roots, simulation, urn);
+                        if(!invalid_state){
+                            invalid_state = TauHybrid::NegativeStateCheck(num_species, current_state, population_changes);
+                        }
 
-						// Integration Step
-						// For deterministic reactions, the concentrations are updated directly.
-						// For stochastic reactions, integration updates the rxn_offsets vector.
-						IntegrationResults result = sol.integrate(&next_time, event_roots, rxn_roots);
-						if (sol.status == IntegrationStatus::BAD_STEP_SIZE)
-						{
-							invalid_state = true;
-						}
-						else
-						{
-							// The integrator has, at this point, been validated.
-							// Any errors beyond this point is assumed to be a stochastic state failure.
+                        // If state is invalid, we took too agressive tau step and need to take a single SSA step forward
+						if (invalid_state) {
+                            // Re-Initialize the species population for the trajectory.
+                            for (int spec_i = 0; spec_i < num_species; ++spec_i) {
+                                current_state[spec_i] = species[spec_i].initial_population;
+                                simulation->current_state[spec_i] = current_state[spec_i];
+                            }
+							sol.restore_state();
+                            // re-compute current propensity values based on existing state.
+                            for (unsigned int rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
+                                HybridReaction &rxn = simulation->reaction_state[rxn_i];
+                                sol.data.propensities[rxn_i] = rxn.ssa_propensity(current_state.data());
+                            }
+                            //TODO: the above code blocks should re-initialize the state, is this correct?
 
-							// 0-initialize our population_changes array.
-							for (int p_i = 0; p_i < num_species; ++p_i)
-							{
-								population_changes[p_i] = 0;
-							}
 
-							// Start with the species concentration as a baseline value.
-							// Stochastic reactions will update populations relative to their concentrations.
-							for (int spec_i = 0; spec_i < num_species; ++spec_i)
-							{
-								current_state[spec_i] = result.concentrations[spec_i];
-							}
+                            // estimate the time to the first stochatic reaction by assuming constant propensities
+                            double min_tau = 0.0;
+                            unsigned int rxn_selected = -1
+                            for (unsigned int rxn_i = 0; rxn_i < num_reactions; ++rxn_i) {
+                                HybridReaction &rxn = simulation->reaction_state[rxn_i];
+                                //estimate the zero crossing time
 
-							if (!rxn_roots.empty())
-							{
-								// "Direct" roots found; these are executed manually
-								for (unsigned int rxn_i : rxn_roots)
-								{
-									// "Fire" a reaction by recording changes in dependent species.
-									// If a negative value is detected, break without saving changes.
-									for (int spec_i = 0; spec_i < num_species; ++spec_i)
-									{
-										// Unlike the Tau-leaping version of reaction firings,
-										// it is not possible to have a negative state occur in direct reactions.
-										population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i];
-										result.reactions[rxn_i] = log(urn.next());
-									}
-								}
-								rxn_roots.clear();
-							}
-							else
-							{
-								// The newly-updated reaction_states vector may need to be reconciled now.
-								// A positive reaction_state means reactions have potentially fired.
-								// NOTE: it is possible for a population to swing negative, where a smaller Tau is needed.
-								for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
-								{
-									// Temporary variable for the reaction's state.
-									// Does not get updated unless the changes are deemed valid.
-									double rxn_state = result.reactions[rxn_i];
+                                // Python code:
+                                //rxn_times[rname] = -1* curr_state[rname] / propensities[rname]
+                                // C++ code:
+                                double est_tau = -1*  rxn.value / rxn.ssa_propensity(current_state.data());
+                                //TODO: the above line is wrong, what is the correct code here?
 
-									switch (simulation->reaction_state[rxn_i].mode)
-									{
-									case SimulationState::DISCRETE:
-										while (rxn_state >= 0)
-										{
-											// "Fire" a reaction by recording changes in dependent species.
-											// If a negative value is detected, break without saving changes.
-											for (int spec_i = 0; spec_i < num_species; ++spec_i)
-											{
-												population_changes[spec_i] +=
-														model.reactions[rxn_i].species_change[spec_i];
-											}
+                            }
 
-											rxn_state += log(urn.next());
-										}
-										result.reactions[rxn_i] = rxn_state;
-										break;
-
-									case SimulationState::CONTINUOUS:
-									default:
-										break;
-									}
-								}
-							}
-
-							// Explicitly check for invalid population state, now that changes have been tallied.
-							for (int spec_i = 0; spec_i < num_species; ++spec_i)
-							{
-								if (current_state[spec_i] + population_changes[spec_i] < 0)
-								{
-									invalid_state = true;
-									break;
-								}
-							}
-						}
+                            // Integreate the system forward
+                            invalid_state = TauHybrid::TakeIntegrationStep(sol, populaton_changes, current_state, rxn_roots, simulation, urn);
+                            if(!invalid_state){
+                                invalid_state = TauHybrid::NegativeStateCheck(num_species, current_state, population_changes);
+                            }
+                        }
 
 						// Positive reaction state means a negative population was detected.
 						// Only update state with the given population changes if valid.
-						if (invalid_state)
-						{
-							if (--integration_guard == 0)
-							{
-								// Breaking early causes `invalid_state` to remain set,
-								//   resulting in an early termination of the trajectory.
-								break;
-							}
+						if (invalid_state) {
+                            //Got an invalid state after the SSA step
+                            break;
 
-							sol.restore_state();
-							tau_step /= 2;
-							next_time = simulation->current_time + tau_step;
-						}
-						else
-						{
-							// "Permanently" update the rxn_state and populations.
+						} else {
+                            // "Permanently" update the rxn_state and populations.
 							for (int p_i = 0; p_i < num_species; ++p_i)
 							{
 								if (!simulation->species_state[p_i].boundary_condition)
