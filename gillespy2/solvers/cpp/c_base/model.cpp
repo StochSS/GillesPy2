@@ -123,11 +123,11 @@ namespace Gillespy {
 
 	template <typename TNum>
 	void Simulation<TNum>::output_results_buffer(std::ostream &os) {
-		for (int trajectory = 0; trajectory < number_trajectories; trajectory++) {
-			for (int timestep = 0; timestep < number_timesteps; timestep++) {
+		for (unsigned int trajectory = 0; trajectory < number_trajectories; trajectory++) {
+			for (unsigned int timestep = 0; timestep < number_timesteps; timestep++) {
 				os << timeline[timestep] << ',';
 
-				for (int species = 0; species < model->number_species; species++) {
+				for (unsigned int species = 0; species < model->number_species; species++) {
 					os << (double) current_state[species] << ',';
 				}
 			}
