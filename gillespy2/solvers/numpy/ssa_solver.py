@@ -31,8 +31,8 @@ class NumPySSASolver(GillesPySolver):
     """
     This solver produces simulations of systems via Stochastic Simulation Algorithm.
 
-    :param model: The model on which the solver will operate. (Deprecated)
-    :type model: GillesPy2.model
+    :param model: The model on which the solver will operate.
+    :type model: gillespy2.Model
     """
 
     name = "NumPySSASolver"

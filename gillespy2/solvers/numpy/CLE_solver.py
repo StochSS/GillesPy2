@@ -35,8 +35,8 @@ class CLESolver(GillesPySolver):
     over this step are bounded by bounding the relative change in state, yielding greatly improved
     run-time performance with very little trade-off in accuracy.
 
-    :param model: The model on which the solver will operate. (Deprecated)
-    :type model: GillesPy2.model
+    :param model: The model on which the solver will operate.
+    :type model: gillespy2.Model
     """
 
     name = "CLESolver"

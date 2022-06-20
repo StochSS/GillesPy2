@@ -53,7 +53,8 @@ class SSACSolver(GillesPySolver, CSolver):
             :param t: end time of simulation
             :type t: int
 
-            :param number_of_trajectories: Should be 1. This is deterministic and will always have same results
+            :param number_of_trajectories: The number of times to sample the chemical master equation. Each
+            trajectory will be returned at the end of the simulation. By default number_of_trajectories = 1.
             :type number_of_trajectories: int
 
             :param timeout: If set, if simulation takes longer than timeout, will exit.
@@ -66,7 +67,7 @@ class SSACSolver(GillesPySolver, CSolver):
             :type seed: int
             
             :param variables: Dictionary of names of species to be overridden as keys and their values are the value
-                that replaces the value tied to that species.
+            that replaces the value tied to that species.
             :type variables: dict
 
             :param resume: Result of a previously run simulation, to be resumed

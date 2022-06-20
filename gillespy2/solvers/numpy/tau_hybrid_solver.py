@@ -65,8 +65,8 @@ class TauHybridSolver(GillesPySolver):
     interchangeably or simultaneously.
     Uses integrators from scipy.integrate.ode to perform calculations used to produce solutions.
 
-    :param model: The model on which the solver will operate. (Deprecated)
-    :type model: GillesPy2.model
+    :param model: The model on which the solver will operate.
+    :type model: gillespy2.Model
     """
     name = "TauHybridSolver"
     rc = 0

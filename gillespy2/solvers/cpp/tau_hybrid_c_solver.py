@@ -191,7 +191,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         :param t: end time of simulation
         :type t: int
 
-        :param number_of_trajectories: Should be 1. This is deterministic and will always have same results
+        :param number_of_trajectories: Number of trajectories to simulate. By default number_of_trajectories = 1.
         :type number_of_trajectories: int
 
         :param timeout: If set, if simulation takes longer than timeout, will exit.

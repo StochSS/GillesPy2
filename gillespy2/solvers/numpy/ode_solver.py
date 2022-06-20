@@ -31,8 +31,8 @@ class ODESolver(GillesPySolver):
     This Solver produces the deterministic continuous solution via Ordinary Differential Equations.
     Uses integrators from scipy.integrate.ode to perform calculations used to produce solutions.
 
-    :param model: The model on which the solver will operate. (Deprecated)
-    :type model: GillesPy2.model
+    :param model: The model on which the solver will operate.
+    :type model: gillespy2.Model
     """
     name = "ODESolver"
     rc = 0
