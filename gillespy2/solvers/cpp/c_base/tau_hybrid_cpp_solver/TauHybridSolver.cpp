@@ -47,11 +47,6 @@ namespace Gillespy
 
 	namespace TauHybrid
 	{
-//        bool TakeIntegrationStep(Integrator&sol, double next_time, int*population_changes,
-//         std::vector<double>*current_state, std::set<unsigned int>&rxn_roots, 
-//         std::set<int>&event_roots, HybridSimulation*simulation, URNGenerator&urn){
-//                return TauHybrid::TakeIntegrationStep(sol, next_time, population_changes, current_state, rxn_roots, event_roots, simulation, urn, -1);
-//        }
 
         bool TakeIntegrationStep(Integrator&sol, IntegrationResults&result, double next_time, int*population_changes,
          std::vector<double> current_state, std::set<unsigned int>&rxn_roots, 
@@ -63,7 +58,6 @@ namespace Gillespy
             // Integration Step
             // For deterministic reactions, the concentrations are updated directly.
             // For stochastic reactions, integration updates the rxn_offsets vector.
-            //IntegrationResults result = sol.integrate(&next_time, event_roots, rxn_roots);
             result = sol.integrate(&next_time, event_roots, rxn_roots);
             if (sol.status == IntegrationStatus::BAD_STEP_SIZE)
             {
@@ -81,10 +75,6 @@ namespace Gillespy
                 // Stochastic reactions will update populations relative to their concentrations.
                 for (int spec_i = 0; spec_i < num_species; ++spec_i) {
                     current_state[spec_i] = result.concentrations[spec_i]; 
-                }
-
-                for(int r=0; r< num_reactions; r++){
-                    double r_state = result.reactions[r];
                 }
 
                 if (!rxn_roots.empty()) {
@@ -132,8 +122,6 @@ namespace Gillespy
                                 }
                                 result.reactions[rxn_i] = rxn_state;
                             }
-                        }else{
-                            // continious, or !SimulationState::DISCRETE
                         }
                     }
                 }
@@ -169,7 +157,6 @@ namespace Gillespy
 			int num_reactions = model.number_reactions;
 			int num_trajectories = simulation->number_trajectories;
 			std::unique_ptr<Species<double>[]> &species = model.species;
-			//double increment = simulation->timeline[1] - simulation->timeline[0]; // Unused variable
 
 			URNGenerator urn(simulation->random_seed);
 			// The contents of y0 are "stolen" by the integrator.

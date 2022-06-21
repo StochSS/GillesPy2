@@ -167,7 +167,6 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         return super()._build(sanitized_model, simulation_name, variable, debug)
 
     def _handle_return_code(self, return_code: "int") -> "int":
-        print(f"_handle_return_code return_code={return_code}")
         if return_code == TauHybridCSolver.ErrorStatus.LOOP_OVER_INTEGRATE:
             raise ExecutionError("Loop over integrate exceeded, problem space is too stiff")
         return super()._handle_return_code(return_code)
