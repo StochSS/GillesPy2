@@ -214,6 +214,7 @@ class CSolver:
             )
 
         timeout_event = [False]
+        print(f"{' '.join(sim_args)}")
         with subprocess.Popen(sim_args, stdout=subprocess.PIPE, **platform_args) as simulation:
             def timeout_kill():
                 timeout_event[0] = True
