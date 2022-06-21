@@ -45,7 +45,6 @@ namespace Gillespy
 	static volatile bool interrupted = false;
     std::mt19937_64 generator;
 
-    long int poisson_v_sumurn = 0;
 
 
 	GPY_INTERRUPT_HANDLER(signal_handler, {
@@ -103,25 +102,13 @@ namespace Gillespy
                         if(only_reaction_to_fire == rxn_i){
                                 rxn_state = log(urn.next());
                                 rxn_count = 1;
-                                std::cerr << "rxn"<<rxn_i<<" 1 single SSA\n";
+                                //std::cerr << "rxn"<<rxn_i<<" 1 single SSA\n";
                                 
                         }else if(rxn_state > 0){
-                            double rxn_state_save = rxn_state;
-                            while (rxn_state >= 0) {
-                                // "Fire" a reaction by recording changes in dependent species.
-                                // If a negative value is detected, break without saving changes.
-                                rxn_state += log(urn.next());
-                                rxn_count++;
-                            }
-                            //std::cerr << "rxn"<<rxn_i<<" "<<rxn_count<<" sum urn\n";
-                            poisson_v_sumurn -= rxn_count;
-
-                            std::poisson_distribution<int> poisson(rxn_state_save);
-                            unsigned int rxn_count2 = 1 + int(std::max(0.0,floor((rxn_state_save/2.)-1.)) + poisson(generator));
-                            poisson_v_sumurn += rxn_count2;
+                            std::poisson_distribution<int> poisson(rxn_state);
+                            unsigned int rxn_count = 1 + int(std::max(0.0,floor((rxn_state/2.)-1.)) + poisson(generator));
                             rxn_state = log(urn.next());
-                            //std::cerr << "rxn"<<rxn_i<<" "<<rxn_count2<<" poisson\n";
-                            std::cerr << "rxn"<<rxn_i<<" "<<rxn_count<<" sum urn "<<rxn_count2<<" poisson "<<poisson_v_sumurn<<" sum\n";
+                            //std::cerr << "rxn"<<rxn_i<<" "<<rxn_count<<" poisson\n";
 
                         }
                         if(rxn_count > 0){
@@ -141,9 +128,6 @@ namespace Gillespy
          std::vector<double> current_state, std::set<unsigned int>&rxn_roots, 
          std::set<int>&event_roots, HybridSimulation*simulation, URNGenerator&urn, 
          int only_reaction_to_fire){
-//            Model<double> &model = *(simulation->model);
-//            int num_species = model.number_species;
-//			int num_reactions = model.number_reactions;
             // Integration Step
             // For deterministic reactions, the concentrations are updated directly.
             // For stochastic reactions, integration updates the rxn_offsets vector.
