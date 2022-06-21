@@ -245,6 +245,7 @@ namespace Gillespy
 		{
 			if (save_time - current_time > 0)
 			{
+				//tau = std::min(tau, save_time - current_time);
                 if(tau > save_time - current_time){
                     tau = save_time - current_time; 
                 }

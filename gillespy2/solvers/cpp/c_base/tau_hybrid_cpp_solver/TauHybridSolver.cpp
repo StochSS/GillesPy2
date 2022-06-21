@@ -47,6 +47,7 @@ namespace Gillespy
 
 	namespace TauHybrid
 	{
+
         bool TakeIntegrationStep(Integrator&sol, IntegrationResults&result, double next_time, int*population_changes,
          std::vector<double> current_state, std::set<unsigned int>&rxn_roots, 
          std::set<int>&event_roots, HybridSimulation*simulation, URNGenerator&urn, 
@@ -60,7 +61,6 @@ namespace Gillespy
             result = sol.integrate(&next_time, event_roots, rxn_roots);
             if (sol.status == IntegrationStatus::BAD_STEP_SIZE)
             {
-                std::cerr << "IntegrationStatus::BAD_STEP_SIZE sol.status="<<sol.status<<"\n";
                 return false;
             } else {
                 // The integrator has, at this point, been validated.
@@ -98,7 +98,7 @@ namespace Gillespy
                     // The newly-updated reaction_states vector may need to be reconciled now.
                     // A positive reaction_state means reactions have potentially fired.
                     // NOTE: it is possible for a population to swing negative, where a smaller Tau is needed.
-                    for (unsigned int rxn_i = 0; rxn_i < num_reactions; rxn_i++) {
+                    for (int rxn_i = 0; rxn_i < num_reactions; rxn_i++) {
                         // Temporary variable for the reaction's state.
                         // Does not get updated unless the changes are deemed valid.
                         double rxn_state = result.reactions[rxn_i];
@@ -106,7 +106,6 @@ namespace Gillespy
                         if (simulation->reaction_state[rxn_i].mode == SimulationState::DISCRETE) {
                             unsigned int rxn_count = 0;
                             if(only_reaction_to_fire == rxn_i){
-                                    std::cerr << "Firing single SSA reaction "<< rxn_i<<"\n";
                                     rxn_state = log(urn.next());
                                 
                             }else if(rxn_state > 0){
@@ -134,7 +133,6 @@ namespace Gillespy
             // Explicitly check for invalid population state, now that changes have been tallied.
             for (int spec_i = 0; spec_i < num_species; ++spec_i) {
                 if (current_state[spec_i] + population_changes[spec_i] < 0) {
-                    std::cerr << "IsStateNegativeCheck()==true. found negative species\n";
                     return true;
                 }
             }
@@ -159,7 +157,6 @@ namespace Gillespy
 			int num_reactions = model.number_reactions;
 			int num_trajectories = simulation->number_trajectories;
 			std::unique_ptr<Species<double>[]> &species = model.species;
-			double increment = simulation->timeline[1] - simulation->timeline[0];
 
 			URNGenerator urn(simulation->random_seed);
 			// The contents of y0 are "stolen" by the integrator.
@@ -236,7 +233,7 @@ namespace Gillespy
 				}
 
 				// SIMULATION STEP LOOP
-				int save_idx = 1;
+				unsigned int save_idx = 1;
 				double next_time;
 				double tau_step = 0.0;
 				double save_time = simulation->timeline[save_idx];
@@ -317,11 +314,6 @@ namespace Gillespy
 
                         // If state is invalid, we took too agressive tau step and need to take a single SSA step forward
 						if (invalid_state) {
-                            // Re-Initialize the species population for the trajectory.
-                            for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-                                current_state[spec_i] = species[spec_i].initial_population;
-                                simulation->current_state[spec_i] = current_state[spec_i];
-                            }
                             // Restore the solver to the intial step state
                             sol.restore_state();
 
@@ -377,8 +369,13 @@ namespace Gillespy
 									// Boundary conditions are not modified directly by reactions.
 									// As such, population dx in stochastic regime is not considered.
 									// For deterministic species, their effective dy/dt should always be 0.
-									current_state[p_i] += population_changes[p_i];
-									result.concentrations[p_i] = current_state[p_i]; 
+                                    HybridSpecies *spec = &simulation->species_state[p_i];
+                                    if( spec->partition_mode == SimulationState::CONTINUOUS ){
+                                        current_state[p_i] = result.concentrations[p_i];
+                                    }else if( spec->partition_mode == SimulationState::DISCRETE ){
+                                        current_state[p_i] += population_changes[p_i];
+                                        result.concentrations[p_i] = current_state[p_i]; 
+                                    }
 								}
 							}
 						}
