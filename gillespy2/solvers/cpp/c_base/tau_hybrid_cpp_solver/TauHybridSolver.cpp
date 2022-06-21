@@ -403,11 +403,11 @@ namespace Gillespy
 									// For deterministic species, their effective dy/dt should always be 0.
                                     HybridSpecies *spec = &simulation->species_state[p_i];
                                     if( spec->partition_mode == SimulationState::CONTINUOUS ){
-                                        current_state[p_i] = result.concentrations[p_i];
+                                        current_state[p_i] = result.concentrations[p_i] + population_changes[p_i];
                                     }else if( spec->partition_mode == SimulationState::DISCRETE ){
                                         current_state[p_i] += population_changes[p_i];
-                                        result.concentrations[p_i] = current_state[p_i]; 
                                     }
+                                    result.concentrations[p_i] = current_state[p_i]; 
 								}
 							}
 						}
