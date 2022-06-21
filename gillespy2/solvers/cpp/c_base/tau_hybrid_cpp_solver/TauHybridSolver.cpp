@@ -47,11 +47,88 @@ namespace Gillespy
 
 	namespace TauHybrid
 	{
-//        bool TakeIntegrationStep(Integrator&sol, double next_time, int*population_changes,
-//         std::vector<double>*current_state, std::set<unsigned int>&rxn_roots, 
-//         std::set<int>&event_roots, HybridSimulation*simulation, URNGenerator&urn){
-//                return TauHybrid::TakeIntegrationStep(sol, next_time, population_changes, current_state, rxn_roots, event_roots, simulation, urn, -1);
-//        }
+        bool CalculateSpeciesChangeAfterStep(IntegrationResults&result, int*population_changes,
+         std::vector<double> current_state, std::set<unsigned int>&rxn_roots, 
+         std::set<int>&event_roots, HybridSimulation*simulation, URNGenerator&urn, 
+         int only_reaction_to_fire){
+            Model<double> &model = *(simulation->model);
+            int num_species = model.number_species;
+			int num_reactions = model.number_reactions;
+            // 0-initialize our population_changes array.
+            for (int p_i = 0; p_i < num_species; ++p_i) {
+                population_changes[p_i] = 0;
+            }
+
+            // Start with the species concentration as a baseline value.
+            // Stochastic reactions will update populations relative to their concentrations.
+            std::cerr << " X=[";
+            for (int spec_i = 0; spec_i < num_species; ++spec_i) {
+                current_state[spec_i] = result.concentrations[spec_i]; 
+                std::cerr<<current_state[spec_i]<<", ";
+            }
+            std::cerr << "]\n";
+
+            for(int r=0; r< num_reactions; r++){
+                double r_state = result.reactions[r];
+                std::cerr<<"r="<<r;
+                std::cerr<<" r_state="<<r_state;
+                std::cerr<<" mode="<<simulation->reaction_state[r].mode;
+                std::cerr<<"\n";
+            }
+
+            if (!rxn_roots.empty()) {
+                // "Direct" roots found; these are executed manually
+//TODO: keep this block
+//                    for (unsigned int rxn_i : rxn_roots)
+//                    {
+//                        std::cerr << "reaction "<< rxn_i<<" found via root\n";
+//                        // "Fire" a reaction by recording changes in dependent species.
+//                        // If a negative value is detected, break without saving changes.
+//                        for (int spec_i = 0; spec_i < num_species; ++spec_i) {
+//                            // Unlike the Tau-leaping version of reaction firings,
+//                            // it is not possible to have a negative state occur in direct reactions.
+//                            population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i];
+//                            result.reactions[rxn_i] = log(urn.next());
+//                        }
+//                    }
+                rxn_roots.clear();
+                return false;
+            } else {
+                // The newly-updated reaction_states vector may need to be reconciled now.
+                // A positive reaction_state means reactions have potentially fired.
+                // NOTE: it is possible for a population to swing negative, where a smaller Tau is needed.
+                for (int rxn_i = 0; rxn_i < num_reactions; rxn_i++) {
+                    // Temporary variable for the reaction's state.
+                    // Does not get updated unless the changes are deemed valid.
+                    double rxn_state = result.reactions[rxn_i];
+
+                    if (simulation->reaction_state[rxn_i].mode == SimulationState::DISCRETE) {
+                        unsigned int rxn_count = 0;
+                        if(only_reaction_to_fire == rxn_i){
+                                std::cerr << "Firing single SSA reaction "<< rxn_i<<"\n";
+                                rxn_state = log(urn.next());
+                                
+                        }else if(rxn_state > 0){
+                            while (rxn_state >= 0) {
+                                // "Fire" a reaction by recording changes in dependent species.
+                                // If a negative value is detected, break without saving changes.
+                                rxn_state += log(urn.next());
+                                rxn_count++;
+                            }
+                            std::cerr << "Firing reaction "<< rxn_i<<" "<<rxn_count<<" times\n";
+                        }
+                        if(rxn_count > 0){
+                            for (int spec_i = 0; spec_i < num_species; ++spec_i) {
+                                population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i] * rxn_count;
+                            }
+                            result.reactions[rxn_i] = rxn_state;
+                        }
+                    }
+                }
+            }
+            ////
+            return true;
+        }
 
         bool TakeIntegrationStep(Integrator&sol, IntegrationResults&result, double next_time, int*population_changes,
          std::vector<double> current_state, std::set<unsigned int>&rxn_roots, 
@@ -72,84 +149,14 @@ namespace Gillespy
             } else {
                 // The integrator has, at this point, been validated.
                 // Any errors beyond this point is assumed to be a stochastic state failure.
-
-                // 0-initialize our population_changes array.
-                for (int p_i = 0; p_i < num_species; ++p_i) {
-                    population_changes[p_i] = 0;
-                }
-
-                // Start with the species concentration as a baseline value.
-                // Stochastic reactions will update populations relative to their concentrations.
-                std::cerr << " X=[";
-                for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-                    current_state[spec_i] = result.concentrations[spec_i]; 
-                    std::cerr<<current_state[spec_i]<<", ";
-                }
-                std::cerr << "]\n";
-
-                for(int r=0; r< num_reactions; r++){
-                    double r_state = result.reactions[r];
-                    std::cerr<<"r="<<r;
-                    std::cerr<<" r_state="<<r_state;
-                    std::cerr<<" mode="<<simulation->reaction_state[r].mode;
-                    std::cerr<<"\n";
-                }
-
-                if (!rxn_roots.empty()) {
-                    // "Direct" roots found; these are executed manually
-//TODO: keep this block
-//                    for (unsigned int rxn_i : rxn_roots)
-//                    {
-//                        std::cerr << "reaction "<< rxn_i<<" found via root\n";
-//                        // "Fire" a reaction by recording changes in dependent species.
-//                        // If a negative value is detected, break without saving changes.
-//                        for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-//                            // Unlike the Tau-leaping version of reaction firings,
-//                            // it is not possible to have a negative state occur in direct reactions.
-//                            population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i];
-//                            result.reactions[rxn_i] = log(urn.next());
-//                        }
-//                    }
-                    rxn_roots.clear();
-                    return false;
-                } else {
-                    // The newly-updated reaction_states vector may need to be reconciled now.
-                    // A positive reaction_state means reactions have potentially fired.
-                    // NOTE: it is possible for a population to swing negative, where a smaller Tau is needed.
-                    for (int rxn_i = 0; rxn_i < num_reactions; rxn_i++) {
-                        // Temporary variable for the reaction's state.
-                        // Does not get updated unless the changes are deemed valid.
-                        double rxn_state = result.reactions[rxn_i];
-
-                        if (simulation->reaction_state[rxn_i].mode == SimulationState::DISCRETE) {
-                            unsigned int rxn_count = 0;
-                            if(only_reaction_to_fire == rxn_i){
-                                    std::cerr << "Firing single SSA reaction "<< rxn_i<<"\n";
-                                    rxn_state = log(urn.next());
-                                
-                            }else if(rxn_state > 0){
-                                while (rxn_state >= 0) {
-                                    // "Fire" a reaction by recording changes in dependent species.
-                                    // If a negative value is detected, break without saving changes.
-                                    rxn_state += log(urn.next());
-                                    rxn_count++;
-                                }
-                                std::cerr << "Firing reaction "<< rxn_i<<" "<<rxn_count<<" times\n";
-                            }
-                            if(rxn_count > 0){
-                                for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-                                    population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i] * rxn_count;
-                                }
-                                result.reactions[rxn_i] = rxn_state;
-                            }
-                        }else{
-                            // continious, or !SimulationState::DISCRETE
-                        }
-                    }
-                }
+                return CalculateSpeciesChangeAfterStep(result, population_changes, current_state, rxn_roots, event_roots, simulation, urn, only_reaction_to_fire);
             }
             return true;
         }
+        
+        
+
+        
 
         bool IsStateNegativeCheck(int num_species, int*population_changes, std::vector<double> current_state){
             // Explicitly check for invalid population state, now that changes have been tallied.
@@ -223,7 +230,6 @@ namespace Gillespy
 				}
 
 				// Population/concentration state values for each species.
-				// TODO: change back double -> hybrid_state, once we figure out how that works
 				EventList event_list;
 				std::vector<double> current_state(num_species);
 
@@ -372,18 +378,36 @@ namespace Gillespy
                                 invalid_state = true;
                                 break;
                             }
-                            // Use the found tau-step for single SSA
-					        next_time = simulation->current_time + min_tau;
-
-                            // Integreate the system forward
-                            step_success = TauHybrid::TakeIntegrationStep(sol, result, next_time, population_changes, current_state, rxn_roots,  event_roots, simulation, urn, rxn_selected);
-                            if(!step_success){
-                                std::cerr << "TakeIntegrationStep() failed!\n";
-                                invalid_state = true;
+                            // if min_tau < 1e-10, we can't take an ODE step that small.
+                            if( min_tau < 1e-10 ){
+                                // instead we will fire the reaction
+                                std::cerr << "Can not integreate tau of "<<min_tau<<" firing reaction "<<rxn_selected<<"\n";
+                                bool rc = CalculateSpeciesChangeAfterStep(result, population_changes, current_state, rxn_roots,  event_roots, simulation, urn, rxn_selected);
+                                if(!rc){
+                                    std::cerr<<"CalculateSpeciesChangeAfterStep() failed\n";
+                                    exit(1); //TODO: set error code correctly
+                                }
+                                // re-attempt the step at the same time 
+                                next_time = simulation->current_time;
+                                // Restore the solver to the intial step state
+                                sol.restore_state();
+                                invalid_state = false;
                                 break;
+                            
                             }else{
-                                invalid_state = TauHybrid::IsStateNegativeCheck(num_species, population_changes, current_state);
-                            }
+                                // Use the found tau-step for single SSA
+					            next_time = simulation->current_time + min_tau;
+
+                                // Integreate the system forward
+                                step_success = TauHybrid::TakeIntegrationStep(sol, result, next_time, population_changes, current_state, rxn_roots,  event_roots, simulation, urn, rxn_selected);
+                                if(!step_success){
+                                    std::cerr << "TakeIntegrationStep() failed!\n";
+                                    invalid_state = true;
+                                    break;
+                                }else{
+                                    invalid_state = TauHybrid::IsStateNegativeCheck(num_species, population_changes, current_state);
+                                }
+                             }
                         }
 
 						// Positive reaction state means a negative population was detected.
