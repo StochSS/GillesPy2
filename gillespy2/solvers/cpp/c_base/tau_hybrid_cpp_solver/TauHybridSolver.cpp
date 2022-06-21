@@ -67,7 +67,6 @@ namespace Gillespy
             result = sol.integrate(&next_time, event_roots, rxn_roots);
             if (sol.status == IntegrationStatus::BAD_STEP_SIZE)
             {
-                std::cerr << "IntegrationStatus::BAD_STEP_SIZE sol.status="<<sol.status<<"\n";
                 return false;
             } else {
                 // The integrator has, at this point, been validated.
@@ -80,19 +79,12 @@ namespace Gillespy
 
                 // Start with the species concentration as a baseline value.
                 // Stochastic reactions will update populations relative to their concentrations.
-                std::cerr << " X=[";
                 for (int spec_i = 0; spec_i < num_species; ++spec_i) {
                     current_state[spec_i] = result.concentrations[spec_i]; 
-                    std::cerr<<current_state[spec_i]<<", ";
                 }
-                std::cerr << "]\n";
 
                 for(int r=0; r< num_reactions; r++){
                     double r_state = result.reactions[r];
-                    std::cerr<<"r="<<r;
-                    std::cerr<<" r_state="<<r_state;
-                    std::cerr<<" mode="<<simulation->reaction_state[r].mode;
-                    std::cerr<<"\n";
                 }
 
                 if (!rxn_roots.empty()) {
@@ -124,7 +116,6 @@ namespace Gillespy
                         if (simulation->reaction_state[rxn_i].mode == SimulationState::DISCRETE) {
                             unsigned int rxn_count = 0;
                             if(only_reaction_to_fire == rxn_i){
-                                    std::cerr << "Firing single SSA reaction "<< rxn_i<<"\n";
                                     rxn_state = log(urn.next());
                                 
                             }else if(rxn_state > 0){
@@ -134,7 +125,6 @@ namespace Gillespy
                                     rxn_state += log(urn.next());
                                     rxn_count++;
                                 }
-                                std::cerr << "Firing reaction "<< rxn_i<<" "<<rxn_count<<" times\n";
                             }
                             if(rxn_count > 0){
                                 for (int spec_i = 0; spec_i < num_species; ++spec_i) {
@@ -155,7 +145,6 @@ namespace Gillespy
             // Explicitly check for invalid population state, now that changes have been tallied.
             for (int spec_i = 0; spec_i < num_species; ++spec_i) {
                 if (current_state[spec_i] + population_changes[spec_i] < 0) {
-                    std::cerr << "IsStateNegativeCheck()==true. found negative species\n";
                     return true;
                 }
             }
@@ -326,12 +315,6 @@ namespace Gillespy
 
 					do
 					{
-                        std::cerr << "starting loop block";
-                        std::cerr << " i="<<integration_guard;
-                        std::cerr << " curr_time="<<simulation->current_time;
-                        std::cerr <<" next_time="<<next_time;
-                        std::cerr <<" tau_step="<<tau_step;
-                        std::cerr<<"\n";
                         IntegrationResults result;
 
                         bool step_success = TauHybrid::TakeIntegrationStep(sol, result, next_time, population_changes, current_state, rxn_roots, event_roots, simulation, urn, -1);
@@ -373,7 +356,6 @@ namespace Gillespy
                                 }
                             }
                             if(rxn_selected == -1){
-                                std::cerr << "Negative State detected in step, and no reaction found to fire.\n";
                                 invalid_state = true;
                                 break;
                             }
@@ -383,7 +365,6 @@ namespace Gillespy
                             // Integreate the system forward
                             step_success = TauHybrid::TakeIntegrationStep(sol, result, next_time, population_changes, current_state, rxn_roots,  event_roots, simulation, urn, rxn_selected);
                             if(!step_success){
-                                std::cerr << "TakeIntegrationStep() failed!\n";
                                 invalid_state = true;
                                 break;
                             }else{
@@ -395,29 +376,24 @@ namespace Gillespy
 						// Only update state with the given population changes if valid.
 						if (invalid_state) {
                             //Got an invalid state after the SSA step
-                            std::cerr << "Invalid state after single SSA step\n";
                             break;
 
 						} else {
                             // "Permanently" update the rxn_state and populations.
 							for (int p_i = 0; p_i < num_species; ++p_i)
 							{
-							    std::cerr << "species "<<p_i<<" bc="<<simulation->species_state[p_i].boundary_condition;
 								if (!simulation->species_state[p_i].boundary_condition)
 								{
 									// Boundary conditions are not modified directly by reactions.
 									// As such, population dx in stochastic regime is not considered.
 									// For deterministic species, their effective dy/dt should always be 0.
-    								std::cerr<<" updating "<<p_i<<" from "<<current_state[p_i]<<" | "<<result.concentrations[p_i]<<" by  "<<population_changes[p_i]<<" to ";
                                     if( population_changes[p_i] == 0 ){
                                         current_state[p_i] = result.concentrations[p_i];
                                     }else{
                                         current_state[p_i] += population_changes[p_i];
                                         result.concentrations[p_i] = current_state[p_i]; 
                                     }
-									std::cerr<<current_state[p_i]<<"\n";
 								}
-								std::cerr<<"\n";
 							}
 						}
 					} while (invalid_state && !interrupted);

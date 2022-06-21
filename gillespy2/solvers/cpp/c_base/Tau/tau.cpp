@@ -123,7 +123,6 @@ namespace Gillespy
 		bool critical = false;  // system-wide flag, true when any reaction is critical
 
 		int v;//used for number of population reactant consumes
-        int tau_reason=0;
 		double tau; //tau time to step;
 		double non_critical_tau = 0;  // holds the smallest tau time for non-critical reactions
 		double critical_tau = 0;  // holds the smallest tau time for critical reactions
@@ -226,14 +225,12 @@ namespace Gillespy
 		if (critical == false)
 		{
 			tau = non_critical_tau;
-            tau_reason=1;
 		}
 
 		// If all reactions are critical, use critical tau.
 		else if (tau_i.size() == 0)
 		{
 			tau = critical_tau;
-            tau_reason=2;
 		}
 
 		// If there are both critical, and non critical reactions,
@@ -241,7 +238,6 @@ namespace Gillespy
 		else
 		{
 			tau = std::min(non_critical_tau, critical_tau);
-            tau_reason=3;
 		}
 
 		// If selected tau exceeds save time, integrate to save time
@@ -252,7 +248,6 @@ namespace Gillespy
 				//tau = std::min(tau, save_time - current_time);
                 if(tau > save_time - current_time){
                     tau = save_time - current_time; 
-                    tau_reason=4;
                 }
 			}
 		}
@@ -260,10 +255,8 @@ namespace Gillespy
 		else
 		{
 			tau = save_time - current_time;
-            tau_reason=5;
 		}
         tau = std::max(tau, 1e-10);
-        std::cerr << "select() tau="<<tau<<"   reason="<<tau_reason<<"\n";
 
 		return tau;
 	}
