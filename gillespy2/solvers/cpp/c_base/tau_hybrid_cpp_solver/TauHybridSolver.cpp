@@ -95,7 +95,7 @@ namespace Gillespy
                         unsigned int rxn_count = 0;
                         if(only_reaction_to_fire == rxn_i){
                                 rxn_state = log(urn.next());
-                                
+                                rxn_count = 1;
                         }else if(rxn_state > 0){
                             while (rxn_state >= 0) {
                                 // "Fire" a reaction by recording changes in dependent species.
