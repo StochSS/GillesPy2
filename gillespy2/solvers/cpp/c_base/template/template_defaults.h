@@ -76,6 +76,9 @@
  */
 #ifdef GPY_SOLVER_HYBRID
 
+#ifndef GPY_HYBRID_SPECIES_MODES
+#define GPY_HYBRID_SPECIES_MODES
+#endif
 
 #ifndef GPY_RATE_RULES
 #define GPY_RATE_RULES
