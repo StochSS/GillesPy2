@@ -116,7 +116,7 @@ namespace Gillespy
                     // The newly-updated reaction_states vector may need to be reconciled now.
                     // A positive reaction_state means reactions have potentially fired.
                     // NOTE: it is possible for a population to swing negative, where a smaller Tau is needed.
-                    for (unsigned int rxn_i = 0; rxn_i < num_reactions; rxn_i++) {
+                    for (int rxn_i = 0; rxn_i < num_reactions; rxn_i++) {
                         // Temporary variable for the reaction's state.
                         // Does not get updated unless the changes are deemed valid.
                         double rxn_state = result.reactions[rxn_i];
@@ -180,7 +180,7 @@ namespace Gillespy
 			int num_reactions = model.number_reactions;
 			int num_trajectories = simulation->number_trajectories;
 			std::unique_ptr<Species<double>[]> &species = model.species;
-			double increment = simulation->timeline[1] - simulation->timeline[0];
+			//double increment = simulation->timeline[1] - simulation->timeline[0]; // Unused variable
 
 			URNGenerator urn(simulation->random_seed);
 			// The contents of y0 are "stolen" by the integrator.
@@ -257,7 +257,7 @@ namespace Gillespy
 				}
 
 				// SIMULATION STEP LOOP
-				int save_idx = 1;
+				unsigned int save_idx = 1;
 				double next_time;
 				double tau_step = 0.0;
 				double save_time = simulation->timeline[save_idx];
@@ -344,11 +344,6 @@ namespace Gillespy
 
                         // If state is invalid, we took too agressive tau step and need to take a single SSA step forward
 						if (invalid_state) {
-                            // Re-Initialize the species population for the trajectory.
-//                            for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-//                                current_state[spec_i] = species[spec_i].initial_population;
-//                                simulation->current_state[spec_i] = current_state[spec_i];
-//                            }
                             // Restore the solver to the intial step state
                             sol.restore_state();
 
@@ -409,9 +404,12 @@ namespace Gillespy
 									// As such, population dx in stochastic regime is not considered.
 									// For deterministic species, their effective dy/dt should always be 0.
     								std::cerr<<" updating "<<p_i<<" from "<<current_state[p_i]<<" | "<<result.concentrations[p_i]<<" by  "<<population_changes[p_i]<<" to ";
-                                    if( population_changes[p_i] == 0 ){
+                                    HybridSpecies *spec = &simulation->species_state[p_i];
+                                    if( spec->partition_mode == SimulationState::CONTINUOUS ){
+                                        std::cerr << " SimulationState::CONTINUOUS ";
                                         current_state[p_i] = result.concentrations[p_i];
-                                    }else{
+                                    }else if( spec->partition_mode == SimulationState::DISCRETE ){
+                                        std::cerr << " SimulationState::DISCRETE ";
                                         current_state[p_i] += population_changes[p_i];
                                         result.concentrations[p_i] = current_state[p_i]; 
                                     }
