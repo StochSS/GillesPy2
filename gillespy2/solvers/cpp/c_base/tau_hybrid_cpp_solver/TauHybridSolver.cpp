@@ -103,7 +103,6 @@ namespace Gillespy
                                 rxn_state = log(urn.next());
                                 rxn_count = 1;
                                 //std::cerr << "rxn"<<rxn_i<<" 1 single SSA\n";
-                                
                         }else if(rxn_state > 0){
                             std::poisson_distribution<int> poisson(rxn_state);
                             rxn_count = 1 + int(std::max(0.0,floor((rxn_state/2.)-1.)) + poisson(generator));
@@ -276,6 +275,13 @@ namespace Gillespy
 					{
 						HybridReaction &rxn = simulation->reaction_state[rxn_j];
 						sol.data.propensities[rxn_j] = rxn.ssa_propensity(current_state.data());
+                        // if the propensity is zero, we need to ensure the reaction state is negative.
+                        if(simulation->reaction_state[rxn_j].mode == SimulationState::DISCRETE &&
+                                result.reactions[rxn_i] > 0 &&
+                                sol.data.propensities[rxn_j] == 0.0 ){
+                           // This is an edge case, that might happen after a single SSA step.
+                           result.reactions[rxn_i] = log(urn.next()); 
+                        }
 					}
 					if (interrupted)
 						break;
