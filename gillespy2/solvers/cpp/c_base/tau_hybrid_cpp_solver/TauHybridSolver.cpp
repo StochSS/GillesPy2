@@ -433,8 +433,9 @@ namespace Gillespy
 								<< "[Trajectory #" << traj << "] "
 								<< "Integration guard triggered; problem space too stiff at t="
 								<< simulation->current_time << std::endl;
-						simulation->set_status(HybridSimulation::LOOP_OVER_INTEGRATE);
-						continue;
+						//simulation->set_status(HybridSimulation::LOOP_OVER_INTEGRATE);
+						//continue;
+                        exit(HybridSimulation::LOOP_OVER_INTEGRATE)
 					}
 					else
 					{
