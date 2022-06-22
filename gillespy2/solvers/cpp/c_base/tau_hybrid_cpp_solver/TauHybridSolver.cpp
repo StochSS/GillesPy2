@@ -435,7 +435,7 @@ namespace Gillespy
 								<< simulation->current_time << std::endl;
 						//simulation->set_status(HybridSimulation::LOOP_OVER_INTEGRATE);
 						//continue;
-                        exit(HybridSimulation::LOOP_OVER_INTEGRATE)
+                        exit(HybridSimulation::LOOP_OVER_INTEGRATE);
 					}
 					else
 					{
