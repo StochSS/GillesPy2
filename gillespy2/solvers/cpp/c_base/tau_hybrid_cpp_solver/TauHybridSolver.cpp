@@ -283,13 +283,15 @@ namespace Gillespy
 					{
 						HybridReaction &rxn = simulation->reaction_state[rxn_j];
 						sol.data.propensities[rxn_j] = rxn.ssa_propensity(current_state.data());
-//                        // if the propensity is zero, we need to ensure the reaction state is negative.
-//                        if(simulation->reaction_state[rxn_j].mode == SimulationState::DISCRETE &&
-//                                current_rxn_values[rxn_j] > 0 &&
-//                                sol.data.propensities[rxn_j] == 0.0 ){
-//                           // This is an edge case, that might happen after a single SSA step.
-//                           result.reactions[rxn_i] = log(urn.next()); 
-//                        }
+                        // if the propensity is zero, we need to ensure the reaction state is negative.
+                        double *curr_rxn_state = sol.get_reaction_state();
+                        if(simulation->reaction_state[rxn_j].mode == SimulationState::DISCRETE &&
+                                curr_rxn_state[rxn_j] > 0 &&
+                                sol.data.propensities[rxn_j] == 0.0 ){
+                           // This is an edge case, that might happen after a single SSA step.
+                           curr_rxn_state[rxn_j] = log(urn.next()); 
+                        }
+                        sol.refresh_state(); // update solver with updated state
 					}
 					if (interrupted)
 						break;
@@ -445,8 +447,9 @@ namespace Gillespy
 								<< "[Trajectory #" << traj << "] "
 								<< "Integration guard triggered; problem space too stiff at t="
 								<< simulation->current_time << std::endl;
-						simulation->set_status(HybridSimulation::LOOP_OVER_INTEGRATE);
-						continue;
+						//simulation->set_status(HybridSimulation::LOOP_OVER_INTEGRATE);
+						//continue;
+                        exit(HybridSimulation::LOOP_OVER_INTEGRATE);
 					}
 					else
 					{
