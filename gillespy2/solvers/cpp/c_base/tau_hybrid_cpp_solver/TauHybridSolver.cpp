@@ -106,7 +106,7 @@ namespace Gillespy
                                 
                         }else if(rxn_state > 0){
                             std::poisson_distribution<int> poisson(rxn_state);
-                            unsigned int rxn_count = 1 + int(std::max(0.0,floor((rxn_state/2.)-1.)) + poisson(generator));
+                            rxn_count = 1 + int(std::max(0.0,floor((rxn_state/2.)-1.)) + poisson(generator));
                             rxn_state = log(urn.next());
                             //std::cerr << "rxn"<<rxn_i<<" "<<rxn_count<<" poisson\n";
 
