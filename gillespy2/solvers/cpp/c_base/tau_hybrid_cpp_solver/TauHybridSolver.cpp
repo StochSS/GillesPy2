@@ -269,6 +269,13 @@ namespace Gillespy
 					{
 						HybridReaction &rxn = simulation->reaction_state[rxn_j];
 						sol.data.propensities[rxn_j] = rxn.ssa_propensity(current_state.data());
+                        // if the propensity is zero, we need to ensure the reaction state is negative.
+                        if(simulation->reaction_state[rxn_j].mode == SimulationState::DISCRETE &&
+                                result.reactions[rxn_i] > 0 &&
+                                sol.data.propensities[rxn_j] == 0.0 ){
+                           // This is an edge case, that might happen after a single SSA step.
+                           result.reactions[rxn_i] = log(urn.next()); 
+                        }
 					}
 					if (interrupted)
 						break;
