@@ -18,7 +18,10 @@
 
 #include <iostream>
 #include <csignal> //Included for timeout signal handling
+#include <cmath>
 #include <random>
+#include <functional>
+#include <algorithm>
 #include <queue>
 #include <list>
 #include "cvode.h" // prototypes for CVODE fcts., consts.
@@ -40,6 +43,9 @@ static void silent_error_handler(int error_code, const char *module, const char 
 namespace Gillespy
 {
 	static volatile bool interrupted = false;
+    std::mt19937_64 generator;
+
+
 
 	GPY_INTERRUPT_HANDLER(signal_handler, {
 		interrupted = true;
@@ -96,13 +102,13 @@ namespace Gillespy
                         if(only_reaction_to_fire == rxn_i){
                                 rxn_state = log(urn.next());
                                 rxn_count = 1;
+                                //std::cerr << "rxn"<<rxn_i<<" 1 single SSA\n";
                         }else if(rxn_state > 0){
-                            while (rxn_state >= 0) {
-                                // "Fire" a reaction by recording changes in dependent species.
-                                // If a negative value is detected, break without saving changes.
-                                rxn_state += log(urn.next());
-                                rxn_count++;
-                            }
+                            std::poisson_distribution<int> poisson(rxn_state);
+                            rxn_count = 1 + poisson(generator);
+                            rxn_state = log(urn.next());
+                            //std::cerr << "rxn"<<rxn_i<<" "<<rxn_count<<" poisson\n";
+
                         }
                         if(rxn_count > 0){
                             for (int spec_i = 0; spec_i < num_species; ++spec_i) {
@@ -170,7 +176,10 @@ namespace Gillespy
 			int num_trajectories = simulation->number_trajectories;
 			std::unique_ptr<Species<double>[]> &species = model.species;
 
+            // Instantiate the RNG.
+            generator = std::mt19937_64(simulation->random_seed);
 			URNGenerator urn(simulation->random_seed);
+
 			// The contents of y0 are "stolen" by the integrator.
 			// Do not attempt to directly use y0 after being passed to sol!
 			N_Vector y0 = init_model_vector(model, urn);
