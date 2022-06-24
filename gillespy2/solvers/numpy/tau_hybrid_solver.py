@@ -572,7 +572,7 @@ class TauHybridSolver(GillesPySolver):
 
     def __simulate(self, integrator, integrator_options, curr_state, y0, curr_time,
                    propensities, species, parameters, compiled_reactions,
-                   active_rr, y_map, trajectory, save_times,
+                   active_rr, y_map, trajectory, save_times, save_index,
                    delayed_events, trigger_states, event_sensitivity,
                    tau_step, pure_ode, debug):
         """
@@ -694,7 +694,7 @@ class TauHybridSolver(GillesPySolver):
             if time > curr_time:
                 break
             # if a solution is given for it
-            trajectory_index = np.where(self.model.tspan == time)[0][0] #TODO: this is expensive, can we eliminte?
+            trajectory_index = save_index
             assignment_state = copy.deepcopy(curr_state)
             for s in range(len(species)):
                 # Get ODE Solutions
@@ -709,6 +709,7 @@ class TauHybridSolver(GillesPySolver):
                 assignment_state[ar.variable] = assignment_value
                 trajectory[trajectory_index][species.index(ar.variable.name) + 1] = assignment_value
             num_saves += 1
+            save_index += 1
         save_times = save_times[num_saves:]  # remove completed save times
 
         events_processed = self.__process_queued_events(event_queue, trigger_states, curr_state)
@@ -730,7 +731,7 @@ class TauHybridSolver(GillesPySolver):
 
         events_processed = self.__process_queued_events(event_queue, trigger_states, curr_state)
 
-        return sol, curr_state, curr_time, save_times
+        return sol, curr_state, curr_time, save_times, save_index
 
     def __set_seed(self, seed):
         # Set seed if supplied
@@ -1134,6 +1135,7 @@ class TauHybridSolver(GillesPySolver):
             data = OrderedDict()  # Dictionary for results
             data['time'] = timeline  # All time entries
             save_times = timeline
+            save_index = 0
 
             # Record Highest Order reactant for each reaction and set error tolerance
             if not pure_ode:
@@ -1213,12 +1215,14 @@ class TauHybridSolver(GillesPySolver):
                                              compiled_reactions, self.model.listOfEvents, curr_state[0])
 
                 # Run simulation to next step
-                sol, curr_state[0], curr_time[0], save_times = self.__simulate(integrator, integrator_options,
+                
+                sol, curr_state[0], curr_time[0], save_times, save_index = self.__simulate(integrator, integrator_options,
                                                                                curr_state[0], y0, curr_time[0],
                                                                                propensities, species,
                                                                                parameters, compiled_reactions,
                                                                                active_rr, y_map,
-                                                                               trajectory, save_times, delayed_events,
+                                                                               trajectory, save_times, save_index,
+                                                                               delayed_events,
                                                                                trigger_states,
                                                                                event_sensitivity, tau_step, pure_ode,
                                                                                debug)
