@@ -613,10 +613,13 @@ class TauHybridSolver(GillesPySolver):
         rxn_count=None
         loop_err_message=""
 
-        #while True:
-        #    loop_count += 1
-        #    if loop_count > 1:
-        #        raise Exception(f"Loop over __integrate() exceeded loop count={loop_count}\n\n error_message={loop_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}  ")
+
+        # check each reaction to see if it is >=0. If we have taken a single SSA step, this could be >0 for the non-selected reactions, check if propensity is zero and reset if so
+        for r in compiled_reactions.keys():
+            if curr_state[r] >= 0 and propensities[r] == 0:
+                curr_state[r] = math.log(random.uniform(0, 1))
+
+
         sol, curr_time = self.__integrate(integrator, integrator_options, curr_state,
                                           y0, curr_time, propensities, y_map,
                                           compiled_reactions,
@@ -1095,10 +1098,6 @@ class TauHybridSolver(GillesPySolver):
                 pure_stochastic = False
             if spec.mode != 'continuous':
                 pure_ode = False
-
-        if debug:
-            print('dependencies')
-            print(dependencies)
 
         simulation_data = []
 
