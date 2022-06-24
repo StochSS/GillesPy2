@@ -295,7 +295,11 @@ namespace Gillespy
 
 			enum SIMULATION_STATUS : uint8_t
 			{
-				LOOP_OVER_INTEGRATE = 1,
+                UNKNOWN = 1,
+				LOOP_OVER_INTEGRATE = 2,
+                INTEGRATOR_FAILED = 3,
+                INVALID_AFTER_SSA = 4,
+                NEGATIVE_STATE_NO_SSA_REACTION = 5
 			};
 		};
 

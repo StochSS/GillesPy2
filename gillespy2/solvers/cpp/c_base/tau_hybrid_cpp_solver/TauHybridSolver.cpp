@@ -53,7 +53,7 @@ namespace Gillespy
 
 	namespace TauHybrid
 	{
-        bool CalculateSpeciesChangeAfterStep(IntegrationResults&result, int*population_changes,
+        void CalculateSpeciesChangeAfterStep(IntegrationResults&result, int*population_changes,
          std::vector<double> current_state, std::set<unsigned int>&rxn_roots, 
          std::set<int>&event_roots, HybridSimulation*simulation, URNGenerator&urn, 
          int only_reaction_to_fire){
@@ -73,21 +73,19 @@ namespace Gillespy
 
             if (!rxn_roots.empty()) {
                 // "Direct" roots found; these are executed manually
-//TODO: keep this block
-//                    for (unsigned int rxn_i : rxn_roots)
-//                    {
-//                        std::cerr << "reaction "<< rxn_i<<" found via root\n";
-//                        // "Fire" a reaction by recording changes in dependent species.
-//                        // If a negative value is detected, break without saving changes.
-//                        for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-//                            // Unlike the Tau-leaping version of reaction firings,
-//                            // it is not possible to have a negative state occur in direct reactions.
-//                            population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i];
-//                            result.reactions[rxn_i] = log(urn.next());
-//                        }
-//                    }
+                for (unsigned int rxn_i : rxn_roots)
+                {
+                    //std::cerr << "reaction "<< rxn_i<<" found via root\n";
+                    // "Fire" a reaction by recording changes in dependent species.
+                    // If a negative value is detected, break without saving changes.
+                    for (int spec_i = 0; spec_i < num_species; ++spec_i) {
+                        // Unlike the Tau-leaping version of reaction firings,
+                        // it is not possible to have a negative state occur in direct reactions.
+                        population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i];
+                        result.reactions[rxn_i] = log(urn.next());
+                    }
+                }
                 rxn_roots.clear();
-                return false;
             } else {
                 // The newly-updated reaction_states vector may need to be reconciled now.
                 // A positive reaction_state means reactions have potentially fired.
@@ -119,11 +117,9 @@ namespace Gillespy
                     }
                 }
             }
-            ////
-            return true;
         }
 
-        bool TakeIntegrationStep(Integrator&sol, IntegrationResults&result, double next_time, int*population_changes,
+        void TakeIntegrationStep(Integrator&sol, IntegrationResults&result, double next_time, int*population_changes,
          std::vector<double> current_state, std::set<unsigned int>&rxn_roots, 
          std::set<int>&event_roots, HybridSimulation*simulation, URNGenerator&urn, 
          int only_reaction_to_fire){
@@ -134,13 +130,13 @@ namespace Gillespy
             result = sol.integrate(&next_time, event_roots, rxn_roots);
             if (sol.status == IntegrationStatus::BAD_STEP_SIZE)
             {
-                return false;
+                simulation->set_status(HybridSimulation::INTEGRATOR_FAILED);
+                exit(0);
             } else {
                 // The integrator has, at this point, been validated.
                 // Any errors beyond this point is assumed to be a stochastic state failure.
-                return CalculateSpeciesChangeAfterStep(result, population_changes, current_state, rxn_roots, event_roots, simulation, urn, only_reaction_to_fire);
+                CalculateSpeciesChangeAfterStep(result, population_changes, current_state, rxn_roots, event_roots, simulation, urn, only_reaction_to_fire);
             }
-            return true;
         }
         
         
@@ -211,13 +207,6 @@ namespace Gillespy
 			// Tau selector initialization. Used to select a valid tau step.
 			TauArgs<double> tau_args = initialize(model, tau_tol);
 
-            // Save the parameter vector in case any events modify it
-            double *s_vars = Reaction::s_variables.get();
-            double *saved__s_variables = new double[Reaction::s_num_variables];
-            for(int s_num_j=0; s_num_j < Reaction::s_num_variables; s_num_j++){
-                saved__s_variables[s_num_j] = s_vars[s_num_j];
-            }
-
 			// Simulate for each trajectory
 			for (int traj = 0; !interrupted && traj < num_trajectories; traj++)
 			{
@@ -274,20 +263,10 @@ namespace Gillespy
 				//   and the trajectory should terminate early.
 				bool invalid_state = false;
 
-                // Reset the parameters, they may be modified by an Event
-                double *s_vars = Reaction::s_variables.get();
-                for(int s_num_i=0; s_num_i < Reaction::s_num_variables; s_num_i++){
-                    s_vars[s_num_i] = saved__s_variables[s_num_i];
-                }
-
 
 				while (!interrupted && !invalid_state && simulation->current_time < simulation->end_time)
 				{
-
-
-
 					// Compute current propensity values based on existing state.
-//                    double *current_rxn_values = sol.get_reaction_state();
 					for (int rxn_j = 0; rxn_j < num_reactions; ++rxn_j)
 					{
 						HybridReaction &rxn = simulation->reaction_state[rxn_j];
@@ -350,10 +329,7 @@ namespace Gillespy
 					{
                         IntegrationResults result;
 
-                        bool step_success = TauHybrid::TakeIntegrationStep(sol, result, next_time, population_changes, current_state, rxn_roots, event_roots, simulation, urn, -1);
-                        if(! step_success){ 
-                           exit(1); //TODO: return code to indicate that the step fails, and why
-                        }
+                        TauHybrid::TakeIntegrationStep(sol, result, next_time, population_changes, current_state, rxn_roots, event_roots, simulation, urn, -1);
                         
                         // Check if we have gone negative
                         invalid_state = TauHybrid::IsStateNegativeCheck(num_species, population_changes, current_state);
@@ -385,21 +361,18 @@ namespace Gillespy
                             }
                             if(rxn_selected == -1){
                                 std::cerr << "Negative State detected in step, and no reaction found to fire.\n";
-                                exit(1); //TODO: set error code correctly
+                                simulation->set_status(HybridSimulation::NEGATIVE_STATE_NO_SSA_REACTION);
+                                exit(0);
                             }
                             // if min_tau < 1e-10, we can't take an ODE step that small.
                             if( min_tau < 1e-10 ){
                                 // instead we will fire the reaction
-                                bool rc = CalculateSpeciesChangeAfterStep(result, population_changes, current_state, rxn_roots,  event_roots, simulation, urn, rxn_selected);
-                                if(!rc){
-                                    std::cerr<<"CalculateSpeciesChangeAfterStep() failed\n";
-                                    exit(1); //TODO: set error code correctly
-                                }
+                                CalculateSpeciesChangeAfterStep(result, population_changes, current_state, rxn_roots,  event_roots, simulation, urn, rxn_selected);
                                 // re-attempt the step at the same time 
                                 next_time = simulation->current_time;
                                 // Restore the solver to the intial step state
                                 sol.restore_state();
-                                invalid_state = false;
+                                invalid_state = false; // 
                                 break;
                             
                             }else{
@@ -407,23 +380,23 @@ namespace Gillespy
 					            next_time = simulation->current_time + min_tau;
 
                                 // Integreate the system forward
-                                step_success = TauHybrid::TakeIntegrationStep(sol, result, next_time, population_changes, current_state, rxn_roots,  event_roots, simulation, urn, rxn_selected);
-                                if(!step_success){
-                                    std::cerr << "TakeIntegrationStep() failed!\n";
-                                    exit(1); //TODO: set error code correctly
-                                }else{
-                                    invalid_state = TauHybrid::IsStateNegativeCheck(num_species, population_changes, current_state);
+                                TauHybrid::TakeIntegrationStep(sol, result, next_time, population_changes, current_state, rxn_roots,  event_roots, simulation, urn, rxn_selected);
+                                // check for invalid state again
+                                invalid_state = TauHybrid::IsStateNegativeCheck(num_species, population_changes, current_state);
+                                if (invalid_state) {
+                                    //Got an invalid state after the SSA step
+                                    //std::cerr << "Invalid state after single SSA step\n";
+                                    simulation->set_status(HybridSimulation::INVALID_AFTER_SSA);
+                                    exit(0);
                                 }
-                             }
+                            }
                         }
 
 						// Positive reaction state means a negative population was detected.
 						// Only update state with the given population changes if valid.
 						if (invalid_state) {
-                            //Got an invalid state after the SSA step
-                            std::cerr << "Invalid state after single SSA step\n";
-                            exit(1); //TODO: set error code correclty
-
+                            simulation->set_status(HybridSimulation::UNKNOWN);
+                            exit(0);
 						} else {
                             // "Permanently" update the rxn_state and populations.
 							for (int p_i = 0; p_i < num_species; ++p_i)
@@ -452,13 +425,15 @@ namespace Gillespy
 						// Invalid state after the do-while loop implies that an unrecoverable error has occurred.
 						// While prior results are considered usable, the current integration results are not.
 						// Calling `continue` with an invalid state will discard the results and terminate the trajectory.
-						logger.err()
-								<< "[Trajectory #" << traj << "] "
-								<< "Integration guard triggered; problem space too stiff at t="
-								<< simulation->current_time << std::endl;
+						//logger.err()
+						//		<< "[Trajectory #" << traj << "] "
+						//		<< "Integration guard triggered; problem space too stiff at t="
+						//		<< simulation->current_time << std::endl;
 						//simulation->set_status(HybridSimulation::LOOP_OVER_INTEGRATE);
 						//continue;
-                        exit(HybridSimulation::LOOP_OVER_INTEGRATE);
+                        //exit(HybridSimulation::LOOP_OVER_INTEGRATE);
+						simulation->set_status(HybridSimulation::UNKNOWN);
+                        exit(0);
 					}
 					else
 					{
