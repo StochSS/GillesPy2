@@ -207,6 +207,12 @@ namespace Gillespy
 			// Tau selector initialization. Used to select a valid tau step.
 			TauArgs<double> tau_args = initialize(model, tau_tol);
 
+            // Save the parameter vector in case any events modify it
+            double *s_vars = Reaction::s_variables.get();
+            double *saved__s_variables = new double[Reaction::s_num_variables];
+            for(int s_num_j=0; s_num_j < Reaction::s_num_variables; s_num_j++){
+                saved__s_variables[s_num_j] = s_vars[s_num_j];
+            }
 			// Simulate for each trajectory
 			for (int traj = 0; !interrupted && traj < num_trajectories; traj++)
 			{
@@ -262,6 +268,12 @@ namespace Gillespy
 				// An invalid simulation state indicates that an unrecoverable error has occurred,
 				//   and the trajectory should terminate early.
 				bool invalid_state = false;
+
+                // Reset the parameters, they may be modified by an Event
+                double *s_vars = Reaction::s_variables.get();
+                for(int s_num_i=0; s_num_i < Reaction::s_num_variables; s_num_i++){
+                    s_vars[s_num_i] = saved__s_variables[s_num_i];
+                }
 
 
 				while (!interrupted && !invalid_state && simulation->current_time < simulation->end_time)
