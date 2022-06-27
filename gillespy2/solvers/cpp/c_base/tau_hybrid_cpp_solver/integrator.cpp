@@ -107,7 +107,8 @@ void Integrator::reinitialize(N_Vector y_reset)
 	{
 		NV_Ith_S(y0, mem_i) = NV_Ith_S(y_reset, mem_i);
 	}
-	validate(this, CVodeReInit(cvode_mem, 0, y0));
+    t = 0;
+	validate(this, CVodeReInit(cvode_mem, t, y0));
 }
 
 Integrator::~Integrator()

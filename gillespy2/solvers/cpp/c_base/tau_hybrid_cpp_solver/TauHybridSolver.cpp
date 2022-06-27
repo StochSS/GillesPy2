@@ -280,20 +280,21 @@ namespace Gillespy
 				while (!interrupted && !invalid_state && simulation->current_time < simulation->end_time)
 				{
 					// Compute current propensity values based on existing state.
+                    double *curr_rxn_state = sol.get_reaction_state();
 					for (int rxn_j = 0; rxn_j < num_reactions; ++rxn_j)
 					{
 						HybridReaction &rxn = simulation->reaction_state[rxn_j];
 						sol.data.propensities[rxn_j] = rxn.ssa_propensity(current_state.data());
                         // if the propensity is zero, we need to ensure the reaction state is negative.
-                        double *curr_rxn_state = sol.get_reaction_state();
                         if(simulation->reaction_state[rxn_j].mode == SimulationState::DISCRETE &&
                                 curr_rxn_state[rxn_j] > 0 &&
                                 sol.data.propensities[rxn_j] == 0.0 ){
                            // This is an edge case, that might happen after a single SSA step.
                            curr_rxn_state[rxn_j] = log(urn.next()); 
                         }
-                        sol.refresh_state(); // update solver with updated state
 					}
+                    sol.refresh_state(); // update solver with updated state
+
 					if (interrupted)
 						break;
 
@@ -424,15 +425,11 @@ namespace Gillespy
 									// As such, population dx in stochastic regime is not considered.
 									// For deterministic species, their effective dy/dt should always be 0.
                                     HybridSpecies *spec = &simulation->species_state[p_i];
-                                    std::cerr<<"\tspecies <<"<<p_i<<" is ";
                                     if( spec->partition_mode == SimulationState::CONTINUOUS ){
                                         current_state[p_i] = result.concentrations[p_i] + population_changes[p_i];
-                                        std::cerr<<"CONTINUOUS ";
                                     }else if( spec->partition_mode == SimulationState::DISCRETE ){
-                                        std::cerr<<"DISCRETE ";
                                         current_state[p_i] += population_changes[p_i];
                                     }
-                                    std::cerr<<current_state[p_i]<<"\n";
                                     result.concentrations[p_i] = current_state[p_i]; 
 								}
 							}

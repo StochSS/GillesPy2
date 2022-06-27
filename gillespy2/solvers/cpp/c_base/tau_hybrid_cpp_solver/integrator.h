@@ -157,6 +157,10 @@ namespace Gillespy
 
 		void set_error_handler(CVErrHandlerFn error_handler);
 
+		inline realtype *get_species_state()
+		{
+			return &N_VGetArrayPointer(y)[0];
+		}
 		inline realtype *get_reaction_state()
 		{
 			return &N_VGetArrayPointer(y)[num_species];
