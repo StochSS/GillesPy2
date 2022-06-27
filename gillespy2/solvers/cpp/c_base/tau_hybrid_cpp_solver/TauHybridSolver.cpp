@@ -119,7 +119,7 @@ namespace Gillespy
             }
         }
 
-        void TakeIntegrationStep(Integrator&sol, IntegrationResults&result, double next_time, int*population_changes,
+        bool TakeIntegrationStep(Integrator&sol, IntegrationResults&result, double next_time, int*population_changes,
          std::vector<double> current_state, std::set<unsigned int>&rxn_roots, 
          std::set<int>&event_roots, HybridSimulation*simulation, URNGenerator&urn, 
          int only_reaction_to_fire){
@@ -131,12 +131,13 @@ namespace Gillespy
             if (sol.status == IntegrationStatus::BAD_STEP_SIZE)
             {
                 simulation->set_status(HybridSimulation::INTEGRATOR_FAILED);
-                exit(0);
+                return false;
             } else {
                 // The integrator has, at this point, been validated.
                 // Any errors beyond this point is assumed to be a stochastic state failure.
                 CalculateSpeciesChangeAfterStep(result, population_changes, current_state, rxn_roots, event_roots, simulation, urn, only_reaction_to_fire);
             }
+            return true;
         }
         
         
@@ -341,7 +342,9 @@ namespace Gillespy
 					{
                         IntegrationResults result;
 
-                        TauHybrid::TakeIntegrationStep(sol, result, next_time, population_changes, current_state, rxn_roots, event_roots, simulation, urn, -1);
+                        if(!TauHybrid::TakeIntegrationStep(sol, result, next_time, population_changes, current_state, rxn_roots, event_roots, simulation, urn, -1)){
+                            return;
+                        }
                         
                         // Check if we have gone negative
                         invalid_state = TauHybrid::IsStateNegativeCheck(num_species, population_changes, current_state);
@@ -374,7 +377,7 @@ namespace Gillespy
                             if(rxn_selected == -1){
                                 std::cerr << "Negative State detected in step, and no reaction found to fire.\n";
                                 simulation->set_status(HybridSimulation::NEGATIVE_STATE_NO_SSA_REACTION);
-                                exit(0);
+                                return;
                             }
                             // if min_tau < 1e-10, we can't take an ODE step that small.
                             if( min_tau < 1e-10 ){
@@ -392,14 +395,16 @@ namespace Gillespy
 					            next_time = simulation->current_time + min_tau;
 
                                 // Integreate the system forward
-                                TauHybrid::TakeIntegrationStep(sol, result, next_time, population_changes, current_state, rxn_roots,  event_roots, simulation, urn, rxn_selected);
+                                if(!TauHybrid::TakeIntegrationStep(sol, result, next_time, population_changes, current_state, rxn_roots,  event_roots, simulation, urn, rxn_selected)){
+                                    return;
+                                }
                                 // check for invalid state again
                                 invalid_state = TauHybrid::IsStateNegativeCheck(num_species, population_changes, current_state);
                                 if (invalid_state) {
                                     //Got an invalid state after the SSA step
                                     //std::cerr << "Invalid state after single SSA step\n";
                                     simulation->set_status(HybridSimulation::INVALID_AFTER_SSA);
-                                    exit(0);
+                                    return;
                                 }
                             }
                         }
@@ -408,7 +413,7 @@ namespace Gillespy
 						// Only update state with the given population changes if valid.
 						if (invalid_state) {
                             simulation->set_status(HybridSimulation::UNKNOWN);
-                            exit(0);
+                            return;
 						} else {
                             // "Permanently" update the rxn_state and populations.
 							for (int p_i = 0; p_i < num_species; ++p_i)
@@ -419,11 +424,15 @@ namespace Gillespy
 									// As such, population dx in stochastic regime is not considered.
 									// For deterministic species, their effective dy/dt should always be 0.
                                     HybridSpecies *spec = &simulation->species_state[p_i];
+                                    std::cerr<<"\tspecies <<"<<p_i<<" is ";
                                     if( spec->partition_mode == SimulationState::CONTINUOUS ){
                                         current_state[p_i] = result.concentrations[p_i] + population_changes[p_i];
+                                        std::cerr<<"CONTINUOUS ";
                                     }else if( spec->partition_mode == SimulationState::DISCRETE ){
+                                        std::cerr<<"DISCRETE ";
                                         current_state[p_i] += population_changes[p_i];
                                     }
+                                    std::cerr<<current_state[p_i]<<"\n";
                                     result.concentrations[p_i] = current_state[p_i]; 
 								}
 							}
@@ -434,18 +443,8 @@ namespace Gillespy
 						break;
 					else if (invalid_state)
 					{
-						// Invalid state after the do-while loop implies that an unrecoverable error has occurred.
-						// While prior results are considered usable, the current integration results are not.
-						// Calling `continue` with an invalid state will discard the results and terminate the trajectory.
-						//logger.err()
-						//		<< "[Trajectory #" << traj << "] "
-						//		<< "Integration guard triggered; problem space too stiff at t="
-						//		<< simulation->current_time << std::endl;
-						//simulation->set_status(HybridSimulation::LOOP_OVER_INTEGRATE);
-						//continue;
-                        //exit(HybridSimulation::LOOP_OVER_INTEGRATE);
 						simulation->set_status(HybridSimulation::UNKNOWN);
-                        exit(0);
+                        return;
 					}
 					else
 					{
