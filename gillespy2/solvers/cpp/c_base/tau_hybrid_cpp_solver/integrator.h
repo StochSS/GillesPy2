@@ -86,7 +86,8 @@ namespace Gillespy
 	private:
 		void *cvode_mem;
 		N_Vector y0;
-		double t0;
+		N_Vector y_save;
+		double t_save;
 		SUNLinearSolver solver;
 		int num_species;
 		int num_reactions;
@@ -119,6 +120,9 @@ namespace Gillespy
 		 */
 		void refresh_state();
 
+        /* rereinitialize()
+         * restore state to the values passed to the constructor.
+         */
 		void reinitialize(N_Vector y_reset);
 
 		/// @brief Make events available to root-finder during integration.

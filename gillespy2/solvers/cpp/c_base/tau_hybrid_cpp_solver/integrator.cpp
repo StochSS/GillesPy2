@@ -41,8 +41,8 @@ IntegratorData::IntegratorData(HybridSimulation *simulation)
 Integrator::Integrator(HybridSimulation *simulation, N_Vector y0, double reltol, double abstol)
 	: y0(y0),
 	  t(0.0f),
-	  t0(0.0f),
 	  y(N_VClone_Serial(y0)),
+	  y_save(N_VClone_Serial(y0)),
 	  data(simulation),
 	  num_reactions(simulation->model->number_reactions),
 	  num_species(simulation->model->number_species)
@@ -75,8 +75,8 @@ double Integrator::save_state()
 		NV_Ith_S(y0, mem_i) = NV_Ith_S(y, mem_i);
 	}
 
-	t0 = t;
-	return t0;
+	t_save = t;
+	return t;
 }
 
 double Integrator::restore_state()
@@ -84,15 +84,15 @@ double Integrator::restore_state()
 	int max_offset = num_reactions + num_species;
 	for (int mem_i = 0; mem_i < max_offset; ++mem_i)
 	{
-		NV_Ith_S(y, mem_i) = NV_Ith_S(y0, mem_i);
+		NV_Ith_S(y, mem_i) = NV_Ith_S(y_save, mem_i);
 	}
-    t = t0;
-	if (!validate(this, CVodeReInit(cvode_mem, t0, y0)))
+    t = t_save;
+	if (!validate(this, CVodeReInit(cvode_mem, t, y)))
 	{
 		return 0;
 	}
 
-	return t0;
+	return t;
 }
 
 void Integrator::refresh_state()
@@ -100,15 +100,16 @@ void Integrator::refresh_state()
 	validate(this, CVodeReInit(cvode_mem, t, y));
 }
 
-void Integrator::reinitialize(N_Vector y_reset)
+void Integrator::reinitialize(N_Vector y_new)
 {
 	int max_offset = num_reactions + num_species;
 	for (int mem_i = 0; mem_i < max_offset; ++mem_i)
 	{
-		NV_Ith_S(y0, mem_i) = NV_Ith_S(y_reset, mem_i);
+		NV_Ith_S(y, mem_i) = NV_Ith_S(y_new, mem_i);
 	}
     t = 0;
-	validate(this, CVodeReInit(cvode_mem, t, y0));
+    t_save = 0;
+	validate(this, CVodeReInit(cvode_mem, t, y));
 }
 
 Integrator::~Integrator()

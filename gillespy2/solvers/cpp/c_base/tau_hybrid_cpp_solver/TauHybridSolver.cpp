@@ -180,16 +180,7 @@ namespace Gillespy
 			// The contents of y0 are "stolen" by the integrator.
 			// Do not attempt to directly use y0 after being passed to sol!
 			N_Vector y0 = init_model_vector(model, urn);
-			N_Vector y;
-			if (num_trajectories > 0)
-			{
-				y = init_model_vector(model, urn);
-			}
-			else
-			{
-				y = y0;
-			}
-			Integrator sol(simulation, y, config.rel_tol, config.abs_tol);
+			Integrator sol(simulation, y0, config.rel_tol, config.abs_tol);
 			if (logger.get_log_level() == LogLevel::CRIT)
 			{
 				sol.set_error_handler(silent_error_handler);
@@ -219,7 +210,7 @@ namespace Gillespy
 			{
 				if (traj > 0)
 				{
-					sol.reinitialize(y0);
+					sol.reinitialize(init_model_vector(model, urn));
 				}
 
 				// Population/concentration state values for each species.
@@ -295,8 +286,9 @@ namespace Gillespy
 					}
                     sol.refresh_state(); // update solver with updated state
 
-					if (interrupted)
+					if (interrupted){
 						break;
+                    }
 
 					// Expected tau step is determined.
 					tau_step = select<double, double>(
@@ -363,16 +355,18 @@ namespace Gillespy
 
                             for (int rxn_k = 0; rxn_k < num_reactions; ++rxn_k) {
                                 HybridReaction &rxn = simulation->reaction_state[rxn_k];
+                                double propensity_value = rxn.ssa_propensity(current_state.data());
                                 //estimate the zero crossing time
+                                if(propensity_value > 0.0){
+                                    // Python code:
+                                    //rxn_times[rname] = -1* curr_state[rname] / propensities[rname]
+                                    // C++ code:
+                                    double est_tau = -1*  rxn_state[rxn_k] / propensity_value;
 
-                                // Python code:
-                                //rxn_times[rname] = -1* curr_state[rname] / propensities[rname]
-                                // C++ code:
-                                double est_tau = -1*  rxn_state[rxn_k] / rxn.ssa_propensity(current_state.data());
-
-                                if(rxn_selected == -1 || est_tau < min_tau ){
-                                    min_tau = est_tau;
-                                    rxn_selected = rxn_k;
+                                    if(rxn_selected == -1 || est_tau < min_tau ){
+                                        min_tau = est_tau;
+                                        rxn_selected = rxn_k;
+                                    }
                                 }
                             }
                             if(rxn_selected == -1){
@@ -433,6 +427,7 @@ namespace Gillespy
                                     result.concentrations[p_i] = current_state[p_i]; 
 								}
 							}
+                            break;
 						}
 					} while (invalid_state && !interrupted);
 
