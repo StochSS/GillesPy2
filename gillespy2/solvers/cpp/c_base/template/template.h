@@ -27,34 +27,34 @@
 
 namespace Gillespy
 {
-	template <typename PType>
-	struct Model;
+    template <typename PType>
+    struct Model;
 
-	extern std::vector<double> species_populations;
-	extern std::vector<std::string> species_names;
-	extern std::vector<std::string> reaction_names;
+    extern std::vector<double> species_populations;
+    extern std::vector<std::string> species_names;
+    extern std::vector<std::string> reaction_names;
 
-	double map_propensity(unsigned int reaction_id, int *state, double *parameters, const double *constants);
-	double map_propensity(unsigned int reaction_id, unsigned int *S, double *parameters, const double *constants);
-	double map_propensity(unsigned int reaction_id, double *S, double *parameters, const double *constants);
+    double map_propensity(unsigned int reaction_id, int *state, double *parameters, const double *constants);
+    double map_propensity(unsigned int reaction_id, unsigned int *S, double *parameters, const double *constants);
+    double map_propensity(unsigned int reaction_id, double *S, double *parameters, const double *constants);
 
-	double map_ssa_propensity(unsigned int reaction_id, int *state, double *parameters, const double *constants);
-	double map_ssa_propensity(unsigned int reaction_id, unsigned int *state, double *parameters, const double *constants);
-	double map_ssa_propensity(unsigned int reaction_id, double *state, double *parameters, const double *constants);
-	double map_ode_propensity(unsigned int reaction_id, int *state, double *parameters, const double *constants);
-	double map_ode_propensity(unsigned int reaction_id, unsigned int *state, double *parameters, const double *constants);
-	double map_ode_propensity(unsigned int reaction_id, double *state, double *parameters, const double *constants);
+    double map_ssa_propensity(unsigned int reaction_id, int *state, double *parameters, const double *constants);
+    double map_ssa_propensity(unsigned int reaction_id, unsigned int *state, double *parameters, const double *constants);
+    double map_ssa_propensity(unsigned int reaction_id, double *state, double *parameters, const double *constants);
+    double map_ode_propensity(unsigned int reaction_id, int *state, double *parameters, const double *constants);
+    double map_ode_propensity(unsigned int reaction_id, unsigned int *state, double *parameters, const double *constants);
+    double map_ode_propensity(unsigned int reaction_id, double *state, double *parameters, const double *constants);
 
-	template <typename T>
-	void add_reactions(Model<T> &model);
+    template <typename T>
+    void add_reactions(Model<T> &model);
 
-	double *get_variables(int *num_variables);
-	double *get_constants(int *num_constants);
+    double *get_variables(int *num_variables);
+    double *get_constants(int *num_constants);
 
-	void map_variable_parameters(std::stringstream &stream);
-	void map_variable_populations(std::stringstream &stream);
+    void map_variable_parameters(std::stringstream &stream);
+    void map_variable_populations(std::stringstream &stream);
 
-	extern template void add_reactions<double>(Model<double> &model);
-	extern template void add_reactions<unsigned int>(Model<unsigned int> &model);
-	extern template void add_reactions<int>(Model<int> &model);
+    extern template void add_reactions<double>(Model<double> &model);
+    extern template void add_reactions<unsigned int>(Model<unsigned int> &model);
+    extern template void add_reactions<int>(Model<int> &model);
 }

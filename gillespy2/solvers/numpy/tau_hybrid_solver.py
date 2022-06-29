@@ -415,18 +415,27 @@ class TauHybridSolver(GillesPySolver):
                         t0_delayed_events[e.name] = execution_time
         return t0_delayed_events, species_modified_by_events
 
-    def __update_stochastic_rxn_states(self, compiled_reactions, curr_state):
+    def __update_stochastic_rxn_states(self, compiled_reactions, curr_state, only_update=None):
         """
         Helper method for updating the state of stochastic reactions.
+
+        if 'only_update' is set to a reaction name, it will only reset that reaction, and only one firing
         """
+
         rxn_count = OrderedDict()
         species_modified = OrderedDict()
         # Update stochastic reactions
+
         for rxn in compiled_reactions:
             rxn_count[rxn] = 0
-            while curr_state[rxn] > 0:
-                rxn_count[rxn] += 1
-                curr_state[rxn] += math.log(random.uniform(0, 1))
+            if only_update is not None:  # for a single SSA step
+                if rxn == only_update:
+                    curr_state[rxn] += math.log(random.uniform(0, 1))
+                    rxn_count[rxn] = 1
+            else:  # for a normal Tau-step
+                while curr_state[rxn] > 0:
+                    rxn_count[rxn] += 1
+                    curr_state[rxn] += math.log(random.uniform(0, 1))
             if rxn_count[rxn]:
                 for reactant in self.model.listOfReactions[rxn].reactants:
                     species_modified[reactant.name] = True
@@ -434,7 +443,7 @@ class TauHybridSolver(GillesPySolver):
                 for product in self.model.listOfReactions[rxn].products:
                     species_modified[product.name] = True
                     curr_state[product.name] += self.model.listOfReactions[rxn].products[product] * rxn_count[rxn]
-        return species_modified
+        return species_modified, rxn_count
 
     def __integrate(self, integrator, integrator_options, curr_state, y0, curr_time,
                     propensities, y_map, compiled_reactions,
@@ -546,6 +555,15 @@ class TauHybridSolver(GillesPySolver):
 
         return sol, curr_time
 
+    def __simulate_negative_state_check(self, species_modified, curr_state):
+            neg_state = False
+            loop_err_message=""
+            for s in species_modified.keys():
+                if curr_state[s] < 0:
+                    neg_state = True
+                    loop_err_message += f"'{s}' has negative state '{curr_state[s]}'"
+            return (neg_state, loop_err_message) 
+
     def __simulate(self, integrator, integrator_options, curr_state, y0, curr_time,
                    propensities, species, parameters, compiled_reactions,
                    active_rr, y_map, trajectory, save_times, save_index,
@@ -575,42 +593,89 @@ class TauHybridSolver(GillesPySolver):
         prev_curr_state = curr_state.copy()
         prev_curr_time = curr_time
         loop_count = 0
+        neg_state = False
+        # check to see if we are starting in an invalid state (this could happen)
+        (neg_state, neg_err_message) = self.__simulate_negative_state_check(self.model.listOfSpecies, curr_state)
+        if neg_state:
+            raise Exception(f"Negative state when starting a step. curr_state={curr_state} species={species} self.model.listOfSpecies={species}\nerror_message: {neg_err_message} ")
+            
+            
+        starting_curr_state=curr_state.copy()
+        starting_tau_step=tau_step
+        species_modified=None
+        rxn_count=None
+        loop_err_message=""
 
-        while True:
-            loop_count += 1
-            if loop_count > 100:
-                raise Exception("Loop over __integrate() exceeded loop count")
-            sol, curr_time = self.__integrate(integrator, integrator_options, curr_state,
-                                              y0, curr_time, propensities, y_map,
-                                              compiled_reactions,
-                                              active_rr,
-                                              event_queue,
-                                              delayed_events,
-                                              trigger_states,
-                                              event_sensitivity,
-                                              tau_step,
-                                              pure_ode)
+        #while True:
+        #    loop_count += 1
+        #    if loop_count > 1:
+        #        raise Exception(f"Loop over __integrate() exceeded loop count={loop_count}\n\n error_message={loop_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}  ")
+        sol, curr_time = self.__integrate(integrator, integrator_options, curr_state,
+                                          y0, curr_time, propensities, y_map,
+                                          compiled_reactions,
+                                          active_rr,
+                                          event_queue,
+                                          delayed_events,
+                                          trigger_states,
+                                          event_sensitivity,
+                                          tau_step,
+                                          pure_ode)
 
-            species_modified = self.__update_stochastic_rxn_states(compiled_reactions, curr_state)
+        species_modified,rxn_count = self.__update_stochastic_rxn_states(compiled_reactions, curr_state)
 
-            # Occasionally, a tau step can result in an overly-aggressive
-            # forward step and cause a species population to fall below 0,
-            # which would result in an erroneous simulation.  If this occurs,
-            # back simulation up one step and attempt forward simulation using
-            # a smaller tau step.
+        # Occasionally, a tau step can result in an overly-aggressive
+        # forward step and cause a species population to fall below 0,
+        # which would result in an erroneous simulation. 
+        #    (PREVIOUS METHOD:)If this occurs, back simulation up one step
+        #    and attempt forward simulation using a smaller tau step.
+        # (NEW METHOD:) Instead we estimate the time to the first 
+        # stochatic reaction firing (assume constant propensities) and
+        # simulate the ODE system until that time, fire that reaction 
+        # and continue the simulation.
+        (neg_state, loop_err_message) = self.__simulate_negative_state_check(species_modified, curr_state)
+
+        if neg_state:
             neg_state = False
-            for s in species_modified.keys():
-                if curr_state[s] < 0:
-                    neg_state = True
-            if neg_state:
-                y0 = prev_y0.copy()
-                curr_state = prev_curr_state.copy()
-                curr_time = prev_curr_time
-                tau_step = tau_step / 2
-            else:
-                break
+            # Redo this step, with a smaller Tau.  Until a single SSA reaction occurs
+            y0 = prev_y0.copy()
+            curr_state_after = prev_curr_state.copy()
+            curr_state = prev_curr_state.copy()
+            curr_time = prev_curr_time
 
-            # Now update the step and trajectories for this step of the simulation.
+            rxn_times = OrderedDict()
+            min_tau = None
+            rxn_selected = None
+            for rname,rcnt in rxn_count.items():
+                if rcnt > 0 and propensities[rname] > 0.0:
+                    # estimate the zero crossing time
+                    rxn_times[rname] = -1* curr_state[rname] / propensities[rname]
+                    if min_tau is None or min_tau > rxn_times[rname]:
+                        min_tau = rxn_times[rname]
+                        rxn_selected = rname
+            if rxn_selected is None: raise Exception(f"Negative State detected in step, and no reaction found to fire.\n\n error_message={loop_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}\nrxn_times={rxn_times}\ncompiled_reactions={compiled_reactions}\ncurr_state_after={curr_state_after}  ")
+
+            tau_step = min_tau #estimated time to the first stochatic reaction
+
+            sol, curr_time = self.__integrate(integrator, integrator_options, curr_state,
+                                          y0, curr_time, propensities, y_map,
+                                          compiled_reactions,
+                                          active_rr,
+                                          event_queue,
+                                          delayed_events,
+                                          trigger_states,
+                                          event_sensitivity,
+                                          tau_step,
+                                          pure_ode)
+
+            # only update the selected reaction
+            species_modified,rxn_count = self.__update_stochastic_rxn_states(compiled_reactions, curr_state, only_update=rxn_selected)
+
+            (neg_state, loop_err_message) = self.__simulate_negative_state_check(species_modified, curr_state)
+            if neg_state:
+                raise Exception(f"Negative State detected in step, after single SSA step.\n\n error_message={loop_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}\nrxn_selected={rxn_selected}\ncompiled_reactions={compiled_reactions}\ncurr_state_after={curr_state_after}   ")
+
+
+        # Now update the step and trajectories for this step of the simulation.
         # Here we make our final assignments for this step, and begin
         # populating our results trajectory.
         num_saves = 0
@@ -618,7 +683,6 @@ class TauHybridSolver(GillesPySolver):
             if time > curr_time:
                 break
             # if a solution is given for it
-            # trajectory_index = np.where(self.model.tspan == time)[0][0]
             trajectory_index = save_index
             assignment_state = curr_state.copy()
             for s in range(len(species)):

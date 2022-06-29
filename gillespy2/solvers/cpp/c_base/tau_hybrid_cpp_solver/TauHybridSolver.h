@@ -23,8 +23,8 @@
 
 namespace Gillespy
 {
-	namespace TauHybrid
-	{
-    	void TauHybridCSolver(HybridSimulation* simulation, std::vector<Event> &events, Logger &logger, double tau_tol, SolverConfiguration config);
-	}
+    namespace TauHybrid
+    {
+        void TauHybridCSolver(HybridSimulation* simulation, std::vector<Event> &events, Logger &logger, double tau_tol, SolverConfiguration config);
+    }
 }
