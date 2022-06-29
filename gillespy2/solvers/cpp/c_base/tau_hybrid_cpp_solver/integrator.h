@@ -85,9 +85,6 @@ namespace Gillespy
 	{
 	private:
 		void *cvode_mem;
-		N_Vector y0;
-		N_Vector y_save;
-		double t_save;
 		SUNLinearSolver solver;
 		int num_species;
 		int num_reactions;
@@ -96,6 +93,9 @@ namespace Gillespy
 		// status: check for errors before using the results.
 		IntegrationStatus status;
 		N_Vector y;
+		N_Vector y0;
+		N_Vector y_save;
+		double t_save;
 		realtype t;
 
 		/* save_state()
@@ -160,6 +160,15 @@ namespace Gillespy
 		bool configure(SolverConfiguration config);
 
 		void set_error_handler(CVErrHandlerFn error_handler);
+
+		inline realtype *get_y_save_ptr()
+		{
+			return &N_VGetArrayPointer(y_save)[0];
+		}
+		inline realtype *get_y0_ptr()
+		{
+			return &N_VGetArrayPointer(y0)[0];
+		}
 
 		inline realtype *get_species_state()
 		{

@@ -72,7 +72,7 @@ double Integrator::save_state()
 	int max_offset = num_reactions + num_species;
 	for (int mem_i = 0; mem_i < max_offset; ++mem_i)
 	{
-		NV_Ith_S(y0, mem_i) = NV_Ith_S(y, mem_i);
+		NV_Ith_S(y_save, mem_i) = NV_Ith_S(y, mem_i);
 	}
 
 	t_save = t;
