@@ -93,7 +93,6 @@ namespace Gillespy
 		// status: check for errors before using the results.
 		IntegrationStatus status;
 		N_Vector y;
-		N_Vector y0;
 		N_Vector y_save;
 		double t_save;
 		realtype t;

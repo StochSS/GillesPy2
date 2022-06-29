@@ -39,8 +39,7 @@ IntegratorData::IntegratorData(HybridSimulation *simulation)
 
 
 Integrator::Integrator(HybridSimulation *simulation, N_Vector y0, double reltol, double abstol)
-	: y0(y0),
-	  t(0.0f),
+	: t(0.0f),
 	  y(N_VClone_Serial(y0)),
 	  y_save(N_VClone_Serial(y0)),
 	  data(simulation),
