@@ -81,6 +81,18 @@ namespace Gillespy
 		realtype *reactions;
 	};
 
+	struct URNGenerator
+	{
+	private:
+		std::uniform_real_distribution<double> uniform;
+		std::mt19937_64 rng;
+		unsigned long long seed;
+	public:
+		double next();
+		URNGenerator() = delete;
+		explicit URNGenerator(unsigned long long seed);
+	};
+
 	class Integrator
 	{
 	private:
@@ -89,10 +101,14 @@ namespace Gillespy
 		int num_species;
 		int num_reactions;
 		int *m_roots = nullptr;
+        URNGenerator urn;
+        Model<double> &model;
+
 	public:
 		// status: check for errors before using the results.
 		IntegrationStatus status;
 		N_Vector y;
+		N_Vector y0;
 		N_Vector y_save;
 		double t_save;
 		realtype t;
@@ -122,7 +138,7 @@ namespace Gillespy
         /* rereinitialize()
          * restore state to the values passed to the constructor.
          */
-		void reinitialize(N_Vector y_reset);
+		void reinitialize();
 
 		/// @brief Make events available to root-finder during integration.
 		/// The root-finder itself is not activated until enable_root_finder() is called.
@@ -181,21 +197,11 @@ namespace Gillespy
 		IntegrationResults integrate(double *t, std::set<int> &event_roots, std::set<unsigned int> &reaction_roots);
 		IntegratorData data;
 
-		Integrator(HybridSimulation *simulation, N_Vector y0, double reltol, double abstol);
+		Integrator(HybridSimulation *simulation, Model<double> &model, URNGenerator urn, double reltol, double abstol);
 		~Integrator();
+        void reset_model_vector();
 	};
 
-	struct URNGenerator
-	{
-	private:
-		std::uniform_real_distribution<double> uniform;
-		std::mt19937_64 rng;
-		unsigned long long seed;
-	public:
-		double next();
-		URNGenerator() = delete;
-		explicit URNGenerator(unsigned long long seed);
-	};
 
 	N_Vector init_model_vector(Model<double> &model, URNGenerator urn);
 

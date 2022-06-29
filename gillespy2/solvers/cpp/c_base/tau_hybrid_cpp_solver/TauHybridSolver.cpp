@@ -179,8 +179,7 @@ namespace Gillespy
 
 			// The contents of y0 are "stolen" by the integrator.
 			// Do not attempt to directly use y0 after being passed to sol!
-			N_Vector y0 = init_model_vector(model, urn);
-			Integrator sol(simulation, y0, config.rel_tol, config.abs_tol);
+			Integrator sol(simulation, model, urn, config.rel_tol, config.abs_tol);
 			if (logger.get_log_level() == LogLevel::CRIT)
 			{
 				sol.set_error_handler(silent_error_handler);
@@ -210,7 +209,7 @@ namespace Gillespy
 			{
 				if (traj > 0)
 				{
-					sol.reinitialize(init_model_vector(model, urn));
+					sol.reinitialize();
 				}
 
 				// Population/concentration state values for each species.
@@ -326,10 +325,29 @@ namespace Gillespy
 					// The integration loop continues until a valid solution is found.
 					// Any invalid Tau steps (which cause negative populations) are discarded.
 					sol.save_state();
+                    std::cerr<<"\tafter sol.save_state(), y_save=[";
+                    double*y_save_view = sol.get_y_save_ptr();
+                    for(int m_i=0; m_i<num_species+num_reactions; m_i++){
+                        std::cerr<<y_save_view[m_i]<<" ";
+                    }
+                    std::cerr<<"]\n";
+
+                    std::cerr<<"t="<<simulation->current_time<<" tau="<<tau_step<<" ";
+                    std::cerr<<"sol.t="<<sol.t<<" ";
+                    std::cerr<<"next_time="<<next_time;
+                    std::cerr<<" : [";
+                    //for (int s_i = 0; s_i < num_species; ++s_i){
+                    //    std::cerr<<current_state[s_i]<<" ";
+                    //}
+                    //std::cerr<<"]\n";
+                    double*y_view = sol.get_species_state();
+                    for(int m_i=0; m_i<num_species+num_reactions; m_i++){
+                        std::cerr<<y_view[m_i]<<" ";
+                    }
+                    std::cerr<<"]\n";
 
 					// This is a temporary fix. Ideally, invalid state should allow for integrator options change.
 					// For now, a "guard" is put in place to prevent potentially infinite loops from occurring.
-					unsigned int integration_guard = INTEGRATION_GUARD_MAX;
 
 					do
 					{
@@ -437,10 +455,6 @@ namespace Gillespy
 					{
 						simulation->set_status(HybridSimulation::UNKNOWN);
                         return;
-					}
-					else
-					{
-						integration_guard = INTEGRATION_GUARD_MAX;
 					}
 
 					// ===== <EVENT HANDLING> =====
