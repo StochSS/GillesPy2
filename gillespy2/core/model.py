@@ -49,7 +49,7 @@ except:
     no_pretty_print = True
 
 
-def import_SBML(filename, name=None, gillespy_model=None):
+def import_SBML(filename, name=None, gillespy_model=None, report_silently_with_sbml_error=False):
     """
     SBML to GillesPy model converter. NOTE: non-mass-action rates
     in terms of concentrations may not be converted for population
@@ -63,6 +63,10 @@ def import_SBML(filename, name=None, gillespy_model=None):
 
     :param gillespy_model: If desired, the SBML model may be added to an existing GillesPy model
     :type gillespy_model: gillespy.Model
+
+    :param report_silently_with_sbml_error: SBML import will fail silently and 
+                SBML errors will not output to the user.
+    :type report_silently_with_sbml_error: bool
     """
 
     try:
@@ -70,7 +74,10 @@ def import_SBML(filename, name=None, gillespy_model=None):
     except ImportError:
         raise ImportError('SBML conversion not imported successfully')
 
-    return convert(filename, model_name=name, gillespy_model=gillespy_model)
+    return convert(
+        filename, model_name=name, gillespy_model=gillespy_model,
+        report_silently_with_sbml_error=report_silently_with_sbml_error
+    )
 
 
 def export_SBML(gillespy_model, filename=None):
