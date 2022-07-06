@@ -325,26 +325,6 @@ namespace Gillespy
                     // The integration loop continues until a valid solution is found.
                     // Any invalid Tau steps (which cause negative populations) are discarded.
                     sol.save_state();
-                    std::cerr<<"\tafter sol.save_state(), y_save=[";
-                    double*y_save_view = sol.get_y_save_ptr();
-                    for(int m_i=0; m_i<num_species+num_reactions; m_i++){
-                        std::cerr<<y_save_view[m_i]<<" ";
-                    }
-                    std::cerr<<"]\n";
-
-                    std::cerr<<"t="<<simulation->current_time<<" tau="<<tau_step<<" ";
-                    std::cerr<<"sol.t="<<sol.t<<" ";
-                    std::cerr<<"next_time="<<next_time;
-                    std::cerr<<" : [";
-                    //for (int s_i = 0; s_i < num_species; ++s_i){
-                    //    std::cerr<<current_state[s_i]<<" ";
-                    //}
-                    //std::cerr<<"]\n";
-                    double*y_view = sol.get_species_state();
-                    for(int m_i=0; m_i<num_species+num_reactions; m_i++){
-                        std::cerr<<y_view[m_i]<<" ";
-                    }
-                    std::cerr<<"]\n";
 
                     // This is a temporary fix. Ideally, invalid state should allow for integrator options change.
                     // For now, a "guard" is put in place to prevent potentially infinite loops from occurring.
