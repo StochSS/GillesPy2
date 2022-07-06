@@ -563,11 +563,6 @@ class TauHybridSolver(GillesPySolver):
                 if curr_state[s] < 0:
                     invalid_state = True
                     err_message += f"'{s}' has negative state '{curr_state[s]}'"
-#            # check each reaction to see if it is >=0. If we take a single SSA step, this could be >0 for the non-selected reactions
-#            for r in compiled_reactions.keys():
-#                if curr_state[r] >= 0:
-#                    invalid_state = True
-#                    err_message += f"'{r}' has non-negative value '{curr_state[r]}'"
             return (invalid_state, err_message) 
 
     def __simulate(self, integrator, integrator_options, curr_state, y0, curr_time,

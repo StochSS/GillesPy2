@@ -40,50 +40,50 @@ double end_time = 100.0;
 double increment = 0;
 
 int main(int argc, char *argv[]) {
-	ArgParser parser = ArgParser(argc, argv);
+    ArgParser parser = ArgParser(argc, argv);
 
-	random_seed = parser.seed;
+    random_seed = parser.seed;
 
-	if (random_seed != -1) {
-		seed_time = false;
-	}
+    if (random_seed != -1) {
+        seed_time = false;
+    }
 
-	end_time = parser.end;
-	number_trajectories = parser.trajectories;
-	number_timesteps = parser.timesteps;
-	increment = parser.increment;
+    end_time = parser.end;
+    number_trajectories = parser.trajectories;
+    number_timesteps = parser.timesteps;
+    increment = parser.increment;
 
-	Reaction::load_parameters();
-	Model<double> model(species_names, species_populations, reaction_names);
-	add_reactions(model);
+    Reaction::load_parameters();
+    Model<double> model(species_names, species_populations, reaction_names);
+    add_reactions(model);
 
-	if (seed_time)
-	{
-		random_seed = time(nullptr) % GPY_PID_GET();
-	}
+    if (seed_time)
+    {
+        random_seed = time(nullptr) % GPY_PID_GET();
+    }
 
-	Simulation<double> simulation;
+    Simulation<double> simulation;
 
-	simulation.model = &model;
-	simulation.end_time = end_time;
-	simulation.random_seed = random_seed;
-	simulation.number_timesteps = number_timesteps;
-	simulation.number_trajectories = number_trajectories;
-	simulation.current_time = 0.0;
-	simulation.output_interval = parser.output_interval;
+    simulation.model = &model;
+    simulation.end_time = end_time;
+    simulation.random_seed = random_seed;
+    simulation.number_timesteps = number_timesteps;
+    simulation.number_trajectories = number_trajectories;
+    simulation.current_time = 0.0;
+    simulation.output_interval = parser.output_interval;
 
-	init_simulation(&model, simulation);
+    init_simulation(&model, simulation);
 
-	// Configure solver based on command-line arguments (or defaults)
-	SolverConfiguration config = {
-		parser.rtol,
-		parser.atol,
-		parser.max_step,
-	};
+    // Configure solver based on command-line arguments (or defaults)
+    SolverConfiguration config = {
+        parser.rtol,
+        parser.atol,
+        parser.max_step,
+    };
 
-	simulation.reset_output_buffer(0);
-	ODESolver(&simulation, increment, config);
-	simulation.output_buffer_final(std::cout);
+    simulation.reset_output_buffer(0);
+    ODESolver(&simulation, increment, config);
+    simulation.output_buffer_final(std::cout);
 
-	return simulation.get_status();
+    return simulation.get_status();
 }
