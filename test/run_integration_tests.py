@@ -53,7 +53,7 @@ if __name__ == '__main__':
     import test_sys_init
     import test_results
     import test_propensity_parser
-    import test_pause_resume
+    #import test_pause_resume
     import test_check_cpp_support
     import test_jsonify
     import test_notebooks
@@ -73,7 +73,7 @@ if __name__ == '__main__':
        test_simple_model,
        test_ssa_c_solver,
        test_variable_solvers,
-       test_pause_resume,
+       #test_pause_resume,
        test_SBML,
        test_StochML,
        test_example_models,
