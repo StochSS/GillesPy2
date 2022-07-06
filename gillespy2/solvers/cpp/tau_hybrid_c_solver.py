@@ -13,7 +13,7 @@ from gillespy2.solvers.cpp.build.template_gen import SanitizedModel
 
 class TauHybridCSolver(GillesPySolver, CSolver):
     """
-    This Solver uses a root-finding interpretation of the direct SSA method,
+    This solver uses a root-finding interpretation of the direct SSA method,
     along with ODE solvers to simulate ODE and Stochastic systems
     interchangeably or simultaneously.
     """
@@ -174,7 +174,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
 
     def get_solver_settings(self):
         """
-        Returns a list of arguments supported by the tau_hybrid_c_solver.run
+        Returns a list of arguments supported by tau_hybrid_c_solver.run.
         :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
         :rtype: tuple
         """
@@ -188,7 +188,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         :param model: The model on which the solver will operate. (Deprecated)
         :type model: gillespy2.Model
 
-        :param t: end time of simulation
+        :param t: End time of simulation.
         :type t: int
 
         :param number_of_trajectories: Number of trajectories to simulate. By default number_of_trajectories = 1.
@@ -197,7 +197,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         :param timeout: If set, if simulation takes longer than timeout, will exit.
         :type timeout: int
 
-        :param increment: time step increment for plotting
+        :param increment: Time step increment for plotting.
         :type increment: float
 
         :param seed: The random seed for the simulation. Optional, defaults to None.
@@ -207,22 +207,22 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             that replaces the value tied to that species.
         :type variables: dict
 
-        :param resume: Result of a previously run simulation, to be resumed
+        :param resume: Result of a previously run simulation, to be resumed.
         :type resume: gillespy2.Results
 
-        :param live_output: str The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+        :param live_output: The type of output to be displayed by solver. Can be "progress", "text", or "graph".
         :type live_output: str
 
         :param live_output_options: dictionary contains options for live_output. By default {"interval":1}.
             "interval" specifies seconds between displaying.
-            "clear_output" specifies if display should be refreshed with each display
+            "clear_output" specifies if display should be refreshed with each display.
         :type live_output_options:  dict
 
         :param tau_tol: Tolerance level for Tau leaping algorithm.  Larger tolerance values will
         result in larger tau steps. Default value is 0.03.
         :type tau_tol: float
 
-        :returns: A result object containing the results of the simulation
+        :returns: A result object containing the results of the simulation.
         :rtype: gillespy2.Results
         """
 

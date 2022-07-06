@@ -34,7 +34,7 @@ class SSACSolver(GillesPySolver, CSolver):
 
     def get_solver_settings(self):
         """
-        Returns a list of arguments supported by the ssa_c_solver.run
+        Returns a list of arguments supported by ssa_c_solver.run.
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
         :rtype: tuple
         """
@@ -50,7 +50,7 @@ class SSACSolver(GillesPySolver, CSolver):
             :param model: The model on which the solver will operate. (Deprecated)
             :type model: gillespy2.Model
 
-            :param t: end time of simulation
+            :param t: End time of simulation.
             :type t: int
 
             :param number_of_trajectories: The number of times to sample the chemical master equation. Each
@@ -60,7 +60,7 @@ class SSACSolver(GillesPySolver, CSolver):
             :param timeout: If set, if simulation takes longer than timeout, will exit.
             :type timeout: int
 
-            :param increment: time step increment for plotting
+            :param increment: Time step increment for plotting.
             :type increment: float
             
             :param seed: The random seed for the simulation. Optional, defaults to None.
@@ -70,18 +70,18 @@ class SSACSolver(GillesPySolver, CSolver):
             that replaces the value tied to that species.
             :type variables: dict
 
-            :param resume: Result of a previously run simulation, to be resumed
+            :param resume: Result of a previously run simulation, to be resumed.
             :type resume: gillespy2.Results
 
-            :param live_output: str The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+            :param live_output: The type of output to be displayed by solver. Can be "progress", "text", or "graph".
             :type live_output: str
 
             :param live_output_options: dictionary contains options for live_output. By default {"interval":1}.
                 "interval" specifies seconds between displaying.
-                "clear_output" specifies if display should be refreshed with each display
+                "clear_output" specifies if display should be refreshed with each display.
             :type live_output_options:  dict
 
-            :returns: A result object containing the results of the simulation
+            :returns: A result object containing the results of the simulation.
             :rtype: gillespy2.Results
         """
 

@@ -30,10 +30,9 @@ class CLESolver(GillesPySolver):
     """
     A Chemical Langevin Equation Solver for GillesPy2 models.
 
-    This solver uses an algorithm that calculates
-    multiple reactions in a single step over a given tau step size.  The change in propensities
-    over this step are bounded by bounding the relative change in state, yielding greatly improved
-    run-time performance with very little trade-off in accuracy.
+    This solver uses an algorithm that calculates multiple reactions in a single step over a given
+    tau step size.  The change in propensities over this step are bounded by bounding the relative
+    change in state, yielding greatly improved run-time performance with very little trade-off in accuracy.
 
     :param model: The model on which the solver will operate.
     :type model: gillespy2.Model
@@ -102,7 +101,7 @@ class CLESolver(GillesPySolver):
     @classmethod
     def get_solver_settings(self):
         """
-        Returns a list of arguments supported by the CLE_solver.run
+        Returns a list of arguments supported by CLE_solver.run.
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
         :rtype: tuple
         """
@@ -120,19 +119,20 @@ class CLESolver(GillesPySolver):
         :param model: The model on which the solver will operate. (Deprecated)
         :type model: gillespy2.Model
 
-        :param t: Simulation run time
+        :param t: Simulation run time.
         :type t: int or float
 
-        :param number_of_trajectories: Number of trajectories to simulate
+        :param number_of_trajectories: The number of times to sample the chemical master equation. Each
+        trajectory will be returned at the end of the simulation. By default number_of_trajectories = 1.
         :type number_of_trajectories: int
 
-        :param increment: Save point increment for recording data
+        :param increment: Save point increment for recording data.
         :type increment: float
 
-        :param seed: The random seed for the simulation. Optional, defaults to None
+        :param seed: The random seed for the simulation. Optional, defaults to None.
         :type seed: int
 
-        :param debug: Set to True to provide additional debug information about the simulation
+        :param debug: Set to True to provide additional debug information about the simulation.
         :type debug: bool
 
         :param profile: Set to True to provide information about step size (tau) taken at each step.
@@ -149,14 +149,14 @@ class CLESolver(GillesPySolver):
         :param timeout: If set, if simulation takes longer than timeout, will exit.
         :type timeout: int
         
-        :param resume: Result of a previously run simulation, to be resumed
+        :param resume: Result of a previously run simulation, to be resumed.
         :type resume: gillespy2.Results
         
         :param tau_tol: Tolerance level for Tau leaping algorithm.  Larger tolerance values will
             result in larger tau steps. Default value is 0.03.
         :type tau_tol: float
 
-        :returns: A result object containing the results of the simulation
+        :returns: A result object containing the results of the simulation.
         :rtype: gillespy2.Results
         """
         from gillespy2 import log

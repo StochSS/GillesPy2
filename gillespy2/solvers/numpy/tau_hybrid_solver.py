@@ -60,7 +60,7 @@ eval_globals['xor'] = __xor
 
 class TauHybridSolver(GillesPySolver):
     """
-    This Solver uses a root-finding interpretation of the direct SSA method,
+    This solver uses a root-finding interpretation of the direct SSA method,
     along with ODE solvers to simulate ODE and Stochastic systems
     interchangeably or simultaneously.
     Uses integrators from scipy.integrate.ode to perform calculations used to produce solutions.
@@ -766,7 +766,7 @@ class TauHybridSolver(GillesPySolver):
     @classmethod
     def get_solver_settings(self):
         """
-        Returns a list of arguments supported by the tau_hybrid_solver.run
+        Returns a list of arguments supported by tau_hybrid_solver.run.
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
         :rtype: tuple
         """
@@ -792,15 +792,13 @@ class TauHybridSolver(GillesPySolver):
         :param model: The model on which the solver will operate. (Deprecated)
         :type model: gillespy2.Model
 
-        :param t: Simulation run time
+        :param t: Simulation run time.
         :type t: int or float
 
-        :param number_of_trajectories: The number of times to sample the chemical master equation. Each
-            trajectory will be returned at the end of the simulation.
-            Optional, defaults to 1. Number of trajectories to simulate
+        :param number_of_trajectories: Number of trajectories to simulate. By default number_of_trajectories = 1.
         :type number_of_trajectories: int
 
-        :param increment: Save point increment for recording data
+        :param increment: Save point increment for recording data.
         :type increment: float
 
         :param seed: The random seed for the simulation. Optional, defaults to None.
@@ -813,7 +811,7 @@ class TauHybridSolver(GillesPySolver):
         :type profile: bool
 
         :param tau_tol: Tolerance level for Tau leaping algorithm.  Larger tolerance values will
-            result in larger tau steps. Default value is 0.03.
+        result in larger tau steps. Default value is 0.03.
         :type tau_tol: float
 
         :param event_sensitivity: Number of data points to be inspected between integration
@@ -837,7 +835,7 @@ class TauHybridSolver(GillesPySolver):
         :param timeout: If set, if simulation takes longer than timeout, will exit.
         :type timeout: int
         
-        :returns: A result object containing the results of the simulation
+        :returns: A result object containing the results of the simulation.
         :rtype: gillespy2.Results
         """
         from gillespy2 import log

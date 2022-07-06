@@ -73,8 +73,7 @@ class NumPySSASolver(GillesPySolver):
         :param t: The end time of the solver.
         :type t: int or float
         
-        :param number_of_trajectories: The number of times to sample the chemical master equation. Each
-            trajectory will be returned at the end of the simulation. By default number_of_trajectories = 1.
+        :param number_of_trajectories: Number of trajectories to simulate. By default number_of_trajectories = 1.
         :type number_of_trajectories: int
             
         :param increment: The time step of the solution.
@@ -86,12 +85,12 @@ class NumPySSASolver(GillesPySolver):
         :param debug: Set to True to provide additional debug information about the simulation.
         :type debug: bool
         
-        :param live_output: str The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+        :param live_output: The type of output to be displayed by solver. Can be "progress", "text", or "graph".
         :type live_output: str
         
         :param live_output_options: dictionary contains options for live_output. By default {"interval":1}.
             "interval" specifies seconds between displaying.
-            "clear_output" specifies if display should be refreshed with each display
+            "clear_output" specifies if display should be refreshed with each display.
         :type live_output_options:  dict
         
         :param timeout: If set, if simulation takes longer than timeout, will exit.
@@ -100,7 +99,7 @@ class NumPySSASolver(GillesPySolver):
         :param resume: Result of a previously run simulation, to be resumed.
         :type resume: gillespy2.Results
 
-        :returns: A result object containing the results of the simulation
+        :returns: A result object containing the results of the simulation.
         :rtype: gillespy2.Results
         """
         from gillespy2 import log

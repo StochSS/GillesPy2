@@ -26,9 +26,9 @@ from .c_solver import CSolver, SimulationReturnCode
 class TauLeapingCSolver(GillesPySolver, CSolver):
 
     """
-    A Tau Leaping Solver for GillesPy2 models.  This solver uses an algorithm calculates
+    A Tau Leaping solver for GillesPy2 models.  This solver uses an algorithm calculates
     multiple reactions in a single step over a given tau step size.  The change in propensities
-    over this step are bounded by bounding the relative change in state, yielding greatly improved
+    over this step are bounded by relative change in state, yielding greatly improved
     run-time performance with very little trade-off in accuracy.
     """
 
@@ -37,7 +37,7 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
 
     def get_solver_settings(self):
         """
-        Returns a list of arguments supported by the tau_leaping_c_solver.run
+        Returns a list of arguments supported by tau_leaping_c_solver.run.
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
         :rtype: tuple
         """
@@ -51,7 +51,7 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
         :param model: The model on which the solver will operate. (Deprecated)
         :type model: gillespy2.Model
 
-        :param t: end time of simulation
+        :param t: End time of simulation.
         :type t: int
 
         :param number_of_trajectories: Number of trajectories to simulate. By default number_of_trajectories = 1.
@@ -60,7 +60,7 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
         :param timeout: If set, if simulation takes longer than timeout, will exit.
         :type timeout: int
 
-        :param increment: time step increment for plotting
+        :param increment: Time step increment for plotting.
         :type increment: float
 
         :param seed: The random seed for the simulation. Optional, defaults to None.
@@ -70,15 +70,15 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
             that replaces the value tied to that species.
         :type variables: dict
 
-        :param resume: Result of a previously run simulation, to be resumed
+        :param resume: Result of a previously run simulation, to be resumed.
         :type resume: gillespy2.Results
 
-        :param live_output: str The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+        :param live_output: The type of output to be displayed by solver. Can be "progress", "text", or "graph".
         :type live_output: str
 
         :param live_output_options: dictionary contains options for live_output. By default {"interval":1}.
             "interval" specifies seconds between displaying.
-            "clear_output" specifies if display should be refreshed with each display
+            "clear_output" specifies if display should be refreshed with each display.
         :type live_output_options:  dict
 
         :param tau_tol: Tolerance level for Tau leaping algorithm.  Larger tolerance values will
