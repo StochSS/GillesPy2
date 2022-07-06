@@ -442,6 +442,7 @@ namespace Gillespy
 				{
 				case SimulationState::DISCRETE:
 					//current_state[spec_i] = std::floor(current_state[spec_i]);
+					current_state[spec_i] = std::round(current_state[spec_i]);
 					break;
 				default:
 					break;

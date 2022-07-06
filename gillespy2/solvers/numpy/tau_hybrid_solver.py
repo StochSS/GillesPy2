@@ -105,6 +105,11 @@ class TauHybridSolver(GillesPySolver):
             if not r in inactive_reactions:
                 inactive_reactions[r] = rxns.pop(r, None)
 
+        # floor non-det species
+        for s,d in det_spec.items():
+            if not d and isinstance(curr_state[s], float):
+                curr_state[s] = round(curr_state[s])
+
         # Check if this reaction set is already compiled and in use:
         if deterministic_reactions in rr_sets.keys():
             return rr_sets[deterministic_reactions]
