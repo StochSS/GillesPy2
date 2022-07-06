@@ -101,9 +101,9 @@ class TauHybridSolver(GillesPySolver):
             rxns[r] = inactive_reactions.pop(r, None)
 
         # floor non-det species
-        for s, d in det_spec.items():
-            if not d and isinstance(curr_state[s], float):
-                curr_state[s] = math.floor(curr_state[s])
+        #for s, d in det_spec.items():
+        #    if not d and isinstance(curr_state[s], float):
+        #        curr_state[s] = math.floor(curr_state[s])
 
         # Deactivate Determinsitic Reactions
         for r in deterministic_reactions:
