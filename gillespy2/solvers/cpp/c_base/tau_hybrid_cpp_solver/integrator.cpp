@@ -89,7 +89,7 @@ double Integrator::restore_state()
     {
         NV_Ith_S(y, mem_i) = NV_Ith_S(y_save, mem_i);
     }
-    t = t_save
+    t = t_save;
     if (!validate(this, CVodeReInit(cvode_mem, t, y)))
     {
         return 0;

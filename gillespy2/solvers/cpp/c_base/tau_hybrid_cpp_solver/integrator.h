@@ -110,6 +110,7 @@ namespace Gillespy
         N_Vector y0;
         N_Vector y_save;
         realtype t;
+        realtype t_save;
 
         /* save_state()
          * Creates a duplicate copy of the integrator's current solution vector.
@@ -197,7 +198,7 @@ namespace Gillespy
         IntegrationResults integrate(double *t, std::set<int> &event_roots, std::set<unsigned int> &reaction_roots);
         IntegratorData data;
 
-        Integrator(HybridSimulation *simulation, Model<double> &model, URNGenerator urn double reltol, double abstol);
+        Integrator(HybridSimulation *simulation, Model<double> &model, URNGenerator urn, double reltol, double abstol);
         ~Integrator();
         void reset_model_vector();
     };
