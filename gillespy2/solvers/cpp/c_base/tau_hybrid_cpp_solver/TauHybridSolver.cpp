@@ -36,30 +36,29 @@
 #include "tau.h"
 
 static void silent_error_handler(int error_code, const char *module, const char *function_name,
-						  char *message, void *eh_data);
+                          char *message, void *eh_data);
 
 #define INTEGRATION_GUARD_MAX 1
 
 namespace Gillespy
 {
-	static volatile bool interrupted = false;
+    static volatile bool interrupted = false;
     std::mt19937_64 generator;
 
 
+    GPY_INTERRUPT_HANDLER(signal_handler, {
+        interrupted = true;
+    })
 
-	GPY_INTERRUPT_HANDLER(signal_handler, {
-		interrupted = true;
-	})
-
-	namespace TauHybrid
-	{
+    namespace TauHybrid
+    {
         void CalculateSpeciesChangeAfterStep(IntegrationResults&result, int*population_changes,
          std::vector<double> current_state, std::set<unsigned int>&rxn_roots, 
          std::set<int>&event_roots, HybridSimulation*simulation, URNGenerator&urn, 
          int only_reaction_to_fire){
             Model<double> &model = *(simulation->model);
             int num_species = model.number_species;
-			int num_reactions = model.number_reactions;
+            int num_reactions = model.number_reactions;
             // 0-initialize our population_changes array.
             for (int p_i = 0; p_i < num_species; ++p_i) {
                 population_changes[p_i] = 0;
@@ -139,10 +138,10 @@ namespace Gillespy
             }
             return true;
         }
-        
-        
 
-        
+
+
+
 
         bool IsStateNegativeCheck(int num_species, int*population_changes, std::vector<double> current_state){
             // Explicitly check for invalid population state, now that changes have been tallied.
@@ -154,49 +153,49 @@ namespace Gillespy
             return false;
         }
 
-		void TauHybridCSolver(
-				HybridSimulation *simulation,
-				std::vector<Event> &events,
-				Logger &logger,
-				double tau_tol,
-				SolverConfiguration config)
-		{
-			if (simulation == NULL)
-			{
-				return;
-			}
-			GPY_INTERRUPT_INSTALL_HANDLER(signal_handler);
 
-			Model<double> &model = *(simulation->model);
-			int num_species = model.number_species;
-			int num_reactions = model.number_reactions;
-			int num_trajectories = simulation->number_trajectories;
-			std::unique_ptr<Species<double>[]> &species = model.species;
+        void TauHybridCSolver(
+                HybridSimulation *simulation,
+                std::vector<Event> &events,
+                Logger &logger,
+                double tau_tol,
+                SolverConfiguration config)
+        {
+            if (simulation == NULL)
+            {
+                return;
+            }
+            GPY_INTERRUPT_INSTALL_HANDLER(signal_handler);
 
-            // Instantiate the RNG.
+            Model<double> &model = *(simulation->model);
+            int num_species = model.number_species;
+            int num_reactions = model.number_reactions;
+            int num_trajectories = simulation->number_trajectories;
+            std::unique_ptr<Species<double>[]> &species = model.species;
+            double increment = simulation->timeline[1] - simulation->timeline[0];
+
             generator = std::mt19937_64(simulation->random_seed);
-			URNGenerator urn(simulation->random_seed);
+            URNGenerator urn(simulation->random_seed);
+            // The contents of y0 are "stolen" by the integrator.
+            // Do not attempt to directly use y0 after being passed to sol!
+            Integrator sol(simulation, model, urn, config.rel_tol, config.abs_tol);
+            if (logger.get_log_level() == LogLevel::CRIT)
+            {
+                sol.set_error_handler(silent_error_handler);
+            }
 
-			// The contents of y0 are "stolen" by the integrator.
-			// Do not attempt to directly use y0 after being passed to sol!
-			Integrator sol(simulation, model, urn, config.rel_tol, config.abs_tol);
-			if (logger.get_log_level() == LogLevel::CRIT)
-			{
-				sol.set_error_handler(silent_error_handler);
-			}
+            // Configure user-specified solver tolerances.
+            if (!sol.configure(config))
+            {
+                logger.warn() << "Received invalid tolerances: {"
+                    << "rtol = " << config.rel_tol
+                    << ", atol = " << config.abs_tol
+                    << ", max_step = " << config.max_step
+                    << "}" << std::endl;
+            }
 
-			// Configure user-specified solver tolerances.
-			if (!sol.configure(config))
-			{
-				logger.warn() << "Received invalid tolerances: {"
-					<< "rtol = " << config.rel_tol
-					<< ", atol = " << config.abs_tol
-					<< ", max_step = " << config.max_step
-					<< "}" << std::endl;
-			}
-
-			// Tau selector initialization. Used to select a valid tau step.
-			TauArgs<double> tau_args = initialize(model, tau_tol);
+            // Tau selector initialization. Used to select a valid tau step.
+            TauArgs<double> tau_args = initialize(model, tau_tol);
 
             // Save the parameter vector in case any events modify it
             double *s_vars = Reaction::s_variables.get();
@@ -204,61 +203,62 @@ namespace Gillespy
             for(int s_num_j=0; s_num_j < Reaction::s_num_variables; s_num_j++){
                 saved__s_variables[s_num_j] = s_vars[s_num_j];
             }
-			// Simulate for each trajectory
-			for (int traj = 0; !interrupted && traj < num_trajectories; traj++)
-			{
-				if (traj > 0)
-				{
-					sol.reinitialize();
-				}
+            // Simulate for each trajectory
+            for (int traj = 0; !interrupted && traj < num_trajectories; traj++)
+            {
+                if (traj > 0)
+                {
+                    sol.reinitialize();
+                }
 
-				// Population/concentration state values for each species.
-				EventList event_list;
-				std::vector<double> current_state(num_species);
+                // Population/concentration state values for each species.
+                // TODO: change back double -> hybrid_state, once we figure out how that works
+                EventList event_list;
+                std::vector<double> current_state(num_species);
 
-				// Initialize the species population for the trajectory.
-				for (int spec_i = 0; spec_i < num_species; ++spec_i)
-				{
-					current_state[spec_i] = species[spec_i].initial_population;
-					simulation->current_state[spec_i] = current_state[spec_i];
-				}
-				simulation->reset_output_buffer(traj);
-				simulation->output_buffer_range(std::cout);
+                // Initialize the species population for the trajectory.
+                for (int spec_i = 0; spec_i < num_species; ++spec_i)
+                {
+                    current_state[spec_i] = species[spec_i].initial_population;
+                    simulation->current_state[spec_i] = current_state[spec_i];
+                }
+                simulation->reset_output_buffer(traj);
+                simulation->output_buffer_range(std::cout);
 
-				// Check for initial event triggers at t=0 (based on initial_value of trigger)
-				std::set<int> event_roots;
-				std::set<unsigned int> rxn_roots;
-				if (event_list.evaluate_triggers(current_state.data(), simulation->current_time))
-				{
-					double *event_state = N_VGetArrayPointer(sol.y);
-					event_list.evaluate(current_state.data(), num_species, simulation->current_time, event_roots);
-					std::copy(current_state.begin(), current_state.end(), event_state);
-					sol.refresh_state();
-				}
+                // Check for initial event triggers at t=0 (based on initial_value of trigger)
+                std::set<int> event_roots;
+                std::set<unsigned int> rxn_roots;
+                if (event_list.evaluate_triggers(current_state.data(), simulation->current_time))
+                {
+                    double *event_state = N_VGetArrayPointer(sol.y);
+                    event_list.evaluate(current_state.data(), num_species, simulation->current_time, event_roots);
+                    std::copy(current_state.begin(), current_state.end(), event_state);
+                    sol.refresh_state();
+                }
 
-				// Initialize each species with their respective user modes.
-				for (int spec_i = 0; spec_i < num_species; ++spec_i)
-				{
-					HybridSpecies *spec = &simulation->species_state[spec_i];
-					spec->partition_mode = spec->user_mode == SimulationState::DYNAMIC
-										   ? SimulationState::DISCRETE
-										   : spec->user_mode;
-				}
+                // Initialize each species with their respective user modes.
+                for (int spec_i = 0; spec_i < num_species; ++spec_i)
+                {
+                    HybridSpecies *spec = &simulation->species_state[spec_i];
+                    spec->partition_mode = spec->user_mode == SimulationState::DYNAMIC
+                                           ? SimulationState::DISCRETE
+                                           : spec->user_mode;
+                }
 
-				// SIMULATION STEP LOOP
-				unsigned int save_idx = 1;
-				double next_time;
-				double tau_step = 0.0;
-				double save_time = simulation->timeline[save_idx];
+                // SIMULATION STEP LOOP
+                unsigned int save_idx = 1;
+                double next_time;
+                double tau_step = 0.0;
+                double save_time = simulation->timeline[save_idx];
 
-				// Temporary array to store changes to dependent species.
-				// Should be 0-initialized each time it's used.
-				int *population_changes = new int[num_species];
-				simulation->current_time = 0;
+                // Temporary array to store changes to dependent species.
+                // Should be 0-initialized each time it's used.
+                int *population_changes = new int[num_species];
+                simulation->current_time = 0;
 
-				// An invalid simulation state indicates that an unrecoverable error has occurred,
-				//   and the trajectory should terminate early.
-				bool invalid_state = false;
+                // An invalid simulation state indicates that an unrecoverable error has occurred,
+                //   and the trajectory should terminate early.
+                bool invalid_state = false;
 
                 // Reset the parameters, they may be modified by an Event
                 double *s_vars = Reaction::s_variables.get();
@@ -267,14 +267,14 @@ namespace Gillespy
                 }
 
 
-				while (!interrupted && !invalid_state && simulation->current_time < simulation->end_time)
-				{
-					// Compute current propensity values based on existing state.
+                while (!interrupted && !invalid_state && simulation->current_time < simulation->end_time)
+                {
+                    // Compute current propensity values based on existing state.
                     double *curr_rxn_state = sol.get_reaction_state();
-					for (int rxn_j = 0; rxn_j < num_reactions; ++rxn_j)
-					{
-						HybridReaction &rxn = simulation->reaction_state[rxn_j];
-						sol.data.propensities[rxn_j] = rxn.ssa_propensity(current_state.data());
+                    for (unsigned int rxn_j = 0; rxn_j < num_reactions; ++rxn_j)
+                    {
+                        HybridReaction &rxn = simulation->reaction_state[rxn_j];
+                        sol.data.propensities[rxn_j] = rxn.ssa_propensity(current_state.data());
                         // if the propensity is zero, we need to ensure the reaction state is negative.
                         if(simulation->reaction_state[rxn_j].mode == SimulationState::DISCRETE &&
                                 curr_rxn_state[rxn_j] > 0 &&
@@ -282,86 +282,67 @@ namespace Gillespy
                            // This is an edge case, that might happen after a single SSA step.
                            curr_rxn_state[rxn_j] = log(urn.next()); 
                         }
-					}
+                    }
                     sol.refresh_state(); // update solver with updated state
 
-					if (interrupted){
-						break;
+                    if (interrupted){
+                        break;
                     }
 
-					// Expected tau step is determined.
-					tau_step = select<double, double>(
-							model,
-							tau_args,
-							tau_tol,
-							simulation->current_time,
-							save_time,
-							sol.data.propensities,
-							current_state
-					);
-					partition_species(
-							simulation->reaction_state,
-							simulation->species_state,
-							sol.data.propensities,
-							current_state,
-							tau_step,
-							tau_args
-					);
-					flag_det_rxns(
-							simulation->reaction_state,
-							simulation->species_state
-					);
-					update_species_state(simulation->species_state, current_state);
-					create_differential_equations(simulation->species_state, simulation->reaction_state);
+                    // Expected tau step is determined.
+                    tau_step = select<double, double>(
+                            model,
+                            tau_args,
+                            tau_tol,
+                            simulation->current_time,
+                            save_time,
+                            sol.data.propensities,
+                            current_state
+                    );
+                    partition_species(
+                            simulation->reaction_state,
+                            simulation->species_state,
+                            sol.data.propensities,
+                            current_state,
+                            tau_step,
+                            tau_args
+                    );
+                    flag_det_rxns(
+                            simulation->reaction_state,
+                            simulation->species_state
+                    );
+                    update_species_state(simulation->species_state, current_state);
+                    create_differential_equations(simulation->species_state, simulation->reaction_state);
 
-					// Determine what the next time point is.
-					// This will become current_time on the next iteration.
-					// If a retry with a smaller tau_step is deemed necessary, this will change.
-					next_time = simulation->current_time + tau_step;
+                    // Determine what the next time point is.
+                    // This will become current_time on the next iteration.
+                    // If a retry with a smaller tau_step is deemed necessary, this will change.
+                    next_time = simulation->current_time + tau_step;
 
-					// Ensure that any previous changes to the current state is reflected by the integrator.
-					std::copy(current_state.begin(), current_state.end(), N_VGetArrayPointer(sol.y));
+                    // Ensure that any previous changes to the current state is reflected by the integrator.
+                    std::copy(current_state.begin(), current_state.end(), N_VGetArrayPointer(sol.y));
 
-					// The integration loop continues until a valid solution is found.
-					// Any invalid Tau steps (which cause negative populations) are discarded.
-					sol.save_state();
-                    std::cerr<<"\tafter sol.save_state(), y_save=[";
-                    double*y_save_view = sol.get_y_save_ptr();
-                    for(int m_i=0; m_i<num_species+num_reactions; m_i++){
-                        std::cerr<<y_save_view[m_i]<<" ";
-                    }
-                    std::cerr<<"]\n";
+                    // The integration loop continues until a valid solution is found.
+                    // Any invalid Tau steps (which cause negative populations) are discarded.
+                    sol.save_state();
 
-                    std::cerr<<"t="<<simulation->current_time<<" tau="<<tau_step<<" ";
-                    std::cerr<<"sol.t="<<sol.t<<" ";
-                    std::cerr<<"next_time="<<next_time;
-                    std::cerr<<" : [";
-                    //for (int s_i = 0; s_i < num_species; ++s_i){
-                    //    std::cerr<<current_state[s_i]<<" ";
-                    //}
-                    //std::cerr<<"]\n";
-                    double*y_view = sol.get_species_state();
-                    for(int m_i=0; m_i<num_species+num_reactions; m_i++){
-                        std::cerr<<y_view[m_i]<<" ";
-                    }
-                    std::cerr<<"]\n";
+                    // This is a temporary fix. Ideally, invalid state should allow for integrator options change.
+                    // For now, a "guard" is put in place to prevent potentially infinite loops from occurring.
+                    unsigned int integration_guard = INTEGRATION_GUARD_MAX;
 
-					// This is a temporary fix. Ideally, invalid state should allow for integrator options change.
-					// For now, a "guard" is put in place to prevent potentially infinite loops from occurring.
-
-					do
-					{
+                    do
+                    {
                         IntegrationResults result;
 
                         if(!TauHybrid::TakeIntegrationStep(sol, result, next_time, population_changes, current_state, rxn_roots, event_roots, simulation, urn, -1)){
                             return;
                         }
-                        
+
                         // Check if we have gone negative
                         invalid_state = TauHybrid::IsStateNegativeCheck(num_species, population_changes, current_state);
 
                         // If state is invalid, we took too agressive tau step and need to take a single SSA step forward
-						if (invalid_state) {
+                        if (invalid_state) {
                             // Restore the solver to the intial step state
                             sol.restore_state();
 
@@ -402,10 +383,10 @@ namespace Gillespy
                                 sol.restore_state();
                                 invalid_state = false; // 
                                 break;
-                            
+
                             }else{
                                 // Use the found tau-step for single SSA
-					            next_time = simulation->current_time + min_tau;
+                                next_time = simulation->current_time + min_tau;
 
                                 // Integreate the system forward
                                 if(!TauHybrid::TakeIntegrationStep(sol, result, next_time, population_changes, current_state, rxn_roots,  event_roots, simulation, urn, rxn_selected)){
@@ -421,21 +402,20 @@ namespace Gillespy
                                 }
                             }
                         }
-
-						// Positive reaction state means a negative population was detected.
-						// Only update state with the given population changes if valid.
-						if (invalid_state) {
+                        // Positive reaction state means a negative population was detected.
+                        // Only update state with the given population changes if valid.
+                        if (invalid_state) {
                             simulation->set_status(HybridSimulation::UNKNOWN);
                             return;
-						} else {
+                        } else {
                             // "Permanently" update the rxn_state and populations.
-							for (int p_i = 0; p_i < num_species; ++p_i)
-							{
-								if (!simulation->species_state[p_i].boundary_condition)
-								{
-									// Boundary conditions are not modified directly by reactions.
-									// As such, population dx in stochastic regime is not considered.
-									// For deterministic species, their effective dy/dt should always be 0.
+                            for (int p_i = 0; p_i < num_species; ++p_i)
+                            {
+                                if (!simulation->species_state[p_i].boundary_condition)
+                                {
+                                    // Boundary conditions are not modified directly by reactions.
+                                    // As such, population dx in stochastic regime is not considered.
+                                    // For deterministic species, their effective dy/dt should always be 0.
                                     HybridSpecies *spec = &simulation->species_state[p_i];
                                     if( spec->partition_mode == SimulationState::CONTINUOUS ){
                                         current_state[p_i] = result.concentrations[p_i] + population_changes[p_i];
@@ -443,72 +423,72 @@ namespace Gillespy
                                         current_state[p_i] += population_changes[p_i];
                                     }
                                     result.concentrations[p_i] = current_state[p_i]; 
-								}
-							}
+                                }
+                            }
                             break;
-						}
-					} while (invalid_state && !interrupted);
+                        }
+                    } while (invalid_state && !interrupted);
 
-					if (interrupted)
-						break;
-					else if (invalid_state)
-					{
-						simulation->set_status(HybridSimulation::UNKNOWN);
+                    if (interrupted)
+                        break;
+                    else if (invalid_state)
+                    {
+                        simulation->set_status(HybridSimulation::UNKNOWN);
                         return;
-					}
+                    }
 
-					// ===== <EVENT HANDLING> =====
-					if (!event_list.has_active_events())
-					{
-						if (event_list.evaluate_triggers(N_VGetArrayPointer(sol.y), next_time))
-						{
-							sol.restore_state();
-							sol.use_events(events, simulation->reaction_state);
-							sol.enable_root_finder();
-							continue;
-						}
-					}
-					else
-					{
-						double *event_state = N_VGetArrayPointer(sol.y);
-						if (!event_list.evaluate(event_state, num_species, next_time, event_roots))
-						{
-							sol.disable_root_finder();
-						}
-						std::copy(event_state, event_state + num_species, current_state.begin());
-					}
-					// ===== </EVENT HANDLING> =====
+                    // ===== <EVENT HANDLING> =====
+                    if (!event_list.has_active_events())
+                    {
+                        if (event_list.evaluate_triggers(N_VGetArrayPointer(sol.y), next_time))
+                        {
+                            sol.restore_state();
+                            sol.use_events(events, simulation->reaction_state);
+                            sol.enable_root_finder();
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        double *event_state = N_VGetArrayPointer(sol.y);
+                        if (!event_list.evaluate(event_state, num_species, next_time, event_roots))
+                        {
+                            sol.disable_root_finder();
+                        }
+                        std::copy(event_state, event_state + num_species, current_state.begin());
+                    }
+                    // ===== </EVENT HANDLING> =====
 
-					// Output the results for this time step.
-					sol.refresh_state();
-					simulation->current_time = next_time;
+                    // Output the results for this time step.
+                    sol.refresh_state();
+                    simulation->current_time = next_time;
 
-					// Seek forward, writing out any values on the timeline which are on current timestep range.
-					while (save_idx < simulation->number_timesteps && save_time <= next_time)
-					{
-						for (int spec_i = 0; spec_i < num_species; ++spec_i)
-						{
-							simulation->current_state[spec_i] = current_state[spec_i];
-						}
-						simulation->output_buffer_range(std::cout, save_idx++);
-						save_time = simulation->timeline[save_idx];
-					}
-				}
+                    // Seek forward, writing out any values on the timeline which are on current timestep range.
+                    while (save_idx < simulation->number_timesteps && save_time <= next_time)
+                    {
+                        for (int spec_i = 0; spec_i < num_species; ++spec_i)
+                        {
+                            simulation->current_state[spec_i] = current_state[spec_i];
+                        }
+                        simulation->output_buffer_range(std::cout, save_idx++);
+                        save_time = simulation->timeline[save_idx];
+                    }
+                }
 
-				// End of trajectory
-				delete[] population_changes;
-			}
+                // End of trajectory
+                delete[] population_changes;
+            }
 
-			if (interrupted)
-			{
-				simulation->set_status(HybridSimulation::OK);
-			}
-		}
-	}
+            if (interrupted)
+            {
+                simulation->set_status(HybridSimulation::OK);
+            }
+        }
+    }
 }
 
 void silent_error_handler(int error_code, const char *module, const char *function_name,
-						  char *message, void *eh_data)
+                          char *message, void *eh_data)
 {
-	// Do nothing
+    // Do nothing
 }
