@@ -441,7 +441,7 @@ namespace Gillespy
 				switch (species[spec_i].partition_mode)
 				{
 				case SimulationState::DISCRETE:
-					current_state[spec_i] = std::floor(current_state[spec_i]);
+					//current_state[spec_i] = std::floor(current_state[spec_i]);
 					break;
 				default:
 					break;
