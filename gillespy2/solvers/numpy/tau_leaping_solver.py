@@ -267,12 +267,12 @@ class TauLeapingSolver(GillesPySolver):
         return Results.build_from_solver_results(self, live_output_options)
 
     def ___run(self, curr_state,total_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
-               number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, show_labels=True,
-               timeout=None, resume=None, tau_tol=0.03, **kwargs):
+               number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False,
+               resume=None, tau_tol=0.03, **kwargs):
 
         try:
             self.__run(curr_state, total_time, timeline, trajectory_base, tmpSpecies, live_grapher, t, number_of_trajectories,
-                       increment, seed, debug, profile, timeout, resume, tau_tol, **kwargs)
+                       increment, seed, debug, profile, resume, tau_tol, **kwargs)
 
         except Exception as e:
             self.has_raised_exception = e
@@ -280,7 +280,7 @@ class TauLeapingSolver(GillesPySolver):
             return [], -1
 
     def __run(self, curr_state, total_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
-              number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, timeout=None,
+              number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False,
               resume=None, tau_tol=0.03, **kwargs):
 
         # for use with resume, determines how much excess data to cut off due to

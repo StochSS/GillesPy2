@@ -280,7 +280,7 @@ class CLESolver(GillesPySolver):
         return Results.build_from_solver_results(self, live_output_options)
 
     def ___run(self, curr_state,total_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
-               number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, show_labels=True,
+               number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False,
                timeout=None, resume=None, tau_tol=0.03, **kwargs):
 
         try:

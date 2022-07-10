@@ -436,7 +436,7 @@ class TauHybridSolver(GillesPySolver):
                     curr_state[product.name] += self.model.listOfReactions[rxn].products[product] * rxn_count[rxn]
         return species_modified
 
-    def __integrate(self, integrator, integrator_options, curr_state, y0, curr_time,
+    def __integrate(self, integrator_options, curr_state, y0, curr_time,
                     propensities, y_map, compiled_reactions,
                     active_rr, event_queue,
                     delayed_events, trigger_states,
@@ -546,7 +546,7 @@ class TauHybridSolver(GillesPySolver):
 
         return sol, curr_time
 
-    def __simulate(self, integrator, integrator_options, curr_state, y0, curr_time,
+    def __simulate(self, integrator_options, curr_state, y0, curr_time,
                    propensities, species, parameters, compiled_reactions,
                    active_rr, y_map, trajectory, save_times,
                    delayed_events, trigger_states, event_sensitivity,
@@ -580,7 +580,7 @@ class TauHybridSolver(GillesPySolver):
             loop_count += 1
             if loop_count > 100:
                 raise Exception("Loop over __integrate() exceeded loop count")
-            sol, curr_time = self.__integrate(integrator, integrator_options, curr_state,
+            sol, curr_time = self.__integrate( integrator_options, curr_state,
                                               y0, curr_time, propensities, y_map,
                                               compiled_reactions,
                                               active_rr,
@@ -765,7 +765,7 @@ class TauHybridSolver(GillesPySolver):
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile', 'tau_tol',
-                'event_sensitivity', 'integrator', 'integrator_options', 'timeout')
+                'event_sensitivity', 'integrator_options', 'timeout')
 
     @classmethod
     def get_supported_features(cls):
@@ -777,8 +777,8 @@ class TauHybridSolver(GillesPySolver):
         }
 
     def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, seed=None,
-            debug=False, profile=False, tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
-            integrator_options={}, live_output=None, live_output_options={}, timeout=None, **kwargs):
+            debug=False, profile=False, tau_tol=0.03, event_sensitivity=100,integrator_options={},
+            live_output=None, live_output_options={}, timeout=None, **kwargs):
         """
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
         objects and will inherit those parameters which are passed with the model as the arguments this run function.
@@ -932,9 +932,8 @@ class TauHybridSolver(GillesPySolver):
                                                                     'number_of_trajectories': number_of_trajectories,
                                                                     'increment': increment, 'seed': seed,
                                                                     'debug': debug, 'profile': profile,
-                                                                    'timeout': timeout, 'tau_tol': tau_tol,
+                                                                    'tau_tol': tau_tol,
                                                                     'event_sensitivity': event_sensitivity,
-                                                                    'integrator': integrator,
                                                                     'integrator_options': integrator_options})
         try:
             sim_thread.start()
@@ -978,12 +977,12 @@ class TauHybridSolver(GillesPySolver):
 
     def ___run(self, curr_state, curr_time, timeline, trajectory_base, initial_state, live_grapher, t=20,
                number_of_trajectories=1, increment=0.05, seed=None,
-               debug=False, profile=False, tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
+               debug=False, profile=False, tau_tol=0.03, event_sensitivity=100,
                integrator_options={}, **kwargs):
         try:
             self.__run(curr_state, curr_time, timeline, trajectory_base, initial_state, live_grapher, t,
                        number_of_trajectories, increment, seed, debug,
-                       profile, tau_tol, event_sensitivity, integrator,
+                       profile, tau_tol, event_sensitivity,
                        integrator_options, **kwargs)
         except Exception as e:
             self.has_raised_exception = e
@@ -993,7 +992,7 @@ class TauHybridSolver(GillesPySolver):
     def __run(self, curr_state, curr_time, timeline, trajectory_base, initial_state, live_grapher, t=20,
               number_of_trajectories=1, increment=0.05, seed=None,
               debug=False, profile=False,
-              tau_tol=0.03, event_sensitivity=100, integrator='LSODA',
+              tau_tol=0.03, event_sensitivity=100,
               integrator_options={}, **kwargs):
 
         # create mapping of species dictionary to array indices
@@ -1137,7 +1136,7 @@ class TauHybridSolver(GillesPySolver):
                                              compiled_reactions, self.model.listOfEvents, curr_state[0])
 
                 # Run simulation to next step
-                sol, curr_state[0], curr_time[0], save_times = self.__simulate(integrator, integrator_options,
+                sol, curr_state[0], curr_time[0], save_times = self.__simulate( integrator_options,
                                                                                curr_state[0], y0, curr_time[0],
                                                                                propensities, species,
                                                                                parameters, compiled_reactions,
