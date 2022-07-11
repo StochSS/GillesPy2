@@ -407,6 +407,7 @@ namespace Gillespy
                 {
                     continue;
                 }
+                
 
                 HybridSpecies &spec = species[spec_i];
                 if (spec.switch_min == 0)
@@ -419,12 +420,13 @@ namespace Gillespy
                     {
                         cv[spec_i] = 1;
                     }
+                    //std::cerr<<"\t\tspec"<<spec_i<<" cv="<<cv[spec_i]<<"=("<<sd[spec_i]<<" / "<<means[spec_i]<<") switch_tol="<<spec.switch_tol<<"\n";
 
                     spec.partition_mode = cv[spec_i] < spec.switch_tol
                                           ? SimulationState::CONTINUOUS
                                           : SimulationState::DISCRETE;
-                } else
-                {
+                } else {
+                    //std::cerr<<"\t\tspec"<<spec_i<<" mean="<<means[spec_i]<<" switch_min="<<spec.switch_min<<"\n";
                     spec.partition_mode = means[spec_i] > spec.switch_min
                                           ? SimulationState::CONTINUOUS
                                           : SimulationState::DISCRETE;
