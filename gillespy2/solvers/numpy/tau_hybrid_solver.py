@@ -641,25 +641,37 @@ class TauHybridSolver(GillesPySolver):
 
         if invalid_state:
             invalid_state = False
-            # Redo this step, with a smaller Tau.  Until a single SSA reaction occurs
+            # Redo this step, with a smaller Tau such that a single SSA reaction occurs
             y0 = copy.deepcopy(prev_y0)
             curr_state_after = copy.deepcopy(curr_state)
             curr_state = copy.deepcopy(prev_curr_state)
+            floored_curr_state = copy.deepcopy(prev_curr_state)
             propensities_after = copy.deepcopy(propensities)
             propensities = copy.deepcopy(starting_propensities)
+            floored_propensities = copy.deepcopy(starting_propensities)
             curr_time = prev_curr_time
+
+            # floored propensites
+            for i, s in enumerate(self.model.listOfSpecies):
+                floored_curr_state[s] = math.floor(floored_curr_state[s])
+            for i, r in enumerate(self.model.listOfReactions):
+                try:
+                    floored_propensities[r] = eval(compiled_reactions[r], {**eval_globals, **floored_curr_state})
+                except Exception as e:
+                    raise SimulationError('Error calculation propensity for {0}.\nReason: {1}'.format(r, e))
+
 
             rxn_times = OrderedDict()
             min_tau = None
             rxn_selected = None
             for rname,rcnt in rxn_count.items():
-                if rcnt > 0 and propensities[rname] > 0.0:
+                if floored_propensities[rname] > 0.0:
                     # estimate the zero crossing time
                     rxn_times[rname] = -1* curr_state[rname] / propensities[rname]
                     if min_tau is None or min_tau > rxn_times[rname]:
                         min_tau = rxn_times[rname]
                         rxn_selected = rname
-            if rxn_selected is None: raise Exception(f"Negative State detected in step, and no reaction found to fire.\n\n error_message={invalid_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}\nrxn_times={rxn_times}\ncompiled_reactions={compiled_reactions}\ncurr_state_after={curr_state_after}\n propensities_after={propensities_after}\nstarting_propensities={starting_propensities}\n  ")
+            if rxn_selected is None: raise Exception(f"Negative State detected in step, and no reaction found to fire.\n\n error_message={invalid_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}\nrxn_times={rxn_times}\ncompiled_reactions={compiled_reactions}\ncurr_state_after={curr_state_after}\n propensities_after={propensities_after}\nstarting_propensities={starting_propensities}\nfloored_curr_state={floored_curr_state}\nfloored_propensities={floored_propensities}\n  ")
 
             tau_step = min_tau #estimated time to the first stochatic reaction
 
@@ -1169,8 +1181,11 @@ class TauHybridSolver(GillesPySolver):
                     for i, r in enumerate(self.model.listOfReactions):
                         try:
                             propensities[r] = eval(compiled_propensities[r], eval_globals, curr_state[0])
+                            if curr_state[0][r] > 0 and propensities[r]==0:
+                                # This is an edge case, that might happen after a single SSA step.
+                                curr_state[0][r] = math.log(random.uniform(0, 1))
                         except Exception as e:
-                            raise SimulationError('Error calculation propensity for {0}.\nReason: {1}'.format(r, e))
+                            raise SimulationError('Error calculation propensity for {0}.\nReason: {1}\ncurr_state={2}'.format(r, e, curr_state))
 
                 # Calculate Tau statistics and select a good tau step
                 if not pure_ode:
