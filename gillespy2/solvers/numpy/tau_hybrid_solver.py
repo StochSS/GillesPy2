@@ -654,11 +654,11 @@ class TauHybridSolver(GillesPySolver):
             # floored propensites
             for i, s in enumerate(self.model.listOfSpecies):
                 floored_curr_state[s] = math.floor(floored_curr_state[s])
-            for i, r in enumerate(self.model.listOfReactions):
+            for i, r in enumerate(compiled_reactions):
                 try:
                     floored_propensities[r] = eval(compiled_reactions[r], {**eval_globals, **floored_curr_state})
                 except Exception as e:
-                    raise SimulationError('Error calculation propensity for {0}.\nReason: {1}'.format(r, e))
+                    raise SimulationError('Error calculation propensity for {0}.\nReason: {1}\nfloored_propensities={2}\ncompiled_reactions={3}'.format(r, e, floored_propensities,compiled_reactions))
 
 
             rxn_times = OrderedDict()
@@ -774,6 +774,7 @@ class TauHybridSolver(GillesPySolver):
         for i, r in enumerate(self.model.listOfReactions):
             compiled_reactions[r] = compile(self.model.listOfReactions[r].propensity_function, '<string>',
                                             'eval')
+
         compiled_rate_rules = OrderedDict()
         for i, rr in enumerate(self.model.listOfRateRules.values()):
             if isinstance(rr.variable, str):
