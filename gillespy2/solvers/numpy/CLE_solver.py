@@ -43,7 +43,7 @@ class CLESolver(GillesPySolver):
     pause_event = None
     result = None
 
-    def __init__(self, model=None, debug=False, profile=False):
+    def __init__(self, model=None, debug=False):
         if model is None:
             raise SimulationError("A model is required to run the simulation.")
 
@@ -54,7 +54,6 @@ class CLESolver(GillesPySolver):
         result = None
         self.model = model
         self.debug = debug
-        self.profile = profile
         self.is_instantiated = True
 
     def __get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions):
