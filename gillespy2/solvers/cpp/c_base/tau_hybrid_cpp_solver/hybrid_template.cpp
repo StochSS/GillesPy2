@@ -28,175 +28,175 @@ using namespace std;
 
 namespace Gillespy
 {
-	namespace TauHybrid
-	{
-		void map_species_modes(std::vector<HybridSpecies> &species)
-		{
-			#define SPECIES_MODE(spec_id, user_min, spec_mode, boundary_mode) \
-			species[spec_id].user_mode = spec_mode; \
-			species[spec_id].switch_min = user_min; \
-			species[spec_id].boundary_condition = boundary_mode;
-			#define CONTINUOUS_MODE SimulationState::CONTINUOUS
-			#define DISCRETE_MODE   SimulationState::DISCRETE
-			#define DYNAMIC_MODE    SimulationState::DYNAMIC
-			#define BOUNDARY true
-			#define STANDARD false
-			GPY_HYBRID_SPECIES_MODES
-			#undef STANDARD
-			#undef BOUNDARY
-			#undef DYNAMIC_MODE
-			#undef DISCRETE_MODE
-			#undef CONTINUOUS_MODE
-			#undef SPECIES_MODE
-		}
+    namespace TauHybrid
+    {
+        void map_species_modes(std::vector<HybridSpecies> &species)
+        {
+            #define SPECIES_MODE(spec_id, user_min, spec_mode, boundary_mode) \
+            species[spec_id].user_mode = spec_mode; \
+            species[spec_id].switch_min = user_min; \
+            species[spec_id].boundary_condition = boundary_mode;
+            #define CONTINUOUS_MODE SimulationState::CONTINUOUS
+            #define DISCRETE_MODE   SimulationState::DISCRETE
+            #define DYNAMIC_MODE    SimulationState::DYNAMIC
+            #define BOUNDARY true
+            #define STANDARD false
+            GPY_HYBRID_SPECIES_MODES
+            #undef STANDARD
+            #undef BOUNDARY
+            #undef DYNAMIC_MODE
+            #undef DISCRETE_MODE
+            #undef CONTINUOUS_MODE
+            #undef SPECIES_MODE
+        }
 
-		void map_rate_rules(std::vector<HybridSpecies> &species)
-		{
-			#define RATE_RULE(spec_id, rate_rule) species[spec_id].diff_equation.rate_rules.push_back(\
-			[](double t, double *S, double *P, const double *C){ return (rate_rule); });
-			GPY_RATE_RULES
-			#undef RATE_RULE
-		}
-
-
-		bool Event::initial_value(int event_id)
-		{
-			#define INIT_TRUE (1)
-			#define INIT_FALSE (0)
-			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_perist, init) \
-			case event_id: return (bool) init;
-
-			switch (event_id)
-			{
-			GPY_HYBRID_EVENTS
-
-			default:
-				return false;
-			}
-
-			#undef EVENT
-			#undef INIT_FALSE
-			#undef INIT_TRUE
-		}
+        void map_rate_rules(std::vector<HybridSpecies> &species)
+        {
+            #define RATE_RULE(spec_id, rate_rule) species[spec_id].diff_equation.rate_rules.push_back(\
+            [](double t, double *S, double *P, const double *C){ return (rate_rule); });
+            GPY_RATE_RULES
+            #undef RATE_RULE
+        }
 
 
-		bool Event::trigger(
-				int event_id, double t,
-				const double *S,
-				const double *P,
-				const double *C)
-		{
-			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist, init) \
-			case event_id: return (bool) (trigger);
+        bool Event::initial_value(int event_id)
+        {
+            #define INIT_TRUE (1)
+            #define INIT_FALSE (0)
+            #define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_perist, init) \
+            case event_id: return (bool) init;
 
-			switch (event_id)
-			{
-			GPY_HYBRID_EVENTS
+            switch (event_id)
+            {
+            GPY_HYBRID_EVENTS
 
-			default:
-				return false;
-			}
+            default:
+                return false;
+            }
 
-			#undef EVENT
-		}
+            #undef EVENT
+            #undef INIT_FALSE
+            #undef INIT_TRUE
+        }
 
-		double Event::delay(
-				int event_id, double t,
-				const double *S,
-				const double *P,
-				const double *C)
-		{
-			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist, init) \
-			case event_id: return static_cast<double>(delay);
 
-			switch (event_id)
-			{
-				GPY_HYBRID_EVENTS
+        bool Event::trigger(
+                int event_id, double t,
+                const double *S,
+                const double *P,
+                const double *C)
+        {
+            #define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist, init) \
+            case event_id: return (bool) (trigger);
 
-				default:
-					return false;
-			}
+            switch (event_id)
+            {
+            GPY_HYBRID_EVENTS
 
-			#undef EVENT
-		}
+            default:
+                return false;
+            }
 
-		double Event::priority(
-				int event_id, double t,
-				const double *S,
-				const double *P,
-				const double *C)
-		{
-			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist, init) \
-			case event_id: return static_cast<double>(priority);
+            #undef EVENT
+        }
 
-			switch (event_id)
-			{
-				GPY_HYBRID_EVENTS
+        double Event::delay(
+                int event_id, double t,
+                const double *S,
+                const double *P,
+                const double *C)
+        {
+            #define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist, init) \
+            case event_id: return static_cast<double>(delay);
 
-				default:
-					return false;
-			}
+            switch (event_id)
+            {
+                GPY_HYBRID_EVENTS
 
-			#undef EVENT
-		}
+                default:
+                    return false;
+            }
 
-		void Event::use_events(std::vector<Event> &events)
-		{
-			events.clear();
-			events.reserve(GPY_HYBRID_NUM_EVENTS);
+            #undef EVENT
+        }
 
-			#define USE_TRIGGER true
-			#define USE_EVAL false
-			#define PERSISTENT true
-			#define IRREGULAR false
-			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist, init) \
-			events.emplace_back(Event(event_id, use_trigger, use_persist));
-			GPY_HYBRID_EVENTS
-			#undef EVENT
-			#undef IRREGULAR
-			#undef PERSISTENT
-			#undef USE_EVAL
-			#undef USE_TRIGGER
-		}
+        double Event::priority(
+                int event_id, double t,
+                const double *S,
+                const double *P,
+                const double *C)
+        {
+            #define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist, init) \
+            case event_id: return static_cast<double>(priority);
 
-		void EventExecution::use_assignments()
-		{
-			m_assignments.clear();
-			#define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist, init) \
-			case event_id: m_assignments = std::vector<int>(targets); break;
+            switch (event_id)
+            {
+                GPY_HYBRID_EVENTS
 
-			switch (m_event_id)
-			{
-			GPY_HYBRID_EVENTS
+                default:
+                    return false;
+            }
 
-			default:
-				return;
-			}
+            #undef EVENT
+        }
 
-			#undef EVENT
-		}
+        void Event::use_events(std::vector<Event> &events)
+        {
+            events.clear();
+            events.reserve(GPY_HYBRID_NUM_EVENTS);
 
-		void Event::assign(int assign_id, double t, EventOutput output)
-		{
-			const double *S = output.species;
-			const double *P = output.variables;
-			const double *C = output.constants;
+            #define USE_TRIGGER true
+            #define USE_EVAL false
+            #define PERSISTENT true
+            #define IRREGULAR false
+            #define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist, init) \
+            events.emplace_back(Event(event_id, use_trigger, use_persist));
+            GPY_HYBRID_EVENTS
+            #undef EVENT
+            #undef IRREGULAR
+            #undef PERSISTENT
+            #undef USE_EVAL
+            #undef USE_TRIGGER
+        }
 
-			#define SPECIES_ASSIGNMENT(id, spec_id, expr) \
-			case id: output.species_out[spec_id] = expr; break;
-			#define VARIABLE_ASSIGNMENT(id, var_id, expr) \
-			case id: output.variable_out[var_id] = expr; break;
+        void EventExecution::use_assignments()
+        {
+            m_assignments.clear();
+            #define EVENT(event_id, targets, trigger, delay, priority, use_trigger, use_persist, init) \
+            case event_id: m_assignments = std::vector<int>(targets); break;
 
-			switch (assign_id)
-			{
-			GPY_HYBRID_EVENT_ASSIGNMENTS
+            switch (m_event_id)
+            {
+            GPY_HYBRID_EVENTS
 
-			default:
-				return;
-			}
+            default:
+                return;
+            }
 
-			#undef VARIABLE_ASSIGNMENT
-			#undef SPECIES_ASSIGNMENT
-		}
-	}
+            #undef EVENT
+        }
+
+        void Event::assign(int assign_id, double t, EventOutput output)
+        {
+            const double *S = output.species;
+            const double *P = output.variables;
+            const double *C = output.constants;
+
+            #define SPECIES_ASSIGNMENT(id, spec_id, expr) \
+            case id: output.species_out[spec_id] = expr; break;
+            #define VARIABLE_ASSIGNMENT(id, var_id, expr) \
+            case id: output.variable_out[var_id] = expr; break;
+
+            switch (assign_id)
+            {
+            GPY_HYBRID_EVENT_ASSIGNMENTS
+
+            default:
+                return;
+            }
+
+            #undef VARIABLE_ASSIGNMENT
+            #undef SPECIES_ASSIGNMENT
+        }
+    }
 }

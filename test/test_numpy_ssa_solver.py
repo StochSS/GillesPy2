@@ -16,16 +16,16 @@
 
 import unittest
 from gillespy2.core.gillespyError import SimulationError
-from example_models import Example, ExampleNoTspan
+from example_models import create_decay, create_decay_no_tspan
 from gillespy2 import NumPySSASolver
 
 
 class TestNumPySSASolver(unittest.TestCase):
     
     def setUp(self):
-        self.model = Example()
+        self.model = create_decay()
         self.solver = NumPySSASolver(model=self.model)
-        self.model_no_tspan = ExampleNoTspan()
+        self.model_no_tspan = create_decay_no_tspan()
         self.solver_no_tspan = NumPySSASolver(model=self.model_no_tspan)
 
     def test_run_example__with_increment_only(self):

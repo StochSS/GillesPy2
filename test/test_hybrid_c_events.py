@@ -1,29 +1,51 @@
+# GillesPy2 is a modeling toolkit for biochemical simulation.
+# Copyright (C) 2019-2022 GillesPy2 developers.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import os
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 import unittest
 import gillespy2
 from gillespy2 import TauHybridCSolver
 import numpy as np
 
 class EventFeatures(unittest.TestCase):
-    class BaseEventModel(gillespy2.Model):
-        def __init__(self, s1, s2, rate):
-            super().__init__(name="BasicEventModel")
+    def create_base_event_model(s1, s2, rate):
+        model = gillespy2.Model(name="BasicEventModel")
 
-            self.s1 = gillespy2.Species(name="S1", initial_value=s1, mode="continuous")
-            self.s2 = gillespy2.Species(name="S2", initial_value=s2, mode="continuous")
-            self.rate = gillespy2.Parameter(name="k1", expression=rate)
-            self.add_species([self.s1, self.s2])
-            self.add_parameter([self.rate])
-            self.add_reaction([
-                gillespy2.Reaction(name="r1", rate=self.rate,
-                                   reactants={self.s1: 1},
-                                   products={self.s2: 1})
-            ])
+        s1 = gillespy2.Species(name="S1", initial_value=s1, mode="continuous")
+        s2 = gillespy2.Species(name="S2", initial_value=s2, mode="continuous")
+        model.add_species([s1, s2])
+        
+        rate = gillespy2.Parameter(name="k1", expression=rate)
+        model.add_parameter(rate)
+
+        r1 = gillespy2.Reaction(
+            name="r1", reactants={s1: 1}, products={s2: 1}, rate=rate,
+        )
+        model.add_reaction(r1)
+        return model
 
     def test_event_with_time_trigger(self):
-        model = EventFeatures.BaseEventModel(s1=0, s2=0, rate=0.0)
+        model = EventFeatures.create_base_event_model(s1=0, s2=0, rate=0.0)
         event = gillespy2.Event(name="ev1", assignments=[
-            gillespy2.EventAssignment(variable=model.s1, expression="100.0"),
-            gillespy2.EventAssignment(variable=model.rate, expression="1.0")
+            gillespy2.EventAssignment(variable=model.get_species('S1'), expression="100.0"),
+            gillespy2.EventAssignment(variable=model.get_parameter('k1'), expression="1.0")
         ], trigger=gillespy2.EventTrigger(expression="t>5"))
         model.add_event(event)
 
@@ -36,10 +58,10 @@ class EventFeatures(unittest.TestCase):
         self.assertAlmostEqual(s1 + s2, 100.0, places=1)
 
     def test_event_with_species_trigger(self):
-        model = EventFeatures.BaseEventModel(s1=100, s2=0, rate=10.0)
+        model = EventFeatures.create_base_event_model(s1=100, s2=0, rate=10.0)
         event = gillespy2.Event(name="ev1", assignments=[
-            gillespy2.EventAssignment(variable=model.s1, expression="100.0"),
-            gillespy2.EventAssignment(variable=model.rate, expression="0.0")
+            gillespy2.EventAssignment(variable=model.get_species('S1'), expression="100.0"),
+            gillespy2.EventAssignment(variable=model.get_parameter('k1'), expression="0.0")
         ], trigger=gillespy2.EventTrigger(expression="S1<90"))
         model.add_event(event)
 
@@ -52,16 +74,16 @@ class EventFeatures(unittest.TestCase):
         self.assertFalse(np.any(result["S1"] <= 90.0), "Expected S1 > 90 for entire simulation")
 
     def test_delay_trigger_persistent(self):
-        model = EventFeatures.BaseEventModel(s1=100, s2=0, rate=1.0)
+        model = EventFeatures.create_base_event_model(s1=100, s2=0, rate=1.0)
         event1 = gillespy2.Event(name="ev1", assignments=[
-            gillespy2.EventAssignment(variable=model.s1, expression="0"),
-            gillespy2.EventAssignment(variable=model.s2, expression="0"),
-            gillespy2.EventAssignment(variable=model.rate, expression="0.0")
+            gillespy2.EventAssignment(variable=model.get_species('S1'), expression="0"),
+            gillespy2.EventAssignment(variable=model.get_species('S2'), expression="0"),
+            gillespy2.EventAssignment(variable=model.get_parameter('k1'), expression="0.0")
         ], trigger=gillespy2.EventTrigger(expression="S1<60 and S2<S1", persistent=False), delay="t+1.0")
         event2 = gillespy2.Event(name="ev2", assignments=[
-            gillespy2.EventAssignment(variable=model.s1, expression="200"),
-            gillespy2.EventAssignment(variable=model.s2, expression="200"),
-            gillespy2.EventAssignment(variable=model.rate, expression="0.0"),
+            gillespy2.EventAssignment(variable=model.get_species('S1'), expression="200"),
+            gillespy2.EventAssignment(variable=model.get_species('S2'), expression="200"),
+            gillespy2.EventAssignment(variable=model.get_parameter('k1'), expression="0.0"),
         ], trigger=gillespy2.EventTrigger(expression="S2>90 and t<3.5", persistent=True), delay="1.0")
         model.add_event([event1, event2])
 
@@ -78,13 +100,13 @@ class EventFeatures(unittest.TestCase):
         self.assertEqual(s2, 200, "Persistent event failed to fire")
 
     def test_trigger_priorities(self):
-        model = EventFeatures.BaseEventModel(s1=100, s2=0, rate=1.0)
+        model = EventFeatures.create_base_event_model(s1=100, s2=0, rate=1.0)
         event1 = gillespy2.Event(name="ev1", assignments=[
-            gillespy2.EventAssignment(variable=model.s1, expression="100"),
-            gillespy2.EventAssignment(variable=model.s2, expression="100"),
+            gillespy2.EventAssignment(variable=model.get_species('S1'), expression="100"),
+            gillespy2.EventAssignment(variable=model.get_species('S2'), expression="100"),
         ], trigger=gillespy2.EventTrigger(expression="S1 < 50"), priority="2*t*S1")
         event2 = gillespy2.Event(name="ev2", assignments=[
-            gillespy2.EventAssignment(variable=model.s1, expression="0"),
+            gillespy2.EventAssignment(variable=model.get_species('S1'), expression="0"),
         ], trigger=gillespy2.EventTrigger(expression="S1 < 50"), priority="t*S1")
         model.add_event([event1, event2])
 
@@ -98,10 +120,10 @@ class EventFeatures(unittest.TestCase):
         self.assertEqual(s2, 100, "Events fired in an incorrect order")
 
     def test_use_values_from_trigger_time(self):
-        model = EventFeatures.BaseEventModel(s1=100, s2=0, rate=1.0)
+        model = EventFeatures.create_base_event_model(s1=100, s2=0, rate=1.0)
         event = gillespy2.Event(name="ev1", assignments=[
-            gillespy2.EventAssignment(variable=model.s1, expression="S2"),
-            gillespy2.EventAssignment(variable=model.rate, expression="0.0"),
+            gillespy2.EventAssignment(variable=model.get_species('S1'), expression="S2"),
+            gillespy2.EventAssignment(variable=model.get_parameter('k1'), expression="0.0"),
         ], trigger=gillespy2.EventTrigger(expression="S1 < 60"), delay="1.5", use_values_from_trigger_time=True)
         model.add_event(event)
 
@@ -112,10 +134,10 @@ class EventFeatures(unittest.TestCase):
         self.assertGreater(s2, s1, "Event assignment did not assign values from trigger time")
 
     def test_initial_values(self):
-        model = EventFeatures.BaseEventModel(s1=0, s2=100.0, rate=1.0)
+        model = EventFeatures.create_base_event_model(s1=0, s2=100.0, rate=1.0)
 
         event = gillespy2.Event(name="ev1", assignments=[
-            gillespy2.EventAssignment(variable=model.s1, expression="S2/2"),
+            gillespy2.EventAssignment(variable=model.get_species('S1'), expression="S2/2"),
         ], trigger=gillespy2.EventTrigger(expression="S1==0", initial_value=False))
         model.add_event(event)
 

@@ -23,32 +23,32 @@ from gillespy2 import ODESolver
 class TestExampleModels(unittest.TestCase):
 
     def test_trichloroethylene_example(self):
-        trichloroethylene_model = Trichloroethylene()
+        trichloroethylene_model = create_trichloroethylene()
         results = trichloroethylene_model.run()
 
     def test_lacOperon_example(self):
-        lacOperon_model = LacOperon()
+        lacOperon_model = create_lac_operon()
         solver = ODESolver(model=lacOperon_model)
         results = lacOperon_model.run(solver=solver)
 
     def test_schlogl_example(self):
-        schlogl_model = Schlogl()
+        schlogl_model = create_schlogl()
         results = schlogl_model.run()
 
     def test_michaelisMenten_example(self):
-        michaelisMenten_model = MichaelisMenten()
+        michaelisMenten_model = create_michaelis_menten()
         results = michaelisMenten_model.run()
 
     def test_toggleSwitch_example(self):
-        toggleSwitch_model = ToggleSwitch()
+        toggleSwitch_model = create_toggle_switch()
         results = toggleSwitch_model.run()
 
     def test_example_example(self):
-        example_model = Example()
+        example_model = create_decay()
         results = example_model.run()
 
     def test_tyson2StateOscillator_example(self):
-        tyson2StateOscillator_model = Tyson2StateOscillator()
+        tyson2StateOscillator_model = create_tyson_2_state_oscillator()
         results = tyson2StateOscillator_model.run()
     
     #def test_test_battery(self):

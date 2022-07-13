@@ -47,7 +47,7 @@ def timing_battery(number_of_samples, acceptable_deviation):
         if isinstance(value, type) and issubclass(value, gillespy2.GillesPySolver) and value not in solver_list:
             solver_list.append(value)
 
-    model_list = [Example(), Trichloroethylene(), MichaelisMenten(), Schlogl()] #Update
+    model_list = [create_decay(), create_trichloroethylene(), create_michaelis_menten(), create_schlogl()] #Update
 
     timing_list = []
 

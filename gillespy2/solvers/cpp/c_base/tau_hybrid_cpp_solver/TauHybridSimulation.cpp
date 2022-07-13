@@ -39,41 +39,48 @@ double tau_tol = 0.03;
 
 int main(int argc, char* argv[])
 {
-	ArgParser parser(argc, argv);
-	random_seed = parser.seed;
-	seed_time = (random_seed == -1);
+    ArgParser parser(argc, argv);
+    random_seed = parser.seed;
+    seed_time = (random_seed == -1);
 
-	end_time = parser.end;
-	number_trajectories = parser.trajectories;
-	number_timesteps = parser.timesteps;
-	tau_tol = parser.tau_tol;
+    end_time = parser.end;
+    number_trajectories = parser.trajectories;
+    number_timesteps = parser.timesteps;
+    tau_tol = parser.tau_tol;
 
-	Reaction::load_parameters();
-	Model<double> model(species_names, species_populations, reaction_names);
-	add_reactions(model);
+    Reaction::load_parameters();
+    Model<double> model(species_names, species_populations, reaction_names);
+    add_reactions(model);
 
-	if(seed_time){
-		random_seed = time(nullptr) % GPY_PID_GET();
-	}
-	//Simulation INIT
-	TauHybrid::HybridSimulation simulation(model);
-	simulation.model = &model;
-	simulation.end_time = end_time;
-	simulation.random_seed = random_seed;
-	simulation.number_timesteps = number_timesteps;
-	simulation.number_trajectories = number_trajectories;
-	simulation.output_interval = parser.output_interval;
-	init_simulation(&model, simulation);
-	Gillespy::TauHybrid::map_species_modes(simulation.species_state);
-	Gillespy::TauHybrid::map_rate_rules(simulation.species_state);
+    if(seed_time){
+        random_seed = time(nullptr) % GPY_PID_GET();
+    }
+    //Simulation INIT
+    TauHybrid::HybridSimulation simulation(model);
+    simulation.model = &model;
+    simulation.end_time = end_time;
+    simulation.random_seed = random_seed;
+    simulation.number_timesteps = number_timesteps;
+    simulation.number_trajectories = number_trajectories;
+    simulation.output_interval = parser.output_interval;
+    init_simulation(&model, simulation);
+    Gillespy::TauHybrid::map_species_modes(simulation.species_state);
+    Gillespy::TauHybrid::map_rate_rules(simulation.species_state);
 
-	std::vector<Gillespy::TauHybrid::Event> events;
-	Gillespy::TauHybrid::Event::use_events(events);
-	Logger logger;
-	if (parser.verbose)
-		logger.set_log_level(LogLevel::INFO);
+    std::vector<Gillespy::TauHybrid::Event> events;
+    Gillespy::TauHybrid::Event::use_events(events);
+    Logger logger;
+    if (parser.verbose)
+        logger.set_log_level(LogLevel::INFO);
 
-	TauHybrid::TauHybridCSolver(&simulation, events, tau_tol, logger);
-	simulation.output_buffer_final(std::cout);
-	return simulation.get_status();
+    // Configure solver options from command-line arguments (or defaults)
+    SolverConfiguration config = {
+        parser.rtol,
+        parser.atol,
+        parser.max_step,
+    };
+
+    TauHybrid::TauHybridCSolver(&simulation, events, logger, tau_tol, config);
+    simulation.output_buffer_final(std::cout);
+    return simulation.get_status();
 }

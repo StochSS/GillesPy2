@@ -238,12 +238,12 @@ class Results(UserList, Jsonify):
         size1 = len(self.data[0]['time'])
         size2 = len(self.data[0])
 
-        for trajectory in range(0,len(self.data)):
+        for trajectory in range(0, len(self.data)):
             newArray = np.zeros((size1, size2))
             for i, key in enumerate(self.data[trajectory]):
                 newArray[:, i] = self.data[trajectory][key]
             results.append(newArray)
-        return results
+        return np.array(results)
 
     @classmethod
     def build_from_solver_results(cls, solver, live_output_options):
@@ -818,7 +818,8 @@ class Results(UserList, Jsonify):
             upperBound = [a+b for a, b in zip(average_result[species], stddev_trajectory[species])]
 
             plt.fill_between(average_result['time'], lowerBound, upperBound, color='whitesmoke')
-            plt.plot(average_result['time'], lowerBound, upperBound, color='grey', linestyle='dashed')
+            plt.plot(average_result['time'], upperBound, color='grey', linestyle='dashed')
+            plt.plot(average_result['time'], lowerBound, color='grey', linestyle='dashed')
             plt.plot(average_result['time'], average_result[species], label=species)
 
         if not show_title:

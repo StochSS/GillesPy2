@@ -141,7 +141,10 @@ def __get_compartments(sbml_model, gillespy_model):
     for i in range(sbml_model.getNumCompartments()):
         compartment = sbml_model.getCompartment(i)
         name = compartment.getId()
-        value = compartment.getSize()
+        if compartment.isSetSize():
+            value = compartment.getSize()
+        else:
+            value = 1
 
         if name == "vol":
             gillespy_model.volume = value
@@ -285,7 +288,7 @@ def __get_rules(sbml_model, gillespy_model, errors):
             gillespy_rule = gillespy2.AssignmentRule(name=rule_name, variable=rule_variable,
                 formula=rule_string)
             gillespy_model.add_assignment_rule(gillespy_rule)
-            init_state[gillespy_rule.variable]=eval(gillespy_rule.formula, {**init_state, **eval_globals})
+            init_state[gillespy_rule.variable.name]=eval(gillespy_rule.formula, {**init_state, **eval_globals})
 
         if rule.isRate():
             gillespy_rule = gillespy2.RateRule(name=rule_name, variable=rule_variable,
@@ -400,11 +403,21 @@ def __resolve_evals(gillespy_model, init_state):
         if not len(successful): break
         for var in successful: del postponed_evals[var]
 
-def convert(filename, model_name=None, gillespy_model=None):
+def convert(filename, model_name=None, gillespy_model=None, report_silently_with_sbml_error=False):
 
     sbml_model, errors = __read_sbml_model(filename)
+    
     if sbml_model is None:
-        return None, errors
+        if report_silently_with_sbml_error:
+            return None, errors
+        errs = '\n\t'.join(errors)
+        raise SBMLError(f"SBML model import failed.  Reason Given: \n\t{errs}")
+
+    if len(errors) > 0 and not report_silently_with_sbml_error:
+        from gillespy2 import log
+        errs = '\n\t'.join(errors)
+        log.warning(f"Error were detected in the SBML model.  Error: \n\t{errs}")
+
     if model_name is None:
         model_name = sbml_model.getName()
     if gillespy_model is None:

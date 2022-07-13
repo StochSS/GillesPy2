@@ -21,14 +21,14 @@ from gillespy2.core import Reaction, Species
 
 class TestPropensityFunctions(unittest.TestCase):
     def test_dependency_graphing(self):
-        from example_models import ToggleSwitch, MichaelisMenten
-        model = ToggleSwitch()
+        from example_models import create_toggle_switch, create_michaelis_menten
+        model = create_toggle_switch()
         dependencies = dependency_grapher(model, list(model.listOfReactions.keys()))
         correct_graph = {'cu': {'dependencies': ['cv', 'dv']}, 'cv': {'dependencies': ['cu', 'du']},
                          'du': {'dependencies': ['cu']}, 'dv': {'dependencies': ['cv']}}
         self.assertEqual(correct_graph, dependencies)
 
-        model = MichaelisMenten()
+        model = create_michaelis_menten()
         dependencies = dependency_grapher(model, list(model.listOfReactions.keys()))
         correct_graph = {'r1': {'dependencies': ['r2', 'r3']}, 'r2': {'dependencies': ['r1', 'r3']},
                          'r3': {'dependencies': ['r1', 'r2']}}
