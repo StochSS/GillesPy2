@@ -82,7 +82,7 @@ The `run()` method can be customized using keyword arguments to select different
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>k<sub>d</sub></i><br>
 </p>
 
-In GillesPy2, a model is expressed as an object having the parent class `Model`.  Components of the model, such as the reactions, molecular species, and characteristics such as the time span for simulation, are all defined within the subclass definition.  The following Python code represents our dimerization model using GillesPy2's facility:
+In GillesPy2, a model is expressed as an object.  Components, such as the reactions, molecular species, and characteristics such as the time span for simulation, are all defined within the model.  The following Python code represents our dimerization model using GillesPy2's facility:
 
 ```python
 def create_dimerization(parameter_values=None):
@@ -112,14 +112,14 @@ def create_dimerization(parameter_values=None):
     return model
 ```
 
-Given the class definition above, the model can be simulated by first instantiating the class object, and then invoking the `run()` method on the object.  The following code will run the model 10 times to produce 10 sample trajectories:
+Given the model creation function above, the model can be simulated by first instantiating the model object, and then invoking the run() method on the object. The following code will run the model 10 times to produce 10 sample trajectories:
 
 ```python
 model = create_dimerization()
 results = model.run(number_of_trajectories=10)
 ```
 
-The results are then stored in a class `Results` object for single trajectories, or a class `Ensemble` object for multiple trajectories.  Results/Ensembles can be plotted with matplotlib using `plot()` or in plotly (offline) using `plotplotly()`.  For additional plotting options such as plotting from a selection of species, or statistical plotting, please see the documentation.:
+The results are then stored in a class `Results` object for single trajectory or for multiple trajectories.  Results can be plotted with matplotlib using `plot()` or in plotly (offline) using `plotplotly()`.  For additional plotting options such as plotting from a selection of species, or statistical plotting, please see the documentation.:
 
 ```python
 results.plot()
