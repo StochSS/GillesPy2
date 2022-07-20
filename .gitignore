@@ -69,6 +69,4 @@ __pycache__
 .coverage
 htmlcov
 /build
-.idea/vcs.xml
-.idea/workspace.xml
-.idea/workspace.xml
+.idea
