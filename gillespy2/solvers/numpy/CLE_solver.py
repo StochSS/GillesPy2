@@ -105,7 +105,7 @@ class CLESolver(GillesPySolver):
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile','timeout', 'tau_tol')
 
-    def run(self=None, model=None, t=20, number_of_trajectories=1, increment=None, seed=None,
+    def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, seed=None,
             debug=False, profile=False,  live_output=None, live_output_options={},
             timeout=None, resume=None, tau_tol=0.03, **kwargs):
         """
