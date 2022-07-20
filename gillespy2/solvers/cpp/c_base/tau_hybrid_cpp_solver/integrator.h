@@ -81,21 +81,36 @@ namespace Gillespy
         realtype *reactions;
     };
 
+    struct URNGenerator
+    {
+    private:
+        std::uniform_real_distribution<double> uniform;
+        std::mt19937_64 rng;
+        unsigned long long seed;
+    public:
+        double next();
+        URNGenerator() = delete;
+        explicit URNGenerator(unsigned long long seed);
+    };
+
     class Integrator
     {
     private:
         void *cvode_mem;
-        N_Vector y0;
-        double t0;
         SUNLinearSolver solver;
         int num_species;
         int num_reactions;
         int *m_roots = nullptr;
+        URNGenerator urn;
+        Model<double> &model;
     public:
         // status: check for errors before using the results.
         IntegrationStatus status;
         N_Vector y;
+        N_Vector y0;
+        N_Vector y_save;
         realtype t;
+        realtype t_save;
 
         /* save_state()
          * Creates a duplicate copy of the integrator's current solution vector.
@@ -119,7 +134,10 @@ namespace Gillespy
          */
         void refresh_state();
 
-        void reinitialize(N_Vector y_reset);
+        /* rereinitialize()
+         * restore state to the values passed to the constructor.
+         */
+        void reinitialize();
 
         /// @brief Make events available to root-finder during integration.
         /// The root-finder itself is not activated until enable_root_finder() is called.
@@ -157,24 +175,32 @@ namespace Gillespy
 
         void set_error_handler(CVErrHandlerFn error_handler);
 
+
+		inline realtype *get_y_save_ptr()
+		{
+			return &N_VGetArrayPointer(y_save)[0];
+		}
+		inline realtype *get_y0_ptr()
+		{
+			return &N_VGetArrayPointer(y0)[0];
+		}
+
+		inline realtype *get_species_state()
+		{
+			return &N_VGetArrayPointer(y)[0];
+		}
+		inline realtype *get_reaction_state()
+		{
+			return &N_VGetArrayPointer(y)[num_species];
+		}
+
         IntegrationResults integrate(double *t);
         IntegrationResults integrate(double *t, std::set<int> &event_roots, std::set<unsigned int> &reaction_roots);
         IntegratorData data;
 
-        Integrator(HybridSimulation *simulation, N_Vector y0, double reltol, double abstol);
+        Integrator(HybridSimulation *simulation, Model<double> &model, URNGenerator urn, double reltol, double abstol);
         ~Integrator();
-    };
-
-    struct URNGenerator
-    {
-    private:
-        std::uniform_real_distribution<double> uniform;
-        std::mt19937_64 rng;
-        unsigned long long seed;
-    public:
-        double next();
-        URNGenerator() = delete;
-        explicit URNGenerator(unsigned long long seed);
+        void reset_model_vector();
     };
 
     N_Vector init_model_vector(Model<double> &model, URNGenerator urn);

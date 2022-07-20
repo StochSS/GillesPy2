@@ -17,7 +17,11 @@ class TauHybridCSolver(GillesPySolver, CSolver):
     target = "hybrid"
 
     class ErrorStatus(IntEnum):
-        LOOP_OVER_INTEGRATE = 1
+        UNKNOWN = 1
+        LOOP_OVER_INTEGRATE = 2
+        INTEGRATOR_FAILED = 3
+        INVALID_AFTER_SSA = 4
+        NEGATIVE_STATE_NO_SSA_REACTION = 5
 
     @classmethod
     def __create_options(cls, sanitized_model: "SanitizedModel") -> "SanitizedModel":
@@ -167,8 +171,17 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         return super()._build(sanitized_model, simulation_name, variable, debug)
 
     def _handle_return_code(self, return_code: "int") -> "int":
+        if return_code == TauHybridCSolver.ErrorStatus.UNKNOWN:
+            raise ExecutionError("C++ solver failed (no error code given).")
         if return_code == TauHybridCSolver.ErrorStatus.LOOP_OVER_INTEGRATE:
             raise ExecutionError("Loop over integrate exceeded, problem space is too stiff")
+        if return_code == TauHybridCSolver.ErrorStatus.INTEGRATOR_FAILED:
+            raise ExecutionError("Sundials ODE solver failed with 'BAD_STEP_SIZE'")
+        if return_code == TauHybridCSolver.ErrorStatus.INVALID_AFTER_SSA:
+            raise ExecutionError("Invalid state after single SSA step")
+        if return_code == TauHybridCSolver.ErrorStatus.NEGATIVE_STATE_NO_SSA_REACTION:
+            raise ExecutionError("Negative State detected in step, and no reaction found to fire.")
+
         return super()._handle_return_code(return_code)
 
     def get_solver_settings(self):

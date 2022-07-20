@@ -38,15 +38,18 @@ IntegratorData::IntegratorData(HybridSimulation *simulation)
         simulation->model->number_reactions) {}
 
 
-Integrator::Integrator(HybridSimulation *simulation, N_Vector y0, double reltol, double abstol)
-    : y0(y0),
-      t(0.0f),
-      t0(0.0f),
-      y(N_VClone_Serial(y0)),
+Integrator::Integrator(HybridSimulation *simulation, Model<double> &model, URNGenerator urn, double reltol, double abstol)
+    : t(0.0f),
       data(simulation),
+      urn(urn),
+      model(model),
       num_reactions(simulation->model->number_reactions),
       num_species(simulation->model->number_species)
 {
+    y0 = init_model_vector(model, urn);
+    reset_model_vector();
+    y = N_VClone_Serial(y0);
+    y_save = N_VClone_Serial(y0);
     // y0 is the initial state, y is updated during integration.
     // N_VClone_Serial() does not clone *contents*, we have to do that explicitly.
     for (int mem_i = 0; mem_i < num_reactions + num_species; ++mem_i) {
@@ -72,11 +75,11 @@ double Integrator::save_state()
     int max_offset = num_reactions + num_species;
     for (int mem_i = 0; mem_i < max_offset; ++mem_i)
     {
-        NV_Ith_S(y0, mem_i) = NV_Ith_S(y, mem_i);
+        NV_Ith_S(y_save, mem_i) = NV_Ith_S(y, mem_i);
     }
 
-    t0 = t;
-    return t0;
+    t_save = t;
+    return t;
 }
 
 double Integrator::restore_state()
@@ -84,14 +87,15 @@ double Integrator::restore_state()
     int max_offset = num_reactions + num_species;
     for (int mem_i = 0; mem_i < max_offset; ++mem_i)
     {
-        NV_Ith_S(y, mem_i) = NV_Ith_S(y0, mem_i);
+        NV_Ith_S(y, mem_i) = NV_Ith_S(y_save, mem_i);
     }
-    if (!validate(this, CVodeReInit(cvode_mem, t0, y0)))
+    t = t_save;
+    if (!validate(this, CVodeReInit(cvode_mem, t, y)))
     {
         return 0;
     }
 
-    return t0;
+    return t;
 }
 
 void Integrator::refresh_state()
@@ -99,14 +103,16 @@ void Integrator::refresh_state()
     validate(this, CVodeReInit(cvode_mem, t, y));
 }
 
-void Integrator::reinitialize(N_Vector y_reset)
+void Integrator::reinitialize()
 {
     int max_offset = num_reactions + num_species;
     for (int mem_i = 0; mem_i < max_offset; ++mem_i)
     {
-        NV_Ith_S(y0, mem_i) = NV_Ith_S(y_reset, mem_i);
+        NV_Ith_S(y, mem_i) = NV_Ith_S(y0, mem_i);
     }
-    validate(this, CVodeReInit(cvode_mem, 0, y0));
+    t = 0;
+    t_save = 0;
+    validate(this, CVodeReInit(cvode_mem, t, y));
 }
 
 Integrator::~Integrator()
@@ -129,6 +135,24 @@ IntegrationResults Integrator::integrate(double *t)
         NV_DATA_S(y),
         NV_DATA_S(y) + num_species
     };
+}
+
+
+void Integrator::reset_model_vector()
+{
+    int rxn_offset_boundary = model.number_reactions + model.number_species;
+
+    // The second half represents the current "randomized state" for each reaction.
+    // ... | --- rxn_offsets --- ]
+    for (int rxn_i = model.number_species; rxn_i < rxn_offset_boundary; ++rxn_i)
+    {
+        // Represents the current "randomized state" for each reaction, used as a
+        //   helper value to determine if/how many stochastic reactions fire.
+        // This gets initialized to a random negative offset, and gets "less negative"
+        //   during the integration step.
+        // After each integration step, the reaction_state is used to count stochastic reactions.
+        NV_Ith_S(y0, rxn_i) = log(urn.next());
+    }
 }
 
 IntegrationResults Integrator::integrate(double *t, std::set<int> &event_roots, std::set<unsigned int> &reaction_roots)
@@ -263,18 +287,6 @@ N_Vector Gillespy::TauHybrid::init_model_vector(Gillespy::Model<double> &model, 
     for (int spec_i = 0; spec_i < model.number_species; ++spec_i)
     {
         NV_Ith_S(y0, spec_i) = model.species[spec_i].initial_population;
-    }
-
-    // The second half represents the current "randomized state" for each reaction.
-    // ... | --- rxn_offsets --- ]
-    for (int rxn_i = model.number_species; rxn_i < rxn_offset_boundary; ++rxn_i)
-    {
-        // Represents the current "randomized state" for each reaction, used as a
-        //   helper value to determine if/how many stochastic reactions fire.
-        // This gets initialized to a random negative offset, and gets "less negative"
-        //   during the integration step.
-        // After each integration step, the reaction_state is used to count stochastic reactions.
-        NV_Ith_S(y0, rxn_i) = log(urn.next());
     }
 
     return y0;
