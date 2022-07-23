@@ -18,6 +18,7 @@ jobs:
       with:
         msystem: ${{matrix.sys}}
         update: true
+        path-type: inherit
         install: >-
           git
           make
@@ -42,4 +43,5 @@ jobs:
         pip install nbconvert
 
     - name: Run tests
+      shell: msys2 {0}
       run: coverage run --source=gillespy2 --omit=gillespy2/solvers/stochkit/* test/run_tests.py -m develop
