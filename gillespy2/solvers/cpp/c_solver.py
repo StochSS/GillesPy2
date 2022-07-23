@@ -209,7 +209,7 @@ class CSolver:
             )
 
         timeout_event = [False]
-        with subprocess.Popen(sim_args, stdout=subprocess.PIPE, **platform_args) as simulation:
+        with subprocess.Popen(sim_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **platform_args) as simulation:
             def timeout_kill():
                 timeout_event[0] = True
                 proc_kill(simulation)
