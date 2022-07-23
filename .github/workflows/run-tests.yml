@@ -24,7 +24,7 @@ jobs:
         install: >-
           git
           make
-          g++
+          mingw-w64-x86_64-gcc
     
     - name: Initialize environment
       uses: actions/checkout@v2
