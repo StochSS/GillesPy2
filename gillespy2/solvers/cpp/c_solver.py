@@ -239,6 +239,9 @@ class CSolver:
                 return_code = simulation.wait()
                 reader_thread.join()
 
+                _, stderr = simulation.communicate()
+                print("<---ERR--->\n", stderr, "\n<--/ERR--->")
+
                 if timeout_event[0]:
                     return SimulationReturnCode.PAUSED
 

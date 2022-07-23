@@ -10,20 +10,7 @@ jobs:
       matrix:
         # os: [ ubuntu-latest, macos-latest, windows-latest ]
         os: [ windows-latest ]
-        sys:
-        - mingw64
     steps:
-    - name: Setup MSYS2
-      uses: msys2/setup-msys2@v2
-      with:
-        msystem: ${{matrix.sys}}
-        update: true
-        path-type: inherit
-        install: >-
-          git
-          make
-          mingw-w64-x86_64-gcc
-    
     - name: Initialize environment
       uses: actions/checkout@v2
 
@@ -43,5 +30,4 @@ jobs:
         pip install nbconvert
 
     - name: Run tests
-      shell: msys2 {0}
       run: coverage run --source=gillespy2 --omit=gillespy2/solvers/stochkit/* test/run_tests.py -m develop
