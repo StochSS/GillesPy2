@@ -16,6 +16,16 @@ jobs:
       run:
         shell: msys2 {0}
     steps:
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{matrix.sys}}
+        update: true
+        install: >-
+          git
+          make
+          g++
+    
     - name: Initialize environment
       uses: actions/checkout@v2
 
@@ -33,16 +43,6 @@ jobs:
         pip install coverage
         pip install nbformat
         pip install nbconvert
-        
-    - name: Setup MSYS2
-      uses: msys2/setup-msys2@v2
-      with:
-        msystem: ${{matrix.sys}}
-        update: true
-        install: >-
-          git
-          make
-          g++
 
     - name: Run tests
       run: coverage run --source=gillespy2 --omit=gillespy2/solvers/stochkit/* test/run_tests.py -m develop
