@@ -22,7 +22,8 @@ jobs:
     - name: Initialize MinGW dependencies
       run: |
         choco install make
-        choco install mingw
+        choco uninstall mingw
+        choco install mingw --version 8.1.0 --force
 
     - name: Install Python dependencies
       run: | 
