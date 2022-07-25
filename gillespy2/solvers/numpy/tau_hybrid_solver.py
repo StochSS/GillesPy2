@@ -216,14 +216,23 @@ class TauHybridSolver(GillesPySolver):
         #print(f"\t__flag_det_reactions() deterministic_reactions={deterministic_reactions}")
         return deterministic_reactions
 
-    def __calculate_statistics(self, *switch_args):
+    def __calculate_statistics(self, curr_time, propensities, curr_state, tau_step, det_spec, species_history={}, cv_history={}):
         """
         Calculates Mean, Standard Deviation, and Coefficient of Variance for each
         dynamic species, then set if species can be represented determistically
+
+        NOTE: the argument species_history should not be passed in, this is modified by the function
+        to keep a persistent data set.
         """
-        propensities, curr_state, tau_step, det_spec = switch_args
+        #TODO: move configuration to solver init
+        history_length = 12 #cite: "Statistical rules of thumb" G Van Belle
+
+        if curr_time==0.0: #re-set cv_history
+            for k in list(cv_history.keys()):
+                del cv_history[k]
 
         CV = OrderedDict()
+        # calculate CV by estimating the next step
         mn = {species: curr_state[species] for species, value in
               self.model.listOfSpecies.items() if value.mode == 'dynamic'}
         sd = {species: 0 for species, value in
@@ -238,20 +247,100 @@ class TauHybridSolver(GillesPySolver):
                 if product.mode == 'dynamic':
                     mn[product.name] += (tau_step * propensities[r] * rxn.products[product])
                     sd[product.name] += (tau_step * propensities[r] * rxn.products[product] ** 2)
+        # Calcuate the derivative based CV
+        for species,value in self.model.listOfSpecies.items():
+            if value.mode == 'dynamic':
+                if mn[species] > 0:
+                    #CV[species] = sd[species] / mn[species]
+                    CV[species] = np.sqrt(sd[species]) / mn[species]
+                else:
+                    CV[species] = 1  # value chosen to guarantee species will be discrete
+
+        # Keep a history of the past CV values, calculate a time-averaged value
+        CV_a = OrderedDict() # time-averaged CV (forward derivative based)
+        use_average_cv = {}
+        for species,value in self.model.listOfSpecies.items():
+            use_average_cv[species]=True
+            if value.mode == 'dynamic':
+                if species not in cv_history:
+                    cv_history[species] = []
+                cv_history[species].append(CV[species])
+                if len(cv_history[species]) > history_length:
+                    cv_history[species].pop(0) #remove the first item
+                else:
+                    use_average_cv[species] = False
+                CV_a[species] = sum(cv_history[species])/len(cv_history[species])
+
+
+        # Calculate the CV from the past N steps
+#        CV_p = OrderedDict()
+#        use_past_cv = {}
+#        for species,value in self.model.listOfSpecies.items():
+#            use_past_cv[species] = True
+#            if value.mode == 'dynamic':
+#                if species not in species_history:
+#                    species_history[species] = []
+#                species_history[species].append(curr_state[species])
+#                if len(species_history[species]) <= history_length:
+#                    use_past_cv[species] = False
+#                    CV_p[species] = 0.0
+#                else:
+#                    species_history[species].pop(0) #remove the first item
+#                    s=0
+#                    ss=0
+#                    for x in species_history[species]:
+#                        s += x
+#                        ss += x*x
+#                    mn_p = s/len(species_history[species])
+#                    var_p = ss/len(species_history[species]) - mn_p*mn_p 
+#                    CV_p[species] = np.sqrt(var_p)/mn_p
+        
 
         # Get coefficient of variance for each dynamic species
         for species in mn:
+            prev_det = det_spec[species]
             sref = self.model.listOfSpecies[species]
+            #print(f"\t{sref.name}",end='')
             if sref.switch_min == 0:
-                if mn[species] > 0:
-                    CV[species] = sd[species] / mn[species]
-                else:
-                    CV[species] = 1  # value chosen to guarantee discrete
+                #print(f" tol={sref.switch_tol} ",end='')
                 # Set species to deterministic if CV is less than threshhold
-                det_spec[species] = CV[species] < sref.switch_tol
+                #print(f" CV={CV[species]:.4f}",end='');
+                #print(f" CV_p={CV_p[species]:.4f}",end='')
+                #print(f" CV_a={CV_a[species]:.8f}",end='')
+                #print(f" det_spec={det_spec[species]}",end='')
+                #print(f" acv={use_average_cv[species]}",end='')
+                #print(f" pcv={use_past_cv[species]}",end='')
+                #print(f" lh={len(species_history[species])}",end='')
+                #print(f" lh={len(cv_history[species])}",end='')
+                #if use_average_cv[species] and det_spec[species]: # if currently deterministic
+                if True:
+                    det_spec[species] = CV_a[species] < sref.switch_tol
+                #    print(f" 1",end='')
+                #    if not det_spec[species]: # switch to stochastic
+                #        # truncate the history, so CV_p will not switch us back right away
+                #        species_history[species] = []
+                #        print(f"-",end='')
+                #elif use_past_cv[species]:
+                #    det_spec[species] = CV_p[species] < sref.switch_tol
+                #    print(f" 2",end='')
+                #else:
+                #    det_spec[species] = CV[species] < sref.switch_tol
+                #    print(f" 3",end='')
             else:
+                #print(f" min={sref.switch_min}",end='')
+                #print(f" mn={mn[species]:.4f}",end='')
                 det_spec[species] = mn[species] > sref.switch_min
-        return sd, CV
+            #if det_spec[species]: 
+            #    print(" DET")
+            #else:
+            #    print(" STOCH")
+            #print(f"\t{cv_history[species]}")
+            #if prev_det != det_spec[species]:
+            #    print(" #######################################################################")
+            
+
+
+        return mn, sd, CV
 
     @staticmethod
     def __f(t, y, curr_state, species, reactions, rate_rules, propensities,
@@ -1257,9 +1346,14 @@ class TauHybridSolver(GillesPySolver):
                 tau_step = save_times[-1] - curr_time[0] if pure_ode else Tau.select(*tau_args)
 
                 # Process switching if used
+                #print(f"t={curr_time[0]} X=[",end='')
+                #for s,o in self.model.listOfSpecies.items():
+                #    print(f"{s}:{curr_state[0][s]} ",end='')
+                #print("]")
                 if not pure_stochastic and not pure_ode:
-                    switch_args = [propensities, curr_state[0], tau_step, det_spec]
-                    sd, CV = self.__calculate_statistics(*switch_args)
+                    #switch_args = [propensities, curr_state[0], tau_step, det_spec]
+                    #mn, sd, CV = self.__calculate_statistics(*switch_args)
+                    mn, sd, CV = self.__calculate_statistics(curr_time[0], propensities, curr_state[0], tau_step, det_spec)
 
                 #print(f"det_spec={det_spec}")
 
@@ -1268,9 +1362,10 @@ class TauHybridSolver(GillesPySolver):
                     deterministic_reactions = frozenset()  # Empty if non-det
                 else:
                     deterministic_reactions = self.__flag_det_reactions(det_spec, det_rxn, dependencies)
+                #print(f"\tdeterministic_reactions={deterministic_reactions}")
 
                 if debug:
-                    print('mean: {0}'.format(mu_i))
+                    print('mean: {0}'.format(mn))
                     print('standard deviation: {0}'.format(sd))
                     print('CV: {0}'.format(CV))
                     print('det_spec: {0}'.format(det_spec))

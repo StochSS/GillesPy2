@@ -62,7 +62,7 @@ class Species(SortableObject, Jsonify):
     """
 
     def __init__(self, name=None, initial_value=0, constant=False, boundary_condition=False, mode=None,
-                 allow_negative_populations=False, switch_min=0, switch_tol=0.03):
+                 allow_negative_populations=False, switch_min=0, switch_tol=0.005):
         # A species has a name (string) and an initial value (positive integer)
         self.name = name
         self.constant = constant
