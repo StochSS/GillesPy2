@@ -87,6 +87,8 @@ class SanitizedModel:
         # Reactions: maps reaction names to their stoichiometry matrix.
         # Stoichiometry matrix maps a sanitized species name to its stoichiometry.
         self.reactions: "OrderedDict[str, dict[str, int]]" = OrderedDict()
+        self.reaction_reactants: "OrderedDict[str, dict[str, int]]" = OrderedDict()
+        self.reaction_products: "OrderedDict[str, dict[str, int]]" = OrderedDict()
         # Rate Rules: maps sanitized species names to their corresponding rate rule expression.
         self.rate_rules: "OrderedDict[str, str]" = OrderedDict()
         # Options: custom definitions that can be supplied by the solver, maps macros to their definitions.
@@ -122,15 +124,19 @@ class SanitizedModel:
         :type reaction: gillespy2.Reaction
         """
         self.reactions[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
+        self.reaction_reactants[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
+        self.reaction_products[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
         for reactant, stoich_value in reaction.reactants.items():
-            if isinstance(reactant, Species):
+            if hasattr(reactant,'name'):
                 reactant = self.species_names[reactant.name]
             self.reactions[reaction.name][reactant] -= int(stoich_value)
+            self.reaction_reactants[reaction.name][reactant] = int(stoich_value)
 
         for product, stoich_value in reaction.products.items():
-            if isinstance(product, Species):
+            if hasattr(product,'name'):
                 product = self.species_names[product.name]
             self.reactions[reaction.name][product] += int(stoich_value)
+            self.reaction_products[reaction.name][product] = int(stoich_value)
 
         return self
 
@@ -401,18 +407,30 @@ def template_def_reactions(model: SanitizedModel, ode=False) -> "dict[str, str]"
     """
     num_reactions = str(len(model.reactions))
     reaction_set = OrderedDict()
+    reactants_set = OrderedDict()
+    products_set = OrderedDict()
 
     for rxn_name, reaction in model.reactions.items():
         stoich = [str(int(reaction[species])) for species in model.species_names.values()]
         reaction_set[rxn_name] = f"{{{','.join(stoich)}}}"
+    for rxn_name, reaction_reactants in model.reaction_reactants.items():
+        reactants_count = [str(int(reaction_reactants[species])) for species in model.species_names.values()]
+        reactants_set[rxn_name] = f"{{{','.join(reactants_count)}}}"
+    for rxn_name, reaction_products in model.reaction_products.items():
+        products_count = [str(int(reaction_products[species])) for species in model.species_names.values()]
+        products_set[rxn_name] = f"{{{','.join(products_count)}}}"
 
     reaction_names = " ".join([f"REACTION_NAME({rxn})" for rxn in reaction_set.keys()])
     reaction_set = f"{{{','.join(reaction_set.values())}}}"
+    reactants_set = f"{{{','.join(reactants_set.values())}}}"
+    products_set = f"{{{','.join(products_set.values())}}}"
 
     return {
         "GPY_NUM_REACTIONS": num_reactions,
-        "GPY_REACTIONS": reaction_set,
         "GPY_REACTION_NAMES": reaction_names,
+        "GPY_REACTIONS": reaction_set,
+        "GPY_REACTION_REACTANTS": reactants_set,
+        "GPY_REACTION_PRODUCTS": products_set,
     }
 
 
