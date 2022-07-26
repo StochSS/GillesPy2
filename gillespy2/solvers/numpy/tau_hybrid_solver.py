@@ -91,15 +91,6 @@ class TauHybridSolver(GillesPySolver):
         rate_rules = all_compiled['rules']
         rxns = all_compiled['rxns']
 
-        #print(f"\t__toggle_reactions()")
-        #print(f"\t\tinactive_reactions={inactive_reactions}")
-        #print(f"\t\tdeterministic_reactions={deterministic_reactions}")
-        #print(f"\t\trate_rules=[",end='')
-        #for k,v in rate_rules.items():
-        #    print(f"{k}, ",end='')
-        #print("]")
-        #print(f"\t\trxns={list(rxns.keys())}")
-
         # If the set has changed, reactivate non-determinsitic reactions
         reactivate = []
         for r in inactive_reactions:
@@ -216,12 +207,12 @@ class TauHybridSolver(GillesPySolver):
         #print(f"\t__flag_det_reactions() deterministic_reactions={deterministic_reactions}")
         return deterministic_reactions
 
-    def __calculate_statistics(self, curr_time, propensities, curr_state, tau_step, det_spec, species_history={}, cv_history={}):
+    def __calculate_statistics(self, curr_time, propensities, curr_state, tau_step, det_spec, cv_history={}):
         """
         Calculates Mean, Standard Deviation, and Coefficient of Variance for each
         dynamic species, then set if species can be represented determistically
 
-        NOTE: the argument species_history should not be passed in, this is modified by the function
+        NOTE: the argument cv_history should not be passed in, this is modified by the function
         to keep a persistent data set.
         """
         #TODO: move configuration to solver init
@@ -251,94 +242,29 @@ class TauHybridSolver(GillesPySolver):
         for species,value in self.model.listOfSpecies.items():
             if value.mode == 'dynamic':
                 if mn[species] > 0:
-                    #CV[species] = sd[species] / mn[species]
                     CV[species] = np.sqrt(sd[species]) / mn[species]
                 else:
                     CV[species] = 1  # value chosen to guarantee species will be discrete
 
         # Keep a history of the past CV values, calculate a time-averaged value
         CV_a = OrderedDict() # time-averaged CV (forward derivative based)
-        use_average_cv = {}
         for species,value in self.model.listOfSpecies.items():
-            use_average_cv[species]=True
             if value.mode == 'dynamic':
                 if species not in cv_history:
                     cv_history[species] = []
                 cv_history[species].append(CV[species])
                 if len(cv_history[species]) > history_length:
                     cv_history[species].pop(0) #remove the first item
-                else:
-                    use_average_cv[species] = False
                 CV_a[species] = sum(cv_history[species])/len(cv_history[species])
-
-
-        # Calculate the CV from the past N steps
-#        CV_p = OrderedDict()
-#        use_past_cv = {}
-#        for species,value in self.model.listOfSpecies.items():
-#            use_past_cv[species] = True
-#            if value.mode == 'dynamic':
-#                if species not in species_history:
-#                    species_history[species] = []
-#                species_history[species].append(curr_state[species])
-#                if len(species_history[species]) <= history_length:
-#                    use_past_cv[species] = False
-#                    CV_p[species] = 0.0
-#                else:
-#                    species_history[species].pop(0) #remove the first item
-#                    s=0
-#                    ss=0
-#                    for x in species_history[species]:
-#                        s += x
-#                        ss += x*x
-#                    mn_p = s/len(species_history[species])
-#                    var_p = ss/len(species_history[species]) - mn_p*mn_p 
-#                    CV_p[species] = np.sqrt(var_p)/mn_p
-        
 
         # Get coefficient of variance for each dynamic species
         for species in mn:
-            prev_det = det_spec[species]
             sref = self.model.listOfSpecies[species]
-            #print(f"\t{sref.name}",end='')
             if sref.switch_min == 0:
-                #print(f" tol={sref.switch_tol} ",end='')
                 # Set species to deterministic if CV is less than threshhold
-                #print(f" CV={CV[species]:.4f}",end='');
-                #print(f" CV_p={CV_p[species]:.4f}",end='')
-                #print(f" CV_a={CV_a[species]:.8f}",end='')
-                #print(f" det_spec={det_spec[species]}",end='')
-                #print(f" acv={use_average_cv[species]}",end='')
-                #print(f" pcv={use_past_cv[species]}",end='')
-                #print(f" lh={len(species_history[species])}",end='')
-                #print(f" lh={len(cv_history[species])}",end='')
-                #if use_average_cv[species] and det_spec[species]: # if currently deterministic
-                if True:
-                    det_spec[species] = CV_a[species] < sref.switch_tol
-                #    print(f" 1",end='')
-                #    if not det_spec[species]: # switch to stochastic
-                #        # truncate the history, so CV_p will not switch us back right away
-                #        species_history[species] = []
-                #        print(f"-",end='')
-                #elif use_past_cv[species]:
-                #    det_spec[species] = CV_p[species] < sref.switch_tol
-                #    print(f" 2",end='')
-                #else:
-                #    det_spec[species] = CV[species] < sref.switch_tol
-                #    print(f" 3",end='')
+                det_spec[species] = CV_a[species] < sref.switch_tol
             else:
-                #print(f" min={sref.switch_min}",end='')
-                #print(f" mn={mn[species]:.4f}",end='')
                 det_spec[species] = mn[species] > sref.switch_min
-            #if det_spec[species]: 
-            #    print(" DET")
-            #else:
-            #    print(" STOCH")
-            #print(f"\t{cv_history[species]}")
-            #if prev_det != det_spec[species]:
-            #    print(" #######################################################################")
-            
-
 
         return mn, sd, CV
 
@@ -352,32 +278,24 @@ class TauHybridSolver(GillesPySolver):
         state_change = [0] * len(y_map)
         curr_state['t'] = t
         curr_state['time'] = t
-        #print(f"\t\ty_map = {y_map}")
         for item, index in y_map.items():
             if item in assignment_rules:
                 curr_state[assignment_rules[item].variable] = eval(assignment_rules[item].formula,
                                                                    {**eval_globals, **curr_state})
             else:
-                #print(f"\t\t\t __f() curr_state[{item}] = y[{index}] = {y[index]}")
                 curr_state[item] = y[index]
-        #print(f"\t\t___f() active_rr={active_rr}")
         for s, rr in active_rr.items():
             try:
                 state_change[y_map[s.name]] += eval(rr, {**eval_globals, **curr_state})
-                #print(f"\t\t\t'{s.name}': state_change[{y_map[s.name]}] += {eval(rr, {**eval_globals, **curr_state})}")
             except ValueError as e:
-                #print(f"\t\t\t__f() rr eval failed:{e}") 
                 pass
         for i, r in enumerate(compiled_reactions):
             propensities[r] = eval(compiled_reactions[r], {**eval_globals, **curr_state})
             state_change[y_map[r]] += propensities[r]
-            #print(f"\t\t\tpropensities[{r}]={propensities[r]}")
         for event in events:
             triggered = eval(event.trigger.expression, {**eval_globals, **curr_state})
             if triggered: 
                 state_change[y_map[event]] = 1
-        #print(f"\t\tcompiled_reactions={compiled_reactions}")
-        #print(f"\t\tstate_change={state_change}")
         return state_change
 
     def __find_event_time(self, sol, start, end, index, depth):
@@ -462,7 +380,6 @@ class TauHybridSolver(GillesPySolver):
         # Set time to next action
         curr_time = min(sim_end, next_tau, next_event_trigger,
                         next_delayed_event)
-        #print(f"__get_next_step() {next_step[curr_time]}, {curr_time}")
         return next_step[curr_time], curr_time
 
     def __process_queued_events(self, event_queue, trigger_states,
@@ -607,7 +524,6 @@ class TauHybridSolver(GillesPySolver):
         while sol.t < next_tau:
             counter += 1
             sol.step()
-            #print(f"\tt={curr_time}  : sol.y={sol.y}")
 
 
         # Update states of all species based on changes made to species through
@@ -615,15 +531,8 @@ class TauHybridSolver(GillesPySolver):
         # 'continuous', as well as 'dynamic' mode species which have been
         # flagged as deterministic.
         
-        #print(f"\tactive_rr=[",end='')
-        #for k,v in active_rr.items():
-        #    print(f"{k}, ",end='')
-        #print("]")
         for spec_name, species in self.model.listOfSpecies.items():
             if not species.constant:
-                #print(f"\tcurr_state[{spec_name}] = {sol.y[y_map[spec_name]]} mode={self.model.listOfSpecies[spec_name].mode}", end=' ')
-                #if self.model.listOfSpecies[spec_name] in active_rr: print("in active_rr", end='')
-                #print()
                 curr_state[spec_name] = sol.y[y_map[spec_name]]
 
         # Search for precise event times
@@ -690,7 +599,6 @@ class TauHybridSolver(GillesPySolver):
             # check each species to see if they are negative
             for s in species_modified.keys():
                 if curr_state[s] < 0:
-                    #print(f"========='{s}' has negative state '{curr_state[s]}'=====")
                     invalid_state = True
                     err_message += f"'{s}' has negative state '{curr_state[s]}'"
             return (invalid_state, err_message) 
@@ -743,7 +651,6 @@ class TauHybridSolver(GillesPySolver):
         for r in compiled_reactions.keys():
             if curr_state[r] >= 0 and propensities[r] == 0:
                 curr_state[r] = math.log(random.uniform(0, 1))
-        #print(f"\tpropensities={propensities}")
 
 
         sol, curr_time = self.__integrate(integrator, integrator_options, curr_state,
@@ -758,30 +665,11 @@ class TauHybridSolver(GillesPySolver):
                                           pure_ode)
 
         species_modified,rxn_count = self.__update_stochastic_rxn_states(compiled_reactions, curr_state)
-        #print(f"\tafter __integrate()")
-        #print(f"\tX=",end='')
-        #differ=[]
-        #for k,v in curr_state.items():
-        #    print(f"{k}:{v} ",end='')
-        #    try:
-        #        if k =='t' or k=='time': continue
-        #        if curr_state[k] != starting_curr_state[k]:
-        #            differ.append(f"{k} ({curr_state[k]}v{starting_curr_state[k]}")
-        #    except:
-        #        pass
-        #print()
-        #print(f"\tdiffer={differ}")
-        #print(f"\tspecies_modified={species_modified}")
-        #print(f"\trxn_count={rxn_count}")
-
-        #raise Exception('stop')
 
         # Occasionally, a tau step can result in an overly-aggressive
         # forward step and cause a species population to fall below 0,
         # which would result in an erroneous simulation. 
-        #    (PREVIOUS METHOD:)If this occurs, back simulation up one step
-        #    and attempt forward simulation using a smaller tau step.
-        # (NEW METHOD:) Instead we estimate the time to the first 
+        # We estimate the time to the first 
         # stochatic reaction firing (assume constant propensities) and
         # simulate the ODE system until that time, fire that reaction 
         # and continue the simulation.
@@ -810,7 +698,6 @@ class TauHybridSolver(GillesPySolver):
                 except Exception as e:
                     raise SimulationError('Error calculation propensity for {0}.\nReason: {1}\nfloored_propensities={2}\ncompiled_reactions={3}'.format(r, e, floored_propensities,compiled_reactions))
             curr_state = saved_curr_state
-            #print(f"\tfloored_propensities={floored_propensities}")
 
             rxn_times = OrderedDict()
             min_tau = None
@@ -1346,23 +1233,15 @@ class TauHybridSolver(GillesPySolver):
                 tau_step = save_times[-1] - curr_time[0] if pure_ode else Tau.select(*tau_args)
 
                 # Process switching if used
-                #print(f"t={curr_time[0]} X=[",end='')
-                #for s,o in self.model.listOfSpecies.items():
-                #    print(f"{s}:{curr_state[0][s]} ",end='')
-                #print("]")
                 if not pure_stochastic and not pure_ode:
-                    #switch_args = [propensities, curr_state[0], tau_step, det_spec]
-                    #mn, sd, CV = self.__calculate_statistics(*switch_args)
                     mn, sd, CV = self.__calculate_statistics(curr_time[0], propensities, curr_state[0], tau_step, det_spec)
 
-                #print(f"det_spec={det_spec}")
 
                 # Calculate sd and CV for hybrid switching and flag deterministic reactions
                 if pure_stochastic:
                     deterministic_reactions = frozenset()  # Empty if non-det
                 else:
                     deterministic_reactions = self.__flag_det_reactions(det_spec, det_rxn, dependencies)
-                #print(f"\tdeterministic_reactions={deterministic_reactions}")
 
                 if debug:
                     print('mean: {0}'.format(mn))
@@ -1384,10 +1263,6 @@ class TauHybridSolver(GillesPySolver):
                                              compiled_reactions, self.model.listOfEvents, curr_state[0])
 
                 # Run simulation to next step
-                #print(f"\nt={curr_time[0]} curr_state=",end='')
-                #for k,v in curr_state[0].items():
-                #    print(f"{k}:{v} ",end='')
-                #print(f"\t\ttau={tau_step}")
                 sol, curr_state[0], curr_time[0], save_times, save_index = self.__simulate(integrator, integrator_options,
                                                                                curr_state[0], y0, curr_time[0],
                                                                                propensities, species,
