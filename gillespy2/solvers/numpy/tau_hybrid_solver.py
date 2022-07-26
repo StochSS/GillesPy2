@@ -257,7 +257,7 @@ class TauHybridSolver(GillesPySolver):
                     cv_history[species].pop(0) #remove the first item
                 CV_a[species] = sum(cv_history[species])/len(cv_history[species])
 
-        # Get coefficient of variance for each dynamic species
+        # Select DISCRETE or CONTINOUS mode for each species
         for species in mn:
             sref = self.model.listOfSpecies[species]
             if sref.switch_min == 0:

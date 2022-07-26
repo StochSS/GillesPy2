@@ -304,20 +304,29 @@ namespace Gillespy
             int num_species = species.size();
             std::set<int> det_rxns;
 
-            for (int rxn_i = 0; rxn_i < reactions.size(); ++rxn_i)
+            for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
             {
                 // start with the assumption that reaction is determinstic
                 HybridReaction &rxn = reactions[rxn_i];
                 rxn.mode = SimulationState::CONTINUOUS;
 
+                std::cerr<<"\trxn"<<rxn_i;
                 // iterate through the dependent species of this reaction
-                // Loop breaks if we've already determined that it is to be marked as discrete.
                 for (int spec_i = 0; spec_i < num_species && rxn.mode == SimulationState::CONTINUOUS; ++spec_i)
                 {
+                    //std::cerr<< "reaction_reactants["<<rxn_i<<"]["<<spec_i<<"] = "<<Gillespy::reaction_reactants[rxn_i][spec_i];
                     // Reaction has a dependency on a species if its dx is positive or negative.
                     // Any species with "dependency" change of 0 is by definition not a dependency.
-                    if (rxn.get_base_reaction()->species_change[spec_i] == 0)
+                    //if (rxn.get_base_reaction()->species_change[spec_i] == 0)
+                        //TODO: just because a species has a zero change to a reaction,
+                        // does not mean it is not a dependency.  Example:
+                        //  A + B -> B + C
+                        //  stoichiometry of B is zero, but it is still a dependency
+                        //  need to transfer this info to here
+                    if (rxn.get_base_reaction()->reactants_change[spec_i] == 0 && 
+                        rxn.get_base_reaction()->products_change[spec_i] == 0)
                     {
+                        std::cerr<<" s"<<spec_i<<" not dep";
                         continue;
                     }
 
@@ -327,14 +336,26 @@ namespace Gillespy
                     if (species[spec_i].user_mode == SimulationState::DYNAMIC)
                     {
                         rxn.mode = species[spec_i].partition_mode;
+                        std::cerr<<" s"<<spec_i<<" DYN-";
+                        if(species[spec_i].partition_mode == SimulationState::DISCRETE){
+                           std::cerr<<"DISCRETE";
+                        }else{
+                           std::cerr<<"CONTINIOUS";
+                        }
                     } else
                     {
                         rxn.mode = species[spec_i].user_mode;
+                    }
+                    // Loop breaks if we've already determined that it is to be marked as discrete.
+                    if(rxn.mode == SimulationState::DISCRETE){
+                        std::cerr<<" DISCRETE (due to spec"<<spec_i<<")\n";
+                        break;
                     }
                 }
 
                 if (rxn.mode == SimulationState::CONTINUOUS)
                 {
+                    std::cerr<<" CONTINUOUS\n";
                     det_rxns.insert(rxn_i);
                 }
             }
@@ -343,6 +364,7 @@ namespace Gillespy
         }
 
         void partition_species(
+                double current_time,
                 std::vector<HybridReaction> &reactions,
                 std::vector<HybridSpecies> &species,
                 const std::vector<double> &propensity_values,
@@ -350,6 +372,8 @@ namespace Gillespy
                 double tau_step,
                 const TauArgs<double> &tauArgs)
         {
+            
+
             // coefficient of variance- key:species id, value: cv
             std::map<int, double> cv;
             // means
@@ -376,57 +400,101 @@ namespace Gillespy
 
                 for (int spec_i = 0; spec_i < species.size(); ++spec_i)
                 {
-                    // Only dynamic species whose mean/SD is requested are to be considered.
-                    if (means.count(spec_i) <= 0)
+                    HybridSpecies &spec = species[spec_i];
+
+                    // Only dynamic species are to be considered.
+                    if (spec.user_mode != SimulationState::DYNAMIC)
                     {
                         continue;
                     }
-                    // Selected species is either a reactant or a product, depending on whether
-                    //   dx is positive or negative.
-                    // 0-dx species are not dependencies of this reaction, so dx == 0 is ignored.
-                    int spec_dx = rxn.get_base_reaction()->species_change[spec_i];
-                    if (spec_dx < 0)
+                    // Selected species is either a reactant or a product, 
+                    if(rxn.get_base_reaction()->reactants_change[spec_i] > 0)
                     {
                         // Selected species is a reactant.
-                        means[spec_i] -= (tau_step * propensity_values[rxn_i] * spec_dx);
-                        sd[spec_i] += (tau_step * propensity_values[rxn_i] * std::pow(spec_dx, 2));
-                    } else if (spec_dx > 0)
+                        means[spec_i] -= (tau_step * propensity_values[rxn_i] * rxn.get_base_reaction()->reactants_change[spec_i]);
+                        sd[spec_i] += (tau_step * propensity_values[rxn_i] * std::pow(rxn.get_base_reaction()->reactants_change[spec_i], 2));
+                    } else if(rxn.get_base_reaction()->products_change[spec_i] > 0)
                     {
                         // Selected species is a product.
                         HybridSpecies &product = species[spec_i];
-                        means[spec_i] += (tau_step * propensity_values[rxn_i] * spec_dx);
-                        sd[spec_i] += (tau_step * propensity_values[rxn_i] * std::pow(spec_dx, 2));
+                        means[spec_i] += (tau_step * propensity_values[rxn_i] * rxn.get_base_reaction()->products_change[spec_i]);
+                        sd[spec_i] += (tau_step * propensity_values[rxn_i] * std::pow(rxn.get_base_reaction()->products_change[spec_i], 2));
                     }
                 }
             }
-
             // calculate coefficient of variation using means and sd
             for (int spec_i = 0; spec_i < species.size(); ++spec_i)
             {
-                if (means.count(spec_i) <= 0)
+                HybridSpecies &spec = species[spec_i];
+
+                // Only dynamic species are to be considered.
+                if (spec.user_mode != SimulationState::DYNAMIC)
                 {
                     continue;
                 }
-                
+                if (means[spec_i] > 0)
+                {
+                    cv[spec_i] = (sqrt(sd[spec_i]) / means[spec_i]);
+                } else
+                {
+                    cv[spec_i] = 1;
+                }
+            }
 
+            // keep a history of the past CV values, and calculate a time-average values
+            std::map<int, double> CV_a;
+            static std::map<int, std::queue<double>> cv_history;
+            static std::map<int, double> cv_history_sum;
+            int history_length = 12;
+            // 
+            if( current_time == 0.0 ){  // reset cv_history at start of trajectory
+                cv_history.clear();
+                cv_history_sum.clear();
+            }
+
+            for (int spec_i = 0; spec_i < species.size(); ++spec_i)
+            {
+                
                 HybridSpecies &spec = species[spec_i];
+                // Only dynamic species are to be considered.
+                if (spec.user_mode != SimulationState::DYNAMIC){
+                    continue;
+                }
+                if(cv_history.count(spec_i) == 0){
+                    cv_history[spec_i] = std::queue<double>();
+                }
+                if(cv_history_sum.count(spec_i) == 0){
+                    cv_history_sum[spec_i] = 0.0;
+                }
+                cv_history[spec_i].push(cv[spec_i]);
+                cv_history_sum[spec_i] += cv[spec_i];
+                if(cv_history[spec_i].size() > history_length){
+                    double removed = cv_history[spec_i].front();
+                    cv_history[spec_i].pop();
+                    cv_history_sum[spec_i] -= removed;
+                }
+                CV_a[spec_i] = cv_history_sum[spec_i]/cv_history[spec_i].size();
+            }
+
+            // Select DISCRETE or CONTINOUS mode for each species
+            for (int spec_i = 0; spec_i < species.size(); ++spec_i)
+            {
+                HybridSpecies &spec = species[spec_i];
+
+                // Only dynamic species are to be considered.
+                if (spec.user_mode != SimulationState::DYNAMIC)
+                {
+                    continue;
+                }
                 if (spec.switch_min == 0)
                 {
                     // (default value means switch  min not set, use switch tol)
-                    if (means[spec_i] > 0)
-                    {
-                        cv[spec_i] = (sd[spec_i] / means[spec_i]);
-                    } else
-                    {
-                        cv[spec_i] = 1;
-                    }
-                    //std::cerr<<"\t\tspec"<<spec_i<<" cv="<<cv[spec_i]<<"=("<<sd[spec_i]<<" / "<<means[spec_i]<<") switch_tol="<<spec.switch_tol<<"\n";
-
-                    spec.partition_mode = cv[spec_i] < spec.switch_tol
+                    std::cerr<<"\t\tspec"<<spec_i<<" CV_a="<<CV_a[spec_i]<<" tol="<<spec.switch_tol<<"\n";
+                    spec.partition_mode = CV_a[spec_i] < spec.switch_tol
                                           ? SimulationState::CONTINUOUS
                                           : SimulationState::DISCRETE;
                 } else {
-                    //std::cerr<<"\t\tspec"<<spec_i<<" mean="<<means[spec_i]<<" switch_min="<<spec.switch_min<<"\n";
+                    std::cerr<<"\t\tspec"<<spec_i<<" mean="<<means[spec_i]<<" min="<<spec.switch_min<<"\n";
                     spec.partition_mode = means[spec_i] > spec.switch_min
                                           ? SimulationState::CONTINUOUS
                                           : SimulationState::DISCRETE;
