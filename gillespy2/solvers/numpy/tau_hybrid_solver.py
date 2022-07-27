@@ -232,12 +232,12 @@ class TauHybridSolver(GillesPySolver):
         for r, rxn in self.model.listOfReactions.items():
             for reactant in rxn.reactants:
                 if reactant.mode == 'dynamic':
-                    mn[reactant.name] -= (tau_step * propensities[r] * rxn.reactants[reactant])
-                    sd[reactant.name] += (tau_step * propensities[r] * rxn.reactants[reactant] ** 2)
+                    mn[reactant.name] -= (propensities[r] * rxn.reactants[reactant])
+                    sd[reactant.name] += (propensities[r] * rxn.reactants[reactant] ** 2)
             for product in rxn.products:
                 if product.mode == 'dynamic':
-                    mn[product.name] += (tau_step * propensities[r] * rxn.products[product])
-                    sd[product.name] += (tau_step * propensities[r] * rxn.products[product] ** 2)
+                    mn[product.name] += (propensities[r] * rxn.products[product])
+                    sd[product.name] += (propensities[r] * rxn.products[product] ** 2)
         # Calcuate the derivative based CV
         for species,value in self.model.listOfSpecies.items():
             if value.mode == 'dynamic':
@@ -257,12 +257,14 @@ class TauHybridSolver(GillesPySolver):
                     cv_history[species].pop(0) #remove the first item
                 CV_a[species] = sum(cv_history[species])/len(cv_history[species])
 
-        # Select DISCRETE or CONTINOUS mode for each species
+
+
+        # Get coefficient of variance for each dynamic species
         for species in mn:
             sref = self.model.listOfSpecies[species]
             if sref.switch_min == 0:
                 # Set species to deterministic if CV is less than threshhold
-                det_spec[species] = CV_a[species] < sref.switch_tol
+                det_spec[species] = CV[species] < sref.switch_tol
             else:
                 det_spec[species] = mn[species] > sref.switch_min
 

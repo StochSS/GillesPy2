@@ -375,7 +375,7 @@ namespace Gillespy
             
 
             // coefficient of variance- key:species id, value: cv
-            std::map<int, double> cv;
+            std::map<int, double> CV;
             // means
             std::map<int, double> means;
             // standard deviation
@@ -411,14 +411,14 @@ namespace Gillespy
                     if(rxn.get_base_reaction()->reactants_change[spec_i] > 0)
                     {
                         // Selected species is a reactant.
-                        means[spec_i] -= (tau_step * propensity_values[rxn_i] * rxn.get_base_reaction()->reactants_change[spec_i]);
-                        sd[spec_i] += (tau_step * propensity_values[rxn_i] * std::pow(rxn.get_base_reaction()->reactants_change[spec_i], 2));
+                        means[spec_i] -= (propensity_values[rxn_i] * rxn.get_base_reaction()->reactants_change[spec_i]);
+                        sd[spec_i] += (propensity_values[rxn_i] * std::pow(rxn.get_base_reaction()->reactants_change[spec_i], 2));
                     } else if(rxn.get_base_reaction()->products_change[spec_i] > 0)
                     {
                         // Selected species is a product.
                         HybridSpecies &product = species[spec_i];
-                        means[spec_i] += (tau_step * propensity_values[rxn_i] * rxn.get_base_reaction()->products_change[spec_i]);
-                        sd[spec_i] += (tau_step * propensity_values[rxn_i] * std::pow(rxn.get_base_reaction()->products_change[spec_i], 2));
+                        means[spec_i] += (propensity_values[rxn_i] * rxn.get_base_reaction()->products_change[spec_i]);
+                        sd[spec_i] += (propensity_values[rxn_i] * std::pow(rxn.get_base_reaction()->products_change[spec_i], 2));
                     }
                 }
             }
@@ -434,10 +434,10 @@ namespace Gillespy
                 }
                 if (means[spec_i] > 0)
                 {
-                    cv[spec_i] = (sqrt(sd[spec_i]) / means[spec_i]);
+                    CV[spec_i] = (sqrt(sd[spec_i]) / means[spec_i]);
                 } else
                 {
-                    cv[spec_i] = 1;
+                    CV[spec_i] = 1;
                 }
             }
 
@@ -466,8 +466,8 @@ namespace Gillespy
                 if(cv_history_sum.count(spec_i) == 0){
                     cv_history_sum[spec_i] = 0.0;
                 }
-                cv_history[spec_i].push(cv[spec_i]);
-                cv_history_sum[spec_i] += cv[spec_i];
+                cv_history[spec_i].push(CV[spec_i]);
+                cv_history_sum[spec_i] += CV[spec_i];
                 if(cv_history[spec_i].size() > history_length){
                     double removed = cv_history[spec_i].front();
                     cv_history[spec_i].pop();
@@ -489,8 +489,7 @@ namespace Gillespy
                 if (spec.switch_min == 0)
                 {
                     // (default value means switch  min not set, use switch tol)
-                    std::cerr<<"\t\tspec"<<spec_i<<" CV_a="<<CV_a[spec_i]<<" tol="<<spec.switch_tol<<"\n";
-                    spec.partition_mode = CV_a[spec_i] < spec.switch_tol
+                    spec.partition_mode = CV[spec_i] < spec.switch_tol
                                           ? SimulationState::CONTINUOUS
                                           : SimulationState::DISCRETE;
                 } else {
