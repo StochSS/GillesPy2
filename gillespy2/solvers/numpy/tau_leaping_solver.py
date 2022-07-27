@@ -28,7 +28,7 @@ from gillespy2.core.results import Results
 
 class TauLeapingSolver(GillesPySolver):
     """
-    A Tau Leaping solver for GillesPy2 models.  This solver uses an algorithm calculates
+    A Tau Leaping solver for GillesPy2 models.  This solver uses an algorithm that calculates
     multiple reactions in a single step over a given tau step size.  The change in propensities
     over this step are bounded by bounding the relative change in state, yielding greatly improved
     run-time performance with very little trade-off in accuracy.

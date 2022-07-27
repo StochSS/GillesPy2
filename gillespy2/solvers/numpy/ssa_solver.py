@@ -65,7 +65,7 @@ class NumPySSASolver(GillesPySolver):
             live_output=None, live_output_options={}, timeout=None, resume=None, **kwargs):
 
         """
-        Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
+        Run the SSA algorithm. Uses a NumPy array for storing results and for generating the timeline.
 
         :param model: The model on which the solver will operate. (Deprecated)
         :type model: gillespy2.Model

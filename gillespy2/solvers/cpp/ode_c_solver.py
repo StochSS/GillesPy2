@@ -26,7 +26,7 @@ from .c_solver import CSolver, SimulationReturnCode
 class ODECSolver(GillesPySolver, CSolver):
     """
     This Solver produces the deterministic continuous solution via Ordinary Differential Equations.
-    Uses integrators from scipy.integrate.ode to perform calculations used to produce solutions.
+    Uses integrators from SUNDIALS to perform calculations used to produce solutions.
     """
 
     name = "ODECSolver"
