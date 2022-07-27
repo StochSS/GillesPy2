@@ -873,7 +873,7 @@ realtype N_VMinQuotient_Serial(N_Vector num, N_Vector denom)
     else {
       if (!notEvenOnce) min = SUNMIN(min, nd[i]/dd[i]);
       else {
-	min = nd[i]/dd[i];
+  min = nd[i]/dd[i];
         notEvenOnce = SUNFALSE;
       }
     }

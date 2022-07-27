@@ -99,3 +99,7 @@ class ResultsError(Exception):
 
 class ValidationError(ResultsError):
     pass
+
+
+class SBMLError(Exception):
+    pass
