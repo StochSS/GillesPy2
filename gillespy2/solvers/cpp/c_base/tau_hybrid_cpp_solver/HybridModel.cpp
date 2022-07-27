@@ -489,7 +489,7 @@ namespace Gillespy
                 if (spec.switch_min == 0)
                 {
                     // (default value means switch  min not set, use switch tol)
-                    spec.partition_mode = CV[spec_i] < spec.switch_tol
+                    spec.partition_mode = CV_a[spec_i] < spec.switch_tol
                                           ? SimulationState::CONTINUOUS
                                           : SimulationState::DISCRETE;
                 } else {
