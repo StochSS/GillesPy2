@@ -98,13 +98,13 @@ namespace Gillespy
                             if(only_reaction_to_fire == rxn_i){
                                     rxn_state = log(urn.next());
                                     rxn_count = 1;
-                                    std::cerr << "  rxn"<<rxn_i<<" 1 single SSA\n";
+                                    //std::cerr << "  rxn"<<rxn_i<<" 1 single SSA\n";
                             }
                         }else if(rxn_state > 0){
                             std::poisson_distribution<int> poisson(rxn_state);
                             rxn_count = 1 + poisson(generator);
                             rxn_state = log(urn.next());
-                            std::cerr << "  rxn"<<rxn_i<<" "<<rxn_count<<" poisson\n";
+                            //std::cerr << "  rxn"<<rxn_i<<" "<<rxn_count<<" poisson\n";
 
                         }
                         if(rxn_count > 0){
@@ -113,8 +113,8 @@ namespace Gillespy
                             }
                             result.reactions[rxn_i] = rxn_state;
                         }
-                    }else{
-                        std::cerr << "  rxn"<<rxn_i<<" continious\n";
+                    //}else{
+                    //    std::cerr << "  rxn"<<rxn_i<<" continious\n";
                     }
                 }
             }
@@ -330,20 +330,20 @@ namespace Gillespy
                     // For now, a "guard" is put in place to prevent potentially infinite loops from occurring.
 
                     //***********************************************************
-                    std::cerr<<"t="<<simulation->current_time<<" tau="<<tau_step<<" [";
-                    for(int spec_i = 0; spec_i < num_species; ++spec_i){
-                        std::cerr<<current_state[spec_i]<<" ";
-                    }
-                    std::cerr<<"] [";
-                    for(int spec_i = 0; spec_i < num_species; ++spec_i){
-                        HybridSpecies *spec = &simulation->species_state[spec_i];
-                        if( spec->partition_mode == SimulationState::CONTINUOUS ){
-                            std::cerr<<"C ";
-                        }else if( spec->partition_mode == SimulationState::DISCRETE ){
-                            std::cerr<<"D ";
-                        }
-                    }
-                    std::cerr<<"]\n";
+                    //std::cerr<<"t="<<simulation->current_time<<" tau="<<tau_step<<" [";
+                    //for(int spec_i = 0; spec_i < num_species; ++spec_i){
+                    //    std::cerr<<current_state[spec_i]<<" ";
+                    //}
+                    //std::cerr<<"] [";
+                    //for(int spec_i = 0; spec_i < num_species; ++spec_i){
+                    //    HybridSpecies *spec = &simulation->species_state[spec_i];
+                    //    if( spec->partition_mode == SimulationState::CONTINUOUS ){
+                    //        std::cerr<<"C ";
+                    //    }else if( spec->partition_mode == SimulationState::DISCRETE ){
+                    //        std::cerr<<"D ";
+                    //    }
+                    //}
+                    //std::cerr<<"]\n";
                     //***********************************************************
 
                     IntegrationResults result;
@@ -391,7 +391,7 @@ namespace Gillespy
                             //std::cerr<<"\n";
                         }
                         if(rxn_selected == -1){
-                            std::cerr << "Negative State detected in step, and no reaction found to fire.\n";
+                            //std::cerr << "Negative State detected in step, and no reaction found to fire.\n";
                             simulation->set_status(HybridSimulation::NEGATIVE_STATE_NO_SSA_REACTION);
                             return;
                         }

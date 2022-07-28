@@ -111,22 +111,11 @@ class TauHybridSolver(GillesPySolver):
 
         # Check if this reaction set is already compiled and in use:
         if deterministic_reactions in rr_sets.keys():
-            #print(f"\treturn rr_sets[{deterministic_reactions}]=[")
-            #for k,v in rr_sets[deterministic_reactions].items():
-            #    print(f"{k}={v}, ",end='')
-            #print("]")
             return rr_sets[deterministic_reactions]
         else:
         # Otherwise, this is a new determinstic reaction set that must be compiled
             tmp =  self.__create_diff_eqs(deterministic_reactions,
                                             dependencies, rr_sets, rate_rules)
-            #print(f"\tdeterministic_reactions={deterministic_reactions}")
-            #print(f"\tdependencies={dependencies}")
-            #print(f"\trr_sets={rr_sets}")
-            #print(f"\treturn __create_diff_eqs()=", end='')
-            #for k,v in tmp.items():
-            #    print(f"{k}={v}, ",end='')
-            #print()
             return tmp
 
     def __create_diff_eqs(self, comb, dependencies, rr_sets, rate_rules):
@@ -204,7 +193,6 @@ class TauHybridSolver(GillesPySolver):
             if det_rxn[rxn]:
                 deterministic_reactions.add(rxn)
         deterministic_reactions = frozenset(deterministic_reactions)
-        #print(f"\t__flag_det_reactions() deterministic_reactions={deterministic_reactions}")
         return deterministic_reactions
 
     def __calculate_statistics(self, curr_time, propensities, curr_state, tau_step, det_spec, cv_history={}):
@@ -233,16 +221,16 @@ class TauHybridSolver(GillesPySolver):
             for reactant in rxn.reactants:
                 if reactant.mode == 'dynamic':
                     mn[reactant.name] -= (propensities[r] * rxn.reactants[reactant])
-                    sd[reactant.name] += (propensities[r] * rxn.reactants[reactant] ** 2)
+                    sd[reactant.name] += (propensities[r] * (rxn.reactants[reactant] ** 2))
             for product in rxn.products:
                 if product.mode == 'dynamic':
                     mn[product.name] += (propensities[r] * rxn.products[product])
-                    sd[product.name] += (propensities[r] * rxn.products[product] ** 2)
+                    sd[product.name] += (propensities[r] * (rxn.products[product] ** 2))
         # Calcuate the derivative based CV
         for species,value in self.model.listOfSpecies.items():
             if value.mode == 'dynamic':
-                if mn[species] > 0:
-                    CV[species] = np.sqrt(sd[species]) / mn[species]
+                if mn[species] > 0 and sd[species] > 0:
+                        CV[species] = math.sqrt(sd[species]) / mn[species]
                 else:
                     CV[species] = 1  # value chosen to guarantee species will be discrete
 
@@ -257,14 +245,13 @@ class TauHybridSolver(GillesPySolver):
                     cv_history[species].pop(0) #remove the first item
                 CV_a[species] = sum(cv_history[species])/len(cv_history[species])
 
-
-
-        # Get coefficient of variance for each dynamic species
+        # Select DISCRETE or CONTINOUS mode for each species
         for species in mn:
+            prev_det = det_spec[species]
             sref = self.model.listOfSpecies[species]
             if sref.switch_min == 0:
                 # Set species to deterministic if CV is less than threshhold
-                det_spec[species] = CV[species] < sref.switch_tol
+                det_spec[species] = CV_a[species] < sref.switch_tol
             else:
                 det_spec[species] = mn[species] > sref.switch_min
 
@@ -1237,7 +1224,6 @@ class TauHybridSolver(GillesPySolver):
                 # Process switching if used
                 if not pure_stochastic and not pure_ode:
                     mn, sd, CV = self.__calculate_statistics(curr_time[0], propensities, curr_state[0], tau_step, det_spec)
-
 
                 # Calculate sd and CV for hybrid switching and flag deterministic reactions
                 if pure_stochastic:
