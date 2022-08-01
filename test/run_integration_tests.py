@@ -49,7 +49,7 @@ if __name__ == '__main__':
     import test_SBML
     import test_StochML
     #import test_example_models
-    import test_all_solvers
+    #import test_all_solvers
     import test_sys_init
     import test_results
     import test_propensity_parser
@@ -77,7 +77,7 @@ if __name__ == '__main__':
        test_SBML,
        test_StochML,
        #test_example_models,
-       test_all_solvers,
+       #test_all_solvers,
        test_sys_init,
        test_results,
        test_propensity_parser,
