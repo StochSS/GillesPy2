@@ -70,7 +70,11 @@ namespace Gillespy {
         for (unsigned int r1 = 0; r1 < number_reactions; r1++) {
             for (unsigned int r2 = 0; r2 < number_reactions; r2++) {
                 for (unsigned int s = 0; s < number_species; s++) {
-                    if( reactions[r1].products_change[s] > 0 &&
+                    if( r1 == r2 ){
+                        if ( reactions[r2].reactants_change[s] > 0 ){
+                            reactions[r1].affected_reactions.push_back(r2);
+                        }
+                    }else if( reactions[r1].products_change[s] > 0 &&
                         reactions[r2].reactants_change[s] > 0 ){
                         reactions[r1].affected_reactions.push_back(r2);
                     }

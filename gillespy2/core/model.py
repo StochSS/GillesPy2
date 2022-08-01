@@ -241,7 +241,9 @@ class Model(SortableObject, Jsonify):
             print_string += decorate('Function Definitions')
             for fd in sorted(self.listOfFunctionDefinitions.values()):
                 print_string += '\n' + str(fd)
-
+        if self.tspan is not None:
+            print_string += decorate('Timespan')
+            print_string += str(self.tspan)
         return print_string
 
     def __getitem__(self, key):

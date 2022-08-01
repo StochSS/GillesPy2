@@ -21,6 +21,16 @@ jobs:
       with:
         python-version: ${{ matrix.python-versions }}
 
+    # see: https://github.com/actions/virtual-environments/pull/5729
+    # GHA recently upgrading MinGW to v11.20, which seems to break things in that environment.
+    # Until this issue can be addressed, downgrade to the previous known working version, v8.1.0.
+    - name: Initialize MinGW dependencies
+      run: |
+        choco install make
+        choco uninstall mingw
+        choco install mingw --version 8.1.0 --force
+      if: matrix.os == 'windows-latest'
+
     - name: Install Python dependencies
       run: | 
         python -m pip install --upgrade pip
