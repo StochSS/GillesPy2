@@ -310,14 +310,11 @@ namespace Gillespy
                 HybridReaction &rxn = reactions[rxn_i];
                 rxn.mode = SimulationState::CONTINUOUS;
 
-                //std::cerr<<"\trxn"<<rxn_i;
                 // iterate through the dependent species of this reaction
                 for (int spec_i = 0; spec_i < num_species && rxn.mode == SimulationState::CONTINUOUS; ++spec_i)
                 {
-                    //std::cerr<< "reaction_reactants["<<rxn_i<<"]["<<spec_i<<"] = "<<Gillespy::reaction_reactants[rxn_i][spec_i];
                     if (rxn.get_base_reaction()->reactants_change[spec_i] == 0 && 
                         rxn.get_base_reaction()->products_change[spec_i] == 0) {
-                        //std::cerr<<" s"<<spec_i<<" not dep";
                         continue;
                     }
 
@@ -326,24 +323,16 @@ namespace Gillespy
                     // allow it to be modelled discretely
                     if (species[spec_i].user_mode == SimulationState::DYNAMIC) {
                         rxn.mode = species[spec_i].partition_mode;
-                        //std::cerr<<" s"<<spec_i<<" DYN-";
-                        //if(species[spec_i].partition_mode == SimulationState::DISCRETE){
-                        //   std::cerr<<"DISCRETE";
-                        //}else{
-                        //   std::cerr<<"CONTINIOUS";
-                        //}
                     } else {
                         rxn.mode = species[spec_i].user_mode;
                     }
                     // Loop breaks if we've already determined that it is to be marked as discrete.
                     if(rxn.mode == SimulationState::DISCRETE){
-                        //std::cerr<<" DISCRETE (due to spec"<<spec_i<<")\n";
                         break;
                     }
                 }
 
                 if (rxn.mode == SimulationState::CONTINUOUS) {
-                    //std::cerr<<" CONTINUOUS\n";
                     det_rxns.insert(rxn_i);
                 }
             }
@@ -375,9 +364,6 @@ namespace Gillespy
 
                 if (spec.user_mode == SimulationState::DYNAMIC) {
                     means.insert({spec_i, curr_state[spec_i]});
-                    //if(spec_i==1){
-                    //    std::cerr<<"\tspec"<<spec_i<<" means="<<curr_state[spec_i];
-                    //}
                     sd.insert({spec_i, 0});
                 }
             }
@@ -396,30 +382,15 @@ namespace Gillespy
                         // Selected species is a reactant.
                         means[spec_i] -= (propensity_values[rxn_i] * rxn.get_base_reaction()->reactants_change[spec_i]);
                         sd[spec_i] += (propensity_values[rxn_i] * std::pow(rxn.get_base_reaction()->reactants_change[spec_i], 2));
-                        //if(spec_i==1){
-                        //    std::cerr<<"[rxn"<<rxn_i<<"r]:";
-                        //    std::cerr<<" means -= "<<(propensity_values[rxn_i] * rxn.get_base_reaction()->reactants_change[spec_i]);
-                        //    std::cerr<<"  ["<<propensity_values[rxn_i]<<" * "<<rxn.get_base_reaction()->reactants_change[spec_i]<<"]";
-                        //    std::cerr<<" sd += "<<(propensity_values[rxn_i] * std::pow(rxn.get_base_reaction()->reactants_change[spec_i], 2));
-                        //    std::cerr<<"  ["<<propensity_values[rxn_i]<<" * "<<std::pow(rxn.get_base_reaction()->reactants_change[spec_i], 2)<<"]";
-                        //}
                     } 
                     if(rxn.get_base_reaction()->products_change[spec_i] > 0) {
                         // Selected species is a product.
                         HybridSpecies &product = species[spec_i];
                         means[spec_i] += (propensity_values[rxn_i] * rxn.get_base_reaction()->products_change[spec_i]);
                         sd[spec_i] += (propensity_values[rxn_i] * std::pow(rxn.get_base_reaction()->products_change[spec_i], 2));
-                        //if(spec_i==1){
-                        //    std::cerr<<"[rxn"<<rxn_i<<"p]:";
-                        //    std::cerr<<" means += "<<(propensity_values[rxn_i] * rxn.get_base_reaction()->products_change[spec_i]);
-                        //    std::cerr<<"  ["<<propensity_values[rxn_i]<<" * "<<rxn.get_base_reaction()->products_change[spec_i]<<"]";
-                        //    std::cerr<<" sd += "<<(propensity_values[rxn_i] * std::pow(rxn.get_base_reaction()->products_change[spec_i], 2));
-                        //    std::cerr<<"  ["<<propensity_values[rxn_i]<<" * "<<std::pow(rxn.get_base_reaction()->products_change[spec_i], 2)<<"]";
-                        //}
                     }
                 }
             }
-            //std::cerr<<"\n";
             // calculate coefficient of variation using means and sd
             for (int spec_i = 0; spec_i < species.size(); ++spec_i) {
                 HybridSpecies &spec = species[spec_i];
@@ -480,20 +451,14 @@ namespace Gillespy
                 unsigned int prev_partition = spec.partition_mode;
                 if (spec.switch_min == 0) {
                     // (default value means switch  min not set, use switch tol)
-                    //std::cerr<<"\t\tspec"<<spec_i<<" tol="<<spec.switch_tol<<" CV="<<CV[spec_i]<<" CV_a="<<CV_a[spec_i]<<"=(sqrt("<<sd[spec_i]<<") / "<<means[spec_i]<<")";
                     spec.partition_mode = CV_a[spec_i] < spec.switch_tol
                                           ? SimulationState::CONTINUOUS
                                           : SimulationState::DISCRETE;
                 } else {
-                    //std::cerr<<"\t\tspec"<<spec_i<<" mean="<<means[spec_i]<<" min="<<spec.switch_min;
                     spec.partition_mode = means[spec_i] > spec.switch_min
                                           ? SimulationState::CONTINUOUS
                                           : SimulationState::DISCRETE;
                 }
-                //if(spec.partition_mode != prev_partition){
-                //    std::cerr<<" ***********************************************";
-                //}
-                //std::cerr<<"\n";
             }
         }
 
