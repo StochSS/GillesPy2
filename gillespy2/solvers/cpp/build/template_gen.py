@@ -127,14 +127,12 @@ class SanitizedModel:
         self.reaction_reactants[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
         self.reaction_products[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
         for reactant, stoich_value in reaction.reactants.items():
-            if hasattr(reactant,'name'):
-                reactant = self.species_names[reactant.name]
+            reactant = self.species_names[reactant.name]
             self.reactions[reaction.name][reactant] -= int(stoich_value)
             self.reaction_reactants[reaction.name][reactant] = int(stoich_value)
 
         for product, stoich_value in reaction.products.items():
-            if hasattr(product,'name'):
-                product = self.species_names[product.name]
+            product = self.species_names[product.name]
             self.reactions[reaction.name][product] += int(stoich_value)
             self.reaction_products[reaction.name][product] = int(stoich_value)
 
