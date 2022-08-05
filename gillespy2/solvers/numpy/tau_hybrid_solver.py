@@ -69,7 +69,7 @@ class TauHybridSolver(GillesPySolver):
     result = None
     stop_event = None
 
-    def __init__(self, model=None):
+    def __init__(self, model=None, profile_reactions=False):
         if model is None:
             raise SimulationError("A model is required to run the simulation.")
 
@@ -77,6 +77,12 @@ class TauHybridSolver(GillesPySolver):
         rc = 0
         self.model = copy.deepcopy(model)
         self.is_instantiated = True
+        self.profile_reactions = profile_reactions
+        self.profile_data = {}
+        if self.profile_reactions:
+            self.profile_data['time'] = []
+            for k in list(self.model.listOfSpecies)+list(self.model.listOfReactions):
+                self.profile_data[k] = []
 
     def __toggle_reactions(self, all_compiled, deterministic_reactions, dependencies, 
                             curr_state, det_spec, rr_sets):
@@ -622,10 +628,6 @@ class TauHybridSolver(GillesPySolver):
         prev_curr_time = curr_time
         loop_count = 0
         invalid_state = False
-        # check to see if we are starting in an invalid state (this could happen)
-        #(invalid_state, invalid_err_message) = self.__simulate_invalid_state_check(self.model.listOfSpecies, curr_state, compiled_reactions)
-        #if invalid_state:
-        #    raise Exception(f"Invalid state when starting a step. curr_state={curr_state} compiled_reactions={compiled_reactions}\nerror_message: {invalid_err_message} ")
 
         
         starting_curr_state = copy.deepcopy(curr_state)
@@ -634,6 +636,10 @@ class TauHybridSolver(GillesPySolver):
         species_modified=None
         rxn_count=None
         loop_err_message=""
+        if self.profile_reactions:
+            self.profile_data['time'].append(curr_time)
+            for k in list(self.model.listOfSpecies)+list(self.model.listOfReactions):
+                self.profile_data[k].append(curr_state[k])
 
 
         # check each reaction to see if it is >=0. If we have taken a single SSA step, this could be >0 for the non-selected reactions, check if propensity is zero and reset if so
