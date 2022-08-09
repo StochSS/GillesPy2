@@ -22,9 +22,10 @@ from threading import Thread, Event
 import numpy as np
 from gillespy2.solvers.utilities import Tau
 from gillespy2.solvers.utilities import solverutils as nputils
-from gillespy2.core import GillesPySolver, log, liveGraphing
+from gillespy2.core import GillesPySolver, log, liveGraphing, SimulationError
 from gillespy2.core import ModelError, ExecutionError
 from gillespy2.core.results import Results
+
 
 class CLESolver(GillesPySolver):
     """
@@ -44,7 +45,7 @@ class CLESolver(GillesPySolver):
     pause_event = None
     result = None
 
-    def __init__(self, model=None, debug=False, profile=False):
+    def __init__(self, model=None, debug=False):
         if model is None:
             raise SimulationError("A model is required to run the simulation.")
 
@@ -55,7 +56,6 @@ class CLESolver(GillesPySolver):
         result = None
         self.model = model
         self.debug = debug
-        self.profile = profile
         self.is_instantiated = True
 
     def __get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions):
@@ -107,7 +107,7 @@ class CLESolver(GillesPySolver):
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile','timeout', 'tau_tol')
 
-    def run(self=None, model=None, t=20, number_of_trajectories=1, increment=None, seed=None,
+    def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, seed=None,
             debug=False, profile=False,  live_output=None, live_output_options={},
             timeout=None, resume=None, tau_tol=0.03, **kwargs):
         """
@@ -290,7 +290,7 @@ class CLESolver(GillesPySolver):
         return Results.build_from_solver_results(self, live_output_options)
 
     def ___run(self, curr_state,total_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
-               number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, show_labels=True,
+               number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False,
                timeout=None, resume=None, tau_tol=0.03, **kwargs):
 
         try:
