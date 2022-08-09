@@ -713,7 +713,7 @@ class TauHybridSolver(GillesPySolver):
 
             tau_step = min_tau #estimated time to the first stochatic reaction
 
-            sol, curr_time = self.__integrate(integrator, integrator_options, curr_state,
+            sol, curr_time = self.__integrate(integrator_options, curr_state,
                                           y0, curr_time, propensities, y_map,
                                           compiled_reactions,
                                           active_rr,
