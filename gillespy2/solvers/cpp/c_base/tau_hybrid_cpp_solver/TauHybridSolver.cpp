@@ -62,17 +62,10 @@ namespace Gillespy
                 population_changes[p_i] = 0;
             }
 
-            // Start with the species concentration as a baseline value.
-            // Stochastic reactions will update populations relative to their concentrations.
-            //for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-            //    current_state[spec_i] = result.concentrations[spec_i]; 
-            //}
-
             if (!rxn_roots.empty()) {
                 // "Direct" roots found; these are executed manually
                 for (unsigned int rxn_i : rxn_roots)
                 {
-                    //std::cerr << "reaction "<< rxn_i<<" found via root\n";
                     // "Fire" a reaction by recording changes in dependent species.
                     // If a negative value is detected, break without saving changes.
                     for (int spec_i = 0; spec_i < num_species; ++spec_i) {
@@ -98,13 +91,11 @@ namespace Gillespy
                             if(only_reaction_to_fire == rxn_i){
                                     rxn_state = log(urn.next());
                                     rxn_count = 1;
-                                    //std::cerr << "  rxn"<<rxn_i<<" 1 single SSA\n";
                             }
                         }else if(rxn_state > 0){
                             std::poisson_distribution<int> poisson(rxn_state);
                             rxn_count = 1 + poisson(generator);
                             rxn_state = log(urn.next());
-                            //std::cerr << "  rxn"<<rxn_i<<" "<<rxn_count<<" poisson\n";
 
                         }
                         if(rxn_count > 0){
@@ -147,7 +138,6 @@ namespace Gillespy
             // Explicitly check for invalid population state, now that changes have been tallied.
             for (int spec_i = 0; spec_i < num_species; ++spec_i) {
                 if (current_state[spec_i] + population_changes[spec_i] < 0) {
-                    //std::cerr<<"\tNegative state detected\n";
                     return true;
                 }
             }
@@ -297,6 +287,7 @@ namespace Gillespy
                             current_state
                     );
                     partition_species(
+                            simulation->current_time,
                             simulation->reaction_state,
                             simulation->species_state,
                             sol.data.propensities,
@@ -326,23 +317,6 @@ namespace Gillespy
                     // This is a temporary fix. Ideally, invalid state should allow for integrator options change.
                     // For now, a "guard" is put in place to prevent potentially infinite loops from occurring.
 
-                    //***********************************************************
-                    //std::cerr<<simulation->current_time<<" tau="<<tau_step<<" [";
-                    //for(int spec_i = 0; spec_i < num_species; ++spec_i){
-                    //    std::cerr<<current_state[spec_i]<<" ";
-                    //}
-                    //std::cerr<<"] [";
-                    //for(int spec_i = 0; spec_i < num_species; ++spec_i){
-                    //    HybridSpecies *spec = &simulation->species_state[spec_i];
-                    //    if( spec->partition_mode == SimulationState::CONTINUOUS ){
-                    //        std::cerr<<"C ";
-                    //    }else if( spec->partition_mode == SimulationState::DISCRETE ){
-                    //        std::cerr<<"D ";
-                    //    }
-                    //}
-                    //std::cerr<<"]\n";
-                    //***********************************************************
-
                     IntegrationResults result;
 
                     if(!TauHybrid::TakeIntegrationStep(sol, result, next_time, population_changes, current_state, rxn_roots, event_roots, simulation, urn, -1)){
@@ -369,34 +343,22 @@ namespace Gillespy
                             HybridReaction &rxn = simulation->reaction_state[rxn_k];
                             double propensity_value = rxn.ssa_propensity(current_state.data());
                             double floored_propensity_value = rxn.ssa_propensity(floored_current_state);
-                            //*************************************************************
-                            //std::cerr<<"\t\trxn"<<rxn_k<<" a="<<propensity_value<<" floor(a)="<<floored_propensity_value;
-                            //*************************************************************
                             //estimate the zero crossing time
                             if(floored_propensity_value > 0.0){
-                                // Python code:
-                                //rxn_times[rname] = -1* curr_state[rname] / propensities[rname]
-                                // C++ code:
                                 double est_tau = -1*  rxn_state[rxn_k] / propensity_value;
 
                                 if(rxn_selected == -1 || est_tau < min_tau ){
                                     min_tau = est_tau;
                                     rxn_selected = rxn_k;
                                 }
-                                //std::cerr<<" est_tau="<<est_tau;
                             }
-                            //std::cerr<<"\n";
                         }
                         if(rxn_selected == -1){
-                            std::cerr << "Negative State detected in step, and no reaction found to fire.\n";
                             simulation->set_status(HybridSimulation::NEGATIVE_STATE_NO_SSA_REACTION);
                             return;
                         }
                         // if min_tau < 1e-10, we can't take an ODE step that small.
                         if( min_tau < 1e-10 ){
-                            //***********************************
-                            //std::cerr<<"\t firing rxn"<<rxn_selected<<" at current time\n";
-                            //***********************************
                             // instead we will fire the reaction
                             CalculateSpeciesChangeAfterStep(result, population_changes, current_state, rxn_roots,  event_roots, simulation, urn, rxn_selected);
                             // re-attempt the step at the same time 
@@ -407,7 +369,6 @@ namespace Gillespy
                             next_time = simulation->current_time + min_tau;
 
                             //***********************************
-                            //std::cerr<<"\t firing rxn"<<rxn_selected<<" at tau="<<min_tau<<"\n";
                             //***********************************
 
                             // Integreate the system forward
@@ -418,19 +379,6 @@ namespace Gillespy
                         // check for invalid state again
                         if (TauHybrid::IsStateNegativeCheck(num_species, population_changes, current_state)) {
                             //Got an invalid state after the SSA step
-                            //***********************************
-                            //std::cerr << "Invalid state after single SSA step\n";
-                            //std::cerr<<"\t current_state=[";
-                            //for(int spec_i = 0; spec_i < num_species; ++spec_i){
-                            //    std::cerr<<current_state[spec_i]<<" ";
-                            //}
-                            //std::cerr<<"]\n";
-                            //std::cerr<<"\t population_changes=[";
-                            //for(int spec_i = 0; spec_i < num_species; ++spec_i){
-                            //    std::cerr<<population_changes[spec_i]<<" ";
-                            //}
-                            //std::cerr<<"]\n";
-                            //***********************************
                             simulation->set_status(HybridSimulation::INVALID_AFTER_SSA);
                             return;
                         }

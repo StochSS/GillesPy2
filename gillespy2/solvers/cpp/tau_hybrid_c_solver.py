@@ -80,7 +80,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             # Explicit cast to bool for safety, in case boundary_condition is given weird values
             boundary_keyword = boundary_condition_types[int(bool(species.boundary_condition))]
             # Example: SPECIES_MODE(2, 10, CONTINUOUS_MODE, BOUNDARY)
-            entry = f"SPECIES_MODE({spec_id},{species.switch_min},{mode_keyword},{boundary_keyword})"
+            entry = f"SPECIES_MODE({spec_id},{species.switch_min},{species.switch_tol},{mode_keyword},{boundary_keyword})"
             species_mode_list.append(entry)
 
         # EVENT(event_id, {targets}, trigger, delay, priority, use_trigger, use_persist)
