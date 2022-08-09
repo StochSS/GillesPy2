@@ -603,7 +603,7 @@ class TauHybridSolver(GillesPySolver):
                     err_message += f"'{s}' has negative state '{curr_state[s]}'"
             return (invalid_state, err_message) 
 
-    def __simulate(self, integrator, integrator_options, curr_state, y0, curr_time,
+    def __simulate(self, integrator_options, curr_state, y0, curr_time,
                    propensities, species, parameters, compiled_reactions,
                    active_rr, y_map, trajectory, save_times, save_index,
                    delayed_events, trigger_states, event_sensitivity,
@@ -1267,7 +1267,7 @@ class TauHybridSolver(GillesPySolver):
                                              compiled_reactions, self.model.listOfEvents, curr_state[0])
 
                 # Run simulation to next step
-                sol, curr_state[0], curr_time[0], save_times, save_index = self.__simulate(integrator, integrator_options,
+                sol, curr_state[0], curr_time[0], save_times, save_index = self.__simulate(integrator_options,
                                                                                curr_state[0], y0, curr_time[0],
                                                                                propensities, species,
                                                                                parameters, compiled_reactions,
