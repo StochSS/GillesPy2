@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gillespy2.core.reaction &#8212; GillesPy2 1.6.9 documentation</title>
+    <title>gillespy2.core.reaction &#8212; GillesPy2 1.6.10 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -115,15 +115,17 @@
 
 <span class="c1"># You should have received a copy of the GNU General Public License</span>
 <span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="kn">import</span> <span class="nn">ast</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">from</span> <span class="nn">json.encoder</span> <span class="kn">import</span> <span class="n">JSONEncoder</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">gillespy2.core.species</span> <span class="kn">import</span> <span class="n">Species</span>
-<span class="kn">from</span> <span class="nn">json.encoder</span> <span class="kn">import</span> <span class="n">JSONEncoder</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core.sortableobject</span> <span class="kn">import</span> <span class="n">SortableObject</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.parameter</span> <span class="kn">import</span> <span class="n">Parameter</span>
 <span class="kn">from</span> <span class="nn">gillespy2.core.jsonify</span> <span class="kn">import</span> <span class="n">Jsonify</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">uuid</span>
-<span class="kn">import</span> <span class="nn">ast</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.sortableobject</span> <span class="kn">import</span> <span class="n">SortableObject</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="kn">import</span> <span class="n">ReactionError</span>
 
 
 <div class="viewcode-block" id="Reaction"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction">[docs]</a><span class="k">class</span> <span class="nc">Reaction</span><span class="p">(</span><span class="n">SortableObject</span><span class="p">,</span> <span class="n">Jsonify</span><span class="p">):</span>
@@ -148,7 +150,11 @@
 <span class="sd">        namespace of the reaction using C operations.</span>
 <span class="sd">    :type propensity_function: str</span>
 
-<span class="sd">    :param massaction: The switch to use a mass-action reaction. If set to True, a rate value is required.</span>
+<span class="sd">    :param ode_propensity_function: The custom ode propensity function for the reaction. Must be evaluable in the</span>
+<span class="sd">        namespace of the reaction using C operations.</span>
+<span class="sd">    :type ode_propensity_function: str</span>
+
+<span class="sd">    :param massaction: (deprecated) The switch to use a mass-action reaction. If set to True, a rate value is required.</span>
 <span class="sd">    :type massaction: bool</span>
 
 <span class="sd">    :param rate: The rate of the mass-action reaction, take care to note the units.</span>
@@ -169,175 +175,74 @@
 <span class="sd">    model based on the order it was added. This could impact seeded simulation </span>
 <span class="sd">    results if the order of addition is not preserved.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reactants</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">products</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">propensity_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">ode_propensity_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">massaction</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">massaction</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">log</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                massaction has been deprecated.  Future releases of GillesPy2 may not support this feature.</span>
+<span class="sd">                Set propensity_function for massaction=False or rate for massaction=True instead.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+            <span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">reactants</span><span class="o">=</span><span class="p">{},</span> <span class="n">products</span><span class="o">=</span><span class="p">{},</span> <span class="n">propensity_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">massaction</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">annotation</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initializes the reaction using short-hand notation.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="c1"># Metadata</span>
-        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;rxn</span><span class="si">{</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-
-        <span class="c1"># We might use this flag in the future to automatically generate</span>
-        <span class="c1"># the propensity function if set to True.</span>
-        <span class="k">if</span> <span class="n">propensity_function</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">marate</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span> <span class="o">=</span> <span class="kc">True</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="o">=</span> <span class="n">propensity_function</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="n">propensity_function</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span><span class="p">:</span>
-            <span class="n">errmsg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Reaction </span><span class="si">{}</span><span class="s2"> You cannot set the propensity type to mass-action and simultaneously set a &quot;</span>
-                      <span class="s2">&quot;propensity function.&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="n">errmsg</span><span class="p">)</span>
-
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;rxn</span><span class="si">{</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">propensity_function</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="n">propensity_function</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">propensity_function</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ode_propensity_function</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ode_propensity_function</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rate</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="n">rate</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reactants</span><span class="p">:</span>
-            <span class="n">rtype</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
-            <span class="k">if</span> <span class="n">rtype</span> <span class="o">==</span> <span class="s1">&#39;instance&#39;</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">reactants</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="n">reactants</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">products</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">products</span><span class="p">:</span>
-            <span class="n">rtype</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
-            <span class="k">if</span> <span class="n">rtype</span> <span class="o">==</span> <span class="s1">&#39;instance&#39;</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">products</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">products</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;mass-action&quot;</span>
-            <span class="k">if</span> <span class="n">rate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">marate</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">rtype</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
-                <span class="k">if</span> <span class="n">rtype</span> <span class="o">==</span> <span class="s1">&#39;instance&#39;</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">marate</span> <span class="o">=</span> <span class="n">rate</span><span class="o">.</span><span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marate</span> <span class="o">=</span> <span class="n">rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="n">annotation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="o">=</span> <span class="n">propensity_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="n">ode_propensity_function</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">reactants</span><span class="o">=</span><span class="n">reactants</span><span class="p">,</span> <span class="n">products</span><span class="o">=</span><span class="n">products</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">reactants</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reactants</span><span class="p">:</span>
+                <span class="n">rtype</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+                <span class="k">if</span> <span class="n">rtype</span> <span class="o">==</span> <span class="s1">&#39;Species&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">reactants</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">marate</span> <span class="o">=</span> <span class="n">rate</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">create_mass_action</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="n">reactants</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+        
+        <span class="k">if</span> <span class="n">products</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">products</span><span class="p">:</span>
+                <span class="n">rtype</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+                <span class="k">if</span> <span class="n">rtype</span> <span class="o">==</span> <span class="s1">&#39;Species&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">products</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">products</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+            
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">marate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rtype</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">marate</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+            <span class="k">if</span> <span class="n">rtype</span> <span class="o">==</span> <span class="s1">&#39;Parameter&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">marate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marate</span><span class="o">.</span><span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;mass-action&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_create_mass_action</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;customized&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span>
+            <span class="n">propensity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_custom_propensity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="o">=</span> <span class="n">propensity</span>
+            <span class="n">ode_propensity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_custom_propensity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="n">ode_propensity</span>
 
-            <span class="k">def</span> <span class="nf">__customPropParser</span><span class="p">():</span>
-                <span class="n">pow_func</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;pow&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;eval&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">body</span>
-
-                <span class="k">class</span> <span class="nc">ExpressionParser</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">NodeTransformer</span><span class="p">):</span>
-                    <span class="k">def</span> <span class="nf">visit_BinOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
-                        <span class="n">node</span><span class="o">.</span><span class="n">left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">left</span><span class="p">)</span>
-                        <span class="n">node</span><span class="o">.</span><span class="n">right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">right</span><span class="p">)</span>
-                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">BitXor</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Pow</span><span class="p">)):</span>
-                            <span class="c1"># ast.Call calls defined function, args include which nodes</span>
-                            <span class="c1"># are effected by function call</span>
-                            <span class="n">call</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">Call</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">pow_func</span><span class="p">,</span>
-                                            <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">right</span><span class="p">],</span>
-                                            <span class="n">keywords</span><span class="o">=</span><span class="p">[])</span>
-                            <span class="c1"># Copy_location copies lineno and coloffset attributes</span>
-                            <span class="c1"># from old node to new node. ast.copy_location(new_node,old_node)</span>
-                            <span class="n">call</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">copy_location</span><span class="p">(</span><span class="n">call</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span>
-                            <span class="c1"># Return changed node</span>
-                            <span class="k">return</span> <span class="n">call</span>
-                        <span class="c1"># No modification to node, classes extending NodeTransformer methods</span>
-                        <span class="c1"># Always return node or value</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="k">return</span> <span class="n">node</span>
-
-                    <span class="k">def</span> <span class="nf">visit_Name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
-                        <span class="c1"># Visits Name nodes, if the name nodes &quot;id&quot; value is &#39;e&#39;, replace with numerical constant</span>
-                        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="s1">&#39;e&#39;</span><span class="p">:</span>
-                            <span class="n">nameToConstant</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">copy_location</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">Num</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">e</span><span class="p">),</span> <span class="n">ctx</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">ctx</span><span class="p">),</span> <span class="n">node</span><span class="p">)</span>
-                            <span class="k">return</span> <span class="n">nameToConstant</span>
-                        <span class="k">return</span> <span class="n">node</span>
-
-                <span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
-                <span class="n">expr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span>
-                <span class="n">expr</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;^&#39;</span><span class="p">,</span> <span class="s1">&#39;**&#39;</span><span class="p">)</span>
-                <span class="n">expr</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;eval&#39;</span><span class="p">)</span>
-                <span class="n">expr</span> <span class="o">=</span> <span class="n">ExpressionParser</span><span class="p">()</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
-
-                <span class="k">class</span> <span class="nc">ToString</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">NodeVisitor</span><span class="p">):</span>
-                    <span class="n">substitutions</span> <span class="o">=</span> <span class="p">{</span>
-                        <span class="s2">&quot;ln&quot;</span><span class="p">:</span> <span class="s2">&quot;log&quot;</span><span class="p">,</span>
-                    <span class="p">}</span>
-
-                    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">string</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-
-                    <span class="k">def</span> <span class="nf">_string_changer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">addition</span><span class="p">):</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">string</span> <span class="o">+=</span> <span class="n">addition</span>
-
-                    <span class="k">def</span> <span class="nf">visit_BinOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">left</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">op</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">right</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">)</span>
-
-                    <span class="k">def</span> <span class="nf">visit_Name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">generic_visit</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
-
-                    <span class="k">def</span> <span class="nf">visit_Num</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">n</span><span class="p">))</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">generic_visit</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
-
-                    <span class="k">def</span> <span class="nf">visit_Call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
-                        <span class="n">func_name</span> <span class="o">=</span> <span class="n">ToString</span><span class="o">.</span><span class="n">substitutions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> \
-                            <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">ToString</span><span class="o">.</span><span class="n">substitutions</span> \
-                            <span class="k">else</span> <span class="n">node</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">id</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="n">func_name</span> <span class="o">+</span> <span class="s1">&#39;(&#39;</span><span class="p">)</span>
-                        <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
-                        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
-                            <span class="k">if</span> <span class="n">counter</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                                <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
-                            <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">)</span>
-
-                    <span class="k">def</span> <span class="nf">visit_Add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;+&#39;</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">generic_visit</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
-
-                    <span class="k">def</span> <span class="nf">visit_Div</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">generic_visit</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
-
-                    <span class="k">def</span> <span class="nf">visit_Mult</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">generic_visit</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
-
-                    <span class="k">def</span> <span class="nf">visit_UnaryOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">visit_Usub</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">)</span>
-
-                    <span class="k">def</span> <span class="nf">visit_Sub</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">generic_visit</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
-
-                    <span class="k">def</span> <span class="nf">visit_Usub</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">generic_visit</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
-
-                <span class="n">newFunc</span> <span class="o">=</span> <span class="n">ToString</span><span class="p">()</span>
-                <span class="n">newFunc</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">newFunc</span><span class="o">.</span><span class="n">string</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="o">=</span> <span class="n">__customPropParser</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">coverage</span><span class="o">=</span><span class="s2">&quot;initialized&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
         <span class="n">print_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">):</span>
             <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t</span><span class="s1">Reactants&#39;</span>
@@ -361,19 +266,100 @@
                     <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">p</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="s1">&#39;INVALID - &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
         <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t</span><span class="s1">Propensity Function: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span>
         <span class="k">return</span> <span class="n">print_string</span>
+    
+    <span class="k">class</span> <span class="nc">__ExpressionParser</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">NodeTransformer</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">visit_BinOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">left</span><span class="p">)</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">right</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">op</span><span class="p">,</span> <span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">BitXor</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Pow</span><span class="p">)):</span>
+                <span class="c1"># ast.Call calls defined function, args include which nodes</span>
+                <span class="c1"># are effected by function call</span>
+                <span class="n">pow_func</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;pow&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;eval&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">body</span>
+                <span class="n">call</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">Call</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">pow_func</span><span class="p">,</span>
+                                <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">right</span><span class="p">],</span>
+                                <span class="n">keywords</span><span class="o">=</span><span class="p">[])</span>
+                <span class="c1"># Copy_location copies lineno and coloffset attributes</span>
+                <span class="c1"># from old node to new node. ast.copy_location(new_node,old_node)</span>
+                <span class="n">call</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">copy_location</span><span class="p">(</span><span class="n">call</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span>
+                <span class="c1"># Return changed node</span>
+                <span class="k">return</span> <span class="n">call</span>
+            <span class="c1"># No modification to node, classes extending NodeTransformer methods</span>
+            <span class="c1"># Always return node or value</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">node</span>
 
-<div class="viewcode-block" id="Reaction.verify"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.verify">[docs]</a>    <span class="k">def</span> <span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Check if the reaction is properly formatted.</span>
-<span class="sd">        Does nothing on sucesss, raises and error on failure.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">marate</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;You must specify either a mass-action rate or a propensity function&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">marate</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;Propensity Function cannot be empty string.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;You must have a non-zero number of reactants or products.&quot;</span><span class="p">)</span></div>
+        <span class="k">def</span> <span class="nf">visit_Name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+            <span class="c1"># Visits Name nodes, if the name nodes &quot;id&quot; value is &#39;e&#39;, replace with numerical constant</span>
+            <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="s1">&#39;e&#39;</span><span class="p">:</span>
+                <span class="n">nameToConstant</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">copy_location</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">Num</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">e</span><span class="p">),</span> <span class="n">ctx</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">ctx</span><span class="p">),</span> <span class="n">node</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">nameToConstant</span>
+            <span class="k">return</span> <span class="n">node</span>
+    
+    <span class="k">class</span> <span class="nc">__ToString</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">NodeVisitor</span><span class="p">):</span>
+        <span class="n">substitutions</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;ln&quot;</span><span class="p">:</span> <span class="s2">&quot;log&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
 
-<div class="viewcode-block" id="Reaction.create_mass_action"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.create_mass_action">[docs]</a>    <span class="k">def</span> <span class="nf">create_mass_action</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">string</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="k">def</span> <span class="nf">_string_changer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">addition</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">string</span> <span class="o">+=</span> <span class="n">addition</span>
+
+        <span class="k">def</span> <span class="nf">visit_BinOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">left</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">op</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">right</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">visit_Name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">generic_visit</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">visit_Num</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">n</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">generic_visit</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">visit_Call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+            <span class="n">func_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">substitutions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> \
+                <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">substitutions</span> \
+                <span class="k">else</span> <span class="n">node</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">id</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="n">func_name</span> <span class="o">+</span> <span class="s1">&#39;(&#39;</span><span class="p">)</span>
+            <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">counter</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+                <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">visit_Add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;+&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">generic_visit</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">visit_Div</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">generic_visit</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">visit_Mult</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">generic_visit</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">visit_UnaryOp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visit_Usub</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">visit_Sub</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">generic_visit</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">visit_Usub</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_string_changer</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">generic_visit</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_create_mass_action</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializes the mass action propensity function given</span>
 <span class="sd">        self.reactants and a single parameter value.</span>
@@ -386,91 +372,194 @@
         <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">):</span>
             <span class="n">total_stoch</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">total_stoch</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;Reaction: A mass-action reaction cannot involve more than two of one species or one &quot;</span>
-                                <span class="s2">&quot;of two species. To declare a custom propensity, replace &#39;rate&#39; with &quot;</span>
-                                <span class="s2">&quot;&#39;propensity_function&#39;.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Reaction: A mass-action reaction cannot involve more than two of</span>
+<span class="sd">                one species or one of two species. To declare a custom propensity,</span>
+<span class="sd">                replace &#39;rate&#39; with &#39;propensity_function&#39;.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+            <span class="p">)</span>
 
         <span class="c1"># Case EmptySet -&gt; Y</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">marate</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marate</span>
-            <span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marate</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">marate</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">marate</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;Parameter&quot;</span><span class="p">:</span>
             <span class="n">propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marate</span><span class="o">.</span><span class="n">name</span>
             <span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marate</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">marate</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">marate</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">marate</span><span class="p">)</span>
+            <span class="n">propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marate</span>
+            <span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marate</span>
 
         <span class="c1"># There are only three ways to get &#39;total_stoch==2&#39;:</span>
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="n">rname</span> <span class="o">=</span> <span class="n">r</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">rname</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">for</span> <span class="n">reactant</span><span class="p">,</span> <span class="n">stoichiometry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reactant</span><span class="p">,</span> <span class="n">Species</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">reactant</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;Species&quot;</span><span class="p">:</span>
+                <span class="n">reactant</span> <span class="o">=</span> <span class="n">reactant</span><span class="o">.</span><span class="n">name</span>
             <span class="c1"># Case 1: 2X -&gt; Y</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-                <span class="n">propensity_function</span> <span class="o">=</span> <span class="s2">&quot;0.5 * </span><span class="si">{0}</span><span class="s2"> * </span><span class="si">{1}</span><span class="s2"> * (</span><span class="si">{1}</span><span class="s2"> - 1) / vol&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">propensity_function</span><span class="p">,</span> <span class="n">rname</span><span class="p">)</span>
-                <span class="n">ode_propensity_function</span> <span class="o">+=</span> <span class="s1">&#39;*&#39;</span> <span class="o">+</span> <span class="n">rname</span> <span class="o">+</span> <span class="s1">&#39;*&#39;</span> <span class="o">+</span> <span class="n">rname</span>
+            <span class="k">if</span> <span class="n">stoichiometry</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">propensity_function</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;0.5 * </span><span class="si">{</span><span class="n">propensity_function</span><span class="si">}</span><span class="s2"> * </span><span class="si">{</span><span class="n">reactant</span><span class="si">}</span><span class="s2"> * (</span><span class="si">{</span><span class="n">reactant</span><span class="si">}</span><span class="s2"> - 1) / vol&quot;</span>
+                <span class="n">ode_propensity_function</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; * </span><span class="si">{</span><span class="n">reactant</span><span class="si">}</span><span class="s2"> * </span><span class="si">{</span><span class="n">reactant</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># Case 3: X1, X2 -&gt; Y;</span>
-                <span class="n">propensity_function</span> <span class="o">+=</span> <span class="s2">&quot;*&quot;</span> <span class="o">+</span> <span class="n">rname</span>
-                <span class="n">ode_propensity_function</span> <span class="o">+=</span> <span class="s1">&#39;*&#39;</span> <span class="o">+</span> <span class="n">rname</span>
+                <span class="n">propensity_function</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; * </span><span class="si">{</span><span class="n">reactant</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">ode_propensity_function</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; * </span><span class="si">{</span><span class="n">reactant</span><span class="si">}</span><span class="s2">&quot;</span>
 
         <span class="c1"># Set the volume dependency based on order.</span>
         <span class="n">order</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">propensity_function</span> <span class="o">+=</span> <span class="s2">&quot;/vol&quot;</span>
+            <span class="n">propensity_function</span> <span class="o">+=</span> <span class="s2">&quot; / vol&quot;</span>
         <span class="k">elif</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">propensity_function</span> <span class="o">+=</span> <span class="s2">&quot;*vol&quot;</span>
+            <span class="n">propensity_function</span> <span class="o">+=</span> <span class="s2">&quot; * vol&quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="o">=</span> <span class="n">propensity_function</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="n">ode_propensity_function</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_custom_propensity</span><span class="p">(</span><span class="n">propensity_function</span><span class="o">=</span><span class="n">propensity_function</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_custom_propensity</span><span class="p">(</span><span class="n">propensity_function</span><span class="o">=</span><span class="n">ode_propensity_function</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_create_custom_propensity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">propensity_function</span><span class="p">):</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">propensity_function</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;^&#39;</span><span class="p">,</span> <span class="s1">&#39;**&#39;</span><span class="p">)</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;eval&#39;</span><span class="p">)</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ExpressionParser</span><span class="p">()</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+        
+        <span class="n">newFunc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ToString</span><span class="p">()</span>
+        <span class="n">newFunc</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">newFunc</span><span class="o">.</span><span class="n">string</span>
+    
+    <span class="k">def</span> <span class="nf">_create_sanitized_reaction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_ndx</span><span class="p">,</span> <span class="n">species_mappings</span><span class="p">,</span> <span class="n">parameter_mappings</span><span class="p">):</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;R</span><span class="si">{</span><span class="n">n_ndx</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">reactants</span> <span class="o">=</span> <span class="p">{</span><span class="n">species_mappings</span><span class="p">[</span><span class="n">species</span><span class="o">.</span><span class="n">name</span><span class="p">]:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">}</span>
+        <span class="n">products</span> <span class="o">=</span> <span class="p">{</span><span class="n">species_mappings</span><span class="p">[</span><span class="n">species</span><span class="o">.</span><span class="n">name</span><span class="p">]:</span> <span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="p">}</span>
+        <span class="n">propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sanitized_propensity_function</span><span class="p">(</span><span class="n">species_mappings</span><span class="p">,</span> <span class="n">parameter_mappings</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Reaction</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">reactants</span><span class="o">=</span><span class="n">reactants</span><span class="p">,</span> <span class="n">products</span><span class="o">=</span><span class="n">products</span><span class="p">,</span> <span class="n">propensity_function</span><span class="o">=</span><span class="n">propensity_function</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Reaction.setType"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.setType">[docs]</a>    <span class="k">def</span> <span class="nf">setType</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxntype</span><span class="p">):</span>
+<div class="viewcode-block" id="Reaction.addProduct"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.addProduct">[docs]</a>    <span class="k">def</span> <span class="nf">addProduct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Sets reaction type to either &quot;mass-action&quot; or &quot;customized&quot;</span>
+<span class="sd">        Add a product to this reaction (deprecated)</span>
 
-<span class="sd">        :param rxntype: Either &quot;mass-action&quot; or &quot;customized&quot;</span>
-<span class="sd">        :type rxntype: str</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">rxntype</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;mass-action&#39;</span><span class="p">,</span> <span class="s1">&#39;customized&#39;</span><span class="p">}:</span>
-            <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;Invalid reaction type.&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">rxntype</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+<span class="sd">        :param species: Species object to be produced by the reaction</span>
+<span class="sd">        :type species: spatialpy.core.species.Species</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span> <span class="o">=</span> <span class="kc">False</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;customized&#39;</span> <span class="k">else</span> <span class="kc">True</span></div>
-
-<div class="viewcode-block" id="Reaction.addReactant"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.addReactant">[docs]</a>    <span class="k">def</span> <span class="nf">addReactant</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">stoichiometry</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Adds a reactant to the reaction (species that is consumed)</span>
-
-<span class="sd">        :param S: Reactant to add to this reaction.</span>
-<span class="sd">        :type S: gillespy2.Species</span>
-<span class="sd">        :param stoichiometry: The stoichiometry of the given reactant.</span>
+<span class="sd">        :param stoichiometry: Stoichiometry of this product.</span>
 <span class="sd">        :type stoichiometry: int</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">stoichiometry</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;Reaction Stoichiometry must be a </span><span class="se">\</span>
-<span class="s2">                                    positive integer.&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">S</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">stoichiometry</span></div>
+        <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">log</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Reaction.addProduct has been deprecated.  Future releases of GillesPy2 may</span>
+<span class="sd">            not support this feature.  Use Reaction.add_product instead.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+        <span class="p">)</span>
 
-<div class="viewcode-block" id="Reaction.addProduct"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.addProduct">[docs]</a>    <span class="k">def</span> <span class="nf">addProduct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">stoichiometry</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_product</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Reaction.add_product"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.add_product">[docs]</a>    <span class="k">def</span> <span class="nf">add_product</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">stoichiometry</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Adds a product to the reaction (species that is created)</span>
+<span class="sd">        Add a product to this reaction</span>
 
-<span class="sd">        :param S: Product to add to this reaction.</span>
-<span class="sd">        :type S: gillespy2.Species</span>
-<span class="sd">        :param stoichiometry: The stoichiometry of the given product.</span>
+<span class="sd">        :param species: Species object to be produced by the reaction</span>
+<span class="sd">        :type species: spatialpy.core.species.Species | str</span>
+
+<span class="sd">        :param stoichiometry: Stoichiometry of this product.</span>
 <span class="sd">        :type stoichiometry: int</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">S</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">stoichiometry</span></div>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">species</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;Species&#39;</span> <span class="k">else</span> <span class="n">species</span>
 
-<div class="viewcode-block" id="Reaction.Annotate"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.Annotate">[docs]</a>    <span class="k">def</span> <span class="nf">Annotate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">annotation</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">products</span><span class="o">=</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">stoichiometry</span><span class="p">},</span> <span class="n">coverage</span><span class="o">=</span><span class="s2">&quot;products&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to validate product. Reason given: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">err</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">stoichiometry</span></div>
+        
+<div class="viewcode-block" id="Reaction.addReactant"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.addReactant">[docs]</a>    <span class="k">def</span> <span class="nf">addReactant</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Adds a note to the reaction</span>
+<span class="sd">        Add a reactant to this reaction (deprecated)</span>
 
-<span class="sd">        :param annotation: An optional note about the reaction.</span>
+<span class="sd">        :param species: reactant Species object</span>
+<span class="sd">        :type species: spatialpy.core.species.Species</span>
+
+<span class="sd">        :param stoichiometry: Stoichiometry of this participant reactant</span>
+<span class="sd">        :type stoichiometry: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">log</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Reaction.addReactant has been deprecated.  Future releases of GillesPy2 may</span>
+<span class="sd">            not support this feature.  Use Reaction.add_reactant instead.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_reactant</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Reaction.add_reactant"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.add_reactant">[docs]</a>    <span class="k">def</span> <span class="nf">add_reactant</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">stoichiometry</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a reactant to this reaction</span>
+
+<span class="sd">        :param species: reactant Species object</span>
+<span class="sd">        :type species: spatialpy.core.species.Species</span>
+
+<span class="sd">        :param stoichiometry: Stoichiometry of this participant reactant</span>
+<span class="sd">        :type stoichiometry: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">species</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;Species&#39;</span> <span class="k">else</span> <span class="n">species</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">reactants</span><span class="o">=</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">stoichiometry</span><span class="p">},</span> <span class="n">coverage</span><span class="o">=</span><span class="s2">&quot;reactants&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to validate reactant. Reason given: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">err</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">stoichiometry</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;mass-action&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_create_mass_action</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">coverage</span><span class="o">=</span><span class="s2">&quot;initialized&quot;</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="Reaction.Annotate"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.Annotate">[docs]</a>    <span class="k">def</span> <span class="nf">Annotate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add an annotation to this reaction (deprecated).</span>
+
+<span class="sd">        :param annotation: Annotation note to be added to reaction</span>
 <span class="sd">        :type annotation: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="n">annotation</span></div>
+        <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">log</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Reaction.Annotate has been deprecated.  Future releases of GillesPy2 may</span>
+<span class="sd">            not support this feature.  Use Reaction.set_annotation instead.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+        <span class="p">)</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_annotation</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+            
+<div class="viewcode-block" id="Reaction.create_mass_action"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.create_mass_action">[docs]</a>    <span class="k">def</span> <span class="nf">create_mass_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the mass action propensity function given</span>
+<span class="sd">        self.reactants and a single parameter value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">log</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Reaction.create_mass_action has been deprecated.  Future releases of GillesPy2 may</span>
+<span class="sd">            not support this feature.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_mass_action</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Reaction.from_json"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.from_json">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">json_object</span><span class="p">):</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">Reaction</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">Reaction</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">=</span> <span class="n">json_object</span>
+
+        <span class="c1"># Same as in to_dict(), but we need to reverse it back into its original representation.</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">products</span> <span class="o">=</span> <span class="p">{</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;key&quot;</span><span class="p">]:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">json_object</span><span class="p">[</span><span class="s2">&quot;products&quot;</span><span class="p">]</span> <span class="p">}</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">reactants</span> <span class="o">=</span> <span class="p">{</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;key&quot;</span><span class="p">]:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">json_object</span><span class="p">[</span><span class="s2">&quot;reactants&quot;</span><span class="p">]</span> <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">new</span><span class="o">.</span><span class="n">massaction</span> <span class="ow">and</span> <span class="n">new</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;mass-action&quot;</span> <span class="ow">and</span> <span class="n">new</span><span class="o">.</span><span class="n">marate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">_create_mass_action</span><span class="p">()</span>
+
+        <span class="n">new</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">coverage</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">new</span></div>
+    
 <div class="viewcode-block" id="Reaction.sanitized_propensity_function"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.sanitized_propensity_function">[docs]</a>    <span class="k">def</span> <span class="nf">sanitized_propensity_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species_mappings</span><span class="p">,</span> <span class="n">parameter_mappings</span><span class="p">,</span> <span class="n">ode</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">names</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">species_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">parameter_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
                        <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -481,6 +570,101 @@
             <span class="n">sanitized_propensity</span> <span class="o">=</span> <span class="n">sanitized_propensity</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;{&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;}&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sanitized_propensity</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">replacements</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="Reaction.set_annotation"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.set_annotation">[docs]</a>    <span class="k">def</span> <span class="nf">set_annotation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">annotation</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add an annotation to this reaction.</span>
+
+<span class="sd">        :param annotation: Annotation note to be added to reaction</span>
+<span class="sd">        :type annotation: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">annotation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;annotation can&#39;t be None type.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">coverage</span><span class="o">=</span><span class="s2">&quot;annotation&quot;</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="n">annotation</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="n">annotation</span></div>
+
+<div class="viewcode-block" id="Reaction.set_propensities"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.set_propensities">[docs]</a>    <span class="k">def</span> <span class="nf">set_propensities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">propensity_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ode_propensity_function</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Change the reaction to a customized reaction and set the propensities.</span>
+
+<span class="sd">        :param propensity_function: The custom propensity function for the reaction. Must be evaluable in the</span>
+<span class="sd">            namespace of the reaction using C operations.</span>
+<span class="sd">        :type propensity_function: str</span>
+
+<span class="sd">        :param ode_propensity_function: The custom ode propensity function for the reaction. Must be evaluable in the</span>
+<span class="sd">            namespace of the reaction using C operations.</span>
+<span class="sd">        :type ode_propensity_function: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">propensity_function</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="n">propensity_function</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">propensity_function</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ode_propensity_function</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ode_propensity_function</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">propensity_function</span><span class="o">=</span><span class="n">propensity_function</span><span class="p">,</span> <span class="n">ode_propensity_function</span><span class="o">=</span><span class="n">ode_propensity_function</span><span class="p">,</span> <span class="n">coverage</span><span class="o">=</span><span class="s2">&quot;propensities&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="o">=</span> <span class="n">propensity_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="n">ode_propensity_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marate</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;customized&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span>
+        <span class="n">propensity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_custom_propensity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="o">=</span> <span class="n">propensity</span>
+        <span class="n">ode_propensity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_custom_propensity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="n">ode_propensity</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">coverage</span><span class="o">=</span><span class="s2">&quot;initialized&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Reaction.set_rate"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.set_rate">[docs]</a>    <span class="k">def</span> <span class="nf">set_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rate</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Change the reaction to a mass-action reaction and set the rate.</span>
+
+<span class="sd">        :param rate: The rate of the mass-action reaction, take care to note the units.</span>
+<span class="sd">        :type rate: int | float | str | Parameter</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">rate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;rate can&#39;t be None type&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rate</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;Parameter&quot;</span><span class="p">:</span>
+            <span class="n">rate</span> <span class="o">=</span> <span class="n">rate</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rate</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="n">rate</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">marate</span><span class="o">=</span><span class="n">rate</span><span class="p">,</span> <span class="n">coverage</span><span class="o">=</span><span class="s2">&quot;marate&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">marate</span> <span class="o">=</span> <span class="n">rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;mass-action&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_mass_action</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">coverage</span><span class="o">=</span><span class="s2">&quot;initialized&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Reaction.setType"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.setType">[docs]</a>    <span class="k">def</span> <span class="nf">setType</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxntype</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets reaction type to either &quot;mass-action&quot; or &quot;customized&quot; (deprecated)</span>
+
+<span class="sd">        :param rxntype: Either &quot;mass-action&quot; or &quot;customized&quot;</span>
+<span class="sd">        :type rxntype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">log</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Reaction.setType has been deprecated.  Future releases of GillesPy2 may not support this feature.</span>
+<span class="sd">            Set propensity_function for Reaction.type=&quot;customized&quot; or rate for Reaction.type=&quot;mass-action&quot; instead.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">rxntype</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;mass-action&#39;</span><span class="p">,</span> <span class="s1">&#39;customized&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;Invalid reaction type.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">rxntype</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span> <span class="o">=</span> <span class="kc">False</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;customized&#39;</span> <span class="k">else</span> <span class="kc">True</span></div>
+    
 <div class="viewcode-block" id="Reaction.to_dict"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">temp</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
@@ -493,16 +677,146 @@
 
         <span class="k">return</span> <span class="n">temp</span></div>
 
-<div class="viewcode-block" id="Reaction.from_json"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.from_json">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">json_object</span><span class="p">):</span>
-        <span class="n">new</span> <span class="o">=</span> <span class="n">Reaction</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">Reaction</span><span class="p">)</span>
-        <span class="n">new</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">=</span> <span class="n">json_object</span>
+<div class="viewcode-block" id="Reaction.validate"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reactants</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">products</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">propensity_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">ode_propensity_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">marate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coverage</span><span class="o">=</span><span class="s2">&quot;build&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if the reaction is properly formatted.</span>
+<span class="sd">        Does nothing on sucesss, raises and error on failure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">coverage</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;build&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;name can&#39;t be None type.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;name must be of type str.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;name can&#39;t be an empty string.&quot;</span><span class="p">)</span>
 
-        <span class="c1"># Same as in to_dict(), but we need to reverse it back into its original representation.</span>
-        <span class="n">new</span><span class="o">.</span><span class="n">products</span> <span class="o">=</span> <span class="p">{</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;key&quot;</span><span class="p">]:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">json_object</span><span class="p">[</span><span class="s2">&quot;products&quot;</span><span class="p">]</span> <span class="p">}</span>
-        <span class="n">new</span><span class="o">.</span><span class="n">reactants</span> <span class="o">=</span> <span class="p">{</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;key&quot;</span><span class="p">]:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">json_object</span><span class="p">[</span><span class="s2">&quot;reactants&quot;</span><span class="p">]</span> <span class="p">}</span>
+        <span class="k">if</span> <span class="n">coverage</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;build&quot;</span><span class="p">,</span> <span class="s2">&quot;reactants&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;recants can&#39;t be None type.&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">new</span></div></div>
+            <span class="k">if</span> <span class="n">reactants</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">reactants</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactants</span>
+
+            <span class="k">if</span> <span class="n">reactants</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reactants</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;reactants must be of type dict.&quot;</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">stoichiometry</span> <span class="ow">in</span> <span class="n">reactants</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;species in reactants can&#39;t be None type.&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Species</span><span class="p">))</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">species</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;Species&#39;</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;species in reactants must be of type str or GillesPy2.Species.&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">species</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;species in reactants can&#39;t be an empty string.&quot;</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">stoichiometry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;stoichiometry in reactants can&#39;t be None type.&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stoichiometry</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">stoichiometry</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;stoichiometry in reactants must greater than 0 and of type int.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">coverage</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;build&quot;</span><span class="p">,</span> <span class="s2">&quot;products&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">products</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;products can&#39;t be None type.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">products</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">products</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">products</span>
+
+            <span class="k">if</span> <span class="n">products</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">products</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;products must be of type dict.&quot;</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">stoichiometry</span> <span class="ow">in</span> <span class="n">products</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;species in products can&#39;t be None Type.&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Species</span><span class="p">))</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">species</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;Species&#39;</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;species in products must be of type str or GillesPy2.Species.&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">species</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;species in products can&#39;t be an empty string.&quot;</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">stoichiometry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;stoichiometry in products can&#39;t be None type.&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stoichiometry</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">stoichiometry</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;stoichiometry in products must greater than 0 and of type int.&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">coverage</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;build&quot;</span><span class="p">,</span> <span class="s2">&quot;propensities&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">propensity_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span>
+
+            <span class="k">if</span> <span class="n">propensity_function</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">propensity_function</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;propensity_function must be of type str.&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">propensity_function</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;propensity_function can&#39;t be an empty string.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">coverage</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;build&quot;</span><span class="p">,</span> <span class="s2">&quot;propensities&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">ode_propensity_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">ode_propensity_function</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span>
+
+            <span class="k">if</span> <span class="n">ode_propensity_function</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ode_propensity_function</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;ode_propensity_function must be of type str.&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ode_propensity_function</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;ode_propensity_function can&#39;t be an empty string.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">coverage</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;build&quot;</span><span class="p">,</span> <span class="s2">&quot;marate&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">marate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">marate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marate</span>
+
+            <span class="k">if</span> <span class="n">marate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">marate</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">))</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">marate</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;Parameter&#39;</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;rate must be of type str or GillesPy2.Parameter.&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">marate</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;rate can&#39;t be an empty string.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">coverage</span> <span class="o">==</span> <span class="s2">&quot;build&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;massaction&quot;</span><span class="p">):</span>
+            <span class="n">has_prop</span> <span class="o">=</span> <span class="n">propensity_function</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">ode_propensity_function</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">marate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">has_prop</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;You cannot set the rate and simultaneously set propensity functions.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">marate</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_prop</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;You must specify either a mass-action rate or propensity functions.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">coverage</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;build&quot;</span><span class="p">,</span> <span class="s2">&quot;annotation&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">annotation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">annotation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span>
+
+            <span class="k">if</span> <span class="n">annotation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;annotation must be of type str.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">coverage</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;initialized&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;You must have a non-zero number of reactants or products.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">propensity_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;propensity_function can&#39;t be None type.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ode_propensity_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;ode_propensity_function can&#39;t be None type.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">marate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;mass-action&quot;</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;You must specify either a mass-action rate or propensity functions&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;mass-action&quot;</span><span class="p">:</span>
+                    <span class="n">errmsg</span> <span class="o">=</span> <span class="s2">&quot;Invalid customized reaction. Customized reactions require massaction=False and type=&#39;customized&#39;&quot;</span>
+                    <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="n">errmsg</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;customized&quot;</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="s2">&quot;You cannot set the rate and simultaneously set propensity functions.&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">massaction</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;customized&quot;</span><span class="p">:</span>
+                    <span class="n">errmsg</span> <span class="o">=</span> <span class="s2">&quot;Invalid mass-action reaction. Mass-action reactions require massaction=True and type=&#39;mass-action&#39;&quot;</span>
+                    <span class="k">raise</span> <span class="n">ReactionError</span><span class="p">(</span><span class="n">errmsg</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="Reaction.verify"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.reaction.Reaction.verify">[docs]</a>    <span class="k">def</span> <span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if the reaction is properly formatted.</span>
+<span class="sd">        Does nothing on sucesss, raises and error on failure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">log</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Reaction.verify has been deprecated.  Future releases of GillesPy2 may</span>
+<span class="sd">            not support this feature. Use Reaction.validate instead.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
 </pre></div>
 
           </div>

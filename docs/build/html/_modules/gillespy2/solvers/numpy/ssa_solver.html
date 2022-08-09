@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gillespy2.solvers.numpy.ssa_solver &#8212; GillesPy2 1.6.9 documentation</title>
+    <title>gillespy2.solvers.numpy.ssa_solver &#8212; GillesPy2 1.6.10 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -129,6 +129,14 @@
 
 
 <div class="viewcode-block" id="NumPySSASolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.NumPySSASolver">[docs]</a><span class="k">class</span> <span class="nc">NumPySSASolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This solver produces simulations of systems via Stochastic Simulation Algorithm.</span>
+
+<span class="sd">    :param model: The model on which the solver will operate.</span>
+<span class="sd">    :type model: gillespy2.Model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;NumPySSASolver&quot;</span>
     <span class="n">rc</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">stop_event</span> <span class="o">=</span> <span class="kc">None</span>
@@ -149,31 +157,52 @@
 
 <div class="viewcode-block" id="NumPySSASolver.get_solver_settings"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.NumPySSASolver.get_solver_settings">[docs]</a>    <span class="k">def</span> <span class="nf">get_solver_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a list of arguments supported by the ssa_solver.run</span>
 <span class="sd">        :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.</span>
+<span class="sd">        :rtype: tuple</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;number_of_trajectories&#39;</span><span class="p">,</span> <span class="s1">&#39;increment&#39;</span><span class="p">,</span> <span class="s1">&#39;seed&#39;</span><span class="p">,</span> <span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;timeout&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="NumPySSASolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.NumPySSASolver.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<div class="viewcode-block" id="NumPySSASolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.NumPySSASolver.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">live_output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">live_output_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.</span>
+<span class="sd">        Run the SSA algorithm. Uses a NumPy array for storing results and for generating the timeline.</span>
 
-<span class="sd">        :param model: The model on which the solver will operate.</span>
+<span class="sd">        :param model: The model on which the solver will operate. (Deprecated)</span>
+<span class="sd">        :type model: gillespy2.Model</span>
+<span class="sd">        </span>
 <span class="sd">        :param t: The end time of the solver.</span>
-<span class="sd">        :param number_of_trajectories: The number of times to sample the chemical master equation. Each</span>
-<span class="sd">            trajectory will be returned at the end of the simulation.</span>
+<span class="sd">        :type t: int or float</span>
+<span class="sd">        </span>
+<span class="sd">        :param number_of_trajectories: Number of trajectories to simulate. By default number_of_trajectories = 1.</span>
+<span class="sd">        :type number_of_trajectories: int</span>
+<span class="sd">            </span>
 <span class="sd">        :param increment: The time step of the solution.</span>
+<span class="sd">        :type increment: float</span>
+<span class="sd">        </span>
 <span class="sd">        :param seed: The random seed for the simulation. Defaults to None.</span>
-<span class="sd">        :param debug: Set to True to provide additional debug information about the</span>
-<span class="sd">            simulation.</span>
-<span class="sd">        :param resume: Result of a previously run simulation, to be resumed</span>
-<span class="sd">        :param live_output: str The type of output to be displayed by solver. Can be &quot;progress&quot;, &quot;text&quot;, or &quot;graph&quot;.</span>
+<span class="sd">        :type seed: int</span>
+<span class="sd">        </span>
+<span class="sd">        :param debug: Set to True to provide additional debug information about the simulation.</span>
+<span class="sd">        :type debug: bool</span>
+<span class="sd">        </span>
+<span class="sd">        :param live_output: The type of output to be displayed by solver. Can be &quot;progress&quot;, &quot;text&quot;, or &quot;graph&quot;.</span>
+<span class="sd">        :type live_output: str</span>
+<span class="sd">        </span>
 <span class="sd">        :param live_output_options: dictionary contains options for live_output. By default {&quot;interval&quot;:1}.</span>
 <span class="sd">            &quot;interval&quot; specifies seconds between displaying.</span>
-<span class="sd">            &quot;clear_output&quot; specifies if display should be refreshed with each display</span>
+<span class="sd">            &quot;clear_output&quot; specifies if display should be refreshed with each display.</span>
+<span class="sd">        :type live_output_options:  dict</span>
+<span class="sd">        </span>
+<span class="sd">        :param timeout: If set, if simulation takes longer than timeout, will exit.</span>
+<span class="sd">        :type timeout: int</span>
+<span class="sd">        </span>
+<span class="sd">        :param resume: Result of a previously run simulation, to be resumed.</span>
+<span class="sd">        :type resume: gillespy2.Results</span>
 
-<span class="sd">        :returns: a list of each trajectory simulated.</span>
+<span class="sd">        :returns: A result object containing the results of the simulation.</span>
+<span class="sd">        :rtype: gillespy2.Results</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">gillespy2</span> <span class="kn">import</span> <span class="n">log</span>
 
@@ -199,7 +228,7 @@
                 <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="s2">&quot;A model is required to run the simulation.&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">resolve_parameters</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">compile_prep</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">validate_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">validate_sbml_features</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
 
@@ -246,8 +275,6 @@
                                                                               <span class="n">number_of_trajectories</span><span class="p">,</span>
                                                                               <span class="s1">&#39;increment&#39;</span><span class="p">:</span> <span class="n">increment</span><span class="p">,</span>
                                                                               <span class="s1">&#39;seed&#39;</span><span class="p">:</span> <span class="n">seed</span><span class="p">,</span> <span class="s1">&#39;debug&#39;</span><span class="p">:</span> <span class="n">debug</span><span class="p">,</span>
-                                                                              <span class="s1">&#39;show_labels&#39;</span><span class="p">:</span> <span class="n">show_labels</span><span class="p">,</span>
-                                                                              <span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="n">timeout</span><span class="p">,</span>
                                                                               <span class="s1">&#39;resume&#39;</span><span class="p">:</span> <span class="n">resume</span><span class="p">,</span> <span class="p">})</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">time</span> <span class="o">=</span> <span class="mi">0</span>
@@ -301,20 +328,20 @@
         <span class="k">return</span> <span class="n">Results</span><span class="o">.</span><span class="n">build_from_solver_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">live_output_options</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">___run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">total_time</span><span class="p">,</span> <span class="n">timeline</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="p">,</span> <span class="n">live_grapher</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
-               <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-               <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+               <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="p">):</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__run</span><span class="p">(</span><span class="n">curr_state</span><span class="p">,</span> <span class="n">total_time</span><span class="p">,</span> <span class="n">timeline</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="p">,</span> <span class="n">live_grapher</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="p">,</span>
-                       <span class="n">increment</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">debug</span><span class="p">,</span> <span class="n">show_labels</span><span class="p">,</span> <span class="n">resume</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
+                       <span class="n">increment</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">debug</span><span class="p">,</span> <span class="n">resume</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">has_raised_exception</span> <span class="o">=</span> <span class="n">e</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">return</span> <span class="p">[],</span> <span class="o">-</span><span class="mi">1</span>
 
     <span class="k">def</span> <span class="nf">__run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">total_time</span><span class="p">,</span> <span class="n">timeline</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="p">,</span> <span class="n">live_grapher</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
-              <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-              <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+              <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+              <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,):</span>
 
         <span class="c1"># for use with resume, determines how much excess data to cut off due to</span>
         <span class="c1"># how species and time are initialized to 0</span>
