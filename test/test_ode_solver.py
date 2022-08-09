@@ -34,17 +34,17 @@ class TestBasicODESolver(unittest.TestCase):
             for label in [True, False]:
                 with self.subTest(number_of_trajectories=i, show_labels=label):
                     if i > 1:
-                        with self.assertLogs('GillesPy2', level='WARN'):
-                            results = model.run(solver=solver, show_labels=label, number_of_trajectories=i)
+                        results = model.run(solver=solver, number_of_trajectories=i)
                         self.assertEqual(len(results), i)
                     else:
-                        results = model.run(solver=solver, show_labels=label, number_of_trajectories=i)
+                        results = model.run(solver=solver, number_of_trajectories=i)
 
+                    if not label:
+                        results = results.to_array()
                     if i > 1 or not label:
                         for result in results[1:]:
                             if label:
                                 self.assertEqual(results[0], result)
-
                             else:
                                 self.assertTrue(np.array_equal(results[0], result))
 
