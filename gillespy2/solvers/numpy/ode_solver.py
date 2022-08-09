@@ -84,7 +84,7 @@ class ODESolver(GillesPySolver):
         return ('model', 't', 'number_of_trajectories', 'increment', 'integrator', 'integrator_options',
                 'timeout')
 
-    def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, show_labels=True, integrator='lsoda',
+    def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, integrator='lsoda',
             integrator_options={}, live_output=None, live_output_options={}, timeout=None, resume=None, **kwargs):
         """
         :param model: gillespy2.model class object
@@ -180,7 +180,6 @@ class ODESolver(GillesPySolver):
                                                                                           'number_of_trajectories':
                                                                                               number_of_trajectories,
                                                                                           'increment': increment,
-                                                                                          'timeout': timeout,
                                                                                           'resume': resume,
                                                                                           'integrator': integrator,
                                                                                           'integrator_options':
@@ -236,11 +235,11 @@ class ODESolver(GillesPySolver):
         return Results.build_from_solver_results(self, live_output_options)
 
     def ___run(self, curr_state, curr_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
-               number_of_trajectories=1, increment=0.05, timeout=None, show_labels=True, integrator='lsoda',
+               number_of_trajectories=1, increment=0.05, integrator='lsoda',
                integrator_options={}, resume=None, **kwargs):
         try:
             self.__run(curr_state, curr_time, timeline, trajectory_base, tmpSpecies, live_grapher, t,
-                       number_of_trajectories, increment, timeout, show_labels, integrator, integrator_options, resume,
+                       number_of_trajectories, increment, integrator, integrator_options, resume,
                        **kwargs)
         except Exception as e:
             self.has_raised_exception = e
@@ -248,7 +247,7 @@ class ODESolver(GillesPySolver):
             return [], -1
 
     def __run(self, curr_state, curr_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
-              number_of_trajectories=1, increment=0.05, timeout=None, show_labels=True, integrator='lsoda',
+              number_of_trajectories=1, increment=0.05, integrator='lsoda',
               integrator_options={}, resume=None, **kwargs):
 
         timeStopped = 0
