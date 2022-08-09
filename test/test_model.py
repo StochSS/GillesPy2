@@ -30,12 +30,6 @@ class TestModel(unittest.TestCase):
         model = Model()
         assert model==model
 
-    def test_deprecate_set_parameter(self):
-        model1 = Model()
-        param1 = Parameter('A', expression=0)
-        model1.add_parameter(param1)
-        param1.set_expression(1) #raised error
-
     def test_model_inequality(self):
         model1 = Model()
         model2 = Model()
