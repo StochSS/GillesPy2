@@ -24,40 +24,40 @@ Simple example of using GillesPy2
     </p>
 
 
-In GillesPy2, a model is expressed as an object having the parent class ``Model``.  Components of the model, such as the reactions, molecular species, and characteristics such as the time span for simulation, are all defined within the subclass definition.  The following Python code represents our dimerization model using GillesPy2's facility:
+In GillesPy2, a model is expressed as an object.  Components, such as the reactions, molecular species, and characteristics such as the time span for simulation, are all defined within the model.  The following Python code represents our dimerization model using GillesPy2's facility:
 
 .. code-block:: python
 
-    import numpy
     import gillespy2
 
-    class Dimerization(gillespy2.Model):
-        def __init__(self, parameter_values=None):
-            # First call the gillespy2.Model initializer.
-            super().__init__(self)
-    
-            # Define parameters for the rates of creation and dissociation.
-            k_c = gillespy2.Parameter(name='k_c', expression=0.005)
-            k_d = gillespy2.Parameter(name='k_d', expression=0.08)
-            self.add_parameter([k_c, k_d])
-    
-            # Define variables for the molecular species representing M & D.
-            m = gillespy2.Species(name='monomer', initial_value=30)
-            d = gillespy2.Species(name='dimer',   initial_value=0)
-            self.add_species([m, d])
-    
-            # The list of reactants and products for a Reaction object are
-            # each a Python dictionary in which the dictionary keys are
-            # Species objects and the values are stoichiometries of the
-            # species in the reaction.
-            r_c = gillespy2.Reaction(name="r_creation", rate=k_c,
-                                     reactants={m:2}, products={d:1})
-            r_d = gillespy2.Reaction(name="r_dissociation", rate=k_d,
-                                     reactants={d:1}, products={m:2})
-            self.add_reaction([r_c, r_d])
-    
-            # Set the timespan for the simulation.
-            self.timespan(numpy.linspace(0, 100, 101))
+    def Dimerization(parameter_values=None):
+        # First call the gillespy2.Model initializer.
+        model = gillespy2.Model()
+
+        # Define parameters for the rates of creation and dissociation.
+        k_c = gillespy2.Parameter(name='k_c', expression=0.005)
+        k_d = gillespy2.Parameter(name='k_d', expression=0.08)
+        model.add_parameter([k_c, k_d])
+
+        # Define variables for the molecular species representing M & D.
+        m = gillespy2.Species(name='monomer', initial_value=30)
+        d = gillespy2.Species(name='dimer',   initial_value=0)
+        model.add_species([m, d])
+
+        # The list of reactants and products for a Reaction object are
+        # each a Python dictionary in which the dictionary keys are
+        # Species objects and the values are stoichiometries of the
+        # species in the reaction.
+        r_c = gillespy2.Reaction(name="r_creation", rate=k_c,
+                                 reactants={m:2}, products={d:1})
+        r_d = gillespy2.Reaction(name="r_dissociation", rate=k_d,
+                                 reactants={d:1}, products={m:2})
+        model.add_reaction([r_c, r_d])
+
+        # Set the timespan for the simulation.
+        tspan = gillespy2.TimeSpan.linspace(0, 100, 101)
+        model.timespan(tspan)
+        return model
 
 
 Given the class definition above, the model can be simulated by first instantiating the class object, and then invoking the ``run()`` method on the object.  The following code will run the model 10 times to produce 10 sample trajectories:
@@ -93,28 +93,25 @@ First, let's define a simple model to use in this example.
 
 .. code-block:: Python
 
-    import numpy
     import gillespy2
-    from gillespy2.solvers.numpy.basic_tau_hybrid_solver import BasicTauHybridSolver
-
+    
     # Define the model.
 
-    class AutomaticSwitchExample(gillespy2.Model):
-      def __init__(self, parameter_values=None):
+    def AutomaticSwitchExample(parameter_values=None):
         # First call the gillespy2.Model initializer.
-        gillespy2.Model.__init__(self, name="Automatic Switch Example")
+        model = gillespy2.Model(name="Automatic Switch Example")
         
         # Define parameters.
         k1 = gillespy2.Parameter(name='k1', expression=3e-4)
         k2 = gillespy2.Parameter(name='k2', expression=0.5e-2)
         k3 = gillespy2.Parameter(name='k3', expression=2e-1)
-        self.add_parameter([k1,k2,k3])
+        model.add_parameter([k1,k2,k3])
         
         # Define species.
         A = gillespy2.Species(name='A', initial_value=400)
         B = gillespy2.Species(name='B', initial_value=10000)
         C = gillespy2.Species(name='C', initial_value=10000)
-        self.add_species([A, B, C])
+        model.add_species([A, B, C])
         
         # Define reactions.
         r1 = gillespy2.Reaction(name="r1", rate=k1,
@@ -126,10 +123,12 @@ First, let's define a simple model to use in this example.
         r3 = gillespy2.Reaction(name="r3", rate=k3,
                                 reactants={C:1}, products={A:1})
     
-        self.add_reaction([r1,r2,r3])
+        model.add_reaction([r1,r2,r3])
 
         # Set the timespan for the simulation.
-        self.timespan(numpy.linspace(0, 600, 601))
+        tspan = gillespy2.TimeSpan.linspace(0, 600, 601)
+        model.timespan(tspan)
+        return model
 
 
 In GillesPy2, the selection of different simulation methods is achieved by supplying a value for the ``solver`` keyword argument to the ``run()`` method on ``Model``.  The hybrid solver is selected by passing the value ``BasicTauHybridSolver`` to the ``solver`` keyword argument:
@@ -139,7 +138,7 @@ In GillesPy2, the selection of different simulation methods is achieved by suppl
     # Create an instance of the model object, then run the simulation.
 
     model = AutomaticSwitchExample()
-    results = model.run(solver=BasicTauHybridSolver)
+    results = model.run(algorithm="Tau-Hybrid")
 
 
 The following code plots the results.
