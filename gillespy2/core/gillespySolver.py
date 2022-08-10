@@ -29,7 +29,7 @@ class GillesPySolver:
     name = "GillesPySolver"
 
     def run(self, model, t=20, number_of_trajectories=1, increment=0.05, seed=None,
-            debug=False, profile=False, show_labels=None, **kwargs):
+            debug=False, profile=False, **kwargs):
         """ 
         Call out and run the solver. Collect the results.
 
@@ -52,9 +52,6 @@ class GillesPySolver:
         :param debug: Set to True to provide additional debug information about the simulation.
         :type debug: bool
         
-        :param show_labels: Use names of species as index of result object rather than position numbers.
-        :type show_labels: bool
-
         :returns: Simulation trajectories.
         """
         raise SimulationError("This abstract solver class cannot be used directly.")
