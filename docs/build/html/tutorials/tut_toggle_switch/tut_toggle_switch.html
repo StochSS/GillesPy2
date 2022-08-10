@@ -106,8 +106,7 @@
 <h1>Tutorial: ODE vs. SSA<a class="headerlink" href="#tutorial-ode-vs-ssa" title="Permalink to this headline">¶</a></h1>
 <p>Deterministic ordinary differential equation (ODE) models of biochemical processes are useful and accurate in the high-concentration limit, but often fail to capture stochastic cellular dynamics accurately because the deterministic continuous formulation assumes spatial homogeneity and continuous biomolecule concentrations.  Nevertheless, ODE simulations are appropriate in some situations.  GillesPy2 includes ODE solvers as well as stochastic solvers, and thus allows you to compare the results of both.  This tutorial demonstrates the use of both ODE and stochastic simulation on the same model.</p>
 <p>First, in a Python script that uses GillesPy2 to perform model simulation, we begin by importing some basic Python packages needed in the rest of the script:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">gillespy2</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gillespy2</span>
 </pre></div>
 </div>
 <p>Next, we define a model. This is a model based on a publication by Gardner et al. in Nature, 1999, and represents a genetic toggle switch in Escherichia coli.  In GillesPy2, a model is expressed as an object having the parent class <code class="docutils literal notranslate"><span class="pre">Model</span></code>.  Components of the model, such as the reactions, molecular species, and characteristics such as the time span for simulation, are all defined within the subclass definition.  The following Python code represents our model using GillesPy2’s facility:</p>
