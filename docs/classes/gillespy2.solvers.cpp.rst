@@ -28,14 +28,6 @@ gillespy2.solvers.cpp.c\_solver module
    :undoc-members:
    :show-inheritance:
 
-gillespy2.solvers.cpp.example\_models module
---------------------------------------------
-
-.. automodule:: gillespy2.solvers.cpp.example_models
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 gillespy2.solvers.cpp.ode\_c\_solver module
 -------------------------------------------
 
@@ -64,14 +56,6 @@ gillespy2.solvers.cpp.tau\_leaping\_c\_solver module
 ----------------------------------------------------
 
 .. automodule:: gillespy2.solvers.cpp.tau_leaping_c_solver
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-gillespy2.solvers.cpp.variable\_ssa\_c\_solver module
------------------------------------------------------
-
-.. automodule:: gillespy2.solvers.cpp.variable_ssa_c_solver
    :members:
    :undoc-members:
    :show-inheritance:

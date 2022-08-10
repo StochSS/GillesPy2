@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>gillespy2.solvers package &#8212; GillesPy2 1.6.9 documentation</title>
+    <title>gillespy2.solvers package &#8212; GillesPy2 1.7.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/gillespy2_alabaster_customizations.css" />
@@ -136,19 +136,11 @@
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.solvers.cpp.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.solvers.cpp.html#module-gillespy2.solvers.cpp.c_decoder">gillespy2.solvers.cpp.c_decoder module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.solvers.cpp.html#module-gillespy2.solvers.cpp.c_solver">gillespy2.solvers.cpp.c_solver module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.solvers.cpp.html#module-gillespy2.solvers.cpp.example_models">gillespy2.solvers.cpp.example_models module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.solvers.cpp.html#module-gillespy2.solvers.cpp.ode_c_solver">gillespy2.solvers.cpp.ode_c_solver module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.solvers.cpp.html#module-gillespy2.solvers.cpp.ssa_c_solver">gillespy2.solvers.cpp.ssa_c_solver module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.solvers.cpp.html#module-gillespy2.solvers.cpp.tau_hybrid_c_solver">gillespy2.solvers.cpp.tau_hybrid_c_solver module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.solvers.cpp.html#module-gillespy2.solvers.cpp.tau_leaping_c_solver">gillespy2.solvers.cpp.tau_leaping_c_solver module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.solvers.cpp.html#module-gillespy2.solvers.cpp.variable_ssa_c_solver">gillespy2.solvers.cpp.variable_ssa_c_solver module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.solvers.cpp.html#module-gillespy2.solvers.cpp">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="gillespy2.solvers.cython.html">gillespy2.solvers.cython package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.solvers.cython.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.solvers.cython.html#gillespy2-solvers-cython-cython-ssa-solver-module">gillespy2.solvers.cython.cython_ssa_solver module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.solvers.cython.html#module-gillespy2.solvers.cython">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="gillespy2.solvers.numpy.html">gillespy2.solvers.numpy package</a><ul>
@@ -182,22 +174,23 @@
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-gillespy2.solvers" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="gillespy2.solvers.CLESolver">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.</span></span><span class="sig-name descname"><span class="pre">CLESolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/CLE_solver.html#CLESolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.CLESolver" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.</span></span><span class="sig-name descname"><span class="pre">CLESolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/CLE_solver.html#CLESolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.CLESolver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
 <p>A Chemical Langevin Equation Solver for GillesPy2 models.</p>
-<p>TODO: fix
-This solver uses an algorithm calculates
-multiple reactions in a single step over a given tau step size.  The change in propensities
-over this step are bounded by bounding the relative change in state, yielding greatly improved
-run-time performance with very little trade-off in accuracy.</p>
+<p>This solver uses an algorithm that calculates multiple reactions in a single step over a given
+tau step size.  The change in propensities over this step are bounded by bounding the relative
+change in state, yielding greatly improved run-time performance with very little trade-off in accuracy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model</strong> (<em>gillespy2.Model</em>) – The model on which the solver will operate.</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.CLESolver.get_solver_settings">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_solver_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/CLE_solver.html#CLESolver.get_solver_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.CLESolver.get_solver_settings" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Tuple of strings, denoting all keyword argument for this solvers run() method.</p>
-</dd>
-</dl>
+<dd><p>Returns a list of arguments supported by CLE_solver.run.
+:returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
+:rtype: tuple</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -222,7 +215,7 @@ run-time performance with very little trade-off in accuracy.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.CLESolver.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_trajectories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/CLE_solver.html#CLESolver.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.CLESolver.run" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_trajectories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/CLE_solver.html#CLESolver.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.CLESolver.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function calling simulation of the model.
 This is typically called by the run function in GillesPy2 model objects
 and will inherit those parameters which are passed with the model
@@ -230,25 +223,36 @@ as the arguments this run function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>gillespy2.Model</em>) – GillesPy2 model object to simulate</p></li>
-<li><p><strong>t</strong> (<em>int</em>) – Simulation run time</p></li>
-<li><p><strong>number_of_trajectories</strong> (<em>int</em>) – Number of trajectories to simulate</p></li>
-<li><p><strong>increment</strong> (<em>float</em>) – Save point increment for recording data</p></li>
-<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Optional, defaults to None</p></li>
-<li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation</p></li>
+<li><p><strong>model</strong> (<em>gillespy2.Model</em>) – The model on which the solver will operate. (Deprecated)</p></li>
+<li><p><strong>t</strong> (<em>int</em><em> or </em><em>float</em>) – Simulation run time.</p></li>
+<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each</p></li>
+</ul>
+</dd>
+</dl>
+<p>trajectory will be returned at the end of the simulation. By default number_of_trajectories = 1.
+:type number_of_trajectories: int</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>increment</strong> (<em>float</em>) – Save point increment for recording data.</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Optional, defaults to None.</p></li>
+<li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation.</p></li>
 <li><p><strong>profile</strong> (<em>bool</em>) – Set to True to provide information about step size (tau) taken at each step.</p></li>
 <li><p><strong>live_output</strong> (<em>str</em>) – The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.</p></li>
-<li><p><strong>live_output_options</strong> (<em>dict</em>) – COntains options for live_output. By default {“interval”:1}. “interval”
+<li><p><strong>live_output_options</strong> (<em>dict</em>) – Contains options for live_output. By default {“interval”:1}. “interval”
 specifies seconds between displaying. “clear_output” specifies if display should be refreshed with each
 display.</p></li>
-<li><p><strong>timeout</strong> – </p></li>
-<li><p><strong>resume</strong> – </p></li>
-<li><p><strong>tau_tol</strong> – </p></li>
-<li><p><strong>kwargs</strong> – </p></li>
+<li><p><strong>timeout</strong> (<em>int</em>) – If set, if simulation takes longer than timeout, will exit.</p></li>
+<li><p><strong>resume</strong> (<em>gillespy2.Results</em>) – Result of a previously run simulation, to be resumed.</p></li>
+<li><p><strong>tau_tol</strong> (<em>float</em>) – Tolerance level for Tau leaping algorithm.  Larger tolerance values will
+result in larger tau steps. Default value is 0.03.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
+<dd class="field-even"><p>A result object containing the results of the simulation.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>gillespy2.Results</p>
 </dd>
 </dl>
 </dd></dl>
@@ -264,14 +268,18 @@ display.</p></li>
 <dt class="sig sig-object py" id="gillespy2.solvers.NumPySSASolver">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.</span></span><span class="sig-name descname"><span class="pre">NumPySSASolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/ssa_solver.html#NumPySSASolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.NumPySSASolver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
+<p>This solver produces simulations of systems via Stochastic Simulation Algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model</strong> (<em>gillespy2.Model</em>) – The model on which the solver will operate.</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.NumPySSASolver.get_solver_settings">
 <span class="sig-name descname"><span class="pre">get_solver_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/ssa_solver.html#NumPySSASolver.get_solver_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.NumPySSASolver.get_solver_settings" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Tuple of strings, denoting all keyword argument for this solvers run() method.</p>
-</dd>
-</dl>
+<dd><p>Returns a list of arguments supported by the ssa_solver.run
+:returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
+:rtype: tuple</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -296,28 +304,30 @@ display.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.NumPySSASolver.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_trajectories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/ssa_solver.html#NumPySSASolver.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.NumPySSASolver.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.</p>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_trajectories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/ssa_solver.html#NumPySSASolver.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.NumPySSASolver.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the SSA algorithm. Uses a NumPy array for storing results and for generating the timeline.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> – The model on which the solver will operate.</p></li>
-<li><p><strong>t</strong> – The end time of the solver.</p></li>
-<li><p><strong>number_of_trajectories</strong> – The number of times to sample the chemical master equation. Each
-trajectory will be returned at the end of the simulation.</p></li>
-<li><p><strong>increment</strong> – The time step of the solution.</p></li>
-<li><p><strong>seed</strong> – The random seed for the simulation. Defaults to None.</p></li>
-<li><p><strong>debug</strong> – Set to True to provide additional debug information about the
-simulation.</p></li>
-<li><p><strong>resume</strong> – Result of a previously run simulation, to be resumed</p></li>
-<li><p><strong>live_output</strong> – str The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.</p></li>
-<li><p><strong>live_output_options</strong> – dictionary contains options for live_output. By default {“interval”:1}.
+<li><p><strong>model</strong> (<em>gillespy2.Model</em>) – The model on which the solver will operate. (Deprecated)</p></li>
+<li><p><strong>t</strong> (<em>int</em><em> or </em><em>float</em>) – The end time of the solver.</p></li>
+<li><p><strong>number_of_trajectories</strong> (<em>int</em>) – Number of trajectories to simulate. By default number_of_trajectories = 1.</p></li>
+<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution.</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
+<li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation.</p></li>
+<li><p><strong>live_output</strong> (<em>str</em>) – The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.</p></li>
+<li><p><strong>live_output_options</strong> (<em>dict</em>) – dictionary contains options for live_output. By default {“interval”:1}.
 “interval” specifies seconds between displaying.
-“clear_output” specifies if display should be refreshed with each display</p></li>
+“clear_output” specifies if display should be refreshed with each display.</p></li>
+<li><p><strong>timeout</strong> (<em>int</em>) – If set, if simulation takes longer than timeout, will exit.</p></li>
+<li><p><strong>resume</strong> (<em>gillespy2.Results</em>) – Result of a previously run simulation, to be resumed.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a list of each trajectory simulated.</p>
+<dd class="field-even"><p>A result object containing the results of the simulation.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>gillespy2.Results</p>
 </dd>
 </dl>
 </dd></dl>
@@ -333,15 +343,20 @@ simulation.</p></li>
 <dt class="sig sig-object py" id="gillespy2.solvers.ODECSolver">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.</span></span><span class="sig-name descname"><span class="pre">ODECSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model" title="gillespy2.core.model.Model"><span class="pre">gillespy2.core.model.Model</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete_directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/cpp/ode_c_solver.html#ODECSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.ODECSolver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a>, <a class="reference internal" href="gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.c_solver.CSolver" title="gillespy2.solvers.cpp.c_solver.CSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.solvers.cpp.c_solver.CSolver</span></code></a></p>
+<p>This Solver produces the deterministic continuous solution via Ordinary Differential Equations.
+Uses integrators from SUNDIALS to perform calculations used to produce solutions.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.ODECSolver.get_solver_settings">
 <span class="sig-name descname"><span class="pre">get_solver_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/cpp/ode_c_solver.html#ODECSolver.get_solver_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.ODECSolver.get_solver_settings" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Tuple of strings, denoting all keyword argument for this solvers run() method.</p>
-</dd>
-</dl>
+<dd><p>Returns a list of arguments supported by odc_c_solver.run.
+:returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
+:rtype: tuple</p>
 </dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="gillespy2.solvers.ODECSolver.get_supported_integrator_options">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_supported_integrator_options</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/cpp/ode_c_solver.html#ODECSolver.get_supported_integrator_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.ODECSolver.get_supported_integrator_options" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.ODECSolver.name">
@@ -350,23 +365,30 @@ simulation.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.ODECSolver.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model" title="gillespy2.core.model.Model"><span class="pre">gillespy2.core.model.Model</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_trajectories</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increment</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/cpp/ode_c_solver.html#ODECSolver.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.ODECSolver.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Call out and run the solver. Collect the results.</p>
-<dl class="field-list simple">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model" title="gillespy2.core.model.Model"><span class="pre">gillespy2.core.model.Model</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_trajectories</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increment</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/cpp/ode_c_solver.html#ODECSolver.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.ODECSolver.run" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>gillespy.Model</em>) – The model on which the solver will operate.</p></li>
-<li><p><strong>t</strong> (<em>int</em>) – The end time of the solver</p></li>
-<li><p><strong>number_of_trajectories</strong> (<em>int</em>) – The number of times to sample the chemical master equation. Each
-trajectory will be returned at the end of the simulation.</p></li>
-<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
-<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
-<li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation.</p></li>
-<li><p><strong>show_labels</strong> (<em>bool</em>) – Use names of species as index of result object rather than position numbers.</p></li>
+<li><p><strong>model</strong> (<em>gillespy2.Model</em>) – The model on which the solver will operate. (Deprecated)</p></li>
+<li><p><strong>t</strong> (<em>int</em>) – End time of simulation.</p></li>
+<li><p><strong>number_of_trajectories</strong> (<em>int</em>) – Number of trajectories to simulate.
+This is deterministic and will always have same results.</p></li>
+<li><p><strong>timeout</strong> (<em>int</em>) – If set, if simulation takes longer than timeout, will exit.</p></li>
+<li><p><strong>increment</strong> (<em>float</em>) – Time step increment for plotting.</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Optional, defaults to None.</p></li>
+<li><p><strong>variables</strong> (<em>dict</em>) – Dictionary of species and their data that will override existing species data.</p></li>
+<li><p><strong>resume</strong> (<em>gillespy2.Results</em>) – Result of a previously run simulation, to be resumed.</p></li>
+<li><p><strong>live_output</strong> (<em>str</em>) – The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.</p></li>
+<li><p><strong>live_output_options</strong> (<em>dict</em>) – Dictionary that contains options for live_output. By default {“interval”:1}.
+“interval” specifies seconds between displaying.
+“clear_output” specifies if display should be refreshed with each display.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Simulation trajectories.</p>
+<dd class="field-even"><p>A result object containing the results of the simulation.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>gillespy2.Results</p>
 </dd>
 </dl>
 </dd></dl>
@@ -382,15 +404,19 @@ trajectory will be returned at the end of the simulation.</p></li>
 <dt class="sig sig-object py" id="gillespy2.solvers.ODESolver">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.</span></span><span class="sig-name descname"><span class="pre">ODESolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/ode_solver.html#ODESolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.ODESolver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
-<p>This Solver produces the deterministic continuous solution via ODE.</p>
+<p>This solver produces the deterministic continuous solution via Ordinary Differential Equations.
+Uses integrators from scipy.integrate.ode to perform calculations used to produce solutions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model</strong> (<em>gillespy2.Model</em>) – The model on which the solver will operate.</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.ODESolver.get_solver_settings">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_solver_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/ode_solver.html#ODESolver.get_solver_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.ODESolver.get_solver_settings" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Tuple of strings, denoting all keyword argument for this solvers run() method.</p>
-</dd>
-</dl>
+<dd><p>Returns a list of arguments supported by ode_solver.run.
+:returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
+:rtype: tuple</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -415,28 +441,41 @@ trajectory will be returned at the end of the simulation.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.ODESolver.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_trajectories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lsoda'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/ode_solver.html#ODESolver.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.ODESolver.run" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_trajectories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lsoda'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/ode_solver.html#ODESolver.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.ODESolver.run" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> – gillespy2.model class object</p></li>
-<li><p><strong>t</strong> – end time of simulation</p></li>
-<li><p><strong>number_of_trajectories</strong> – Should be 1.
-This is deterministic and will always have same results</p></li>
-<li><p><strong>increment</strong> – time step increment for plotting</p></li>
-<li><p><strong>integrator</strong> – integrator to be used form scipy.integrate.ode. Options include ‘vode’, ‘zvode’, ‘lsoda’,
+<li><p><strong>model</strong> (<em>gillespy2.Model</em>) – The model on which the solver will operate. (Deprecated)</p></li>
+<li><p><strong>t</strong> (<em>int</em><em> or </em><em>float</em>) – End time of simulation.</p></li>
+<li><p><strong>number_of_trajectories</strong> – Number of trajectories to simulate. By default number_of_trajectories = 1.</p></li>
+</ul>
+</dd>
+</dl>
+<p>This is deterministic and will always have same results.
+:type number_of_trajectories: int</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>increment</strong> (<em>float</em>) – Time step increment for plotting.</p></li>
+<li><p><strong>integrator</strong> (<em>str</em>) – integrator to be used from scipy.integrate.ode. Options include ‘vode’, ‘zvode’, ‘lsoda’,
 ‘dopri5’, and ‘dop853’.  For more details,
 see <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html</a></p></li>
-<li><p><strong>integrator_options</strong> – a dictionary containing options to the scipy integrator. for a list of options,
+<li><p><strong>integrator_options</strong> (<em>dict</em>) – a dictionary containing options to the scipy integrator. for a list of options,
 see <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html</a>.
 Example use: {max_step : 0, rtol : .01}</p></li>
-<li><p><strong>timeout</strong> (<em>int</em>) – If set, if simulation takes longer than timeout, will exit.</p></li>
-<li><p><strong>resume</strong> – Result of a previously run simulation, to be resumed</p></li>
-<li><p><strong>live_output</strong> – str The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.</p></li>
-<li><p><strong>live_output_options</strong> – dictionary contains options for live_output. By default {“interval”:1}.
+<li><p><strong>live_output</strong> (<em>str</em>) – The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.</p></li>
+<li><p><strong>live_output_options</strong> (<em>dict</em>) – dictionary contains options for live_output. By default {“interval”:1}.
 “interval” specifies seconds between displaying.
-“clear_output” specifies if display should be refreshed with each displa</p></li>
+“clear_output” specifies if display should be refreshed with each display.</p></li>
+<li><p><strong>timeout</strong> (<em>int</em>) – If set, if simulation takes longer than timeout, will exit.</p></li>
+<li><p><strong>resume</strong> (<em>gillespy2.Results</em>) – Result of a previously run simulation, to be resumed.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A result object containing the results of the simulation.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>gillespy2.Results</p>
 </dd>
 </dl>
 </dd></dl>
@@ -452,14 +491,13 @@ Example use: {max_step : 0, rtol : .01}</p></li>
 <dt class="sig sig-object py" id="gillespy2.solvers.SSACSolver">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.</span></span><span class="sig-name descname"><span class="pre">SSACSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model" title="gillespy2.core.model.Model"><span class="pre">gillespy2.core.model.Model</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete_directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/cpp/ssa_c_solver.html#SSACSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.SSACSolver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a>, <a class="reference internal" href="gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.c_solver.CSolver" title="gillespy2.solvers.cpp.c_solver.CSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.solvers.cpp.c_solver.CSolver</span></code></a></p>
+<p>This solver produces simulations of systems via Stochastic Simulation Algorithm.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.SSACSolver.get_solver_settings">
 <span class="sig-name descname"><span class="pre">get_solver_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/cpp/ssa_c_solver.html#SSACSolver.get_solver_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.SSACSolver.get_solver_settings" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Tuple of strings, denoting all keyword argument for this solvers run() method.</p>
-</dd>
-</dl>
+<dd><p>Returns a list of arguments supported by ssa_c_solver.run.
+:returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
+:rtype: tuple</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -481,7 +519,6 @@ trajectory will be returned at the end of the simulation.</p></li>
 <li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
 <li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
 <li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation.</p></li>
-<li><p><strong>show_labels</strong> (<em>bool</em>) – Use names of species as index of result object rather than position numbers.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -501,14 +538,37 @@ trajectory will be returned at the end of the simulation.</p></li>
 <dt class="sig sig-object py" id="gillespy2.solvers.TauHybridCSolver">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.</span></span><span class="sig-name descname"><span class="pre">TauHybridCSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model" title="gillespy2.core.model.Model"><span class="pre">gillespy2.core.model.Model</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete_directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/cpp/tau_hybrid_c_solver.html#TauHybridCSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.TauHybridCSolver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a>, <a class="reference internal" href="gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.c_solver.CSolver" title="gillespy2.solvers.cpp.c_solver.CSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.solvers.cpp.c_solver.CSolver</span></code></a></p>
+<p>This solver uses a root-finding interpretation of the direct SSA method,
+along with ODE solvers to simulate ODE and Stochastic systems
+interchangeably or simultaneously.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="gillespy2.solvers.TauHybridCSolver.ErrorStatus">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ErrorStatus</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/cpp/tau_hybrid_c_solver.html#TauHybridCSolver.ErrorStatus"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.TauHybridCSolver.ErrorStatus" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
 <p>An enumeration.</p>
 <dl class="py attribute">
+<dt class="sig sig-object py" id="gillespy2.solvers.TauHybridCSolver.ErrorStatus.INTEGRATOR_FAILED">
+<span class="sig-name descname"><span class="pre">INTEGRATOR_FAILED</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#gillespy2.solvers.TauHybridCSolver.ErrorStatus.INTEGRATOR_FAILED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="gillespy2.solvers.TauHybridCSolver.ErrorStatus.INVALID_AFTER_SSA">
+<span class="sig-name descname"><span class="pre">INVALID_AFTER_SSA</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#gillespy2.solvers.TauHybridCSolver.ErrorStatus.INVALID_AFTER_SSA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.TauHybridCSolver.ErrorStatus.LOOP_OVER_INTEGRATE">
-<span class="sig-name descname"><span class="pre">LOOP_OVER_INTEGRATE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#gillespy2.solvers.TauHybridCSolver.ErrorStatus.LOOP_OVER_INTEGRATE" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">LOOP_OVER_INTEGRATE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#gillespy2.solvers.TauHybridCSolver.ErrorStatus.LOOP_OVER_INTEGRATE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="gillespy2.solvers.TauHybridCSolver.ErrorStatus.NEGATIVE_STATE_NO_SSA_REACTION">
+<span class="sig-name descname"><span class="pre">NEGATIVE_STATE_NO_SSA_REACTION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#gillespy2.solvers.TauHybridCSolver.ErrorStatus.NEGATIVE_STATE_NO_SSA_REACTION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="gillespy2.solvers.TauHybridCSolver.ErrorStatus.UNKNOWN">
+<span class="sig-name descname"><span class="pre">UNKNOWN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#gillespy2.solvers.TauHybridCSolver.ErrorStatus.UNKNOWN" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -516,16 +576,19 @@ trajectory will be returned at the end of the simulation.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.TauHybridCSolver.get_solver_settings">
 <span class="sig-name descname"><span class="pre">get_solver_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/cpp/tau_hybrid_c_solver.html#TauHybridCSolver.get_solver_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.TauHybridCSolver.get_solver_settings" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Tuple of strings, denoting all keyword argument for this solvers run() method.</p>
-</dd>
-</dl>
+<dd><p>Returns a list of arguments supported by tau_hybrid_c_solver.run.
+:return: Tuple of strings, denoting all keyword argument for this solvers run() method.
+:rtype: tuple</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.TauHybridCSolver.get_supported_features">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_supported_features</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/cpp/tau_hybrid_c_solver.html#TauHybridCSolver.get_supported_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.TauHybridCSolver.get_supported_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="gillespy2.solvers.TauHybridCSolver.get_supported_integrator_options">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_supported_integrator_options</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/gillespy2/solvers/cpp/tau_hybrid_c_solver.html#TauHybridCSolver.get_supported_integrator_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.TauHybridCSolver.get_supported_integrator_options" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -535,23 +598,34 @@ trajectory will be returned at the end of the simulation.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.TauHybridCSolver.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model" title="gillespy2.core.model.Model"><span class="pre">gillespy2.core.model.Model</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_trajectories</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increment</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/cpp/tau_hybrid_c_solver.html#TauHybridCSolver.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.TauHybridCSolver.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Call out and run the solver. Collect the results.</p>
-<dl class="field-list simple">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model" title="gillespy2.core.model.Model"><span class="pre">gillespy2.core.model.Model</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_trajectories</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increment</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/cpp/tau_hybrid_c_solver.html#TauHybridCSolver.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.TauHybridCSolver.run" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>gillespy.Model</em>) – The model on which the solver will operate.</p></li>
-<li><p><strong>t</strong> (<em>int</em>) – The end time of the solver</p></li>
-<li><p><strong>number_of_trajectories</strong> (<em>int</em>) – The number of times to sample the chemical master equation. Each
-trajectory will be returned at the end of the simulation.</p></li>
-<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
-<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
-<li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation.</p></li>
-<li><p><strong>show_labels</strong> (<em>bool</em>) – Use names of species as index of result object rather than position numbers.</p></li>
+<li><p><strong>model</strong> (<em>gillespy2.Model</em>) – The model on which the solver will operate. (Deprecated)</p></li>
+<li><p><strong>t</strong> (<em>int</em>) – End time of simulation.</p></li>
+<li><p><strong>number_of_trajectories</strong> (<em>int</em>) – Number of trajectories to simulate. By default number_of_trajectories = 1.</p></li>
+<li><p><strong>timeout</strong> (<em>int</em>) – If set, if simulation takes longer than timeout, will exit.</p></li>
+<li><p><strong>increment</strong> (<em>float</em>) – Time step increment for plotting.</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Optional, defaults to None.</p></li>
+<li><p><strong>variables</strong> (<em>dict</em>) – Dictionary of species and their data that will override existing species data.</p></li>
+<li><p><strong>resume</strong> (<em>gillespy2.Results</em>) – Result of a previously run simulation, to be resumed.</p></li>
+<li><p><strong>live_output</strong> (<em>str</em>) – The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.</p></li>
+<li><p><strong>live_output_options</strong> (<em>dict</em>) – dictionary contains options for live_output. By default {“interval”:1}.
+“interval” specifies seconds between displaying.
+“clear_output” specifies if display should be refreshed with each display.</p></li>
+<li><p><strong>tau_tol</strong> – Tolerance level for Tau leaping algorithm.  Larger tolerance values will</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Simulation trajectories.</p>
+</dl>
+<p>result in larger tau steps. Default value is 0.03.
+:type tau_tol: float</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A result object containing the results of the simulation.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>gillespy2.Results</p>
 </dd>
 </dl>
 </dd></dl>
@@ -565,19 +639,23 @@ trajectory will be returned at the end of the simulation.</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="gillespy2.solvers.TauHybridSolver">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.</span></span><span class="sig-name descname"><span class="pre">TauHybridSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/tau_hybrid_solver.html#TauHybridSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.TauHybridSolver" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.</span></span><span class="sig-name descname"><span class="pre">TauHybridSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile_reactions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/tau_hybrid_solver.html#TauHybridSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.TauHybridSolver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
-<p>This Solver uses a root-finding interpretation of the direct SSA method,
+<p>This solver uses a root-finding interpretation of the direct SSA method,
 along with ODE solvers to simulate ODE and Stochastic systems
-interchangeably or simultaneously.</p>
+interchangeably or simultaneously.
+Uses integrators from scipy.integrate.ode to perform calculations used to produce solutions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model</strong> (<em>gillespy2.Model</em>) – The model on which the solver will operate.</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.TauHybridSolver.get_solver_settings">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_solver_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/tau_hybrid_solver.html#TauHybridSolver.get_solver_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.TauHybridSolver.get_solver_settings" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Tuple of strings, denoting all keyword argument for this solvers run() method.</p>
-</dd>
-</dl>
+<dd><p>Returns a list of arguments supported by tau_hybrid_solver.run.
+:returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
+:rtype: tuple</p>
 </dd></dl>
 
 <dl class="py method">
@@ -602,34 +680,46 @@ interchangeably or simultaneously.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.TauHybridSolver.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_trajectories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_sensitivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'LSODA'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/tau_hybrid_solver.html#TauHybridSolver.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.TauHybridSolver.run" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_trajectories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_sensitivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/tau_hybrid_solver.html#TauHybridSolver.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.TauHybridSolver.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
 objects and will inherit those parameters which are passed with the model as the arguments this run function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>GillesPy2.model</em>) – GillesPy2 model object to simulate</p></li>
-<li><p><strong>t</strong> (<em>int</em>) – Simulation run time</p></li>
-<li><p><strong>number_of_trajectories</strong> (<em>int</em>) – The number of times to sample the chemical master equation. Each
-trajectory will be returned at the end of the simulation.
-Optional, defaults to 1. Number of trajectories to simulate</p></li>
-<li><p><strong>increment</strong> (<em>float</em>) – Save point increment for recording data</p></li>
+<li><p><strong>model</strong> (<em>gillespy2.Model</em>) – The model on which the solver will operate. (Deprecated)</p></li>
+<li><p><strong>t</strong> (<em>int</em><em> or </em><em>float</em>) – Simulation run time.</p></li>
+<li><p><strong>number_of_trajectories</strong> (<em>int</em>) – Number of trajectories to simulate. By default number_of_trajectories = 1.</p></li>
+<li><p><strong>increment</strong> (<em>float</em>) – Save point increment for recording data.</p></li>
 <li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Optional, defaults to None.</p></li>
 <li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation.</p></li>
 <li><p><strong>profile</strong> (<em>bool</em>) – Set to True to provide information about step size (tau) taken at each step.</p></li>
-<li><p><strong>tau_tol</strong> (<em>float</em>) – Tolerance level for Tau leaping algorithm.  Larger tolerance values will
-result in larger tau steps. Default value is 0.03.</p></li>
+<li><p><strong>tau_tol</strong> – Tolerance level for Tau leaping algorithm.  Larger tolerance values will</p></li>
+</ul>
+</dd>
+</dl>
+<p>result in larger tau steps. Default value is 0.03.
+:type tau_tol: float</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
 <li><p><strong>event_sensitivity</strong> (<em>int</em>) – Number of data points to be inspected between integration
-steps/save points for event detection</p></li>
+steps/save points for event detection. Default event_sensitivity = 100</p></li>
 <li><p><strong>integrator_options</strong> (<em>dict</em>) – contains options to the scipy integrator. by default, this includes
 rtol=1e-9 and atol=1e-12.  for a list of options,
 see <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.LSODA.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.LSODA.html</a>.
 Example use: {max_step : 0, rtol : .01}</p></li>
 <li><p><strong>live_output</strong> (<em>str</em>) – The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.</p></li>
-<li><p><strong>live_output_options</strong> (<em>str</em>) – contains options for live_output. By default {“interval”:1}.
+<li><p><strong>live_output_options</strong> (<em>dict</em>) – contains options for live_output. By default {“interval”:1}.
 “interval” specifies seconds between displaying.
 “clear_output” specifies if display should be refreshed with each display</p></li>
+<li><p><strong>timeout</strong> (<em>int</em>) – If set, if simulation takes longer than timeout, will exit.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A result object containing the results of the simulation.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>gillespy2.Results</p>
 </dd>
 </dl>
 </dd></dl>
@@ -645,14 +735,16 @@ Example use: {max_step : 0, rtol : .01}</p></li>
 <dt class="sig sig-object py" id="gillespy2.solvers.TauLeapingCSolver">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.</span></span><span class="sig-name descname"><span class="pre">TauLeapingCSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model" title="gillespy2.core.model.Model"><span class="pre">gillespy2.core.model.Model</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delete_directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/cpp/tau_leaping_c_solver.html#TauLeapingCSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.TauLeapingCSolver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a>, <a class="reference internal" href="gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.c_solver.CSolver" title="gillespy2.solvers.cpp.c_solver.CSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.solvers.cpp.c_solver.CSolver</span></code></a></p>
+<p>A Tau Leaping solver for GillesPy2 models.  This solver uses an algorithm that calculates
+multiple reactions in a single step over a given tau step size.  The change in propensities
+over this step are bounded by relative change in state, yielding greatly improved
+run-time performance with very little trade-off in accuracy.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.TauLeapingCSolver.get_solver_settings">
 <span class="sig-name descname"><span class="pre">get_solver_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/cpp/tau_leaping_c_solver.html#TauLeapingCSolver.get_solver_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.TauLeapingCSolver.get_solver_settings" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Tuple of strings, denoting all keyword argument for this solvers run() method.</p>
-</dd>
-</dl>
+<dd><p>Returns a list of arguments supported by tau_leaping_c_solver.run.
+:returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
+:rtype: tuple</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -663,22 +755,33 @@ Example use: {max_step : 0, rtol : .01}</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.TauLeapingCSolver.run">
 <span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model" title="gillespy2.core.model.Model"><span class="pre">gillespy2.core.model.Model</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_trajectories</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increment</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">live_output_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/cpp/tau_leaping_c_solver.html#TauLeapingCSolver.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.TauLeapingCSolver.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Call out and run the solver. Collect the results.</p>
-<dl class="field-list simple">
+<dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>gillespy.Model</em>) – The model on which the solver will operate.</p></li>
-<li><p><strong>t</strong> (<em>int</em>) – The end time of the solver</p></li>
-<li><p><strong>number_of_trajectories</strong> (<em>int</em>) – The number of times to sample the chemical master equation. Each
-trajectory will be returned at the end of the simulation.</p></li>
-<li><p><strong>increment</strong> (<em>float</em>) – The time step of the solution</p></li>
-<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Defaults to None.</p></li>
-<li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation.</p></li>
-<li><p><strong>show_labels</strong> (<em>bool</em>) – Use names of species as index of result object rather than position numbers.</p></li>
+<li><p><strong>model</strong> (<em>gillespy2.Model</em>) – The model on which the solver will operate. (Deprecated)</p></li>
+<li><p><strong>t</strong> (<em>int</em>) – End time of simulation.</p></li>
+<li><p><strong>number_of_trajectories</strong> (<em>int</em>) – Number of trajectories to simulate. By default number_of_trajectories = 1.</p></li>
+<li><p><strong>timeout</strong> (<em>int</em>) – If set, if simulation takes longer than timeout, will exit.</p></li>
+<li><p><strong>increment</strong> (<em>float</em>) – Time step increment for plotting.</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Optional, defaults to None.</p></li>
+<li><p><strong>variables</strong> (<em>dict</em>) – Dictionary of species and their data that will override existing species data.</p></li>
+<li><p><strong>resume</strong> (<em>gillespy2.Results</em>) – Result of a previously run simulation, to be resumed.</p></li>
+<li><p><strong>live_output</strong> (<em>str</em>) – The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.</p></li>
+<li><p><strong>live_output_options</strong> (<em>dict</em>) – dictionary contains options for live_output. By default {“interval”:1}.
+“interval” specifies seconds between displaying.
+“clear_output” specifies if display should be refreshed with each display.</p></li>
+<li><p><strong>tau_tol</strong> – Tolerance level for Tau leaping algorithm.  Larger tolerance values will</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Simulation trajectories.</p>
+</dl>
+<p>result in larger tau steps. Default value is 0.03.
+:type tau_tol: float</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A result object containing the results of the simulation</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>gillespy2.Results</p>
 </dd>
 </dl>
 </dd></dl>
@@ -692,20 +795,23 @@ trajectory will be returned at the end of the simulation.</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="gillespy2.solvers.TauLeapingSolver">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.</span></span><span class="sig-name descname"><span class="pre">TauLeapingSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/tau_leaping_solver.html#TauLeapingSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.TauLeapingSolver" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.</span></span><span class="sig-name descname"><span class="pre">TauLeapingSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/tau_leaping_solver.html#TauLeapingSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.TauLeapingSolver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver" title="gillespy2.core.gillespySolver.GillesPySolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.core.gillespySolver.GillesPySolver</span></code></a></p>
-<p>A Tau Leaping Solver for GillesPy2 models.  This solver uses an algorithm calculates
+<p>A Tau Leaping solver for GillesPy2 models.  This solver uses an algorithm that calculates
 multiple reactions in a single step over a given tau step size.  The change in propensities
 over this step are bounded by bounding the relative change in state, yielding greatly improved
 run-time performance with very little trade-off in accuracy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model</strong> (<em>gillespy2.Model</em>) – The model on which the solver will operate.</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="gillespy2.solvers.TauLeapingSolver.get_solver_settings">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_solver_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/solvers/numpy/tau_leaping_solver.html#TauLeapingSolver.get_solver_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.TauLeapingSolver.get_solver_settings" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Tuple of strings, denoting all keyword argument for this solvers run() method.</p>
-</dd>
-</dl>
+<dd><p>Returns a list of arguments supported by tau_leaping_solver.run.
+:returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
+:rtype: tuple</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -738,25 +844,28 @@ as the arguments this run function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>gillespy2.Model</em>) – GillesPy2 model object to simulate</p></li>
-<li><p><strong>t</strong> (<em>int</em>) – Simulation run time</p></li>
-<li><p><strong>number_of_trajectories</strong> (<em>int</em>) – Number of trajectories to simulate</p></li>
-<li><p><strong>increment</strong> (<em>float</em>) – Save point increment for recording data</p></li>
-<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Optional, defaults to None</p></li>
-<li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation</p></li>
+<li><p><strong>model</strong> (<em>gillespy2.Model</em>) – The model on which the solver will operate. (Deprecated)</p></li>
+<li><p><strong>t</strong> (<em>int</em><em> or </em><em>float</em>) – Simulation run time.</p></li>
+<li><p><strong>number_of_trajectories</strong> (<em>int</em>) – Number of trajectories to simulate. By default number_of_trajectories = 1.</p></li>
+<li><p><strong>increment</strong> (<em>float</em>) – Save point increment for recording data.</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – The random seed for the simulation. Optional, defaults to None.</p></li>
+<li><p><strong>debug</strong> (<em>bool</em>) – Set to True to provide additional debug information about the simulation.</p></li>
 <li><p><strong>profile</strong> (<em>bool</em>) – Set to True to provide information about step size (tau) taken at each step.</p></li>
 <li><p><strong>live_output</strong> (<em>str</em>) – The type of output to be displayed by solver. Can be “progress”, “text”, or “graph”.</p></li>
-<li><p><strong>live_output_options</strong> (<em>dict</em>) – COntains options for live_output. By default {“interval”:1}. “interval”
+<li><p><strong>live_output_options</strong> (<em>dict</em>) – Contains options for live_output. By default {“interval”:1}. “interval”
 specifies seconds between displaying. “clear_output” specifies if display should be refreshed with each
 display.</p></li>
-<li><p><strong>timeout</strong> – </p></li>
-<li><p><strong>resume</strong> – </p></li>
-<li><p><strong>tau_tol</strong> – </p></li>
-<li><p><strong>kwargs</strong> – </p></li>
+<li><p><strong>timeout</strong> (<em>int</em>) – If set, if simulation takes longer than timeout, will exit.</p></li>
+<li><p><strong>resume</strong> (<em>gillespy2.Results</em>) – Result of a previously run simulation, to be resumed.</p></li>
+<li><p><strong>tau_tol</strong> (<em>float</em>) – Tolerance level for Tau leaping algorithm.  Larger tolerance values will
+result in larger tau steps. Default value is 0.03.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
+<dd class="field-even"><p>A result object containing the results of the simulation.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>gillespy2.Results</p>
 </dd>
 </dl>
 </dd></dl>
@@ -764,22 +873,6 @@ display.</p></li>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="gillespy2.solvers.TauLeapingSolver.stop_event">
 <span class="sig-name descname"><span class="pre">stop_event</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#gillespy2.solvers.TauLeapingSolver.stop_event" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="gillespy2.solvers.VariableSSACSolver">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gillespy2.solvers.</span></span><span class="sig-name descname"><span class="pre">VariableSSACSolver</span></span><a class="reference internal" href="../_modules/gillespy2/solvers/cpp/variable_ssa_c_solver.html#VariableSSACSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.solvers.VariableSSACSolver" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="gillespy2.solvers.cpp.html#gillespy2.solvers.cpp.ssa_c_solver.SSACSolver" title="gillespy2.solvers.cpp.ssa_c_solver.SSACSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">gillespy2.solvers.cpp.ssa_c_solver.SSACSolver</span></code></a></p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="gillespy2.solvers.VariableSSACSolver.build_engine">
-<span class="sig-name descname"><span class="pre">build_engine</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.build_engine.BuildEngine" title="gillespy2.solvers.cpp.build.build_engine.BuildEngine"><span class="pre">BuildEngine</span></a></em><a class="headerlink" href="#gillespy2.solvers.VariableSSACSolver.build_engine" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="gillespy2.solvers.VariableSSACSolver.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'VariableSSACSolver'</span></em><a class="headerlink" href="#gillespy2.solvers.VariableSSACSolver.name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
