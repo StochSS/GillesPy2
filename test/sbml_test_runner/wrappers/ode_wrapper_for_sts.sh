@@ -128,7 +128,7 @@ with open(SETTINGS_FILE, 'r') as settings:
 # Run simulation and store results
 model.tspan = np.linspace(start, duration, steps+1)
 solver = ODESolver(model=model)
-results = model.run(solver=solver, show_labels=False)
+results = model.run(solver=solver).to_array()
 
 # Create headers for csv file
 headers = ['time']

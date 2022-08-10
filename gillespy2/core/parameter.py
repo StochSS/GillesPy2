@@ -43,8 +43,6 @@ class Parameter(SortableObject, Jsonify):
         self.value = None
         self.name = name
 
-        if expression is None:
-            raise ParameterError("initial_value can't be None type.")
         if isinstance(expression, (int, float)):
             expression = str(expression)
         self.expression = expression
@@ -52,7 +50,7 @@ class Parameter(SortableObject, Jsonify):
         self.validate()
 
     def __str__(self):
-        return self.name + ': ' + str(self.expression)
+        return f"{self.name}: {self.expression}"
 
     def _evaluate(self, namespace=None):
         """
@@ -76,31 +74,9 @@ class Parameter(SortableObject, Jsonify):
                 namespace = {}
             self.value = float(eval(self.expression, namespace))
         except Exception as err:
-            raise ParameterError(f"Could not evaluate expression: {err}.") from err
-
-    def set_expression(self, expression):
-        """
-        Sets the expression for a parameter.
-
-        :raises ParameterError: expression is of invalid type.  expression is set to None.
-        """
-        # We allow expression to be passed in as a non-string type. Invalid
-        # strings will be caught below. It is perfectly fine to give a scalar
-        # value as the expression. This can then be evaluated in an empty
-        # namespace to the scalar value.
-        from gillespy2.core import log
-
-        log.warning("'Parameter.set_expression' has been deprecated, future versions of GillesPy2 will not support"
-                    " this function. To set expression within a parameter, use Parameter.expression = expression")
-
-        if expression is None:
-            raise ParameterError("initial_value can't be None type.")
-        if isinstance(expression, (int, float)):
-            expression = str(expression)
-
-        self.validate(expression=expression, coverage="expression")
-
-        self.expression = expression
+            raise ParameterError(
+                f"Could not evaluate expression: '{self.expression}'. Reason given: {err}."
+            ) from err
 
     def sanitized_expression(self, species_mappings, parameter_mappings):
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),

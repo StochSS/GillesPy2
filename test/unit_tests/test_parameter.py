@@ -24,6 +24,9 @@ class TestParameter(unittest.TestCase):
     Unit tests for gillespy2.Parameter.
     ################################################################################################
     '''
+    def setUp(self):
+        self.parameter = Parameter(name="test_parameter", expression="0.5")
+
     def test_constructor(self):
         """ Test the Parameter constructor. """
         parameter = Parameter(name="test_parameter", expression="0.5")
@@ -37,7 +40,7 @@ class TestParameter(unittest.TestCase):
 
     def test_constructor__invalid_name(self):
         """ Test the Parameter constructor with non-str name. """
-        test_names = ["", None, 0]
+        test_names = ["", None, 0, 0.5, [0]]
         for test_name in test_names:
             with self.subTest(name=test_name):
                 with self.assertRaises(ParameterError):
@@ -60,7 +63,7 @@ class TestParameter(unittest.TestCase):
 
     def test_constructor__invaild_expression(self):
         """ Test the Parameter constructor with an invalid expression. """
-        test_exps = [None, "", []]
+        test_exps = [None, "", [2]]
         for test_exp in test_exps:
             with self.subTest(expression=test_exp):
                 with self.assertRaises(ParameterError):
@@ -68,92 +71,84 @@ class TestParameter(unittest.TestCase):
 
     def test___str__(self):
         """ Test Parameter.__str__ method. """
-        parameter = Parameter(name="test_parameter", expression="0.5")
-        self.assertIsInstance(str(parameter), str)
+        self.assertIsInstance(str(self.parameter), str)
 
     def test__evaluate(self):
         """ Test Parameter._evaluate method. """
-        parameter = Parameter(name="test_parameter", expression="0.5")
-        parameter._evaluate()
-        self.assertEqual(parameter.value, 0.5)
+        self.parameter._evaluate()
+        self.assertEqual(self.parameter.value, 0.5)
 
     def test__evaluate__int_expression(self):
         """ Test Parameter._evaluate method with int expression. """
-        parameter = Parameter(name="test_parameter", expression="5")
-        parameter.expression = 5
-        parameter._evaluate()
-        self.assertEqual(parameter.value, 5)
+        self.parameter.expression = 5
+        self.parameter._evaluate()
+        self.assertEqual(self.parameter.value, 5)
 
     def test__evaluate__float_expression(self):
         """ Test Parameter._evaluate method with float expression. """
-        parameter = Parameter(name="test_parameter", expression="0.5")
-        parameter.expression = 0.5
-        parameter._evaluate()
-        self.assertEqual(parameter.value, 0.5)
+        self.parameter.expression = 0.5
+        self.parameter._evaluate()
+        self.assertEqual(self.parameter.value, 0.5)
 
     def test__evaluate__improper_expression(self):
         """ Test Parameter._evaluate method with invalid expression. """
-        parameter = Parameter(name="test_parameter", expression="[0.5]")
+        self.parameter.expression = "[0.5]"
         with self.assertRaises(ParameterError):
-            parameter._evaluate()
+            self.parameter._evaluate()
 
     def test__evaluate__invaild_expression(self):
         """ Test Parameter._evaluate with an invalid expression. """
         test_exps = [None, "", []]
         for test_exp in test_exps:
             with self.subTest(expression=test_exp):
-                parameter = Parameter(name="test_name", expression="0.5")
                 with self.assertRaises(ParameterError):
-                    parameter.expression = test_exp
-                    parameter._evaluate()
+                    self.parameter.expression = test_exp
+                    self.parameter._evaluate()
 
     def test__evaluate__parameter_in_namespace(self):
         """ Test Parameter._evaluate method with parameter in namespace. """
-        parameter = Parameter(name="test_parameter", expression="k1 + 0.5")
-        parameter._evaluate(namespace={"k1": 3})
-        self.assertEqual(parameter.value, 3.5)
+        self.parameter.expression = "k1 + 0.5"
+        self.parameter._evaluate(namespace={"k1": 3})
+        self.assertEqual(self.parameter.value, 3.5)
 
     def test__evaluate__species_in_namespace(self):
         """ Test Parameter._evaluate method with species in namespace. """
-        parameter = Parameter(name="test_parameter", expression="S0 + 0.5")
-        parameter._evaluate(namespace={"S0": 100})
-        self.assertEqual(parameter.value, 100.5)
+        self.parameter.expression = "S0 + 0.5"
+        self.parameter._evaluate(namespace={"S0": 100})
+        self.assertEqual(self.parameter.value, 100.5)
 
     def test__evaluate__component_not_in_namespace(self):
         """ Test Parameter._evaluate method with component missing from namespace. """
         test_comps = ["SO", "k1"]
         for test_comp in test_comps:
             with self.subTest(component=test_comp):
-                parameter = Parameter(name="test_parameter", expression=f"{test_comp} + 0.5")
+                self.parameter.expression = f"{test_comp} + 0.5"
                 with self.assertRaises(ParameterError):
-                    parameter._evaluate()
+                    self.parameter._evaluate()
 
     def test_validate__invalid_name(self):
         """ Test Parameter.validate with non-str name. """
-        test_names = ["", None, 0]
+        test_names = ["", None, 0, 0.5, [0]]
         for test_name in test_names:
             with self.subTest(name=test_name):
-                parameter = Parameter(name="test_parameter", expression="0.5")
                 with self.assertRaises(ParameterError):
-                    parameter.name = test_name
-                    parameter.validate()
+                    self.parameter.name = test_name
+                    self.parameter.validate()
 
     def test_validate__invaild_expression(self):
         """ Test Parameter.validate with an invalid expression. """
-        test_exps = [None, "", []]
+        test_exps = [None, "", [2]]
         for test_exp in test_exps:
             with self.subTest(expression=test_exp):
-                parameter = Parameter(name="test_parameter", expression="5")
                 with self.assertRaises(ParameterError):
-                    parameter.expression = test_exp
-                    parameter.validate()
+                    self.parameter.expression = test_exp
+                    self.parameter.validate()
 
     def test_comp_time_of_validate(self):
         """ Check the computation time of validate. """
-        parameter = Parameter(name="test_parameter", expression="0.5")
         import time
         from datetime import datetime
         start = time.time()
-        parameter.validate()
+        self.parameter.validate()
         tic = datetime.utcfromtimestamp(time.time() - start)
         print(f"Total time to run validate: {tic.strftime('%M mins %S secs %f msecs')}")

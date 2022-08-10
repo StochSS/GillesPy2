@@ -23,11 +23,27 @@ class SpeciesError(ModelError):
     pass
 
 
+class ParameterError(ModelError):
+    pass
+
+
 class ReactionError(ModelError):
     pass
 
 
-class ParameterError(ModelError):
+class RateRuleError(ModelError):
+    pass
+
+
+class AssignmentRuleError(ModelError):
+    pass
+
+
+class EventError(ModelError):
+    pass
+
+
+class FunctionDefinitionError(ModelError):
     pass
 
 
@@ -82,4 +98,8 @@ class ResultsError(Exception):
 
 
 class ValidationError(ResultsError):
+    pass
+
+
+class SBMLError(Exception):
     pass

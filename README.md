@@ -2,7 +2,7 @@
 <img src="https://raw.githubusercontent.com/StochSS/GillesPy2/develop/.graphics/gillespy2-logo.png">
 </p>
 
-GillesPy2 is a Python 3 package for stochastic simulation of biochemical systems.  It offers an object-oriented approach for creating mathematical models of biological systems, as well as a variety of methods for performing time simulation of those models.  The methods include the [Gillespie direct method (SSA)](https://en.wikipedia.org/wiki/Gillespie_algorithm), several variant stochastic simulation methods including [tau-leaping](https://en.wikipedia.org/wiki/Tau-leaping), and numerical integration of ODEs.  The solvers support a variety of user environments, with optimized code for C++, [Cython](https://cython.org), and [NumPy](https://numpy.org).  GillesPy2 also supports [SBML](https://en.wikipedia.org/wiki/SBML).
+GillesPy2 is a Python 3 package for stochastic simulation of biochemical systems.  It offers an object-oriented approach for creating mathematical models of biological systems, as well as a variety of methods for performing time simulation of those models.  The methods include the [Gillespie direct method (SSA)](https://en.wikipedia.org/wiki/Gillespie_algorithm), several variant stochastic simulation methods including [tau-Leaping](https://en.wikipedia.org/wiki/Tau-leaping), and numerical integration of ODEs.  The solvers support a variety of user environments, with optimized code for C++, [Cython](https://cython.org), and [NumPy](https://numpy.org).  GillesPy2 also supports [SBML](https://en.wikipedia.org/wiki/SBML).
 
 <table><tr><td><b>
 <img width="20%" align="right" src="https://raw.githubusercontent.com/StochSS/GillesPy2/develop/.graphics/stochss-logo.png">
@@ -70,7 +70,7 @@ GillesPy2 provides simple object-oriented abstractions for defining a model of a
 1. Create a `GillesPy2.Model` containing molecular species, parameters, and reactions (or import it from an [SBML](http://sbml.org) file)
 2. Invoke the model's `.run()` method.
 
-The `run()` method can be customized using keyword arguments to select different solvers, random seed, data return type and more.  For more detailed examples on how to use GillesPy2, please see the [Getting Started](https://github.com/StochSS/GillesPy2/tree/main/examples/StartHere.ipynb) Jupyter notebook contained in the [examples](https://github.com/StochSS/GillesPy2/tree/main/examples) subdirectory.
+The `run()` method can be customized using keyword arguments to select different solvers, random seed, data return type and more.  For more detailed examples on how to use GillesPy2, please see the [Getting Started](https://github.com/StochSS/GillesPy2/tree/main/examples/Start_Here.ipynb) Jupyter notebook contained in the [examples](https://github.com/StochSS/GillesPy2/tree/main/examples) subdirectory.
 
 ### _Simple example to illustrate the use of GillesPy2_
 
@@ -82,43 +82,44 @@ The `run()` method can be customized using keyword arguments to select different
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>k<sub>d</sub></i><br>
 </p>
 
-In GillesPy2, a model is expressed as an object having the parent class `Model`.  Components of the model, such as the reactions, molecular species, and characteristics such as the time span for simulation, are all defined within the subclass definition.  The following Python code represents our dimerization model using GillesPy2's facility:
+In GillesPy2, a model is expressed as an object.  Components, such as the reactions, molecular species, and characteristics such as the time span for simulation, are all defined within the model.  The following Python code represents our dimerization model using GillesPy2's facility:
 
 ```python
-class Dimerization(gillespy2.Model):
-    def __init__(self, parameter_values=None):
-        # First call the gillespy2.Model initializer.
-        gillespy2.Model.__init__(self, name='Dimerization')
+def create_dimerization(parameter_values=None):
+    # First call the gillespy2.Model initializer.
+    model = gillespy2.model(name='Dimerization')
 
-        # Define parameters for the rates of creation and dissociation.
-        k_c = gillespy2.Parameter(name='k_c', expression=0.005)
-        k_d = gillespy2.Parameter(name='k_d', expression=0.08)
-        self.add_parameter([k_c, k_d])
+    # Define parameters for the rates of creation and dissociation.
+    k_c = gillespy2.Parameter(name='k_c', expression=0.005)
+    k_d = gillespy2.Parameter(name='k_d', expression=0.08)
+    model.add_parameter([k_c, k_d])
 
-        # Define variables for the molecular species representing M and D.
-        m = gillespy2.Species(name='monomer', initial_value=30)
-        d = gillespy2.Species(name='dimer',   initial_value=0)
-        self.add_species([m, d])
+    # Define variables for the molecular species representing M and D.
+    m = gillespy2.Species(name='monomer', initial_value=30)
+    d = gillespy2.Species(name='dimer',   initial_value=0)
+    model.add_species([m, d])
 
-        # The list of reactants and products for a Reaction object are each a
-        # Python dictionary in which the dictionary keys are Species objects
-        # and the values are stoichiometries of the species in the reaction.
-        r_c = gillespy2.Reaction(name="r_creation", rate=k_c, reactants={m:2}, products={d:1})
-        r_d = gillespy2.Reaction(name="r_dissociation", rate=k_d, reactants={d:1}, products={m:2})
-        self.add_reaction([r_c, r_d])
+    # The list of reactants and products for a Reaction object are each a
+    # Python dictionary in which the dictionary keys are Species objects
+    # and the values are stoichiometries of the species in the reaction.
+    r_c = gillespy2.Reaction(name="r_creation", rate=k_c, reactants={m:2}, products={d:1})
+    r_d = gillespy2.Reaction(name="r_dissociation", rate=k_d, reactants={d:1}, products={m:2})
+    model.add_reaction([r_c, r_d])
 
-        # Set the timespan for the simulation.
-        self.timespan(numpy.linspace(0, 100, 101))
+    # Set the timespan for the simulation.
+    tspan = gillespy2.TimeSpan.linspace(t=100, num_points=101)
+    model.timespan(tspan)
+    return model
 ```
 
-Given the class definition above, the model can be simulated by first instantiating the class object, and then invoking the `run()` method on the object.  The following code will run the model 10 times to produce 10 sample trajectories:
+Given the model creation function above, the model can be simulated by first instantiating the model object, and then invoking the run() method on the object. The following code will run the model 10 times to produce 10 sample trajectories:
 
 ```python
-model = Dimerization()
+model = create_dimerization()
 results = model.run(number_of_trajectories=10)
 ```
 
-The results are then stored in a class `Results` object for single trajectories, or a class `Ensemble` object for multiple trajectories.  Results/Ensembles can be plotted with matplotlib using `plot()` or in plotly (offline) using `plotplotly()`.  For additional plotting options such as plotting from a selection of species, or statistical plotting, please see the documentation.:
+The results are then stored in a class `Results` object for single trajectory or for multiple trajectories.  Results can be plotted with matplotlib using `plot()` or in plotly (offline) using `plotplotly()`.  For additional plotting options such as plotting from a selection of species, or statistical plotting, please see the documentation.:
 
 ```python
 results.plot()

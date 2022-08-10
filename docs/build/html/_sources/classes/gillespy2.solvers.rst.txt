@@ -8,7 +8,6 @@ Subpackages
    :maxdepth: 4
 
    gillespy2.solvers.cpp
-   gillespy2.solvers.cython
    gillespy2.solvers.numpy
    gillespy2.solvers.stochkit
    gillespy2.solvers.utilities

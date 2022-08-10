@@ -1,25 +1,47 @@
+# GillesPy2 is a modeling toolkit for biochemical simulation.
+# Copyright (C) 2019-2022 GillesPy2 developers.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import os
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 from datetime import time
 import unittest
 import numpy as np
 import io
+import gillespy2
 from gillespy2.solvers import ODECSolver, SSACSolver, TauLeapingCSolver, TauHybridCSolver
-from example_models import Degradation
+from example_models import create_degradation
 from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder, IterativeSimDecoder
 
 class TestCDecode(unittest.TestCase):
-    model = Degradation()
-    solvers = [
-        # Solver     List of trajectory numbers to try
-        (ODECSolver,        [1]),
-        (SSACSolver,        [1, 3]),
-        (TauLeapingCSolver, [1, 3]),
-        (TauHybridCSolver,  [1, 3]),
-    ]
     decoders = [BasicSimDecoder, IterativeSimDecoder]
 
     def setUp(self):
-        self.model.timespan(np.linspace(0, 300, 301))
-        self.solvers = [(solver(model=self.model), trajectory_numbers) for solver, trajectory_numbers in self.solvers]
+        self.model = create_degradation()
+        tspan = gillespy2.TimeSpan.linspace(t=300, num_points=301)
+        self.model.timespan(tspan)
+        self.solvers = [
+            # Solver and List of trajectory numbers to try
+            (ODECSolver(model=self.model), [1]),
+            (SSACSolver(model=self.model), [1, 3]),
+            (TauLeapingCSolver(model=self.model), [1, 3]),
+            (TauHybridCSolver(model=self.model), [1, 3]),
+        ]
 
     def test_run_output(self):
         expected_tspan = self.model.tspan
@@ -29,7 +51,6 @@ class TestCDecode(unittest.TestCase):
                 with self.subTest("Processing simulation output for each solver with different trajectory sizes",
                                   number_of_trajectories=number_of_trajectories,
                                   solver=solver):
-                    solver = solver(model=self.model)
                     results = self.model.run(solver=solver, number_of_trajectories=number_of_trajectories, seed=1024)
                     for result in results:
                         tspan, first_value, last_value = result["time"], result["A"][0], result["A"][-1]

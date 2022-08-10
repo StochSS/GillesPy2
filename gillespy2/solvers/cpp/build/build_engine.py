@@ -17,6 +17,7 @@
 import os
 import shutil
 import tempfile
+import platform
 from pathlib import Path
 from typing import Union
 
@@ -34,7 +35,10 @@ class BuildEngine():
     def __init__(self, debug: bool = False, output_dir: str = None):
         self.self_dir = Path(__file__).parent
         self.cpp_dir = self.self_dir.joinpath("../c_base").resolve()
-        self.makefile = self.cpp_dir.joinpath("Makefile")
+        if platform.system() == 'Windows':
+            self.makefile = self.cpp_dir.joinpath("Makefile.win32")
+        else:
+            self.makefile = self.cpp_dir.joinpath("Makefile")
         self.src_template_dir = self.cpp_dir.joinpath("template")
         self.output_dir = output_dir
 
@@ -111,8 +115,8 @@ class BuildEngine():
         # If a raw GillesPy2 model was provided, convert it to a sanitized model.
         if isinstance(model, gillespy2.Model):
             model = template_gen.SanitizedModel(model, variable=variable)
-        elif not isinstance(model, template_gen.SanitizedModel):
-            raise TypeError(f"Build engine expected gillespy2.Model or SanitizedModel type: received {type(model)}")
+        elif not isinstance(model, template_gen.SanitizedModel) and type(model).__name__ == "SanitizedModel":
+            raise TypeError(f"Build engine expected gillespy2.Model or SanitizedModel type: received {type(model)} , __name__={type(model).__name__}")
 
         # Build the template and write it to the temp directory and remove the sample template_definitions header.
         template_file = self.template_dir.joinpath(self.template_definitions_name)

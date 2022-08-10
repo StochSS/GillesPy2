@@ -25,8 +25,6 @@ from timeit import default_timer as timer
 import gillespy2
 from gillespy2.solvers.numpy import *
 # BasicODESolver, BasicRootSolver, BasicTauLeapingSolver, NumPySSASolver, TauLeapingSolver
-from gillespy2.solvers.cython import *
-# CythonSSASolver
 from gillespy2.solvers.cpp import *
 # SSACSolver
 from gillespy2.solvers.auto import *
@@ -47,7 +45,7 @@ def timing_battery(number_of_samples, acceptable_deviation):
         if isinstance(value, type) and issubclass(value, gillespy2.GillesPySolver) and value not in solver_list:
             solver_list.append(value)
 
-    model_list = [Example(), Trichloroethylene(), MichaelisMenten(), Schlogl()] #Update
+    model_list = [create_decay(), create_trichloroethylene(), create_michaelis_menten(), create_schlogl()] #Update
 
     timing_list = []
 

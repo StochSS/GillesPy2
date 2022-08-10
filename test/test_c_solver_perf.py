@@ -22,9 +22,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from profiling import c_profiler
 
-from example_models import Oregonator 
-from example_models import VilarOscillator
-from example_models import Tyson2StateOscillator 
+from example_models import create_oregonator 
+from example_models import create_vilar_oscillator
+from example_models import create_tyson_2_state_oscillator 
 
 from gillespy2.solvers.cpp import SSACSolver
 from gillespy2.solvers.cpp import ODECSolver
@@ -48,10 +48,10 @@ class MyTestCase(unittest.TestCase):
     def setUp(self) -> None:
         self.solvers = {
             SSACSolver.target: [
-                Tyson2StateOscillator()
+                create_tyson_2_state_oscillator()
             ],
             ODECSolver.target: [
-                Oregonator()
+                create_oregonator()
             ],
         }
 

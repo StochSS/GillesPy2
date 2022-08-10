@@ -5,6 +5,7 @@ from gillespy2.solvers.utilities import solverutils as cutils
 from gillespy2.core import GillesPySolver, Model, Event, RateRule
 from gillespy2.core.gillespyError import *
 from typing import Union
+from typing import Set
 from enum import IntEnum
 from gillespy2.core import Results
 
@@ -12,11 +13,21 @@ from .c_solver import CSolver, SimulationReturnCode
 from gillespy2.solvers.cpp.build.template_gen import SanitizedModel
 
 class TauHybridCSolver(GillesPySolver, CSolver):
+    """
+    This solver uses a root-finding interpretation of the direct SSA method,
+    along with ODE solvers to simulate ODE and Stochastic systems
+    interchangeably or simultaneously.
+    """
+
     name = "TauHybridCSolver"
     target = "hybrid"
 
     class ErrorStatus(IntEnum):
-        LOOP_OVER_INTEGRATE = 1
+        UNKNOWN = 1
+        LOOP_OVER_INTEGRATE = 2
+        INTEGRATOR_FAILED = 3
+        INVALID_AFTER_SSA = 4
+        NEGATIVE_STATE_NO_SSA_REACTION = 5
 
     @classmethod
     def __create_options(cls, sanitized_model: "SanitizedModel") -> "SanitizedModel":
@@ -69,7 +80,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             # Explicit cast to bool for safety, in case boundary_condition is given weird values
             boundary_keyword = boundary_condition_types[int(bool(species.boundary_condition))]
             # Example: SPECIES_MODE(2, 10, CONTINUOUS_MODE, BOUNDARY)
-            entry = f"SPECIES_MODE({spec_id},{species.switch_min},{mode_keyword},{boundary_keyword})"
+            entry = f"SPECIES_MODE({spec_id},{species.switch_min},{species.switch_tol},{mode_keyword},{boundary_keyword})"
             species_mode_list.append(entry)
 
         # EVENT(event_id, {targets}, trigger, delay, priority, use_trigger, use_persist)
@@ -153,6 +164,10 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             RateRule,
         }
 
+    @classmethod
+    def get_supported_integrator_options(cls) -> "Set[str]":
+        return { "rtol", "atol", "max_step" }
+
     def _build(self, model: "Union[Model, SanitizedModel]", simulation_name: str, variable: bool, debug: bool = False,
                custom_definitions=None) -> str:
         variable = variable or len(model.listOfEvents) > 0
@@ -162,19 +177,71 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         return super()._build(sanitized_model, simulation_name, variable, debug)
 
     def _handle_return_code(self, return_code: "int") -> "int":
+        if return_code == TauHybridCSolver.ErrorStatus.UNKNOWN:
+            raise ExecutionError("C++ solver failed (no error code given).")
         if return_code == TauHybridCSolver.ErrorStatus.LOOP_OVER_INTEGRATE:
             raise ExecutionError("Loop over integrate exceeded, problem space is too stiff")
+        if return_code == TauHybridCSolver.ErrorStatus.INTEGRATOR_FAILED:
+            raise ExecutionError("Sundials ODE solver failed with 'BAD_STEP_SIZE'")
+        if return_code == TauHybridCSolver.ErrorStatus.INVALID_AFTER_SSA:
+            raise ExecutionError("Invalid state after single SSA step")
+        if return_code == TauHybridCSolver.ErrorStatus.NEGATIVE_STATE_NO_SSA_REACTION:
+            raise ExecutionError("Negative State detected in step, and no reaction found to fire.")
+
         return super()._handle_return_code(return_code)
 
     def get_solver_settings(self):
         """
+        Returns a list of arguments supported by tau_hybrid_c_solver.run.
         :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :rtype: tuple
         """
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
     def run(self=None, model: Model = None, t: int = None, number_of_trajectories: int = 1, timeout: int = 0,
             increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
-            resume=None, live_output: str = None, live_output_options: dict = {}, tau_step: int = .03, tau_tol=0.03, **kwargs):
+            resume=None, live_output: str = None, live_output_options: dict = {}, tau_step: int = .03, tau_tol=0.03, integrator_options: "dict[str, float]" = None, **kwargs):
+
+        """
+        :param model: The model on which the solver will operate. (Deprecated)
+        :type model: gillespy2.Model
+
+        :param t: End time of simulation.
+        :type t: int
+
+        :param number_of_trajectories: Number of trajectories to simulate. By default number_of_trajectories = 1.
+        :type number_of_trajectories: int
+
+        :param timeout: If set, if simulation takes longer than timeout, will exit.
+        :type timeout: int
+
+        :param increment: Time step increment for plotting.
+        :type increment: float
+
+        :param seed: The random seed for the simulation. Optional, defaults to None.
+        :type seed: int
+
+        :param variables: Dictionary of species and their data that will override existing species data.
+        :type variables: dict
+
+        :param resume: Result of a previously run simulation, to be resumed.
+        :type resume: gillespy2.Results
+
+        :param live_output: The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+        :type live_output: str
+
+        :param live_output_options: dictionary contains options for live_output. By default {"interval":1}.
+            "interval" specifies seconds between displaying.
+            "clear_output" specifies if display should be refreshed with each display.
+        :type live_output_options:  dict
+
+        :param tau_tol: Tolerance level for Tau leaping algorithm.  Larger tolerance values will
+        result in larger tau steps. Default value is 0.03.
+        :type tau_tol: float
+
+        :returns: A result object containing the results of the simulation.
+        :rtype: gillespy2.Results
+        """
 
         from gillespy2 import log
 
@@ -200,7 +267,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
                 raise SimulationError("A model is required to run the simulation.")
             self._set_model(model=model)
 
-        self.model.resolve_parameters()
+        self.model.compile_prep()
         self.validate_model(self.model, model)
         self.validate_sbml_features(model=self.model)
 
@@ -237,6 +304,9 @@ class TauHybridCSolver(GillesPySolver, CSolver):
                 "init_pop": populations,
                 "parameters": parameter_values
             })
+        if integrator_options is not None:
+            integrator_options = TauHybridCSolver.validate_integrator_options(integrator_options)
+            args.update(integrator_options)
 
         seed = self._validate_seed(seed)
         if seed is not None:

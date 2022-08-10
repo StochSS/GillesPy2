@@ -25,12 +25,18 @@ from gillespy2.core import Results
 from .c_solver import CSolver, SimulationReturnCode
 
 class SSACSolver(GillesPySolver, CSolver):
+    """
+    This solver produces simulations of systems via Stochastic Simulation Algorithm.
+    """
+
     name = "SSACSolver"
     target = "ssa"
 
     def get_solver_settings(self):
         """
+        Returns a list of arguments supported by ssa_c_solver.run.
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :rtype: tuple
         """
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
@@ -39,6 +45,44 @@ class SSACSolver(GillesPySolver, CSolver):
             resume=None, live_output: str = None, live_output_options: dict = {}, **kwargs):
 
         from gillespy2 import log
+
+        """
+            :param model: The model on which the solver will operate. (Deprecated)
+            :type model: gillespy2.Model
+
+            :param t: End time of simulation.
+            :type t: int
+
+            :param number_of_trajectories: The number of times to sample the chemical master equation. Each
+            trajectory will be returned at the end of the simulation. By default number_of_trajectories = 1.
+            :type number_of_trajectories: int
+
+            :param timeout: If set, if simulation takes longer than timeout, will exit.
+            :type timeout: int
+
+            :param increment: Time step increment for plotting.
+            :type increment: float
+            
+            :param seed: The random seed for the simulation. Optional, defaults to None.
+            :type seed: int
+            
+            :param variables: Dictionary of species and their data that will override existing species data.
+            :type variables: dict
+
+            :param resume: Result of a previously run simulation, to be resumed.
+            :type resume: gillespy2.Results
+
+            :param live_output: The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+            :type live_output: str
+
+            :param live_output_options: dictionary contains options for live_output. By default {"interval":1}.
+                "interval" specifies seconds between displaying.
+                "clear_output" specifies if display should be refreshed with each display.
+            :type live_output_options:  dict
+
+            :returns: A result object containing the results of the simulation.
+            :rtype: gillespy2.Results
+        """
 
         if self is None:
             # Post deprecation block
@@ -62,7 +106,7 @@ class SSACSolver(GillesPySolver, CSolver):
                 raise SimulationError("A model is required to run the simulation.")
             self._set_model(model=model)
             
-        self.model.resolve_parameters()
+        self.model.compile_prep()
         self.validate_model(self.model, model)
         self.validate_sbml_features(model=self.model)
 

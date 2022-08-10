@@ -141,7 +141,10 @@ def __get_compartments(sbml_model, gillespy_model):
     for i in range(sbml_model.getNumCompartments()):
         compartment = sbml_model.getCompartment(i)
         name = compartment.getId()
-        value = compartment.getSize()
+        if compartment.isSetSize():
+            value = compartment.getSize()
+        else:
+            value = 1
 
         if name == "vol":
             gillespy_model.volume = value
@@ -211,26 +214,45 @@ def __get_reactions(sbml_model, gillespy_model, errors):
         p_set = set()
         # get reactants
         for j in range(reaction.getNumReactants()):
-            species = reaction.getReactant(j)
-            if species.getSpecies() == "EmptySet": continue
+            reactant = reaction.getReactant(j)
+            species = reactant.getSpecies()
+
+            if species == "EmptySet": continue
             else:
-                if species.getSpecies() in r_set:
-                    reactants[species.getSpecies()] += species.getStoichiometry()
+                stoichiometry = reactant.getStoichiometry()
+                if isinstance(stoichiometry, float):
+                    if int(stoichiometry) != stoichiometry:
+                        logmsg = f"Reaction {name} contains a float stoichiometry for reactant {species}.  "
+                        logmsg += "Please check your model as this may cause inaccuracies in the results."
+                        gillespy2.log.warning(logmsg)
+                    stoichiometry = int(stoichiometry)
+    
+                if species in r_set:
+                    reactants[species] += stoichiometry
                 else:
-                    r_set.add(species.getSpecies())
-                    reactants[species.getSpecies()] = species.getStoichiometry()
+                    r_set.add(species)
+                    reactants[species] = stoichiometry
 
         # get products
         for j in range(reaction.getNumProducts()):
-            species = reaction.getProduct(j)
+            product = reaction.getProduct(j)
+            species = product.getSpecies()
 
-            if species.getSpecies() == "EmptySet": continue
+            if species == "EmptySet": continue
             else:
-                if species.getSpecies() in p_set:
-                    products[species.getSpecies()] += species.getStoichiometry()
+                stoichiometry = product.getStoichiometry()
+                if isinstance(stoichiometry, float):
+                    if int(stoichiometry) != stoichiometry:
+                        logmsg = f"Reaction {name} contains a float stoichiometry for product {species}.  "
+                        logmsg += "Please check your model as this may cause inaccuracies in the results."
+                        gillespy2.log.warning(logmsg)
+                    stoichiometry = int(stoichiometry)
+
+                if species in p_set:
+                    products[species] += stoichiometry
                 else:
-                    p_set.add(species.getSpecies())
-                    products[species.getSpecies()] = species.getStoichiometry()
+                    p_set.add(species)
+                    products[species] = stoichiometry
 
         gillespy_reaction = gillespy2.Reaction(name=name, reactants=reactants, products=products,
                                              propensity_function=propensity)
@@ -266,7 +288,7 @@ def __get_rules(sbml_model, gillespy_model, errors):
             gillespy_rule = gillespy2.AssignmentRule(name=rule_name, variable=rule_variable,
                 formula=rule_string)
             gillespy_model.add_assignment_rule(gillespy_rule)
-            init_state[gillespy_rule.variable]=eval(gillespy_rule.formula, {**init_state, **eval_globals})
+            init_state[gillespy_rule.variable.name]=eval(gillespy_rule.formula, {**init_state, **eval_globals})
 
         if rule.isRate():
             gillespy_rule = gillespy2.RateRule(name=rule_name, variable=rule_variable,
@@ -362,7 +384,7 @@ def __get_initial_assignments(sbml_model, gillespy_model):
         if variable in gillespy_model.listOfSpecies:
             gillespy_model.listOfSpecies[variable].initial_value = assigned_value
         elif variable in gillespy_model.listOfParameters:
-            gillespy_model.listOfParameters[variable].set_expression(assigned_value)
+            gillespy_model.listOfParameters[variable].expression = assigned_value
 
 def __resolve_evals(gillespy_model, init_state):
     while True:
@@ -381,11 +403,21 @@ def __resolve_evals(gillespy_model, init_state):
         if not len(successful): break
         for var in successful: del postponed_evals[var]
 
-def convert(filename, model_name=None, gillespy_model=None):
+def convert(filename, model_name=None, gillespy_model=None, report_silently_with_sbml_error=False):
 
     sbml_model, errors = __read_sbml_model(filename)
+    
     if sbml_model is None:
-        return None, errors
+        if report_silently_with_sbml_error:
+            return None, errors
+        errs = '\n\t'.join(errors)
+        raise SBMLError(f"SBML model import failed.  Reason Given: \n\t{errs}")
+
+    if len(errors) > 0 and not report_silently_with_sbml_error:
+        from gillespy2 import log
+        errs = '\n\t'.join(errors)
+        log.warning(f"Error were detected in the SBML model.  Error: \n\t{errs}")
+
     if model_name is None:
         model_name = sbml_model.getName()
     if gillespy_model is None:

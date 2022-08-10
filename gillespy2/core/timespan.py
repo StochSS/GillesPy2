@@ -40,6 +40,9 @@ class TimeSpan(Iterator, Jsonify):
 
         self.validate()
 
+    def __str__(self):
+        return self.items.__str__()
+
     def __eq__(self, o):
         return self.items.__eq__(o).all()
 
@@ -61,7 +64,7 @@ class TimeSpan(Iterator, Jsonify):
         Creates a timespan using the form np.linspace(0, <t>, <num_points, inclusive>).
 
         :param t: End time for the simulation.
-        :type t: int
+        :type t: float | int
 
         :param num_points: Number of sample points for the species populations during the simulation.
         :type num_points: int
@@ -71,8 +74,8 @@ class TimeSpan(Iterator, Jsonify):
 
         :raises TimespanError: t or num_points are None, <= 0, or invalid type.
         """
-        if t is None or not isinstance(t, int) or t <= 0:
-            raise TimespanError("t must be a positive int.")
+        if t is None or not isinstance(t, (int, float)) or t <= 0:
+            raise TimespanError("t must be a positive float or int.")
         if num_points is not None and (not isinstance(num_points, int) or num_points <= 0):
             raise TimespanError("num_points must be a positive int.")
 
@@ -90,15 +93,15 @@ class TimeSpan(Iterator, Jsonify):
         :type increment: float | int
 
         :param t: End time for the simulation.
-        :type t: int
+        :type t: float | int
 
         :returns: Timespan for the model.
         :rtype: gillespy2.TimeSpan
 
         :raises TimespanError: t or increment are None, <= 0, or invalid type.
         """
-        if t is None or not isinstance(t, int) or t <= 0:
-            raise TimespanError("t must be a positive int.")
+        if t is None or not isinstance(t, (int, float)) or t <= 0:
+            raise TimespanError("t must be a positive floar or int.")
         if not isinstance(increment, (float, int)) or increment <= 0:
             raise TimespanError("increment must be a positive float or int.")
 

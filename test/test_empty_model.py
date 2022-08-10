@@ -18,14 +18,12 @@ import unittest
 from gillespy2.core.model import Model
 
 
-class EmptyModel(Model):
-    def __init__(self, parameter_values=None):
-        Model.__init__(self)
-
-
 class TestEmptyModel(unittest.TestCase):
     def setUp(self):
-        self.model = EmptyModel()
+        def create_empty_model(parameter_values=None):
+            return Model()
+
+        self.model = create_empty_model()
 
     def test_model_creation(self):
         name = self.model.name

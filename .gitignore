@@ -69,3 +69,5 @@ __pycache__
 .coverage
 htmlcov
 /build
+.idea
+

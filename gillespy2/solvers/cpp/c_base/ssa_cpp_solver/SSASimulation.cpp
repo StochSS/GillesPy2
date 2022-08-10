@@ -40,39 +40,39 @@ double end_time = 0;
 
 int main(int argc, char *argv[])
 {
-	//Parse command line arguments
-	ArgParser parser = ArgParser(argc, argv);
-	
-	random_seed = parser.seed;
-	if (random_seed != -1)
-	{
-		seed_time = false;
-	}
-	
-	end_time = parser.end;
-	number_trajectories = parser.trajectories;
-	number_timesteps = parser.timesteps;
+    //Parse command line arguments
+    ArgParser parser = ArgParser(argc, argv);
+    
+    random_seed = parser.seed;
+    if (random_seed != -1)
+    {
+        seed_time = false;
+    }
+    
+    end_time = parser.end;
+    number_trajectories = parser.trajectories;
+    number_timesteps = parser.timesteps;
 
-	Reaction::load_parameters();
-	Model<unsigned int> model(species_names, species_populations, reaction_names);
-	add_reactions(model);
-	
-	if (seed_time)    
-	{
-		random_seed = time(nullptr) % GPY_PID_GET();
-	}
+    Reaction::load_parameters();
+    Model<unsigned int> model(species_names, species_populations, reaction_names);
+    add_reactions(model);
+    
+    if (seed_time)    
+    {
+        random_seed = time(nullptr) % GPY_PID_GET();
+    }
 
-	Simulation<unsigned int> simulation;
-	simulation.output_interval = parser.output_interval;
-	simulation.model = &model;
-	simulation.end_time = end_time;
-	simulation.random_seed = random_seed;
-	simulation.number_timesteps = number_timesteps;
-	simulation.number_trajectories = number_trajectories;
-	
-	init_simulation(&model, simulation);
-	ssa_direct(&simulation);
-	simulation.output_buffer_final(std::cout);
+    Simulation<unsigned int> simulation;
+    simulation.output_interval = parser.output_interval;
+    simulation.model = &model;
+    simulation.end_time = end_time;
+    simulation.random_seed = random_seed;
+    simulation.number_timesteps = number_timesteps;
+    simulation.number_trajectories = number_trajectories;
+    
+    init_simulation(&model, simulation);
+    ssa_direct(&simulation);
+    simulation.output_buffer_final(std::cout);
 
-	return simulation.get_status();
+    return simulation.get_status();
 }

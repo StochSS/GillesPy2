@@ -7,71 +7,65 @@ First, in a Python script that uses GillesPy2 to perform model simulation, we be
 
 .. code-block:: python
 
- import numpy
- import matplotlib.pyplot as plt
  import gillespy2
- from gillespy2 import Model, Species, Parameter, Reaction
- from gillespy2.solvers.numpy.basic_ode_solver import BasicODESolver
-
+ 
 
 Next, we define a model. This is a model based on a publication by Gardner et al. in Nature, 1999, and represents a genetic toggle switch in Escherichia coli.  In GillesPy2, a model is expressed as an object having the parent class ``Model``.  Components of the model, such as the reactions, molecular species, and characteristics such as the time span for simulation, are all defined within the subclass definition.  The following Python code represents our model using GillesPy2's facility:
 
 .. code-block:: python
 
- class ToggleSwitch(Model):
-   def __init__(self, parameter_values = None):
+ def ToggleSwitch(parameter_values=None):
      # Initialize the model.
-     Model.__init__(self, name = "toggle_switch")
+     gillespy2.Model(name="toggle_switch")
 
      # Define parameters.
-     alpha1 = Parameter(name = 'alpha1', expression = 1)
-     alpha2 = Parameter(name = 'alpha2', expression = 1)
-     beta   = Parameter(name = 'beta',   expression = 2.0)
-     gamma  = Parameter(name = 'gamma',  expression = 2.0)
-     mu     = Parameter(name = 'mu',     expression = 1.0)
-     self.add_parameter([alpha1, alpha2, beta, gamma, mu])
+     alpha1 = gillespy2.Parameter(name='alpha1', expression=1)
+     alpha2 = gillespy2.Parameter(name='alpha2', expression=1)
+     beta = gillespy2.Parameter(name='beta', expression=2.0)
+     gamma = gillespy2.Parameter(name='gamma', expression=2.0)
+     mu = gillespy2.Parameter(name='mu', expression=1.0)
+     model.add_parameter([alpha1, alpha2, beta, gamma, mu])
 
      # Define molecular species.
-     U = Species(name = 'U', initial_value = 10)
-     V = Species(name = 'V', initial_value = 10)
-     self.add_species([U, V])
+     U = gillespy2.Species(name='U', initial_value=10)
+     V = gillespy2.Species(name='V', initial_value=10)
+     model.add_species([U, V])
 
      # Define reactions.
-     cu = Reaction(name = "r1", reactants = {}, products = {U:1},
-                   propensity_function = "alpha1/(1+pow(V,beta))")
-     cv = Reaction(name = "r2", reactants = {}, products = {V:1},
-                   propensity_function = "alpha2/(1+pow(U,gamma))")
-     du = Reaction(name = "r3", reactants = {U:1}, products = {},
-                   rate = mu)
-     dv = Reaction(name = "r4", reactants = {V:1}, products = {},
-                   rate = mu)
-     self.add_reaction([cu, cv, du, dv])
-     self.timespan(numpy.linspace(0, 100, 101))
+     cu = gillespy2.Reaction(name="r1", reactants={}, products={U:1},
+                   propensity_function="alpha1/(1+pow(V,beta))")
+     cv = gillespy2.Reaction(name="r2", reactants={}, products={V:1},
+                   propensity_function="alpha2/(1+pow(U,gamma))")
+     du = gillespy2.Reaction(name="r3", reactants={U:1}, products={},
+                   rate=mu)
+     dv = gillespy2.Reaction(name="r4", reactants={V:1}, products={},
+                   rate=mu)
+     model.add_reaction([cu, cv, du, dv])
+
+     tspan = gillespy2.TimeSpan.linspace(0, 100, 101)
+     model.timespan(tspan)
+     return model
 
 
-Given the class definition above, the model can be simulated by first instantiating the class object, and then invoking the ``run()`` method on the object.  Invoking ``run()`` without any values for the ``solver`` keyword argument makes GillesPy2 use the basic SSA solver.
+Given the class definition above, the model can be simulated by first instantiating the class object, and then invoking the ``run()`` method on the object.  Invoking ``run()`` without any values for the ``solver`` keyword argument makes GillesPy2 use the SSA algorithm.
 
 .. code-block:: python
 
  model = ToggleSwitch()
- s_results = model.run(show_labels = False)
+ s_results = model.run()
 
 
 We can run the model again, this time using a deterministic ODE solver.
 
 .. code-block:: python
 
- d_results = model.run(solver = BasicODESolver, show_labels = False)
+ d_results = model.run(algorithm="ODE")
 
 Now, let's plot the results of the two methods.  First, a plot of the stochastic simulation results:
 
 .. code-block:: python
 
- plt.plot(s_results[0][:,0], s_results[0][:,1], '-r', label='U')
- plt.plot(s_results[0][:,0], s_results[0][:,2], '-b', label='V')
- plt.plot([0], [11])
- plt.title('Stochastic Switch')
- plt.legend(loc = 'best')
+ s_results.plot(title="Stochastic Switch")
 
 
 .. image:: stochastic.png
@@ -83,11 +77,7 @@ And here is a plot of the deterministic simulation results:
 
 .. code-block:: python
 
- plt.plot(d_results[0][:,0], d_results[0][:,1], '-r', label='U')
- plt.plot(d_results[0][:,0], d_results[0][:,2], '-b', label='V')
- plt.plot([0], [11])
- plt.title('Stochastic Switch')
- plt.legend(loc = 'best')
+ d_results.plot(title="Stochastic Switch")
 
 
 .. image:: ode.png

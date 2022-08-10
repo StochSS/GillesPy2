@@ -22,7 +22,7 @@
 # =============================================================================
 
 
-__version__      = '1.6.9'
+__version__      = '1.7.0'
 
 __title__        = 'GillesPy2'
 __description__  = 'Python interface for Gillespie-style biochemical simulations'

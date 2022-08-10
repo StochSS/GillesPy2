@@ -83,7 +83,7 @@ sunindextype bandGBTRF(realtype **a, sunindextype n, sunindextype mu, sunindexty
     for (c=0; c < n; c++) {
       a_c = a[c];
       for (r=0; r < num_rows; r++) {
-	a_c[r] = ZERO;
+  a_c[r] = ZERO;
       }
     }
   }
@@ -103,8 +103,8 @@ sunindextype bandGBTRF(realtype **a, sunindextype n, sunindextype mu, sunindexty
     max = SUNRabs(*diag_k);
     for (i=k+1, kptr=sub_diag_k; i <= last_row_k; i++, kptr++) { 
       if (SUNRabs(*kptr) > max) {
-	l=i;
-	max = SUNRabs(*kptr);
+  l=i;
+  max = SUNRabs(*kptr);
       }
     }
     storage_l = ROW(l, k, smu);
@@ -148,18 +148,18 @@ sunindextype bandGBTRF(realtype **a, sunindextype n, sunindextype mu, sunindexty
       /* Swap the elements a(k,j) and a(k,l) if l!=k. */
       
       if (swap) {
-	col_j[storage_l] = col_j[storage_k];
-	col_j[storage_k] = a_kj;
+  col_j[storage_l] = col_j[storage_k];
+  col_j[storage_k] = a_kj;
       }
 
       /* a(i,j) = a(i,j) - [a(i,k)/a(k,k)]*a(k,j) */
       /* a_kj = a(k,j), *kptr = - a(i,k)/a(k,k), *jptr = a(i,j) */
 
       if (a_kj != ZERO) {
-	for (i=k+1, kptr=sub_diag_k, jptr=col_j+ROW(k+1,j,smu);
-	     i <= last_row_k;
-	     i++, kptr++, jptr++)
-	  (*jptr) += a_kj * (*kptr);
+  for (i=k+1, kptr=sub_diag_k, jptr=col_j+ROW(k+1,j,smu);
+       i <= last_row_k;
+       i++, kptr++, jptr++)
+    (*jptr) += a_kj * (*kptr);
       }
     }    
   }
@@ -245,7 +245,7 @@ void bandAddIdentity(realtype **a, sunindextype n, sunindextype smu)
 }
 
 void bandMatvec(realtype **a, realtype *x, realtype *y, sunindextype n, 
-		sunindextype mu, sunindextype ml, sunindextype smu)
+    sunindextype mu, sunindextype ml, sunindextype smu)
 {
   sunindextype i, j, is, ie;
   realtype *col_j;

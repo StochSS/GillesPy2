@@ -17,13 +17,13 @@
 import unittest
 import tempfile
 from gillespy2.core.gillespyError import DirectoryError, SimulationError
-from example_models import Example
+from example_models import create_decay
 from gillespy2 import SSACSolver, ODECSolver, TauLeapingCSolver
 from gillespy2 import TauHybridCSolver
 
 
 class TestVariableSolvers(unittest.TestCase):
-    model = Example()
+    model = create_decay()
     solverSSAC = SSACSolver(model, variable=True)
     solverODEC = ODECSolver(model, variable=True)
     solverTAUC = TauLeapingCSolver(model, variable=True)
@@ -31,7 +31,7 @@ class TestVariableSolvers(unittest.TestCase):
     solverlist = [solverSSAC, solverODEC, solverTAUC, solverHYBC]
 
     def test_create(self):
-        model = Example()
+        model = create_decay()
         solverSSAC = SSACSolver(model)
         solverODEC = ODECSolver(model)
         solverTAUC = TauLeapingCSolver(model)
@@ -40,7 +40,7 @@ class TestVariableSolvers(unittest.TestCase):
     def test_file_with_directory_name_exists(self):
         with self.assertRaises(DirectoryError):
             temp = tempfile.NamedTemporaryFile()
-            model = Example()
+            model = create_decay()
             solverSSAC = SSACSolver(model, temp.name)
             solverODEC = ODECSolver(model, temp.name)
             solverTAUC = TauLeapingCSolver(model, temp.name)

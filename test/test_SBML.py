@@ -18,7 +18,7 @@ import unittest
 import tempfile
 import os
 import re
-from example_models import RobustModel
+from example_models import create_robust_model
 from gillespy2.core.model import import_SBML, export_SBML
 from gillespy2.core import gillespyError
 from gillespy2 import ODESolver
@@ -74,7 +74,7 @@ class TestSBML(unittest.TestCase):
             return
 
         tmp = tempfile.NamedTemporaryFile(delete=False)
-        model = RobustModel()
+        model = create_robust_model()
         path = export_SBML(model, filename=tmp.name)
         document = libsbml.readSBML(path)
         if document.getNumErrors() > 0:
@@ -94,7 +94,7 @@ class TestSBML(unittest.TestCase):
             import_SBML(model_path)
         except gillespyError.InvalidModelError:
             return
-        except gillespyError.ParameterError:
+        except gillespyError.ModelError:
             return
 
         self.fail()
