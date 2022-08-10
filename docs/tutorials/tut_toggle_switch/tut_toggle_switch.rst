@@ -7,7 +7,6 @@ First, in a Python script that uses GillesPy2 to perform model simulation, we be
 
 .. code-block:: python
 
- import matplotlib.pyplot as plt
  import gillespy2
  
 
