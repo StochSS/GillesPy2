@@ -35,7 +35,8 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
     name = "TauLeapingCSolver"
     target = "tau_leap"
 
-    def get_solver_settings(self):
+    @classmethod
+    def get_solver_settings(cls):
         """
         Returns a list of arguments supported by tau_leaping_c_solver.run.
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
