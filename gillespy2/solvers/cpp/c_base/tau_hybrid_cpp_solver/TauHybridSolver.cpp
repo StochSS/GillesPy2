@@ -134,10 +134,11 @@ namespace Gillespy
 
 
 
-        bool IsStateNegativeCheck(int num_species, int*population_changes, std::vector<double> current_state){
+        bool IsStateNegativeCheck(int num_species, int*population_changes, std::vector<double> current_state, std::set<Species<double>>tau_args_reactants){  
             // Explicitly check for invalid population state, now that changes have been tallied.
-            for (int spec_i = 0; spec_i < num_species; ++spec_i) {
-                if (current_state[spec_i] + population_changes[spec_i] < 0) {
+            // Note: this should only check species that are reactants or products
+            for (const auto &r : tau_args_reactants) {
+                if (current_state[r.id] + population_changes[r.id] < 0) {
                     return true;
                 }
             }
@@ -319,12 +320,18 @@ namespace Gillespy
 
                     IntegrationResults result;
 
+                    std::cerr<<"t="<<simulation->current_time<<" tau="<<tau_step<<" X=[";
+                    for(int i=0;i<num_species;i++){
+                        std::cerr<< current_state[i]<<", ";
+                    }
+                    std::cerr<<"]\n";
+
                     if(!TauHybrid::TakeIntegrationStep(sol, result, next_time, population_changes, current_state, rxn_roots, event_roots, simulation, urn, -1)){
                         return;
                     }
 
                     // Check if we have gone negative
-                    if (TauHybrid::IsStateNegativeCheck(num_species, population_changes, current_state)) {
+                    if (TauHybrid::IsStateNegativeCheck(num_species, population_changes, current_state, tau_args.reactants)) {
                         // If state is invalid, we took too agressive tau step and need to take a single SSA step forward
                         // Restore the solver to the intial step state
                         sol.restore_state();
@@ -377,7 +384,7 @@ namespace Gillespy
                             }
                         }
                         // check for invalid state again
-                        if (TauHybrid::IsStateNegativeCheck(num_species, population_changes, current_state)) {
+                        if (TauHybrid::IsStateNegativeCheck(num_species, population_changes, current_state, tau_args.reactants)) {
                             //Got an invalid state after the SSA step
                             simulation->set_status(HybridSimulation::INVALID_AFTER_SSA);
                             return;
