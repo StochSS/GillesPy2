@@ -51,6 +51,7 @@ public:
     double atol = 1e-12;
 
     bool verbose = false;
+    bool use_root_finding = false;
 
     ArgParser(int argc, char *argv[]);
     ~ArgParser();

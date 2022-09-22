@@ -68,6 +68,7 @@ namespace Gillespy
                 {
                     // "Fire" a reaction by recording changes in dependent species.
                     // If a negative value is detected, break without saving changes.
+                    //std::cerr<<"\trxn"<<rxn_i<<" fired via root finding\n";
                     for (int spec_i = 0; spec_i < num_species; ++spec_i) {
                         // Unlike the Tau-leaping version of reaction firings,
                         // it is not possible to have a negative state occur in direct reactions.
@@ -84,6 +85,7 @@ namespace Gillespy
                     // Temporary variable for the reaction's state.
                     // Does not get updated unless the changes are deemed valid.
                     double rxn_state = result.reactions[rxn_i];
+                    double old_rxn_state = rxn_state;
 
                     if (simulation->reaction_state[rxn_i].mode == SimulationState::DISCRETE) {
                         unsigned int rxn_count = 0;
@@ -99,6 +101,7 @@ namespace Gillespy
 
                         }
                         if(rxn_count > 0){
+                            //std::cerr << "\trxn"<<rxn_i<<" fired "<< rxn_count <<" via poisson (r_j="<<old_rxn_state<<" -> "<<rxn_state<<")\n";
                             for (int spec_i = 0; spec_i < num_species; ++spec_i) {
                                 population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i] * rxn_count;
                             }
@@ -109,15 +112,14 @@ namespace Gillespy
             }
         }
 
-        bool TakeIntegrationStep(Integrator&sol, IntegrationResults&result, double next_time, int*population_changes,
+        bool TakeIntegrationStep(Integrator&sol, IntegrationResults&result, double *next_time, int*population_changes,
          std::vector<double> current_state, std::set<unsigned int>&rxn_roots, 
          std::set<int>&event_roots, HybridSimulation*simulation, URNGenerator&urn, 
          int only_reaction_to_fire){
             // Integration Step
             // For deterministic reactions, the concentrations are updated directly.
             // For stochastic reactions, integration updates the rxn_offsets vector.
-            //IntegrationResults result = sol.integrate(&next_time, event_roots, rxn_roots);
-            result = sol.integrate(&next_time, event_roots, rxn_roots);
+            result = sol.integrate(next_time, event_roots, rxn_roots);
             if (sol.status == IntegrationStatus::BAD_STEP_SIZE)
             {
                 simulation->set_status(HybridSimulation::INTEGRATOR_FAILED);
@@ -138,7 +140,7 @@ namespace Gillespy
             // Explicitly check for invalid population state, now that changes have been tallied.
             // Note: this should only check species that are reactants or products
             for (const auto &r : tau_args_reactants) {
-                if (current_state[r.id] + population_changes[r.id] < 0) {
+                if (population_changes[r.id] != 0 && current_state[r.id] + population_changes[r.id] < 0) {
                     return true;
                 }
             }
@@ -151,7 +153,8 @@ namespace Gillespy
                 std::vector<Event> &events,
                 Logger &logger,
                 double tau_tol,
-                SolverConfiguration config)
+                SolverConfiguration config,
+                bool default_use_root_finding)
         {
             if (simulation == NULL)
             {
@@ -164,6 +167,9 @@ namespace Gillespy
             int num_reactions = model.number_reactions;
             int num_trajectories = simulation->number_trajectories;
             std::unique_ptr<Species<double>[]> &species = model.species;
+            bool use_root_finding = default_use_root_finding;
+            bool in_event_handling = false;
+            unsigned int neg_state_loop_cnt = 0;
 
             generator = std::mt19937_64(simulation->random_seed);
             URNGenerator urn(simulation->random_seed);
@@ -320,107 +326,129 @@ namespace Gillespy
 
                     IntegrationResults result;
 
-                    std::cerr<<"t="<<simulation->current_time<<" tau="<<tau_step<<" X=[";
-                    for(int i=0;i<num_species;i++){
-                        std::cerr<< current_state[i]<<", ";
+                    //std::cerr<<"t="<<simulation->current_time<<" tau="<<tau_step<<" X=[";
+                    //for(int i=0;i<num_species;i++){
+                    //    std::cerr<< current_state[i]<<", ";
+                    //}
+                    //std::cerr<<"]";
+                    if(in_event_handling){
+                        sol.use_events(events, simulation->reaction_state);
+                        sol.enable_root_finder();
+                        //std::cerr<<" root finding: events, reactions";
+                    }else if(use_root_finding){
+                        sol.use_reactions(simulation->reaction_state);
+                        sol.enable_root_finder();
+                        //std::cerr<<" root finding: reactions";
+                        //std::cerr<<" neg_state_loop_cnt="<<neg_state_loop_cnt;
+                        if(neg_state_loop_cnt > 0){
+                            neg_state_loop_cnt--;
+                        }else{
+                            use_root_finding = default_use_root_finding;
+                        }
+                    }else{
+                        //std::cerr<<" root finding: --none--";
+                        sol.disable_root_finder();
                     }
-                    std::cerr<<"]\n";
+                    //std::cerr<<"\n";
 
-                    if(!TauHybrid::TakeIntegrationStep(sol, result, next_time, population_changes, current_state, rxn_roots, event_roots, simulation, urn, -1)){
+
+                    if(!TauHybrid::TakeIntegrationStep(sol, result, &next_time, population_changes, current_state, rxn_roots, event_roots, simulation, urn, -1)){
                         return;
                     }
+                    //std::cerr<<"\ttau_actual="<<(next_time-simulation->current_time)<<" "<< (next_time-simulation->current_time)/tau_step*100 <<"%\n";
 
                     // Check if we have gone negative
                     if (TauHybrid::IsStateNegativeCheck(num_species, population_changes, current_state, tau_args.reactants)) {
                         // If state is invalid, we took too agressive tau step and need to take a single SSA step forward
                         // Restore the solver to the intial step state
                         sol.restore_state();
+                        use_root_finding=true;
+                        //std::cerr<<"*************************************************************************************\n";
+                        neg_state_loop_cnt = 2; // How many single SSA events should we find before we go back to tau steping
+                        //std::cerr<<"Negative State detected (set neg_state_loop_cnt="<<neg_state_loop_cnt<<"\n";
+                        //std::cerr<<"*************************************************************************************\n";
+                        continue;
 
-                        // Calculate floor()'ed state for use in SSA step
-                        for(int spec_i = 0; spec_i < num_species; ++spec_i){
-                            floored_current_state[spec_i] = floor(current_state[spec_i]);
-                        }
-                        // estimate the time to the first stochatic reaction by assuming constant propensities
-                        double min_tau = 0.0;
-                        int rxn_selected = -1;
-
-                        double *rxn_state = sol.get_reaction_state();
-
-                        for (int rxn_k = 0; rxn_k < num_reactions; ++rxn_k) {
-                            HybridReaction &rxn = simulation->reaction_state[rxn_k];
-                            double propensity_value = rxn.ssa_propensity(current_state.data());
-                            double floored_propensity_value = rxn.ssa_propensity(floored_current_state);
-                            //estimate the zero crossing time
-                            if(floored_propensity_value > 0.0){
-                                double est_tau = -1*  rxn_state[rxn_k] / propensity_value;
-
-                                if(rxn_selected == -1 || est_tau < min_tau ){
-                                    min_tau = est_tau;
-                                    rxn_selected = rxn_k;
-                                }
-                            }
-                        }
-                        if(rxn_selected == -1){
-                            simulation->set_status(HybridSimulation::NEGATIVE_STATE_NO_SSA_REACTION);
-                            return;
-                        }
-                        // if min_tau < 1e-10, we can't take an ODE step that small.
-                        if( min_tau < 1e-10 ){
-                            // instead we will fire the reaction
-                            CalculateSpeciesChangeAfterStep(result, population_changes, current_state, rxn_roots,  event_roots, simulation, urn, rxn_selected);
-                            // re-attempt the step at the same time 
-                            next_time = simulation->current_time;
-
-                        }else{
-                            // Use the found tau-step for single SSA
-                            next_time = simulation->current_time + min_tau;
-
-                            //***********************************
-                            //***********************************
-
-                            // Integreate the system forward
-                            if(!TauHybrid::TakeIntegrationStep(sol, result, next_time, population_changes, current_state, rxn_roots,  event_roots, simulation, urn, rxn_selected)){
-                                return;
-                            }
-                        }
-                        // check for invalid state again
-                        if (TauHybrid::IsStateNegativeCheck(num_species, population_changes, current_state, tau_args.reactants)) {
-                            //Got an invalid state after the SSA step
-                            simulation->set_status(HybridSimulation::INVALID_AFTER_SSA);
-                            return;
-                        }
+//                        // Calculate floor()'ed state for use in SSA step
+//                        for(int spec_i = 0; spec_i < num_species; ++spec_i){
+//                            floored_current_state[spec_i] = floor(current_state[spec_i]);
+//                        }
+//                        // estimate the time to the first stochatic reaction by assuming constant propensities
+//                        double min_tau = 0.0;
+//                        int rxn_selected = -1;
+//
+//                        double *rxn_state = sol.get_reaction_state();
+//
+//                        for (int rxn_k = 0; rxn_k < num_reactions; ++rxn_k) {
+//                            HybridReaction &rxn = simulation->reaction_state[rxn_k];
+//                            double propensity_value = rxn.ssa_propensity(current_state.data());
+//                            double floored_propensity_value = rxn.ssa_propensity(floored_current_state);
+//                            //estimate the zero crossing time
+//                            if(floored_propensity_value > 0.0){
+//                                double est_tau = -1*  rxn_state[rxn_k] / propensity_value;
+//
+//                                if(rxn_selected == -1 || est_tau < min_tau ){
+//                                    min_tau = est_tau;
+//                                    rxn_selected = rxn_k;
+//                                }
+//                            }
+//                        }
+//                        if(rxn_selected == -1){
+//                            simulation->set_status(HybridSimulation::NEGATIVE_STATE_NO_SSA_REACTION);
+//                            return;
+//                        }
+//                        // if min_tau < 1e-10, we can't take an ODE step that small.
+//                        if( min_tau < 1e-10 ){
+//                            // instead we will fire the reaction
+//                            CalculateSpeciesChangeAfterStep(result, population_changes, current_state, rxn_roots,  event_roots, simulation, urn, rxn_selected);
+//                            // re-attempt the step at the same time 
+//                            next_time = simulation->current_time;
+//
+//                        }else{
+//                            // Use the found tau-step for single SSA
+//                            next_time = simulation->current_time + min_tau;
+//
+//                            //***********************************
+//                            //***********************************
+//
+//                            // Integreate the system forward
+//                            if(!TauHybrid::TakeIntegrationStep(sol, result, &next_time, population_changes, current_state, rxn_roots,  event_roots, simulation, urn, rxn_selected)){
+//                                return;
+//                            }
+//                        }
+//                        // check for invalid state again
+//                        if (TauHybrid::IsStateNegativeCheck(num_species, population_changes, current_state, tau_args.reactants)) {
+//                            //Got an invalid state after the SSA step
+//                            simulation->set_status(HybridSimulation::INVALID_AFTER_SSA);
+//                            return;
+//                        }
                     }
 
-                    // "Permanently" update the rxn_state and populations.
+
+                    // Update solver object with stochastic changes
                     for (int p_i = 0; p_i < num_species; ++p_i)
                     {
                         if (!simulation->species_state[p_i].boundary_condition)
                         {
-                            // Boundary conditions are not modified directly by reactions.
-                            // As such, population dx in stochastic regime is not considered.
-                            // For deterministic species, their effective dy/dt should always be 0.
                             HybridSpecies *spec = &simulation->species_state[p_i];
                             if( spec->partition_mode == SimulationState::CONTINUOUS ){
-                                current_state[p_i] = result.concentrations[p_i] + population_changes[p_i];
+                                result.concentrations[p_i] = result.concentrations[p_i] + population_changes[p_i];
                             }else if( spec->partition_mode == SimulationState::DISCRETE ){
-                                current_state[p_i] += population_changes[p_i];
+                                result.concentrations[p_i] = current_state[p_i] + population_changes[p_i];
                             }
-                            result.concentrations[p_i] = current_state[p_i]; 
                         }
                     }
-
-                    if (interrupted){
-                        break;
-                    }
-
                     // ===== <EVENT HANDLING> =====
                     if (!event_list.has_active_events())
                     {
                         if (event_list.evaluate_triggers(N_VGetArrayPointer(sol.y), next_time))
                         {
+                            //std::cerr<<"\t EVENT found =================================================\n";
                             sol.restore_state();
-                            sol.use_events(events, simulation->reaction_state);
-                            sol.enable_root_finder();
+                            //sol.use_events(events, simulation->reaction_state);
+                            //sol.enable_root_finder();
+                            use_root_finding=true;
+                            in_event_handling=true;
                             continue;
                         }
                     }
@@ -429,11 +457,32 @@ namespace Gillespy
                         double *event_state = N_VGetArrayPointer(sol.y);
                         if (!event_list.evaluate(event_state, num_species, next_time, event_roots))
                         {
-                            sol.disable_root_finder();
+                            //std::cerr<<"\t EVENT complete =================================================\n";
+                            //sol.disable_root_finder();
+                            in_event_handling=false;
+                            use_root_finding = default_use_root_finding; // set to default
                         }
                         std::copy(event_state, event_state + num_species, current_state.begin());
                     }
                     // ===== </EVENT HANDLING> =====
+
+                    // "Permanently" update species populations.
+                    // (needs to be below event handling)
+                    for (int p_i = 0; p_i < num_species; ++p_i)
+                    {
+                        if (!simulation->species_state[p_i].boundary_condition)
+                        {
+                            // Boundary conditions are not modified directly by reactions.
+                            // As such, population dx in stochastic regime is not considered.
+                            // For deterministic species, their effective dy/dt should always be 0.
+                            current_state[p_i]  = result.concentrations[p_i];
+                        }
+                    }
+
+                    if (interrupted){
+                        break;
+                    }
+
 
                     // Output the results for this time step.
                     sol.refresh_state();

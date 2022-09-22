@@ -105,6 +105,7 @@ namespace Gillespy
         Model<double> &model;
     public:
         // status: check for errors before using the results.
+        int retcode;
         IntegrationStatus status;
         N_Vector y;
         N_Vector y0;
