@@ -168,7 +168,6 @@ IntegrationResults Integrator::integrate(double *t, std::set<int> &event_roots, 
         unsigned long long num_triggers = data.active_triggers.size();
         unsigned long long num_rxn_roots = data.active_reaction_ids.size();
         unsigned long long root_size = data.active_triggers.size() + data.active_reaction_ids.size();
-        //std::cerr<<"integrate(num_triggers="<<num_triggers<<" num_rxn_roots="<<num_rxn_roots<<" root_size="<<root_size<<"\n";
         int *root_results = new int[root_size];
 
         if (validate(this, CVodeGetRootInfo(cvode_mem, root_results)))
@@ -176,21 +175,18 @@ IntegrationResults Integrator::integrate(double *t, std::set<int> &event_roots, 
             unsigned long long root_id;
             for (root_id = 0; root_id < num_triggers; ++root_id)
             {
-                //std::cerr<<"\troot_id="<<root_id<<" root_results="<<root_results[root_id]<<"\n";
                 if (root_results[root_id] != 0)
                 {
                     event_roots.insert((int) root_id);
-                    //std::cerr<<"\tevent_roots.insert("<<root_id<<")\n";
                 }
             }
 
             for (; root_id < root_size; ++root_id) // reaction roots
             {
-                //std::cerr<<"\troot_id="<<root_id<<" root_results="<<root_results[root_id]<<"\n";
                 if (root_results[root_id] != 0)
                 {
-                    reaction_roots.insert(data.active_reaction_ids[root_id]);
-                    //std::cerr<<"\treaction_roots.insert("<<data.active_reaction_ids[root_id]<<", root_id="<<root_id<<")\n";
+                    int rxn_id = root_id - num_triggers;
+                    reaction_roots.insert(data.active_reaction_ids[rxn_id]);
                 }
             }
         }
@@ -216,7 +212,6 @@ void Integrator::use_reactions(const std::vector<HybridReaction> &reactions)
     data.active_reaction_ids.clear();
     for (auto &reaction : reactions)
     {
-        //std::cerr<<"use_reactions(): rxn"<<reaction.get_base_reaction()->id<<" mode="<<reaction.mode<<" DISCRETE="<<SimulationState::DISCRETE<<"\n";
         if (reaction.mode == SimulationState::DISCRETE)
         {
             // Reaction root-finder should only be used on discrete-valued reactions.
@@ -236,7 +231,6 @@ void Integrator::use_events(const std::vector<Event> &events, const std::vector<
 bool Integrator::enable_root_finder()
 {
     unsigned long long root_fn_size = data.active_triggers.size() + data.active_reaction_ids.size();
-    //std::cerr<<"enable_root_finder(#active_triggers="<<data.active_triggers.size()<<" #active_reaction_ids="<<data.active_reaction_ids.size()<<")\n";
     return validate(this, CVodeRootInit(cvode_mem, (int) root_fn_size, rootfn));
 }
 
@@ -372,7 +366,6 @@ int Gillespy::TauHybrid::rootfn(realtype t, N_Vector y, realtype *gout, void *us
     IntegratorData &data = *static_cast<IntegratorData*>(user_data);
     unsigned long long num_triggers = data.active_triggers.size();
     unsigned long long num_reactions = data.active_reaction_ids.size();
-    //std::cerr<<"rootfn(num_triggers="<<num_triggers<<" num_reactions="<<num_reactions<<")\n";
     realtype *y_t = N_VGetArrayPointer(y);
     realtype *rxn_t = y_t + data.species_state->size();
     realtype *rxn_out = gout + num_triggers;
