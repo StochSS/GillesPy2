@@ -68,7 +68,6 @@ namespace Gillespy
                 {
                     // "Fire" a reaction by recording changes in dependent species.
                     // If a negative value is detected, break without saving changes.
-                    //std::cerr<<"\trxn"<<rxn_i<<" fired via root finding\n";
                     for (int spec_i = 0; spec_i < num_species; ++spec_i) {
                         // Unlike the Tau-leaping version of reaction firings,
                         // it is not possible to have a negative state occur in direct reactions.
@@ -101,7 +100,6 @@ namespace Gillespy
 
                         }
                         if(rxn_count > 0){
-                            //std::cerr << "\trxn"<<rxn_i<<" fired "<< rxn_count <<" via poisson (r_j="<<old_rxn_state<<" -> "<<rxn_state<<")\n";
                             for (int spec_i = 0; spec_i < num_species; ++spec_i) {
                                 population_changes[spec_i] += model.reactions[rxn_i].species_change[spec_i] * rxn_count;
                             }
@@ -326,36 +324,25 @@ namespace Gillespy
 
                     IntegrationResults result;
 
-                    //std::cerr<<"t="<<simulation->current_time<<" tau="<<tau_step<<" X=[";
-                    //for(int i=0;i<num_species;i++){
-                    //    std::cerr<< current_state[i]<<", ";
-                    //}
-                    //std::cerr<<"]";
                     if(in_event_handling){
                         sol.use_events(events, simulation->reaction_state);
                         sol.enable_root_finder();
-                        //std::cerr<<" root finding: events, reactions";
                     }else if(use_root_finding){
                         sol.use_reactions(simulation->reaction_state);
                         sol.enable_root_finder();
-                        //std::cerr<<" root finding: reactions";
-                        //std::cerr<<" neg_state_loop_cnt="<<neg_state_loop_cnt;
                         if(neg_state_loop_cnt > 0){
                             neg_state_loop_cnt--;
                         }else{
                             use_root_finding = default_use_root_finding;
                         }
                     }else{
-                        //std::cerr<<" root finding: --none--";
                         sol.disable_root_finder();
                     }
-                    //std::cerr<<"\n";
 
 
                     if(!TauHybrid::TakeIntegrationStep(sol, result, &next_time, population_changes, current_state, rxn_roots, event_roots, simulation, urn, -1)){
                         return;
                     }
-                    //std::cerr<<"\ttau_actual="<<(next_time-simulation->current_time)<<" "<< (next_time-simulation->current_time)/tau_step*100 <<"%\n";
 
                     // Check if we have gone negative
                     if (TauHybrid::IsStateNegativeCheck(num_species, population_changes, current_state, tau_args.reactants)) {
@@ -363,10 +350,7 @@ namespace Gillespy
                         // Restore the solver to the intial step state
                         sol.restore_state();
                         use_root_finding=true;
-                        //std::cerr<<"*************************************************************************************\n";
                         neg_state_loop_cnt = 2; // How many single SSA events should we find before we go back to tau steping
-                        //std::cerr<<"Negative State detected (set neg_state_loop_cnt="<<neg_state_loop_cnt<<"\n";
-                        //std::cerr<<"*************************************************************************************\n";
                         continue;
 
 //                        // Calculate floor()'ed state for use in SSA step
@@ -443,10 +427,7 @@ namespace Gillespy
                     {
                         if (event_list.evaluate_triggers(N_VGetArrayPointer(sol.y), next_time))
                         {
-                            //std::cerr<<"\t EVENT found =================================================\n";
                             sol.restore_state();
-                            //sol.use_events(events, simulation->reaction_state);
-                            //sol.enable_root_finder();
                             use_root_finding=true;
                             in_event_handling=true;
                             continue;
@@ -457,8 +438,6 @@ namespace Gillespy
                         double *event_state = N_VGetArrayPointer(sol.y);
                         if (!event_list.evaluate(event_state, num_species, next_time, event_roots))
                         {
-                            //std::cerr<<"\t EVENT complete =================================================\n";
-                            //sol.disable_root_finder();
                             in_event_handling=false;
                             use_root_finding = default_use_root_finding; // set to default
                         }
