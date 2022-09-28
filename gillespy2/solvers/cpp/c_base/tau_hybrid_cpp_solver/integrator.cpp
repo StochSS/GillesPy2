@@ -125,15 +125,17 @@ Integrator::~Integrator()
 
 IntegrationResults Integrator::integrate(double *t)
 {
-    if (!validate(this, CVode(cvode_mem, *t, y, &this->t, CV_NORMAL)))
+    int retcode = CVode(cvode_mem, *t, y, &this->t, CV_NORMAL);
+    if (!validate(this, retcode ))
     {
-        return { nullptr, nullptr };
+        return { nullptr, nullptr, 0 };
     }
     *t = this->t;
 
     return {
         NV_DATA_S(y),
-        NV_DATA_S(y) + num_species
+        NV_DATA_S(y) + num_species,
+        retcode
     };
 }
 
@@ -163,7 +165,7 @@ IntegrationResults Integrator::integrate(double *t, std::set<int> &event_roots, 
     }
 
     // check to see if any root we found by the solver
-    if( this->retcode == CV_ROOT_RETURN ){
+    if( results.retcode == CV_ROOT_RETURN ){
         // find which roots were found and return them
         unsigned long long num_triggers = data.active_triggers.size();
         unsigned long long num_rxn_roots = data.active_reaction_ids.size();
@@ -388,7 +390,6 @@ int Gillespy::TauHybrid::rootfn(realtype t, N_Vector y, realtype *gout, void *us
 
 static bool validate(Integrator *integrator, int retcode)
 {
-    integrator->retcode = retcode;
     switch (retcode)
     {
     case CV_MEM_NULL:
