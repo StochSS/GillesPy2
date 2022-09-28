@@ -352,60 +352,6 @@ namespace Gillespy
                         use_root_finding=true;
                         neg_state_loop_cnt = 2; // How many single SSA events should we find before we go back to tau steping
                         continue;
-
-//                        // Calculate floor()'ed state for use in SSA step
-//                        for(int spec_i = 0; spec_i < num_species; ++spec_i){
-//                            floored_current_state[spec_i] = floor(current_state[spec_i]);
-//                        }
-//                        // estimate the time to the first stochatic reaction by assuming constant propensities
-//                        double min_tau = 0.0;
-//                        int rxn_selected = -1;
-//
-//                        double *rxn_state = sol.get_reaction_state();
-//
-//                        for (int rxn_k = 0; rxn_k < num_reactions; ++rxn_k) {
-//                            HybridReaction &rxn = simulation->reaction_state[rxn_k];
-//                            double propensity_value = rxn.ssa_propensity(current_state.data());
-//                            double floored_propensity_value = rxn.ssa_propensity(floored_current_state);
-//                            //estimate the zero crossing time
-//                            if(floored_propensity_value > 0.0){
-//                                double est_tau = -1*  rxn_state[rxn_k] / propensity_value;
-//
-//                                if(rxn_selected == -1 || est_tau < min_tau ){
-//                                    min_tau = est_tau;
-//                                    rxn_selected = rxn_k;
-//                                }
-//                            }
-//                        }
-//                        if(rxn_selected == -1){
-//                            simulation->set_status(HybridSimulation::NEGATIVE_STATE_NO_SSA_REACTION);
-//                            return;
-//                        }
-//                        // if min_tau < 1e-10, we can't take an ODE step that small.
-//                        if( min_tau < 1e-10 ){
-//                            // instead we will fire the reaction
-//                            CalculateSpeciesChangeAfterStep(result, population_changes, current_state, rxn_roots,  event_roots, simulation, urn, rxn_selected);
-//                            // re-attempt the step at the same time 
-//                            next_time = simulation->current_time;
-//
-//                        }else{
-//                            // Use the found tau-step for single SSA
-//                            next_time = simulation->current_time + min_tau;
-//
-//                            //***********************************
-//                            //***********************************
-//
-//                            // Integreate the system forward
-//                            if(!TauHybrid::TakeIntegrationStep(sol, result, &next_time, population_changes, current_state, rxn_roots,  event_roots, simulation, urn, rxn_selected)){
-//                                return;
-//                            }
-//                        }
-//                        // check for invalid state again
-//                        if (TauHybrid::IsStateNegativeCheck(num_species, population_changes, current_state, tau_args.reactants)) {
-//                            //Got an invalid state after the SSA step
-//                            simulation->set_status(HybridSimulation::INVALID_AFTER_SSA);
-//                            return;
-//                        }
                     }
 
 
