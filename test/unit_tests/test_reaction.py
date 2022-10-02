@@ -405,7 +405,7 @@ class TestReaction(unittest.TestCase):
         self.valid_ma_reaction.reactants = {"X": 2}
         self.valid_ma_reaction.products = {"Y": 1}
         self.valid_ma_reaction._create_mass_action()
-        self.assertEqual(self.valid_ma_reaction.propensity_function, "((((0.5*k1)*X)*(X-1))/vol)")
+        self.assertEqual(self.valid_ma_reaction.propensity_function, "(((k1*X)*(X-1))/vol)")
         self.assertEqual(self.valid_ma_reaction.ode_propensity_function, "((k1*X)*X)")
 
     def test__create_mass_action__species_obj_reactant(self):
