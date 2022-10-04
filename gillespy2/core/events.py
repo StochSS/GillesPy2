@@ -66,6 +66,7 @@ class EventAssignment(Jsonify):
             raise EventError(
                 'GillesPy2 Event Assignment variable must be a valid gillespy2 species')
         if not isinstance(self.expression, str):
+            print(self.expression)
             raise EventError(
                              'GillesPy2 Event Assignment expression requires a '
                              'valid string expression')
@@ -73,11 +74,16 @@ class EventAssignment(Jsonify):
     def __str__(self):
         return f"{self.variable}: {self.expression}"
 
-    def __getattribute__(self, key):
+    def __getattr__(self, key):
         if key == 'name':
             from gillespy2.core import log
             log.warning('EventAssignment.name has been deprecated.')
             return self.__name_deprecated
+            # return EventAssignment.__getattribute__(self, '__name_deprecated')
+        # else: 
+        #     return EventAssignment.__getattribute__(self, key)
+        # else:
+        #     return self.__getattr__(key)
 
 class EventTrigger(Jsonify):
     """
