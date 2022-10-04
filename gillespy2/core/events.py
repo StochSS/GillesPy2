@@ -73,7 +73,7 @@ class EventAssignment(Jsonify):
     def __str__(self):
         return f"{self.variable}: {self.expression}"
 
-    def __getattr__(self, key):
+    def __getattribute__(self, key):
         if key == 'name':
             from gillespy2.core import log
             log.warning('EventAssignment.name has been deprecated.')
