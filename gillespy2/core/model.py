@@ -1064,7 +1064,7 @@ class Model(SortableObject, Jsonify):
         events = self.listOfEvents.values()
         for event in events:
             for assignment in event.__dict__['assignments']:
-                del assignment.__dict__['name']
+                del assignment.__dict__['__name_deprecated']
         functions = self.listOfFunctionDefinitions.values()
 
         # A translation table is used to anonymize user-defined variable names and formulas into generic counterparts.
@@ -1278,10 +1278,14 @@ class Model(SortableObject, Jsonify):
                 solver = self.get_best_solver_algo(algorithm)
             else:
                 solver = self.get_best_solver()
+            print(solver)
 
         if not hasattr(solver, "is_instantiated"):
             try:
                 sol_kwargs = {'model': self}
+                # print(sol_kwargs)
+                # print(solver)
+                # print(solver.name)
                 if "CSolver" in solver.name and \
                     ("resume" in solver_args or "variables" in solver_args or "live_output" in solver_args):
                     sol_kwargs['variable'] = True
