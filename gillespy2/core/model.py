@@ -1062,6 +1062,9 @@ class Model(SortableObject, Jsonify):
         assignments = self.listOfAssignmentRules.values()
         rates = self.listOfRateRules.values()
         events = self.listOfEvents.values()
+        for event in events:
+            for assignment in event.__dict__['assignments']:
+                del assignment.__dict__['name']
         functions = self.listOfFunctionDefinitions.values()
 
         # A translation table is used to anonymize user-defined variable names and formulas into generic counterparts.
