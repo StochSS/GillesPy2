@@ -43,7 +43,7 @@ class TestResults(unittest.TestCase):
         trajectory = Trajectory(data={'time':[0.],'foo':[1.]}, model=Model('test_model'))
         results = Results(data=[trajectory])
         with mock.patch('matplotlib.pyplot.xscale') as mock_xscale:
-            results.plot_std_dev_range(xscale='log')
+            results.plot_mean_stdev(xscale='log')
         mock_xscale.assert_called_with('log')
 
     def test_yscale_plot_std_dev_range(self):
@@ -73,7 +73,7 @@ class TestResults(unittest.TestCase):
         with mock.patch('plotly.offline.init_notebook_mode') as mock_notebook:
             with mock.patch('plotly.graph_objs.Scatter') as mock_scatter:
                 with mock.patch('plotly.graph_objs.Layout') as mock_layout:
-                    results.plotplotly_std_dev_range(return_plotly_figure=True, xscale='log')
+                    results.plotplotly_mean_stdev(return_plotly_figure=True, xscale='log')
         mock_layout.assert_called_with(legend={'traceorder':'normal'},showlegend=True, title='Mean and Standard Deviation',
                                        xaxis_title='Time', xscale='log', yaxis_title='Value')
 
