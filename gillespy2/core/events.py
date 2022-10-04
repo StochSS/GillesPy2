@@ -16,7 +16,6 @@
 
 import uuid
 
-from gillespy2.core import log
 from gillespy2.core.gillespyError import *
 from gillespy2.core.jsonify import Jsonify
 
@@ -40,11 +39,13 @@ class EventAssignment(Jsonify):
 
     """
 
+    
     def __init__(self, name=None, variable=None, expression=None):
 
         if name in (None, ""):
             name = f'evn{uuid.uuid4()}'.replace('-', '_')
         else:
+            from gillespy2.core import log
             log.warning("EventAssignment.name has been deprecated.")
         self.__name_deprecated = name
 
@@ -74,6 +75,7 @@ class EventAssignment(Jsonify):
 
     def __getattr__(self, key):
         if key == 'name':
+            from gillespy2.core import log
             log.warning('EventAssignment.name has been deprecated.')
             return self.__name_deprecated
 
