@@ -141,7 +141,7 @@ class TestResults(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tempdir:
             result.to_csv(nametag=test_nametag, path=tempdir)
-            assert len(os.listdir(tempdir)) is not 0
+            assert len(os.listdir(tempdir)) != 0
 
     def test_to_csv_single_result_no_nametag(self):
         test_model = Model('test_model')
@@ -149,7 +149,7 @@ class TestResults(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tempdir:
             result.to_csv(nametag=test_nametag, path=tempdir)
-            assert len(os.listdir(tempdir)) is not 0
+            assert len(os.listdir(tempdir)) != 0
 
     def test_to_csv_single_result_no_nametag(self):
         test_model = Model('test_model')
@@ -160,7 +160,7 @@ class TestResults(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tempdir:
             result.to_csv(stamp=test_stamp, path=tempdir)
-            assert len(os.listdir(tempdir)) is not 0
+            assert len(os.listdir(tempdir)) != 0
 
     def test_to_csv_single_result_no_path(self):
         test_data = Trajectory({'time':[0]},model=Model('test_model'),solver_name='test_solver_name')
