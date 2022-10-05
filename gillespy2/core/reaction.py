@@ -295,7 +295,7 @@ class Reaction(SortableObject, Jsonify):
                 reactant = reactant.name
             # Case 1: 2X -> Y
             if stoichiometry == 2:
-                propensity_function = f"0.5 * {propensity_function} * {reactant} * ({reactant} - 1) / vol"
+                propensity_function = f"{propensity_function} * {reactant} * ({reactant} - 1) / vol"
                 ode_propensity_function += f" * {reactant} * {reactant}"
             else:
                 # Case 3: X1, X2 -> Y;
