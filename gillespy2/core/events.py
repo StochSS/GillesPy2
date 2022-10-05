@@ -39,12 +39,15 @@ class EventAssignment(Jsonify):
 
     """
 
+    
     def __init__(self, name=None, variable=None, expression=None):
 
         if name in (None, ""):
-            self.name = f'evn{uuid.uuid4()}'.replace('-', '_')
+            name = f'evn{uuid.uuid4()}'.replace('-', '_')
         else:
-            self.name = name
+            from gillespy2.core import log
+            log.warning("EventAssignment.name has been deprecated.")
+        self.__name_deprecated = name
 
         self.variable = variable
         self.expression = expression
@@ -69,6 +72,14 @@ class EventAssignment(Jsonify):
 
     def __str__(self):
         return f"{self.variable}: {self.expression}"
+
+    def __getattr__(self, key):
+        if key == 'name':
+            from gillespy2.core import log
+            log.warning('EventAssignment.name has been deprecated.')
+            return self.__name_deprecated
+        else: 
+            raise AttributeError
 
 class EventTrigger(Jsonify):
     """
