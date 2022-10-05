@@ -53,7 +53,8 @@ class NumPySSASolver(GillesPySolver):
         self.model = copy.deepcopy(model)
         self.is_instantiated = True
 
-    def get_solver_settings(self):
+    @classmethod
+    def get_solver_settings(cls):
         """
         Returns a list of arguments supported by the ssa_solver.run
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
