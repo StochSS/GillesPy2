@@ -79,11 +79,8 @@ class EventAssignment(Jsonify):
             from gillespy2.core import log
             log.warning('EventAssignment.name has been deprecated.')
             return self.__name_deprecated
-            # return EventAssignment.__getattribute__(self, '__name_deprecated')
-        # else: 
-        #     return EventAssignment.__getattribute__(self, key)
-        # else:
-        #     return self.__getattr__(key)
+        else: 
+            raise AttributeError
 
 class EventTrigger(Jsonify):
     """
