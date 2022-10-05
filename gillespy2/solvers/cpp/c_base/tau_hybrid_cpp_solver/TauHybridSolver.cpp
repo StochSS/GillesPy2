@@ -320,11 +320,6 @@ namespace Gillespy
 
                     IntegrationResults result;
 
-                    std::cerr<<"t="<<simulation->current_time<<" tau="<<tau_step<<" X=[";
-                    for(int i=0;i<num_species;i++){
-                        std::cerr<< current_state[i]<<", ";
-                    }
-                    std::cerr<<"]\n";
 
                     if(!TauHybrid::TakeIntegrationStep(sol, result, next_time, population_changes, current_state, rxn_roots, event_roots, simulation, urn, -1)){
                         return;
