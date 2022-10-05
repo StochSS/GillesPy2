@@ -1278,14 +1278,10 @@ class Model(SortableObject, Jsonify):
                 solver = self.get_best_solver_algo(algorithm)
             else:
                 solver = self.get_best_solver()
-            print(solver)
 
         if not hasattr(solver, "is_instantiated"):
             try:
                 sol_kwargs = {'model': self}
-                # print(sol_kwargs)
-                # print(solver)
-                # print(solver.name)
                 if "CSolver" in solver.name and \
                     ("resume" in solver_args or "variables" in solver_args or "live_output" in solver_args):
                     sol_kwargs['variable'] = True

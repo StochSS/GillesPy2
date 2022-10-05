@@ -66,7 +66,6 @@ class EventAssignment(Jsonify):
             raise EventError(
                 'GillesPy2 Event Assignment variable must be a valid gillespy2 species')
         if not isinstance(self.expression, str):
-            print(self.expression)
             raise EventError(
                              'GillesPy2 Event Assignment expression requires a '
                              'valid string expression')
