@@ -136,7 +136,6 @@ class ODECSolver(GillesPySolver, CSolver):
         number_timesteps = int(round(t / increment + 1))
 
         args = {
-            "trajectories": number_of_trajectories,
             "timesteps": number_timesteps,
             "end": t,
             "increment": increment,
@@ -171,7 +170,7 @@ class ODECSolver(GillesPySolver, CSolver):
             display_args = None
 
         args = self._make_args(args)
-        decoder = IterativeSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
+        decoder = IterativeSimDecoder.create_default(1, number_timesteps, len(self.model.listOfSpecies))
 
         sim_exec = self._build(self.model, self.target, self.variable, False)
         sim_status = self._run(sim_exec, args, decoder, timeout, display_args)
@@ -190,4 +189,4 @@ class ODECSolver(GillesPySolver, CSolver):
         self.result = simulation_data
         self.rc = int(sim_status)
 
-        return Results.build_from_solver_results(self, live_output_options)
+        return sum([Results.build_from_solver_results(self, live_output_options)] * number_of_trajectories)
