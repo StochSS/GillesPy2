@@ -78,9 +78,10 @@ int main(int argc, char* argv[])
         parser.rtol,
         parser.atol,
         parser.max_step,
+
     };
 
-    TauHybrid::TauHybridCSolver(&simulation, events, logger, tau_tol, config);
+    TauHybrid::TauHybridCSolver(&simulation, events, logger, tau_tol, config, parser.use_root_finding);
     simulation.output_buffer_final(std::cout);
     return simulation.get_status();
 }

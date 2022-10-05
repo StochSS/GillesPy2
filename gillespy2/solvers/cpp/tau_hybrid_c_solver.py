@@ -190,7 +190,8 @@ class TauHybridCSolver(GillesPySolver, CSolver):
 
         return super()._handle_return_code(return_code)
 
-    def get_solver_settings(self):
+    @classmethod
+    def get_solver_settings(cls):
         """
         Returns a list of arguments supported by tau_hybrid_c_solver.run.
         :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
@@ -200,7 +201,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
 
     def run(self=None, model: Model = None, t: int = None, number_of_trajectories: int = 1, timeout: int = 0,
             increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
-            resume=None, live_output: str = None, live_output_options: dict = {}, tau_step: int = .03, tau_tol=0.03, integrator_options: "dict[str, float]" = None, **kwargs):
+            resume=None, live_output: str = None, live_output_options: dict = {}, tau_step: int = .03, tau_tol=0.03, integrator_options: "dict[str, float]" = None, use_root_finding=False, **kwargs):
 
         """
         :param model: The model on which the solver will operate. (Deprecated)
@@ -326,6 +327,9 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         args = self._make_args(args)
         if debug:
             args.append("--verbose")
+        if use_root_finding:
+            args.append("--use_root_finding")
+
         decoder = IterativeSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
 
         sim_exec = self._build(self.model, self.target, self.variable, False)

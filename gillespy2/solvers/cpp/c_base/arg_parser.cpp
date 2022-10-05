@@ -95,10 +95,12 @@ char ArgParser::match_arg(std::string &token)
         return 'M';
     }
 
-    else
+    if (!token.compare("--use_root_finding"))
     {
-        return 0;
+        return 'u';
     }
+
+    return 0;
 }
 
 ArgParser::ArgParser(int argc, char *argv[])
@@ -174,6 +176,10 @@ ArgParser::ArgParser(int argc, char *argv[])
 
             case 'v':
                 verbose = true;
+                break;
+
+            case 'u':
+                use_root_finding = true;
                 break;
 
             case 'R':

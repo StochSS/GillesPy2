@@ -79,6 +79,7 @@ namespace Gillespy
         realtype *concentrations;
         // reactions:      bounded by [num_species, num_species + num_reactions)
         realtype *reactions;
+        int retcode;
     };
 
     struct URNGenerator

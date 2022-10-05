@@ -32,7 +32,8 @@ class SSACSolver(GillesPySolver, CSolver):
     name = "SSACSolver"
     target = "ssa"
 
-    def get_solver_settings(self):
+    @classmethod
+    def get_solver_settings(cls):
         """
         Returns a list of arguments supported by ssa_c_solver.run.
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
