@@ -176,6 +176,7 @@ Authors and history
 * [**Eliot Dixon**](https://github.com/edixon1)
 * [**Dalton Nickerson**](https://github.com/Thisisnotdalton)
 * [**Sean Matthew**](https://github.com/seanebum)
+* [**Matthew Geiger**](https://github.com/popensesame)
 * [**Kassidy Hall** ](https://github.com/technodivergent)
 * [**W.R. Jackson** ](https://github.com/JustJackson)
 * [**Samuel Hodges**](https://github.com/hodgespodge)
@@ -188,6 +189,11 @@ Authors and history
 * [**Mason Kidwell**](https://github.com/makdl)
 * [**Jesse Reeve**](https://github.com/jdreeve)
 * [**Fin Carter**](https://github.com/Fin109)
+* [**Ethan Green**](https://github.com/ethangreen-dev)
+* [**Josh Cooper**](https://github.com/jtcooper10)
+* [**Matthew Dippel**](https://github.com/mdip226)
+* [**Joshua Fisher-Caudill**](https://github.com/joshuafisherc)
+
 
 Acknowledgments
 ---------------
