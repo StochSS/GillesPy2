@@ -32,7 +32,7 @@ class TestCheckCPPSupport(unittest.TestCase):
         try:
             model = create_decay()
             solver = SSACSolver(model=model)
-            results = model.run(solver=solver, cpp_support=True)
+            results = model.run(solver=solver)
             return True
         except Exception as e:
             from gillespy2.core import log

@@ -190,7 +190,8 @@ class TauHybridCSolver(GillesPySolver, CSolver):
 
         return super()._handle_return_code(return_code)
 
-    def get_solver_settings(self):
+    @classmethod
+    def get_solver_settings(cls):
         """
         Returns a list of arguments supported by tau_hybrid_c_solver.run.
         :return: Tuple of strings, denoting all keyword argument for this solvers run() method.

@@ -135,12 +135,6 @@ class TestSimpleModel(unittest.TestCase):
         with self.assertRaises(ModelError) as ex:
             parameter = self.model.get_parameter(p_name)
 
-    def test_set_parameter(self):
-        self.model.set_parameter('k1', '100')
-        parameter = self.model.get_parameter('k1')
-        self.assertEqual('100', parameter.expression)
-        self.assertIsInstance(parameter, Parameter, msg='{0} has incorrect type'.format(parameter))
-
     def test_delete_all_parameters(self):
         self.model.delete_all_parameters()
         parameterList = self.model.get_all_parameters()

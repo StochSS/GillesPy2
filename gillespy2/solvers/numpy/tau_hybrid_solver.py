@@ -886,7 +886,7 @@ class TauHybridSolver(GillesPySolver):
         return y0, y_map
 
     @classmethod
-    def get_solver_settings(self):
+    def get_solver_settings(cls):
         """
         Returns a list of arguments supported by tau_hybrid_solver.run.
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.

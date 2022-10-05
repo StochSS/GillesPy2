@@ -30,7 +30,7 @@ parser.add_argument('-m', '--mode', default='develop', choices=['develop', 'rele
 if __name__ == '__main__':
     args = parser.parse_args()
     if args.mode == 'develop':
-        print('Running tests in develop mode. Appending repository directory to system path.')
+        print('Running unit tests in develop mode. Appending repository directory to system path.')
         sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
     from unit_tests import test_species
