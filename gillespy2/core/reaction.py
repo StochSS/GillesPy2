@@ -106,18 +106,20 @@ class Reaction(SortableObject, Jsonify):
         if reactants is not None:
             for r in reactants:
                 rtype = type(r).__name__
-                if rtype == 'Species':
-                    self.reactants[r.name] = reactants[r]
+                name = r.name if rtype == 'Species' else r
+                if name in self.reactants:
+                    self.reactants[name] += reactants[r]
                 else:
-                    self.reactants[r] = reactants[r]
+                    self.reactants[name] = reactants[r]
         
         if products is not None:
             for p in products:
-                rtype = type(p).__name__
-                if rtype == 'Species':
-                    self.products[p.name] = products[p]
+                ptype = type(p).__name__
+                name = p.name if ptype == 'Species' else p
+                if name in self.products:
+                    self.products[name] += products[p]
                 else:
-                    self.products[p] = products[p]
+                    self.products[name] = products[p]
             
         if self.marate is not None:
             rtype = type(self.marate).__name__
@@ -365,7 +367,10 @@ class Reaction(SortableObject, Jsonify):
         except TypeError as err:
             raise ReactionError(f"Failed to validate product. Reason given: {err}") from err
 
-        self.products[name] = stoichiometry
+        if name in self.products:
+            self.products[name] += stoichiometry
+        else:
+            self.products[name] = stoichiometry
         
     def addReactant(self, *args, **kwargs):
         """
@@ -404,7 +409,10 @@ class Reaction(SortableObject, Jsonify):
         except TypeError as err:
             raise ReactionError(f"Failed to validate reactant. Reason given: {err}") from err
 
-        self.reactants[name] = stoichiometry
+        if name in self.reactants:
+            self.reactants[name] += stoichiometry
+        else:
+            self.reactants[name] = stoichiometry
         if self.massaction and self.type == "mass-action":
             self._create_mass_action()
 
