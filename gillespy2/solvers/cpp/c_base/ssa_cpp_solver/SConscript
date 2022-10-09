@@ -1,0 +1,6 @@
+Import('env')
+
+env.StaticLibrary('gpyssa', [
+    './SSASimulation.cpp',
+    './SSASolver.cpp',
+])
