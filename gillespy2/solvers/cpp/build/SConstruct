@@ -1,32 +1,32 @@
-cbase_root = ARGUMENTS.get('src', 'c_base')
-output_root = ARGUMENTS.get('output', 'bin')
-template_root = ARGUMENTS.get('templates', f'{cbase_root}/template')
-solver = ARGUMENTS.get('solver')
-if solver == 'ssa':
-    solver_path = 'ssa_cpp_solver'
-elif solver == 'ode':
-    solver_path = 'ode_cpp_solver'
-elif solver == 'tau':
-    solver_path = 'tau_leaping_cpp_solver'
-elif solver == 'hybrid':
-    solver_path = 'tau_hybrid_cpp_solver'
-elif solver is None:
-    raise Error('Required argument: `solver`')
-else:
-    raise Error(f'Invalid `solver`: {solver}')
+exe = ARGUMENTS.get('OUTPUT_FILE', 'GillesPy2_Simulation')
+cbase_root = ARGUMENTS.get('CBASE_DIR', 'c_base')
+output_root = ARGUMENTS.get('OBJ_DIR', 'bin')
+template_root = ARGUMENTS.get('TEMPLATE_DIR', f'{cbase_root}/template')
+solver = ARGUMENTS.get('SOLVER')
+solver_path = {
+    'ssa': 'ssa_cpp_solver',
+    'ode': 'ode_cpp_solver',
+    'tau': 'tau_leaping_cpp_solver',
+    'hybrid': 'tau_hybrid_cpp_solver',
+}.get(solver)
 
 VariantDir(output_root, cbase_root, duplicate=False)
 VariantDir(f'{output_root}/template', template_root, duplicate=False)
 
-env = Environment(CPPPATH=[
-    Dir(cbase_root),
-    Dir(template_root),
-    Dir(f'{cbase_root}/Sundials/include'),
-    Dir(f'{cbase_root}/Tau'),
-], LIBPATH=[
-    Dir(output_root),
-    Dir(f'{output_root}/{solver_path}'),
-])
+env = Environment(
+    CC="gcc",
+    CXX="g++",
+    CPPPATH=[
+        Dir(cbase_root),
+        Dir(template_root),
+        Dir(f'{cbase_root}/Sundials/include'),
+        Dir(f'{cbase_root}/Tau'),
+    ],
+    LIBPATH=[
+        Dir(output_root),
+        Dir(f'{output_root}/{solver_path}'),
+    ]
+)
 libdepends = [
     f'gpy{solver}',
     'gpystd'
@@ -50,4 +50,4 @@ if 'tau' in libdepends:
     SConscript(f'{output_root}/Tau/SConscript', duplicate=False)
 
 templates = [f'{output_root}/{template}' for template in templates]
-env.Program(f'{output_root}/GillesPySimulation', templates, LIBS=libdepends)
+env.Program(exe, templates, LIBS=libdepends)
