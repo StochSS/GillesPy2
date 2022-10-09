@@ -1,0 +1,11 @@
+Import('env')
+
+env.Append(CPPPATH=[
+    Dir('.'),
+], LIBPATH=[
+    Dir('.'),
+])
+
+env.StaticLibrary('tau', [
+    './tau.cpp',
+])

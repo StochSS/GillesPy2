@@ -21,12 +21,33 @@ VariantDir(f'{output_root}/template', template_root, duplicate=False)
 env = Environment(CPPPATH=[
     Dir(cbase_root),
     Dir(template_root),
+    Dir(f'{cbase_root}/Sundials/include'),
+    Dir(f'{cbase_root}/Tau'),
 ], LIBPATH=[
     Dir(output_root),
     Dir(f'{output_root}/{solver_path}'),
 ])
+libdepends = [
+    f'gpy{solver}',
+    'gpystd'
+]
+templates = [
+    'template/template.cpp'
+]
+# Export env so that subdirectories can modify it directly
 Export('env')
+# List of lib dependencies, each subdirectory appends the libs it needs to this list
+Export('libdepends')
+# List of template files, e.g. files that only get compiled when the program is compiled
+# These are model source files that contain information that cannot be resolved early (e.g. model/args)
+Export('templates')
 
 SConscript(f'{output_root}/SConscript', duplicate=False)
-SConscript(f'{output_root}/ssa_cpp_solver/SConscript', duplicate=False)
-env.Program(f'{output_root}/SSASimulation', f'{output_root}/template/template.cpp', LIBS=['gpyssa', 'gpystd'])
+SConscript(f'{output_root}/{solver_path}/SConscript', duplicate=False)
+if 'sundials' in libdepends:
+    SConscript(f'{output_root}/Sundials/SConscript', duplciate=False)
+if 'tau' in libdepends:
+    SConscript(f'{output_root}/Tau/SConscript', duplicate=False)
+
+templates = [f'{output_root}/{template}' for template in templates]
+env.Program(f'{output_root}/GillesPySimulation', templates, LIBS=libdepends)

@@ -1,0 +1,28 @@
+Import('env')
+
+env.Append(CPPPATH=[
+    Dir('./include'),
+], LIBPATH=[
+    Dir('.'),
+])
+
+env.StaticLibrary('sundials', [
+    'src/cvode_nls.c',
+    'src/cvode_io.c',
+    'src/sundials_iterative.c',
+    'src/cvode_proj.c',
+    'src/sundials_matrix.c',
+    'src/sunmatrix_band.c',
+    'src/sunmatrix_dense.c',
+    'src/cvode_ls.c',
+    'src/sundials_linearsolver.c',
+    'src/sundials_nonlinearsolver.c',
+    'src/sundials_nvector_senswrapper.c',
+    'src/sunnonlinsol_newton.c',
+    'src/sundials_nvector.c',
+    'src/nvector_serial.c',
+    'src/cvode.c',
+    'src/cvode_spils.c',
+    'src/sundials_math.c',
+    'src/sunlinsol_spgmr.c',
+])

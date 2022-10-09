@@ -1,0 +1,8 @@
+Import('env')
+Import('libdepends')
+
+env.StaticLibrary('gpyode', [
+    './ODESimulation.cpp',
+    './ODESolver.cpp',
+])
+libdepends.append('sundials')

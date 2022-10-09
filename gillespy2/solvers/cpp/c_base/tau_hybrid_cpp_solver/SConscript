@@ -1,0 +1,13 @@
+Import('env')
+Import('libdepends')
+Import('templates')
+
+env.StaticLibrary('gpyhybrid', [
+    './TauHybridSimulation.cpp',
+    './TauHybridSolver.cpp',
+    './HybridModel.cpp',
+    './integrator.cpp',
+])
+libdepends.append('tau')
+libdepends.append('sundials')
+templates.append('tau_hybrid_cpp_solver/hybrid_template.cpp')
