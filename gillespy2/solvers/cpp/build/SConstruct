@@ -20,8 +20,6 @@ VariantDir(f'{output_root}/template', template_root, duplicate=False)
 denv = DefaultEnvironment(tools=['gcc', 'g++'], CC='gcc', CXX='g++')
 
 env = Environment(
-    CC="gcc",
-    CXX="g++",
     CPPPATH=[
         Dir(cbase_root),
         Dir(template_root),
@@ -35,6 +33,7 @@ env = Environment(
     ENV={
         'PATH': os.environ['PATH'],
     },
+    SCONS_CXX_STANDARD='c++11',
 )
 libdepends = [
     f'gpy{solver}',
