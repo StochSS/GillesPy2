@@ -1,3 +1,5 @@
+import os
+
 exe = ARGUMENTS.get('OUTPUT_FILE', 'GillesPy2_Simulation')
 cbase_root = ARGUMENTS.get('CBASE_DIR', 'c_base')
 output_root = ARGUMENTS.get('OBJ_DIR', 'bin')
@@ -6,12 +8,16 @@ solver = ARGUMENTS.get('SOLVER')
 solver_path = {
     'ssa': 'ssa_cpp_solver',
     'ode': 'ode_cpp_solver',
-    'tau': 'tau_leaping_cpp_solver',
+    'tau_leap': 'tau_leaping_cpp_solver',
     'hybrid': 'tau_hybrid_cpp_solver',
 }.get(solver)
 
 VariantDir(output_root, cbase_root, duplicate=False)
 VariantDir(f'{output_root}/template', template_root, duplicate=False)
+
+# DefaultEnvironment(): this is a temporary necessity that forces SCons to use GNU tools
+# When MSVC and Clang are fully supported, remove this to allow SCons to automatically find our compiler
+denv = DefaultEnvironment(tools=['gcc', 'g++'], CC='gcc', CXX='g++')
 
 env = Environment(
     CC="gcc",
@@ -25,7 +31,10 @@ env = Environment(
     LIBPATH=[
         Dir(output_root),
         Dir(f'{output_root}/{solver_path}'),
-    ]
+    ],
+    ENV={
+        'PATH': os.environ['PATH'],
+    },
 )
 libdepends = [
     f'gpy{solver}',
