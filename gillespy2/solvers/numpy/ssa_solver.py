@@ -27,6 +27,14 @@ np.set_printoptions(suppress=True)
 
 
 class NumPySSASolver(GillesPySolver):
+
+    """
+    This solver produces simulations of systems via Stochastic Simulation Algorithm.
+
+    :param model: The model on which the solver will operate.
+    :type model: gillespy2.Model
+    """
+
     name = "NumPySSASolver"
     rc = 0
     stop_event = None
@@ -45,33 +53,55 @@ class NumPySSASolver(GillesPySolver):
         self.model = copy.deepcopy(model)
         self.is_instantiated = True
 
-    def get_solver_settings(self):
+    @classmethod
+    def get_solver_settings(cls):
         """
+        Returns a list of arguments supported by the ssa_solver.run
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :rtype: tuple
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'timeout')
 
-    def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, seed=None, debug=False, show_labels=True,
+    def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, seed=None, debug=False,
             live_output=None, live_output_options={}, timeout=None, resume=None, **kwargs):
 
         """
-        Run the SSA algorithm using a NumPy for storing the data in arrays and generating the timeline.
+        Run the SSA algorithm. Uses a NumPy array for storing results and for generating the timeline.
 
-        :param model: The model on which the solver will operate.
+        :param model: The model on which the solver will operate. (Deprecated)
+        :type model: gillespy2.Model
+        
         :param t: The end time of the solver.
-        :param number_of_trajectories: The number of times to sample the chemical master equation. Each
-            trajectory will be returned at the end of the simulation.
+        :type t: int or float
+        
+        :param number_of_trajectories: Number of trajectories to simulate. By default number_of_trajectories = 1.
+        :type number_of_trajectories: int
+            
         :param increment: The time step of the solution.
+        :type increment: float
+        
         :param seed: The random seed for the simulation. Defaults to None.
-        :param debug: Set to True to provide additional debug information about the
-            simulation.
-        :param resume: Result of a previously run simulation, to be resumed
-        :param live_output: str The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+        :type seed: int
+        
+        :param debug: Set to True to provide additional debug information about the simulation.
+        :type debug: bool
+        
+        :param live_output: The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+        :type live_output: str
+        
         :param live_output_options: dictionary contains options for live_output. By default {"interval":1}.
             "interval" specifies seconds between displaying.
-            "clear_output" specifies if display should be refreshed with each display
+            "clear_output" specifies if display should be refreshed with each display.
+        :type live_output_options:  dict
+        
+        :param timeout: If set, if simulation takes longer than timeout, will exit.
+        :type timeout: int
+        
+        :param resume: Result of a previously run simulation, to be resumed.
+        :type resume: gillespy2.Results
 
-        :returns: a list of each trajectory simulated.
+        :returns: A result object containing the results of the simulation.
+        :rtype: gillespy2.Results
         """
         from gillespy2 import log
 
@@ -144,8 +174,6 @@ class NumPySSASolver(GillesPySolver):
                                                                               number_of_trajectories,
                                                                               'increment': increment,
                                                                               'seed': seed, 'debug': debug,
-                                                                              'show_labels': show_labels,
-                                                                              'timeout': timeout,
                                                                               'resume': resume, })
         try:
             time = 0
@@ -199,20 +227,20 @@ class NumPySSASolver(GillesPySolver):
         return Results.build_from_solver_results(self, live_output_options)
 
     def ___run(self, curr_state, total_time, timeline, trajectory_base, live_grapher, t=20,
-               number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True, resume=None,
-               timeout=None):
+               number_of_trajectories=1, increment=0.05, seed=None, debug=False, resume=None,
+               ):
 
         try:
             self.__run(curr_state, total_time, timeline, trajectory_base, live_grapher, t, number_of_trajectories,
-                       increment, seed, debug, show_labels, resume, timeout)
+                       increment, seed, debug, resume)
         except Exception as e:
             self.has_raised_exception = e
             self.result = []
             return [], -1
 
     def __run(self, curr_state, total_time, timeline, trajectory_base, live_grapher, t=20,
-              number_of_trajectories=1, increment=0.05, seed=None, debug=False, show_labels=True,
-              resume=None,  timeout=None):
+              number_of_trajectories=1, increment=0.05, seed=None, debug=False,
+              resume=None,):
 
         # for use with resume, determines how much excess data to cut off due to
         # how species and time are initialized to 0

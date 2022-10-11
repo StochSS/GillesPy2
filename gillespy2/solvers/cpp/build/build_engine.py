@@ -116,8 +116,8 @@ class BuildEngine():
         # If a raw GillesPy2 model was provided, convert it to a sanitized model.
         if isinstance(model, gillespy2.Model):
             model = template_gen.SanitizedModel(model, variable=variable)
-        elif not isinstance(model, template_gen.SanitizedModel):
-            raise TypeError(f"Build engine expected gillespy2.Model or SanitizedModel type: received {type(model)}")
+        elif not isinstance(model, template_gen.SanitizedModel) and type(model).__name__ == "SanitizedModel":
+            raise TypeError(f"Build engine expected gillespy2.Model or SanitizedModel type: received {type(model)} , __name__={type(model).__name__}")
 
         # Build the template and write it to the temp directory and remove the sample template_definitions header.
         template_file = self.template_dir.joinpath(self.template_definitions_name)

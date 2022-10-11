@@ -28,10 +28,13 @@ from gillespy2.core.results import Results
 
 class TauLeapingSolver(GillesPySolver):
     """
-    A Tau Leaping Solver for GillesPy2 models.  This solver uses an algorithm calculates
+    A Tau Leaping solver for GillesPy2 models.  This solver uses an algorithm that calculates
     multiple reactions in a single step over a given tau step size.  The change in propensities
     over this step are bounded by bounding the relative change in state, yielding greatly improved
     run-time performance with very little trade-off in accuracy.
+
+    :param model: The model on which the solver will operate.
+    :type model: gillespy2.Model
     """
 
     name = "TauLeapingSolver"
@@ -40,7 +43,7 @@ class TauLeapingSolver(GillesPySolver):
     pause_event = None
     result = None
 
-    def __init__(self, model=None, debug=False, profile=False):
+    def __init__(self, model=None, debug=False):
         if model is None:
             raise SimulationError("A model is required to run the simulation.")
 
@@ -51,7 +54,6 @@ class TauLeapingSolver(GillesPySolver):
         result = None
         self.model = copy.deepcopy(model)
         self.debug = debug
-        self.profile = profile
         self.is_instantiated = True
 
     def __get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions):
@@ -85,9 +87,11 @@ class TauLeapingSolver(GillesPySolver):
         return rxn_count, curr_state, curr_time
 
     @classmethod
-    def get_solver_settings(self):
+    def get_solver_settings(cls):
         """
+        Returns a list of arguments supported by tau_leaping_solver.run.
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :rtype: tuple
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'seed', 'debug', 'profile','timeout', 'tau_tol')
 
@@ -100,22 +104,22 @@ class TauLeapingSolver(GillesPySolver):
         and will inherit those parameters which are passed with the model
         as the arguments this run function.
 
-        :param model: GillesPy2 model object to simulate
+        :param model: The model on which the solver will operate. (Deprecated)
         :type model: gillespy2.Model
 
-        :param t: Simulation run time
-        :type t: int
+        :param t: Simulation run time.
+        :type t: int or float
 
-        :param number_of_trajectories: Number of trajectories to simulate
+        :param number_of_trajectories: Number of trajectories to simulate. By default number_of_trajectories = 1.
         :type number_of_trajectories: int
 
-        :param increment: Save point increment for recording data
+        :param increment: Save point increment for recording data.
         :type increment: float
 
-        :param seed: The random seed for the simulation. Optional, defaults to None
+        :param seed: The random seed for the simulation. Optional, defaults to None.
         :type seed: int
 
-        :param debug: Set to True to provide additional debug information about the simulation
+        :param debug: Set to True to provide additional debug information about the simulation.
         :type debug: bool
 
         :param profile: Set to True to provide information about step size (tau) taken at each step.
@@ -124,17 +128,23 @@ class TauLeapingSolver(GillesPySolver):
         :param live_output: The type of output to be displayed by solver. Can be "progress", "text", or "graph".
         :type live_output: str
 
-        :param live_output_options: COntains options for live_output. By default {"interval":1}. "interval"
+        :param live_output_options: Contains options for live_output. By default {"interval":1}. "interval"
             specifies seconds between displaying. "clear_output" specifies if display should be refreshed with each
             display.
         :type live_output_options: dict
 
-        :param timeout:
-        :param resume:
-        :param tau_tol:
-        :param kwargs:
+        :param timeout: If set, if simulation takes longer than timeout, will exit.
+        :type timeout: int
 
-        :returns:
+        :param resume: Result of a previously run simulation, to be resumed.
+        :type resume: gillespy2.Results
+
+        :param tau_tol: Tolerance level for Tau leaping algorithm.  Larger tolerance values will
+            result in larger tau steps. Default value is 0.03.
+        :type tau_tol: float
+        
+        :returns: A result object containing the results of the simulation.
+        :rtype: gillespy2.Results
         """
         from gillespy2 import log
 
@@ -267,12 +277,12 @@ class TauLeapingSolver(GillesPySolver):
         return Results.build_from_solver_results(self, live_output_options)
 
     def ___run(self, curr_state,total_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
-               number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, show_labels=True,
-               timeout=None, resume=None, tau_tol=0.03, **kwargs):
+               number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False,
+               resume=None, tau_tol=0.03, **kwargs):
 
         try:
             self.__run(curr_state, total_time, timeline, trajectory_base, tmpSpecies, live_grapher, t, number_of_trajectories,
-                       increment, seed, debug, profile, timeout, resume, tau_tol, **kwargs)
+                       increment, seed, debug, profile, resume, tau_tol, **kwargs)
 
         except Exception as e:
             self.has_raised_exception = e
@@ -280,7 +290,7 @@ class TauLeapingSolver(GillesPySolver):
             return [], -1
 
     def __run(self, curr_state, total_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
-              number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False, timeout=None,
+              number_of_trajectories=1, increment=0.05, seed=None, debug=False, profile=False,
               resume=None, tau_tol=0.03, **kwargs):
 
         # for use with resume, determines how much excess data to cut off due to

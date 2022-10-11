@@ -105,7 +105,7 @@ if not len(model.listOfSpecies):
 # Run simulation and store results
 model.tspan = np.linspace(start, duration, steps+1)
 solver = TauHybridCSolver(model=model)
-results = model.run(solver=solver, show_labels=True, integrator='Radau',
+results = model.run(solver=solver, integrator='Radau',
 integrator_options={'max_step':.25, 'atol':atol, 'rtol':rtol})
 
 # Create headers for csv file

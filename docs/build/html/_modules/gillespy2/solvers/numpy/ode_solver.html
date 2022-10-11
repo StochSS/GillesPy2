@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gillespy2.solvers.numpy.ode_solver &#8212; GillesPy2 1.6.9 documentation</title>
+    <title>gillespy2.solvers.numpy.ode_solver &#8212; GillesPy2 1.6.10 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -130,7 +130,11 @@
 
 <div class="viewcode-block" id="ODESolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.ODESolver">[docs]</a><span class="k">class</span> <span class="nc">ODESolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This Solver produces the deterministic continuous solution via ODE.</span>
+<span class="sd">    This solver produces the deterministic continuous solution via Ordinary Differential Equations.</span>
+<span class="sd">    Uses integrators from scipy.integrate.ode to perform calculations used to produce solutions.</span>
+
+<span class="sd">    :param model: The model on which the solver will operate.</span>
+<span class="sd">    :type model: gillespy2.Model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ODESolver&quot;</span>
     <span class="n">rc</span> <span class="o">=</span> <span class="mi">0</span>
@@ -181,35 +185,55 @@
 <div class="viewcode-block" id="ODESolver.get_solver_settings"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.ODESolver.get_solver_settings">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_solver_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a list of arguments supported by ode_solver.run.</span>
 <span class="sd">        :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.</span>
+<span class="sd">        :rtype: tuple</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;number_of_trajectories&#39;</span><span class="p">,</span> <span class="s1">&#39;increment&#39;</span><span class="p">,</span> <span class="s1">&#39;integrator&#39;</span><span class="p">,</span> <span class="s1">&#39;integrator_options&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;timeout&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ODESolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.ODESolver.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="s1">&#39;lsoda&#39;</span><span class="p">,</span>
+<div class="viewcode-block" id="ODESolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.ODESolver.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="s1">&#39;lsoda&#39;</span><span class="p">,</span>
             <span class="n">integrator_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">live_output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">live_output_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :param model: gillespy2.model class object</span>
-<span class="sd">        :param t: end time of simulation</span>
-<span class="sd">        :param number_of_trajectories: Should be 1.</span>
-<span class="sd">            This is deterministic and will always have same results</span>
-<span class="sd">        :param increment: time step increment for plotting</span>
-<span class="sd">        :param integrator: integrator to be used form scipy.integrate.ode. Options include &#39;vode&#39;, &#39;zvode&#39;, &#39;lsoda&#39;,</span>
+<span class="sd">        :param model: The model on which the solver will operate. (Deprecated)</span>
+<span class="sd">        :type model: gillespy2.Model</span>
+<span class="sd">        </span>
+<span class="sd">        :param t: End time of simulation.</span>
+<span class="sd">        :type t: int or float</span>
+<span class="sd">        </span>
+<span class="sd">        :param number_of_trajectories: Number of trajectories to simulate. By default number_of_trajectories = 1.</span>
+<span class="sd">        This is deterministic and will always have same results.</span>
+<span class="sd">        :type number_of_trajectories: int</span>
+<span class="sd">            </span>
+<span class="sd">        :param increment: Time step increment for plotting.</span>
+<span class="sd">        :type increment: float</span>
+<span class="sd">        </span>
+<span class="sd">        :param integrator: integrator to be used from scipy.integrate.ode. Options include &#39;vode&#39;, &#39;zvode&#39;, &#39;lsoda&#39;,</span>
 <span class="sd">            &#39;dopri5&#39;, and &#39;dop853&#39;.  For more details,</span>
 <span class="sd">            see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html</span>
+<span class="sd">        :type integrator: str</span>
 
 <span class="sd">        :param integrator_options: a dictionary containing options to the scipy integrator. for a list of options,</span>
 <span class="sd">            see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.</span>
 <span class="sd">            Example use: {max_step : 0, rtol : .01}</span>
-
-<span class="sd">        :param timeout: If set, if simulation takes longer than timeout, will exit.</span>
-<span class="sd">        :type timeout: int</span>
-
-<span class="sd">        :param resume: Result of a previously run simulation, to be resumed</span>
-<span class="sd">        :param live_output: str The type of output to be displayed by solver. Can be &quot;progress&quot;, &quot;text&quot;, or &quot;graph&quot;.</span>
+<span class="sd">        :type integrator_options: dict</span>
+<span class="sd">        </span>
+<span class="sd">        :param live_output: The type of output to be displayed by solver. Can be &quot;progress&quot;, &quot;text&quot;, or &quot;graph&quot;.</span>
+<span class="sd">        :type live_output: str</span>
+<span class="sd">        </span>
 <span class="sd">        :param live_output_options: dictionary contains options for live_output. By default {&quot;interval&quot;:1}.</span>
 <span class="sd">            &quot;interval&quot; specifies seconds between displaying.</span>
-<span class="sd">            &quot;clear_output&quot; specifies if display should be refreshed with each displa</span>
+<span class="sd">            &quot;clear_output&quot; specifies if display should be refreshed with each display.</span>
+<span class="sd">        :type live_output_options:  dict</span>
+<span class="sd">        </span>
+<span class="sd">        :param timeout: If set, if simulation takes longer than timeout, will exit.</span>
+<span class="sd">        :type timeout: int</span>
+<span class="sd">        </span>
+<span class="sd">        :param resume: Result of a previously run simulation, to be resumed.</span>
+<span class="sd">        :type resume: gillespy2.Results</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: A result object containing the results of the simulation.</span>
+<span class="sd">        :rtype: gillespy2.Results</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">gillespy2</span> <span class="kn">import</span> <span class="n">log</span>
 
@@ -235,7 +259,7 @@
                 <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="s2">&quot;A model is required to run the simulation.&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">resolve_parameters</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">compile_prep</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">validate_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">validate_sbml_features</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
 
@@ -282,7 +306,6 @@
                                                                                           <span class="s1">&#39;number_of_trajectories&#39;</span><span class="p">:</span>
                                                                                               <span class="n">number_of_trajectories</span><span class="p">,</span>
                                                                                           <span class="s1">&#39;increment&#39;</span><span class="p">:</span> <span class="n">increment</span><span class="p">,</span>
-                                                                                          <span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="n">timeout</span><span class="p">,</span>
                                                                                           <span class="s1">&#39;resume&#39;</span><span class="p">:</span> <span class="n">resume</span><span class="p">,</span>
                                                                                           <span class="s1">&#39;integrator&#39;</span><span class="p">:</span> <span class="n">integrator</span><span class="p">,</span>
                                                                                           <span class="s1">&#39;integrator_options&#39;</span><span class="p">:</span>
@@ -338,11 +361,11 @@
         <span class="k">return</span> <span class="n">Results</span><span class="o">.</span><span class="n">build_from_solver_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">live_output_options</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">___run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">timeline</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="p">,</span> <span class="n">tmpSpecies</span><span class="p">,</span> <span class="n">live_grapher</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
-               <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="s1">&#39;lsoda&#39;</span><span class="p">,</span>
+               <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="s1">&#39;lsoda&#39;</span><span class="p">,</span>
                <span class="n">integrator_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__run</span><span class="p">(</span><span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">timeline</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="p">,</span> <span class="n">tmpSpecies</span><span class="p">,</span> <span class="n">live_grapher</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span>
-                       <span class="n">number_of_trajectories</span><span class="p">,</span> <span class="n">increment</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">show_labels</span><span class="p">,</span> <span class="n">integrator</span><span class="p">,</span> <span class="n">integrator_options</span><span class="p">,</span> <span class="n">resume</span><span class="p">,</span>
+                       <span class="n">number_of_trajectories</span><span class="p">,</span> <span class="n">increment</span><span class="p">,</span> <span class="n">integrator</span><span class="p">,</span> <span class="n">integrator_options</span><span class="p">,</span> <span class="n">resume</span><span class="p">,</span>
                        <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">has_raised_exception</span> <span class="o">=</span> <span class="n">e</span>
@@ -350,7 +373,7 @@
             <span class="k">return</span> <span class="p">[],</span> <span class="o">-</span><span class="mi">1</span>
 
     <span class="k">def</span> <span class="nf">__run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">timeline</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="p">,</span> <span class="n">tmpSpecies</span><span class="p">,</span> <span class="n">live_grapher</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
-              <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="s1">&#39;lsoda&#39;</span><span class="p">,</span>
+              <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="s1">&#39;lsoda&#39;</span><span class="p">,</span>
               <span class="n">integrator_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
         <span class="n">timeStopped</span> <span class="o">=</span> <span class="mi">0</span>

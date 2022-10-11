@@ -28,7 +28,11 @@ from gillespy2.core.results import Results
 
 class ODESolver(GillesPySolver):
     """
-    This Solver produces the deterministic continuous solution via ODE.
+    This solver produces the deterministic continuous solution via Ordinary Differential Equations.
+    Uses integrators from scipy.integrate.ode to perform calculations used to produce solutions.
+
+    :param model: The model on which the solver will operate.
+    :type model: gillespy2.Model
     """
     name = "ODESolver"
     rc = 0
@@ -77,37 +81,57 @@ class ODESolver(GillesPySolver):
         return state_change
 
     @classmethod
-    def get_solver_settings(self):
+    def get_solver_settings(cls):
         """
+        Returns a list of arguments supported by ode_solver.run.
         :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :rtype: tuple
         """
         return ('model', 't', 'number_of_trajectories', 'increment', 'integrator', 'integrator_options',
                 'timeout')
 
-    def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, show_labels=True, integrator='lsoda',
+    def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, integrator='lsoda',
             integrator_options={}, live_output=None, live_output_options={}, timeout=None, resume=None, **kwargs):
         """
-        :param model: gillespy2.model class object
-        :param t: end time of simulation
-        :param number_of_trajectories: Should be 1.
-            This is deterministic and will always have same results
-        :param increment: time step increment for plotting
-        :param integrator: integrator to be used form scipy.integrate.ode. Options include 'vode', 'zvode', 'lsoda',
+        :param model: The model on which the solver will operate. (Deprecated)
+        :type model: gillespy2.Model
+        
+        :param t: End time of simulation.
+        :type t: int or float
+        
+        :param number_of_trajectories: Number of trajectories to simulate. By default number_of_trajectories = 1.
+        This is deterministic and will always have same results.
+        :type number_of_trajectories: int
+            
+        :param increment: Time step increment for plotting.
+        :type increment: float
+        
+        :param integrator: integrator to be used from scipy.integrate.ode. Options include 'vode', 'zvode', 'lsoda',
             'dopri5', and 'dop853'.  For more details,
             see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html
+        :type integrator: str
 
         :param integrator_options: a dictionary containing options to the scipy integrator. for a list of options,
             see https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html.
             Example use: {max_step : 0, rtol : .01}
-
-        :param timeout: If set, if simulation takes longer than timeout, will exit.
-        :type timeout: int
-
-        :param resume: Result of a previously run simulation, to be resumed
-        :param live_output: str The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+        :type integrator_options: dict
+        
+        :param live_output: The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+        :type live_output: str
+        
         :param live_output_options: dictionary contains options for live_output. By default {"interval":1}.
             "interval" specifies seconds between displaying.
-            "clear_output" specifies if display should be refreshed with each displa
+            "clear_output" specifies if display should be refreshed with each display.
+        :type live_output_options:  dict
+        
+        :param timeout: If set, if simulation takes longer than timeout, will exit.
+        :type timeout: int
+        
+        :param resume: Result of a previously run simulation, to be resumed.
+        :type resume: gillespy2.Results
+        
+        :returns: A result object containing the results of the simulation.
+        :rtype: gillespy2.Results
         """
         from gillespy2 import log
 
@@ -180,7 +204,6 @@ class ODESolver(GillesPySolver):
                                                                                           'number_of_trajectories':
                                                                                               number_of_trajectories,
                                                                                           'increment': increment,
-                                                                                          'timeout': timeout,
                                                                                           'resume': resume,
                                                                                           'integrator': integrator,
                                                                                           'integrator_options':
@@ -236,11 +259,11 @@ class ODESolver(GillesPySolver):
         return Results.build_from_solver_results(self, live_output_options)
 
     def ___run(self, curr_state, curr_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
-               number_of_trajectories=1, increment=0.05, timeout=None, show_labels=True, integrator='lsoda',
+               number_of_trajectories=1, increment=0.05, integrator='lsoda',
                integrator_options={}, resume=None, **kwargs):
         try:
             self.__run(curr_state, curr_time, timeline, trajectory_base, tmpSpecies, live_grapher, t,
-                       number_of_trajectories, increment, timeout, show_labels, integrator, integrator_options, resume,
+                       number_of_trajectories, increment, integrator, integrator_options, resume,
                        **kwargs)
         except Exception as e:
             self.has_raised_exception = e
@@ -248,7 +271,7 @@ class ODESolver(GillesPySolver):
             return [], -1
 
     def __run(self, curr_state, curr_time, timeline, trajectory_base, tmpSpecies, live_grapher, t=20,
-              number_of_trajectories=1, increment=0.05, timeout=None, show_labels=True, integrator='lsoda',
+              number_of_trajectories=1, increment=0.05, integrator='lsoda',
               integrator_options={}, resume=None, **kwargs):
 
         timeStopped = 0

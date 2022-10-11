@@ -1062,6 +1062,9 @@ class Model(SortableObject, Jsonify):
         assignments = self.listOfAssignmentRules.values()
         rates = self.listOfRateRules.values()
         events = self.listOfEvents.values()
+        for event in events:
+            for assignment in event.__dict__['assignments']:
+                del assignment.__dict__['__name_deprecated']
         functions = self.listOfFunctionDefinitions.values()
 
         # A translation table is used to anonymize user-defined variable names and formulas into generic counterparts.
@@ -1240,8 +1243,7 @@ class Model(SortableObject, Jsonify):
             else:
                 self.tspan.validate()
 
-    def run(self, solver=None, timeout=0, t=None, increment=None, show_labels=True, algorithm=None,
-            **solver_args):
+    def run(self, solver=None, timeout=0, t=None, increment=None, algorithm=None, **solver_args):
         """
         Function calling simulation of the model. There are a number of
         parameters to be set here.
@@ -1261,8 +1263,7 @@ class Model(SortableObject, Jsonify):
         :param algorithm: Specify algorithm ('ODE', 'Tau-Leaping', or 'SSA') for GillesPy2 to automatically pick best solver using that algorithm.
         :type algorithm: str
 
-        :returns:  If show_labels is False, returns a numpy array of arrays of species population data. If show_labels is
-            True,returns a Results object that inherits UserList and contains one or more Trajectory objects that
+        :returns:  Returns a Results object that inherits UserList and contains one or more Trajectory objects that
             inherit UserDict. Results object supports graphing and csv export.
 
         To pause a simulation and retrieve data before the simulation, keyboard interrupt the simulation by pressing
@@ -1271,10 +1272,6 @@ class Model(SortableObject, Jsonify):
         
         **Pause/Resume is only supported for SINGLE TRAJECTORY simulations. T MUST BE SET OR UNEXPECTED BEHAVIOR MAY OCCUR.**
         """
-
-        if not show_labels:
-            from gillespy2.core import log
-            log.warning('show_labels = False is deprecated. Future releases of GillesPy2 may not support this feature.')
 
         if solver is None:
             if algorithm is not None:

@@ -42,12 +42,12 @@ namespace Gillespy
 
             for (int spec = 0; spec < model.number_species; spec++)
             {
-                if (model.reactions[r].species_change[spec] > 0)
+                if (model.reactions[r].products_change[spec] > 0)
                 {
                     tau_args.products[r].push_back(spec);
                 }
 
-                else if (model.reactions[r].species_change[spec] < 0)
+                else if (model.reactions[r].reactants_change[spec] > 0)
                 {
                     rxn_order += 1;
                     tau_args.reactions_reactants[r].push_back(spec);

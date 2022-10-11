@@ -72,6 +72,8 @@ namespace Gillespy
 
         // List of reactions who's propensities will change when this reaction fires.
         std::unique_ptr<int[]> species_change;
+        std::unique_ptr<int[]> reactants_change;
+        std::unique_ptr<int[]> products_change;
 
         inline static double propensity(
                 ReactionId reaction_id,

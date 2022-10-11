@@ -125,15 +125,17 @@ Integrator::~Integrator()
 
 IntegrationResults Integrator::integrate(double *t)
 {
-    if (!validate(this, CVode(cvode_mem, *t, y, &this->t, CV_NORMAL)))
+    int retcode = CVode(cvode_mem, *t, y, &this->t, CV_NORMAL);
+    if (!validate(this, retcode ))
     {
-        return { nullptr, nullptr };
+        return { nullptr, nullptr, 0 };
     }
     *t = this->t;
 
     return {
         NV_DATA_S(y),
-        NV_DATA_S(y) + num_species
+        NV_DATA_S(y) + num_species,
+        retcode
     };
 }
 
@@ -162,32 +164,37 @@ IntegrationResults Integrator::integrate(double *t, std::set<int> &event_roots, 
         return results;
     }
 
-    unsigned long long num_triggers = data.active_triggers.size();
-    unsigned long long num_rxn_roots = data.active_reaction_ids.size();
-    unsigned long long root_size = data.active_triggers.size() + data.active_reaction_ids.size();
-    int *root_results = new int[root_size];
+    // check to see if any root we found by the solver
+    if( results.retcode == CV_ROOT_RETURN ){
+        // find which roots were found and return them
+        unsigned long long num_triggers = data.active_triggers.size();
+        unsigned long long num_rxn_roots = data.active_reaction_ids.size();
+        unsigned long long root_size = data.active_triggers.size() + data.active_reaction_ids.size();
+        int *root_results = new int[root_size];
 
-    if (validate(this, CVodeGetRootInfo(cvode_mem, root_results)))
-    {
-        unsigned long long root_id;
-        for (root_id = 0; root_id < num_triggers; ++root_id)
+        if (validate(this, CVodeGetRootInfo(cvode_mem, root_results)))
         {
-            if (root_results[root_id] != 0)
+            unsigned long long root_id;
+            for (root_id = 0; root_id < num_triggers; ++root_id)
             {
-                event_roots.insert((int) root_id);
+                if (root_results[root_id] != 0)
+                {
+                    event_roots.insert((int) root_id);
+                }
+            }
+
+            for (; root_id < root_size; ++root_id) // reaction roots
+            {
+                if (root_results[root_id] != 0)
+                {
+                    int rxn_id = root_id - num_triggers;
+                    reaction_roots.insert(data.active_reaction_ids[rxn_id]);
+                }
             }
         }
 
-        for (; root_id < num_rxn_roots; ++root_id)
-        {
-            if (root_results[root_id] < 0)
-            {
-                reaction_roots.insert(data.active_reaction_ids[root_id]);
-            }
-        }
+        delete[] root_results;
     }
-
-    delete[] root_results;
     return results;
 }
 

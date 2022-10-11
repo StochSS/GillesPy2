@@ -13,6 +13,12 @@ from .c_solver import CSolver, SimulationReturnCode
 from gillespy2.solvers.cpp.build.template_gen import SanitizedModel
 
 class TauHybridCSolver(GillesPySolver, CSolver):
+    """
+    This solver uses a root-finding interpretation of the direct SSA method,
+    along with ODE solvers to simulate ODE and Stochastic systems
+    interchangeably or simultaneously.
+    """
+
     name = "TauHybridCSolver"
     target = "hybrid"
 
@@ -74,7 +80,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             # Explicit cast to bool for safety, in case boundary_condition is given weird values
             boundary_keyword = boundary_condition_types[int(bool(species.boundary_condition))]
             # Example: SPECIES_MODE(2, 10, CONTINUOUS_MODE, BOUNDARY)
-            entry = f"SPECIES_MODE({spec_id},{species.switch_min},{mode_keyword},{boundary_keyword})"
+            entry = f"SPECIES_MODE({spec_id},{species.switch_min},{species.switch_tol},{mode_keyword},{boundary_keyword})"
             species_mode_list.append(entry)
 
         # EVENT(event_id, {targets}, trigger, delay, priority, use_trigger, use_persist)
@@ -184,15 +190,59 @@ class TauHybridCSolver(GillesPySolver, CSolver):
 
         return super()._handle_return_code(return_code)
 
-    def get_solver_settings(self):
+    @classmethod
+    def get_solver_settings(cls):
         """
+        Returns a list of arguments supported by tau_hybrid_c_solver.run.
         :return: Tuple of strings, denoting all keyword argument for this solvers run() method.
+        :rtype: tuple
         """
         return ('model', 't', 'number_of_trajectories', 'timeout', 'increment', 'seed', 'debug', 'profile')
 
     def run(self=None, model: Model = None, t: int = None, number_of_trajectories: int = 1, timeout: int = 0,
             increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
-            resume=None, live_output: str = None, live_output_options: dict = {}, tau_step: int = .03, tau_tol=0.03, integrator_options: "dict[str, float]" = None, **kwargs):
+            resume=None, live_output: str = None, live_output_options: dict = {}, tau_step: int = .03, tau_tol=0.03, integrator_options: "dict[str, float]" = None, use_root_finding=False, **kwargs):
+
+        """
+        :param model: The model on which the solver will operate. (Deprecated)
+        :type model: gillespy2.Model
+
+        :param t: End time of simulation.
+        :type t: int
+
+        :param number_of_trajectories: Number of trajectories to simulate. By default number_of_trajectories = 1.
+        :type number_of_trajectories: int
+
+        :param timeout: If set, if simulation takes longer than timeout, will exit.
+        :type timeout: int
+
+        :param increment: Time step increment for plotting.
+        :type increment: float
+
+        :param seed: The random seed for the simulation. Optional, defaults to None.
+        :type seed: int
+
+        :param variables: Dictionary of species and their data that will override existing species data.
+        :type variables: dict
+
+        :param resume: Result of a previously run simulation, to be resumed.
+        :type resume: gillespy2.Results
+
+        :param live_output: The type of output to be displayed by solver. Can be "progress", "text", or "graph".
+        :type live_output: str
+
+        :param live_output_options: dictionary contains options for live_output. By default {"interval":1}.
+            "interval" specifies seconds between displaying.
+            "clear_output" specifies if display should be refreshed with each display.
+        :type live_output_options:  dict
+
+        :param tau_tol: Tolerance level for Tau leaping algorithm.  Larger tolerance values will
+        result in larger tau steps. Default value is 0.03.
+        :type tau_tol: float
+
+        :returns: A result object containing the results of the simulation.
+        :rtype: gillespy2.Results
+        """
 
         from gillespy2 import log
 
@@ -277,6 +327,9 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         args = self._make_args(args)
         if debug:
             args.append("--verbose")
+        if use_root_finding:
+            args.append("--use_root_finding")
+
         decoder = IterativeSimDecoder.create_default(number_of_trajectories, number_timesteps, len(self.model.listOfSpecies))
 
         sim_exec = self._build(self.model, self.target, self.variable, False)

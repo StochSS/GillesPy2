@@ -308,6 +308,7 @@ namespace Gillespy
                 std::vector<HybridSpecies> &species);
 
         void partition_species(
+                double current_time,
                 std::vector<HybridReaction> &reactions,
                 std::vector<HybridSpecies> &species,
                 const std::vector<double> &propensity_values,

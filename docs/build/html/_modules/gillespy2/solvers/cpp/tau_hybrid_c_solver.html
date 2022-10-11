@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gillespy2.solvers.cpp.tau_hybrid_c_solver &#8212; GillesPy2 1.6.9 documentation</title>
+    <title>gillespy2.solvers.cpp.tau_hybrid_c_solver &#8212; GillesPy2 1.6.10 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -107,6 +107,7 @@
 <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">GillesPySolver</span><span class="p">,</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Event</span><span class="p">,</span> <span class="n">RateRule</span>
 <span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Set</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">IntEnum</span>
 <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">Results</span>
 
@@ -114,11 +115,21 @@
 <span class="kn">from</span> <span class="nn">gillespy2.solvers.cpp.build.template_gen</span> <span class="kn">import</span> <span class="n">SanitizedModel</span>
 
 <div class="viewcode-block" id="TauHybridCSolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.TauHybridCSolver">[docs]</a><span class="k">class</span> <span class="nc">TauHybridCSolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">,</span> <span class="n">CSolver</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This solver uses a root-finding interpretation of the direct SSA method,</span>
+<span class="sd">    along with ODE solvers to simulate ODE and Stochastic systems</span>
+<span class="sd">    interchangeably or simultaneously.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;TauHybridCSolver&quot;</span>
     <span class="n">target</span> <span class="o">=</span> <span class="s2">&quot;hybrid&quot;</span>
 
 <div class="viewcode-block" id="TauHybridCSolver.ErrorStatus"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.TauHybridCSolver.ErrorStatus">[docs]</a>    <span class="k">class</span> <span class="nc">ErrorStatus</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
-        <span class="n">LOOP_OVER_INTEGRATE</span> <span class="o">=</span> <span class="mi">1</span></div>
+        <span class="n">UNKNOWN</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">LOOP_OVER_INTEGRATE</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">INTEGRATOR_FAILED</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">INVALID_AFTER_SSA</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">NEGATIVE_STATE_NO_SSA_REACTION</span> <span class="o">=</span> <span class="mi">5</span></div>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">__create_options</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">sanitized_model</span><span class="p">:</span> <span class="s2">&quot;SanitizedModel&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SanitizedModel&quot;</span><span class="p">:</span>
@@ -171,7 +182,7 @@
             <span class="c1"># Explicit cast to bool for safety, in case boundary_condition is given weird values</span>
             <span class="n">boundary_keyword</span> <span class="o">=</span> <span class="n">boundary_condition_types</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">species</span><span class="o">.</span><span class="n">boundary_condition</span><span class="p">))]</span>
             <span class="c1"># Example: SPECIES_MODE(2, 10, CONTINUOUS_MODE, BOUNDARY)</span>
-            <span class="n">entry</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;SPECIES_MODE(</span><span class="si">{</span><span class="n">spec_id</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">species</span><span class="o">.</span><span class="n">switch_min</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">mode_keyword</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">boundary_keyword</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="n">entry</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;SPECIES_MODE(</span><span class="si">{</span><span class="n">spec_id</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">species</span><span class="o">.</span><span class="n">switch_min</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">species</span><span class="o">.</span><span class="n">switch_tol</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">mode_keyword</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">boundary_keyword</span><span class="si">}</span><span class="s2">)&quot;</span>
             <span class="n">species_mode_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
 
         <span class="c1"># EVENT(event_id, {targets}, trigger, delay, priority, use_trigger, use_persist)</span>
@@ -255,6 +266,10 @@
             <span class="n">RateRule</span><span class="p">,</span>
         <span class="p">}</span></div>
 
+<div class="viewcode-block" id="TauHybridCSolver.get_supported_integrator_options"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.TauHybridCSolver.get_supported_integrator_options">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_supported_integrator_options</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Set[str]&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span> <span class="s2">&quot;rtol&quot;</span><span class="p">,</span> <span class="s2">&quot;atol&quot;</span><span class="p">,</span> <span class="s2">&quot;max_step&quot;</span> <span class="p">}</span></div>
+
     <span class="k">def</span> <span class="nf">_build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="s2">&quot;Union[Model, SanitizedModel]&quot;</span><span class="p">,</span> <span class="n">simulation_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                <span class="n">custom_definitions</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">variable</span> <span class="o">=</span> <span class="n">variable</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">listOfEvents</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
@@ -264,19 +279,71 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_build</span><span class="p">(</span><span class="n">sanitized_model</span><span class="p">,</span> <span class="n">simulation_name</span><span class="p">,</span> <span class="n">variable</span><span class="p">,</span> <span class="n">debug</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_handle_return_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">return_code</span><span class="p">:</span> <span class="s2">&quot;int&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;int&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">return_code</span> <span class="o">==</span> <span class="n">TauHybridCSolver</span><span class="o">.</span><span class="n">ErrorStatus</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ExecutionError</span><span class="p">(</span><span class="s2">&quot;C++ solver failed (no error code given).&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">return_code</span> <span class="o">==</span> <span class="n">TauHybridCSolver</span><span class="o">.</span><span class="n">ErrorStatus</span><span class="o">.</span><span class="n">LOOP_OVER_INTEGRATE</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ExecutionError</span><span class="p">(</span><span class="s2">&quot;Loop over integrate exceeded, problem space is too stiff&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">return_code</span> <span class="o">==</span> <span class="n">TauHybridCSolver</span><span class="o">.</span><span class="n">ErrorStatus</span><span class="o">.</span><span class="n">INTEGRATOR_FAILED</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ExecutionError</span><span class="p">(</span><span class="s2">&quot;Sundials ODE solver failed with &#39;BAD_STEP_SIZE&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">return_code</span> <span class="o">==</span> <span class="n">TauHybridCSolver</span><span class="o">.</span><span class="n">ErrorStatus</span><span class="o">.</span><span class="n">INVALID_AFTER_SSA</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ExecutionError</span><span class="p">(</span><span class="s2">&quot;Invalid state after single SSA step&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">return_code</span> <span class="o">==</span> <span class="n">TauHybridCSolver</span><span class="o">.</span><span class="n">ErrorStatus</span><span class="o">.</span><span class="n">NEGATIVE_STATE_NO_SSA_REACTION</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ExecutionError</span><span class="p">(</span><span class="s2">&quot;Negative State detected in step, and no reaction found to fire.&quot;</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_handle_return_code</span><span class="p">(</span><span class="n">return_code</span><span class="p">)</span>
 
 <div class="viewcode-block" id="TauHybridCSolver.get_solver_settings"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.TauHybridCSolver.get_solver_settings">[docs]</a>    <span class="k">def</span> <span class="nf">get_solver_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a list of arguments supported by tau_hybrid_c_solver.run.</span>
 <span class="sd">        :return: Tuple of strings, denoting all keyword argument for this solvers run() method.</span>
+<span class="sd">        :rtype: tuple</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;number_of_trajectories&#39;</span><span class="p">,</span> <span class="s1">&#39;timeout&#39;</span><span class="p">,</span> <span class="s1">&#39;increment&#39;</span><span class="p">,</span> <span class="s1">&#39;seed&#39;</span><span class="p">,</span> <span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;profile&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="TauHybridCSolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.TauHybridCSolver.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
             <span class="n">increment</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">profile</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="p">{},</span>
-            <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">live_output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">live_output_options</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{},</span> <span class="n">tau_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mf">.03</span><span class="p">,</span> <span class="n">tau_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">live_output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">live_output_options</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{},</span> <span class="n">tau_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mf">.03</span><span class="p">,</span> <span class="n">tau_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">integrator_options</span><span class="p">:</span> <span class="s2">&quot;dict[str, float]&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param model: The model on which the solver will operate. (Deprecated)</span>
+<span class="sd">        :type model: gillespy2.Model</span>
+
+<span class="sd">        :param t: End time of simulation.</span>
+<span class="sd">        :type t: int</span>
+
+<span class="sd">        :param number_of_trajectories: Number of trajectories to simulate. By default number_of_trajectories = 1.</span>
+<span class="sd">        :type number_of_trajectories: int</span>
+
+<span class="sd">        :param timeout: If set, if simulation takes longer than timeout, will exit.</span>
+<span class="sd">        :type timeout: int</span>
+
+<span class="sd">        :param increment: Time step increment for plotting.</span>
+<span class="sd">        :type increment: float</span>
+
+<span class="sd">        :param seed: The random seed for the simulation. Optional, defaults to None.</span>
+<span class="sd">        :type seed: int</span>
+
+<span class="sd">        :param variables: Dictionary of species and their data that will override existing species data.</span>
+<span class="sd">        :type variables: dict</span>
+
+<span class="sd">        :param resume: Result of a previously run simulation, to be resumed.</span>
+<span class="sd">        :type resume: gillespy2.Results</span>
+
+<span class="sd">        :param live_output: The type of output to be displayed by solver. Can be &quot;progress&quot;, &quot;text&quot;, or &quot;graph&quot;.</span>
+<span class="sd">        :type live_output: str</span>
+
+<span class="sd">        :param live_output_options: dictionary contains options for live_output. By default {&quot;interval&quot;:1}.</span>
+<span class="sd">            &quot;interval&quot; specifies seconds between displaying.</span>
+<span class="sd">            &quot;clear_output&quot; specifies if display should be refreshed with each display.</span>
+<span class="sd">        :type live_output_options:  dict</span>
+
+<span class="sd">        :param tau_tol: Tolerance level for Tau leaping algorithm.  Larger tolerance values will</span>
+<span class="sd">        result in larger tau steps. Default value is 0.03.</span>
+<span class="sd">        :type tau_tol: float</span>
+
+<span class="sd">        :returns: A result object containing the results of the simulation.</span>
+<span class="sd">        :rtype: gillespy2.Results</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="kn">from</span> <span class="nn">gillespy2</span> <span class="kn">import</span> <span class="n">log</span>
 
@@ -302,7 +369,7 @@
                 <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="s2">&quot;A model is required to run the simulation.&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">resolve_parameters</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">compile_prep</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">validate_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">validate_sbml_features</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
 
@@ -339,6 +406,9 @@
                 <span class="s2">&quot;init_pop&quot;</span><span class="p">:</span> <span class="n">populations</span><span class="p">,</span>
                 <span class="s2">&quot;parameters&quot;</span><span class="p">:</span> <span class="n">parameter_values</span>
             <span class="p">})</span>
+        <span class="k">if</span> <span class="n">integrator_options</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">integrator_options</span> <span class="o">=</span> <span class="n">TauHybridCSolver</span><span class="o">.</span><span class="n">validate_integrator_options</span><span class="p">(</span><span class="n">integrator_options</span><span class="p">)</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">integrator_options</span><span class="p">)</span>
 
         <span class="n">seed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>

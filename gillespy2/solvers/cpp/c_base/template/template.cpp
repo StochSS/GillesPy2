@@ -49,6 +49,8 @@ namespace Gillespy
         s_names + sizeof(s_names) / sizeof(std::string));
 
     int reactions[GPY_NUM_REACTIONS][GPY_NUM_SPECIES] = GPY_REACTIONS;
+    int reaction_reactants[GPY_NUM_REACTIONS][GPY_NUM_SPECIES] = GPY_REACTION_REACTANTS;
+    int reaction_products[GPY_NUM_REACTIONS][GPY_NUM_SPECIES] = GPY_REACTION_PRODUCTS;
     std::string r_names[GPY_NUM_REACTIONS] = 
     {
         #define REACTION_NAME(name) #name,
@@ -241,6 +243,8 @@ namespace Gillespy
             for (spec_i = 0; spec_i < GPY_NUM_SPECIES; ++spec_i)
             {
                 model.reactions[rxn_i].species_change[spec_i] = reactions[rxn_i][spec_i];
+                model.reactions[rxn_i].reactants_change[spec_i] = reaction_reactants[rxn_i][spec_i];
+                model.reactions[rxn_i].products_change[spec_i] = reaction_products[rxn_i][spec_i];
             }
         }
 

@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gillespy2.solvers.cpp.ode_c_solver &#8212; GillesPy2 1.6.9 documentation</title>
+    <title>gillespy2.solvers.cpp.ode_c_solver &#8212; GillesPy2 1.6.10 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -126,18 +126,71 @@
 <span class="kn">from</span> <span class="nn">.c_solver</span> <span class="kn">import</span> <span class="n">CSolver</span><span class="p">,</span> <span class="n">SimulationReturnCode</span>
 
 <div class="viewcode-block" id="ODECSolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.ODECSolver">[docs]</a><span class="k">class</span> <span class="nc">ODECSolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">,</span> <span class="n">CSolver</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This Solver produces the deterministic continuous solution via Ordinary Differential Equations.</span>
+<span class="sd">    Uses integrators from SUNDIALS to perform calculations used to produce solutions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ODECSolver&quot;</span>
     <span class="n">target</span> <span class="o">=</span> <span class="s2">&quot;ode&quot;</span>
 
+<div class="viewcode-block" id="ODECSolver.get_supported_integrator_options"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.ODECSolver.get_supported_integrator_options">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_supported_integrator_options</span><span class="p">():</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;rtol&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;atol&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;max_step&quot;</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
 <div class="viewcode-block" id="ODECSolver.get_solver_settings"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.ODECSolver.get_solver_settings">[docs]</a>    <span class="k">def</span> <span class="nf">get_solver_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a list of arguments supported by odc_c_solver.run.</span>
 <span class="sd">        :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.</span>
+<span class="sd">        :rtype: tuple</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;number_of_trajectories&#39;</span><span class="p">,</span> <span class="s1">&#39;timeout&#39;</span><span class="p">,</span> <span class="s1">&#39;increment&#39;</span><span class="p">,</span> <span class="s1">&#39;seed&#39;</span><span class="p">,</span> <span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;profile&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ODECSolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.html#gillespy2.solvers.ODECSolver.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
             <span class="n">increment</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">profile</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="p">{},</span>
-            <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">live_output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">live_output_options</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">live_output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">live_output_options</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{},</span> <span class="n">integrator_options</span><span class="p">:</span> <span class="s2">&quot;dict[str, float]&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param model: The model on which the solver will operate. (Deprecated)</span>
+<span class="sd">        :type model: gillespy2.Model</span>
+
+<span class="sd">        :param t: End time of simulation.</span>
+<span class="sd">        :type t: int</span>
+
+<span class="sd">        :param number_of_trajectories: Number of trajectories to simulate.</span>
+<span class="sd">            This is deterministic and will always have same results.</span>
+<span class="sd">        :type number_of_trajectories: int</span>
+
+<span class="sd">        :param timeout: If set, if simulation takes longer than timeout, will exit.</span>
+<span class="sd">        :type timeout: int</span>
+
+<span class="sd">        :param increment: Time step increment for plotting.</span>
+<span class="sd">        :type increment: float</span>
+
+<span class="sd">        :param seed: The random seed for the simulation. Optional, defaults to None.</span>
+<span class="sd">        :type seed: int</span>
+
+<span class="sd">        :param variables: Dictionary of species and their data that will override existing species data.</span>
+<span class="sd">        :type variables: dict</span>
+
+<span class="sd">        :param resume: Result of a previously run simulation, to be resumed.</span>
+<span class="sd">        :type resume: gillespy2.Results</span>
+
+<span class="sd">        :param live_output: The type of output to be displayed by solver. Can be &quot;progress&quot;, &quot;text&quot;, or &quot;graph&quot;.</span>
+<span class="sd">        :type live_output: str</span>
+
+<span class="sd">        :param live_output_options: Dictionary that contains options for live_output. By default {&quot;interval&quot;:1}.</span>
+<span class="sd">            &quot;interval&quot; specifies seconds between displaying.</span>
+<span class="sd">            &quot;clear_output&quot; specifies if display should be refreshed with each display.</span>
+<span class="sd">        :type live_output_options:  dict</span>
+
+<span class="sd">        :returns: A result object containing the results of the simulation.</span>
+<span class="sd">        :rtype: gillespy2.Results</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="kn">from</span> <span class="nn">gillespy2</span> <span class="kn">import</span> <span class="n">log</span>
 
@@ -163,7 +216,7 @@
                 <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="s2">&quot;A model is required to run the simulation.&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">resolve_parameters</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">compile_prep</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">validate_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">validate_sbml_features</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
 
@@ -200,6 +253,9 @@
                 <span class="s2">&quot;init_pop&quot;</span><span class="p">:</span> <span class="n">populations</span><span class="p">,</span>
                 <span class="s2">&quot;parameters&quot;</span><span class="p">:</span> <span class="n">parameter_values</span>
             <span class="p">})</span>
+        <span class="k">if</span> <span class="n">integrator_options</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">integrator_options</span> <span class="o">=</span> <span class="n">ODECSolver</span><span class="o">.</span><span class="n">validate_integrator_options</span><span class="p">(</span><span class="n">integrator_options</span><span class="p">)</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">integrator_options</span><span class="p">)</span>
 
         <span class="n">seed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
