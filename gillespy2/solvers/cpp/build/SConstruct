@@ -17,9 +17,10 @@ VariantDir(f'{output_root}/template', template_root, duplicate=False)
 
 # DefaultEnvironment(): this is a temporary necessity that forces SCons to use GNU tools
 # When MSVC and Clang are fully supported, remove this to allow SCons to automatically find our compiler
-denv = DefaultEnvironment(tools=['gcc', 'g++'], CC='gcc', CXX='g++')
+denv = DefaultEnvironment(tools=[], CC='gcc', CXX='g++')
 
 env = Environment(
+    tools=['default', 'mingw'],
     CPPPATH=[
         Dir(cbase_root),
         Dir(template_root),
