@@ -33,7 +33,8 @@ env = Environment(
     ENV={
         'PATH': os.environ['PATH'],
     },
-    SCONS_CXX_STANDARD='c++11',
+    # When MSVC (or any other compilers) are supported, update this to be a compiler-specific flag
+    CXXFLAGS=['-std=c++14'],
 )
 libdepends = [
     f'gpy{solver}',
