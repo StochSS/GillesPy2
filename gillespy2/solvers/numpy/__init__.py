@@ -30,4 +30,4 @@ from .tau_hybrid_solver import TauHybridSolver
 from .CLE_solver import CLESolver
 log.debug("Successful Import of NumPy solvers.")
 
-__all__ = ['NumPySSASolver', 'ODESolver', 'TauLeapingSolver', 'TauHybridSolver', 'CLESolver'] if can_use_numpy else []
+__all__ = ['NumPySSASolver', 'ODESolver', 'TauLeapingSolver', 'TauHybridSolver', 'CLESolver']
