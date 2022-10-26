@@ -1064,7 +1064,7 @@ class Model(SortableObject, Jsonify):
         events = self.listOfEvents.values()
         for event in events:
             for assignment in event.__dict__['assignments']:
-                del assignment.__dict__['__name_deprecated']
+                del assignment.__dict__['_EventAssignment__name_deprecated']
         functions = self.listOfFunctionDefinitions.values()
 
         # A translation table is used to anonymize user-defined variable names and formulas into generic counterparts.
