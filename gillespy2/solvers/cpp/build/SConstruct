@@ -47,9 +47,7 @@ env = Environment(
         Dir(output_root),
         Dir(f'{output_root}/{solver_path}'),
     ],
-    ENV={
-        'PATH': os.environ['PATH'],
-    },
+    ENV=os.environ,
     # When MSVC (or any other compilers) are supported, update this to be a compiler-specific flag
     CXXFLAGS=['-std=c++14'],
 )
