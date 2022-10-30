@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import platform
-import numpy as np
 from typing import Set, Type
 from collections import OrderedDict
 
@@ -1064,7 +1063,7 @@ class Model(SortableObject, Jsonify):
         events = self.listOfEvents.values()
         for event in events:
             for assignment in event.__dict__['assignments']:
-                del assignment.__dict__['__name_deprecated']
+                del assignment.__dict__['_EventAssignment__name_deprecated']
         functions = self.listOfFunctionDefinitions.values()
 
         # A translation table is used to anonymize user-defined variable names and formulas into generic counterparts.
@@ -1111,15 +1110,10 @@ class Model(SortableObject, Jsonify):
 
         :returns: gillespy2.gillespySolver
         """
-        from gillespy2.solvers.numpy import can_use_numpy
         hybrid_check = False
-        chybrid_check = True
         if len(self.get_all_rate_rules())  or len(self.get_all_events()):
             hybrid_check = True
-        if len(self.get_all_assignment_rules()) or len(self.get_all_function_definitions()):
-            hybrid_check = True
-            chybrid_check = False
-
+        
         if len(self.get_all_species()) and hybrid_check == False:
             for i in self.get_all_species():
                 tempMode = self.get_species(i).mode
@@ -1127,84 +1121,79 @@ class Model(SortableObject, Jsonify):
                     hybrid_check = True
                     break
 
+        chybrid_check = hybrid_check
+        if len(self.get_all_assignment_rules()) or len(self.get_all_function_definitions()):
+            hybrid_check = True
+            chybrid_check = False
+
         from gillespy2.solvers.cpp.build.build_engine import BuildEngine
         missing_deps = BuildEngine.get_missing_dependencies()
         windows_space = platform.system() == "Windows" and " " in gillespy2.__file__
         can_use_cpp = len(missing_deps) == 0 and not windows_space
 
-        if not can_use_cpp and not can_use_numpy:
-            raise ModelError('Dependency Error, cannot run model.')
+        if hybrid_check:
+            if can_use_cpp and chybrid_check:
+                from gillespy2 import TauHybridCSolver
+                return TauHybridCSolver
 
-        if can_use_cpp and hybrid_check and chybrid_check:
-            from gillespy2 import TauHybridCSolver
-            return TauHybridCSolver
-        elif can_use_numpy and hybrid_check:
             from gillespy2 import TauHybridSolver
             return TauHybridSolver
         
-        if can_use_cpp is False and can_use_numpy and not hybrid_check:
-            from gillespy2 import NumPySSASolver
-            return NumPySSASolver
-
-        else:
+        if can_use_cpp:
             from gillespy2 import SSACSolver
             return SSACSolver
+
+        from gillespy2 import NumPySSASolver
+        return NumPySSASolver
 
     def get_best_solver_algo(self, algorithm):
         """
         If user has specified a particular algorithm, we return either the Python or C++ version of that algorithm
         """
-        from gillespy2.solvers.numpy import can_use_numpy
         from gillespy2.solvers.cpp.build.build_engine import BuildEngine
         missing_deps = BuildEngine.get_missing_dependencies()
         windows_space = platform.system() == "Windows" and " " in gillespy2.__file__
         can_use_cpp = len(missing_deps) == 0 and not windows_space
-        chybrid_check = True
-        if len(self.get_all_assignment_rules()) or len(self.get_all_function_definitions()):
-            chybrid_check = False
-
-        if not can_use_cpp and can_use_numpy:
-            raise ModelError("Please install C++ or Numpy to use GillesPy2 solvers.")
+        chybrid_check = not (len(self.get_all_assignment_rules()) or len(self.get_all_function_definitions()))
 
         if algorithm == 'Tau-Leaping':
             if can_use_cpp:
                 from gillespy2 import TauLeapingCSolver
                 return TauLeapingCSolver
-            else:
-                from gillespy2 import TauLeapingSolver
-                return TauLeapingSolver
 
-        elif algorithm == 'SSA':
+            from gillespy2 import TauLeapingSolver
+            return TauLeapingSolver
+
+        if algorithm == 'SSA':
             if can_use_cpp:
                 from gillespy2 import SSACSolver
                 return SSACSolver
-            else:
-                from gillespy2 import NumPySSASolver
-                return NumPySSASolver
 
-        elif algorithm == 'ODE':
+            from gillespy2 import NumPySSASolver
+            return NumPySSASolver
+
+        if algorithm == 'ODE':
             if can_use_cpp:
                 from gillespy2 import ODECSolver
                 return ODECSolver
-            else:
-                from gillespy2 import ODESolver
-                return ODESolver
 
-        elif algorithm == 'Tau-Hybrid':
+            from gillespy2 import ODESolver
+            return ODESolver
+
+        if algorithm == 'Tau-Hybrid':
             if can_use_cpp and chybrid_check:
                 from gillespy2 import TauHybridCSolver
                 return TauHybridCSolver
-            else:
-                from gillespy2 import TauHybridSolver
-                return TauHybridSolver
 
-        elif algorithm == 'CLE':
+            from gillespy2 import TauHybridSolver
+            return TauHybridSolver
+
+        if algorithm == 'CLE':
             from gillespy2 import CLESolver
             return CLESolver
             
-        else:
-            raise ModelError("Invalid value for the argument 'algorithm' entered. "
-                             "Please enter 'SSA', 'ODE', 'CLE', 'Tau-Leaping', or 'Tau-Hybrid'.")
+        raise ModelError("Invalid value for the argument 'algorithm' entered. "
+                         "Please enter 'SSA', 'ODE', 'CLE', 'Tau-Leaping', or 'Tau-Hybrid'.")
 
     def get_model_features(self) -> "Set[Type]":
         """

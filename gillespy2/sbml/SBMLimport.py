@@ -360,8 +360,8 @@ def __get_events(sbml_model, gillespy_model):
                 gillespy_model.delete_parameter(a.getVariable())
                 gillespy_model.add_species([gillespy_species])
 
-            gillespy_assignment = gillespy2.EventAssignment(a.getVariable(),
-                __get_math(a.getMath()))
+            gillespy_assignment = gillespy2.EventAssignment(variable=a.getVariable(),
+                expression=__get_math(a.getMath()))
             gillespy_assignments.append(gillespy_assignment)
         gillespy_event = gillespy2.Event(
             name=event.getId(), trigger=gillespy_trigger,
