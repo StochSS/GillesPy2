@@ -1,0 +1,46 @@
+name: Publish GillesPy2 Docs
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Initialize environment
+      uses: actions/checkout@v2
+      with:
+        ref: main
+        fetch-depth: 0
+      
+    - name: Install Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.7'
+
+    - name: Install Sphinx Dependency
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install -U sphinx
+        python3 -m pip install numpy
+        python3 -m pip install -r requirements.txt
+
+    - name: Update the Docs
+      working-directory: docs
+      run: |
+        make build-docs
+
+    - name: Commit Changes
+      working-directory: docs
+      run: |
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        make commit-docs
+
+    - name: Push Changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: main
