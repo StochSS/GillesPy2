@@ -54,9 +54,7 @@ class Make():
             if not path.is_dir():
                 path.mkdir()
 
-        self.output_file = "GillesPy2_Simulation.out"
-        if os.name == "nt":
-            self.output_file = "GillesPy2_Simulation.exe"
+        self.output_file = "GillesPy2_Simulation.exe"
 
         self.output_file = Path(self.output_dir, self.output_file)
 
