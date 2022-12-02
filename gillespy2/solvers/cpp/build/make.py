@@ -84,7 +84,7 @@ class Make():
         # Create the make command.
         scons_cmd = [str(Path(sys.executable).resolve()), "-m", "SCons"]
         make_cmd = [*scons_cmd, f"-C{str(self.output_dir.resolve())}", f"-f{str(self.makefile)}"] + make_args
-        print(f"make_cmd={' '.join(make_cmd)}")
+
         try:
             result = subprocess.run(make_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
