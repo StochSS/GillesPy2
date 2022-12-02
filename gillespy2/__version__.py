@@ -22,7 +22,7 @@
 # =============================================================================
 
 
-__version__      = '1.7.2-test_scons'
+__version__      = '1.7.2-test_scons--1'
 
 __title__        = 'GillesPy2'
 __description__  = 'Python interface for Gillespie-style biochemical simulations'
