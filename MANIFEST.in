@@ -1,4 +1,5 @@
 recursive-include gillespy2/solvers/cpp/c_base/ *
+include gillespy2/solvers/cpp/build/SConstruct
 include requirements.txt
 include LICENSE
 include COPYRIGHT
