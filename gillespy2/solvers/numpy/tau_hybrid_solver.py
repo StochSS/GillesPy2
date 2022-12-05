@@ -87,6 +87,12 @@ class TauHybridSolver(GillesPySolver):
             self.profile_data['time'] = []
             for k in list(self.model.listOfSpecies)+list(self.model.listOfReactions):
                 self.profile_data[k] = []
+        self.non_negative_species = set()
+        for reaction, _ in model.listOfReactions.items():
+            for key, value in model.listOfReactions[reaction].reactants.items():
+                self.non_negative_species.add(key.name)
+            for key, value in model.listOfReactions[reaction].products.items():
+                self.non_negative_species.add(key.name)
 
     def __toggle_reactions(self, all_compiled, deterministic_reactions, dependencies, 
                             curr_state, det_spec, rr_sets):
@@ -593,6 +599,12 @@ class TauHybridSolver(GillesPySolver):
         return sol, curr_time
 
 
+    def __simulate_negative_state_check(self, curr_state):
+            # check each species to see if they are negative
+            for s in self.non_negative_species:
+                if curr_state[s] < 0:
+                    raise SimulationError(f"Negative State detected at begining of step.")
+
     def __simulate_invalid_state_check(self, species_modified, curr_state, compiled_reactions):
             invalid_state = False
             err_message=""
@@ -627,6 +639,9 @@ class TauHybridSolver(GillesPySolver):
             data.
         """
 
+        # first check if we have a valid state:
+        self.__simulate_negative_state_check(curr_state)
+
         event_queue = []
         prev_y0 = copy.deepcopy(y0)
         prev_curr_state = copy.deepcopy(curr_state)
@@ -651,7 +666,6 @@ class TauHybridSolver(GillesPySolver):
         for r in compiled_reactions.keys():
             if curr_state[r] >= 0 and propensities[r] == 0:
                 curr_state[r] = math.log(random.uniform(0, 1))
-
 
         sol, curr_time = self.__integrate(integrator_options, curr_state,
                                           y0, curr_time, propensities, y_map,
@@ -709,7 +723,7 @@ class TauHybridSolver(GillesPySolver):
                     if min_tau is None or min_tau > rxn_times[rname]:
                         min_tau = rxn_times[rname]
                         rxn_selected = rname
-            if rxn_selected is None: raise Exception(f"Negative State detected in step, and no reaction found to fire.\n\n error_message={invalid_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}\nrxn_times={rxn_times}\ncompiled_reactions={compiled_reactions}\ncurr_state_after={curr_state_after}\n propensities_after={propensities_after}\nstarting_propensities={starting_propensities}\nfloored_curr_state={floored_curr_state}\nfloored_propensities={floored_propensities}\n  ")
+            if rxn_selected is None: raise SimulationError(f"Negative State detected in step, and no reaction found to fire.\n\n error_message={invalid_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}\nrxn_times={rxn_times}\ncompiled_reactions={compiled_reactions}\ncurr_state_after={curr_state_after}\n propensities_after={propensities_after}\nstarting_propensities={starting_propensities}\nfloored_curr_state={floored_curr_state}\nfloored_propensities={floored_propensities}\n  ")
 
             tau_step = min_tau #estimated time to the first stochatic reaction
 
