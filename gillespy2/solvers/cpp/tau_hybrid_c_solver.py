@@ -28,6 +28,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         INTEGRATOR_FAILED = 3
         INVALID_AFTER_SSA = 4
         NEGATIVE_STATE_NO_SSA_REACTION = 5
+        NEGATIVE_STATE_AT_BEGINING_OF_STEP = 6
 
     @classmethod
     def __create_options(cls, sanitized_model: "SanitizedModel") -> "SanitizedModel":
@@ -187,7 +188,8 @@ class TauHybridCSolver(GillesPySolver, CSolver):
             raise ExecutionError("Invalid state after single SSA step")
         if return_code == TauHybridCSolver.ErrorStatus.NEGATIVE_STATE_NO_SSA_REACTION:
             raise ExecutionError("Negative State detected in step, and no reaction found to fire.")
-
+        if return_code == TauHybridCSolver.ErrorStatus.NEGATIVE_STATE_AT_BEGINING_OF_STEP:
+            raise ExecutionError("Negative State detected at beginning of step.")
         return super()._handle_return_code(return_code)
 
     @classmethod

@@ -133,6 +133,16 @@ namespace Gillespy
 
 
 
+        bool IsStateValidNonNegativeSpecies(int num_species, std::vector<double> current_state, std::set<Species<double>> non_negative_species){  
+            // Explicitly check for invalid population state, now that changes have been tallied.
+            // Note: this should only check species that are reactants or products
+            for (const auto &r : non_negative_species) {
+                if (current_state[r.id] < 0) {
+                    return false;
+                }
+            }
+            return true;
+        }
 
         bool IsStateNegativeCheck(int num_species, int*population_changes, std::vector<double> current_state, std::set<Species<double>>tau_args_reactants){  
             // Explicitly check for invalid population state, now that changes have been tallied.
@@ -168,6 +178,19 @@ namespace Gillespy
             bool use_root_finding = default_use_root_finding;
             bool in_event_handling = false;
             unsigned int neg_state_loop_cnt = 0;
+
+            std::set<Species<double>> non_negative_species;
+
+            for (int r = 0; r < model.number_reactions; r++) {
+                for (int spec = 0; spec < model.number_species; spec++) {
+                    if (model.reactions[r].products_change[spec] > 0) {
+                    } else if (model.reactions[r].reactants_change[spec] > 0) {
+                        non_negative_species.insert(model.species[spec]);
+                    }
+                }
+            }
+
+
 
             generator = std::mt19937_64(simulation->random_seed);
             URNGenerator urn(simulation->random_seed);
@@ -279,6 +302,13 @@ namespace Gillespy
 
                     if (interrupted){
                         break;
+                    }
+
+                    // check if the state is valid
+                    if( ! IsStateValidNonNegativeSpecies(num_species, non_negative_species) ) {
+                        // throw an error
+                        simulation->set_status(HybridSimulation::NEGATIVE_STATE_AT_BEGINING_OF_STEP);
+                        return;
                     }
 
                     // Expected tau step is determined.
