@@ -133,11 +133,11 @@ namespace Gillespy
 
 
 
-        bool IsStateValidNonNegativeSpecies(int num_species, std::vector<double> current_state, std::set<Species<double>> non_negative_species){  
+        bool IsStateValidNonNegativeSpecies(int num_species, std::vector<double> current_state, std::vector<int> non_negative_species){  
             // Explicitly check for invalid population state, now that changes have been tallied.
             // Note: this should only check species that are reactants or products
             for (const auto &r : non_negative_species) {
-                if (current_state[r.id] < 0) {
+                if (current_state[r] < 0) {
                     return false;
                 }
             }
@@ -179,13 +179,14 @@ namespace Gillespy
             bool in_event_handling = false;
             unsigned int neg_state_loop_cnt = 0;
 
-            std::set<Species<double>> non_negative_species;
+            std::vector<int> non_negative_species;
 
-            for (int r = 0; r < model.number_reactions; r++) {
-                for (int spec = 0; spec < model.number_species; spec++) {
-                    if (model.reactions[r].products_change[spec] > 0) {
-                    } else if (model.reactions[r].reactants_change[spec] > 0) {
-                        non_negative_species.insert(model.species[spec]);
+            for (int spec = 0; spec < model.number_species; spec++) {
+                for (int r = 0; r < model.number_reactions; r++) {
+                    if (model.reactions[r].products_change[spec] > 0 ||
+                        model.reactions[r].reactants_change[spec] > 0) {
+                        non_negative_species.push_back(model.species[spec].id);
+                        break;// once we flagged it, skip to the next species
                     }
                 }
             }
@@ -305,7 +306,7 @@ namespace Gillespy
                     }
 
                     // check if the state is valid
-                    if( ! IsStateValidNonNegativeSpecies(num_species, non_negative_species) ) {
+                    if( ! IsStateValidNonNegativeSpecies(num_species, current_state, non_negative_species) ) {
                         // throw an error
                         simulation->set_status(HybridSimulation::NEGATIVE_STATE_AT_BEGINING_OF_STEP);
                         return;
