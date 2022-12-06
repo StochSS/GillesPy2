@@ -54,9 +54,7 @@ class Make():
             if not path.is_dir():
                 path.mkdir()
 
-        self.output_file = "GillesPy2_Simulation.out"
-        if os.name == "nt":
-            self.output_file = "GillesPy2_Simulation.exe"
+        self.output_file = "GillesPy2_Simulation.exe"
 
         self.output_file = Path(self.output_dir, self.output_file)
 
@@ -93,12 +91,13 @@ class Make():
         except KeyboardInterrupt:
             log.warning(f"Makefile was interrupted during execution of target: '{target}', unexpected behavior may occur.")
 
-        if result.returncode == 0:
+        if result.returncode == 0 and os.path.exists(self.output_file):
             return
 
         raise gillespyError.BuildError(f"Error encountered during execution of Makefile target: '{target}'.\n"
             f"Return code: {result.returncode}"
             f"- stdout: {result.stdout.decode('utf-8', errors='ignore')}\n"
             f"- stderr: {result.stderr.decode('utf-8', errors='ignore')}\n"
-            f"- make_cmd: {make_cmd}\n"
-            f"- os.listdir({os.path.join(self.cbase_dir,'template')}): {os.listdir(os.path.join(self.cbase_dir,'template'))}\n")
+            f"- make_cmd: {' '.join(make_cmd)}\n"
+            f"- os.listdir({os.path.join(self.cbase_dir,'template')}): {os.listdir(os.path.join(self.cbase_dir,'template'))}\n"
+            f"- os.path.exists({self.output_file}): {os.path.exists(self.output_file)}\n")
