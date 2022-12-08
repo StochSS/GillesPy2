@@ -19,6 +19,8 @@ import uuid
 from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.jsonify import Jsonify
 
+from gillespy2.core.gillespyError import FunctionDefinitionError
+
 class FunctionDefinition(SortableObject, Jsonify):
     """
     Object representation defining an evaluable function to be used during
@@ -36,7 +38,7 @@ class FunctionDefinition(SortableObject, Jsonify):
 
     def __init__(self, name="", function=None, args=[]):
         if function is None:
-            raise TypeError("Function string provided for FunctionDefinition cannot be None")
+            raise FunctionDefinitionError("Function string provided for FunctionDefinition cannot be None")
 
         if name in (None, ""):
             self.name = f'fd{uuid.uuid4()}'.replace('-', '_')
