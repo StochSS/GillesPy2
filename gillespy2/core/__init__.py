@@ -15,6 +15,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+
+from gillespy2.__version__ import __version__
 from .assignmentrule import *
 from .cleanup import *
 from .events import *
@@ -29,7 +31,6 @@ from .results import *
 from .sortableobject import *
 from .species import *
 from .timespan import TimeSpan
-from gillespy2.__version__ import __version__
 
 version = __version__
 

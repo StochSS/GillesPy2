@@ -145,7 +145,7 @@ class Jsonify:
             prior to being hashed.
         :type ignore_whitespace: bool
 
-        :param hash_private_vals: If set to True all private and non-private variables will 
+        :param hash_private_vals: If set to True all private and non-private variables will
             be included in the hash.
         :type hash_private_vals: bool
 
@@ -161,17 +161,17 @@ class Jsonify:
 
         return hashlib.md5(str.encode(model_json)).hexdigest()
 
-    def __eq__(self, o: "Jsonify"):
+    def __eq__(self, obj: "Jsonify"):
         """
         Overload to compare the json of two objects that derive from Jsonify.
         This method will not do any additional translation.
 
-        :param o: The Jsonify object to compare against.
-        :type o: Jsonify
+        :param obj: The Jsonify object to compare against.
+        :type obj: Jsonify
 
         :returns: True if equal, False if not.
         """
-        return self.get_json_hash() == o.get_json_hash()
+        return self.get_json_hash() == obj.get_json_hash()
 
 class ComplexJsonCoder(JSONEncoder):
     """

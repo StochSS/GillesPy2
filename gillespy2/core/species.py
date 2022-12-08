@@ -54,8 +54,8 @@ class Species(SortableObject, Jsonify):
     :type switch_tol: float
 
     :param switch_min:  ***FOR USE WITH TauHybridSolver ONLY***
-        Minimum population value at which species will be represented as continuous. If a value is given, switch_min will be
-        used instead of switch_tol
+        Minimum population value at which species will be represented as continuous.
+        If a value is given, switch_min will be used instead of switch_tol
     :type switch_min: float
 
     :raises SpeciesError: Arg is of invalid type.  Required arg set to None.  Arg value is outside of accepted bounds.
@@ -86,13 +86,6 @@ class Species(SortableObject, Jsonify):
     def __str__(self):
         print_string = self.name
         print_string += ': ' + str(self.initial_value)
-        '''
-        print_string += '\n\tInitial Value: ' + str(self.initial_value)
-        print_string += '\n\tConstant: ' + str(self.constant)
-        print_string += '\n\tBoundary Condition: ' + str(self.boundary_condition)
-        print_string += '\n\tMode: ' + self.mode
-        print_string += '\n\tAllow Negative Populations: ' + str(self.allow_negative_populations)
-        '''
         return print_string
 
     def set_initial_value(self, initial_value):
@@ -157,7 +150,9 @@ class Species(SortableObject, Jsonify):
                     """
                 )
             if not self.allow_negative_populations and initial_value < 0:
-                raise SpeciesError('A species initial value must be non-negative unless allow_negative_populations=True')
+                raise SpeciesError(
+                    'A species initial value must be non-negative unless allow_negative_populations=True'
+                )
 
         # Check constant
         if coverage in ("all", "constant"):
