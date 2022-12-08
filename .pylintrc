@@ -394,10 +394,12 @@ good-names=i,
 
 # Good variable names regexes, separated by a comma. If names match any regex,
 # they will always be accepted
-good-names-rgxs=listOfParameters, listOfSpecies, listOfReaction, listOfAssignmentRules,
+good-names-rgxs=t, rc, listOfParameters, listOfSpecies, listOfReaction, listOfAssignmentRules,
                 listOfRateRules, listOfEvents, listOfFunctionDefinitions,
                 _listOfParameters, _listOfSpecies, _listOfReaction, _listOfAssignmentRules,
-                _listOfRateRules, _listOfEvents, _listOfFunctionDefinitions
+                _listOfRateRules, _listOfEvents, _listOfFunctionDefinitions,
+                __ExpressionParser, __ToString, visit_BinOp, visit_Name, visit_Num, visit_Call,
+                visit_Add, visit_Div, visit_Mult, visit_UnaryOp, visit_Sub, visit_Usub
 
 # Include a hint for the correct naming format with invalid-name.
 include-naming-hint=no
