@@ -19,6 +19,7 @@ import uuid
 from gillespy2.core.gillespyError import *
 from gillespy2.core.jsonify import Jsonify
 
+from gillespy2.core.gillespyError import EventError
 
 class EventAssignment(Jsonify):
     """
@@ -257,17 +258,12 @@ class Event(Jsonify):
         :param assignment: The event or list of events to be added to this event.
         :type assignment: EventAssignment or list[EventAssignment]
         """
-
-        if hasattr(assignment, 'variable'):
-            self.assignments.append(assignment)
-        elif isinstance(assignment, list):
+        if isinstance(assignment, list):
             for assign in assignment:
-                if hasattr(assign, 'variable'):
-                    self.assignments.append(assign)
-                else:
-                    raise EventError('add_assignment failed to add EventAssignment. Assignment to be added must be of '
-                                     'type EventAssignment or list of EventAssignment objects.')
+                self.add_assignment(assign)
+        elif hasattr(assignment, 'variable'):
+            self.assignments.append(assignment)
         else:
-            raise ModelError("Unexpected parameter for add_assignment. Parameter must be EventAssignment or list of "
-                             "EventAssignments")
+            raise EventError("Unexpected parameter for add_assignment. Assignment must be an EventAssignment or list of "
+                             "EventAssignments objects")
         return assignment
