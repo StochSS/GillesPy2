@@ -19,7 +19,6 @@ import json
 import threading
 
 from math import floor
-from IPython.display import clear_output
 
 from gillespy2.core.results import common_rgb_values
 from gillespy2.core.gillespyError import SimulationError
@@ -178,6 +177,8 @@ class LiveDisplayer():
         :param finished: Indicates whether or not the simulation has finished.
         :type finished: bool
         '''
+        from IPython.display import clear_output # pylint: disable=import-outside-toplevel
+
         curr_time = curr_time[0]
         curr_state = curr_state[0]
 
