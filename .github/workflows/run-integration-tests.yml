@@ -27,6 +27,10 @@ jobs:
         pip install coverage
         pip install nbformat
         pip install nbconvert
+
+    - name: Add MinGW to system path
+      run: |
+        echo "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin" >> $GITHUB_PATH
         
     - name: Run tests
       run: coverage run --source=gillespy2 --omit=gillespy2/solvers/stochkit/* test/run_integration_tests.py -m develop
