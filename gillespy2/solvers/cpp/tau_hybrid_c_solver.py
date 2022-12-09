@@ -189,7 +189,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         if return_code == TauHybridCSolver.ErrorStatus.NEGATIVE_STATE_NO_SSA_REACTION:
             raise ExecutionError("Negative State detected in step, and no reaction found to fire.")
         if return_code == TauHybridCSolver.ErrorStatus.NEGATIVE_STATE_AT_BEGINING_OF_STEP:
-            raise ExecutionError("Negative State detected at beginning of step.")
+            raise ExecutionError("Negative State detected at beginning of step. Species involved in reactions can not be negative.")
         return super()._handle_return_code(return_code)
 
     @classmethod

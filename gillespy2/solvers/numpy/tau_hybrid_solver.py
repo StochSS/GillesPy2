@@ -603,7 +603,7 @@ class TauHybridSolver(GillesPySolver):
             # check each species to see if they are negative
             for s in self.non_negative_species:
                 if curr_state[s] < 0:
-                    raise SimulationError(f"Negative State detected at begining of step.")
+                    raise SimulationError(f"Negative State detected at begining of step. Species involved in reactions can not be negative.")
 
     def __simulate_invalid_state_check(self, species_modified, curr_state, compiled_reactions):
             invalid_state = False
