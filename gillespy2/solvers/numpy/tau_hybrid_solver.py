@@ -1115,9 +1115,7 @@ class TauHybridSolver(GillesPySolver):
         except:
             pass
         if hasattr(self, 'has_raised_exception'):
-            raise SimulationError(
-                f"Error encountered while running simulation:\nReturn code: {int(self.rc)}.\n"
-            ) from self.has_raised_exception
+            raise self.has_raised_exception
         
         return Results.build_from_solver_results(self, live_output_options)
 
