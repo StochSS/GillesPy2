@@ -64,7 +64,7 @@ class TestNegativeState(unittest.TestCase):
         sol = gillespy2.TauHybridCSolver(model=self.rr_rxn_model)
         with self.assertRaises(gillespy2.SimulationError) as ex:
             result = sol.run()
-        self.assertIn('Negative State detected at begining of step. Species involved in reactions can not be negative.', str(ex.exception))
+        self.assertEqual('Negative State detected at beginning of step. Species involved in reactions can not be negative.', str(ex.exception))
 
 
 if __name__ == '__main__':

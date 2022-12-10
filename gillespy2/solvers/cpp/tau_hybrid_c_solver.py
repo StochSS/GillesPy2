@@ -179,17 +179,17 @@ class TauHybridCSolver(GillesPySolver, CSolver):
 
     def _handle_return_code(self, return_code: "int") -> "int":
         if return_code == TauHybridCSolver.ErrorStatus.UNKNOWN:
-            raise ExecutionError("C++ solver failed (no error code given).")
+            raise SimulationError("C++ solver failed (no error code given).")
         if return_code == TauHybridCSolver.ErrorStatus.LOOP_OVER_INTEGRATE:
-            raise ExecutionError("Loop over integrate exceeded, problem space is too stiff")
+            raise SimulationError("Loop over integrate exceeded, problem space is too stiff")
         if return_code == TauHybridCSolver.ErrorStatus.INTEGRATOR_FAILED:
-            raise ExecutionError("Sundials ODE solver failed with 'BAD_STEP_SIZE'")
+            raise SimulationError("Sundials ODE solver failed with 'BAD_STEP_SIZE'")
         if return_code == TauHybridCSolver.ErrorStatus.INVALID_AFTER_SSA:
-            raise ExecutionError("Invalid state after single SSA step")
+            raise SimulationError("Invalid state after single SSA step")
         if return_code == TauHybridCSolver.ErrorStatus.NEGATIVE_STATE_NO_SSA_REACTION:
-            raise ExecutionError("Negative State detected in step, and no reaction found to fire.")
+            raise SimulationError("Negative State detected in step, and no reaction found to fire.")
         if return_code == TauHybridCSolver.ErrorStatus.NEGATIVE_STATE_AT_BEGINING_OF_STEP:
-            raise ExecutionError("Negative State detected at beginning of step. Species involved in reactions can not be negative.")
+            raise SimulationError("Negative State detected at beginning of step. Species involved in reactions can not be negative.")
         return super()._handle_return_code(return_code)
 
     @classmethod
