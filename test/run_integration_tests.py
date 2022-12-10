@@ -58,6 +58,7 @@ if __name__ == '__main__':
     import test_jsonify
     import test_notebooks
     import test_c_decode
+    import test_hybrid_negative_state
 
     modules = [
        test_empty_model,
@@ -85,6 +86,7 @@ if __name__ == '__main__':
        test_jsonify,
        test_notebooks,
        test_c_decode,
+       test_hybrid_negative_state,
     ]
 
     for module in modules:
