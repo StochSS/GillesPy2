@@ -45,13 +45,14 @@ def timeout_process(t, pid):
     os_signal = signal.SIGINT if os.name != "nt" else signal.CTRL_C_EVENT
     def timeout_kill():
         os.kill(pid, os_signal)
-    
-    timer = threading.Timer(t, timeout_kill)
-    try:
-        timer.start()
-        timer.join()
-    except:
-        timer.cancel()
+
+    while True:
+        timer = threading.Timer(t, timeout_kill)
+        try:
+            timer.start()
+            timer.join()
+        except:
+            timer.cancel()
 
 def hybrid_model(model: Model, mode: str = 'discrete'):
     """
@@ -91,7 +92,7 @@ class TestPauseResume(unittest.TestCase):
 
     # Models used for testing different solvers' interrupts.
     interrupt_models = {
-        "ode": model_time(MichaelisMenten(), 10_000, 0.01),
+        "ode": model_time(Oregonator(), 10_000, 0.01),
         "ssa": Oregonator(),
         "discrete": hybrid_model(Oregonator(), 'discrete'),
         "continuous": hybrid_model(Oregonator(), 'continuous'),
@@ -163,17 +164,16 @@ class TestPauseResume(unittest.TestCase):
 
     def test_pause(self):
         for solver in self.pre_built_solvers:
+            print("Testing Solver: ", solver.name)
             with self.subTest("Send SIGINT during C++ solver execution", solver=solver.name):
-                timer = multiprocessing.Process(target=timeout_process, args=(0.5, os.getpid()))
                 try:
-                    timer.start()
+                    repeater = multiprocessing.Process(target=timeout_process, args=(1.0, os.getpid()))
+                    repeater.start()
                     result = solver.run()
-                    # This "cancels" the timer process, however it's theoretically possible for this to fail,
-                    # if the timeout process sends its SIGINT after solver.run() but before it gets a SIGTERM.
-                    # Setting the `t` arg of `timeout_process` to be sufficiently large should make this unlikely.
-                    timer.terminate()
                 except KeyboardInterrupt:
                     self.fail("solver.run() did not properly handle KeyboardInterrupt exception")
+                finally:
+                    repeater.terminate()
                 max_time = result["time"].max()
                 self.assertGreater(max_time, 0.0)
                 self.assertLess(max_time, solver.model.tspan[-1])
