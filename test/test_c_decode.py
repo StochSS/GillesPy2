@@ -43,23 +43,6 @@ class TestCDecode(unittest.TestCase):
             (TauHybridCSolver(model=self.model), [1, 3]),
         ]
 
-    def test_run_output(self):
-        expected_tspan = self.model.tspan
-        expected_init = self.model.get_species("A").initial_value
-        for solver, trajectory_counts in self.solvers:
-            for number_of_trajectories in trajectory_counts:
-                with self.subTest("Processing simulation output for each solver with different trajectory sizes",
-                                  number_of_trajectories=number_of_trajectories,
-                                  solver=solver):
-                    results = self.model.run(solver=solver, number_of_trajectories=number_of_trajectories, seed=1024)
-                    for result in results:
-                        tspan, first_value, last_value = result["time"], result["A"][0], result["A"][-1]
-                        result_diff = np.concatenate([np.array([first_value]), result["A"][1:]])
-                        result_diff = result["A"] - result_diff
-                        self.assertTrue(np.allclose(tspan, expected_tspan), msg="C++ Simulation output contains unexpected timeline values"
-                                                                        f"\n  Received timeline: {tspan}\n  Expected timeline: {expected_tspan}")
-                        self.assertEqual(first_value, expected_init, msg=f"C++ Simulation output begins with unexpected value: {first_value}")
-                        self.assertAlmostEqual(last_value, 0, places=3, msg=f"C++ Simulation output converges on an unexpectedly large value: {last_value}")
 
     def test_c_decoder(self):
         """
