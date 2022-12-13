@@ -145,8 +145,8 @@ class TauHybridSolver(GillesPySolver):
         # Initialize sample dict
         rr_vars = {}
         for n, rr in self.model.listOfRateRules.items():
-            rr_vars[rr.variable] = n
-        for spec in self.model.listOfSpecies:
+            rr_vars[rr.variable.name] = n
+        for spec in self.model.listOfSpecies.keys():
             if spec in rr_vars.keys():
                 diff_eqs[self.model.listOfSpecies[spec]] = self.model.listOfRateRules[rr_vars[spec]].formula
             else:
