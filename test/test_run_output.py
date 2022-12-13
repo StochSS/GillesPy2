@@ -26,10 +26,8 @@ import io
 import gillespy2
 from gillespy2.solvers import ODESolver, ODECSolver, NumPySSASolver, SSACSolver, TauLeapingCSolver, TauLeapingSolver, TauHybridSolver, TauHybridCSolver
 from example_models import create_degradation
-from gillespy2.solvers.cpp.c_decoder import BasicSimDecoder, IterativeSimDecoder
 
 class TestRunOutput(unittest.TestCase):
-    decoders = [BasicSimDecoder, IterativeSimDecoder]
 
     def setUp(self):
         self.model = create_degradation()
@@ -60,8 +58,8 @@ class TestRunOutput(unittest.TestCase):
                         tspan, first_value, last_value = result["time"], result["A"][0], result["A"][-1]
                         result_diff = np.concatenate([np.array([first_value]), result["A"][1:]])
                         result_diff = result["A"] - result_diff
-                        self.assertTrue(np.allclose(tspan, expected_tspan), msg="C++ Simulation output contains unexpected timeline values"
+                        self.assertTrue(np.allclose(tspan, expected_tspan), msg="Simulation output contains unexpected timeline values"
                                                                         f"\n  Received timeline: {tspan}\n  Expected timeline: {expected_tspan}, trajectory_number={n}")
-                        self.assertEqual(first_value, expected_init, msg=f"C++ Simulation output begins with unexpected value: {first_value}, trajectory_number={n}")
-                        self.assertAlmostEqual(last_value, 0, places=3, msg=f"C++ Simulation output converges on an unexpectedly large value: {last_value}, trajectory_number={n}")
+                        self.assertEqual(first_value, expected_init, msg=f"Simulation output begins with unexpected value: {first_value}, trajectory_number={n}")
+                        self.assertAlmostEqual(last_value, 0, places=3, msg=f"Simulation output converges on an unexpectedly large value: {last_value}, trajectory_number={n}")
 
