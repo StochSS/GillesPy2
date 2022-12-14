@@ -94,6 +94,41 @@ class TauHybridSolver(GillesPySolver):
             for key, value in model.listOfReactions[reaction].products.items():
                 self.non_negative_species.add(key.name)
 
+    def __save_state_to_output(self, curr_time, save_index, curr_state, species, 
+                                trajectory, save_times):
+        """
+        Helper function to save the curr_state to the trajectory output
+        """
+        
+        # Now update the step and trajectories for this step of the simulation.
+        # Here we make our final assignments for this step, and begin
+        # populating our results trajectory.
+           
+        num_saves = 0
+        for time in save_times:
+            if time > curr_time:
+                break
+            # if a solution is given for it
+            trajectory_index = save_index
+            assignment_state = copy.deepcopy(curr_state)
+            for s,sname in enumerate(species):
+                # Get ODE Solutions
+                trajectory[trajectory_index][s + 1] = curr_state[sname]
+                # Update Assignment Rules for all processed time points
+                if len(self.model.listOfAssignmentRules):
+                    # Copy ODE state for assignments
+                    assignment_state[sname] = curr_state[sname]
+            assignment_state['t'] = time
+            for ar in self.model.listOfAssignmentRules.values():
+                assignment_value = eval(ar.formula, {**eval_globals, **assignment_state})
+                assignment_state[ar.variable] = assignment_value
+                trajectory[trajectory_index][species.index(ar.variable.name) + 1] = assignment_value
+            num_saves += 1
+            save_index += 1
+        save_times = save_times[num_saves:]  # remove completed save times
+        return save_times, save_index
+
+
     def __toggle_reactions(self, all_compiled, deterministic_reactions, dependencies, 
                             curr_state, det_spec, rr_sets):
         """
@@ -641,6 +676,9 @@ class TauHybridSolver(GillesPySolver):
 
         # first check if we have a valid state:
         self.__simulate_negative_state_check(curr_state)
+        if curr_time == 0.0:
+            # save state at beginning of simulation
+            save_times, save_index = self.__save_state_to_output(curr_time, save_index, curr_state, species, trajectory, save_times)
 
         event_queue = []
         prev_y0 = copy.deepcopy(y0)
@@ -748,31 +786,7 @@ class TauHybridSolver(GillesPySolver):
                 raise Exception(f"Negative State detected in step, after single SSA step.\n\n error_message={invalid_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}\nrxn_selected={rxn_selected}\ncompiled_reactions={compiled_reactions}\ncurr_state_after={curr_state_after} \n propensities_after={propensities_after}\nstarting_propensities={starting_propensities}\nfirst_rxn_count={first_rxn_count}\n first_err_message={first_err_message}\n 2nd_tau_step={tau_step}\nfloored_propensities={floored_propensities}  ")
 
 
-        # Now update the step and trajectories for this step of the simulation.
-        # Here we make our final assignments for this step, and begin
-        # populating our results trajectory.
-        num_saves = 0
-        for time in save_times:
-            if time > curr_time:
-                break
-            # if a solution is given for it
-            trajectory_index = save_index
-            assignment_state = copy.deepcopy(curr_state)
-            for s in range(len(species)):
-                # Get ODE Solutions
-                trajectory[trajectory_index][s + 1] = sol.y[s]
-                # Update Assignment Rules for all processed time points
-                if len(self.model.listOfAssignmentRules):
-                    # Copy ODE state for assignments
-                    assignment_state[species[s]] = sol.y[s]
-            assignment_state['t'] = time
-            for ar in self.model.listOfAssignmentRules.values():
-                assignment_value = eval(ar.formula, {**eval_globals, **assignment_state})
-                assignment_state[ar.variable] = assignment_value
-                trajectory[trajectory_index][species.index(ar.variable.name) + 1] = assignment_value
-            num_saves += 1
-            save_index += 1
-        save_times = save_times[num_saves:]  # remove completed save times
+        save_times, save_index = self.__save_state_to_output(curr_time, save_index, curr_state, species, trajectory, save_times)
 
         events_processed = self.__process_queued_events(event_queue, trigger_states, curr_state)
 
