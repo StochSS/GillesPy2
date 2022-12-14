@@ -27,7 +27,7 @@ class TestNegativeState(unittest.TestCase):
             k1 = gillespy2.Parameter(name="k1", expression="1e-05")
             model.add_parameter([k1])
             # Variables
-            A = gillespy2.Species(name="A", initial_value=10, mode="discrete")
+            A = gillespy2.Species(name="A", initial_value=10)
             model.add_species([A])
             # Reactions
             if include_reaction:
