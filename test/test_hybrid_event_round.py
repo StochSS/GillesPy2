@@ -64,9 +64,73 @@ class TestHybridEventRound(unittest.TestCase):
         model.timespan(tspan)
         return model
 
+    def create_dynamic_model(self):
+        model = Model(name="test_issue710_round_event_assign_switch")
+
+        # Parameters
+        k1 = Parameter(name="k1", expression="1e-05")
+        model.add_parameter([k1])
+
+        # Variables
+        A = Species(name="A", initial_value=100, mode='dynamic', 
+                    switch_min=50)
+        model.add_species([A])
+
+        # Reactions
+        r1 = Reaction(name="r1", reactants={}, products={'A': 1}, rate="k1")
+        model.add_reaction([r1])
+
+        # Event Triggers
+        t5_trig = EventTrigger(expression="t>5", initial_value=False, persistent=False)
+        t10_trig = EventTrigger(expression="t>10", initial_value=False, persistent=False)
+        t15_trig = EventTrigger(expression="t>15", initial_value=False, persistent=False)
+
+        # Event Assignments
+        eassign_1 = EventAssignment(variable="A", expression="A + 0.33")
+        eassign_2 = EventAssignment(variable="A", expression="A - 90")
+
+        # Events
+        model.add_event(Event(name="e1", trigger=t5_trig, 
+                             assignments=[eassign_1], 
+                             delay=None, priority="0", 
+                             use_values_from_trigger_time=False))
+        model.add_event(Event(name="e2", trigger=t10_trig, 
+                             assignments=[eassign_2], 
+                             delay=None, priority="0", 
+                             use_values_from_trigger_time=False))
+        model.add_event(Event(name="e3", trigger=t15_trig, 
+                             assignments=[eassign_1], 
+                             delay=None, priority="0", 
+                             use_values_from_trigger_time=False))
+
+        # Timespan
+        tspan = TimeSpan(np.arange(0, 20.05, 0.05))
+        model.timespan(tspan)
+        return model
+
     def setUp(self):
         self.d_model = self.create_model(discrete=True)
         self.c_model = self.create_model(discrete=False)
+
+        self.dyn_model  = self.create_dynamic_model()
+
+    def test_dynamic_event_rounding(self):
+        expected_times_values = {
+            99:  100.0,
+            101: 100.33,
+            201: 10.0,
+            301: 10.0,
+        }
+        number_of_trajectories = 3
+
+        for sname, sclass in {'TauHybridCSolver':TauHybridCSolver,'TauHybridSolver':TauHybridSolver}.items():
+            with self.subTest(f"Checking event assignment rounding for dynamic species with {sname} solver."):
+                solver = sclass(model=self.dyn_model)
+                results = solver.run(number_of_trajectories=number_of_trajectories)
+                for result in results:
+                    for time_value, expected_value in expected_times_values.items():
+                        self.assertAlmostEqual(result['A'][time_value], expected_value, places=2, msg=f"Simulation output at {time_value} is {result['A'][time_value]}, should be {expected_value}")
+
 
     def test_event_rounding(self):
         number_of_trajectories = 3
