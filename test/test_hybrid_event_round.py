@@ -117,9 +117,9 @@ class TestHybridEventRound(unittest.TestCase):
     def test_dynamic_event_rounding(self):
         expected_times_values = {
             99:  100.0,
-            101: 100.33,
-            201: 10.0,
-            301: 10.0,
+            102: 100.33,
+            202: 10.0,
+            302: 10.0,
         }
         number_of_trajectories = 3
 
@@ -144,6 +144,6 @@ class TestHybridEventRound(unittest.TestCase):
                     for result in results:
                         first_value = result["A"][0]
                         last_value =  result["A"][-1], 
-                        self.assertEqual(first_value, expected_init, msg=f"Simulation output begins with {first_value}, should be {expected_init}")
+                        self.assertAlmostEqual(first_value, expected_init, places=3, msg=f"Simulation output begins with {first_value}, should be {expected_init}")
                         self.assertAlmostEqual(result["A"][-1], expected_last, places=3, msg=f"Simulation output ends with {last_value}, should be {expected_last}")
 
