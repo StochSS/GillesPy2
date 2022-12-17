@@ -1135,11 +1135,9 @@ class TauHybridSolver(GillesPySolver):
         # Create deterministic tracking data structures
         #det_spec = {species: True for (species, value) in self.model.listOfSpecies.items() if value.mode == 'dynamic'}
         det_spec = {species: False for species in self.model.listOfSpecies.keys()}
-        for (species, value) in self.model.listOfSpecies.items():
-            print(f"species={species} value.mode={value.mode}")
+        for (sname, value) in self.model.listOfSpecies.items():
             if value.mode == 'dynamic' or value.mode == 'continuous':
-                det_spec[species] = True
-        print(f"det_spec={det_spec}  l1144")
+                det_spec[sname] = True
         det_rxn = {rxn: False for (rxn, value) in self.model.listOfReactions.items()}
 
         # Determine if entire simulation is ODE or Stochastic, in order to
