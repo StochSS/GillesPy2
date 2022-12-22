@@ -87,6 +87,47 @@ class TauHybridSolver(GillesPySolver):
             self.profile_data['time'] = []
             for k in list(self.model.listOfSpecies)+list(self.model.listOfReactions):
                 self.profile_data[k] = []
+        self.non_negative_species = set()
+        for reaction, _ in model.listOfReactions.items():
+            for key, value in model.listOfReactions[reaction].reactants.items():
+                self.non_negative_species.add(key.name)
+            for key, value in model.listOfReactions[reaction].products.items():
+                self.non_negative_species.add(key.name)
+
+    def __save_state_to_output(self, curr_time, save_index, curr_state, species, 
+                                trajectory, save_times):
+        """
+        Helper function to save the curr_state to the trajectory output
+        """
+        
+        # Now update the step and trajectories for this step of the simulation.
+        # Here we make our final assignments for this step, and begin
+        # populating our results trajectory.
+           
+        num_saves = 0
+        for time in save_times:
+            if time > curr_time:
+                break
+            # if a solution is given for it
+            trajectory_index = save_index
+            assignment_state = copy.deepcopy(curr_state)
+            for s,sname in enumerate(species):
+                # Get ODE Solutions
+                trajectory[trajectory_index][s + 1] = curr_state[sname]
+                # Update Assignment Rules for all processed time points
+                if len(self.model.listOfAssignmentRules):
+                    # Copy ODE state for assignments
+                    assignment_state[sname] = curr_state[sname]
+            assignment_state['t'] = time
+            for ar in self.model.listOfAssignmentRules.values():
+                assignment_value = eval(ar.formula, {**eval_globals, **assignment_state})
+                assignment_state[ar.variable] = assignment_value
+                trajectory[trajectory_index][species.index(ar.variable.name) + 1] = assignment_value
+            num_saves += 1
+            save_index += 1
+        save_times = save_times[num_saves:]  # remove completed save times
+        return save_times, save_index
+
 
     def __toggle_reactions(self, all_compiled, deterministic_reactions, dependencies,
                             curr_state, det_spec, rr_sets):
@@ -139,7 +180,7 @@ class TauHybridSolver(GillesPySolver):
         # Initialize sample dict
         rr_vars = {}
         for n, rr in self.model.listOfRateRules.items():
-            rr_vars[rr.variable] = n
+            rr_vars[rr.variable.name] = n
         for spec in self.model.listOfSpecies:
             if spec in rr_vars.keys():
                 diff_eqs[self.model.listOfSpecies[spec]] = self.model.listOfRateRules[rr_vars[spec]].formula
@@ -589,6 +630,13 @@ class TauHybridSolver(GillesPySolver):
         return sol, curr_time
 
 
+    def __simulate_negative_state_check(self, curr_state):
+            # check each species to see if they are negative
+            for s in self.non_negative_species:
+                if curr_state[s] < 0:
+                    raise SimulationError(f"Negative State detected at begining of step." \
+                    " Species involved in reactions can not be negative.")
+
     def __simulate_invalid_state_check(self, species_modified, curr_state, compiled_reactions):
         invalid_state = False
         err_message=""
@@ -623,6 +671,14 @@ class TauHybridSolver(GillesPySolver):
             data.
         """
 
+        # first check if we have a valid state:
+        self.__simulate_negative_state_check(curr_state)
+        if curr_time == 0.0:
+            # save state at beginning of simulation
+            save_times, save_index = self.__save_state_to_output(
+                curr_time, save_index, curr_state, species, trajectory, save_times
+            )
+
         event_queue = []
         prev_y0 = copy.deepcopy(y0)
         prev_curr_state = copy.deepcopy(curr_state)
@@ -647,7 +703,6 @@ class TauHybridSolver(GillesPySolver):
         for r in compiled_reactions.keys():
             if curr_state[r] >= 0 and propensities[r] == 0:
                 curr_state[r] = math.log(random.uniform(0, 1))
-
 
         sol, curr_time = self.__integrate(integrator_options, curr_state,
                                           y0, curr_time, propensities, y_map,
@@ -730,31 +785,7 @@ class TauHybridSolver(GillesPySolver):
                 raise SimulationError(f"Negative State detected in step, after single SSA step. error_message={invalid_err_message}")
 
 
-        # Now update the step and trajectories for this step of the simulation.
-        # Here we make our final assignments for this step, and begin
-        # populating our results trajectory.
-        num_saves = 0
-        for time in save_times:
-            if time > curr_time:
-                break
-            # if a solution is given for it
-            trajectory_index = save_index
-            assignment_state = copy.deepcopy(curr_state)
-            for s in range(len(species)):
-                # Get ODE Solutions
-                trajectory[trajectory_index][s + 1] = sol.y[s]
-                # Update Assignment Rules for all processed time points
-                if len(self.model.listOfAssignmentRules):
-                    # Copy ODE state for assignments
-                    assignment_state[species[s]] = sol.y[s]
-            assignment_state['t'] = time
-            for ar in self.model.listOfAssignmentRules.values():
-                assignment_value = eval(ar.formula, {**eval_globals, **assignment_state})
-                assignment_state[ar.variable] = assignment_value
-                trajectory[trajectory_index][species.index(ar.variable.name) + 1] = assignment_value
-            num_saves += 1
-            save_index += 1
-        save_times = save_times[num_saves:]  # remove completed save times
+        save_times, save_index = self.__save_state_to_output(curr_time, save_index, curr_state, species, trajectory, save_times)
 
         events_processed = self.__process_queued_events(event_queue, trigger_states, curr_state, det_spec)
 
@@ -1097,10 +1128,8 @@ class TauHybridSolver(GillesPySolver):
         except:
             pass
         if hasattr(self, 'has_raised_exception'):
-            raise SimulationError(
-                f"Error encountered while running simulation:\nReturn code: {int(self.rc)}.\n"
-            ) from self.has_raised_exception
-       
+            raise self.has_raised_exception 
+
         return Results.build_from_solver_results(self, live_output_options)
 
     def ___run(self, curr_state, curr_time, timeline, trajectory_base, initial_state, live_grapher, t=20,

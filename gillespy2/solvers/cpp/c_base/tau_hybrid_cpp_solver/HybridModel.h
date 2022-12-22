@@ -300,6 +300,7 @@ namespace Gillespy
                 INTEGRATOR_FAILED = 3,
                 INVALID_AFTER_SSA = 4,
                 NEGATIVE_STATE_NO_SSA_REACTION = 5,
+                NEGATIVE_STATE_AT_BEGINING_OF_STEP = 6,
             };
         };
 
