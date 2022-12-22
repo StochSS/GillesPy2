@@ -705,7 +705,7 @@ class TauHybridSolver(GillesPySolver):
                     if min_tau is None or min_tau > rxn_times[rname]:
                         min_tau = rxn_times[rname]
                         rxn_selected = rname
-            if rxn_selected is None: raise Exception(f"Negative State detected in step, and no reaction found to fire.\n\n error_message={invalid_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}\nrxn_times={rxn_times}\ncompiled_reactions={compiled_reactions}\ncurr_state_after={curr_state_after}\n propensities_after={propensities_after}\nstarting_propensities={starting_propensities}\nfloored_curr_state={floored_curr_state}\nfloored_propensities={floored_propensities}\n  ")
+            if rxn_selected is None: raise SimulationError(f"Negative State detected in step, and no reaction found to fire. error_message={invalid_err_message}")
 
             tau_step = min_tau #estimated time to the first stochatic reaction
 
@@ -727,7 +727,7 @@ class TauHybridSolver(GillesPySolver):
 
             (invalid_state, invalid_err_message) = self.__simulate_invalid_state_check(species_modified, curr_state, compiled_reactions)
             if invalid_state:
-                raise Exception(f"Negative State detected in step, after single SSA step.\n\n error_message={invalid_err_message}\n curr_time={curr_time}\n tau_step={tau_step}\n curr_state={curr_state}\n\nstarting_curr_state={starting_curr_state}\n\n starting_tau_step={starting_tau_step}\nspecies_modified={species_modified}\nrxn_count={rxn_count}\n propensities={propensities}\nrxn_selected={rxn_selected}\ncompiled_reactions={compiled_reactions}\ncurr_state_after={curr_state_after} \n propensities_after={propensities_after}\nstarting_propensities={starting_propensities}\nfirst_rxn_count={first_rxn_count}\n first_err_message={first_err_message}\n 2nd_tau_step={tau_step}\nfloored_propensities={floored_propensities}  ")
+                raise SimulationError(f"Negative State detected in step, after single SSA step. error_message={invalid_err_message}")
 
 
         # Now update the step and trajectories for this step of the simulation.
