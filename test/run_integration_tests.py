@@ -60,6 +60,7 @@ if __name__ == '__main__':
     import test_c_decode
     import test_hybrid_negative_state
     import test_run_output
+    import test_hybrid_event_round
 
     modules = [
        test_empty_model,
@@ -89,6 +90,7 @@ if __name__ == '__main__':
        test_c_decode,
        test_run_output,
        test_hybrid_negative_state,
+       test_hybrid_event_round,
     ]
 
     for module in modules:
