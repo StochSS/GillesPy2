@@ -84,6 +84,17 @@ autobuild: $(FORMAT)
 clean:
 	rm -rf "$(BUILDDIR)"
 
+build-docs:
+	git pull
+	make clean
+	git stash
+	git checkout main
+	make html
+
+commit-docs:
+	-git add -f "$(BUILDDIR)"
+	-git commit -m "Latest docs build." "$(BUILDDIR)"
+
 publish:
 	make clean
 	git stash

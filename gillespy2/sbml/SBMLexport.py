@@ -17,8 +17,8 @@
 import ast
 try:
     import libsbml
-except ImportError:
-    raise ImportError('libsbml is required to convert GillesPy models to SBML files.')
+except ImportError as err:
+    raise ImportError('libsbml is required to convert GillesPy models to SBML files.') from err
 
 
 def __get_math(math):
@@ -82,7 +82,7 @@ def __add_events(event_list, model):
         evt = model.createEvent()
         evt.setId(name)
         evt.setUseValuesFromTriggerTime(event.use_values_from_trigger_time)
-        
+
         if event.delay is not None:
             delay = __get_math(event.delay)
             dly = evt.createDelay()
@@ -136,7 +136,7 @@ def __add_function_definitions(function_definition_list, model):
 def __write_to_file(document, path):
     writer = libsbml.SBMLWriter()
 
-    with open(path, "w") as sbml_file:
+    with open(path, "w", encoding="utf-8") as sbml_file:
         sbml_file.write(writer.writeSBMLToString(document))
 
 def export(model, path=None):
