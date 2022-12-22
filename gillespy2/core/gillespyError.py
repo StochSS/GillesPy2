@@ -88,10 +88,6 @@ class SimulationTimeoutError(SimulationError):
     pass
 
 
-class EventError(ModelError):
-    pass
-
-
 # Results errors
 class ResultsError(Exception):
     pass

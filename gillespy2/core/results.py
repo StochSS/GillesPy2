@@ -13,26 +13,33 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+import os
+import csv
 
 from datetime import datetime
-from gillespy2.core.gillespyError import *
-from gillespy2.core.jsonify import Jsonify
 from collections import UserDict, UserList
 
-# List of 50 hex color values used for plotting graphs
-def common_rgb_values():
-    return ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
-                         '#bcbd22', '#17becf', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff', '#ff00ff',
-                         '#800000', '#808000', '#008000', '#800080', '#008080', '#000080', '#ff9999', '#ffcc99',
-                         '#ccff99', '#cc99ff', '#ffccff', '#62666a', '#8896bb', '#77a096', '#9d5a6c', '#9d5a6c',
-                         '#eabc75', '#ff9600', '#885300', '#9172ad', '#a1b9c4', '#18749b', '#dadecf', '#c5b8a8',
-                         '#000117', '#13a8fe', '#cf0060', '#04354b', '#0297a0', '#037665', '#eed284', '#442244',
-                         '#ffddee', '#702afb']
+import numpy as np
 
+from gillespy2.core.jsonify import Jsonify
+from gillespy2.core.gillespyError import ValidationError
+
+def common_rgb_values():
+    '''
+    List of 50 hex color values used for plotting graphs
+    '''
+    return [
+        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
+        '#bcbd22', '#17becf', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff', '#ff00ff',
+        '#800000', '#808000', '#008000', '#800080', '#008080', '#000080', '#ff9999', '#ffcc99',
+        '#ccff99', '#cc99ff', '#ffccff', '#62666a', '#8896bb', '#77a096', '#9d5a6c', '#9d5a6c',
+        '#eabc75', '#ff9600', '#885300', '#9172ad', '#a1b9c4', '#18749b', '#dadecf', '#c5b8a8',
+        '#000117', '#13a8fe', '#cf0060', '#04354b', '#0297a0', '#037665', '#eed284', '#442244',
+        '#ffddee', '#702afb'
+    ]
 
 def _plot_iterate(self, show_labels=True, included_species_list=[]):
-    import matplotlib.pyplot as plt
+    import matplotlib.pyplot as plt # pylint: disable=import-outside-toplevel
     for i, species in enumerate(self.data):
         if species != 'time':
 
@@ -57,7 +64,7 @@ def _plotplotly_iterate(trajectory, show_labels=True, trace_list=None, line_dict
     if trace_list is None:
         trace_list = []
 
-    import plotly.graph_objs as go
+    import plotly.graph_objs as go # pylint: disable=import-outside-toplevel
 
     for i, species in enumerate(trajectory.data):
         if species != 'time':
@@ -126,8 +133,8 @@ class Trajectory(UserDict, Jsonify):
         self.status = status_list[rc]
 
     def __getitem__(self, key):
-        if type(key) is int:
-            from gillespy2.core import log
+        if isinstance(key, int):
+            from gillespy2.core import log # pylint: disable=import-outside-toplevel
             species = list(self.data.keys())[key]
             msg = "Trajectory is of type dictionary."
             msg += f"Use trajectory['[{species}]'] instead of trajectory[{key}]['{species}']"
@@ -155,25 +162,22 @@ class Results(UserList, Jsonify):
     def __getattribute__(self, key):
         if key in ('model', 'solver_name', 'rc', 'status'):
             if len(self.data) > 1:
-                from gillespy2.core import log
+                from gillespy2.core import log # pylint: disable=import-outside-toplevel
                 msg = f"Results is of type list. Use results[i]['{key}'] instead of results['{key}']"
                 log.warning(msg)
             return getattr(Results.__getattribute__(self, key='data')[0], key)
-        else: 
-            return UserList.__getattribute__(self, key)
+        return UserList.__getattribute__(self, key)
 
     def __getitem__(self, key):
         if key == 'data':
             return UserList.__getitem__(self, key)
         if isinstance(key, str):
             if len(self.data) > 1:
-                from gillespy2.core import log
+                from gillespy2.core import log # pylint: disable=import-outside-toplevel
                 msg = f"Results is of type list. Use results[i]['{key}'] instead of results['{key}']"
                 log.warning(msg)
             return self.data[0][key]
-        else:
-            return(UserList.__getitem__(self,key))
-        raise KeyError(key)
+        return UserList.__getitem__(self,key)
 
     def __add__(self, other):
         combined_data = Results(data=(self.data + other.data))
@@ -181,7 +185,7 @@ class Results(UserList, Jsonify):
         consistent_model = combined_data._validate_model()
 
         if not consistent_solver:
-            from gillespy2.core import log
+            from gillespy2.core import log # pylint: disable=import-outside-toplevel
             log.warning("Results objects contain Trajectory objects from multiple solvers.")
 
         if not consistent_model:
@@ -192,8 +196,7 @@ class Results(UserList, Jsonify):
     def __radd__(self, other):
         if other == 0:
             return self
-        else:
-            return self.__add__(other)
+        return self.__add__(other)
 
     def _validate_model(self, reference=None):
         is_valid = True
@@ -233,16 +236,21 @@ class Results(UserList, Jsonify):
         return title
 
     def to_array(self):
-        import numpy as np
+        '''
+        Convert the results object into a numpy array.
+
+        :returns: Array containing the result of the simulation.
+        :rtype: numpy.ndarray
+        '''
         results = []
         size1 = len(self.data[0]['time'])
         size2 = len(self.data[0])
 
-        for trajectory in range(0, len(self.data)):
-            newArray = np.zeros((size1, size2))
-            for i, key in enumerate(self.data[trajectory]):
-                newArray[:, i] = self.data[trajectory][key]
-            results.append(newArray)
+        for trajectory in self.data:
+            new_array = np.zeros((size1, size2))
+            for j, key in enumerate(trajectory):
+                new_array[:, j] = trajectory[key]
+            results.append(new_array)
         return np.array(results)
 
     @classmethod
@@ -259,22 +267,21 @@ class Results(UserList, Jsonify):
         :type live_output_options: dict
         """
         if solver.rc == 33:
-            from gillespy2.core import log
+            from gillespy2.core import log # pylint: disable=import-outside-toplevel
             log.warning('GillesPy2 simulation exceeded timeout.')
         if hasattr(solver.result[0], 'shape'):
             return solver.result
         if len(solver.result) > 0:
             results_list = []
-            for i in range(0, len(solver.result)):
-                temp = Trajectory(data=solver.result[i], model=solver.model, solver_name=solver.name, rc=solver.rc)
+            for result in solver.result:
+                temp = Trajectory(data=result, model=solver.model, solver_name=solver.name, rc=solver.rc)
                 results_list.append(temp)
 
             results = Results(results_list)
             if "type" in live_output_options.keys() and live_output_options['type'] == "graph":
                 results.plot()
             return results
-        else:
-            raise ValueError("number_of_trajectories must be non-negative and non-zero")
+        raise ValueError("number_of_trajectories must be non-negative and non-zero")
 
     def to_csv(self, path=None, nametag=None, stamp=None):
         """
@@ -290,9 +297,6 @@ class Results(UserList, Jsonify):
         :param stamp: Allows the user to optionally "tag" the directory (not included files). Default is timestamp.
         :type stamp: str
         """
-        import csv
-        import os
-
         if stamp is None:
             now = datetime.now()
             stamp = datetime.timestamp(now)
@@ -312,13 +316,13 @@ class Results(UserList, Jsonify):
                 field_names = []
                 for species in trajectory:  # build the header
                     field_names.append(species)
-                with open(filename, 'w', newline='') as csv_file:
+                with open(filename, 'w', newline='', encoding="utf-8") as csv_file:
                     csv_writer = csv.writer(csv_file)
                     csv_writer.writerow(field_names)  # write the header
-                    for n,time in enumerate(trajectory['time']):  # write all lines of the CSV file
+                    for j, _ in enumerate(trajectory['time']):  # write all lines of the CSV file
                         this_line=[]
                         for species in trajectory:  # build one line of the CSV file
-                            this_line.append(trajectory[species][n])
+                            this_line.append(trajectory[species][j])
                         csv_writer.writerow(this_line)  # write one line of the CSV file
 
     def plot(self, index=None, xaxis_label="Time", xscale='linear', yscale='linear', yaxis_label="Value",
@@ -354,14 +358,14 @@ class Results(UserList, Jsonify):
         :type figsize: tuple of ints (x,y)
         """
 
-        import matplotlib.pyplot as plt
-        from collections.abc import Iterable
+        import matplotlib.pyplot as plt # pylint: disable=import-outside-toplevel
+        from collections.abc import Iterable # pylint: disable=import-outside-toplevel
         trajectory_list = []
         if isinstance(index, Iterable):
             for i in index:
                 trajectory_list.append(self.data[i])
         elif isinstance(index, int):
-                trajectory_list.append(self.data[index])
+            trajectory_list.append(self.data[index])
         else:
             trajectory_list = self.data
 
@@ -369,7 +373,7 @@ class Results(UserList, Jsonify):
             title = self._validate_title(show_title)
 
         if len(trajectory_list) < 2:
-                multiple_graphs = False
+            multiple_graphs = False
 
         if multiple_graphs:
             for i, trajectory in enumerate(trajectory_list):
@@ -386,8 +390,8 @@ class Results(UserList, Jsonify):
         else:
             try:
                 plt.style.use(style)
-            except:
-                from gillespy2.core import log
+            except Exception:
+                from gillespy2.core import log # pylint: disable=import-outside-toplevel
                 msg = f"Invalid matplotlib style. Try using one of the following {plt.style.available}"
                 log.warning(msg)
                 plt.style.use("default")
@@ -453,8 +457,8 @@ class Results(UserList, Jsonify):
         :type **layout_args: dict
         """
 
-        from plotly.offline import init_notebook_mode, iplot
-        import plotly.graph_objs as go
+        from plotly.offline import init_notebook_mode, iplot # pylint: disable=import-outside-toplevel
+        import plotly.graph_objs as go # pylint: disable=import-outside-toplevel
 
         # Backwards compatibility with xaxis_label argument (which duplicates plotly's xaxis_title argument)
         if layout_args.get('xaxis_title') is not None:
@@ -466,7 +470,7 @@ class Results(UserList, Jsonify):
 
         init_notebook_mode(connected=True)
 
-        from collections.abc import Iterable
+        from collections.abc import Iterable # pylint: disable=import-outside-toplevel
         trajectory_list = []
         if isinstance(index, Iterable):
             for i in index:
@@ -488,7 +492,7 @@ class Results(UserList, Jsonify):
 
         if multiple_graphs:
 
-            from plotly import subplots
+            from plotly import subplots # pylint: disable=import-outside-toplevel
 
             fig = subplots.make_subplots(print_grid=False, rows=int(number_of_trajectories/2) +
                                                              int(number_of_trajectories % 2), cols=2)
@@ -501,14 +505,15 @@ class Results(UserList, Jsonify):
                     trace_list = _plotplotly_iterate(trajectory, trace_list=[], included_species_list=
                     included_species_list)
 
-                for k in range(0, len(trace_list)):
+                for trace in trace_list:
                     if i % 2 == 0:
-                        fig.append_trace(trace_list[k], int(i/2) + 1, 1)
+                        fig.append_trace(trace, int(i/2) + 1, 1)
                     else:
-                        fig.append_trace(trace_list[k], int(i/2) + 1, 2)
+                        fig.append_trace(trace, int(i/2) + 1, 2)
 
-                fig['layout'].update(autosize=True, height=400*len(trajectory_list), showlegend=show_legend, title=title
-                                     )
+                fig['layout'].update(
+                    autosize=True, height=400*len(trajectory_list), showlegend=show_legend, title=title
+                )
         else:
             trace_list = []
             for i, trajectory in enumerate(trajectory_list):
@@ -531,10 +536,10 @@ class Results(UserList, Jsonify):
             fig['data'] = trace_list
             fig['layout'] = layout
 
-        if return_plotly_figure:
-            return fig
-        else:
+        if not return_plotly_figure:
             iplot(fig)
+            return None
+        return fig
 
     def average_ensemble(self):
         """
@@ -554,7 +559,8 @@ class Results(UserList, Jsonify):
 
         output_trajectory['time'] = trajectory_list[0]['time']
 
-        for i in range(0, number_of_trajectories):  # Add every value of every Trajectory Dict into one output Trajectory
+        # Add every value of every Trajectory Dict into one output Trajectory
+        for i in range(0, number_of_trajectories):
             trajectory_dict = trajectory_list[i]
             for species in trajectory_dict:
                 if species == 'time':
@@ -578,20 +584,20 @@ class Results(UserList, Jsonify):
         trajectories' outputs.
 
         :param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
-            where ddof is 0.
+            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard
+            deviation where ddof is 0.
         :type ddof: int
 
         :returns: the Results object
         """
 
-        from math import sqrt
+        from math import sqrt # pylint: disable=import-outside-toplevel
 
         trajectory_list = self.data
         number_of_trajectories = len(trajectory_list)
 
         if ddof == number_of_trajectories:
-            from gillespy2.core import log
+            from gillespy2.core import log # pylint: disable=import-outside-toplevel
             log.warning("ddof must be less than the number of trajectories. Using ddof of 0")
             ddof = 0
 
@@ -655,8 +661,8 @@ class Results(UserList, Jsonify):
         :type return_plotly_figure: bool
 
         :param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
-            where ddof is 0.
+            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard
+            deviation where ddof is 0.
         :type ddof: int
 
         :param **layout_args: Optional additional arguments to be passed to plotlys layout constructor.
@@ -673,8 +679,8 @@ class Results(UserList, Jsonify):
 
         average_trajectory = self.average_ensemble().data[0]
         stddev_trajectory = self.stddev_ensemble(ddof=ddof).data[0]
-        from plotly.offline import init_notebook_mode, iplot
-        import plotly.graph_objs as go
+        from plotly.offline import init_notebook_mode, iplot # pylint: disable=import-outside-toplevel
+        import plotly.graph_objs as go # pylint: disable=import-outside-toplevel
 
         init_notebook_mode(connected=True)
 
@@ -747,11 +753,10 @@ class Results(UserList, Jsonify):
         )
         fig = dict(data=trace_list, layout=layout)
 
-        if return_plotly_figure:
-            return fig
-        else:
+        if not return_plotly_figure:
             iplot(fig)
-    
+            return None
+        return fig
 
     def plot_mean_stdev(self, xscale='linear', yscale='linear', xaxis_label="Time", yaxis_label="Value"
                            , title=None, show_title=False, style="default", show_legend=True, included_species_list=[],
@@ -782,8 +787,8 @@ class Results(UserList, Jsonify):
         :type included_species_list: list
 
         :param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
-            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard deviation
-            where ddof is 0.
+            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard
+            deviation where ddof is 0.
         :type ddof: int
 
         :type save_png: bool or str
@@ -795,12 +800,12 @@ class Results(UserList, Jsonify):
         average_result = self.average_ensemble().data[0]
         stddev_trajectory = self.stddev_ensemble(ddof=ddof).data[0]
 
-        import matplotlib.pyplot as plt
+        import matplotlib.pyplot as plt # pylint: disable=import-outside-toplevel
 
         try:
             plt.style.use(style)
-        except:
-            from gillespy2.core import log
+        except Exception:
+            from gillespy2.core import log # pylint: disable=import-outside-toplevel
             msg = f"Invalid matplotlib style. Try using one of the following {plt.style.available}"
             log.warning(msg)
             plt.style.use("default")
@@ -814,12 +819,12 @@ class Results(UserList, Jsonify):
             if species not in included_species_list and included_species_list:
                 continue
 
-            lowerBound = [a-b for a, b in zip(average_result[species], stddev_trajectory[species])]
-            upperBound = [a+b for a, b in zip(average_result[species], stddev_trajectory[species])]
+            lower_bound = [a-b for a, b in zip(average_result[species], stddev_trajectory[species])]
+            upper_bound = [a+b for a, b in zip(average_result[species], stddev_trajectory[species])]
 
-            plt.fill_between(average_result['time'], lowerBound, upperBound, color='whitesmoke')
-            plt.plot(average_result['time'], upperBound, color='grey', linestyle='dashed')
-            plt.plot(average_result['time'], lowerBound, color='grey', linestyle='dashed')
+            plt.fill_between(average_result['time'], lower_bound, upper_bound, color='whitesmoke')
+            plt.plot(average_result['time'], upper_bound, color='grey', linestyle='dashed')
+            plt.plot(average_result['time'], lower_bound, color='grey', linestyle='dashed')
             plt.plot(average_result['time'], average_result[species], label=species)
 
         if not show_title:
@@ -846,12 +851,87 @@ class Results(UserList, Jsonify):
 
     # for backwards compatability, we need to keep the old name around
     def plotplotly_std_dev_range(self, **kwargs):
-        from gillespy2.core import log
-        log.warning("The plotplotly_std_dev_range function has been deprecated. This function will be removed in a future release. Please use plotplotly_mean_stdev instead.")
+        """
+        Plot a plotly graph depicting the mean and standard deviation of a results object
+
+        :param xaxis_label: The label for the x-axis
+        :type xaxis_label: str
+
+        :param yaxis_label: The label for the y-axis
+        :type yaxis_label: str
+
+        :param title: The title of the graph
+        :type title: str
+
+        :param show_title: If True, title will be shown on graph.
+        :type show_title: bool
+
+        :param show_legend: Default True, if False, legend will not be shown on graph.
+        :type show_legend: bool
+
+        :param included_species_list: A list of strings describing which species to include. By default displays all
+            species.
+        :type included_species_list: list
+
+        :param return_plotly_figure: Whether or not to return a figure dicctionary of data(graph object traces) and
+            layout which may be edited by the user
+        :type return_plotly_figure: bool
+
+        :param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard
+            deviation where ddof is 0.
+        :type ddof: int
+
+        :param **layout_args: Optional additional arguments to be passed to plotlys layout constructor.
+        :type **layout_args: dict
+        """
+        from gillespy2.core import log # pylint: disable=import-outside-toplevel
+        log.warning(
+            "The plotplotly_std_dev_range function has been deprecated. This function will be removed in a "
+            "future release. Please use plotplotly_mean_stdev instead."
+        )
         self.plotplotly_mean_stdev(**kwargs)
 
     # for backwards compatability, we need to keep the old name around
     def plot_std_dev_range(self, **kwargs):
-        from gillespy2.core import log
-        log.warning("The plot_std_dev_range function has been deprecated. This function will be removed in a future release. Please use plot_mean_stdev instead.")
+        """
+        Plot a matplotlib graph depicting mean and standard deviation of a results object.
+
+        :param xaxis_label: The label for the x-axis
+        :type xaxis_label: str
+
+        :param yaxis_label: The label for the y-axis
+        :type yaxis_label: str
+
+        :param title: The title of the graph
+        :type title: str
+
+        :param show_title: Default False, if True, title will be displayed on the graph.
+        :type show_title: bool
+
+        :param style: Matplotlib style to be displayed on graph.
+        :type style: str
+
+        :param show_legend: Default to True, if False, legend will not be shown on graph.
+        :type show_legend: bool
+
+        :param included_species_list: A list of strings describing which species to include. By default displays all
+            species.
+        :type included_species_list: list
+
+        :param ddof: Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents
+            the number of trajectories. Sample standard deviation uses ddof of 1. Defaults to population standard
+            deviation where ddof is 0.
+        :type ddof: int
+
+        :type save_png: bool or str
+
+        :param figsize: The size of the graph. A tuple of the form (width,height). Is (18,10) by default.
+        :type figsize: tuple of ints (x,y)
+        """
+        from gillespy2.core import log # pylint: disable=import-outside-toplevel
+        log.warning(
+            "The plot_std_dev_range function has been deprecated. This function will be removed in a "
+            "future release. Please use plot_mean_stdev instead."
+        )
         self.plot_mean_stdev(**kwargs)

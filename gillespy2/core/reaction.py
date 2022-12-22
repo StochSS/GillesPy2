@@ -15,7 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import ast
 import uuid
-from json.encoder import JSONEncoder
 
 import numpy as np
 
@@ -70,13 +69,13 @@ class Reaction(SortableObject, Jsonify):
     rate represents the mass-action constant rate independent of volume.
 
     if a name is not provided for reactions, the name will be populated by the
-    model based on the order it was added. This could impact seeded simulation 
+    model based on the order it was added. This could impact seeded simulation
     results if the order of addition is not preserved.
     """
     def __init__(self, name=None, reactants=None, products=None, propensity_function=None,
                  ode_propensity_function=None, rate=None, annotation=None, massaction=None):
         if massaction is not None:
-            from gillespy2.core import log
+            from gillespy2.core import log # pylint: disable=import-outside-toplevel
             log.warning(
                 """
                 massaction has been deprecated.  Future releases of GillesPy2 may not support this feature.
@@ -92,7 +91,7 @@ class Reaction(SortableObject, Jsonify):
             ode_propensity_function = str(ode_propensity_function)
         if isinstance(rate, (int, float)):
             rate = str(rate)
-        
+
         self.name = name
         self.reactants = {}
         self.products = {}
@@ -100,25 +99,27 @@ class Reaction(SortableObject, Jsonify):
         self.annotation = annotation
         self.propensity_function = propensity_function
         self.ode_propensity_function = ode_propensity_function
-        
+
         self.validate(reactants=reactants, products=products)
-        
+
         if reactants is not None:
-            for r in reactants:
-                rtype = type(r).__name__
-                if rtype == 'Species':
-                    self.reactants[r.name] = reactants[r]
+            for reactant in reactants:
+                rtype = type(reactant).__name__
+                name = reactant.name if rtype == 'Species' else reactant
+                if name in self.reactants:
+                    self.reactants[name] += reactants[reactant]
                 else:
-                    self.reactants[r] = reactants[r]
-        
+                    self.reactants[name] = reactants[reactant]
+
         if products is not None:
-            for p in products:
-                rtype = type(p).__name__
-                if rtype == 'Species':
-                    self.products[p.name] = products[p]
+            for product in products:
+                ptype = type(product).__name__
+                name = product.name if ptype == 'Species' else product
+                if name in self.products:
+                    self.products[name] += products[product]
                 else:
-                    self.products[p] = products[p]
-            
+                    self.products[name] = products[product]
+
         if self.marate is not None:
             rtype = type(self.marate).__name__
             if rtype == 'Parameter':
@@ -144,29 +145,35 @@ class Reaction(SortableObject, Jsonify):
         print_string = self.name
         if len(self.reactants):
             print_string += '\n\tReactants'
-            for r, stoich in self.reactants.items():
+            for reactant, stoich in self.reactants.items():
                 try:
-                    if isinstance(r, str):
-                        print_string += '\n\t\t' + r + ': ' + str(stoich)
+                    if isinstance(reactant, str):
+                        print_string += '\n\t\t' + reactant + ': ' + str(stoich)
                     else:
-                        print_string += '\n\t\t' + r.name + ': ' + str(stoich)
-                except Exception as e:
-                    print_string += '\n\t\t' + r + ': ' + 'INVALID - ' + str(e)
+                        print_string += '\n\t\t' + reactant.name + ': ' + str(stoich)
+                except Exception as err:
+                    print_string += '\n\t\t' + reactant + ': ' + 'INVALID - ' + str(err)
         if len(self.products):
             print_string += '\n\tProducts'
-            for p, stoich in self.products.items():
+            for product, stoich in self.products.items():
                 try:
-                    if isinstance(p, str):
-                        print_string += '\n\t\t' + p + ': ' + str(stoich)
+                    if isinstance(product, str):
+                        print_string += '\n\t\t' + product + ': ' + str(stoich)
                     else:
-                        print_string += '\n\t\t' + p.name + ': ' + str(stoich)
-                except Exception as e:
-                    print_string += '\n\t\t' + p + ': ' + 'INVALID - ' + str(e)
+                        print_string += '\n\t\t' + product.name + ': ' + str(stoich)
+                except Exception as err:
+                    print_string += '\n\t\t' + product + ': ' + 'INVALID - ' + str(err)
         print_string += '\n\tPropensity Function: ' + self.propensity_function
         return print_string
-    
+
     class __ExpressionParser(ast.NodeTransformer):
         def visit_BinOp(self, node):
+            '''
+            Visit binary operator node.
+
+            :param node: AST node object.
+            :type node: ast.Node
+            '''
             node.left = self.visit(node.left)
             node.right = self.visit(node.right)
             if isinstance(node.op, (ast.BitXor, ast.Pow)):
@@ -183,16 +190,21 @@ class Reaction(SortableObject, Jsonify):
                 return call
             # No modification to node, classes extending NodeTransformer methods
             # Always return node or value
-            else:
-                return node
+            return node
 
         def visit_Name(self, node):
+            '''
+            Visit name node.
+
+            :param node: AST node object.
+            :type node: ast.Node
+            '''
             # Visits Name nodes, if the name nodes "id" value is 'e', replace with numerical constant
             if node.id == 'e':
-                nameToConstant = ast.copy_location(ast.Num(float(np.e), ctx=node.ctx), node)
-                return nameToConstant
+                name_to_constant = ast.copy_location(ast.Num(float(np.e), ctx=node.ctx), node)
+                return name_to_constant
             return node
-    
+
     class __ToString(ast.NodeVisitor):
         substitutions = {
             "ln": "log",
@@ -205,6 +217,12 @@ class Reaction(SortableObject, Jsonify):
             self.string += addition
 
         def visit_BinOp(self, node):
+            '''
+            Visit binary operator node.
+
+            :param node: AST node object.
+            :type node: ast.Node
+            '''
             self._string_changer('(')
             self.visit(node.left)
             self.visit(node.op)
@@ -212,14 +230,32 @@ class Reaction(SortableObject, Jsonify):
             self._string_changer(')')
 
         def visit_Name(self, node):
+            '''
+            Visit name name.
+
+            :param node: AST node object.
+            :type node: ast.Node
+            '''
             self._string_changer(node.id)
             self.generic_visit(node)
 
         def visit_Num(self, node):
+            '''
+            Visit numerical node.
+
+            :param node: AST node object.
+            :type node: ast.Node
+            '''
             self._string_changer(str(node.n))
             self.generic_visit(node)
 
         def visit_Call(self, node):
+            '''
+            Visit function call node.
+
+            :param node: AST node object.
+            :type node: ast.Node
+            '''
             func_name = self.substitutions.get(node.func.id) \
                 if node.func.id in self.substitutions \
                 else node.func.id
@@ -233,30 +269,66 @@ class Reaction(SortableObject, Jsonify):
             self._string_changer(')')
 
         def visit_Add(self, node):
+            '''
+            Visit addition node.
+
+            :param node: AST node object.
+            :type node: ast.Node
+            '''
             self._string_changer('+')
             self.generic_visit(node)
 
         def visit_Div(self, node):
+            '''
+            Visit division node.
+
+            :param node: AST node object.
+            :type node: ast.Node
+            '''
             self._string_changer('/')
             self.generic_visit(node)
 
         def visit_Mult(self, node):
+            '''
+            Visit multiplication node.
+
+            :param node: AST node object.
+            :type node: ast.Node
+            '''
             self._string_changer('*')
             self.generic_visit(node)
 
         def visit_UnaryOp(self, node):
+            '''
+            Visit unary operator node.
+
+            :param node: AST node object.
+            :type node: ast.Node
+            '''
             self._string_changer('(')
             self.visit_Usub(node)
             self._string_changer(')')
 
         def visit_Sub(self, node):
+            '''
+            Visit subtraction node.
+
+            :param node: AST node object.
+            :type node: ast.Node
+            '''
             self._string_changer('-')
             self.generic_visit(node)
 
         def visit_Usub(self, node):
+            '''
+            Visit unary subtraction node.
+
+            :param node: AST node object.
+            :type node: ast.Node
+            '''
             self._string_changer('-')
             self.generic_visit(node)
-    
+
     def _create_mass_action(self):
         """
         Initializes the mass action propensity function given
@@ -267,8 +339,8 @@ class Reaction(SortableObject, Jsonify):
         # Users can still create such propensities if they really want to,
         # but should then use a custom propensity.
         total_stoch = 0
-        for r in sorted(self.reactants):
-            total_stoch += self.reactants[r]
+        for reactant in sorted(self.reactants):
+            total_stoch += self.reactants[reactant]
         if total_stoch > 2:
             raise ReactionError(
                 """
@@ -311,16 +383,16 @@ class Reaction(SortableObject, Jsonify):
 
         self.propensity_function = self._create_custom_propensity(propensity_function=propensity_function)
         self.ode_propensity_function = self._create_custom_propensity(propensity_function=ode_propensity_function)
-    
+
     def _create_custom_propensity(self, propensity_function):
         expr = propensity_function.replace('^', '**')
         expr = ast.parse(expr, mode='eval')
         expr = self.__ExpressionParser().visit(expr)
-        
-        newFunc = self.__ToString()
-        newFunc.visit(expr)
-        return newFunc.string
-    
+
+        new_func = self.__ToString()
+        new_func.visit(expr)
+        return new_func.string
+
     def _create_sanitized_reaction(self, n_ndx, species_mappings, parameter_mappings):
         name = f"R{n_ndx}"
         reactants = {species_mappings[species.name]: self.reactants[species] for species in self.reactants}
@@ -338,7 +410,7 @@ class Reaction(SortableObject, Jsonify):
         :param stoichiometry: Stoichiometry of this product.
         :type stoichiometry: int
         """
-        from gillespy2.core import log
+        from gillespy2.core import log # pylint: disable=import-outside-toplevel
         log.warning(
             """
             Reaction.addProduct has been deprecated.  Future releases of GillesPy2 may
@@ -365,8 +437,11 @@ class Reaction(SortableObject, Jsonify):
         except TypeError as err:
             raise ReactionError(f"Failed to validate product. Reason given: {err}") from err
 
-        self.products[name] = stoichiometry
-        
+        if name in self.products:
+            self.products[name] += stoichiometry
+        else:
+            self.products[name] = stoichiometry
+
     def addReactant(self, *args, **kwargs):
         """
         Add a reactant to this reaction (deprecated)
@@ -377,7 +452,7 @@ class Reaction(SortableObject, Jsonify):
         :param stoichiometry: Stoichiometry of this participant reactant
         :type stoichiometry: int
         """
-        from gillespy2.core import log
+        from gillespy2.core import log # pylint: disable=import-outside-toplevel
         log.warning(
             """
             Reaction.addReactant has been deprecated.  Future releases of GillesPy2 may
@@ -404,12 +479,15 @@ class Reaction(SortableObject, Jsonify):
         except TypeError as err:
             raise ReactionError(f"Failed to validate reactant. Reason given: {err}") from err
 
-        self.reactants[name] = stoichiometry
+        if name in self.reactants:
+            self.reactants[name] += stoichiometry
+        else:
+            self.reactants[name] = stoichiometry
         if self.massaction and self.type == "mass-action":
             self._create_mass_action()
 
             self.validate(coverage="initialized")
-    
+
     def Annotate(self, *args, **kwargs):
         """
         Add an annotation to this reaction (deprecated).
@@ -417,7 +495,7 @@ class Reaction(SortableObject, Jsonify):
         :param annotation: Annotation note to be added to reaction
         :type annotation: str
         """
-        from gillespy2.core import log
+        from gillespy2.core import log # pylint: disable=import-outside-toplevel
         log.warning(
             """
             Reaction.Annotate has been deprecated.  Future releases of GillesPy2 may
@@ -426,13 +504,13 @@ class Reaction(SortableObject, Jsonify):
         )
 
         self.set_annotation(*args, **kwargs)
-            
+
     def create_mass_action(self, *args, **kwargs):
         """
         Initializes the mass action propensity function given
         self.reactants and a single parameter value.
         """
-        from gillespy2.core import log
+        from gillespy2.core import log # pylint: disable=import-outside-toplevel
         log.warning(
             """
             Reaction.create_mass_action has been deprecated.  Future releases of GillesPy2 may
@@ -457,15 +535,27 @@ class Reaction(SortableObject, Jsonify):
         new.validate(coverage="all")
 
         return new
-    
+
     def sanitized_propensity_function(self, species_mappings, parameter_mappings, ode=False):
+        '''
+        Sanitize the reaction propensity.
+
+        :param species_mappings: Mapping of species names to sanitized species names.
+        :type species_mappings: dict
+
+        :param parameter_mappings: Mapping of parameter names to sanitized parameter names.
+        :type parameter_mappings: dict
+
+        :returns: The sanitized propensity.
+        :rtype: str
+        '''
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
                        reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
         sanitized_propensity = self.ode_propensity_function if ode else self.propensity_function
-        for id, name in enumerate(names):
-            sanitized_propensity = sanitized_propensity.replace(name, "{" + str(id) + "}")
+        for i, name in enumerate(names):
+            sanitized_propensity = sanitized_propensity.replace(name, "{" + str(i) + "}")
         return sanitized_propensity.format(*replacements)
 
     def set_annotation(self, annotation):
@@ -498,8 +588,11 @@ class Reaction(SortableObject, Jsonify):
             propensity_function = str(propensity_function)
         if isinstance(ode_propensity_function, (int, float)):
             ode_propensity_function = str(ode_propensity_function)
-        
-        self.validate(propensity_function=propensity_function, ode_propensity_function=ode_propensity_function, coverage="propensities")
+
+        self.validate(
+            propensity_function=propensity_function, ode_propensity_function=ode_propensity_function,
+            coverage="propensities"
+        )
 
         self.propensity_function = propensity_function
         self.ode_propensity_function = ode_propensity_function
@@ -527,7 +620,7 @@ class Reaction(SortableObject, Jsonify):
         """
         if rate is None:
             raise ReactionError("rate can't be None type")
-        
+
         if isinstance(rate, Parameter) or type(rate).__name__ == "Parameter":
             rate = rate.name
         elif isinstance(rate, (int, float)):
@@ -549,7 +642,7 @@ class Reaction(SortableObject, Jsonify):
         :param rxntype: Either "mass-action" or "customized"
         :type rxntype: str
         """
-        from gillespy2.core import log
+        from gillespy2.core import log # pylint: disable=import-outside-toplevel
         log.warning(
             """
             Reaction.setType has been deprecated.  Future releases of GillesPy2 may not support this feature.
@@ -561,13 +654,13 @@ class Reaction(SortableObject, Jsonify):
             raise ReactionError("Invalid reaction type.")
         self.type = rxntype.lower()
 
-        self.massaction = False if self.type == 'customized' else True
-    
+        self.massaction = self.type != 'customized'
+
     def to_dict(self):
         temp = vars(self).copy()
 
         # This to_dict overload is needed because, while Species is hashable (thanks to its inheretence),
-        # objects are not valid key values in the JSON spec. To fix this, we set the Species equal to some key 'key', 
+        # objects are not valid key values in the JSON spec. To fix this, we set the Species equal to some key 'key',
         # and it's value equal to some key 'value'.
 
         temp["products"] = list({ "key": k, "value": v} for k, v in self.products.items() )
@@ -636,7 +729,7 @@ class Reaction(SortableObject, Jsonify):
                         raise ReactionError("stoichiometry in products can't be None type.")
                     if not isinstance(stoichiometry, int) or stoichiometry <= 0:
                         raise ReactionError("stoichiometry in products must greater than 0 and of type int.")
-        
+
         if coverage in ("all", "build", "propensities"):
             if propensity_function is None:
                 propensity_function = self.propensity_function
@@ -692,21 +785,23 @@ class Reaction(SortableObject, Jsonify):
                 if self.massaction and self.type == "mass-action":
                     raise ReactionError("You must specify either a mass-action rate or propensity functions")
                 if self.massaction or self.type == "mass-action":
-                    errmsg = "Invalid customized reaction. Customized reactions require massaction=False and type='customized'"
+                    errmsg = "Invalid customized reaction. Customized reactions require "
+                    errmsg += "massaction=False and type='customized'"
                     raise ReactionError(errmsg)
             else:
                 if not self.massaction and self.type == "customized":
                     raise ReactionError("You cannot set the rate and simultaneously set propensity functions.")
                 if not self.massaction or self.type == "customized":
-                    errmsg = "Invalid mass-action reaction. Mass-action reactions require massaction=True and type='mass-action'"
+                    errmsg = "Invalid mass-action reaction. Mass-action reactions require "
+                    errmsg += "massaction=True and type='mass-action'"
                     raise ReactionError(errmsg)
-    
+
     def verify(self, *args, **kwargs):
         """
         Check if the reaction is properly formatted.
         Does nothing on sucesss, raises and error on failure.
         """
-        from gillespy2.core import log
+        from gillespy2.core import log # pylint: disable=import-outside-toplevel
         log.warning(
             """
             Reaction.verify has been deprecated.  Future releases of GillesPy2 may
