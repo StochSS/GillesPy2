@@ -746,13 +746,13 @@ class Model(SortableObject, Jsonify):
             if rate_rule.variable in rr_vars:
                 raise ModelError(f"Duplicate variable in rate_rules: {rate_rule.variable}.")
             self._resolve_rule(rate_rule)
-            if rate_rule.variable.name in self.listOfSpecies.keys():
+            if rate_rule.variable.name in self.listOfSpecies:
                 # check if the rate_rule's target's mode is continious
                 if rate_rule.variable.mode == 'discrete':
                     raise ModelError("RateRules can not target discrete species")
                 if rate_rule.variable.mode is None or rate_rule.variable.mode == 'dynamic':
                     rate_rule.variable.mode = 'continuous'
-                    from gillespy2.core import log
+                    from gillespy2.core import log # pylint:disable=import-outside-toplevel
                     log.warning(f"Changing {rate_rule.variable.name}.mode='continuous' as it is the target of RateRule {rate_rule.name}")
 
             self.listOfRateRules[rate_rule.name] = rate_rule
