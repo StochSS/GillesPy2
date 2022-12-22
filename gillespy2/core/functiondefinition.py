@@ -60,11 +60,23 @@ class FunctionDefinition(SortableObject, Jsonify):
         return ','.join(self.args)
 
     def sanitized_function(self, species_mappings, parameter_mappings):
+        '''
+        Sanitize the function definition function.
+
+        :param species_mappings: Mapping of species names to sanitized species names.
+        :type species_mappings: dict
+
+        :param parameter_mappings: Mapping of parameter names to sanitized parameter names.
+        :type parameter_mappings: dict
+
+        :returns: The sanitized function.
+        :rtype: str
+        '''
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
                        reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
         sanitized_function = self.function_string
-        for id, name in enumerate(names):
-            sanitized_function = sanitized_function.replace(name, "{" + str(id) + "}")
+        for i, name in enumerate(names):
+            sanitized_function = sanitized_function.replace(name, "{" + str(i) + "}")
         return sanitized_function.format(*replacements)

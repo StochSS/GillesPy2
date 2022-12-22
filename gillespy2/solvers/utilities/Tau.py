@@ -114,14 +114,12 @@ def select(*tau_args):
     for r in model.listOfReactions:
         # Calculate abs mean and standard deviation for each reactant
         for reactant in model.listOfReactions[r].reactants:
-            if reactant not in mu_i:
-                mu_i[reactant.name] = 0
-            if reactant not in sigma_i:
-                sigma_i[reactant.name] = 0
-            mu_i[reactant.name] += model.listOfReactions[r].reactants[reactant] * propensities[
-                r]  # Cao, Gillespie, Petzold 32a
-            sigma_i[reactant.name] += model.listOfReactions[r].reactants[reactant] ** 2 * propensities[
-                r]  # Cao, Gillespie, Petzold 32b
+            net_change = model.listOfReactions[r].reactants[reactant]
+            if reactant in model.listOfReactions[r].products:
+                net_change -= model.listOfReactions[r].products[reactant]
+            net_change = abs(net_change)
+            mu_i[reactant.name] += net_change * propensities[r]  # Cao, Gillespie, Petzold 32a
+            sigma_i[reactant.name] += net_change ** 2 * propensities[r]  # Cao, Gillespie, Petzold 32b
 
     for r in reactants:
         calculated_max = epsilon_i[r.name] * curr_state[r.name]
