@@ -13,8 +13,9 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import numpy as np
 from collections.abc import Iterator
+
+import numpy as np
 
 from gillespy2.core.jsonify import Jsonify
 from .gillespyError import TimespanError
@@ -24,10 +25,10 @@ class TimeSpan(Iterator, Jsonify):
     Model timespan that describes the duration to run the simulation and at which timepoint to sample
     the species populations during the simulation.
 
-    :param items: Evenly-spaced list of times at which to sample the species populations during the simulation. 
+    :param items: Evenly-spaced list of times at which to sample the species populations during the simulation.
             Best to use the form np.linspace(<start time>, <end time>, <number of time-points, inclusive>)
     :type items: list, tuple, range, or numpy.ndarray
-    
+
     :raises TimespanError: items is an invalid type.
     """
     def __init__(self, items):
@@ -124,7 +125,7 @@ class TimeSpan(Iterator, Jsonify):
             raise TimespanError("Timespans must contain values.")
         if self.items[0] < 0:
             raise TimespanError("Simulation must run from t=0 to end time (t must always be positive).")
-        
+
         first_diff = self.items[1] - self.items[0]
         other_diff = self.items[2:] - self.items[1:-1]
         isuniform = np.isclose(other_diff, first_diff).all()

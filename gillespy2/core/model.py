@@ -14,8 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import platform
-from typing import Set, Type
-from collections import OrderedDict
+from collections import OrderedDict, ChainMap
 
 import gillespy2
 from gillespy2.core.assignmentrule import AssignmentRule
@@ -28,7 +27,6 @@ from gillespy2.core.species import Species
 from gillespy2.core.timespan import TimeSpan
 from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.jsonify import Jsonify, TranslationTable
-from gillespy2.core.results import Trajectory, Results
 from gillespy2.core.gillespyError import (
     ModelError,
     SimulationError,
@@ -41,7 +39,7 @@ try:
 
     no_pretty_print = False
 
-except:
+except ImportError:
     import xml.etree.ElementTree as eTree
     import xml.dom.minidom
     import re
@@ -63,15 +61,15 @@ def import_SBML(filename, name=None, gillespy_model=None, report_silently_with_s
     :param gillespy_model: If desired, the SBML model may be added to an existing GillesPy model
     :type gillespy_model: gillespy.Model
 
-    :param report_silently_with_sbml_error: SBML import will fail silently and 
+    :param report_silently_with_sbml_error: SBML import will fail silently and
                 SBML errors will not output to the user.
     :type report_silently_with_sbml_error: bool
     """
 
     try:
-        from gillespy2.sbml.SBMLimport import convert
-    except ImportError:
-        raise ImportError('SBML conversion not imported successfully')
+        from gillespy2.sbml.SBMLimport import convert # pylint: disable=import-outside-toplevel
+    except ImportError as err:
+        raise ImportError('SBML conversion not imported successfully') from err
 
     return convert(
         filename, model_name=name, gillespy_model=gillespy_model,
@@ -90,9 +88,9 @@ def export_SBML(gillespy_model, filename=None):
     :type filename: str
     """
     try:
-        from gillespy2.sbml.SBMLexport import export
-    except ImportError:
-        raise ImportError('SBML export conversion not imported successfully')
+        from gillespy2.sbml.SBMLexport import export # pylint: disable=import-outside-toplevel
+    except ImportError as err:
+        raise ImportError('SBML export conversion not imported successfully') from err
 
     return export(gillespy_model, path=filename)
 
@@ -108,9 +106,9 @@ def export_StochSS(gillespy_model, filename=None, return_stochss_model=False):
     :type filename: str
     """
     try:
-        from gillespy2.stochss.StochSSexport import export
-    except ImportError:
-        raise ImportError('StochSS export conversion not imported successfully')
+        from gillespy2.stochss.StochSSexport import export # pylint: disable=import-outside-toplevel
+    except ImportError as err:
+        raise ImportError('StochSS export conversion not imported successfully') from err
 
     return export(gillespy_model, path=filename, return_stochss_model=return_stochss_model)
 
@@ -214,32 +212,32 @@ class Model(SortableObject, Jsonify):
         print_string = self.name
         if len(self.listOfSpecies):
             print_string += decorate('Species')
-            for s in sorted(self.listOfSpecies.values()):
-                print_string += '\n' + str(s)
+            for species in sorted(self.listOfSpecies.values()):
+                print_string += '\n' + str(species)
         if len(self.listOfParameters):
             print_string += decorate('Parameters')
-            for p in sorted(self.listOfParameters.values()):
-                print_string += '\n' + str(p)
+            for parameter in sorted(self.listOfParameters.values()):
+                print_string += '\n' + str(parameter)
         if len(self.listOfReactions):
             print_string += decorate('Reactions')
-            for r in sorted(self.listOfReactions.values()):
-                print_string += '\n' + str(r)
+            for reaction in sorted(self.listOfReactions.values()):
+                print_string += '\n' + str(reaction)
         if len(self.listOfEvents):
             print_string += decorate('Events')
-            for e in sorted(self.listOfEvents.values()):
-                print_string += '\n' + str(e)
+            for event in sorted(self.listOfEvents.values()):
+                print_string += '\n' + str(event)
         if len(self.listOfAssignmentRules):
             print_string += decorate('Assignment Rules')
-            for ar in sorted(self.listOfAssignmentRules.values()):
-                print_string += '\n' + str(ar)
+            for assign_rule in sorted(self.listOfAssignmentRules.values()):
+                print_string += '\n' + str(assign_rule)
         if len(self.listOfRateRules):
             print_string += decorate('Rate Rules')
-            for rr in sorted(self.listOfRateRules.values()):
-                print_string += '\n' + str(rr)
+            for rate_rule in sorted(self.listOfRateRules.values()):
+                print_string += '\n' + str(rate_rule)
         if len(self.listOfFunctionDefinitions):
             print_string += decorate('Function Definitions')
-            for fd in sorted(self.listOfFunctionDefinitions.values()):
-                print_string += '\n' + str(fd)
+            for func_def in sorted(self.listOfFunctionDefinitions.values()):
+                print_string += '\n' + str(func_def)
         if self.tspan is not None:
             print_string += decorate('Timespan')
             print_string += str(self.tspan)
@@ -283,7 +281,7 @@ class Model(SortableObject, Jsonify):
 
     def _resolve_event(self, event):
         def validate(event):
-            from gillespy2.core.gillespyError import EventError
+            from gillespy2.core.gillespyError import EventError # pylint: disable=import-outside-toplevel
             if event.trigger is None or not hasattr(event.trigger, 'expression'):
                 raise EventError('An Event must contain a valid trigger.')
         try:
@@ -318,10 +316,10 @@ class Model(SortableObject, Jsonify):
 
     def _resolve_rule(self, rule):
         def validate(rule):
-            from gillespy2.core.gillespyError import RateRuleError, AssignmentRuleError
+            from gillespy2.core.gillespyError import RateRuleError, AssignmentRuleError # pylint: disable=import-outside-toplevel
             errors = {"RateRule": RateRuleError, "AssignmentRule": AssignmentRuleError}
             error_class = errors[type(rule).__name__]
-            if rule.variable == None:
+            if rule.variable is None:
                 raise error_class('A GillesPy2 Rate/Assignment Rule must be associated with a valid variable')
             if rule.formula == '':
                 raise error_class('Invalid Rate/Assignment Rule. Expression must be a non-empty string value')
@@ -551,7 +549,7 @@ class Model(SortableObject, Jsonify):
         """
         species_name_mapping = OrderedDict([])
         for i, name in enumerate(self.listOfSpecies.keys()):
-            species_name_mapping[name] = 'S[{}]'.format(i)
+            species_name_mapping[name] = f'S[{i}]'
         return species_name_mapping
 
     def add_parameter(self, parameters):
@@ -623,7 +621,7 @@ class Model(SortableObject, Jsonify):
     def get_all_parameters(self):
         """
         Get all of the parameters in the model object.
-        
+
         :returns: A dict of all parameters in the model, in the form: {name : parameter object}
         :rtype: OrderedDict
         """
@@ -640,7 +638,7 @@ class Model(SortableObject, Jsonify):
         parameter_name_mapping['vol'] = 'V'
         for i, name in enumerate(self.listOfParameters.keys()):
             if name not in parameter_name_mapping:
-                parameter_name_mapping[name] = 'P{}'.format(i)
+                parameter_name_mapping[name] = f'P{i}'
         return parameter_name_mapping
 
     def add_reaction(self, reactions):
@@ -716,7 +714,7 @@ class Model(SortableObject, Jsonify):
     def get_all_reactions(self):
         """
         Get all of the reactions in the model object.
-        
+
         :returns: A dict of all reactions in the model, in the form: {name : reaction object}.
         :rtype: OrderedDict
         """
@@ -745,7 +743,7 @@ class Model(SortableObject, Jsonify):
                 raise ModelError(
                     f"Duplicate variable in rate_rules AND assignment_rules: {rate_rule.variable}."
                 )
-            elif rate_rule.variable in rr_vars:
+            if rate_rule.variable in rr_vars:
                 raise ModelError(f"Duplicate variable in rate_rules: {rate_rule.variable}.")
             self._resolve_rule(rate_rule)
             self.listOfRateRules[rate_rule.name] = rate_rule
@@ -833,7 +831,7 @@ class Model(SortableObject, Jsonify):
                 raise ModelError(
                     f"Duplicate variable in rate_rules AND assignment_rules: {assignment_rule.variable}."
                 )
-            elif assignment_rule.variable in ar_vars:
+            if assignment_rule.variable in ar_vars:
                 raise ModelError(f"Duplicate variable in assignments_rules: {assignment_rule.variable}.")
             self._resolve_rule(assignment_rule)
             self.listOfAssignmentRules[assignment_rule.name] = assignment_rule
@@ -844,7 +842,8 @@ class Model(SortableObject, Jsonify):
             )
             self._listOfAssignmentRules[assignment_rule.name] = sanitized_assignment_rule
         else:
-            errmsg = f"assignment_rule must be of type AssignmentRule or list of AssignmentRules not {type(assignment_rule)}"
+            errmsg = "assignment_rule must be of type AssignmentRule or "
+            errmsg += f"list of AssignmentRules not {type(assignment_rule)}."
             raise ModelError(errmsg)
         return assignment_rule
 
@@ -989,7 +988,8 @@ class Model(SortableObject, Jsonify):
             self._problem_with_name(function_definition.name)
             self.listOfFunctionDefinitions[function_definition.name] = function_definition
         else:
-            errmsg = f"function_definition must be of type FunctionDefinition or list of FunctionDefinitions not {type(function_definition)}"
+            errmsg = "function_definition must be of type FunctionDefinition or "
+            errmsg += f"list of FunctionDefinitions not {type(function_definition)}."
             raise ModelError(errmsg)
 
     def delete_function_definition(self, name):
@@ -1006,7 +1006,7 @@ class Model(SortableObject, Jsonify):
         except KeyError as err:
             raise ModelError(
                 f"{self.name} does not contain a function definition named {name}."
-            )
+            ) from err
 
     def delete_all_function_definitions(self):
         """
@@ -1041,20 +1041,19 @@ class Model(SortableObject, Jsonify):
     def timespan(self, time_span):
         """
         Set the time span of simulation. StochKit does not support non-uniform
-        timespans. 
+        timespans.
 
-        :param time_span: Evenly-spaced list of times at which to sample the species populations during the simulation. 
-            Best to use the form gillespy2.TimeSpan(np.linspace(<start time>, <end time>, <number of time-points, inclusive>))
+        :param time_span: Evenly-spaced list of times at which to sample the species populations
+            during the simulation. Best to use the form gillespy2.TimeSpan(np.linspace(
+            <start time>, <end time>, <number of time-points, inclusive>))
         :type time_span: gillespy2.TimeSpan | iterator
-        """        
+        """
         if isinstance(time_span, TimeSpan) or type(time_span).__name__ == "TimeSpan":
             self.tspan = time_span
         else:
             self.tspan = TimeSpan(time_span)
 
     def make_translation_table(self):
-        from collections import ChainMap
-
         species = self.listOfSpecies.values()
         reactions = self.listOfReactions.values()
         parameters = self.listOfParameters.values()
@@ -1113,11 +1112,11 @@ class Model(SortableObject, Jsonify):
         hybrid_check = False
         if len(self.get_all_rate_rules())  or len(self.get_all_events()):
             hybrid_check = True
-        
-        if len(self.get_all_species()) and hybrid_check == False:
+
+        if len(self.get_all_species()) and not hybrid_check:
             for i in self.get_all_species():
                 tempMode = self.get_species(i).mode
-                if tempMode == 'dynamic' or tempMode == 'continuous':
+                if tempMode in ('dynamic', 'continuous'):
                     hybrid_check = True
                     break
 
@@ -1126,31 +1125,31 @@ class Model(SortableObject, Jsonify):
             hybrid_check = True
             chybrid_check = False
 
-        from gillespy2.solvers.cpp.build.build_engine import BuildEngine
+        from gillespy2.solvers.cpp.build.build_engine import BuildEngine # pylint: disable=import-outside-toplevel
         missing_deps = BuildEngine.get_missing_dependencies()
         windows_space = platform.system() == "Windows" and " " in gillespy2.__file__
         can_use_cpp = len(missing_deps) == 0 and not windows_space
 
         if hybrid_check:
             if can_use_cpp and chybrid_check:
-                from gillespy2 import TauHybridCSolver
+                from gillespy2 import TauHybridCSolver # pylint: disable=import-outside-toplevel
                 return TauHybridCSolver
 
-            from gillespy2 import TauHybridSolver
+            from gillespy2 import TauHybridSolver # pylint: disable=import-outside-toplevel
             return TauHybridSolver
-        
+
         if can_use_cpp:
-            from gillespy2 import SSACSolver
+            from gillespy2 import SSACSolver # pylint: disable=import-outside-toplevel
             return SSACSolver
 
-        from gillespy2 import NumPySSASolver
+        from gillespy2 import NumPySSASolver # pylint: disable=import-outside-toplevel
         return NumPySSASolver
 
     def get_best_solver_algo(self, algorithm):
         """
         If user has specified a particular algorithm, we return either the Python or C++ version of that algorithm
         """
-        from gillespy2.solvers.cpp.build.build_engine import BuildEngine
+        from gillespy2.solvers.cpp.build.build_engine import BuildEngine # pylint: disable=import-outside-toplevel
         missing_deps = BuildEngine.get_missing_dependencies()
         windows_space = platform.system() == "Windows" and " " in gillespy2.__file__
         can_use_cpp = len(missing_deps) == 0 and not windows_space
@@ -1158,40 +1157,40 @@ class Model(SortableObject, Jsonify):
 
         if algorithm == 'Tau-Leaping':
             if can_use_cpp:
-                from gillespy2 import TauLeapingCSolver
+                from gillespy2 import TauLeapingCSolver # pylint: disable=import-outside-toplevel
                 return TauLeapingCSolver
 
-            from gillespy2 import TauLeapingSolver
+            from gillespy2 import TauLeapingSolver # pylint: disable=import-outside-toplevel
             return TauLeapingSolver
 
         if algorithm == 'SSA':
             if can_use_cpp:
-                from gillespy2 import SSACSolver
+                from gillespy2 import SSACSolver # pylint: disable=import-outside-toplevel
                 return SSACSolver
 
-            from gillespy2 import NumPySSASolver
+            from gillespy2 import NumPySSASolver # pylint: disable=import-outside-toplevel
             return NumPySSASolver
 
         if algorithm == 'ODE':
             if can_use_cpp:
-                from gillespy2 import ODECSolver
+                from gillespy2 import ODECSolver # pylint: disable=import-outside-toplevel
                 return ODECSolver
 
-            from gillespy2 import ODESolver
+            from gillespy2 import ODESolver # pylint: disable=import-outside-toplevel
             return ODESolver
 
         if algorithm == 'Tau-Hybrid':
             if can_use_cpp and chybrid_check:
-                from gillespy2 import TauHybridCSolver
+                from gillespy2 import TauHybridCSolver # pylint: disable=import-outside-toplevel
                 return TauHybridCSolver
 
-            from gillespy2 import TauHybridSolver
+            from gillespy2 import TauHybridSolver # pylint: disable=import-outside-toplevel
             return TauHybridSolver
 
         if algorithm == 'CLE':
-            from gillespy2 import CLESolver
+            from gillespy2 import CLESolver # pylint: disable=import-outside-toplevel
             return CLESolver
-            
+
         raise ModelError("Invalid value for the argument 'algorithm' entered. "
                          "Please enter 'SSA', 'ODE', 'CLE', 'Tau-Leaping', or 'Tau-Hybrid'.")
 
@@ -1241,7 +1240,8 @@ class Model(SortableObject, Jsonify):
             be initialized separately to specify an algorithm. Optional, defaults to ssa solver.
         :type solver: gillespy.GillesPySolver
 
-        :param timeout: Allows a time_out value in seconds to be sent to a signal handler, restricting simulation run-time
+        :param timeout: Allows a time_out value in seconds to be sent to a signal handler,
+            restricting simulation run-time
         :type timeout: int
 
         :param t: End time of simulation
@@ -1249,7 +1249,8 @@ class Model(SortableObject, Jsonify):
 
         :param solver_args: Solver-specific arguments to be passed to solver.run()
 
-        :param algorithm: Specify algorithm ('ODE', 'Tau-Leaping', or 'SSA') for GillesPy2 to automatically pick best solver using that algorithm.
+        :param algorithm: Specify algorithm ('ODE', 'Tau-Leaping', or 'SSA') for GillesPy2 to automatically
+            pick best solver using that algorithm.
         :type algorithm: str
 
         :returns:  Returns a Results object that inherits UserList and contains one or more Trajectory objects that
@@ -1258,8 +1259,9 @@ class Model(SortableObject, Jsonify):
         To pause a simulation and retrieve data before the simulation, keyboard interrupt the simulation by pressing
         control+c or pressing stop on a jupyter notebook. To resume a simulation, pass your previously ran results
         into the run method, and set t = to the time you wish the resuming simulation to end (run(resume=results, t=x)).
-        
-        **Pause/Resume is only supported for SINGLE TRAJECTORY simulations. T MUST BE SET OR UNEXPECTED BEHAVIOR MAY OCCUR.**
+
+        **Pause/Resume is only supported for SINGLE TRAJECTORY simulations.
+            T MUST BE SET OR UNEXPECTED BEHAVIOR MAY OCCUR.**
         """
 
         if solver is None:
@@ -1280,16 +1282,16 @@ class Model(SortableObject, Jsonify):
 
         try:
             return solver.run(t=t, increment=increment, timeout=timeout, **solver_args)
-        except Exception as e:
+        except Exception as err:
             raise SimulationError(
-                "argument 'solver={}' to run() failed.  Reason Given: {}".format(solver, e)
-            ) from e
+                f"argument 'solver={solver}' to run() failed.  Reason Given: {err}"
+            ) from err
 
     def problem_with_name(self, *args):
         """
         (deprecated)
         """
-        from gillespy2.core import log
+        from gillespy2.core import log # pylint: disable=import-outside-toplevel
         log.warning(
             """
             Model.problem_with_name has been deprecated.  Future releases of GillesPy2 may
@@ -1309,7 +1311,7 @@ class Model(SortableObject, Jsonify):
             parameter. May reference other parameters by name. (e.g. "k1*4")
         :type expression: str
         """
-        from gillespy2.core import log
+        from gillespy2.core import log # pylint: disable=import-outside-toplevel
         log.warning(
             """
             Model.set_parameter has been deprecated.  Future releases of GillesPy2 may
@@ -1332,7 +1334,7 @@ class Model(SortableObject, Jsonify):
 
         :raises ModelError: If the reaction can't be resolved.
         """
-        from gillespy2.core import log
+        from gillespy2.core import log # pylint: disable=import-outside-toplevel
         log.warning(
             """
             Model.validate_reactants_and_products has been deprecated. Future releases of
@@ -1360,8 +1362,8 @@ class StochMLDocument():
 
         Note, this method is intended to be used internally by the models
         'serialization' function, which performs additional operations and
-        tests on the model prior to writing out the XML file. 
-        
+        tests on the model prior to writing out the XML file.
+
         You should NOT do:
 
         .. code-block:: python
@@ -1378,54 +1380,54 @@ class StochMLDocument():
         """
 
         # Description
-        md = cls()
+        sml_model = cls()
 
-        d = eTree.Element('Description')
+        descript = eTree.Element('Description')
 
         # Prepare model for export
         model.compile_prep()
 
         if model.units.lower() == "concentration":
-            d.set('units', model.units.lower())
+            descript.set('units', model.units.lower())
 
-        d.text = model.annotation
-        md.document.append(d)
+        descript.text = model.annotation
+        sml_model.document.append(descript)
 
         # Number of Reactions
-        nr = eTree.Element('NumberOfReactions')
-        nr.text = str(len(model.listOfReactions))
-        md.document.append(nr)
+        num_reacs = eTree.Element('NumberOfReactions')
+        num_reacs.text = str(len(model.listOfReactions))
+        sml_model.document.append(num_reacs)
 
         # Number of Species
-        ns = eTree.Element('NumberOfSpecies')
-        ns.text = str(len(model.listOfSpecies))
-        md.document.append(ns)
+        num_specs = eTree.Element('NumberOfSpecies')
+        num_specs.text = str(len(model.listOfSpecies))
+        sml_model.document.append(num_specs)
 
         # Species
         spec = eTree.Element('SpeciesList')
         for sname in model.listOfSpecies:
-            spec.append(md.__species_to_element(model.listOfSpecies[sname]))
-        md.document.append(spec)
+            spec.append(sml_model.__species_to_element(model.listOfSpecies[sname]))
+        sml_model.document.append(spec)
 
         # Parameters
         params = eTree.Element('ParametersList')
         for pname in model.listOfParameters:
-            params.append(md.__parameter_to_element(
+            params.append(sml_model.__parameter_to_element(
                 model.listOfParameters[pname]))
 
         vol = Parameter(name='vol', expression=model.volume)
         vol._evaluate()
-        params.append(md.__parameter_to_element(vol))
+        params.append(sml_model.__parameter_to_element(vol))
 
-        md.document.append(params)
+        sml_model.document.append(params)
 
         # Reactions
         reacs = eTree.Element('ReactionsList')
         for rname in model.listOfReactions:
-            reacs.append(md.__reaction_to_element(model.listOfReactions[rname], model.volume))
-        md.document.append(reacs)
+            reacs.append(sml_model.__reaction_to_element(model.listOfReactions[rname], model.volume))
+        sml_model.document.append(reacs)
 
-        return md
+        return sml_model
 
     @classmethod
     def from_file(cls, filepath):
@@ -1433,9 +1435,9 @@ class StochMLDocument():
         file read from disk. """
         tree = eTree.parse(filepath)
         root = tree.getroot()
-        md = cls()
-        md.document = root
-        return md
+        sml_model = cls()
+        sml_model.document = root
+        return sml_model
 
     @classmethod
     def from_string(cls, string):
@@ -1443,9 +1445,9 @@ class StochMLDocument():
         file read from disk. """
         root = eTree.fromString(string)
 
-        md = cls()
-        md.document = root
-        return md
+        sml_model = cls()
+        sml_model.document = root
+        return sml_model
 
     def to_model(self, name):
         """ Instantiates a Model object from a StochMLDocument. """
@@ -1459,8 +1461,7 @@ class StochMLDocument():
             name = root.find('Name')
             if name.text is None:
                 raise NameError("The Name cannot be none")
-            else:
-                model.name = name.text
+            model.name = name.text
 
         # Set annotiation
         ann = root.find('Description')
@@ -1493,28 +1494,28 @@ class StochMLDocument():
                 model.units = "population"
 
         # Create parameters
-        for px in root.iter('Parameter'):
-            name = px.find('Id').text
-            expr = px.find('Expression').text
+        for sml_param in root.iter('Parameter'):
+            name = sml_param.find('Id').text
+            expr = sml_param.find('Expression').text
             if name.lower() == 'vol' or name.lower() == 'volume':
                 model.volume = float(expr)
             else:
-                p = Parameter(name, expression=expr)
+                param = Parameter(name, expression=expr)
                 # Try to evaluate the expression in the empty namespace
                 # (if the expr is a scalar value)
-                p._evaluate()
-                model.add_parameter(p)
+                param._evaluate()
+                model.add_parameter(param)
 
         # Create species
-        for spec in root.iter('Species'):
-            name = spec.find('Id').text
-            val = spec.find('InitialPopulation').text
+        for sml_spec in root.iter('Species'):
+            name = sml_spec.find('Id').text
+            val = sml_spec.find('InitialPopulation').text
             if '.' in val:
                 val = float(val)
             else:
                 val = int(val)
-            s = Species(name, initial_value=val)
-            model.add_species([s])
+            spec = Species(name, initial_value=val)
+            model.add_species([spec])
 
         # The namespace_propensity for evaluating the propensity function
         # for reactions must contain all the species and parameters.
@@ -1532,50 +1533,50 @@ class StochMLDocument():
         for reac in root.iter('Reaction'):
             try:
                 name = reac.find('Id').text
-            except:
-                raise InvalidStochMLError("Reaction has no name.")
+            except Exception as err:
+                raise InvalidStochMLError("Reaction has no name.") from err
 
             # Type may be 'mass-action','customized'
             try:
                 r_type = reac.find('Type').text
-            except:
-                raise InvalidStochMLError("No reaction type specified.")
+            except Exception as err:
+                raise InvalidStochMLError("No reaction type specified.") from err
 
             g_reactants = {}
             reactants = reac.find('Reactants')
             try:
-                for ss in reactants.iter('SpeciesReference'):
-                    specname = ss.get('id')
+                for stoich_spec in reactants.iter('SpeciesReference'):
+                    specname = stoich_spec.get('id')
                     # The stochiometry should be an integer value, but some
                     # exising StoxhKit models have them as floats. This is
                     # why we need the slightly odd conversion below.
-                    stoch = int(float(ss.get('stoichiometry')))
+                    stoch = int(float(stoich_spec.get('stoichiometry')))
                     # Select a reference to species with name specname
                     sref = model.listOfSpecies[specname]
                     try:
                         # The sref list should only contain one element if
                         # the XML file is valid.
                         g_reactants[sref] = stoch
-                    except Exception as e:
-                        StochMLImportError(e)
-            except:
+                    except Exception as err:
+                        raise StochMLImportError(f"Reason given: {err}") from err
+            except Exception:
                 # Yes, this is correct. 'reactants' can be None
                 pass
 
             g_products = {}
             products = reac.find('Products')
             try:
-                for ss in products.iter('SpeciesReference'):
-                    specname = ss.get('id')
-                    stoch = int(float(ss.get('stoichiometry')))
+                for stoich_spec in products.iter('SpeciesReference'):
+                    specname = stoich_spec.get('id')
+                    stoch = int(float(stoich_spec.get('stoichiometry')))
                     sref = model.listOfSpecies[specname]
                     try:
                         # The sref list should only contain one element if
                         # the XML file is valid.
                         g_products[sref] = stoch
-                    except Exception as e:
-                        raise StochMLImportError(e)
-            except:
+                    except Exception as err:
+                        raise StochMLImportError(f"Reason given: {err}") from err
+            except Exception:
                 # Yes, this is correct. 'products' can be None
                 pass
 
@@ -1589,26 +1590,27 @@ class StochMLDocument():
                     ratename = reac.find('Rate').text
                     try:
                         kwargs['rate'] = model.listOfParameters[ratename]
-                    except KeyError as k:
+                    except KeyError:
                         # No paramter name is given. This is a valid use case
                         # in StochKit. We generate a name for the paramter,
                         # and create a new parameter instance. The parameter's
                         # value should now be found in 'ratename'.
                         generated_rate_name = "Reaction_" + name + \
                                               "_rate_constant"
-                        p = Parameter(name=generated_rate_name,
+                        param = Parameter(name=generated_rate_name,
                                       expression=ratename)
                         # Try to evaluate the parameter to set its value
-                        model.add_parameter(p)
+                        model.add_parameter(param)
                         kwargs['rate'] = model.listOfParameters[generated_rate_name]
-                except Exception as e:
-                    raise
+                except Exception as err:
+                    raise StochMLImportError(f"Reason given: {err}") from err
             elif r_type == 'customized':
                 try:
                     propfunc = reac.find('PropensityFunction').text
-                except Exception as e:
+                except Exception as err:
                     raise InvalidStochMLError(
-                        "Found a customized propensity function, but no expression was given. {}".format(e))
+                        f"Found a customized propensity function, but no expression was given. {err}"
+                    ) from err
                 kwargs['propensity_function'] = propfunc
             else:
                 raise InvalidStochMLError(
@@ -1627,88 +1629,88 @@ class StochMLDocument():
         try:
             doc = eTree.tostring(self.document, pretty_print=True)
             return doc.decode("utf-8")
-        except:
+        except Exception:
             # Hack to print pretty xml without pretty-print
             # (requires the lxml module).
             doc = eTree.tostring(self.document)
             xmldoc = xml.dom.minidom.parseString(doc)
-            uglyXml = xmldoc.toprettyxml(indent='  ')
+            ugly_xml = xmldoc.toprettyxml(indent='  ')
             text_re = re.compile(">\n\s+([^<>\s].*?)\n\s+</", re.DOTALL)
-            prettyXml = text_re.sub(">\g<1></", uglyXml)
-            return prettyXml
+            pretty_xml = text_re.sub(">\g<1></", ugly_xml)
+            return pretty_xml
 
-    def __species_to_element(self, S):
-        e = eTree.Element('Species')
-        idElement = eTree.Element('Id')
-        idElement.text = S.name
-        e.append(idElement)
+    def __species_to_element(self, species):
+        sml_spec = eTree.Element('Species')
+        id_element = eTree.Element('Id')
+        id_element.text = species.name
+        sml_spec.append(id_element)
 
-        if hasattr(S, 'description'):
-            descriptionElement = eTree.Element('Description')
-            descriptionElement.text = S.description
-            e.append(descriptionElement)
+        if hasattr(species, 'description'):
+            description_element = eTree.Element('Description')
+            description_element.text = species.description
+            sml_spec.append(description_element)
 
-        initialPopulationElement = eTree.Element('InitialPopulation')
-        initialPopulationElement.text = str(S.initial_value)
-        e.append(initialPopulationElement)
+        initial_population_element = eTree.Element('InitialPopulation')
+        initial_population_element.text = str(species.initial_value)
+        sml_spec.append(initial_population_element)
 
-        return e
+        return sml_spec
 
-    def __parameter_to_element(self, P):
-        e = eTree.Element('Parameter')
-        idElement = eTree.Element('Id')
-        idElement.text = P.name
-        e.append(idElement)
-        expressionElement = eTree.Element('Expression')
-        expressionElement.text = str(P.value)
-        e.append(expressionElement)
-        return e
+    def __parameter_to_element(self, parameter):
+        sml_param = eTree.Element('Parameter')
+        id_element = eTree.Element('Id')
+        id_element.text = parameter.name
+        sml_param.append(id_element)
+        expression_element = eTree.Element('Expression')
+        expression_element.text = str(parameter.value)
+        sml_param.append(expression_element)
+        return sml_param
 
-    def __reaction_to_element(self, R, model_volume):
-        e = eTree.Element('Reaction')
+    def __reaction_to_element(self, reaction, model_volume):
+        sml_reac = eTree.Element('Reaction')
 
-        idElement = eTree.Element('Id')
-        idElement.text = R.name
-        e.append(idElement)
+        id_element = eTree.Element('Id')
+        id_element.text = reaction.name
+        sml_reac.append(id_element)
 
-        descriptionElement = eTree.Element('Description')
-        descriptionElement.text = self.annotation
-        e.append(descriptionElement)
+        description_element = eTree.Element('Description')
+        description_element.text = self.annotation
+        sml_reac.append(description_element)
 
         # StochKit2 wants a rate for mass-action propensites
-        if R.massaction and model_volume == 1.0:
-            rateElement = eTree.Element('Rate')
+        if reaction.massaction and model_volume == 1.0:
+            rate_element = eTree.Element('Rate')
             # A mass-action reactions should only have one parameter
-            rateElement.text = R.marate.name
-            typeElement = eTree.Element('Type')
-            typeElement.text = 'mass-action'
-            e.append(typeElement)
-            e.append(rateElement)
+            rate_element.text = reaction.marate.name
+            type_element = eTree.Element('Type')
+            type_element.text = 'mass-action'
+            sml_reac.append(type_element)
+            sml_reac.append(rate_element)
 
         else:
-            typeElement = eTree.Element('Type')
-            typeElement.text = 'customized'
-            e.append(typeElement)
-            functionElement = eTree.Element('PropensityFunction')
-            functionElement.text = R.propensity_function
-            e.append(functionElement)
+            type_element = eTree.Element('Type')
+            type_element.text = 'customized'
+            sml_reac.append(type_element)
+            function_element = eTree.Element('PropensityFunction')
+            function_element.text = reaction.propensity_function
+            sml_reac.append(function_element)
 
         reactants = eTree.Element('Reactants')
 
-        for reactant, stoichiometry in R.reactants.items():
-            srElement = eTree.Element('SpeciesReference')
-            srElement.set('id', str(reactant.name))
-            srElement.set('stoichiometry', str(stoichiometry))
-            reactants.append(srElement)
+        for reactant, stoichiometry in reaction.reactants.items():
+            sr_element = eTree.Element('SpeciesReference')
+            sr_element.set('id', str(reactant.name))
+            sr_element.set('stoichiometry', str(stoichiometry))
+            reactants.append(sr_element)
 
-        e.append(reactants)
+        sml_reac.append(reactants)
 
         products = eTree.Element('Products')
-        for product, stoichiometry in R.products.items():
-            srElement = eTree.Element('SpeciesReference')
-            srElement.set('id', str(product.name))
-            srElement.set('stoichiometry', str(stoichiometry))
-            products.append(srElement)
-        e.append(products)
+        for product, stoichiometry in reaction.products.items():
+            sr_element = eTree.Element('SpeciesReference')
+            sr_element.set('id', str(product.name))
+            sr_element.set('stoichiometry', str(stoichiometry))
+            products.append(sr_element)
+        sml_reac.append(products)
 
-        return e
+        return sml_reac

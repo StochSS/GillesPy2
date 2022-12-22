@@ -1,0 +1,75 @@
+name: PyLint On Pull Request
+on: [pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Set Up Python
+      uses: actions/setup-python@v2
+    - name: Install PyLint
+      run: pip install --upgrade pylint
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Checkout Head
+      run: git checkout $HEAD_REF
+      env:
+        HEAD_REF: ${{ github.event.pull_request.head.ref }}
+    - name: Checkout Base
+      run: git checkout $BASE_REF
+      env:
+        BASE_REF: ${{ github.event.pull_request.base.ref }}
+    - name: Get Base Lint Score
+      run: |
+        echo BASE_LINT=$(git diff --name-only --diff-filter=M $HEAD_REF | grep -E "\.py" | xargs pylint | grep -E -o "at [0-9.-]+" | grep -E -o [0-9.-]+) >> $GITHUB_ENV
+      env:
+        HEAD_REF: ${{ github.event.pull_request.head.ref }}
+      if: always()
+    - name: Set Base Lint to 0
+      run: echo BASE_LINT=0 >> $GITHUB_ENV
+      if: env.BASE_LINT == ''
+    - name: Checkout Head
+      run: git checkout $HEAD_REF
+      env:
+        HEAD_REF: ${{ github.event.pull_request.head.ref }}
+    - name: Get Head Lint Score
+      run: |
+        echo HEAD_LINT=$(git diff --name-only --diff-filter=M $BASE_REF | grep -E "\.py" | xargs pylint | grep -E -o "at [0-9.-]+" | grep -E -o [0-9.-]+) >> $GITHUB_ENV
+      env:
+        BASE_REF: ${{ github.event.pull_request.base.ref }}
+      if: always()
+    - name: Set Head Lint to 0
+      run: echo HEAD_LINT=0 >> $GITHUB_ENV
+      if: env.HEAD_LINT == ''
+    - name: Get Added Files Lint Score
+      run: |
+        echo ADDED_LINT=$(git diff --name-only --diff-filter=A $BASE_REF | grep -E "\.py" | xargs pylint | grep -E -o "at [0-9.-]+" | grep -E -o [0-9.-]+) >> $GITHUB_ENV
+      env:
+        BASE_REF: ${{ github.event.pull_request.base.ref }}
+      if: always()
+    - name: Get Delta
+      run: |
+        import os
+        base = float(os.environ['BASE_LINT'])
+        head = float(os.environ['HEAD_LINT'])
+        delta = head - base
+        os.popen(f"echo DELTA={round(delta, 2)} >> $GITHUB_ENV")
+      shell: python
+    - name: Display Results
+      run: |
+        echo "Lint of modified files in base:"
+        echo ${{ env.BASE_LINT }}
+        echo "Lint of modified files in head:"
+        echo ${{ env.HEAD_LINT }}
+        echo "Delta (+/-):"
+        echo ${{ env.DELTA }}
+        echo "Lint of files added by head:"
+        echo ${{ env.ADDED_LINT }}
+      if: always()
+    - name: Fail If Negative Delta
+      run: |
+        import os
+        if float(os.environ['HEAD_LINT']) < 9 and float(os.environ['DELTA']) < 0:
+            raise Exception("Head lint score < 9 and negative delta.")
+      shell: python

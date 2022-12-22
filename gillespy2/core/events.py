@@ -16,7 +16,8 @@
 
 import uuid
 
-from gillespy2.core.gillespyError import *
+from gillespy2.core.parameter import Parameter
+from gillespy2.core.species import Species
 from gillespy2.core.jsonify import Jsonify
 
 from gillespy2.core.gillespyError import EventError
@@ -39,14 +40,12 @@ class EventAssignment(Jsonify):
     :type expression: str
 
     """
-
-    
     def __init__(self, name=None, variable=None, expression=None):
 
         if name in (None, ""):
             name = f'evn{uuid.uuid4()}'.replace('-', '_')
         else:
-            from gillespy2.core import log
+            from gillespy2.core import log # pylint: disable=import-outside-toplevel
             log.warning("EventAssignment.name has been deprecated.")
         self.__name_deprecated = name
 
@@ -56,8 +55,6 @@ class EventAssignment(Jsonify):
         if expression is not None:
             self.expression = str(expression)
 
-        from gillespy2.core.parameter import Parameter
-        from gillespy2.core.species import Species
         #TODO: ADD Compartment to valid variable types once implemented
         valid_variable_types = [Species, Parameter, str]
 
@@ -76,11 +73,10 @@ class EventAssignment(Jsonify):
 
     def __getattr__(self, key):
         if key == 'name':
-            from gillespy2.core import log
+            from gillespy2.core import log # pylint: disable=import-outside-toplevel
             log.warning('EventAssignment.name has been deprecated.')
             return self.__name_deprecated
-        else: 
-            raise AttributeError
+        raise AttributeError
 
 class EventTrigger(Jsonify):
     """
@@ -121,15 +117,26 @@ class EventTrigger(Jsonify):
         return self.expression
 
     def sanitized_expression(self, species_mappings, parameter_mappings):
+        '''
+        Sanitize the event trigger expression.
+
+        :param species_mappings: Mapping of species names to sanitized species names.
+        :type species_mappings: dict
+
+        :param parameter_mappings: Mapping of parameter names to sanitized parameter names.
+        :type parameter_mappings: dict
+
+        :returns: The sanitized expression.
+        :rtype: str
+        '''
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
                        reverse=True)
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
         sanitized_expression = self.expression
-        for id, name in enumerate(names):
-            sanitized_expression = sanitized_expression.replace(name, "{"+str(id)+"}")
+        for i, name in enumerate(names):
+            sanitized_expression = sanitized_expression.replace(name, "{"+str(i)+"}")
         return sanitized_expression.format(*replacements)
-
 
 class Event(Jsonify):
     """
@@ -201,14 +208,14 @@ class Event(Jsonify):
         else:
             raise EventError(
              'name must be a valid string')
-        
+
         # Trigger
         if hasattr(trigger, 'expression'):
             self.trigger = trigger
         else:
             raise EventError(
              'trigger must be set to a valid EventTrigger')
-        
+
         # Delay
         if delay is None or isinstance(delay, str):
             self.delay = delay
@@ -242,13 +249,13 @@ class Event(Jsonify):
     def __str__(self):
         print_string = self.name
         print_string += '\n\tTrigger: ' + str(self.trigger)
-        if len(self.assignments):
+        if len(self.assignments) > 0:
             print_string += '\n\tAssignments:'
-            for a in self.assignments:
-                if isinstance(a.variable, str):
-                    print_string += '\n\t\t' + a.variable + ': ' + a.expression
+            for assign in self.assignments:
+                if isinstance(assign.variable, str):
+                    print_string += '\n\t\t' + assign.variable + ': ' + assign.expression
                 else:
-                    print_string += '\n\t\t' + a.variable.name + ': ' + a.expression
+                    print_string += '\n\t\t' + assign.variable.name + ': ' + assign.expression
         return print_string
 
     def add_assignment(self, assignment):
@@ -264,6 +271,8 @@ class Event(Jsonify):
         elif hasattr(assignment, 'variable'):
             self.assignments.append(assignment)
         else:
-            raise EventError("Unexpected parameter for add_assignment. Assignment must be an EventAssignment or list of "
-                             "EventAssignments objects")
+            raise EventError(
+                "Unexpected parameter for add_assignment. Assignment must be an EventAssignment or list of "
+                "EventAssignments objects"
+            )
         return assignment

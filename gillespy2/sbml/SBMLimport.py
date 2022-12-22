@@ -13,20 +13,18 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-import os
-import gillespy2
-import numpy as np
-import math
 import re
+import math
 
 try:
     import libsbml
-except ImportError:
-    raise ImportError('libsbml is required to convert SBML files for GillesPy.')
+except ImportError as err:
+    raise ImportError('libsbml is required to convert SBML files for GillesPy.') from err
 
-from gillespy2.core import gillespyError
+import numpy as np
 
+import gillespy2
+from gillespy2.core.gillespyError import InvalidModelError, SBMLError
 
 init_state = {'INF': np.inf, 'NaN': np.nan}
 postponed_evals = {}
@@ -34,9 +32,11 @@ eval_globals = math.__dict__.copy()
 def piecewise(*args):
     args = list(args)
     sol = None
-    if len(args) % 2: args.append(True)
+    if len(args) % 2:
+        args.append(True)
     for i, arg in enumerate(args):
-        if not i % 2: continue
+        if not i % 2:
+            continue
         if arg:
             sol = args[i-1]
             break
@@ -54,17 +54,17 @@ def __read_sbml_model(filename):
             converter_code = 0
             converter_code = -10
 
-            errors.append(["SBML {0}, code {1}, line {2}: {3}".format(error.getSeverityAsString(), error.getErrorId(),
-                                                                      error.getLine(), error.getMessage()),
-                           converter_code])
+            errmsg = f"SBML {error.getSeverityAsString()}, code {error.getErrorId()}, "
+            errmsg += f"line {error.getLine()}: {error.getMessage()}"
+            errors.append([errmsg, converter_code])
     if min([code for error, code in errors] + [0]) < 0:
         return None, errors
     sbml_model = document.getModel()
 
     return sbml_model, errors
 
-def __get_math(math):
-    math_str = libsbml.formulaToL3String(math)
+def __get_math(formula):
+    math_str = libsbml.formulaToL3String(formula)
     replacements = {
         r'\bln\b': 'log',
         r'\^': '**',
@@ -98,16 +98,14 @@ def __get_species(sbml_model, gillespy_model, errors):
                 if population == int_value:
                     population = int_value
             else: # Else convert concentration to population
-                postponed_evals[name] = '{} * {}'.format(name, cid)
+                postponed_evals[name] = f'{name} * {cid}'
                 value = concentration
         else: # Treat as concentration
             if concentration is not None: # If concentration is provided
                 value = concentration
             else: # Else convert population to concentration
-                postponed_evals[name] = '{} / {}'.format(name, cid)
+                postponed_evals[name] = f'{name} / {cid}'
                 value = population
-
-            
 
         constant = species.getConstant()
         boundary_condition = species.getBoundaryCondition()
@@ -117,7 +115,7 @@ def __get_species(sbml_model, gillespy_model, errors):
                                                 constant=constant, boundary_condition=boundary_condition)
         gillespy_model.add_species([gillespy_species])
         init_state[name] = value
-    
+
 def __get_parameters(sbml_model, gillespy_model):
 
     for i in range(sbml_model.getNumParameters()):
@@ -153,32 +151,21 @@ def __get_compartments(sbml_model, gillespy_model):
             init_state[name] = value
             gillespy_model.add_parameter([gillespy_parameter])
 
-    '''
-    for i in range(sbml_model.getNumCompartments()):
-        compartment = sbml_model.getCompartment(i)
-        vol = compartment.getSize()
-        gillespy_model.volume = vol
-
-        errors.append([
-                          "Compartment '{0}' found on line '{1}' with volume '{2}' and dimension '{3}'. gillespy "
-                          "assumes a single well-mixed, reaction volume".format(
-                              compartment.getId(), compartment.getLine(), compartment.getVolume(),
-                              compartment.getSpatialDimensions()), -5])
-    '''
-def traverse_math(node, old_id, new_id):
-    if node is None: return
+def __traverse_math(node, old_id, new_id):
+    if node is None:
+        return
     for i in range(node.getNumChildren()):
         if node.getChild(i).getName() == old_id:
             new_node = libsbml.ASTNode()
             new_node.setName(new_id)
             node.replaceChild(i, new_node)
-        traverse_math(node.getChild(i), old_id, new_id)
+        __traverse_math(node.getChild(i), old_id, new_id)
 
 def __get_kinetic_law(sbml_model, gillespy_model, reaction):
     kinetic_law = reaction.getKineticLaw()
 
     if kinetic_law is None:
-        raise gillespyError.InvalidModelError(
+        raise InvalidModelError(
             f"Failed to load SBML model: Reaction '{reaction}' is missing its propensity function."
         )
 
@@ -186,20 +173,20 @@ def __get_kinetic_law(sbml_model, gillespy_model, reaction):
     params = kinetic_law.getListOfParameters()
     local_params = kinetic_law.getListOfLocalParameters()
     for i in range(kinetic_law.getNumLocalParameters()):
-        lp = local_params.get(i)
-        old_id = lp.getId()
-        new_id = ('{}_{}'.format(reaction.getId(), lp.getId()))
-        traverse_math(tree, old_id, new_id)
-        lp.setId(new_id)
-        gillespy_parameter = gillespy2.Parameter(name=new_id, expression=lp.getValue())
+        local_param = local_params.get(i)
+        old_id = local_param.getId()
+        new_id = (f'{reaction.getId()}_{local_param.getId()}')
+        __traverse_math(tree, old_id, new_id)
+        local_param.setId(new_id)
+        gillespy_parameter = gillespy2.Parameter(name=new_id, expression=local_param.getValue())
         gillespy_model.add_parameter([gillespy_parameter])
     for i in range(kinetic_law.getNumParameters()):
-        p = params.get(i)
-        if not p.getId() in gillespy_model.listOfParameters:
-            gillespy_parameter = gillespy2.Parameter(name=p.getId(), expression=p.getValue())
+        param = params.get(i)
+        if not param.getId() in gillespy_model.listOfParameters:
+            gillespy_parameter = gillespy2.Parameter(name=param.getId(), expression=param.getValue())
             gillespy_model.add_parameter([gillespy_parameter])
     return tree
-        
+
 def __get_reactions(sbml_model, gillespy_model, errors):
     # reactions
     for i in range(sbml_model.getNumReactions()):
@@ -217,42 +204,42 @@ def __get_reactions(sbml_model, gillespy_model, errors):
             reactant = reaction.getReactant(j)
             species = reactant.getSpecies()
 
-            if species == "EmptySet": continue
+            if species == "EmptySet":
+                continue
+            stoichiometry = reactant.getStoichiometry()
+            if isinstance(stoichiometry, float):
+                if int(stoichiometry) != stoichiometry:
+                    logmsg = f"Reaction {name} contains a float stoichiometry for reactant {species}.  "
+                    logmsg += "Please check your model as this may cause inaccuracies in the results."
+                    gillespy2.log.warning(logmsg)
+                stoichiometry = int(stoichiometry)
+
+            if species in r_set:
+                reactants[species] += stoichiometry
             else:
-                stoichiometry = reactant.getStoichiometry()
-                if isinstance(stoichiometry, float):
-                    if int(stoichiometry) != stoichiometry:
-                        logmsg = f"Reaction {name} contains a float stoichiometry for reactant {species}.  "
-                        logmsg += "Please check your model as this may cause inaccuracies in the results."
-                        gillespy2.log.warning(logmsg)
-                    stoichiometry = int(stoichiometry)
-    
-                if species in r_set:
-                    reactants[species] += stoichiometry
-                else:
-                    r_set.add(species)
-                    reactants[species] = stoichiometry
+                r_set.add(species)
+                reactants[species] = stoichiometry
 
         # get products
         for j in range(reaction.getNumProducts()):
             product = reaction.getProduct(j)
             species = product.getSpecies()
 
-            if species == "EmptySet": continue
-            else:
-                stoichiometry = product.getStoichiometry()
-                if isinstance(stoichiometry, float):
-                    if int(stoichiometry) != stoichiometry:
-                        logmsg = f"Reaction {name} contains a float stoichiometry for product {species}.  "
-                        logmsg += "Please check your model as this may cause inaccuracies in the results."
-                        gillespy2.log.warning(logmsg)
-                    stoichiometry = int(stoichiometry)
+            if species == "EmptySet":
+                continue
+            stoichiometry = product.getStoichiometry()
+            if isinstance(stoichiometry, float):
+                if int(stoichiometry) != stoichiometry:
+                    logmsg = f"Reaction {name} contains a float stoichiometry for product {species}.  "
+                    logmsg += "Please check your model as this may cause inaccuracies in the results."
+                    gillespy2.log.warning(logmsg)
+                stoichiometry = int(stoichiometry)
 
-                if species in p_set:
-                    products[species] += stoichiometry
-                else:
-                    p_set.add(species)
-                    products[species] = stoichiometry
+            if species in p_set:
+                products[species] += stoichiometry
+            else:
+                p_set.add(species)
+                products[species] = stoichiometry
 
         gillespy_reaction = gillespy2.Reaction(name=name, reactants=reactants, products=products,
                                              propensity_function=propensity)
@@ -281,9 +268,9 @@ def __get_rules(sbml_model, gillespy_model, errors):
             gillespy_model.add_species([species])
 
         t = []
-        
+
         if rule.isAssignment():
-            assign_value = eval(rule_string, {**eval_globals, **init_state})
+            _ = eval(rule_string, {**eval_globals, **init_state})
             postponed_evals[rule_variable] = rule_string
             gillespy_rule = gillespy2.AssignmentRule(name=rule_name, variable=rule_variable,
                 formula=rule_string)
@@ -306,22 +293,21 @@ def __get_rules(sbml_model, gillespy_model, errors):
             else:
                 msg = "Rule"
 
-            errors.append(["{0} '{1}' found on line '{2}' with equation '{3}'. gillespy does not support SBML Algebraic Rules".format(
-                msg, rule.getId(), rule.getLine(), libsbml.formulaToString(rule.getMath())), -5])
+            errmsg = f"{msg} '{rule.getId()}' found on line '{rule.getLine()}' with equation "
+            errmsg += f"'{libsbml.formulaToString(rule.getMath())}'. gillespy does not support SBML Algebraic Rules."
+            errors.append([errmsg, -5])
 
-def __get_constraints(sbml_model, gillespy_model):
+def __get_constraints(sbml_model, gillespy_model, errors):
     for i in range(sbml_model.getNumConstraints()):
         constraint = sbml_model.getConstraint(i)
 
-        errors.append([
-                          "Constraint '{0}' found on line '{1}' with equation '{2}'. gillespy does not support SBML "
-                          "Constraints".format(
-                              constraint.getId(), constraint.getLine(), libsbml.formulaToString(constraint.getMath())),
-                          -5])
+        errmsg = f"Constraint '{constraint.getId()}' found on line '{constraint.getLine()}' with equation "
+        errmsg += f"'{libsbml.formulaToString(constraint.getMath())}'. gillespy does not support SBML Constraints"
+        errors.append([errmsg, -5])
 
 def __get_function_definitions(sbml_model, gillespy_model):
     # TODO:
-    # DOES NOT CURRENTLY SUPPORT ALL MATHML 
+    # DOES NOT CURRENTLY SUPPORT ALL MATHML
     # ALSO DOES NOT SUPPORT NON-MATHML
     for i in range(sbml_model.getNumFunctionDefinitions()):
         function = sbml_model.getFunctionDefinition(i)
@@ -330,15 +316,17 @@ def __get_function_definitions(sbml_model, gillespy_model):
         num_nodes = function_tree.getNumChildren()
         function_args = [function_tree.getChild(i).getName() for i in range(num_nodes-1)]
         function_string = __get_math(function_tree.getChild(num_nodes-1))
-        gillespy_function = gillespy2.FunctionDefinition(name=function_name, function=function_string, args=function_args)
+        gillespy_function = gillespy2.FunctionDefinition(
+            name=function_name, function=function_string, args=function_args
+        )
         gillespy_model.add_function_definition(gillespy_function)
-        init_state[gillespy_function.name] = gillespy_function.function
+        init_state[gillespy_function.name] = gillespy_function.function_string
 
 def __get_events(sbml_model, gillespy_model):
     for i in range(sbml_model.getNumEvents()):
         event = sbml_model.getEvent(i)
         gillespy_assignments = []
-        
+
         trigger = event.getTrigger()
         delay = event.getDelay()
         if delay is not None:
@@ -348,20 +336,23 @@ def __get_events(sbml_model, gillespy_model):
         initial_value = trigger.getInitialValue()
         persistent = trigger.getPersistent()
         use_values_from_trigger_time = event.getUseValuesFromTriggerTime()
-        gillespy_trigger = gillespy2.EventTrigger(expression=expression, 
-            initial_value=initial_value, persistent=persistent)
+        gillespy_trigger = gillespy2.EventTrigger(
+            expression=expression, initial_value=initial_value, persistent=persistent
+        )
         assignments = event.getListOfEventAssignments()
-        for a in assignments:
+        for assign in assignments:
             # Convert Non-Constant Parameter to Species
-            if a.getVariable() in gillespy_model.listOfParameters:
-                gillespy_species = gillespy2.Species(name=a.getVariable(),
-                                                        initial_value=gillespy_model.listOfParameters[a.getVariable()].expression,
-                                                        mode='continuous', allow_negative_populations=True)
-                gillespy_model.delete_parameter(a.getVariable())
+            if assign.getVariable() in gillespy_model.listOfParameters:
+                gillespy_species = gillespy2.Species(
+                    name=assign.getVariable(),
+                    initial_value=gillespy_model.listOfParameters[assign.getVariable()].expression,
+                    mode='continuous', allow_negative_populations=True
+                )
+                gillespy_model.delete_parameter(assign.getVariable())
                 gillespy_model.add_species([gillespy_species])
 
-            gillespy_assignment = gillespy2.EventAssignment(variable=a.getVariable(),
-                expression=__get_math(a.getMath()))
+            gillespy_assignment = gillespy2.EventAssignment(variable=assign.getVariable(),
+                expression=__get_math(assign.getMath()))
             gillespy_assignments.append(gillespy_assignment)
         gillespy_event = gillespy2.Event(
             name=event.getId(), trigger=gillespy_trigger,
@@ -372,9 +363,9 @@ def __get_events(sbml_model, gillespy_model):
 def __get_initial_assignments(sbml_model, gillespy_model):
 
     for i in range(sbml_model.getNumInitialAssignments()):
-        ia = sbml_model.getInitialAssignment(i)
-        variable = ia.getId()
-        expression = __get_math(ia.getMath())
+        init_assign = sbml_model.getInitialAssignment(i)
+        variable = init_assign.getId()
+        expression = __get_math(init_assign.getMath())
         assigned_value = eval(expression, {**init_state, **eval_globals})
         init_state[variable] = assigned_value
         if assigned_value != assigned_value:
@@ -391,8 +382,10 @@ def __resolve_evals(gillespy_model, init_state):
         successful = []
         if len(postponed_evals):
             for var, expr in postponed_evals.items():
-                try: assigned_value = eval(expr, {**eval_globals, **init_state})
-                except: assigned_value = np.nan
+                try:
+                    assigned_value = eval(expr, {**eval_globals, **init_state})
+                except Exception:
+                    assigned_value = np.nan
                 if assigned_value == assigned_value:
                     successful.append(var)
                     init_state[var] = assigned_value
@@ -400,13 +393,14 @@ def __resolve_evals(gillespy_model, init_state):
                         gillespy_model.listOfSpecies[var].initial_value = assigned_value
                     elif var in gillespy_model.listOfParameters:
                         gillespy_model.listOfParameters[var].value = assigned_value
-        if not len(successful): break
-        for var in successful: del postponed_evals[var]
+        if len(successful) <= 0:
+            break
+        for var in successful:
+            del postponed_evals[var]
 
 def convert(filename, model_name=None, gillespy_model=None, report_silently_with_sbml_error=False):
-
     sbml_model, errors = __read_sbml_model(filename)
-    
+
     if sbml_model is None:
         if report_silently_with_sbml_error:
             return None, errors
@@ -414,9 +408,10 @@ def convert(filename, model_name=None, gillespy_model=None, report_silently_with
         raise SBMLError(f"SBML model import failed.  Reason Given: \n\t{errs}")
 
     if len(errors) > 0 and not report_silently_with_sbml_error:
-        from gillespy2 import log
+        from gillespy2 import log # pylint: disable=import-outside-toplevel
         errs = '\n\t'.join(errors)
-        log.warning(f"Error were detected in the SBML model.  Error: \n\t{errs}")
+        errmsg = f"Error were detected in the SBML model.  Error: \n\t{errs}"
+        log.warning(errmsg)
 
     if model_name is None:
         model_name = sbml_model.getName()
@@ -430,13 +425,9 @@ def convert(filename, model_name=None, gillespy_model=None, report_silently_with
     __get_compartments(sbml_model, gillespy_model)
     __get_reactions(sbml_model, gillespy_model, errors)
     __get_rules(sbml_model, gillespy_model, errors)
-    __get_constraints(sbml_model, gillespy_model)
+    __get_constraints(sbml_model, gillespy_model, errors)
     __get_events(sbml_model, gillespy_model)
     __get_initial_assignments(sbml_model, gillespy_model)
     __resolve_evals(gillespy_model, init_state)
 
-
     return gillespy_model, errors
-
-
-

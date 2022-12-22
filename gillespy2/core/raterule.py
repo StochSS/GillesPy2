@@ -19,7 +19,6 @@ import uuid
 from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.jsonify import Jsonify
 
-
 class RateRule(SortableObject, Jsonify):
     """
     A RateRule is used to express equations that determine the rates of change
@@ -27,8 +26,10 @@ class RateRule(SortableObject, Jsonify):
 
     :param name: Name of Rule
     :type name: str
+
     :param variable: Target Species/Parameter to be modified by rule
     :type variable: str
+
     :param formula: String representation of formula to be evaluated
     :type formula: str
     """
@@ -42,11 +43,8 @@ class RateRule(SortableObject, Jsonify):
         self.variable = variable
 
     def __str__(self):
-        try:
-            var_name = self.variable if isinstance(self.variable, str) else self.variable.name
-            return f"{self.name}: Var: {var_name}: {self.formula}"
-        except:
-            return 'Rate Rule: {} contains an invalid variable or formula'.format(self.name)
+        var_name = self.variable if isinstance(self.variable, str) else self.variable.name
+        return f"{self.name}: Var: {var_name}: {self.formula}"
 
     def sanitized_formula(self, species_mappings, parameter_mappings):
         names = sorted(list(species_mappings.keys()) + list(parameter_mappings.keys()), key=lambda x: len(x),
@@ -54,6 +52,6 @@ class RateRule(SortableObject, Jsonify):
         replacements = [parameter_mappings[name] if name in parameter_mappings else species_mappings[name]
                         for name in names]
         sanitized_formula = self.formula
-        for id, name in enumerate(names):
-            sanitized_formula = sanitized_formula.replace(name, "{" + str(id) + "}")
+        for i, name in enumerate(names):
+            sanitized_formula = sanitized_formula.replace(name, "{" + str(i) + "}")
         return sanitized_formula.format(*replacements)
