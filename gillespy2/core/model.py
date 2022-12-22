@@ -753,7 +753,9 @@ class Model(SortableObject, Jsonify):
                 if rate_rule.variable.mode is None or rate_rule.variable.mode == 'dynamic':
                     rate_rule.variable.mode = 'continuous'
                     from gillespy2.core import log # pylint:disable=import-outside-toplevel
-                    log.warning(f"Changing {rate_rule.variable.name}.mode='continuous' as it is the target of RateRule {rate_rule.name}")
+                    errmsg = f"Changing {rate_rule.variable.name}.mode='continuous' as it is the target of RateRule"
+                    errmsg += f" {rate_rule.name}"
+                    log.warning(errmsg)
 
             self.listOfRateRules[rate_rule.name] = rate_rule
             # Build the sanitized rate rule
