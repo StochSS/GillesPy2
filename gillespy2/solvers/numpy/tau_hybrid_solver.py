@@ -1133,11 +1133,8 @@ class TauHybridSolver(GillesPySolver):
         t0_delayed_events, species_modified_by_events = self.__check_t0_events(initial_state)
 
         # Create deterministic tracking data structures
-        #det_spec = {species: True for (species, value) in self.model.listOfSpecies.items() if value.mode == 'dynamic'}
-        det_spec = {species: False for species in self.model.listOfSpecies.keys()}
-        for (sname, value) in self.model.listOfSpecies.items():
-            if value.mode == 'dynamic' or value.mode == 'continuous':
-                det_spec[sname] = True
+        det_spec = {species: value.mode != 'discrete' for (species, value) in self.model.listOfSpecies.items()}
+
         det_rxn = {rxn: False for (rxn, value) in self.model.listOfReactions.items()}
 
         # Determine if entire simulation is ODE or Stochastic, in order to
@@ -1221,9 +1218,7 @@ class TauHybridSolver(GillesPySolver):
                         raise SimulationError('Error calculation propensity for {0}.\nReason: {1}\ncurr_state={2}'.format(r, e, curr_state))
 
                 # Calculate Tau statistics and select a good tau step
-                tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
-                            self.model, propensities, curr_state[0], curr_time[0], save_times[0]]
-                tau_step = Tau.select(*tau_args)
+                tau_step = Tau.select(HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold, self.model, propensities, curr_state[0], curr_time[0], save_times[0])
 
                 # Process switching if used
                 mn, sd, CV = self.__calculate_statistics(curr_time[0], propensities, curr_state[0], tau_step, det_spec)
