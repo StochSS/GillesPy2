@@ -181,7 +181,7 @@ class TauHybridSolver(GillesPySolver):
         rr_vars = {}
         for n, rr in self.model.listOfRateRules.items():
             rr_vars[rr.variable.name] = n
-        for spec in self.model.listOfSpecies.keys():
+        for spec in self.model.listOfSpecies:
             if spec in rr_vars.keys():
                 diff_eqs[self.model.listOfSpecies[spec]] = self.model.listOfRateRules[rr_vars[spec]].formula
             else:
@@ -638,7 +638,8 @@ class TauHybridSolver(GillesPySolver):
             # check each species to see if they are negative
             for s in self.non_negative_species:
                 if curr_state[s] < 0:
-                    raise SimulationError(f"Negative State detected at begining of step. Species involved in reactions can not be negative.")
+                    raise SimulationError(f"Negative State detected at begining of step." \
+                    " Species involved in reactions can not be negative.")
 
     def __simulate_invalid_state_check(self, species_modified, curr_state, compiled_reactions):
             invalid_state = False
@@ -678,7 +679,9 @@ class TauHybridSolver(GillesPySolver):
         self.__simulate_negative_state_check(curr_state)
         if curr_time == 0.0:
             # save state at beginning of simulation
-            save_times, save_index = self.__save_state_to_output(curr_time, save_index, curr_state, species, trajectory, save_times)
+            save_times, save_index = self.__save_state_to_output(
+                curr_time, save_index, curr_state, species, trajectory, save_times
+            )
 
         event_queue = []
         prev_y0 = copy.deepcopy(y0)
