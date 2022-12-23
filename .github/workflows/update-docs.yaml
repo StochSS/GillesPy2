@@ -35,7 +35,7 @@ jobs:
     - name: Update the Docs
       working-directory: docs
       run: |
-        make build-docs
+        make html
 
     - name: Commit Changes
       working-directory: docs
