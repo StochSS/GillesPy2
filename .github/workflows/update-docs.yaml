@@ -12,7 +12,7 @@ jobs:
     - name: Initialize environment
       uses: actions/checkout@v2
       with:
-        ref: main
+        ref: develop
         fetch-depth: 0
       
     - name: Install Python
@@ -43,4 +43,4 @@ jobs:
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: main
+        branch: develop
