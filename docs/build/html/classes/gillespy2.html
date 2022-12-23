@@ -4,16 +4,18 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>gillespy2 package &#8212; GillesPy2 1.7.0 documentation</title>
+    <title>gillespy2 package &#8212; GillesPy2 1.7.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/gillespy2_alabaster_customizations.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="gillespy2.core package" href="gillespy2.core.html" />
@@ -95,7 +97,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -113,36 +115,578 @@
           <div class="body" role="main">
             
   <section id="gillespy2-package">
-<h1>gillespy2 package<a class="headerlink" href="#gillespy2-package" title="Permalink to this headline">¶</a></h1>
+<h1>gillespy2 package<a class="headerlink" href="#gillespy2-package" title="Permalink to this heading">¶</a></h1>
 <section id="subpackages">
-<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="gillespy2.core.html">gillespy2.core package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.assignmentrule">gillespy2.core.assignmentrule module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.cleanup">gillespy2.core.cleanup module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.events">gillespy2.core.events module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.functiondefinition">gillespy2.core.functiondefinition module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.gillespyError">gillespy2.core.gillespyError module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.gillespySolver">gillespy2.core.gillespySolver module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.jsonify">gillespy2.core.jsonify module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.liveGraphing">gillespy2.core.liveGraphing module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.model">gillespy2.core.model module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.parameter">gillespy2.core.parameter module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.raterule">gillespy2.core.raterule module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.reaction">gillespy2.core.reaction module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.results">gillespy2.core.results module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.sortableobject">gillespy2.core.sortableobject module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.species">gillespy2.core.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.timespan">gillespy2.core.timespan module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.assignmentrule">gillespy2.core.assignmentrule module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.assignmentrule.AssignmentRule"><code class="docutils literal notranslate"><span class="pre">AssignmentRule</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.assignmentrule.AssignmentRule.sanitized_formula"><code class="docutils literal notranslate"><span class="pre">AssignmentRule.sanitized_formula()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.cleanup">gillespy2.core.cleanup module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.cleanup.cleanup_tempfiles"><code class="docutils literal notranslate"><span class="pre">cleanup_tempfiles()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.events">gillespy2.core.events module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.events.Event"><code class="docutils literal notranslate"><span class="pre">Event</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.events.Event.add_assignment"><code class="docutils literal notranslate"><span class="pre">Event.add_assignment()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.events.EventAssignment"><code class="docutils literal notranslate"><span class="pre">EventAssignment</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.events.EventTrigger"><code class="docutils literal notranslate"><span class="pre">EventTrigger</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.events.EventTrigger.sanitized_expression"><code class="docutils literal notranslate"><span class="pre">EventTrigger.sanitized_expression()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.functiondefinition">gillespy2.core.functiondefinition module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.functiondefinition.FunctionDefinition"><code class="docutils literal notranslate"><span class="pre">FunctionDefinition</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.functiondefinition.FunctionDefinition.get_arg_string"><code class="docutils literal notranslate"><span class="pre">FunctionDefinition.get_arg_string()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.functiondefinition.FunctionDefinition.sanitized_function"><code class="docutils literal notranslate"><span class="pre">FunctionDefinition.sanitized_function()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.gillespyError">gillespy2.core.gillespyError module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.AssignmentRuleError"><code class="docutils literal notranslate"><span class="pre">AssignmentRuleError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.BuildError"><code class="docutils literal notranslate"><span class="pre">BuildError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.DirectoryError"><code class="docutils literal notranslate"><span class="pre">DirectoryError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.EventError"><code class="docutils literal notranslate"><span class="pre">EventError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.ExecutionError"><code class="docutils literal notranslate"><span class="pre">ExecutionError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.FunctionDefinitionError"><code class="docutils literal notranslate"><span class="pre">FunctionDefinitionError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.InvalidModelError"><code class="docutils literal notranslate"><span class="pre">InvalidModelError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.InvalidStochMLError"><code class="docutils literal notranslate"><span class="pre">InvalidStochMLError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.ModelError"><code class="docutils literal notranslate"><span class="pre">ModelError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.ParameterError"><code class="docutils literal notranslate"><span class="pre">ParameterError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.RateRuleError"><code class="docutils literal notranslate"><span class="pre">RateRuleError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.ReactionError"><code class="docutils literal notranslate"><span class="pre">ReactionError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.ResultsError"><code class="docutils literal notranslate"><span class="pre">ResultsError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.SBMLError"><code class="docutils literal notranslate"><span class="pre">SBMLError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.SimulationError"><code class="docutils literal notranslate"><span class="pre">SimulationError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.SimulationTimeoutError"><code class="docutils literal notranslate"><span class="pre">SimulationTimeoutError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.SolverError"><code class="docutils literal notranslate"><span class="pre">SolverError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.SpeciesError"><code class="docutils literal notranslate"><span class="pre">SpeciesError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.StochMLImportError"><code class="docutils literal notranslate"><span class="pre">StochMLImportError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.TimespanError"><code class="docutils literal notranslate"><span class="pre">TimespanError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespyError.ValidationError"><code class="docutils literal notranslate"><span class="pre">ValidationError</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.gillespySolver">gillespy2.core.gillespySolver module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver"><code class="docutils literal notranslate"><span class="pre">GillesPySolver</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver.get_solver_settings"><code class="docutils literal notranslate"><span class="pre">GillesPySolver.get_solver_settings()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver.get_supported_features"><code class="docutils literal notranslate"><span class="pre">GillesPySolver.get_supported_features()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver.get_supported_integrator_options"><code class="docutils literal notranslate"><span class="pre">GillesPySolver.get_supported_integrator_options()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver.name"><code class="docutils literal notranslate"><span class="pre">GillesPySolver.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver.run"><code class="docutils literal notranslate"><span class="pre">GillesPySolver.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver.validate_integrator_options"><code class="docutils literal notranslate"><span class="pre">GillesPySolver.validate_integrator_options()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver.validate_model"><code class="docutils literal notranslate"><span class="pre">GillesPySolver.validate_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver.validate_sbml_features"><code class="docutils literal notranslate"><span class="pre">GillesPySolver.validate_sbml_features()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.gillespySolver.GillesPySolver.validate_tspan"><code class="docutils literal notranslate"><span class="pre">GillesPySolver.validate_tspan()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.jsonify">gillespy2.core.jsonify module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.ComplexJsonCoder"><code class="docutils literal notranslate"><span class="pre">ComplexJsonCoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.ComplexJsonCoder.decode"><code class="docutils literal notranslate"><span class="pre">ComplexJsonCoder.decode()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.ComplexJsonCoder.default"><code class="docutils literal notranslate"><span class="pre">ComplexJsonCoder.default()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.Int64Coder"><code class="docutils literal notranslate"><span class="pre">Int64Coder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.Int64Coder.from_json"><code class="docutils literal notranslate"><span class="pre">Int64Coder.from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.Int64Coder.to_dict"><code class="docutils literal notranslate"><span class="pre">Int64Coder.to_dict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.Jsonify"><code class="docutils literal notranslate"><span class="pre">Jsonify</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.Jsonify.from_dict"><code class="docutils literal notranslate"><span class="pre">Jsonify.from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.Jsonify.from_json"><code class="docutils literal notranslate"><span class="pre">Jsonify.from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.Jsonify.get_json_hash"><code class="docutils literal notranslate"><span class="pre">Jsonify.get_json_hash()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.Jsonify.get_translation_table"><code class="docutils literal notranslate"><span class="pre">Jsonify.get_translation_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.Jsonify.make_translation_table"><code class="docutils literal notranslate"><span class="pre">Jsonify.make_translation_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.Jsonify.public_vars"><code class="docutils literal notranslate"><span class="pre">Jsonify.public_vars()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.Jsonify.to_anon"><code class="docutils literal notranslate"><span class="pre">Jsonify.to_anon()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.Jsonify.to_dict"><code class="docutils literal notranslate"><span class="pre">Jsonify.to_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.Jsonify.to_json"><code class="docutils literal notranslate"><span class="pre">Jsonify.to_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.Jsonify.to_named"><code class="docutils literal notranslate"><span class="pre">Jsonify.to_named()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.NdArrayCoder"><code class="docutils literal notranslate"><span class="pre">NdArrayCoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.NdArrayCoder.from_json"><code class="docutils literal notranslate"><span class="pre">NdArrayCoder.from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.NdArrayCoder.to_dict"><code class="docutils literal notranslate"><span class="pre">NdArrayCoder.to_dict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.SetCoder"><code class="docutils literal notranslate"><span class="pre">SetCoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.SetCoder.from_json"><code class="docutils literal notranslate"><span class="pre">SetCoder.from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.SetCoder.to_dict"><code class="docutils literal notranslate"><span class="pre">SetCoder.to_dict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.TranslationTable"><code class="docutils literal notranslate"><span class="pre">TranslationTable</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.TranslationTable.obj_to_anon"><code class="docutils literal notranslate"><span class="pre">TranslationTable.obj_to_anon()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.TranslationTable.obj_to_named"><code class="docutils literal notranslate"><span class="pre">TranslationTable.obj_to_named()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.TranslationTable.recursive_translate"><code class="docutils literal notranslate"><span class="pre">TranslationTable.recursive_translate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.TypeCoder"><code class="docutils literal notranslate"><span class="pre">TypeCoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.TypeCoder.from_json"><code class="docutils literal notranslate"><span class="pre">TypeCoder.from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.jsonify.TypeCoder.to_dict"><code class="docutils literal notranslate"><span class="pre">TypeCoder.to_dict()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.liveGraphing">gillespy2.core.liveGraphing module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.liveGraphing.CRepeatTimer"><code class="docutils literal notranslate"><span class="pre">CRepeatTimer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.liveGraphing.CRepeatTimer.pause"><code class="docutils literal notranslate"><span class="pre">CRepeatTimer.pause</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.liveGraphing.CRepeatTimer.run"><code class="docutils literal notranslate"><span class="pre">CRepeatTimer.run()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.liveGraphing.LiveDisplayer"><code class="docutils literal notranslate"><span class="pre">LiveDisplayer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.liveGraphing.LiveDisplayer.display"><code class="docutils literal notranslate"><span class="pre">LiveDisplayer.display()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.liveGraphing.LiveDisplayer.increment_trajectory"><code class="docutils literal notranslate"><span class="pre">LiveDisplayer.increment_trajectory()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.liveGraphing.LiveDisplayer.print_text_header"><code class="docutils literal notranslate"><span class="pre">LiveDisplayer.print_text_header()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.liveGraphing.LiveDisplayer.trajectory_header"><code class="docutils literal notranslate"><span class="pre">LiveDisplayer.trajectory_header()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.liveGraphing.RepeatTimer"><code class="docutils literal notranslate"><span class="pre">RepeatTimer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.liveGraphing.RepeatTimer.pause"><code class="docutils literal notranslate"><span class="pre">RepeatTimer.pause</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.liveGraphing.RepeatTimer.run"><code class="docutils literal notranslate"><span class="pre">RepeatTimer.run()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.liveGraphing.display_types"><code class="docutils literal notranslate"><span class="pre">display_types()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.liveGraphing.valid_graph_params"><code class="docutils literal notranslate"><span class="pre">valid_graph_params()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.model">gillespy2.core.model module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.add"><code class="docutils literal notranslate"><span class="pre">Model.add()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.add_assignment_rule"><code class="docutils literal notranslate"><span class="pre">Model.add_assignment_rule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.add_event"><code class="docutils literal notranslate"><span class="pre">Model.add_event()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.add_function_definition"><code class="docutils literal notranslate"><span class="pre">Model.add_function_definition()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.add_parameter"><code class="docutils literal notranslate"><span class="pre">Model.add_parameter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.add_rate_rule"><code class="docutils literal notranslate"><span class="pre">Model.add_rate_rule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.add_reaction"><code class="docutils literal notranslate"><span class="pre">Model.add_reaction()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.add_species"><code class="docutils literal notranslate"><span class="pre">Model.add_species()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.compile_prep"><code class="docutils literal notranslate"><span class="pre">Model.compile_prep()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.delete_all_assignment_rules"><code class="docutils literal notranslate"><span class="pre">Model.delete_all_assignment_rules()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.delete_all_events"><code class="docutils literal notranslate"><span class="pre">Model.delete_all_events()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.delete_all_function_definitions"><code class="docutils literal notranslate"><span class="pre">Model.delete_all_function_definitions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.delete_all_parameters"><code class="docutils literal notranslate"><span class="pre">Model.delete_all_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.delete_all_rate_rules"><code class="docutils literal notranslate"><span class="pre">Model.delete_all_rate_rules()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.delete_all_reactions"><code class="docutils literal notranslate"><span class="pre">Model.delete_all_reactions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.delete_all_species"><code class="docutils literal notranslate"><span class="pre">Model.delete_all_species()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.delete_assignment_rule"><code class="docutils literal notranslate"><span class="pre">Model.delete_assignment_rule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.delete_event"><code class="docutils literal notranslate"><span class="pre">Model.delete_event()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.delete_function_definition"><code class="docutils literal notranslate"><span class="pre">Model.delete_function_definition()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.delete_parameter"><code class="docutils literal notranslate"><span class="pre">Model.delete_parameter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.delete_rate_rule"><code class="docutils literal notranslate"><span class="pre">Model.delete_rate_rule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.delete_reaction"><code class="docutils literal notranslate"><span class="pre">Model.delete_reaction()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.delete_species"><code class="docutils literal notranslate"><span class="pre">Model.delete_species()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.get_all_assignment_rules"><code class="docutils literal notranslate"><span class="pre">Model.get_all_assignment_rules()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.get_all_events"><code class="docutils literal notranslate"><span class="pre">Model.get_all_events()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.get_all_function_definitions"><code class="docutils literal notranslate"><span class="pre">Model.get_all_function_definitions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.get_all_parameters"><code class="docutils literal notranslate"><span class="pre">Model.get_all_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.get_all_rate_rules"><code class="docutils literal notranslate"><span class="pre">Model.get_all_rate_rules()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.get_all_reactions"><code class="docutils literal notranslate"><span class="pre">Model.get_all_reactions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.get_all_species"><code class="docutils literal notranslate"><span class="pre">Model.get_all_species()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.get_assignment_rule"><code class="docutils literal notranslate"><span class="pre">Model.get_assignment_rule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.get_best_solver"><code class="docutils literal notranslate"><span class="pre">Model.get_best_solver()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.get_best_solver_algo"><code class="docutils literal notranslate"><span class="pre">Model.get_best_solver_algo()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.get_element"><code class="docutils literal notranslate"><span class="pre">Model.get_element()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.get_event"><code class="docutils literal notranslate"><span class="pre">Model.get_event()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.get_function_definition"><code class="docutils literal notranslate"><span class="pre">Model.get_function_definition()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.get_model_features"><code class="docutils literal notranslate"><span class="pre">Model.get_model_features()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.get_parameter"><code class="docutils literal notranslate"><span class="pre">Model.get_parameter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.get_rate_rule"><code class="docutils literal notranslate"><span class="pre">Model.get_rate_rule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.get_reaction"><code class="docutils literal notranslate"><span class="pre">Model.get_reaction()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.get_species"><code class="docutils literal notranslate"><span class="pre">Model.get_species()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.make_translation_table"><code class="docutils literal notranslate"><span class="pre">Model.make_translation_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.problem_with_name"><code class="docutils literal notranslate"><span class="pre">Model.problem_with_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.reserved_names"><code class="docutils literal notranslate"><span class="pre">Model.reserved_names</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.run"><code class="docutils literal notranslate"><span class="pre">Model.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.sanitized_parameter_names"><code class="docutils literal notranslate"><span class="pre">Model.sanitized_parameter_names()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.sanitized_species_names"><code class="docutils literal notranslate"><span class="pre">Model.sanitized_species_names()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.serialize"><code class="docutils literal notranslate"><span class="pre">Model.serialize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.set_parameter"><code class="docutils literal notranslate"><span class="pre">Model.set_parameter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.set_units"><code class="docutils literal notranslate"><span class="pre">Model.set_units()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.special_characters"><code class="docutils literal notranslate"><span class="pre">Model.special_characters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.timespan"><code class="docutils literal notranslate"><span class="pre">Model.timespan()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.update_namespace"><code class="docutils literal notranslate"><span class="pre">Model.update_namespace()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.Model.validate_reactants_and_products"><code class="docutils literal notranslate"><span class="pre">Model.validate_reactants_and_products()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.StochMLDocument"><code class="docutils literal notranslate"><span class="pre">StochMLDocument</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.StochMLDocument.from_file"><code class="docutils literal notranslate"><span class="pre">StochMLDocument.from_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.StochMLDocument.from_model"><code class="docutils literal notranslate"><span class="pre">StochMLDocument.from_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.StochMLDocument.from_string"><code class="docutils literal notranslate"><span class="pre">StochMLDocument.from_string()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.StochMLDocument.to_model"><code class="docutils literal notranslate"><span class="pre">StochMLDocument.to_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.StochMLDocument.to_string"><code class="docutils literal notranslate"><span class="pre">StochMLDocument.to_string()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.export_SBML"><code class="docutils literal notranslate"><span class="pre">export_SBML()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.export_StochSS"><code class="docutils literal notranslate"><span class="pre">export_StochSS()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.model.import_SBML"><code class="docutils literal notranslate"><span class="pre">import_SBML()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.parameter">gillespy2.core.parameter module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.parameter.Parameter"><code class="docutils literal notranslate"><span class="pre">Parameter</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.parameter.Parameter.sanitized_expression"><code class="docutils literal notranslate"><span class="pre">Parameter.sanitized_expression()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.parameter.Parameter.validate"><code class="docutils literal notranslate"><span class="pre">Parameter.validate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.raterule">gillespy2.core.raterule module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.raterule.RateRule"><code class="docutils literal notranslate"><span class="pre">RateRule</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.raterule.RateRule.sanitized_formula"><code class="docutils literal notranslate"><span class="pre">RateRule.sanitized_formula()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.reaction">gillespy2.core.reaction module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.reaction.Reaction"><code class="docutils literal notranslate"><span class="pre">Reaction</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.reaction.Reaction.Annotate"><code class="docutils literal notranslate"><span class="pre">Reaction.Annotate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.reaction.Reaction.addProduct"><code class="docutils literal notranslate"><span class="pre">Reaction.addProduct()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.reaction.Reaction.addReactant"><code class="docutils literal notranslate"><span class="pre">Reaction.addReactant()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.reaction.Reaction.add_product"><code class="docutils literal notranslate"><span class="pre">Reaction.add_product()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.reaction.Reaction.add_reactant"><code class="docutils literal notranslate"><span class="pre">Reaction.add_reactant()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.reaction.Reaction.create_mass_action"><code class="docutils literal notranslate"><span class="pre">Reaction.create_mass_action()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.reaction.Reaction.from_json"><code class="docutils literal notranslate"><span class="pre">Reaction.from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.reaction.Reaction.sanitized_propensity_function"><code class="docutils literal notranslate"><span class="pre">Reaction.sanitized_propensity_function()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.reaction.Reaction.setType"><code class="docutils literal notranslate"><span class="pre">Reaction.setType()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.reaction.Reaction.set_annotation"><code class="docutils literal notranslate"><span class="pre">Reaction.set_annotation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.reaction.Reaction.set_propensities"><code class="docutils literal notranslate"><span class="pre">Reaction.set_propensities()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.reaction.Reaction.set_rate"><code class="docutils literal notranslate"><span class="pre">Reaction.set_rate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.reaction.Reaction.to_dict"><code class="docutils literal notranslate"><span class="pre">Reaction.to_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.reaction.Reaction.validate"><code class="docutils literal notranslate"><span class="pre">Reaction.validate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.reaction.Reaction.verify"><code class="docutils literal notranslate"><span class="pre">Reaction.verify()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.results">gillespy2.core.results module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.results.Results"><code class="docutils literal notranslate"><span class="pre">Results</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.results.Results.average_ensemble"><code class="docutils literal notranslate"><span class="pre">Results.average_ensemble()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.results.Results.build_from_solver_results"><code class="docutils literal notranslate"><span class="pre">Results.build_from_solver_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.results.Results.plot"><code class="docutils literal notranslate"><span class="pre">Results.plot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.results.Results.plot_mean_stdev"><code class="docutils literal notranslate"><span class="pre">Results.plot_mean_stdev()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.results.Results.plot_std_dev_range"><code class="docutils literal notranslate"><span class="pre">Results.plot_std_dev_range()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.results.Results.plotplotly"><code class="docutils literal notranslate"><span class="pre">Results.plotplotly()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.results.Results.plotplotly_mean_stdev"><code class="docutils literal notranslate"><span class="pre">Results.plotplotly_mean_stdev()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.results.Results.plotplotly_std_dev_range"><code class="docutils literal notranslate"><span class="pre">Results.plotplotly_std_dev_range()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.results.Results.stddev_ensemble"><code class="docutils literal notranslate"><span class="pre">Results.stddev_ensemble()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.results.Results.to_array"><code class="docutils literal notranslate"><span class="pre">Results.to_array()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.results.Results.to_csv"><code class="docutils literal notranslate"><span class="pre">Results.to_csv()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.results.Trajectory"><code class="docutils literal notranslate"><span class="pre">Trajectory</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.results.common_rgb_values"><code class="docutils literal notranslate"><span class="pre">common_rgb_values()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.sortableobject">gillespy2.core.sortableobject module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.sortableobject.SortableObject"><code class="docutils literal notranslate"><span class="pre">SortableObject</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.species">gillespy2.core.species module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.species.Species"><code class="docutils literal notranslate"><span class="pre">Species</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.species.Species.set_initial_value"><code class="docutils literal notranslate"><span class="pre">Species.set_initial_value()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.species.Species.validate"><code class="docutils literal notranslate"><span class="pre">Species.validate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core.timespan">gillespy2.core.timespan module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.timespan.TimeSpan"><code class="docutils literal notranslate"><span class="pre">TimeSpan</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.timespan.TimeSpan.arange"><code class="docutils literal notranslate"><span class="pre">TimeSpan.arange()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.timespan.TimeSpan.linspace"><code class="docutils literal notranslate"><span class="pre">TimeSpan.linspace()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.timespan.TimeSpan.validate"><code class="docutils literal notranslate"><span class="pre">TimeSpan.validate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.core.html#module-gillespy2.core">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.AssignmentRule"><code class="docutils literal notranslate"><span class="pre">AssignmentRule</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.AssignmentRule.sanitized_formula"><code class="docutils literal notranslate"><span class="pre">AssignmentRule.sanitized_formula()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.AssignmentRuleError"><code class="docutils literal notranslate"><span class="pre">AssignmentRuleError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.BuildError"><code class="docutils literal notranslate"><span class="pre">BuildError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.ChainMap"><code class="docutils literal notranslate"><span class="pre">ChainMap</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.ChainMap.clear"><code class="docutils literal notranslate"><span class="pre">ChainMap.clear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.ChainMap.copy"><code class="docutils literal notranslate"><span class="pre">ChainMap.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.ChainMap.fromkeys"><code class="docutils literal notranslate"><span class="pre">ChainMap.fromkeys()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.ChainMap.get"><code class="docutils literal notranslate"><span class="pre">ChainMap.get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.ChainMap.new_child"><code class="docutils literal notranslate"><span class="pre">ChainMap.new_child()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.ChainMap.parents"><code class="docutils literal notranslate"><span class="pre">ChainMap.parents</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.ChainMap.pop"><code class="docutils literal notranslate"><span class="pre">ChainMap.pop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.ChainMap.popitem"><code class="docutils literal notranslate"><span class="pre">ChainMap.popitem()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.DirectoryError"><code class="docutils literal notranslate"><span class="pre">DirectoryError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Event"><code class="docutils literal notranslate"><span class="pre">Event</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Event.add_assignment"><code class="docutils literal notranslate"><span class="pre">Event.add_assignment()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.EventAssignment"><code class="docutils literal notranslate"><span class="pre">EventAssignment</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.EventError"><code class="docutils literal notranslate"><span class="pre">EventError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.EventTrigger"><code class="docutils literal notranslate"><span class="pre">EventTrigger</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.EventTrigger.sanitized_expression"><code class="docutils literal notranslate"><span class="pre">EventTrigger.sanitized_expression()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.ExecutionError"><code class="docutils literal notranslate"><span class="pre">ExecutionError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.FunctionDefinition"><code class="docutils literal notranslate"><span class="pre">FunctionDefinition</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.FunctionDefinition.get_arg_string"><code class="docutils literal notranslate"><span class="pre">FunctionDefinition.get_arg_string()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.FunctionDefinition.sanitized_function"><code class="docutils literal notranslate"><span class="pre">FunctionDefinition.sanitized_function()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.FunctionDefinitionError"><code class="docutils literal notranslate"><span class="pre">FunctionDefinitionError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.GillesPySolver"><code class="docutils literal notranslate"><span class="pre">GillesPySolver</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.GillesPySolver.get_solver_settings"><code class="docutils literal notranslate"><span class="pre">GillesPySolver.get_solver_settings()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.GillesPySolver.get_supported_features"><code class="docutils literal notranslate"><span class="pre">GillesPySolver.get_supported_features()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.GillesPySolver.get_supported_integrator_options"><code class="docutils literal notranslate"><span class="pre">GillesPySolver.get_supported_integrator_options()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.GillesPySolver.name"><code class="docutils literal notranslate"><span class="pre">GillesPySolver.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.GillesPySolver.run"><code class="docutils literal notranslate"><span class="pre">GillesPySolver.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.GillesPySolver.validate_integrator_options"><code class="docutils literal notranslate"><span class="pre">GillesPySolver.validate_integrator_options()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.GillesPySolver.validate_model"><code class="docutils literal notranslate"><span class="pre">GillesPySolver.validate_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.GillesPySolver.validate_sbml_features"><code class="docutils literal notranslate"><span class="pre">GillesPySolver.validate_sbml_features()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.GillesPySolver.validate_tspan"><code class="docutils literal notranslate"><span class="pre">GillesPySolver.validate_tspan()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.InvalidModelError"><code class="docutils literal notranslate"><span class="pre">InvalidModelError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.InvalidStochMLError"><code class="docutils literal notranslate"><span class="pre">InvalidStochMLError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Jsonify"><code class="docutils literal notranslate"><span class="pre">Jsonify</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Jsonify.from_dict"><code class="docutils literal notranslate"><span class="pre">Jsonify.from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Jsonify.from_json"><code class="docutils literal notranslate"><span class="pre">Jsonify.from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Jsonify.get_json_hash"><code class="docutils literal notranslate"><span class="pre">Jsonify.get_json_hash()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Jsonify.get_translation_table"><code class="docutils literal notranslate"><span class="pre">Jsonify.get_translation_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Jsonify.make_translation_table"><code class="docutils literal notranslate"><span class="pre">Jsonify.make_translation_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Jsonify.public_vars"><code class="docutils literal notranslate"><span class="pre">Jsonify.public_vars()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Jsonify.to_anon"><code class="docutils literal notranslate"><span class="pre">Jsonify.to_anon()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Jsonify.to_dict"><code class="docutils literal notranslate"><span class="pre">Jsonify.to_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Jsonify.to_json"><code class="docutils literal notranslate"><span class="pre">Jsonify.to_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Jsonify.to_named"><code class="docutils literal notranslate"><span class="pre">Jsonify.to_named()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.add"><code class="docutils literal notranslate"><span class="pre">Model.add()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.add_assignment_rule"><code class="docutils literal notranslate"><span class="pre">Model.add_assignment_rule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.add_event"><code class="docutils literal notranslate"><span class="pre">Model.add_event()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.add_function_definition"><code class="docutils literal notranslate"><span class="pre">Model.add_function_definition()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.add_parameter"><code class="docutils literal notranslate"><span class="pre">Model.add_parameter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.add_rate_rule"><code class="docutils literal notranslate"><span class="pre">Model.add_rate_rule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.add_reaction"><code class="docutils literal notranslate"><span class="pre">Model.add_reaction()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.add_species"><code class="docutils literal notranslate"><span class="pre">Model.add_species()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.compile_prep"><code class="docutils literal notranslate"><span class="pre">Model.compile_prep()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.delete_all_assignment_rules"><code class="docutils literal notranslate"><span class="pre">Model.delete_all_assignment_rules()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.delete_all_events"><code class="docutils literal notranslate"><span class="pre">Model.delete_all_events()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.delete_all_function_definitions"><code class="docutils literal notranslate"><span class="pre">Model.delete_all_function_definitions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.delete_all_parameters"><code class="docutils literal notranslate"><span class="pre">Model.delete_all_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.delete_all_rate_rules"><code class="docutils literal notranslate"><span class="pre">Model.delete_all_rate_rules()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.delete_all_reactions"><code class="docutils literal notranslate"><span class="pre">Model.delete_all_reactions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.delete_all_species"><code class="docutils literal notranslate"><span class="pre">Model.delete_all_species()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.delete_assignment_rule"><code class="docutils literal notranslate"><span class="pre">Model.delete_assignment_rule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.delete_event"><code class="docutils literal notranslate"><span class="pre">Model.delete_event()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.delete_function_definition"><code class="docutils literal notranslate"><span class="pre">Model.delete_function_definition()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.delete_parameter"><code class="docutils literal notranslate"><span class="pre">Model.delete_parameter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.delete_rate_rule"><code class="docutils literal notranslate"><span class="pre">Model.delete_rate_rule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.delete_reaction"><code class="docutils literal notranslate"><span class="pre">Model.delete_reaction()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.delete_species"><code class="docutils literal notranslate"><span class="pre">Model.delete_species()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.get_all_assignment_rules"><code class="docutils literal notranslate"><span class="pre">Model.get_all_assignment_rules()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.get_all_events"><code class="docutils literal notranslate"><span class="pre">Model.get_all_events()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.get_all_function_definitions"><code class="docutils literal notranslate"><span class="pre">Model.get_all_function_definitions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.get_all_parameters"><code class="docutils literal notranslate"><span class="pre">Model.get_all_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.get_all_rate_rules"><code class="docutils literal notranslate"><span class="pre">Model.get_all_rate_rules()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.get_all_reactions"><code class="docutils literal notranslate"><span class="pre">Model.get_all_reactions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.get_all_species"><code class="docutils literal notranslate"><span class="pre">Model.get_all_species()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.get_assignment_rule"><code class="docutils literal notranslate"><span class="pre">Model.get_assignment_rule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.get_best_solver"><code class="docutils literal notranslate"><span class="pre">Model.get_best_solver()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.get_best_solver_algo"><code class="docutils literal notranslate"><span class="pre">Model.get_best_solver_algo()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.get_element"><code class="docutils literal notranslate"><span class="pre">Model.get_element()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.get_event"><code class="docutils literal notranslate"><span class="pre">Model.get_event()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.get_function_definition"><code class="docutils literal notranslate"><span class="pre">Model.get_function_definition()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.get_model_features"><code class="docutils literal notranslate"><span class="pre">Model.get_model_features()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.get_parameter"><code class="docutils literal notranslate"><span class="pre">Model.get_parameter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.get_rate_rule"><code class="docutils literal notranslate"><span class="pre">Model.get_rate_rule()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.get_reaction"><code class="docutils literal notranslate"><span class="pre">Model.get_reaction()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.get_species"><code class="docutils literal notranslate"><span class="pre">Model.get_species()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.make_translation_table"><code class="docutils literal notranslate"><span class="pre">Model.make_translation_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.problem_with_name"><code class="docutils literal notranslate"><span class="pre">Model.problem_with_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.reserved_names"><code class="docutils literal notranslate"><span class="pre">Model.reserved_names</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.run"><code class="docutils literal notranslate"><span class="pre">Model.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.sanitized_parameter_names"><code class="docutils literal notranslate"><span class="pre">Model.sanitized_parameter_names()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.sanitized_species_names"><code class="docutils literal notranslate"><span class="pre">Model.sanitized_species_names()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.serialize"><code class="docutils literal notranslate"><span class="pre">Model.serialize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.set_parameter"><code class="docutils literal notranslate"><span class="pre">Model.set_parameter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.set_units"><code class="docutils literal notranslate"><span class="pre">Model.set_units()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.special_characters"><code class="docutils literal notranslate"><span class="pre">Model.special_characters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.timespan"><code class="docutils literal notranslate"><span class="pre">Model.timespan()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.update_namespace"><code class="docutils literal notranslate"><span class="pre">Model.update_namespace()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Model.validate_reactants_and_products"><code class="docutils literal notranslate"><span class="pre">Model.validate_reactants_and_products()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.ModelError"><code class="docutils literal notranslate"><span class="pre">ModelError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.OrderedDict"><code class="docutils literal notranslate"><span class="pre">OrderedDict</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.OrderedDict.clear"><code class="docutils literal notranslate"><span class="pre">OrderedDict.clear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.OrderedDict.copy"><code class="docutils literal notranslate"><span class="pre">OrderedDict.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.OrderedDict.fromkeys"><code class="docutils literal notranslate"><span class="pre">OrderedDict.fromkeys()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.OrderedDict.items"><code class="docutils literal notranslate"><span class="pre">OrderedDict.items()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.OrderedDict.keys"><code class="docutils literal notranslate"><span class="pre">OrderedDict.keys()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.OrderedDict.move_to_end"><code class="docutils literal notranslate"><span class="pre">OrderedDict.move_to_end()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.OrderedDict.pop"><code class="docutils literal notranslate"><span class="pre">OrderedDict.pop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.OrderedDict.popitem"><code class="docutils literal notranslate"><span class="pre">OrderedDict.popitem()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.OrderedDict.setdefault"><code class="docutils literal notranslate"><span class="pre">OrderedDict.setdefault()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.OrderedDict.update"><code class="docutils literal notranslate"><span class="pre">OrderedDict.update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.OrderedDict.values"><code class="docutils literal notranslate"><span class="pre">OrderedDict.values()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Parameter"><code class="docutils literal notranslate"><span class="pre">Parameter</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Parameter.sanitized_expression"><code class="docutils literal notranslate"><span class="pre">Parameter.sanitized_expression()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Parameter.validate"><code class="docutils literal notranslate"><span class="pre">Parameter.validate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.ParameterError"><code class="docutils literal notranslate"><span class="pre">ParameterError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.RateRule"><code class="docutils literal notranslate"><span class="pre">RateRule</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.RateRule.sanitized_formula"><code class="docutils literal notranslate"><span class="pre">RateRule.sanitized_formula()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.RateRuleError"><code class="docutils literal notranslate"><span class="pre">RateRuleError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Reaction"><code class="docutils literal notranslate"><span class="pre">Reaction</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Reaction.Annotate"><code class="docutils literal notranslate"><span class="pre">Reaction.Annotate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Reaction.addProduct"><code class="docutils literal notranslate"><span class="pre">Reaction.addProduct()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Reaction.addReactant"><code class="docutils literal notranslate"><span class="pre">Reaction.addReactant()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Reaction.add_product"><code class="docutils literal notranslate"><span class="pre">Reaction.add_product()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Reaction.add_reactant"><code class="docutils literal notranslate"><span class="pre">Reaction.add_reactant()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Reaction.create_mass_action"><code class="docutils literal notranslate"><span class="pre">Reaction.create_mass_action()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Reaction.from_json"><code class="docutils literal notranslate"><span class="pre">Reaction.from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Reaction.sanitized_propensity_function"><code class="docutils literal notranslate"><span class="pre">Reaction.sanitized_propensity_function()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Reaction.setType"><code class="docutils literal notranslate"><span class="pre">Reaction.setType()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Reaction.set_annotation"><code class="docutils literal notranslate"><span class="pre">Reaction.set_annotation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Reaction.set_propensities"><code class="docutils literal notranslate"><span class="pre">Reaction.set_propensities()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Reaction.set_rate"><code class="docutils literal notranslate"><span class="pre">Reaction.set_rate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Reaction.to_dict"><code class="docutils literal notranslate"><span class="pre">Reaction.to_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Reaction.validate"><code class="docutils literal notranslate"><span class="pre">Reaction.validate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Reaction.verify"><code class="docutils literal notranslate"><span class="pre">Reaction.verify()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.ReactionError"><code class="docutils literal notranslate"><span class="pre">ReactionError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Results"><code class="docutils literal notranslate"><span class="pre">Results</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Results.average_ensemble"><code class="docutils literal notranslate"><span class="pre">Results.average_ensemble()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Results.build_from_solver_results"><code class="docutils literal notranslate"><span class="pre">Results.build_from_solver_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Results.plot"><code class="docutils literal notranslate"><span class="pre">Results.plot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Results.plot_mean_stdev"><code class="docutils literal notranslate"><span class="pre">Results.plot_mean_stdev()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Results.plot_std_dev_range"><code class="docutils literal notranslate"><span class="pre">Results.plot_std_dev_range()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Results.plotplotly"><code class="docutils literal notranslate"><span class="pre">Results.plotplotly()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Results.plotplotly_mean_stdev"><code class="docutils literal notranslate"><span class="pre">Results.plotplotly_mean_stdev()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Results.plotplotly_std_dev_range"><code class="docutils literal notranslate"><span class="pre">Results.plotplotly_std_dev_range()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Results.stddev_ensemble"><code class="docutils literal notranslate"><span class="pre">Results.stddev_ensemble()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Results.to_array"><code class="docutils literal notranslate"><span class="pre">Results.to_array()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Results.to_csv"><code class="docutils literal notranslate"><span class="pre">Results.to_csv()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.ResultsError"><code class="docutils literal notranslate"><span class="pre">ResultsError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.SBMLError"><code class="docutils literal notranslate"><span class="pre">SBMLError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.SimulationError"><code class="docutils literal notranslate"><span class="pre">SimulationError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.SimulationTimeoutError"><code class="docutils literal notranslate"><span class="pre">SimulationTimeoutError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.SolverError"><code class="docutils literal notranslate"><span class="pre">SolverError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.SortableObject"><code class="docutils literal notranslate"><span class="pre">SortableObject</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Species"><code class="docutils literal notranslate"><span class="pre">Species</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Species.set_initial_value"><code class="docutils literal notranslate"><span class="pre">Species.set_initial_value()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Species.validate"><code class="docutils literal notranslate"><span class="pre">Species.validate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.SpeciesError"><code class="docutils literal notranslate"><span class="pre">SpeciesError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.StochMLDocument"><code class="docutils literal notranslate"><span class="pre">StochMLDocument</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.StochMLDocument.from_file"><code class="docutils literal notranslate"><span class="pre">StochMLDocument.from_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.StochMLDocument.from_model"><code class="docutils literal notranslate"><span class="pre">StochMLDocument.from_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.StochMLDocument.from_string"><code class="docutils literal notranslate"><span class="pre">StochMLDocument.from_string()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.StochMLDocument.to_model"><code class="docutils literal notranslate"><span class="pre">StochMLDocument.to_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.StochMLDocument.to_string"><code class="docutils literal notranslate"><span class="pre">StochMLDocument.to_string()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.StochMLImportError"><code class="docutils literal notranslate"><span class="pre">StochMLImportError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.TimeSpan"><code class="docutils literal notranslate"><span class="pre">TimeSpan</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.TimeSpan.arange"><code class="docutils literal notranslate"><span class="pre">TimeSpan.arange()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.TimeSpan.linspace"><code class="docutils literal notranslate"><span class="pre">TimeSpan.linspace()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.TimeSpan.validate"><code class="docutils literal notranslate"><span class="pre">TimeSpan.validate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.TimespanError"><code class="docutils literal notranslate"><span class="pre">TimespanError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.Trajectory"><code class="docutils literal notranslate"><span class="pre">Trajectory</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.TranslationTable"><code class="docutils literal notranslate"><span class="pre">TranslationTable</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.TranslationTable.obj_to_anon"><code class="docutils literal notranslate"><span class="pre">TranslationTable.obj_to_anon()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.TranslationTable.obj_to_named"><code class="docutils literal notranslate"><span class="pre">TranslationTable.obj_to_named()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.TranslationTable.recursive_translate"><code class="docutils literal notranslate"><span class="pre">TranslationTable.recursive_translate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.UserDict"><code class="docutils literal notranslate"><span class="pre">UserDict</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.UserDict.copy"><code class="docutils literal notranslate"><span class="pre">UserDict.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.UserDict.fromkeys"><code class="docutils literal notranslate"><span class="pre">UserDict.fromkeys()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.UserList"><code class="docutils literal notranslate"><span class="pre">UserList</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.UserList.append"><code class="docutils literal notranslate"><span class="pre">UserList.append()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.UserList.clear"><code class="docutils literal notranslate"><span class="pre">UserList.clear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.UserList.copy"><code class="docutils literal notranslate"><span class="pre">UserList.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.UserList.count"><code class="docutils literal notranslate"><span class="pre">UserList.count()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.UserList.extend"><code class="docutils literal notranslate"><span class="pre">UserList.extend()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.UserList.index"><code class="docutils literal notranslate"><span class="pre">UserList.index()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.UserList.insert"><code class="docutils literal notranslate"><span class="pre">UserList.insert()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.UserList.pop"><code class="docutils literal notranslate"><span class="pre">UserList.pop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.UserList.remove"><code class="docutils literal notranslate"><span class="pre">UserList.remove()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.UserList.reverse"><code class="docutils literal notranslate"><span class="pre">UserList.reverse()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.UserList.sort"><code class="docutils literal notranslate"><span class="pre">UserList.sort()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.ValidationError"><code class="docutils literal notranslate"><span class="pre">ValidationError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.cleanup_tempfiles"><code class="docutils literal notranslate"><span class="pre">cleanup_tempfiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.common_rgb_values"><code class="docutils literal notranslate"><span class="pre">common_rgb_values()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime"><code class="docutils literal notranslate"><span class="pre">datetime</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.astimezone"><code class="docutils literal notranslate"><span class="pre">datetime.astimezone()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.combine"><code class="docutils literal notranslate"><span class="pre">datetime.combine()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.ctime"><code class="docutils literal notranslate"><span class="pre">datetime.ctime()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.date"><code class="docutils literal notranslate"><span class="pre">datetime.date()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.dst"><code class="docutils literal notranslate"><span class="pre">datetime.dst()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.fold"><code class="docutils literal notranslate"><span class="pre">datetime.fold</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.fromisoformat"><code class="docutils literal notranslate"><span class="pre">datetime.fromisoformat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.fromtimestamp"><code class="docutils literal notranslate"><span class="pre">datetime.fromtimestamp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.hour"><code class="docutils literal notranslate"><span class="pre">datetime.hour</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.isoformat"><code class="docutils literal notranslate"><span class="pre">datetime.isoformat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.max"><code class="docutils literal notranslate"><span class="pre">datetime.max</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.microsecond"><code class="docutils literal notranslate"><span class="pre">datetime.microsecond</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.min"><code class="docutils literal notranslate"><span class="pre">datetime.min</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.minute"><code class="docutils literal notranslate"><span class="pre">datetime.minute</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.now"><code class="docutils literal notranslate"><span class="pre">datetime.now()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.replace"><code class="docutils literal notranslate"><span class="pre">datetime.replace()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.resolution"><code class="docutils literal notranslate"><span class="pre">datetime.resolution</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.second"><code class="docutils literal notranslate"><span class="pre">datetime.second</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.strptime"><code class="docutils literal notranslate"><span class="pre">datetime.strptime()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.time"><code class="docutils literal notranslate"><span class="pre">datetime.time()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.timestamp"><code class="docutils literal notranslate"><span class="pre">datetime.timestamp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.timetuple"><code class="docutils literal notranslate"><span class="pre">datetime.timetuple()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.timetz"><code class="docutils literal notranslate"><span class="pre">datetime.timetz()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.tzinfo"><code class="docutils literal notranslate"><span class="pre">datetime.tzinfo</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.tzname"><code class="docutils literal notranslate"><span class="pre">datetime.tzname()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.utcfromtimestamp"><code class="docutils literal notranslate"><span class="pre">datetime.utcfromtimestamp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.utcnow"><code class="docutils literal notranslate"><span class="pre">datetime.utcnow()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.utcoffset"><code class="docutils literal notranslate"><span class="pre">datetime.utcoffset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.datetime.utctimetuple"><code class="docutils literal notranslate"><span class="pre">datetime.utctimetuple()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.export_SBML"><code class="docutils literal notranslate"><span class="pre">export_SBML()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.export_StochSS"><code class="docutils literal notranslate"><span class="pre">export_StochSS()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.core.html#gillespy2.core.import_SBML"><code class="docutils literal notranslate"><span class="pre">import_SBML()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="gillespy2.sbml.html">gillespy2.sbml package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.sbml.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.sbml.html#module-gillespy2.sbml.SBMLexport">gillespy2.sbml.SBMLexport module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.sbml.html#module-gillespy2.sbml.SBMLimport">gillespy2.sbml.SBMLimport module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.sbml.html#gillespy2-sbml-sbmlexport-module">gillespy2.sbml.SBMLexport module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.sbml.html#gillespy2-sbml-sbmlimport-module">gillespy2.sbml.SBMLimport module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.sbml.html#module-gillespy2.sbml">Module contents</a></li>
 </ul>
 </li>
@@ -186,12 +730,99 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.solvers.html#module-gillespy2.solvers">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.solvers.html#module-gillespy2.solvers">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.CLESolver"><code class="docutils literal notranslate"><span class="pre">CLESolver</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.CLESolver.get_solver_settings"><code class="docutils literal notranslate"><span class="pre">CLESolver.get_solver_settings()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.CLESolver.name"><code class="docutils literal notranslate"><span class="pre">CLESolver.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.CLESolver.pause_event"><code class="docutils literal notranslate"><span class="pre">CLESolver.pause_event</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.CLESolver.rc"><code class="docutils literal notranslate"><span class="pre">CLESolver.rc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.CLESolver.result"><code class="docutils literal notranslate"><span class="pre">CLESolver.result</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.CLESolver.run"><code class="docutils literal notranslate"><span class="pre">CLESolver.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.CLESolver.stop_event"><code class="docutils literal notranslate"><span class="pre">CLESolver.stop_event</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.NumPySSASolver"><code class="docutils literal notranslate"><span class="pre">NumPySSASolver</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.NumPySSASolver.get_solver_settings"><code class="docutils literal notranslate"><span class="pre">NumPySSASolver.get_solver_settings()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.NumPySSASolver.name"><code class="docutils literal notranslate"><span class="pre">NumPySSASolver.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.NumPySSASolver.pause_event"><code class="docutils literal notranslate"><span class="pre">NumPySSASolver.pause_event</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.NumPySSASolver.rc"><code class="docutils literal notranslate"><span class="pre">NumPySSASolver.rc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.NumPySSASolver.result"><code class="docutils literal notranslate"><span class="pre">NumPySSASolver.result</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.NumPySSASolver.run"><code class="docutils literal notranslate"><span class="pre">NumPySSASolver.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.NumPySSASolver.stop_event"><code class="docutils literal notranslate"><span class="pre">NumPySSASolver.stop_event</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.ODECSolver"><code class="docutils literal notranslate"><span class="pre">ODECSolver</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.ODECSolver.get_solver_settings"><code class="docutils literal notranslate"><span class="pre">ODECSolver.get_solver_settings()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.ODECSolver.get_supported_integrator_options"><code class="docutils literal notranslate"><span class="pre">ODECSolver.get_supported_integrator_options()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.ODECSolver.name"><code class="docutils literal notranslate"><span class="pre">ODECSolver.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.ODECSolver.run"><code class="docutils literal notranslate"><span class="pre">ODECSolver.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.ODECSolver.target"><code class="docutils literal notranslate"><span class="pre">ODECSolver.target</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.ODESolver"><code class="docutils literal notranslate"><span class="pre">ODESolver</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.ODESolver.get_solver_settings"><code class="docutils literal notranslate"><span class="pre">ODESolver.get_solver_settings()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.ODESolver.name"><code class="docutils literal notranslate"><span class="pre">ODESolver.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.ODESolver.pause_event"><code class="docutils literal notranslate"><span class="pre">ODESolver.pause_event</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.ODESolver.rc"><code class="docutils literal notranslate"><span class="pre">ODESolver.rc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.ODESolver.result"><code class="docutils literal notranslate"><span class="pre">ODESolver.result</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.ODESolver.run"><code class="docutils literal notranslate"><span class="pre">ODESolver.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.ODESolver.stop_event"><code class="docutils literal notranslate"><span class="pre">ODESolver.stop_event</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.SSACSolver"><code class="docutils literal notranslate"><span class="pre">SSACSolver</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.SSACSolver.get_solver_settings"><code class="docutils literal notranslate"><span class="pre">SSACSolver.get_solver_settings()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.SSACSolver.name"><code class="docutils literal notranslate"><span class="pre">SSACSolver.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.SSACSolver.run"><code class="docutils literal notranslate"><span class="pre">SSACSolver.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.SSACSolver.target"><code class="docutils literal notranslate"><span class="pre">SSACSolver.target</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauHybridCSolver"><code class="docutils literal notranslate"><span class="pre">TauHybridCSolver</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauHybridCSolver.ErrorStatus"><code class="docutils literal notranslate"><span class="pre">TauHybridCSolver.ErrorStatus</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauHybridCSolver.get_solver_settings"><code class="docutils literal notranslate"><span class="pre">TauHybridCSolver.get_solver_settings()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauHybridCSolver.get_supported_features"><code class="docutils literal notranslate"><span class="pre">TauHybridCSolver.get_supported_features()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauHybridCSolver.get_supported_integrator_options"><code class="docutils literal notranslate"><span class="pre">TauHybridCSolver.get_supported_integrator_options()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauHybridCSolver.name"><code class="docutils literal notranslate"><span class="pre">TauHybridCSolver.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauHybridCSolver.run"><code class="docutils literal notranslate"><span class="pre">TauHybridCSolver.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauHybridCSolver.target"><code class="docutils literal notranslate"><span class="pre">TauHybridCSolver.target</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauHybridSolver"><code class="docutils literal notranslate"><span class="pre">TauHybridSolver</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauHybridSolver.get_solver_settings"><code class="docutils literal notranslate"><span class="pre">TauHybridSolver.get_solver_settings()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauHybridSolver.get_supported_features"><code class="docutils literal notranslate"><span class="pre">TauHybridSolver.get_supported_features()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauHybridSolver.name"><code class="docutils literal notranslate"><span class="pre">TauHybridSolver.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauHybridSolver.rc"><code class="docutils literal notranslate"><span class="pre">TauHybridSolver.rc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauHybridSolver.result"><code class="docutils literal notranslate"><span class="pre">TauHybridSolver.result</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauHybridSolver.run"><code class="docutils literal notranslate"><span class="pre">TauHybridSolver.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauHybridSolver.stop_event"><code class="docutils literal notranslate"><span class="pre">TauHybridSolver.stop_event</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauLeapingCSolver"><code class="docutils literal notranslate"><span class="pre">TauLeapingCSolver</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauLeapingCSolver.get_solver_settings"><code class="docutils literal notranslate"><span class="pre">TauLeapingCSolver.get_solver_settings()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauLeapingCSolver.name"><code class="docutils literal notranslate"><span class="pre">TauLeapingCSolver.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauLeapingCSolver.run"><code class="docutils literal notranslate"><span class="pre">TauLeapingCSolver.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauLeapingCSolver.target"><code class="docutils literal notranslate"><span class="pre">TauLeapingCSolver.target</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauLeapingSolver"><code class="docutils literal notranslate"><span class="pre">TauLeapingSolver</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauLeapingSolver.get_solver_settings"><code class="docutils literal notranslate"><span class="pre">TauLeapingSolver.get_solver_settings()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauLeapingSolver.name"><code class="docutils literal notranslate"><span class="pre">TauLeapingSolver.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauLeapingSolver.pause_event"><code class="docutils literal notranslate"><span class="pre">TauLeapingSolver.pause_event</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauLeapingSolver.rc"><code class="docutils literal notranslate"><span class="pre">TauLeapingSolver.rc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauLeapingSolver.result"><code class="docutils literal notranslate"><span class="pre">TauLeapingSolver.result</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauLeapingSolver.run"><code class="docutils literal notranslate"><span class="pre">TauLeapingSolver.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gillespy2.solvers.html#gillespy2.solvers.TauLeapingSolver.stop_event"><code class="docutils literal notranslate"><span class="pre">TauLeapingSolver.stop_event</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="gillespy2.stochss.html">gillespy2.stochss package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.stochss.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gillespy2.stochss.html#module-gillespy2.stochss.StochSSexport">gillespy2.stochss.StochSSexport module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gillespy2.stochss.html#module-gillespy2.stochss.StochSSexport">gillespy2.stochss.StochSSexport module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gillespy2.stochss.html#gillespy2.stochss.StochSSexport.export"><code class="docutils literal notranslate"><span class="pre">export()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="gillespy2.stochss.html#module-gillespy2.stochss">Module contents</a></li>
 </ul>
 </li>
@@ -199,7 +830,7 @@
 </div>
 </section>
 <section id="module-gillespy2">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-gillespy2" title="Permalink to this headline">¶</a></h2>
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-gillespy2" title="Permalink to this heading">¶</a></h2>
 </section>
 </section>
 
@@ -226,10 +857,10 @@
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;Copyright (C) 2017-2021.
+      &copy;Copyright (C) 2017-2022.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

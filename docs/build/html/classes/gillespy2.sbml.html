@@ -4,16 +4,18 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>gillespy2.sbml package &#8212; GillesPy2 1.7.0 documentation</title>
+    <title>gillespy2.sbml package &#8212; GillesPy2 1.7.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/gillespy2_alabaster_customizations.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="gillespy2.solvers package" href="gillespy2.solvers.html" />
@@ -97,7 +99,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -115,47 +117,18 @@
           <div class="body" role="main">
             
   <section id="gillespy2-sbml-package">
-<h1>gillespy2.sbml package<a class="headerlink" href="#gillespy2-sbml-package" title="Permalink to this headline">¶</a></h1>
+<h1>gillespy2.sbml package<a class="headerlink" href="#gillespy2-sbml-package" title="Permalink to this heading">¶</a></h1>
 <section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
 </section>
-<section id="module-gillespy2.sbml.SBMLexport">
-<span id="gillespy2-sbml-sbmlexport-module"></span><h2>gillespy2.sbml.SBMLexport module<a class="headerlink" href="#module-gillespy2.sbml.SBMLexport" title="Permalink to this headline">¶</a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="gillespy2.sbml.SBMLexport.export">
-<span class="sig-prename descclassname"><span class="pre">gillespy2.sbml.SBMLexport.</span></span><span class="sig-name descname"><span class="pre">export</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/sbml/SBMLexport.html#export"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.sbml.SBMLexport.export" title="Permalink to this definition">¶</a></dt>
-<dd><p>GillesPy model to SBML converter</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>gillespy.Model</em>) – GillesPy model to be converted to SBML</p></li>
-<li><p><strong>path</strong> (<em>str</em>) – Path to the SBML file for conversion</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
+<section id="gillespy2-sbml-sbmlexport-module">
+<h2>gillespy2.sbml.SBMLexport module<a class="headerlink" href="#gillespy2-sbml-sbmlexport-module" title="Permalink to this heading">¶</a></h2>
 </section>
-<section id="module-gillespy2.sbml.SBMLimport">
-<span id="gillespy2-sbml-sbmlimport-module"></span><h2>gillespy2.sbml.SBMLimport module<a class="headerlink" href="#module-gillespy2.sbml.SBMLimport" title="Permalink to this headline">¶</a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="gillespy2.sbml.SBMLimport.convert">
-<span class="sig-prename descclassname"><span class="pre">gillespy2.sbml.SBMLimport.</span></span><span class="sig-name descname"><span class="pre">convert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gillespy_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">report_silently_with_sbml_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/sbml/SBMLimport.html#convert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.sbml.SBMLimport.convert" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="gillespy2.sbml.SBMLimport.piecewise">
-<span class="sig-prename descclassname"><span class="pre">gillespy2.sbml.SBMLimport.</span></span><span class="sig-name descname"><span class="pre">piecewise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/sbml/SBMLimport.html#piecewise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.sbml.SBMLimport.piecewise" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="gillespy2.sbml.SBMLimport.traverse_math">
-<span class="sig-prename descclassname"><span class="pre">gillespy2.sbml.SBMLimport.</span></span><span class="sig-name descname"><span class="pre">traverse_math</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/gillespy2/sbml/SBMLimport.html#traverse_math"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gillespy2.sbml.SBMLimport.traverse_math" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<section id="gillespy2-sbml-sbmlimport-module">
+<h2>gillespy2.sbml.SBMLimport module<a class="headerlink" href="#gillespy2-sbml-sbmlimport-module" title="Permalink to this heading">¶</a></h2>
 </section>
 <section id="module-gillespy2.sbml">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-gillespy2.sbml" title="Permalink to this headline">¶</a></h2>
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-gillespy2.sbml" title="Permalink to this heading">¶</a></h2>
 </section>
 </section>
 
@@ -182,10 +155,10 @@
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;Copyright (C) 2017-2021.
+      &copy;Copyright (C) 2017-2022.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
