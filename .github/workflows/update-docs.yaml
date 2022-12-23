@@ -2,7 +2,7 @@ name: Publish GillesPy2 Docs
 
 on:
   push:
-    branches: [docs-update-testing]
+    branches: [develop]
 
 jobs:
   publish:
@@ -12,13 +12,13 @@ jobs:
     - name: Initialize environment
       uses: actions/checkout@v2
       with:
-        ref: docs-update-testing
+        ref: develop
         fetch-depth: 0
 
     - name: Git-Pull again
       working-directory:  .
       run: | 
-        git pull origin docs-update-testing
+        git pull origin develop
       
     - name: Install Python
       uses: actions/setup-python@v2
@@ -48,4 +48,4 @@ jobs:
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: docs-update-testing
+        branch: develop
