@@ -5,14 +5,16 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gillespy2.core.events &#8212; GillesPy2 1.6.10 documentation</title>
+    <title>gillespy2.core.events &#8212; GillesPy2 1.7.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/gillespy2_alabaster_customizations.css" />
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -82,7 +84,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -118,9 +120,11 @@
 
 <span class="kn">import</span> <span class="nn">uuid</span>
 
-<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.parameter</span> <span class="kn">import</span> <span class="n">Parameter</span>
+<span class="kn">from</span> <span class="nn">gillespy2.core.species</span> <span class="kn">import</span> <span class="n">Species</span>
 <span class="kn">from</span> <span class="nn">gillespy2.core.jsonify</span> <span class="kn">import</span> <span class="n">Jsonify</span>
 
+<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="kn">import</span> <span class="n">EventError</span>
 
 <div class="viewcode-block" id="EventAssignment"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.events.EventAssignment">[docs]</a><span class="k">class</span> <span class="nc">EventAssignment</span><span class="p">(</span><span class="n">Jsonify</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -140,13 +144,14 @@
 <span class="sd">    :type expression: str</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;evn</span><span class="si">{</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;evn</span><span class="si">{</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">log</span> <span class="c1"># pylint: disable=import-outside-toplevel</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;EventAssignment.name has been deprecated.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__name_deprecated</span> <span class="o">=</span> <span class="n">name</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">variable</span> <span class="o">=</span> <span class="n">variable</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">expression</span> <span class="o">=</span> <span class="n">expression</span>
@@ -154,8 +159,6 @@
         <span class="k">if</span> <span class="n">expression</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">expression</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span>
 
-        <span class="kn">from</span> <span class="nn">gillespy2.core.parameter</span> <span class="kn">import</span> <span class="n">Parameter</span>
-        <span class="kn">from</span> <span class="nn">gillespy2.core.species</span> <span class="kn">import</span> <span class="n">Species</span>
         <span class="c1">#TODO: ADD Compartment to valid variable types once implemented</span>
         <span class="n">valid_variable_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">Species</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
 
@@ -170,7 +173,14 @@
                              <span class="s1">&#39;valid string expression&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="si">}</span><span class="s2">&quot;</span></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">log</span> <span class="c1"># pylint: disable=import-outside-toplevel</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;EventAssignment.name has been deprecated.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__name_deprecated</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span></div>
 
 <div class="viewcode-block" id="EventTrigger"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.events.EventTrigger">[docs]</a><span class="k">class</span> <span class="nc">EventTrigger</span><span class="p">(</span><span class="n">Jsonify</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -211,15 +221,26 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">expression</span>
 
 <div class="viewcode-block" id="EventTrigger.sanitized_expression"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.events.EventTrigger.sanitized_expression">[docs]</a>    <span class="k">def</span> <span class="nf">sanitized_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species_mappings</span><span class="p">,</span> <span class="n">parameter_mappings</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Sanitize the event trigger expression.</span>
+
+<span class="sd">        :param species_mappings: Mapping of species names to sanitized species names.</span>
+<span class="sd">        :type species_mappings: dict</span>
+
+<span class="sd">        :param parameter_mappings: Mapping of parameter names to sanitized parameter names.</span>
+<span class="sd">        :type parameter_mappings: dict</span>
+
+<span class="sd">        :returns: The sanitized expression.</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">names</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">species_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">parameter_mappings</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
                        <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">replacements</span> <span class="o">=</span> <span class="p">[</span><span class="n">parameter_mappings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">parameter_mappings</span> <span class="k">else</span> <span class="n">species_mappings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
                         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
         <span class="n">sanitized_expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expression</span>
-        <span class="k">for</span> <span class="nb">id</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
-            <span class="n">sanitized_expression</span> <span class="o">=</span> <span class="n">sanitized_expression</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;{&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
+            <span class="n">sanitized_expression</span> <span class="o">=</span> <span class="n">sanitized_expression</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;{&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sanitized_expression</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">replacements</span><span class="p">)</span></div></div>
-
 
 <div class="viewcode-block" id="Event"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.events.Event">[docs]</a><span class="k">class</span> <span class="nc">Event</span><span class="p">(</span><span class="n">Jsonify</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -291,14 +312,14 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">EventError</span><span class="p">(</span>
              <span class="s1">&#39;name must be a valid string&#39;</span><span class="p">)</span>
-        
+
         <span class="c1"># Trigger</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trigger</span><span class="p">,</span> <span class="s1">&#39;expression&#39;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">trigger</span> <span class="o">=</span> <span class="n">trigger</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">EventError</span><span class="p">(</span>
              <span class="s1">&#39;trigger must be set to a valid EventTrigger&#39;</span><span class="p">)</span>
-        
+
         <span class="c1"># Delay</span>
         <span class="k">if</span> <span class="n">delay</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">delay</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">delay</span> <span class="o">=</span> <span class="n">delay</span>
@@ -332,13 +353,13 @@
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">print_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
         <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t</span><span class="s1">Trigger: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trigger</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">assignments</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">assignments</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t</span><span class="s1">Assignments:&#39;</span>
-            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">assignments</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">variable</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                    <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">a</span><span class="o">.</span><span class="n">variable</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="n">a</span><span class="o">.</span><span class="n">expression</span>
+            <span class="k">for</span> <span class="n">assign</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">assignments</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">assign</span><span class="o">.</span><span class="n">variable</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">assign</span><span class="o">.</span><span class="n">variable</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="n">assign</span><span class="o">.</span><span class="n">expression</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">a</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="n">a</span><span class="o">.</span><span class="n">expression</span>
+                    <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">assign</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="n">assign</span><span class="o">.</span><span class="n">expression</span>
         <span class="k">return</span> <span class="n">print_string</span>
 
 <div class="viewcode-block" id="Event.add_assignment"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.events.Event.add_assignment">[docs]</a>    <span class="k">def</span> <span class="nf">add_assignment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">assignment</span><span class="p">):</span>
@@ -348,19 +369,16 @@
 <span class="sd">        :param assignment: The event or list of events to be added to this event.</span>
 <span class="sd">        :type assignment: EventAssignment or list[EventAssignment]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">assignment</span><span class="p">,</span> <span class="s1">&#39;variable&#39;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">assignments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">assignment</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">assignment</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">assignment</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">assign</span> <span class="ow">in</span> <span class="n">assignment</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">assign</span><span class="p">,</span> <span class="s1">&#39;variable&#39;</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">assignments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">assign</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">EventError</span><span class="p">(</span><span class="s1">&#39;add_assignment failed to add EventAssignment. Assignment to be added must be of &#39;</span>
-                                     <span class="s1">&#39;type EventAssignment or list of EventAssignment objects.&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_assignment</span><span class="p">(</span><span class="n">assign</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">assignment</span><span class="p">,</span> <span class="s1">&#39;variable&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assignments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">assignment</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s2">&quot;Unexpected parameter for add_assignment. Parameter must be EventAssignment or list of &quot;</span>
-                             <span class="s2">&quot;EventAssignments&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">EventError</span><span class="p">(</span>
+                <span class="s2">&quot;Unexpected parameter for add_assignment. Assignment must be an EventAssignment or list of &quot;</span>
+                <span class="s2">&quot;EventAssignments objects&quot;</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="n">assignment</span></div></div>
 </pre></div>
 
@@ -378,10 +396,10 @@
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;Copyright (C) 2017-2021.
+      &copy;Copyright (C) 2017-2022.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
