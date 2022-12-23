@@ -2,7 +2,7 @@ name: Publish GillesPy2 Docs
 
 on:
   push:
-    branches: [main]
+    branches: [develop]
 
 jobs:
   publish:
@@ -12,7 +12,7 @@ jobs:
     - name: Initialize environment
       uses: actions/checkout@v2
       with:
-        ref: main
+        ref: develop
         fetch-depth: 0
       
     - name: Install Python
@@ -27,10 +27,15 @@ jobs:
         python3 -m pip install numpy
         python3 -m pip install -r requirements.txt
 
+    - name: Refresh Repository
+      working-directory: .
+      run: | 
+        git pull origin develop
+
     - name: Update the Docs
       working-directory: docs
       run: |
-        make build-docs
+        make html
 
     - name: Commit Changes
       working-directory: docs
@@ -43,4 +48,4 @@ jobs:
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: main
+        branch: develop
