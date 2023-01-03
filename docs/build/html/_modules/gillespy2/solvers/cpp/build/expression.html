@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gillespy2.solvers.cpp.build.expression &#8212; GillesPy2 1.7.2 documentation</title>
+    <title>gillespy2.solvers.cpp.build.expression &#8212; GillesPy2 1.8.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -122,7 +122,7 @@
 
 
 <div class="viewcode-block" id="Expression"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.expression.Expression">[docs]</a><span class="k">class</span> <span class="nc">Expression</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Accepts an expression string to validate and convert.</span>
 <span class="sd">    Allows for pre-flight syntax and namespace validations,</span>
 <span class="sd">    as well as converting between Python and C++ expressions.</span>
@@ -131,7 +131,7 @@
                  <span class="n">blacklist</span><span class="p">:</span> <span class="s2">&quot;Union[list[str], dict[ast.operator, str]]&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">namespace</span><span class="p">:</span> <span class="s2">&quot;dict[str, any]&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">sanitize</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Object for managing context to validate Python expressions.</span>
 <span class="sd">        Expressions can be passed and validated, which are validated for syntax, namespace, and other conditions.</span>
 <span class="sd">        The later provided statements are expected to be valid Python expressions.</span>
@@ -269,7 +269,7 @@
                 <span class="k">yield</span> <span class="n">operator</span></div>
 
 <div class="viewcode-block" id="Expression.with_blacklist"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.expression.Expression.with_blacklist">[docs]</a>    <span class="k">def</span> <span class="nf">with_blacklist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">blacklist</span><span class="p">:</span> <span class="s2">&quot;list[str]&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Expression&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a new duplicate of the current expression, with a different operator blacklist.</span>
 <span class="sd">        Overrides operator handling behavior when converting or validating the expression.</span>
 
@@ -284,7 +284,7 @@
         <span class="k">return</span> <span class="n">Expression</span><span class="p">(</span><span class="n">blacklist</span><span class="o">=</span><span class="n">blacklist</span><span class="p">,</span> <span class="n">namespace</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">namespace</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Expression.with_namespace"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.expression.Expression.with_namespace">[docs]</a>    <span class="k">def</span> <span class="nf">with_namespace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">namespace</span><span class="p">:</span> <span class="s2">&quot;dict[str, any]&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Expression&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a new duplicate of the current expression, with a different namespace.</span>
 <span class="sd">        Any identifiers present in the expression which are not listed in the namespace</span>
 <span class="sd">        will cause the expression to be flagged as an invalid namespace during validation.</span>
@@ -303,7 +303,7 @@
         <span class="k">return</span> <span class="n">Expression</span><span class="p">(</span><span class="n">blacklist</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">blacklist</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">namespace</span><span class="o">=</span><span class="n">namespace</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Expression.validate"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.expression.Expression.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">statement</span><span class="p">:</span> <span class="s2">&quot;str&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ExpressionResults&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Using the information provided so far, ensure that the given Python expression is valid.</span>
 <span class="sd">        The Python expression is parsed, raising a SyntaxError if it is an invalid Python expression.</span>
 <span class="sd">        The expression is then checked against the given properties, such as namespace and operator blacklist.</span>
@@ -341,7 +341,7 @@
         <span class="k">return</span> <span class="n">converter</span><span class="o">.</span><span class="n">get_str</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Expression.getexpr_python"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.expression.Expression.getexpr_python">[docs]</a>    <span class="k">def</span> <span class="nf">getexpr_python</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">statement</span><span class="p">:</span> <span class="s2">&quot;str&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Optional[str]&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Converts the expression object into a Python expression string.</span>
 <span class="sd">        Raises a SyntaxError if conversion to a Python string is impossible.</span>
 
@@ -352,7 +352,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_expr</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="n">PythonConverter</span><span class="p">(</span><span class="n">expr</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="Expression.getexpr_cpp"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.expression.Expression.getexpr_cpp">[docs]</a>    <span class="k">def</span> <span class="nf">getexpr_cpp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">statement</span><span class="p">:</span> <span class="s2">&quot;str&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Optional[str]&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Converts the expression object into a C++ expression string.</span>
 <span class="sd">        Raises a SyntaxError if conversion to a C++ string is impossible.</span>
 
@@ -365,13 +365,13 @@
 
 
 <div class="viewcode-block" id="ExpressionResults"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.expression.ExpressionResults">[docs]</a><span class="k">class</span> <span class="nc">ExpressionResults</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Container struct for returning the results of expression validation.</span>
 <span class="sd">    Any expression items which indicate an invalid expression are listed on an ExpressionResults instance.</span>
 <span class="sd">    Empty lists indicate that the expression is valid.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">invalid_names</span><span class="p">:</span> <span class="s2">&quot;set[str]&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">invalid_operators</span><span class="p">:</span> <span class="s2">&quot;set[str]&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">is_valid</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Container struct for returning the results of expression validation.</span>
 
 <span class="sd">        :param invalid_names: List of expression identifiers which were not valid in the given namespace.</span>

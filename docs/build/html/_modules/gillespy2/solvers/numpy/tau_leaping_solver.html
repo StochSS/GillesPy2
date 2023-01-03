@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gillespy2.solvers.numpy.tau_leaping_solver &#8212; GillesPy2 1.7.2 documentation</title>
+    <title>gillespy2.solvers.numpy.tau_leaping_solver &#8212; GillesPy2 1.8.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -131,7 +131,7 @@
 <span class="kn">from</span> <span class="nn">gillespy2.core.results</span> <span class="kn">import</span> <span class="n">Results</span>
 
 <div class="viewcode-block" id="TauLeapingSolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.TauLeapingSolver">[docs]</a><span class="k">class</span> <span class="nc">TauLeapingSolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A Tau Leaping solver for GillesPy2 models.  This solver uses an algorithm that calculates</span>
 <span class="sd">    multiple reactions in a single step over a given tau step size.  The change in propensities</span>
 <span class="sd">    over this step are bounded by bounding the relative change in state, yielding greatly improved</span>
@@ -161,7 +161,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">is_instantiated</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">def</span> <span class="nf">__get_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">save_time</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">reactions</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper Function to get reactions fired from t to t+tau.  </span>
 <span class="sd">        :returns: Three values:</span>
 <span class="sd">            rxn_count - dict with key=Reaction channel value=number of times fired</span>
@@ -192,7 +192,7 @@
 
 <div class="viewcode-block" id="TauLeapingSolver.get_solver_settings"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.TauLeapingSolver.get_solver_settings">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_solver_settings</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a list of arguments supported by tau_leaping_solver.run.</span>
 <span class="sd">        :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.</span>
 <span class="sd">        :rtype: tuple</span>
@@ -202,7 +202,7 @@
 <div class="viewcode-block" id="TauLeapingSolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.TauLeapingSolver.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="n">live_output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">live_output_options</span><span class="o">=</span><span class="p">{},</span>
             <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">resume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tau_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Function calling simulation of the model.</span>
 <span class="sd">        This is typically called by the run function in GillesPy2 model objects</span>
 <span class="sd">        and will inherit those parameters which are passed with the model</span>
@@ -257,7 +257,7 @@
             <span class="c1"># raise SimulationError(&quot;TauLeapingSolver must be instantiated to run the simulation&quot;)</span>
             <span class="c1"># Pre deprecation block</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                `gillespy2.Model.run(solver=TauLeapingSolver)` is deprecated.</span>
 
 <span class="sd">                You should use `gillespy2.Model.run(solver=TauLeapingSolver(model=gillespy2.Model))</span>

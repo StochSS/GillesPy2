@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gillespy2.solvers.stochkit.stochkit_solvers &#8212; GillesPy2 1.7.2 documentation</title>
+    <title>gillespy2.solvers.stochkit.stochkit_solvers &#8212; GillesPy2 1.8.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -132,7 +132,7 @@
 <div class="viewcode-block" id="StochKitBaseSolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.stochkit.html#gillespy2.solvers.stochkit.stochkit_solvers.StochKitBaseSolver">[docs]</a><span class="k">class</span> <span class="nc">StochKitBaseSolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;StochKitBaseSolver&quot;</span>
     <span class="n">rc</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Abstract class for a StochKit solver. This is generally called from within a</span>
 <span class="sd">    GillesPy Model through the Model.run function. Returns simulation</span>
 <span class="sd">    trajectories.</span>
@@ -180,7 +180,7 @@
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">stochkit_home</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">job_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">extra_args</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
             <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_labels</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Call out and run the solver. Collect the results.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -333,7 +333,7 @@
 
 <div class="viewcode-block" id="StochKitSolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.stochkit.html#gillespy2.solvers.stochkit.stochkit_solvers.StochKitSolver">[docs]</a><span class="k">class</span> <span class="nc">StochKitSolver</span><span class="p">(</span><span class="n">StochKitBaseSolver</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;StochKitSolver&#39;</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Abstract class for StochKit solver derived from the GillesPySolver class.</span>
 <span class="sd">    This is generally used to set up the solver.</span>
 
@@ -422,7 +422,7 @@
 
 <div class="viewcode-block" id="StochKitODESolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.stochkit.html#gillespy2.solvers.stochkit.stochkit_solvers.StochKitODESolver">[docs]</a><span class="k">class</span> <span class="nc">StochKitODESolver</span><span class="p">(</span><span class="n">StochKitBaseSolver</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;StochKitODESolver&quot;</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Abstract class for StochKit solver derived from the GillesPySolver class.</span>
 <span class="sd">    This is generally used to set up the solver.</span>
 
