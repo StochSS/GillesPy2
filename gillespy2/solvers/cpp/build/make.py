@@ -18,12 +18,13 @@ import os
 import subprocess
 
 from pathlib import Path
+import sys
 
 from gillespy2.core import log
 from gillespy2.core import gillespyError
 
 class Make():
-    def __init__(self, makefile: str, output_dir: str, obj_dir: str = None):
+    def __init__(self, makefile: str, output_dir: str, obj_dir: str = None, template_dir: str = None):
         self.makefile = Path(makefile).resolve()
         self.self_dir = Path(__file__).parent
 
@@ -38,6 +39,11 @@ class Make():
         else:
             self.obj_dir = Path(obj_dir).resolve()
 
+        if template_dir is None:
+            self.template_dir = self.output_dir.joinpath("gillespy2_template").resolve()
+        else:
+            self.template_dir = Path(template_dir).resolve()
+
         for path in [self.output_dir, self.obj_dir]:
             if path.is_file():
                 raise gillespyError.DirectoryError(
@@ -48,9 +54,7 @@ class Make():
             if not path.is_dir():
                 path.mkdir()
 
-        self.output_file = "GillesPy2_Simulation.out"
-        if os.name == "nt":
-            self.output_file = "GillesPy2_Simulation.exe"
+        self.output_file = "GillesPy2_Simulation.exe"
 
         self.output_file = Path(self.output_dir, self.output_file)
 
@@ -65,8 +69,9 @@ class Make():
         args_dict = {
             "cbase_dir": str(self.cbase_dir.resolve()),
             "obj_dir": str(self.obj_dir.resolve()),
-            "output_dir": str(self.output_dir.resolve()),
-            "output_file": str(self.output_dir.joinpath(self.output_file).resolve())
+            "template_dir": str(self.template_dir.resolve()),
+            "solver": str(target),
+            "output_file": str(self.output_file)
         }
 
         # Overwrite keys supplied in **kwargs.
@@ -77,7 +82,8 @@ class Make():
         make_args = [(f"{key.upper()}={value}") for key, value in args_dict.items()]
 
         # Create the make command.
-        make_cmd = ["make", "-C", str(self.cbase_dir), "-f", str(self.makefile), target] + make_args
+        scons_cmd = [str(Path(sys.executable).resolve()), "-m", "SCons"]
+        make_cmd = [*scons_cmd, f"-C{str(self.output_dir.resolve())}", f"-f{str(self.makefile)}"] + make_args
 
         try:
             result = subprocess.run(make_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -85,12 +91,13 @@ class Make():
         except KeyboardInterrupt:
             log.warning(f"Makefile was interrupted during execution of target: '{target}', unexpected behavior may occur.")
 
-        if result.returncode == 0:
+        if result.returncode == 0 and os.path.exists(self.output_file):
             return
 
         raise gillespyError.BuildError(f"Error encountered during execution of Makefile target: '{target}'.\n"
             f"Return code: {result.returncode}"
             f"- stdout: {result.stdout.decode('utf-8', errors='ignore')}\n"
             f"- stderr: {result.stderr.decode('utf-8', errors='ignore')}\n"
-            f"- make_cmd: {make_cmd}\n"
-            f"- os.listdir({os.path.join(self.cbase_dir,'template')}): {os.listdir(os.path.join(self.cbase_dir,'template'))}\n")
+            f"- make_cmd: {' '.join(make_cmd)}\n"
+            f"- os.listdir({os.path.join(self.cbase_dir,'template')}): {os.listdir(os.path.join(self.cbase_dir,'template'))}\n"
+            f"- os.path.exists({self.output_file}): {os.path.exists(self.output_file)}\n")

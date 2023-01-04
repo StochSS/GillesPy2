@@ -35,10 +35,7 @@ class BuildEngine():
     def __init__(self, debug: bool = False, output_dir: str = None):
         self.self_dir = Path(__file__).parent
         self.cpp_dir = self.self_dir.joinpath("../c_base").resolve()
-        if platform.system() == 'Windows':
-            self.makefile = self.cpp_dir.joinpath("Makefile.win32")
-        else:
-            self.makefile = self.cpp_dir.joinpath("Makefile")
+        self.makefile = self.self_dir.joinpath("SConstruct")
         self.src_template_dir = self.cpp_dir.joinpath("template")
         self.output_dir = output_dir
 
@@ -129,7 +126,7 @@ class BuildEngine():
             template_gen.write_definitions(str(options_file), custom_definitions)
 
         # With all required information gathered, create a Make instance.
-        self.make = Make(str(self.makefile), str(self.output_dir), str(self.obj_dir))
+        self.make = Make(str(self.makefile), str(self.output_dir), str(self.obj_dir), str(self.template_dir))
 
         return self.output_dir
 

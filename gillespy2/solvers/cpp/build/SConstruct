@@ -1,0 +1,77 @@
+# GillesPy2 is a modeling toolkit for biochemical simulation.
+# Copyright (C) 2019-2022 GillesPy2 developers.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import os
+
+exe = ARGUMENTS.get('OUTPUT_FILE', 'GillesPy2_Simulation')
+cbase_root = ARGUMENTS.get('CBASE_DIR', 'c_base')
+output_root = ARGUMENTS.get('OBJ_DIR', 'bin')
+template_root = ARGUMENTS.get('TEMPLATE_DIR', f'{cbase_root}/template')
+solver = ARGUMENTS.get('SOLVER')
+solver_path = {
+    'ssa': 'ssa_cpp_solver',
+    'ode': 'ode_cpp_solver',
+    'tau_leap': 'tau_leaping_cpp_solver',
+    'hybrid': 'tau_hybrid_cpp_solver',
+}.get(solver)
+
+VariantDir(output_root, cbase_root, duplicate=False)
+VariantDir(f'{output_root}/template', template_root, duplicate=False)
+
+# DefaultEnvironment(): this is a temporary necessity that forces SCons to use GNU tools
+# When MSVC and Clang are fully supported, remove this to allow SCons to automatically find our compiler
+denv = DefaultEnvironment(tools=[], CC='gcc', CXX='g++')
+
+env = Environment(
+    tools=['default', 'mingw'],
+    CPPPATH=[
+        Dir(cbase_root),
+        Dir(template_root),
+        Dir(f'{cbase_root}/Sundials/include'),
+        Dir(f'{cbase_root}/Tau'),
+    ],
+    LIBPATH=[
+        Dir(output_root),
+        Dir(f'{output_root}/{solver_path}'),
+    ],
+    ENV=os.environ,
+    # When MSVC (or any other compilers) are supported, update this to be a compiler-specific flag
+    CXXFLAGS=['-std=c++14'],
+)
+libdepends = [
+    f'gpy{solver}',
+    'gpystd'
+]
+templates = [
+    'template/template.cpp'
+]
+# Export env so that subdirectories can modify it directly
+Export('env')
+# List of lib dependencies, each subdirectory appends the libs it needs to this list
+Export('libdepends')
+# List of template files, e.g. files that only get compiled when the program is compiled
+# These are model source files that contain information that cannot be resolved early (e.g. model/args)
+Export('templates')
+
+SConscript(f'{output_root}/SConscript', duplicate=False)
+SConscript(f'{output_root}/{solver_path}/SConscript', duplicate=False)
+if 'sundials' in libdepends:
+    SConscript(f'{output_root}/Sundials/SConscript', duplciate=False)
+if 'tau' in libdepends:
+    SConscript(f'{output_root}/Tau/SConscript', duplicate=False)
+
+templates = [f'{output_root}/{template}' for template in templates]
+env.Program(exe, templates, LIBS=libdepends)

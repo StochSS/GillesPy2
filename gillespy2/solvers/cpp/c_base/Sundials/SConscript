@@ -1,0 +1,44 @@
+# GillesPy2 is a modeling toolkit for biochemical simulation.
+# Copyright (C) 2019-2022 GillesPy2 developers.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Import('env')
+
+env.Append(CPPPATH=[
+    Dir('./include'),
+], LIBPATH=[
+    Dir('.'),
+])
+
+env.StaticLibrary('sundials', [
+    'src/cvode_nls.c',
+    'src/cvode_io.c',
+    'src/sundials_iterative.c',
+    'src/cvode_proj.c',
+    'src/sundials_matrix.c',
+    'src/sunmatrix_band.c',
+    'src/sunmatrix_dense.c',
+    'src/cvode_ls.c',
+    'src/sundials_linearsolver.c',
+    'src/sundials_nonlinearsolver.c',
+    'src/sundials_nvector_senswrapper.c',
+    'src/sunnonlinsol_newton.c',
+    'src/sundials_nvector.c',
+    'src/nvector_serial.c',
+    'src/cvode.c',
+    'src/cvode_spils.c',
+    'src/sundials_math.c',
+    'src/sunlinsol_spgmr.c',
+])
