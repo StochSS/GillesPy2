@@ -18,6 +18,9 @@
 
 #pragma once
 
+// Import solver-specific template options, built from the Python model (needs to be above defaults)
+#include "template_opts.h"
+
 // To set propensities: 
 // g++ -D GPY_PROPENSITIES='PROPENSITY(0, x) PROPENSITY(1, x + 1) PROPENSITY(2, x + 2)'
 
@@ -86,5 +89,3 @@
 
 #endif
 
-// Import solver-specific template options.
-#include "template_opts.h"
