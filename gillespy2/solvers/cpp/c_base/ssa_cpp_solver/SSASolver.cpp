@@ -70,15 +70,12 @@ namespace Gillespy
                         break;
                     }
 
-                    std::cerr<<"t="<<simulation->current_time<<"  a=[";
                     //Sum propensities
                     propensity_sum = 0;
                     for (unsigned int reaction_number = 0; reaction_number < ((simulation->model)->number_reactions); reaction_number++)
                     {
-                        std::cerr<<propensity_values[reaction_number]<<" ";
                         propensity_sum += propensity_values[reaction_number];
                     }
-                    std::cerr<<"]="<<propensity_sum<<"\t";
 
                     //No more reactions
                     if (propensity_sum <= 0)
@@ -90,7 +87,6 @@ namespace Gillespy
                     //Reaction will fire, determine which one
                     double cumulative_sum = rng() * propensity_sum / rng.max();
                     simulation->current_time += -log(rng() * 1.0 / rng.max()) / propensity_sum;
-                    std::cerr<<" cs="<<cumulative_sum<<" t+tau="<<simulation->current_time<<"\n";
 
                     // Output timestep results
                     while (entry_count < simulation->number_timesteps && simulation->timeline[entry_count] <= simulation->current_time)
@@ -99,7 +95,6 @@ namespace Gillespy
                         {
                             break;
                         }
-                        std::cerr<<"\tout-t="<<simulation->timeline[entry_count]<<" X=["<<simulation->current_state[0]<<","<<simulation->current_state[1]<<"]\n";
                         simulation->output_buffer_range(std::cout, entry_count++);
                     }
 
@@ -111,7 +106,6 @@ namespace Gillespy
 
                         if (cumulative_sum <= 0 && propensity_values[potential_reaction] > 0)
                         {
-                            std::cerr<<"\tfire rxn"<<potential_reaction<<"\n";
                             //Update current state
                             Reaction &reaction = ((simulation->model)->reactions[potential_reaction]);
                             for (unsigned int species_number = 0; species_number < ((simulation->model)->number_species); species_number++)
@@ -136,7 +130,6 @@ namespace Gillespy
                         {
                             break;
                         }
-                        std::cerr<<"\tout-t="<<simulation->timeline[entry_count]<<" X=["<<simulation->current_state[0]<<","<<simulation->current_state[1]<<"]\n";
                         simulation->output_buffer_range(std::cout, entry_count++);
                     }
                 }
@@ -146,7 +139,6 @@ namespace Gillespy
                 if (entry_count < simulation->number_timesteps)
                 {
                     simulation->current_time = simulation->timeline[simulation->number_timesteps - 1];
-                    std::cerr<<"\tout-t="<<simulation->timeline[entry_count]<<" X=["<<simulation->current_state[0]<<","<<simulation->current_state[1]<<"]\n";
                     simulation->output_buffer_range(std::cout, simulation->number_timesteps - 1);
                 }
             }
