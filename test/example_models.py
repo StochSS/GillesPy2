@@ -634,9 +634,76 @@ def create_opioid():
     return model
 
 
+def create_telegraph_model():
+    """Creates a stochastic model for the dichotomous Markov process OFF <-> ON"""
+
+    # Intialize the Model with a name of your choosing.
+    model = gillespy2.Model(name="on_off")
+
+    """
+    Variables (GillesPy2.Species) can be anything that participates in or is produced by a reaction channel.
+
+    - name: A user defined name for the species.
+    - initial_value: A value/population count of species at start of simulation.
+    """
+    ON = gillespy2.Species(name="ON", initial_value=0)
+    OFF = gillespy2.Species(name="OFF", initial_value=1)
+
+    # Add the Variables to the Model.
+    model.add_species([ON, OFF])
+
+    """
+    Parameters are constant values relevant to the system, such as reaction kinetic rates.
+
+    - name: A user defined name for reference.
+    - expression: Some constant value.
+    """
+    kon  = gillespy2.Parameter(name="kon",  expression=0.1)
+    koff = gillespy2.Parameter(name="koff", expression=1.0)
+
+    # Add the Parameters to the Model.
+    model.add_parameter([kon, koff])
+
+    """
+    Reactions are the reaction channels which cause the system to change over time.
+
+    - name: A user defined name for the reaction.
+    - reactants: A dictionary with participant reactants as keys, and consumed per reaction as value.
+    - products: A dictionary with reaction products as keys, and number formed per reaction as value.
+    - rate: A parameter rate constant to be applied to the propensity of this reaction firing.
+    - propensity_function: Can be used instead of rate in order to declare a custom propensity function in string format.
+    """
+    r1 = gillespy2.Reaction(
+            name="on",
+            reactants={'OFF': 1}, 
+            products= {'ON': 1},
+            rate='kon'
+        )
+
+    r2 = gillespy2.Reaction(
+            name="off",
+            reactants={'ON': 1}, 
+            products= {'OFF': 1},
+            rate='koff'
+        )
+
+
+    # Add the Reactions to the Model.
+    model.add_reaction([r1, r2])
+
+    # Define the timespan of the model.
+    tspan = gillespy2.TimeSpan.linspace(t=100, num_points=100)
+    
+    # Set the timespan of the Model.
+    model.timespan(tspan)
+    return model
+
+
+
 __all__ = [
-    'create_trichloroethylene', 'create_lac_operon', 'create_schlogl', 'create_michaelis_menten',
-    'create_decay', 'create_decay_no_tspan', 'create_tyson_2_state_oscillator', 'create_oregonator',
-    'create_vilar_oscillator', 'create_dimerization', 'create_degradation', 'create_robust_model',
-    'create_multi_firing_event', 'create_toggle_switch'
+    'create_trichloroethylene', 'create_lac_operon', 'create_schlogl',
+    'create_michaelis_menten', 'create_decay', 'create_decay_no_tspan',
+    'create_tyson_2_state_oscillator', 'create_oregonator', 'create_vilar_oscillator',
+    'create_dimerization', 'create_degradation', 'create_robust_model',
+    'create_multi_firing_event', 'create_toggle_switch','create_telegraph_model',
 ]
