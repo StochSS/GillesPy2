@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hybrid_template.h"
 #include "template_params.h"
+#include "hybrid_template.h"
 #include <cmath>
 
 // , cannot be overridden, so we can't use it as a delimiter

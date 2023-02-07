@@ -133,7 +133,7 @@ namespace Gillespy
                 }
             }
 
-            delete propensity_values;
+            delete[] propensity_values;
         }
     }
 }
