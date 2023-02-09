@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gillespy2.core.parameter &#8212; GillesPy2 1.7.2 documentation</title>
+    <title>gillespy2.core.parameter &#8212; GillesPy2 1.8.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -124,7 +124,7 @@
 <span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="kn">import</span> <span class="n">ParameterError</span>
 
 <div class="viewcode-block" id="Parameter"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.parameter.Parameter">[docs]</a><span class="k">class</span> <span class="nc">Parameter</span><span class="p">(</span><span class="n">SortableObject</span><span class="p">,</span> <span class="n">Jsonify</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A parameter can be given as an expression (function) or directly</span>
 <span class="sd">    as a value (scalar). If given an expression, it should be</span>
 <span class="sd">    understood as evaluable in the namespace of a parent Model.</span>
@@ -157,7 +157,7 @@
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="si">}</span><span class="s2">&quot;</span>
 
     <span class="k">def</span> <span class="nf">_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">namespace</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Evaluate the expression and return the (scalar) value in the given</span>
 <span class="sd">        namespace.</span>
 
@@ -194,7 +194,7 @@
         <span class="k">return</span> <span class="n">sanitized_expression</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">replacements</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Parameter.validate"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.parameter.Parameter.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coverage</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Validate the parameter.</span>
 
 <span class="sd">        :param expression: String for a function calculating parameter values. Should be</span>
@@ -248,7 +248,7 @@
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
 

@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gillespy2.solvers.cpp.build.build_engine &#8212; GillesPy2 1.7.2 documentation</title>
+    <title>gillespy2.solvers.cpp.build.build_engine &#8212; GillesPy2 1.8.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -139,10 +139,7 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">self_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cpp_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">self_dir</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;../c_base&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Windows&#39;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">makefile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpp_dir</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;Makefile.win32&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">makefile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpp_dir</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;Makefile&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">makefile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">self_dir</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;SConstruct&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">src_template_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpp_dir</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span> <span class="o">=</span> <span class="n">output_dir</span>
 
@@ -166,7 +163,7 @@
 
 <div class="viewcode-block" id="BuildEngine.get_missing_dependencies"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.build_engine.BuildEngine.get_missing_dependencies">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_missing_dependencies</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;list[str]&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Determine which dependencies are missing on the system, if any.</span>
 
 <span class="sd">        :returns: A list of missing dependencies.</span>
@@ -178,7 +175,7 @@
         <span class="k">return</span> <span class="n">missing</span></div>
 
 <div class="viewcode-block" id="BuildEngine.prepare"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.build_engine.BuildEngine.prepare">[docs]</a>    <span class="k">def</span> <span class="nf">prepare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="s2">&quot;Union[Model, template_gen.SanitizedModel]&quot;</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Prepare the template directory for compilation.</span>
 <span class="sd">        The following operations will be performed:</span>
 <span class="sd">            1. If no cached object files are found, prebuild them.</span>
@@ -233,12 +230,12 @@
             <span class="n">template_gen</span><span class="o">.</span><span class="n">write_definitions</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">options_file</span><span class="p">),</span> <span class="n">custom_definitions</span><span class="p">)</span>
 
         <span class="c1"># With all required information gathered, create a Make instance.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">make</span> <span class="o">=</span> <span class="n">Make</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">makefile</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj_dir</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">make</span> <span class="o">=</span> <span class="n">Make</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">makefile</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj_dir</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">template_dir</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span></div>
 
 <div class="viewcode-block" id="BuildEngine.build_cache"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.build_engine.BuildEngine.build_cache">[docs]</a>    <span class="k">def</span> <span class="nf">build_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">force_rebuild</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build object dependencies and cache into directory for later use.</span>
 
 <span class="sd">        :param cache_dir: The directory to use as a cache.</span>
@@ -252,7 +249,7 @@
         <span class="n">make</span><span class="o">.</span><span class="n">prebuild</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="BuildEngine.build_simulation"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.build_engine.BuildEngine.build_simulation">[docs]</a>    <span class="k">def</span> <span class="nf">build_simulation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation_name</span><span class="p">:</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">definitions</span><span class="p">:</span> <span class="s2">&quot;dict[str, str]&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build the solver to the temp directory.</span>
 
 <span class="sd">        :param simulation_name: The name of the simulation to build. For example, ODESimulation.</span>
@@ -277,7 +274,7 @@
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">make</span><span class="o">.</span><span class="n">output_file</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BuildEngine.get_executable_path"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.build_engine.BuildEngine.get_executable_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_executable_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Resolves the filepath of the simulation executable.</span>
 <span class="sd">        Only valid after the simulation has been built.</span>
 
@@ -289,7 +286,7 @@
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">make</span><span class="o">.</span><span class="n">output_file</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BuildEngine.clean"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.build_engine.BuildEngine.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Delete the output directory and all other associated build artifacts.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -321,7 +318,7 @@
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
 

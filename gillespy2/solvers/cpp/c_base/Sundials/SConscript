@@ -14,21 +14,31 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# =============================================================================
-# @file    __version__.py
-# @brief   GillesPy2 version info
-# @license Please see the file named LICENSE in the project directory
-# @website https://github.com/StochSS/GillesPy2
-# =============================================================================
+Import('env')
 
+env.Append(CPPPATH=[
+    Dir('./include'),
+], LIBPATH=[
+    Dir('.'),
+])
 
-__version__      = '1.8.0'
-
-__title__        = 'GillesPy2'
-__description__  = 'Python interface for Gillespie-style biochemical simulations'
-__url__          = 'https://github.com/StochSS/GillesPy2'
-__download_url__ = 'https://pypi.org/project/gillespy2/#files'
-__author__       = 'See AUTHORS'
-__email__        = 'bdrawert@unca.edu'
-__license__      = 'GPL'
-__copyright__    = 'Copyright (C) 2017-2022'
+env.StaticLibrary('sundials', [
+    'src/cvode_nls.c',
+    'src/cvode_io.c',
+    'src/sundials_iterative.c',
+    'src/cvode_proj.c',
+    'src/sundials_matrix.c',
+    'src/sunmatrix_band.c',
+    'src/sunmatrix_dense.c',
+    'src/cvode_ls.c',
+    'src/sundials_linearsolver.c',
+    'src/sundials_nonlinearsolver.c',
+    'src/sundials_nvector_senswrapper.c',
+    'src/sunnonlinsol_newton.c',
+    'src/sundials_nvector.c',
+    'src/nvector_serial.c',
+    'src/cvode.c',
+    'src/cvode_spils.c',
+    'src/sundials_math.c',
+    'src/sunlinsol_spgmr.c',
+])

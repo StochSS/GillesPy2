@@ -468,7 +468,7 @@ class Results(UserList, Jsonify):
             yaxis_label = layout_args.get('yaxis_title')
             layout_args.pop('yaxis_title')
 
-        init_notebook_mode(connected=True)
+        init_notebook_mode()
 
         from collections.abc import Iterable # pylint: disable=import-outside-toplevel
         trajectory_list = []
@@ -682,7 +682,7 @@ class Results(UserList, Jsonify):
         from plotly.offline import init_notebook_mode, iplot # pylint: disable=import-outside-toplevel
         import plotly.graph_objs as go # pylint: disable=import-outside-toplevel
 
-        init_notebook_mode(connected=True)
+        init_notebook_mode()
 
         if not show_title:
             title = 'Mean and Standard Deviation'
