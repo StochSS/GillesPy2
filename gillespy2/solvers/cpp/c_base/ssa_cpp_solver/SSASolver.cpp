@@ -88,6 +88,17 @@ namespace Gillespy
                     double cumulative_sum = rng() * propensity_sum / rng.max();
                     simulation->current_time += -log(rng() * 1.0 / rng.max()) / propensity_sum;
 
+                    // Output timestep results
+                    while (entry_count < simulation->number_timesteps && simulation->timeline[entry_count] <= simulation->current_time)
+                    {
+                        if (interrupted)
+                        {
+                            break;
+                        }
+                        simulation->output_buffer_range(std::cout, entry_count++);
+                    }
+
+                    // Fire reaction
                     for (unsigned int potential_reaction = 0; potential_reaction < ((simulation->model)->number_reactions); potential_reaction++)
                     {
                         cumulative_sum -= propensity_values[potential_reaction];
@@ -119,7 +130,6 @@ namespace Gillespy
                         {
                             break;
                         }
-
                         simulation->output_buffer_range(std::cout, entry_count++);
                     }
                 }
