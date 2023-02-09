@@ -105,9 +105,8 @@ class TauHybridSolver(GillesPySolver):
         # populating our results trajectory.
            
         num_saves = 0
-        for time in save_times:
-            if time > curr_time:
-                break
+        while len(save_times)>0 and save_times[0] <= curr_time:
+            time = save_times.pop(0) # remove the value from the front of the list
             # if a solution is given for it
             trajectory_index = save_index
             assignment_state = copy.deepcopy(curr_state)
@@ -125,8 +124,7 @@ class TauHybridSolver(GillesPySolver):
                 trajectory[trajectory_index][species.index(ar.variable.name) + 1] = assignment_value
             num_saves += 1
             save_index += 1
-        save_times = save_times[num_saves:]  # remove completed save times
-        return save_times, save_index
+        return save_index
 
 
     def __toggle_reactions(self, all_compiled, deterministic_reactions, dependencies,
@@ -675,7 +673,7 @@ class TauHybridSolver(GillesPySolver):
         self.__simulate_negative_state_check(curr_state)
         if curr_time == 0.0:
             # save state at beginning of simulation
-            save_times, save_index = self.__save_state_to_output(
+            save_index = self.__save_state_to_output(
                 curr_time, save_index, curr_state, species, trajectory, save_times
             )
 
@@ -785,7 +783,7 @@ class TauHybridSolver(GillesPySolver):
                 raise SimulationError(f"Negative State detected in step, after single SSA step. error_message={invalid_err_message}")
 
 
-        save_times, save_index = self.__save_state_to_output(curr_time, save_index, curr_state, species, trajectory, save_times)
+        save_index = self.__save_state_to_output(curr_time, save_index, curr_state, species, trajectory, save_times)
 
         events_processed = self.__process_queued_events(event_queue, trigger_states, curr_state, det_spec)
 
@@ -1201,7 +1199,6 @@ class TauHybridSolver(GillesPySolver):
             entry_pos = 1
             data = OrderedDict()  # Dictionary for results
             data['time'] = timeline  # All time entries
-            save_times = timeline
             save_index = 0
 
             # Record Highest Order reactant for each reaction and set error tolerance
@@ -1215,7 +1212,7 @@ class TauHybridSolver(GillesPySolver):
             all_compiled['inactive_rxns'] = compiled_inactive_reactions
             all_compiled['rules'] = compiled_rate_rules
 
-            save_times = np.copy(self.model.tspan)
+            save_times = list(np.copy(self.model.tspan))
             delayed_events = []
             trigger_states = {}
 
