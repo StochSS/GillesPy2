@@ -41,10 +41,9 @@ class TestTelegraphModel(unittest.TestCase):
         for solver in solvers:
             with self.subTest(solver=solver.name):
                 results = model.run(solver=solver)
-        
-        a = np.sum(results['ON'])/len(results['ON'])
-        b = np.sum(results['OFF'])/len(results['OFF'])
-        self.assertTrue( a < b) 
+                a = np.sum(results['ON'])/len(results['ON'])
+                b = np.sum(results['OFF'])/len(results['OFF'])
+                self.assertTrue( a < b) 
 
 
 
