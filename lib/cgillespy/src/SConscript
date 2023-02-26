@@ -19,4 +19,5 @@ Import('env')
 env.StaticLibrary('gpystd', [
     'model.cpp',
     'arg_parser.cpp',
+    'simulation.cpp',
 ])
