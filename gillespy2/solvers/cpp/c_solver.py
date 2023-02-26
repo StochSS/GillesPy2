@@ -68,7 +68,7 @@ class CSolver:
 
         if len(BuildEngine.get_missing_dependencies()) > 0:
             raise gillespyError.SimulationError(
-                "Please install/configure 'g++' and 'make' on your system, to ensure that GillesPy2 C solvers will run properly."
+                "Please install/configure 'g++' and 'scons' on your system, to ensure that GillesPy2 C solvers will run properly."
             )
 
         if platform.system() == "Windows" and " " in gillespy2.__file__:
