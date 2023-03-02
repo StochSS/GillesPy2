@@ -20,6 +20,7 @@ from gillespy2.core import Species, Reaction, Parameter, Model, RateRule
 from gillespy2.solvers.cpp.build.expression import Expression
 from gillespy2.core import log
 from gillespy2.core.gillespyError import SimulationError
+from gillespy2.solvers.utilities.solverutils import dependency_grapher
 
 import math
 
@@ -418,10 +419,12 @@ def template_def_reactions(model: SanitizedModel, ode=False) -> "dict[str, str]"
         products_count = [str(int(reaction_products[species])) for species in model.species_names.values()]
         products_set[rxn_name] = f"{{{','.join(products_count)}}}"
 
+    dep_graph = dependency_grapher(model, model.reactions)
     reaction_names = " ".join([f"REACTION_NAME({rxn})" for rxn in reaction_set.keys()])
     reaction_set = f"{{{','.join(reaction_set.values())}}}"
     reactants_set = f"{{{','.join(reactants_set.values())}}}"
     products_set = f"{{{','.join(products_set.values())}}}"
+    dep_graph = f"{{{','.join(dep_graph.values())}}}"
 
     return {
         "GPY_NUM_REACTIONS": num_reactions,
@@ -429,6 +432,7 @@ def template_def_reactions(model: SanitizedModel, ode=False) -> "dict[str, str]"
         "GPY_REACTIONS": reaction_set,
         "GPY_REACTION_REACTANTS": reactants_set,
         "GPY_REACTION_PRODUCTS": products_set,
+        "GPY_DEP_GRAPH": dep_graph,
     }
 
 
