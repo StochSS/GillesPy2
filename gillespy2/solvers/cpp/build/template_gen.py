@@ -89,6 +89,7 @@ class SanitizedModel:
         self.reactions: "OrderedDict[str, dict[str, int]]" = OrderedDict()
         self.reaction_reactants: "OrderedDict[str, dict[str, int]]" = OrderedDict()
         self.reaction_products: "OrderedDict[str, dict[str, int]]" = OrderedDict()
+        self.reaction_custom_deps: "OrderedDict[str, [int]" = OrderedDict()
         # Rate Rules: maps sanitized species names to their corresponding rate rule expression.
         self.rate_rules: "OrderedDict[str, str]" = OrderedDict()
         # Options: custom definitions that can be supplied by the solver, maps macros to their definitions.
@@ -126,6 +127,7 @@ class SanitizedModel:
         self.reactions[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
         self.reaction_reactants[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
         self.reaction_products[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
+        self.reaction_custom_deps[reaction.name] = {spec: int(1) for spec in self.species_names.values()} # Testing purposes pass all species
         for reactant, stoich_value in reaction.reactants.items():
             reactant = self.species_names[reactant.name]
             self.reactions[reaction.name][reactant] -= int(stoich_value)
@@ -199,6 +201,7 @@ class SanitizedModel:
         # Get definitions for reactions
         reaction_definitions = template_def_reactions(self)
         results.update(reaction_definitions)
+        print(f"After updating results with reaction definitions: {results}")
 
         # Get definitions for propensities
         stoch_propensity_definitions = template_def_propensities(self, ode=False)
@@ -407,6 +410,7 @@ def template_def_reactions(model: SanitizedModel, ode=False) -> "dict[str, str]"
     reaction_set = OrderedDict()
     reactants_set = OrderedDict()
     products_set = OrderedDict()
+    custom_deps_set = OrderedDict()
 
     for rxn_name, reaction in model.reactions.items():
         stoich = [str(int(reaction[species])) for species in model.species_names.values()]
@@ -417,11 +421,15 @@ def template_def_reactions(model: SanitizedModel, ode=False) -> "dict[str, str]"
     for rxn_name, reaction_products in model.reaction_products.items():
         products_count = [str(int(reaction_products[species])) for species in model.species_names.values()]
         products_set[rxn_name] = f"{{{','.join(products_count)}}}"
+    for rxn_name, reaction_custom_deps in model.reaction_custom_deps.items():
+        custom_deps_count = [str(int(reaction_custom_deps[species])) for species in model.species_names.values()]
+        custom_deps_set[rxn_name] = f"{{{','.join(custom_deps_count)}}}"
 
     reaction_names = " ".join([f"REACTION_NAME({rxn})" for rxn in reaction_set.keys()])
     reaction_set = f"{{{','.join(reaction_set.values())}}}"
     reactants_set = f"{{{','.join(reactants_set.values())}}}"
     products_set = f"{{{','.join(products_set.values())}}}"
+    custom_deps_set = f"{{{','.join(custom_deps_set.values())}}}"
 
     return {
         "GPY_NUM_REACTIONS": num_reactions,
@@ -429,6 +437,7 @@ def template_def_reactions(model: SanitizedModel, ode=False) -> "dict[str, str]"
         "GPY_REACTIONS": reaction_set,
         "GPY_REACTION_REACTANTS": reactants_set,
         "GPY_REACTION_PRODUCTS": products_set,
+        "GPY_REACTION_CUSTOM_DEPS": custom_deps_set
     }
 
 
