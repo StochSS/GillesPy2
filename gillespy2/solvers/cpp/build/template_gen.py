@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import math
 from collections import OrderedDict
 from typing import Optional
 from gillespy2.core import Species, Reaction, Parameter, Model, RateRule
@@ -21,9 +22,6 @@ from gillespy2.solvers.cpp.build.expression import Expression
 from gillespy2.solvers.utilities.solverutils import species_parse
 from gillespy2.core import log
 from gillespy2.core.gillespyError import SimulationError
-
-import math
-
 
 class SanitizedModel:
     """
@@ -73,7 +71,7 @@ class SanitizedModel:
             # ORDER IS IMPORTANT HERE!
             # All "system" namespace entries should always be first.
             # Otherwise, user-defined identifiers (like, for example, "gamma") might get overwritten.
-            **{name: name for name in math.__dict__.keys()},
+            **{name: name for name in math.__dict__},
             **self.function_map,
             **self.species_names,
             **self.parameter_names,
@@ -138,7 +136,7 @@ class SanitizedModel:
             product = self.species_names[product.name]
             self.reactions[reaction.name][product] += int(stoich_value)
             self.reaction_products[reaction.name][product] = int(stoich_value)
-        
+
         parsed_species = [spec.name for spec in species_parse(self.model, reaction.propensity_function)]
         for species, san_species in self.species_names.items():
             if species in parsed_species:
