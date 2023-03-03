@@ -128,7 +128,7 @@ class SanitizedModel:
         self.reactions[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
         self.reaction_reactants[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
         self.reaction_products[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
-        self.reaction_custom_deps[reaction.name] = {spec: int(0) for spec in self.species_names.values()} # Testing purposes pass all species
+        self.reaction_custom_deps[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
         for reactant, stoich_value in reaction.reactants.items():
             reactant = self.species_names[reactant.name]
             self.reactions[reaction.name][reactant] -= int(stoich_value)
@@ -143,7 +143,6 @@ class SanitizedModel:
         for species, san_species in self.species_names.items():
             if species in parsed_species:
                 self.reaction_custom_deps[reaction.name][san_species] = 1
-
         return self
 
     def use_rate_rule(self, rate_rule: "RateRule") -> "SanitizedModel":
