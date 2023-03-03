@@ -246,6 +246,7 @@ namespace Gillespy
                 model.reactions[rxn_i].species_change[spec_i] = reactions[rxn_i][spec_i];
                 model.reactions[rxn_i].reactants_change[spec_i] = reaction_reactants[rxn_i][spec_i];
                 model.reactions[rxn_i].products_change[spec_i] = reaction_products[rxn_i][spec_i];
+                model.reactions[rxn_i].custom_deps[spec_i] = reaction_custom_deps[rxn_i][spec_i];
             }
         }
 

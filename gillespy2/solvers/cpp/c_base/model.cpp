@@ -48,11 +48,13 @@ namespace Gillespy {
             reactions[reaction].species_change = std::make_unique<int[]>(number_species);
             reactions[reaction].reactants_change = std::make_unique<int[]>(number_species);
             reactions[reaction].products_change = std::make_unique<int[]>(number_species);
+            reactions[reaction].custom_deps = std::make_unique<int[]>(number_species);
 
             for (unsigned int species = 0; species < number_species; species++) {
                 reactions[reaction].species_change[species] = 0;
                 reactions[reaction].reactants_change[species] = 0;
                 reactions[reaction].products_change[species] = 0;
+                reactions[reaction].custom_deps[species] = 0;
             }
 
             reactions[reaction].affected_reactions = std::vector<unsigned int>();
@@ -70,8 +72,8 @@ namespace Gillespy {
         for (unsigned int r1 = 0; r1 < number_reactions; r1++) {
             for (unsigned int r2 = 0; r2 < number_reactions; r2++) {
                 for (unsigned int s = 0; s < number_species; s++) {
-                     if(reactions[r1].species_change[s]  != 0  &&
-                        reactions[r2].reactants_change[s] > 0 ){
+                     if(reactions[r1].species_change[s]  != 0  && (
+                        reactions[r2].reactants_change[s] > 0 || reactions[r2].custom_deps[s]) ){
                         reactions[r1].affected_reactions.push_back(r2);
                     }
                 }

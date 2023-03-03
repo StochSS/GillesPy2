@@ -74,6 +74,7 @@ namespace Gillespy
         std::unique_ptr<int[]> species_change;
         std::unique_ptr<int[]> reactants_change;
         std::unique_ptr<int[]> products_change;
+        std::unique_ptr<int[]> custom_deps;
 
         inline static double propensity(
                 ReactionId reaction_id,
