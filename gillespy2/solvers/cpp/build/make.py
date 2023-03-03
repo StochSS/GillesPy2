@@ -52,7 +52,6 @@ class Make():
         if os.name == "nt":
             self.output_file = "GillesPy2_Simulation.exe"
 
-        print(f"Output file: {self.output_file}")
         self.output_file = Path(self.output_dir, self.output_file)
 
     def prebuild(self):

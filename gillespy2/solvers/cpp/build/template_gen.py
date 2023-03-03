@@ -18,6 +18,7 @@ from collections import OrderedDict
 from typing import Optional
 from gillespy2.core import Species, Reaction, Parameter, Model, RateRule
 from gillespy2.solvers.cpp.build.expression import Expression
+from gillespy2.solvers.utilities.solverutils import species_parse
 from gillespy2.core import log
 from gillespy2.core.gillespyError import SimulationError
 
@@ -127,7 +128,7 @@ class SanitizedModel:
         self.reactions[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
         self.reaction_reactants[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
         self.reaction_products[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
-        self.reaction_custom_deps[reaction.name] = {spec: int(1) for spec in self.species_names.values()} # Testing purposes pass all species
+        self.reaction_custom_deps[reaction.name] = {spec: int(0) for spec in self.species_names.values()} # Testing purposes pass all species
         for reactant, stoich_value in reaction.reactants.items():
             reactant = self.species_names[reactant.name]
             self.reactions[reaction.name][reactant] -= int(stoich_value)
@@ -137,6 +138,11 @@ class SanitizedModel:
             product = self.species_names[product.name]
             self.reactions[reaction.name][product] += int(stoich_value)
             self.reaction_products[reaction.name][product] = int(stoich_value)
+        
+        parsed_species = [spec.name for spec in species_parse(self.model, reaction.propensity_function)]
+        for species, san_species in self.species_names.items():
+            if species in parsed_species:
+                self.reaction_custom_deps[reaction.name][san_species] = 1
 
         return self
 
@@ -201,7 +207,6 @@ class SanitizedModel:
         # Get definitions for reactions
         reaction_definitions = template_def_reactions(self)
         results.update(reaction_definitions)
-        print(f"After updating results with reaction definitions: {results}")
 
         # Get definitions for propensities
         stoch_propensity_definitions = template_def_propensities(self, ode=False)
@@ -430,9 +435,6 @@ def template_def_reactions(model: SanitizedModel, ode=False) -> "dict[str, str]"
     reactants_set = f"{{{','.join(reactants_set.values())}}}"
     products_set = f"{{{','.join(products_set.values())}}}"
     custom_deps_set = f"{{{','.join(custom_deps_set.values())}}}"
-
-    print('another sanity check....')
-    print(f"reaction_set: {reaction_set}\nreactants_set: {reactants_set}\ncustom_deps_set {custom_deps_set}")
 
     return {
         "GPY_NUM_REACTIONS": num_reactions,
