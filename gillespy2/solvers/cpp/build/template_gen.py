@@ -431,6 +431,9 @@ def template_def_reactions(model: SanitizedModel, ode=False) -> "dict[str, str]"
     products_set = f"{{{','.join(products_set.values())}}}"
     custom_deps_set = f"{{{','.join(custom_deps_set.values())}}}"
 
+    print('another sanity check....')
+    print(f"reaction_set: {reaction_set}\nreactants_set: {reactants_set}\ncustom_deps_set {custom_deps_set}")
+
     return {
         "GPY_NUM_REACTIONS": num_reactions,
         "GPY_REACTION_NAMES": reaction_names,

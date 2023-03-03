@@ -115,12 +115,15 @@ class BuildEngine():
         # If a raw GillesPy2 model was provided, convert it to a sanitized model.
         if isinstance(model, gillespy2.Model):
             model = template_gen.SanitizedModel(model, variable=variable)
+            print(f"this is the sanitized model custom propensity dependencies after spitting out of template_gen... {model.reaction_custom_deps}")
         elif not isinstance(model, template_gen.SanitizedModel) and type(model).__name__ == "SanitizedModel":
             raise TypeError(f"Build engine expected gillespy2.Model or SanitizedModel type: received {type(model)} , __name__={type(model).__name__}")
 
         # Build the template and write it to the temp directory and remove the sample template_definitions header.
         template_file = self.template_dir.joinpath(self.template_definitions_name)
         template_file.unlink()
+        print('before writing definitions, model get template returns:')
+        print(model.get_template())
         template_gen.write_definitions(str(template_file), model.get_template())
         custom_definitions = model.get_options()
         if custom_definitions is not None:
@@ -170,6 +173,7 @@ class BuildEngine():
             )
 
         self.make.build_simulation(simulation_name, template_dir=str(self.template_dir), **definitions)
+        print(f"output file: {str(self.make.output_file)}")
         return str(self.make.output_file)
 
     def get_executable_path(self) -> str:

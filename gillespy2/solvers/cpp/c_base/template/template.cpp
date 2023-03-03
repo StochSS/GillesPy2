@@ -51,6 +51,7 @@ namespace Gillespy
     int reactions[GPY_NUM_REACTIONS][GPY_NUM_SPECIES] = GPY_REACTIONS;
     int reaction_reactants[GPY_NUM_REACTIONS][GPY_NUM_SPECIES] = GPY_REACTION_REACTANTS;
     int reaction_products[GPY_NUM_REACTIONS][GPY_NUM_SPECIES] = GPY_REACTION_PRODUCTS;
+    int reaction_custom_deps[GPY_NUM_REACTIONS][GPY_NUM_SPECIES] = GPY_REACTION_CUSTOM_DEPS;
     std::string r_names[GPY_NUM_REACTIONS] = 
     {
         #define REACTION_NAME(name) #name,
