@@ -1,6 +1,6 @@
 /*
  * GillesPy2 is a modeling toolkit for biochemical simulation.
- * Copyright (C) 2019-2022 GillesPy2 developers.
+ * Copyright (C) 2019-2023 GillesPy2 developers.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,6 +74,7 @@ namespace Gillespy
         std::unique_ptr<int[]> species_change;
         std::unique_ptr<int[]> reactants_change;
         std::unique_ptr<int[]> products_change;
+        std::unique_ptr<int[]> props_deps;
 
         inline static double propensity(
                 ReactionId reaction_id,

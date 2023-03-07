@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gillespy2.solvers.cpp.build.template_gen &#8212; GillesPy2 1.8.0 documentation</title>
+    <title>gillespy2.solvers.cpp.build.template_gen &#8212; GillesPy2 1.8.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -103,7 +103,7 @@
             
   <h1>Source code for gillespy2.solvers.cpp.build.template_gen</h1><div class="highlight"><pre>
 <span></span><span class="c1"># GillesPy2 is a modeling toolkit for biochemical simulation.</span>
-<span class="c1"># Copyright (C) 2019-2022 GillesPy2 developers.</span>
+<span class="c1"># Copyright (C) 2019-2023 GillesPy2 developers.</span>
 
 <span class="c1"># This program is free software: you can redistribute it and/or modify</span>
 <span class="c1"># it under the terms of the GNU General Public License as published by</span>
@@ -118,15 +118,14 @@
 <span class="c1"># You should have received a copy of the GNU General Public License</span>
 <span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
+<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Reaction</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">,</span> <span class="n">Model</span><span class="p">,</span> <span class="n">RateRule</span>
 <span class="kn">from</span> <span class="nn">gillespy2.solvers.cpp.build.expression</span> <span class="kn">import</span> <span class="n">Expression</span>
+<span class="kn">from</span> <span class="nn">gillespy2.solvers.utilities.solverutils</span> <span class="kn">import</span> <span class="n">species_parse</span>
 <span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">log</span>
 <span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="kn">import</span> <span class="n">SimulationError</span>
-
-<span class="kn">import</span> <span class="nn">math</span>
-
 
 <div class="viewcode-block" id="SanitizedModel"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.template_gen.SanitizedModel">[docs]</a><span class="k">class</span> <span class="nc">SanitizedModel</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -176,7 +175,7 @@
             <span class="c1"># ORDER IS IMPORTANT HERE!</span>
             <span class="c1"># All &quot;system&quot; namespace entries should always be first.</span>
             <span class="c1"># Otherwise, user-defined identifiers (like, for example, &quot;gamma&quot;) might get overwritten.</span>
-            <span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">math</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">()},</span>
+            <span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">math</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">},</span>
             <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">function_map</span><span class="p">,</span>
             <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">species_names</span><span class="p">,</span>
             <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="p">,</span>
@@ -193,6 +192,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="p">:</span> <span class="s2">&quot;OrderedDict[str, dict[str, int]]&quot;</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reaction_reactants</span><span class="p">:</span> <span class="s2">&quot;OrderedDict[str, dict[str, int]]&quot;</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reaction_products</span><span class="p">:</span> <span class="s2">&quot;OrderedDict[str, dict[str, int]]&quot;</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reaction_props_deps</span><span class="p">:</span> <span class="s2">&quot;OrderedDict[str, [int]]&quot;</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="c1"># Rate Rules: maps sanitized species names to their corresponding rate rule expression.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rate_rules</span><span class="p">:</span> <span class="s2">&quot;OrderedDict[str, str]&quot;</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="c1"># Options: custom definitions that can be supplied by the solver, maps macros to their definitions.</span>
@@ -230,6 +230,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="p">[</span><span class="n">reaction</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">spec</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_names</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reaction_reactants</span><span class="p">[</span><span class="n">reaction</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">spec</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_names</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reaction_products</span><span class="p">[</span><span class="n">reaction</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">spec</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_names</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reaction_props_deps</span><span class="p">[</span><span class="n">reaction</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">spec</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_names</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
         <span class="k">for</span> <span class="n">reactant</span><span class="p">,</span> <span class="n">stoich_value</span> <span class="ow">in</span> <span class="n">reaction</span><span class="o">.</span><span class="n">reactants</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">reactant</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_names</span><span class="p">[</span><span class="n">reactant</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="p">[</span><span class="n">reaction</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">reactant</span><span class="p">]</span> <span class="o">-=</span> <span class="nb">int</span><span class="p">(</span><span class="n">stoich_value</span><span class="p">)</span>
@@ -240,6 +241,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="p">[</span><span class="n">reaction</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">product</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">stoich_value</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">reaction_products</span><span class="p">[</span><span class="n">reaction</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">product</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">stoich_value</span><span class="p">)</span>
 
+        <span class="n">parsed_species</span> <span class="o">=</span> <span class="p">[</span><span class="n">spec</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">species_parse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">reaction</span><span class="o">.</span><span class="n">propensity_function</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">san_species</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_names</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">parsed_species</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">reaction_props_deps</span><span class="p">[</span><span class="n">reaction</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">san_species</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
 <div class="viewcode-block" id="SanitizedModel.use_rate_rule"><a class="viewcode-back" href="../../../../../classes/gillespy2.solvers.cpp.build.html#gillespy2.solvers.cpp.build.template_gen.SanitizedModel.use_rate_rule">[docs]</a>    <span class="k">def</span> <span class="nf">use_rate_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rate_rule</span><span class="p">:</span> <span class="s2">&quot;RateRule&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SanitizedModel&quot;</span><span class="p">:</span>
@@ -511,6 +516,7 @@
     <span class="n">reaction_set</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
     <span class="n">reactants_set</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
     <span class="n">products_set</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    <span class="n">props_deps_set</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
 
     <span class="k">for</span> <span class="n">rxn_name</span><span class="p">,</span> <span class="n">reaction</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">stoich</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">reaction</span><span class="p">[</span><span class="n">species</span><span class="p">]))</span> <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">species_names</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
@@ -521,11 +527,15 @@
     <span class="k">for</span> <span class="n">rxn_name</span><span class="p">,</span> <span class="n">reaction_products</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">reaction_products</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">products_count</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">reaction_products</span><span class="p">[</span><span class="n">species</span><span class="p">]))</span> <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">species_names</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
         <span class="n">products_set</span><span class="p">[</span><span class="n">rxn_name</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">{{</span><span class="si">{</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">products_count</span><span class="p">)</span><span class="si">}</span><span class="se">}}</span><span class="s2">&quot;</span>
+    <span class="k">for</span> <span class="n">rxn_name</span><span class="p">,</span> <span class="n">reaction_props_deps</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">reaction_props_deps</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">props_deps_count</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">reaction_props_deps</span><span class="p">[</span><span class="n">species</span><span class="p">]))</span> <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">species_names</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="n">props_deps_set</span><span class="p">[</span><span class="n">rxn_name</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">{{</span><span class="si">{</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">props_deps_count</span><span class="p">)</span><span class="si">}</span><span class="se">}}</span><span class="s2">&quot;</span>
 
     <span class="n">reaction_names</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;REACTION_NAME(</span><span class="si">{</span><span class="n">rxn</span><span class="si">}</span><span class="s2">)&quot;</span> <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">reaction_set</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span>
     <span class="n">reaction_set</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">{{</span><span class="si">{</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">reaction_set</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="si">}</span><span class="se">}}</span><span class="s2">&quot;</span>
     <span class="n">reactants_set</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">{{</span><span class="si">{</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">reactants_set</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="si">}</span><span class="se">}}</span><span class="s2">&quot;</span>
     <span class="n">products_set</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">{{</span><span class="si">{</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">products_set</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="si">}</span><span class="se">}}</span><span class="s2">&quot;</span>
+    <span class="n">props_deps_set</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">{{</span><span class="si">{</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">props_deps_set</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="si">}</span><span class="se">}}</span><span class="s2">&quot;</span>
 
     <span class="k">return</span> <span class="p">{</span>
         <span class="s2">&quot;GPY_NUM_REACTIONS&quot;</span><span class="p">:</span> <span class="n">num_reactions</span><span class="p">,</span>
@@ -533,6 +543,7 @@
         <span class="s2">&quot;GPY_REACTIONS&quot;</span><span class="p">:</span> <span class="n">reaction_set</span><span class="p">,</span>
         <span class="s2">&quot;GPY_REACTION_REACTANTS&quot;</span><span class="p">:</span> <span class="n">reactants_set</span><span class="p">,</span>
         <span class="s2">&quot;GPY_REACTION_PRODUCTS&quot;</span><span class="p">:</span> <span class="n">products_set</span><span class="p">,</span>
+        <span class="s2">&quot;GPY_REACTION_PROPS_DEPS&quot;</span><span class="p">:</span> <span class="n">props_deps_set</span>
     <span class="p">}</span></div>
 
 
@@ -568,7 +579,7 @@
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;Copyright (C) 2017-2022.
+      &copy;Copyright (C) 2017-2023.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
