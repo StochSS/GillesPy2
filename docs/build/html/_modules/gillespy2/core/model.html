@@ -1155,7 +1155,7 @@
 
 <div class="viewcode-block" id="Model.timespan"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.Model.timespan">[docs]</a>    <span class="k">def</span> <span class="nf">timespan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_span</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Set the time span of simulation. StochKit does not support non-uniform</span>
+<span class="sd">        Set the time span of simulation. GillesPy2 does not support non-uniform</span>
 <span class="sd">        timespans.</span>
 
 <span class="sd">        :param time_span: Evenly-spaced list of times at which to sample the species populations</span>
@@ -1461,7 +1461,7 @@
 
 <div class="viewcode-block" id="StochMLDocument"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.StochMLDocument">[docs]</a><span class="k">class</span> <span class="nc">StochMLDocument</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; Serializiation and deserialization of a Model to/from</span>
-<span class="sd">        the native StochKit2 XML format. &quot;&quot;&quot;</span>
+<span class="sd">        the native XML format. &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># The root element</span>
@@ -1471,7 +1471,7 @@
 <div class="viewcode-block" id="StochMLDocument.from_model"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.StochMLDocument.from_model">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_model</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Creates an StochKit XML document from an exisiting Model object.</span>
+<span class="sd">        Creates an XML document from an exisiting Model object.</span>
 <span class="sd">        This method assumes that all the parameters in the model are already</span>
 <span class="sd">        resolved to scalar floats (see Model.resolveParamters).</span>
 
@@ -1546,7 +1546,7 @@
 
 <div class="viewcode-block" id="StochMLDocument.from_file"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.StochMLDocument.from_file">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Intializes the document from an exisiting native StochKit XML</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Intializes the document from an exisiting native XML</span>
 <span class="sd">        file read from disk. &quot;&quot;&quot;</span>
         <span class="n">tree</span> <span class="o">=</span> <span class="n">eTree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
         <span class="n">root</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
@@ -1556,7 +1556,7 @@
 
 <div class="viewcode-block" id="StochMLDocument.from_string"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.StochMLDocument.from_string">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Intializes the document from an exisiting native StochKit XML</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Intializes the document from an exisiting native XML</span>
 <span class="sd">        file read from disk. &quot;&quot;&quot;</span>
         <span class="n">root</span> <span class="o">=</span> <span class="n">eTree</span><span class="o">.</span><span class="n">fromString</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
 
@@ -1706,8 +1706,8 @@
                     <span class="k">try</span><span class="p">:</span>
                         <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">[</span><span class="n">ratename</span><span class="p">]</span>
                     <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                        <span class="c1"># No paramter name is given. This is a valid use case</span>
-                        <span class="c1"># in StochKit. We generate a name for the paramter,</span>
+                        <span class="c1"># No paramter name is given. This is a valid use case.</span>
+                        <span class="c1"># We generate a name for the paramter,</span>
                         <span class="c1"># and create a new parameter instance. The parameter&#39;s</span>
                         <span class="c1"># value should now be found in &#39;ratename&#39;.</span>
                         <span class="n">generated_rate_name</span> <span class="o">=</span> <span class="s2">&quot;Reaction_&quot;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> \
@@ -1792,7 +1792,7 @@
         <span class="n">description_element</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span>
         <span class="n">sml_reac</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">description_element</span><span class="p">)</span>
 
-        <span class="c1"># StochKit2 wants a rate for mass-action propensites</span>
+        <span class="c1"># Need a rate for mass-action propensites</span>
         <span class="k">if</span> <span class="n">reaction</span><span class="o">.</span><span class="n">massaction</span> <span class="ow">and</span> <span class="n">model_volume</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
             <span class="n">rate_element</span> <span class="o">=</span> <span class="n">eTree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;Rate&#39;</span><span class="p">)</span>
             <span class="c1"># A mass-action reactions should only have one parameter</span>
