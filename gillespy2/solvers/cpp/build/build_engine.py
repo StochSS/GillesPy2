@@ -18,6 +18,7 @@ import os
 import shutil
 import tempfile
 import platform
+from importlib.util import find_spec
 from pathlib import Path
 from typing import Union
 
@@ -65,8 +66,12 @@ class BuildEngine():
         :returns: A list of missing dependencies.
         """
 
-        dependencies = ["g++", "make"]
+        dependencies = ["g++", "scons"]
         missing = [(dep) for dep in dependencies if shutil.which(dep) is None]
+        # SCons can either be an executable or a Python package
+        # If the executable is not found, default to the Python package
+        if "scons" in missing and find_spec("SCons") is not None:
+            missing.remove("scons")
 
         return missing
 

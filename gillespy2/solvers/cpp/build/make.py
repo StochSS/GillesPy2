@@ -17,11 +17,14 @@
 import os
 import subprocess
 
+from importlib.util import find_spec
 from pathlib import Path
+import shutil
 import sys
 
 from gillespy2.core import log
 from gillespy2.core import gillespyError
+from gillespy2.core import BuildError
 
 class Make():
     def __init__(self, makefile: str, output_dir: str, obj_dir: str = None, template_dir: str = None):
@@ -58,6 +61,15 @@ class Make():
 
         self.output_file = Path(self.output_dir, self.output_file)
 
+        # SCons can either be an executable or a Python package.
+        scons_exe = shutil.which("scons")
+        if scons_exe is None:
+            self.scons_cmd = [str(Path(sys.executable).resolve()), "-m", "SCons"]
+        elif find_spec("SCons") is not None:
+            self.scons_cmd = [str(Path(scons_exe).resolve())]
+        else:
+            raise BuildError("SCons must be installed in order to compile solver with C++")
+
     def prebuild(self):
         self.__execute("build")
 
@@ -82,14 +94,14 @@ class Make():
         make_args = [(f"{key.upper()}={value}") for key, value in args_dict.items()]
 
         # Create the make command.
-        scons_cmd = [str(Path(sys.executable).resolve()), "-m", "SCons"]
-        make_cmd = [*scons_cmd, f"-C{str(self.output_dir.resolve())}", f"-f{str(self.makefile)}"] + make_args
+        make_cmd = [*self.scons_cmd, f"-C{str(self.output_dir.resolve())}", f"-f{str(self.makefile)}"] + make_args
 
         try:
             result = subprocess.run(make_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         except KeyboardInterrupt:
-            log.warning(f"Makefile was interrupted during execution of target: '{target}', unexpected behavior may occur.")
+            log.warning(
+                    f"Makefile was interrupted during execution of target: '{target}', unexpected behavior may occur.")
 
         if result.returncode == 0 and os.path.exists(self.output_file):
             return

@@ -172,7 +172,7 @@
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">BuildEngine</span><span class="o">.</span><span class="n">get_missing_dependencies</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">gillespyError</span><span class="o">.</span><span class="n">SimulationError</span><span class="p">(</span>
-                <span class="s2">&quot;Please install/configure &#39;g++&#39; and &#39;make&#39; on your system, to ensure that GillesPy2 C solvers will run properly.&quot;</span>
+                <span class="s2">&quot;Please install/configure &#39;g++&#39; and &#39;scons&#39; on your system, to ensure that GillesPy2 C solvers will run properly.&quot;</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;Windows&quot;</span> <span class="ow">and</span> <span class="s2">&quot; &quot;</span> <span class="ow">in</span> <span class="n">gillespy2</span><span class="o">.</span><span class="vm">__file__</span><span class="p">:</span>
