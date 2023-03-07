@@ -1051,7 +1051,7 @@ class Model(SortableObject, Jsonify):
 
     def timespan(self, time_span):
         """
-        Set the time span of simulation. StochKit does not support non-uniform
+        Set the time span of simulation. GillesPy2 does not support non-uniform
         timespans.
 
         :param time_span: Evenly-spaced list of times at which to sample the species populations
@@ -1357,7 +1357,7 @@ class Model(SortableObject, Jsonify):
 
 class StochMLDocument():
     """ Serializiation and deserialization of a Model to/from
-        the native StochKit2 XML format. """
+        the native XML format. """
 
     def __init__(self):
         # The root element
@@ -1367,7 +1367,7 @@ class StochMLDocument():
     @classmethod
     def from_model(cls, model):
         """
-        Creates an StochKit XML document from an exisiting Model object.
+        Creates an XML document from an exisiting Model object.
         This method assumes that all the parameters in the model are already
         resolved to scalar floats (see Model.resolveParamters).
 
@@ -1442,7 +1442,7 @@ class StochMLDocument():
 
     @classmethod
     def from_file(cls, filepath):
-        """ Intializes the document from an exisiting native StochKit XML
+        """ Intializes the document from an exisiting native XML
         file read from disk. """
         tree = eTree.parse(filepath)
         root = tree.getroot()
@@ -1452,7 +1452,7 @@ class StochMLDocument():
 
     @classmethod
     def from_string(cls, string):
-        """ Intializes the document from an exisiting native StochKit XML
+        """ Intializes the document from an exisiting native XML
         file read from disk. """
         root = eTree.fromString(string)
 
@@ -1602,8 +1602,8 @@ class StochMLDocument():
                     try:
                         kwargs['rate'] = model.listOfParameters[ratename]
                     except KeyError:
-                        # No paramter name is given. This is a valid use case
-                        # in StochKit. We generate a name for the paramter,
+                        # No paramter name is given. This is a valid use case.
+                        # We generate a name for the paramter,
                         # and create a new parameter instance. The parameter's
                         # value should now be found in 'ratename'.
                         generated_rate_name = "Reaction_" + name + \
@@ -1688,7 +1688,7 @@ class StochMLDocument():
         description_element.text = self.annotation
         sml_reac.append(description_element)
 
-        # StochKit2 wants a rate for mass-action propensites
+        # Need a rate for mass-action propensites
         if reaction.massaction and model_volume == 1.0:
             rate_element = eTree.Element('Rate')
             # A mass-action reactions should only have one parameter
