@@ -131,6 +131,6 @@ class TimeSpan(Iterator, Jsonify):
         isuniform = np.isclose(other_diff, first_diff).all()
 
         if not isuniform:
-            raise TimespanError("StochKit only supports uniform timespans.")
+            raise TimespanError("GillesPy2 only supports uniform timespans.")
         if first_diff == 0 or np.count_nonzero(other_diff) != len(other_diff):
             raise TimespanError("Timespan can't contain a single repeating value.")

@@ -35,8 +35,6 @@ from gillespy2.solvers.cpp import *
 #SSACSolver
 from gillespy2.solvers.auto import *
 #SSASolver
-from gillespy2.solvers.stochkit import *
-#StochKitODESolver, StochKitSolver
 
 
 def timed_trials(models, solvers, trajectories, number_trials=30, override_number_trials={}, precompile_solvers=True,
