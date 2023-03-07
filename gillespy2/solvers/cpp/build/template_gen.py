@@ -14,15 +14,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import math
 from collections import OrderedDict
 from typing import Optional
 from gillespy2.core import Species, Reaction, Parameter, Model, RateRule
 from gillespy2.solvers.cpp.build.expression import Expression
+from gillespy2.solvers.utilities.solverutils import species_parse
 from gillespy2.core import log
 from gillespy2.core.gillespyError import SimulationError
-
-import math
-
 
 class SanitizedModel:
     """
@@ -72,7 +71,7 @@ class SanitizedModel:
             # ORDER IS IMPORTANT HERE!
             # All "system" namespace entries should always be first.
             # Otherwise, user-defined identifiers (like, for example, "gamma") might get overwritten.
-            **{name: name for name in math.__dict__.keys()},
+            **{name: name for name in math.__dict__},
             **self.function_map,
             **self.species_names,
             **self.parameter_names,
@@ -89,6 +88,7 @@ class SanitizedModel:
         self.reactions: "OrderedDict[str, dict[str, int]]" = OrderedDict()
         self.reaction_reactants: "OrderedDict[str, dict[str, int]]" = OrderedDict()
         self.reaction_products: "OrderedDict[str, dict[str, int]]" = OrderedDict()
+        self.reaction_props_deps: "OrderedDict[str, [int]" = OrderedDict()
         # Rate Rules: maps sanitized species names to their corresponding rate rule expression.
         self.rate_rules: "OrderedDict[str, str]" = OrderedDict()
         # Options: custom definitions that can be supplied by the solver, maps macros to their definitions.
@@ -126,6 +126,7 @@ class SanitizedModel:
         self.reactions[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
         self.reaction_reactants[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
         self.reaction_products[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
+        self.reaction_props_deps[reaction.name] = {spec: int(0) for spec in self.species_names.values()}
         for reactant, stoich_value in reaction.reactants.items():
             reactant = self.species_names[reactant.name]
             self.reactions[reaction.name][reactant] -= int(stoich_value)
@@ -136,6 +137,10 @@ class SanitizedModel:
             self.reactions[reaction.name][product] += int(stoich_value)
             self.reaction_products[reaction.name][product] = int(stoich_value)
 
+        parsed_species = [spec.name for spec in species_parse(self.model, reaction.propensity_function)]
+        for species, san_species in self.species_names.items():
+            if species in parsed_species:
+                self.reaction_props_deps[reaction.name][san_species] = 1
         return self
 
     def use_rate_rule(self, rate_rule: "RateRule") -> "SanitizedModel":
@@ -407,6 +412,7 @@ def template_def_reactions(model: SanitizedModel, ode=False) -> "dict[str, str]"
     reaction_set = OrderedDict()
     reactants_set = OrderedDict()
     products_set = OrderedDict()
+    props_deps_set = OrderedDict()
 
     for rxn_name, reaction in model.reactions.items():
         stoich = [str(int(reaction[species])) for species in model.species_names.values()]
@@ -417,11 +423,15 @@ def template_def_reactions(model: SanitizedModel, ode=False) -> "dict[str, str]"
     for rxn_name, reaction_products in model.reaction_products.items():
         products_count = [str(int(reaction_products[species])) for species in model.species_names.values()]
         products_set[rxn_name] = f"{{{','.join(products_count)}}}"
+    for rxn_name, reaction_props_deps in model.reaction_props_deps.items():
+        props_deps_count = [str(int(reaction_props_deps[species])) for species in model.species_names.values()]
+        props_deps_set[rxn_name] = f"{{{','.join(props_deps_count)}}}"
 
     reaction_names = " ".join([f"REACTION_NAME({rxn})" for rxn in reaction_set.keys()])
     reaction_set = f"{{{','.join(reaction_set.values())}}}"
     reactants_set = f"{{{','.join(reactants_set.values())}}}"
     products_set = f"{{{','.join(products_set.values())}}}"
+    props_deps_set = f"{{{','.join(props_deps_set.values())}}}"
 
     return {
         "GPY_NUM_REACTIONS": num_reactions,
@@ -429,6 +439,7 @@ def template_def_reactions(model: SanitizedModel, ode=False) -> "dict[str, str]"
         "GPY_REACTIONS": reaction_set,
         "GPY_REACTION_REACTANTS": reactants_set,
         "GPY_REACTION_PRODUCTS": products_set,
+        "GPY_REACTION_PROPS_DEPS": props_deps_set
     }
 
 
