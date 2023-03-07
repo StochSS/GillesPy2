@@ -51,7 +51,7 @@ namespace Gillespy
     int reactions[GPY_NUM_REACTIONS][GPY_NUM_SPECIES] = GPY_REACTIONS;
     int reaction_reactants[GPY_NUM_REACTIONS][GPY_NUM_SPECIES] = GPY_REACTION_REACTANTS;
     int reaction_products[GPY_NUM_REACTIONS][GPY_NUM_SPECIES] = GPY_REACTION_PRODUCTS;
-    int reaction_custom_deps[GPY_NUM_REACTIONS][GPY_NUM_SPECIES] = GPY_REACTION_CUSTOM_DEPS;
+    int reaction_props_deps[GPY_NUM_REACTIONS][GPY_NUM_SPECIES] = GPY_REACTION_PROPS_DEPS;
     std::string r_names[GPY_NUM_REACTIONS] = 
     {
         #define REACTION_NAME(name) #name,
@@ -246,7 +246,7 @@ namespace Gillespy
                 model.reactions[rxn_i].species_change[spec_i] = reactions[rxn_i][spec_i];
                 model.reactions[rxn_i].reactants_change[spec_i] = reaction_reactants[rxn_i][spec_i];
                 model.reactions[rxn_i].products_change[spec_i] = reaction_products[rxn_i][spec_i];
-                model.reactions[rxn_i].custom_deps[spec_i] = reaction_custom_deps[rxn_i][spec_i];
+                model.reactions[rxn_i].props_deps[spec_i] = reaction_props_deps[rxn_i][spec_i];
             }
         }
 
