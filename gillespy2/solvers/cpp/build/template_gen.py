@@ -88,7 +88,7 @@ class SanitizedModel:
         self.reactions: "OrderedDict[str, dict[str, int]]" = OrderedDict()
         self.reaction_reactants: "OrderedDict[str, dict[str, int]]" = OrderedDict()
         self.reaction_products: "OrderedDict[str, dict[str, int]]" = OrderedDict()
-        self.reaction_props_deps: "OrderedDict[str, [int]" = OrderedDict()
+        self.reaction_props_deps: "OrderedDict[str, [int]]" = OrderedDict()
         # Rate Rules: maps sanitized species names to their corresponding rate rule expression.
         self.rate_rules: "OrderedDict[str, str]" = OrderedDict()
         # Options: custom definitions that can be supplied by the solver, maps macros to their definitions.
