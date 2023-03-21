@@ -931,7 +931,7 @@ class TauHybridSolver(GillesPySolver):
 
     def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, seed=None,
             debug=False, profile=False, tau_tol=0.03, event_sensitivity=100,integrator_options={},
-            live_output=None, live_output_options={}, timeout=None, **kwargs):
+            live_output=None, live_output_options={}, timeout=None, constant_tau_stepsize=None, **kwargs):
         """
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
         objects and will inherit those parameters which are passed with the model as the arguments this run function.
@@ -981,6 +981,9 @@ class TauHybridSolver(GillesPySolver):
 
         :param timeout: If set, if simulation takes longer than timeout, will exit.
         :type timeout: int
+
+        :param constant_tau_stepsize: If set, overrides the automatic stepsize selection and uses the given
+            value as the stepsize on each step.
        
         :returns: A result object containing the results of the simulation.
         :rtype: gillespy2.Results
@@ -1012,6 +1015,8 @@ class TauHybridSolver(GillesPySolver):
         self.model.compile_prep()
         self.validate_model(self.model, model)
         self.validate_sbml_features(model=self.model)
+
+        self.constant_tau_stepsize = constant_tau_stepsize
 
         self.validate_tspan(increment=increment, t=t)
         if increment is None:
@@ -1244,7 +1249,10 @@ class TauHybridSolver(GillesPySolver):
                         raise SimulationError('Error calculation propensity for {0}.\nReason: {1}\ncurr_state={2}'.format(r, e, curr_state))
 
                 # Calculate Tau statistics and select a good tau step
-                tau_step = Tau.select(HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold, self.model, propensities, curr_state[0], curr_time[0], save_times[0])
+                if self.constant_tau_stepsize is None:
+                    tau_step = Tau.select(HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold, self.model, propensities, curr_state[0], curr_time[0], save_times[0])
+                else:
+                    tau_step = self.constant_tau_stepsize
 
                 # Process switching if used
                 mn, sd, CV = self.__calculate_statistics(curr_time[0], propensities, curr_state[0], tau_step, det_spec)

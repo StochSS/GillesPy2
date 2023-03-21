@@ -97,7 +97,7 @@ class TauLeapingSolver(GillesPySolver):
 
     def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, seed=None,
             debug=False, profile=False,  live_output=None, live_output_options={},
-            timeout=None, resume=None, tau_tol=0.03, **kwargs):
+            timeout=None, resume=None, tau_tol=0.03, constant_tau_stepsize=None, **kwargs):
         """
         Function calling simulation of the model.
         This is typically called by the run function in GillesPy2 model objects
@@ -142,6 +142,9 @@ class TauLeapingSolver(GillesPySolver):
         :param tau_tol: Tolerance level for Tau leaping algorithm.  Larger tolerance values will
             result in larger tau steps. Default value is 0.03.
         :type tau_tol: float
+
+        :param constant_tau_stepsize: If set, overrides the automatic stepsize selection and uses the given
+            value as the stepsize on each step.
         
         :returns: A result object containing the results of the simulation.
         :rtype: gillespy2.Results
@@ -161,6 +164,8 @@ class TauLeapingSolver(GillesPySolver):
                 """
             )
             self = TauLeapingSolver(model=model, debug=debug, profile=profile)
+
+        self.constant_tau_stepsize = constant_tau_stepsize
 
         if model is not None:
             log.warning('model = gillespy2.model is deprecated. Future releases '
@@ -400,7 +405,10 @@ class TauLeapingSolver(GillesPySolver):
                     tau_args = [HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold,
                                 self.model, propensities, curr_state[0], curr_time[0], save_time]
 
-                    tau_step = Tau.select(*tau_args)
+                    if self.constant_tau_stepsize is None:
+                        tau_step = Tau.select(*tau_args)
+                    else:
+                        tau_step = self.constant_tau_stepsize
 
                     prev_start_state = start_state.copy()
                     prev_curr_state = curr_state[0].copy()
