@@ -35,6 +35,9 @@
 #include "integrator.h"
 #include "tau.h"
 
+#include "template_defaults.h"
+
+
 static void silent_error_handler(int error_code, const char *module, const char *function_name,
                           char *message, void *eh_data);
 
@@ -313,15 +316,19 @@ namespace Gillespy
                     }
 
                     // Expected tau step is determined.
-                    tau_step = select<double, double>(
-                            model,
-                            tau_args,
-                            tau_tol,
-                            simulation->current_time,
-                            save_time,
-                            sol.data.propensities,
-                            current_state
-                    );
+                    if(GPY_CONSTANT_TAU_STEPSIZE > 0){
+                        tau_step = GPY_CONSTANT_TAU_STEPSIZE;
+                    }else{
+                        tau_step = select<double, double>(
+                                model,
+                                tau_args,
+                                tau_tol,
+                                simulation->current_time,
+                                save_time,
+                                sol.data.propensities,
+                                current_state
+                        );
+                    }
                     partition_species(
                             simulation->current_time,
                             simulation->reaction_state,

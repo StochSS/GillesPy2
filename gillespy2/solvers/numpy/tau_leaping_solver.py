@@ -43,7 +43,7 @@ class TauLeapingSolver(GillesPySolver):
     pause_event = None
     result = None
 
-    def __init__(self, model=None, debug=False):
+    def __init__(self, model=None, debug=False, constant_tau_stepsize=None):
         if model is None:
             raise SimulationError("A model is required to run the simulation.")
 
@@ -55,6 +55,7 @@ class TauLeapingSolver(GillesPySolver):
         self.model = copy.deepcopy(model)
         self.debug = debug
         self.is_instantiated = True
+        self.constant_tau_stepsize = True
 
     def __get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions):
         """
@@ -97,7 +98,7 @@ class TauLeapingSolver(GillesPySolver):
 
     def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, seed=None,
             debug=False, profile=False,  live_output=None, live_output_options={},
-            timeout=None, resume=None, tau_tol=0.03, constant_tau_stepsize=None, **kwargs):
+            timeout=None, resume=None, tau_tol=0.03, **kwargs):
         """
         Function calling simulation of the model.
         This is typically called by the run function in GillesPy2 model objects
@@ -143,9 +144,6 @@ class TauLeapingSolver(GillesPySolver):
             result in larger tau steps. Default value is 0.03.
         :type tau_tol: float
 
-        :param constant_tau_stepsize: If set, overrides the automatic stepsize selection and uses the given
-            value as the stepsize on each step.
-        
         :returns: A result object containing the results of the simulation.
         :rtype: gillespy2.Results
         """
@@ -165,7 +163,6 @@ class TauLeapingSolver(GillesPySolver):
             )
             self = TauLeapingSolver(model=model, debug=debug, profile=profile)
 
-        self.constant_tau_stepsize = constant_tau_stepsize
 
         if model is not None:
             log.warning('model = gillespy2.model is deprecated. Future releases '

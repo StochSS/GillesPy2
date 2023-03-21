@@ -73,7 +73,7 @@ class TauHybridSolver(GillesPySolver):
     result = None
     stop_event = None
 
-    def __init__(self, model=None, profile_reactions=False):
+    def __init__(self, model=None, profile_reactions=False, constant_tau_stepsize=None):
         if model is None:
             raise SimulationError("A model is required to run the simulation.")
 
@@ -93,6 +93,7 @@ class TauHybridSolver(GillesPySolver):
                 self.non_negative_species.add(key.name)
             for key, value in model.listOfReactions[reaction].products.items():
                 self.non_negative_species.add(key.name)
+        self.constant_tau_stepsize = constant_tau_stepsize
 
     def __save_state_to_output(self, curr_time, save_index, curr_state, species, 
                                 trajectory, save_times):
@@ -931,7 +932,7 @@ class TauHybridSolver(GillesPySolver):
 
     def run(self=None, model=None, t=None, number_of_trajectories=1, increment=None, seed=None,
             debug=False, profile=False, tau_tol=0.03, event_sensitivity=100,integrator_options={},
-            live_output=None, live_output_options={}, timeout=None, constant_tau_stepsize=None, **kwargs):
+            live_output=None, live_output_options={}, timeout=None, **kwargs):
         """
         Function calling simulation of the model. This is typically called by the run function in GillesPy2 model
         objects and will inherit those parameters which are passed with the model as the arguments this run function.
@@ -981,9 +982,6 @@ class TauHybridSolver(GillesPySolver):
 
         :param timeout: If set, if simulation takes longer than timeout, will exit.
         :type timeout: int
-
-        :param constant_tau_stepsize: If set, overrides the automatic stepsize selection and uses the given
-            value as the stepsize on each step.
        
         :returns: A result object containing the results of the simulation.
         :rtype: gillespy2.Results
@@ -1016,7 +1014,6 @@ class TauHybridSolver(GillesPySolver):
         self.validate_model(self.model, model)
         self.validate_sbml_features(model=self.model)
 
-        self.constant_tau_stepsize = constant_tau_stepsize
 
         self.validate_tspan(increment=increment, t=t)
         if increment is None:

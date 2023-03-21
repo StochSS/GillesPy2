@@ -63,6 +63,7 @@
 #define GPY_REACTION_NAMES
 #endif
 
+
 // ===============================================================
 // ================ HYBRID SOLVER OPTION DEFAULTS ================
 // ===============================================================
@@ -85,6 +86,10 @@
 
 #ifndef GPY_RATE_RULES
 #define GPY_RATE_RULES
+#endif
+
+#ifndef GPY_CONSTANT_TAU_STEPSIZE
+#define GPY_CONSTANT_TAU_STEPSIZE
 #endif
 
 #endif
