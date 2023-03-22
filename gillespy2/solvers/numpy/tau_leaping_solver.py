@@ -55,7 +55,7 @@ class TauLeapingSolver(GillesPySolver):
         self.model = copy.deepcopy(model)
         self.debug = debug
         self.is_instantiated = True
-        self.constant_tau_stepsize = True
+        self.constant_tau_stepsize = constant_tau_stepsize
 
     def __get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions):
         """
