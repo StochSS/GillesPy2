@@ -18,6 +18,7 @@
 
 #pragma once
 #include "model.h"
+#include "simulation.h"
 
 namespace Gillespy
 {
