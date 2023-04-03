@@ -404,6 +404,7 @@ class TauLeapingSolver(GillesPySolver):
 
                     if self.constant_tau_stepsize is None:
                         tau_step = Tau.select(*tau_args)
+                        #print(f"t={curr_time[0]} tau={tau_step}")
                     else:
                         tau_step = self.constant_tau_stepsize
 

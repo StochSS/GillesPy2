@@ -32,16 +32,16 @@ eval_globals = math.__dict__
 def __piecewise(*args):
     # Eval entry for piecewise functions
     args = list(args)
-    sol = None
+    solution = None
     if len(args) % 2:
         args.append(True)
     for i, arg in enumerate(args):
         if not i % 2:
             continue
         if arg:
-            sol = args[i - 1]
+            solution = args[i - 1]
             break
-    return sol
+    return solution
 
 
 def __xor(*args):
@@ -94,6 +94,16 @@ class TauHybridSolver(GillesPySolver):
             for key, value in model.listOfReactions[reaction].products.items():
                 self.non_negative_species.add(key.name)
         self.constant_tau_stepsize = constant_tau_stepsize
+        # check if model should skip ODE integration step
+        self.pure_discrete = True
+        for species in self.model.listOfSpecies:
+            if self.model.listOfSpecies[species].mode != 'discrete':
+                self.pure_discrete = False
+                break
+        if self.pure_discrete:
+            print("running with a pure_discrete model")
+
+
 
     def __save_state_to_output(self, curr_time, save_index, curr_state, species, 
                                 trajectory, save_times):
@@ -519,6 +529,36 @@ class TauHybridSolver(GillesPySolver):
                     curr_state[product.name] += self.model.listOfReactions[rxn].products[product] * rxn_count[rxn]
         return species_modified, rxn_count
 
+    def __integrate_constant(self, integrator_options, curr_state, y0, curr_time,
+                    propensities, y_map, compiled_reactions,
+                    active_rr, event_queue,
+                    delayed_events, trigger_states,
+                    event_sensitivity, tau_step ):
+        """
+        Integreate one step, skip ODE integrator as all species are 
+        discrete.
+        TODO: Does not handle triggers or delays
+        """
+        max_step_size = self.model.tspan[1] - self.model.tspan[0] / 100
+        tau_step = max(1e-6, tau_step)
+        next_tau = curr_time + tau_step
+        curr_state['t'] = curr_time
+        curr_state['time'] = curr_time
+        
+        event_times = {}
+        reaction_times = []
+        next_step, curr_time = self.__get_next_step(event_times, reaction_times,
+                                                    delayed_events,
+                                                    self.model.tspan[-1], next_tau)
+        curr_state['t'] = curr_time
+
+        for rxn in compiled_reactions:
+            curr_state[rxn] = curr_state[rxn] + propensities[rxn]*tau_step
+
+        return curr_time
+
+
+
     def __integrate(self, integrator_options, curr_state, y0, curr_time,
                     propensities, y_map, compiled_reactions,
                     active_rr, event_queue,
@@ -531,6 +571,11 @@ class TauHybridSolver(GillesPySolver):
         updated and returned to __simulate along with curr_time and the
         solution object.
         """
+        if self.pure_discrete:
+            return self.__integrate_constant(integrator_options, curr_state, y0, curr_time,
+                            propensities, y_map, compiled_reactions, active_rr, event_queue,
+                            delayed_events, trigger_states, event_sensitivity, tau_step)
+
         max_step_size = self.model.tspan[1] - self.model.tspan[0] / 100
 
         from functools import partial
@@ -626,7 +671,7 @@ class TauHybridSolver(GillesPySolver):
             event = heapq.heappop(delayed_events)
             heapq.heappush(event_queue, (eval(self.model.listOfEvents[event[1]].priority), event[1]))
 
-        return sol, curr_time
+        return curr_time
 
 
     def __simulate_negative_state_check(self, curr_state):
@@ -666,8 +711,6 @@ class TauHybridSolver(GillesPySolver):
         :type save_times: list
 
         :returns: curr_state, curr_time, save_times, sol
-            sol - Python object returned from LSODA which contains all solution
-            data.
         """
 
         # first check if we have a valid state:
@@ -703,7 +746,7 @@ class TauHybridSolver(GillesPySolver):
             if curr_state[r] >= 0 and propensities[r] == 0:
                 curr_state[r] = math.log(random.uniform(0, 1))
 
-        sol, curr_time = self.__integrate(integrator_options, curr_state,
+        curr_time = self.__integrate(integrator_options, curr_state,
                                           y0, curr_time, propensities, y_map,
                                           compiled_reactions,
                                           active_rr,
@@ -763,7 +806,7 @@ class TauHybridSolver(GillesPySolver):
 
             tau_step = min_tau #estimated time to the first stochatic reaction
 
-            sol, curr_time = self.__integrate(integrator_options, curr_state,
+            curr_time = self.__integrate(integrator_options, curr_state,
                                           y0, curr_time, propensities, y_map,
                                           compiled_reactions,
                                           active_rr,
@@ -805,7 +848,7 @@ class TauHybridSolver(GillesPySolver):
 
         events_processed = self.__process_queued_events(event_queue, trigger_states, curr_state, det_spec)
 
-        return sol, curr_state, curr_time, save_times, save_index
+        return curr_state, curr_time, save_times, save_index
 
     def __set_seed(self, seed):
         # Set seed if supplied
@@ -1248,6 +1291,7 @@ class TauHybridSolver(GillesPySolver):
                 # Calculate Tau statistics and select a good tau step
                 if self.constant_tau_stepsize is None:
                     tau_step = Tau.select(HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold, self.model, propensities, curr_state[0], curr_time[0], save_times[0])
+                    #print(f"t={curr_time[0]} tau={tau_step}")
                 else:
                     tau_step = self.constant_tau_stepsize
 
@@ -1274,7 +1318,7 @@ class TauHybridSolver(GillesPySolver):
                                              compiled_reactions, self.model.listOfEvents, curr_state[0])
 
                 # Run simulation to next step
-                sol, curr_state[0], curr_time[0], save_times, save_index = self.__simulate(integrator_options,
+                curr_state[0], curr_time[0], save_times, save_index = self.__simulate(integrator_options,
                                                                                curr_state[0], y0, curr_time[0],
                                                                                propensities, species,
                                                                                parameters, compiled_reactions,
