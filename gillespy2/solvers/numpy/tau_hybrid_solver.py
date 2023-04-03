@@ -516,10 +516,13 @@ class TauHybridSolver(GillesPySolver):
                 if rxn == only_update:
                     curr_state[rxn] = math.log(random.uniform(0, 1)) #set this value, needs to be <0
                     rxn_count[rxn] = 1
-            else:  # for a normal Tau-step
-                while curr_state[rxn] > 0:
-                    rxn_count[rxn] += 1
-                    curr_state[rxn] += math.log(random.uniform(0, 1))
+            #else:  # for a normal Tau-step
+            #    while curr_state[rxn] > 0:
+            #        rxn_count[rxn] += 1
+            #        curr_state[rxn] += math.log(random.uniform(0, 1))
+            elif curr_state[rxn] > 0:
+                rxn_count[rxn] = 1 + np.random.poisson(curr_state[rxn])
+                curr_state[rxn] = math.log(random.uniform(0, 1))
             if rxn_count[rxn]:
                 for reactant in self.model.listOfReactions[rxn].reactants:
                     species_modified[reactant.name] = True
