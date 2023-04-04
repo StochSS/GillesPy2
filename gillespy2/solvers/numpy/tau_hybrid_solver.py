@@ -499,7 +499,7 @@ class TauHybridSolver(GillesPySolver):
                         t0_delayed_events[e.name] = execution_time
         return t0_delayed_events, species_modified_by_events
 
-    def __update_stochastic_rxn_states(self, compiled_reactions, curr_state, only_update=None):
+    def __update_stochastic_rxn_states(self, propensities, tau_step, compiled_reactions, curr_state, only_update=None):
         """
         Helper method for updating the state of stochastic reactions.
 
@@ -516,13 +516,10 @@ class TauHybridSolver(GillesPySolver):
                 if rxn == only_update:
                     curr_state[rxn] = math.log(random.uniform(0, 1)) #set this value, needs to be <0
                     rxn_count[rxn] = 1
-            #else:  # for a normal Tau-step
-            #    while curr_state[rxn] > 0:
-            #        rxn_count[rxn] += 1
-            #        curr_state[rxn] += math.log(random.uniform(0, 1))
             elif curr_state[rxn] > 0:
                 rxn_count[rxn] = 1 + np.random.poisson(curr_state[rxn])
                 curr_state[rxn] = math.log(random.uniform(0, 1))
+
             if rxn_count[rxn]:
                 for reactant in self.model.listOfReactions[rxn].reactants:
                     species_modified[reactant.name] = True
@@ -540,11 +537,10 @@ class TauHybridSolver(GillesPySolver):
         """
         Integreate one step, skip ODE integrator as all species are 
         discrete.
-        TODO: Does not handle triggers or delays
         """
-        max_step_size = self.model.tspan[1] - self.model.tspan[0] / 100
         tau_step = max(1e-6, tau_step)
         next_tau = curr_time + tau_step
+        prev_time = curr_time
         curr_state['t'] = curr_time
         curr_state['time'] = curr_time
         
@@ -555,10 +551,12 @@ class TauHybridSolver(GillesPySolver):
                                                     self.model.tspan[-1], next_tau)
         curr_state['t'] = curr_time
 
-        for rxn in compiled_reactions:
-            curr_state[rxn] = curr_state[rxn] + propensities[rxn]*tau_step
+        tau_step2 = curr_time - prev_time
 
-        return curr_time
+        for rxn in compiled_reactions:
+            curr_state[rxn] = curr_state[rxn] + propensities[rxn]*tau_step2
+
+        return curr_time, tau_step2
 
 
 
@@ -579,7 +577,6 @@ class TauHybridSolver(GillesPySolver):
                             propensities, y_map, compiled_reactions, active_rr, event_queue,
                             delayed_events, trigger_states, event_sensitivity, tau_step)
 
-        max_step_size = self.model.tspan[1] - self.model.tspan[0] / 100
 
         from functools import partial
         events = self.model.listOfEvents.values()
@@ -674,7 +671,7 @@ class TauHybridSolver(GillesPySolver):
             event = heapq.heappop(delayed_events)
             heapq.heappush(event_queue, (eval(self.model.listOfEvents[event[1]].priority), event[1]))
 
-        return curr_time
+        return curr_time, tau_step #TODO: return actual_tau_step (curr-prev_time)
 
 
     def __simulate_negative_state_check(self, curr_state):
@@ -749,7 +746,7 @@ class TauHybridSolver(GillesPySolver):
             if curr_state[r] >= 0 and propensities[r] == 0:
                 curr_state[r] = math.log(random.uniform(0, 1))
 
-        curr_time = self.__integrate(integrator_options, curr_state,
+        curr_time, actual_tau_step = self.__integrate(integrator_options, curr_state,
                                           y0, curr_time, propensities, y_map,
                                           compiled_reactions,
                                           active_rr,
@@ -760,7 +757,7 @@ class TauHybridSolver(GillesPySolver):
                                           tau_step
                                           )
 
-        species_modified,rxn_count = self.__update_stochastic_rxn_states(compiled_reactions, curr_state)
+        species_modified,rxn_count = self.__update_stochastic_rxn_states(propensities, actual_tau_step, compiled_reactions, curr_state)
 
         # Occasionally, a tau step can result in an overly-aggressive
         # forward step and cause a species population to fall below 0,
@@ -809,7 +806,7 @@ class TauHybridSolver(GillesPySolver):
 
             tau_step = min_tau #estimated time to the first stochatic reaction
 
-            curr_time = self.__integrate(integrator_options, curr_state,
+            curr_time, actual_tau_step = self.__integrate(integrator_options, curr_state,
                                           y0, curr_time, propensities, y_map,
                                           compiled_reactions,
                                           active_rr,
@@ -823,7 +820,7 @@ class TauHybridSolver(GillesPySolver):
             # only update the selected reaction
             first_rxn_count = copy.deepcopy(rxn_count)
             first_err_message = invalid_err_message
-            species_modified,rxn_count = self.__update_stochastic_rxn_states(compiled_reactions, curr_state, only_update=rxn_selected)
+            species_modified,rxn_count = self.__update_stochastic_rxn_states(propensities, actual_tau_step, compiled_reactions, curr_state, only_update=rxn_selected)
 
             (invalid_state, invalid_err_message) = self.__simulate_invalid_state_check(species_modified, curr_state, compiled_reactions)
             if invalid_state:
@@ -1242,6 +1239,11 @@ class TauHybridSolver(GillesPySolver):
 
             curr_state[0] = initial_state.copy()
             curr_time[0] = 0  # Current Simulation Time
+
+            for i, r in enumerate(self.model.listOfReactions):
+                curr_state[0][r] = math.log(random.uniform(0, 1))
+                if debug:
+                    print("Setting Random number ", curr_state[0][r], " for ", self.model.listOfReactions[r].name)
 
             end_time = self.model.tspan[-1]  # End of Simulation time
             entry_pos = 1
