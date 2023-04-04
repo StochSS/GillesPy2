@@ -285,6 +285,12 @@ namespace Gillespy
                     s_vars[s_num_i] = saved__s_variables[s_num_i];
                 }
 
+                // reset R_j values
+                double *curr_rxn_state = sol.get_reaction_state();
+                for (unsigned int rxn_j = 0; rxn_j < num_reactions; ++rxn_j) {
+                    curr_rxn_state[rxn_j] = log(urn.next()); 
+                }
+
 
                 while (!interrupted && !invalid_state && simulation->current_time < simulation->end_time)
                 {
