@@ -19,12 +19,14 @@
 #pragma once
 
 #include "template.h"
+#include "model_context.h"
 
 #include <cmath>
 #include <memory>
 #include <string>
 #include <vector>
 #include <iostream>
+#include <functional>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) || defined(__WIN32__)
 #include <windows.h>
@@ -63,7 +65,9 @@ namespace Gillespy
         };
     };
 
-    struct Reaction {
+    template <typename PType>
+    struct Reaction
+    {
         unsigned int id;
         std::string name;
 
@@ -75,75 +79,50 @@ namespace Gillespy
         std::unique_ptr<int[]> reactants_change;
         std::unique_ptr<int[]> products_change;
 
-        inline static double propensity(
-                ReactionId reaction_id,
-                double *state,
-                double *parameters,
-                const double *constants)
+        inline double propensity(PType *current_state, double *parameters, double *constants)
         {
-            return map_propensity(reaction_id, state, parameters, constants);
+            return ssa_propensity(current_state, parameters, constants);
         }
 
-        inline static double propensity(
-                ReactionId reaction_id,
-                unsigned int *state,
-                double *parameters,
-                const double *constants)
+        inline double ssa_propensity(PType *current_state, double *parameters, double *constants)
         {
-            return map_propensity(reaction_id, state, parameters, constants);
+            return m_map_ssa_propensity(id, current_state, parameters, constants);
         }
 
-        inline static double propensity(
-                ReactionId reaction_id,
-                int *state,
-                double *parameters,
-                const double *constants)
+        inline double ode_propensity(PType *current_state, double *parameters, double *constants)
         {
-            return map_propensity(reaction_id, state, parameters, constants);
+            return m_map_ode_propensity(id, current_state, parameters, constants);
         }
 
-        inline static double propensity(ReactionId reaction_id, double *state)
-        {
-            return map_propensity(reaction_id, state, s_variables.get(), s_constants.get());
-        }
-
-        inline static double propensity(ReactionId reaction_id, int *state)
-        {
-            return map_propensity(reaction_id, state, s_variables.get(), s_constants.get());
-        }
-
-        inline static double propensity(ReactionId reaction_id, unsigned int *state)
-        {
-            return map_propensity(reaction_id, state, s_variables.get(), s_constants.get());
-        }
-
-        inline static void load_parameters()
-        {
-            s_variables = std::shared_ptr<double>(get_variables(&s_num_variables));
-            s_constants = std::shared_ptr<const double>(get_constants(&s_num_constants));
-        }
-
-        static int s_num_variables;
-        static int s_num_constants;
-        static std::shared_ptr<double> s_variables;
-        static std::shared_ptr<const double> s_constants;
+        std::function<double(unsigned int, PType*, double*, double*)> m_map_ssa_propensity;
+        std::function<double(unsigned int, PType*, double*, double*)> m_map_ode_propensity;
     };
 
     template <typename PType>
-    struct Model {
+    class Model
+    {
+    public:
         unsigned int number_species;
         unsigned int number_reactions;
 
         std::unique_ptr<Species<PType>[]> species;
-        std::unique_ptr<Reaction[]> reactions;
+        std::unique_ptr<Reaction<PType>[]> reactions;
 
         void update_affected_reactions();
 
         Model(
+            const ModelContext<PType> &context,
             std::vector<std::string> species_names,
             std::vector<double> species_populations,
             std::vector<std::string> reaction_names
         );
+
+        std::vector<double> copy_variables() const;
+        std::vector<double> copy_constants() const;
+
+    private:
+        std::vector<double> m_initial_variables;
+        std::vector<double> m_initial_constants;
     };
 
     /// \name SolverConfiguration

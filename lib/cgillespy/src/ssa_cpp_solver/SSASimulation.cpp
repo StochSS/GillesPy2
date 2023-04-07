@@ -25,6 +25,8 @@
 #include <math.h>
 
 #include "SSASolver.h"
+#include "SSASimulation.h"
+#include "model_context.h"
 #include "template.h"
 #include "arg_parser.h"
 
@@ -38,7 +40,7 @@ unsigned int number_timesteps = 0;
 
 double end_time = 0;
 
-int main(int argc, char *argv[])
+int Gillespy::run_ssa_simulation(int argc, char *argv[])
 {
     //Parse command line arguments
     ArgParser parser = ArgParser(argc, argv);
@@ -53,8 +55,12 @@ int main(int argc, char *argv[])
     number_trajectories = parser.trajectories;
     number_timesteps = parser.timesteps;
 
-    Reaction::load_parameters();
-    Model<unsigned int> model(species_names, species_populations, reaction_names);
+    ModelContext<unsigned int> context(
+            Gillespy::map_ssa_propensity<unsigned int>,
+            Gillespy::map_ode_propensity<unsigned int>);
+    context.m_get_variables = Gillespy::get_variables;
+    context.m_get_constants = Gillespy::get_constants;
+    Model<unsigned int> model(context, species_names, species_populations, reaction_names);
     add_reactions(model);
     
     if (seed_time)    

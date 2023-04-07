@@ -34,16 +34,10 @@ namespace Gillespy
     extern std::vector<std::string> species_names;
     extern std::vector<std::string> reaction_names;
 
-    double map_propensity(unsigned int reaction_id, int *state, double *parameters, const double *constants);
-    double map_propensity(unsigned int reaction_id, unsigned int *S, double *parameters, const double *constants);
-    double map_propensity(unsigned int reaction_id, double *S, double *parameters, const double *constants);
-
-    double map_ssa_propensity(unsigned int reaction_id, int *state, double *parameters, const double *constants);
-    double map_ssa_propensity(unsigned int reaction_id, unsigned int *state, double *parameters, const double *constants);
-    double map_ssa_propensity(unsigned int reaction_id, double *state, double *parameters, const double *constants);
-    double map_ode_propensity(unsigned int reaction_id, int *state, double *parameters, const double *constants);
-    double map_ode_propensity(unsigned int reaction_id, unsigned int *state, double *parameters, const double *constants);
-    double map_ode_propensity(unsigned int reaction_id, double *state, double *parameters, const double *constants);
+    template <typename PType>
+    double map_ssa_propensity(unsigned int reaction_id, PType *S, double *P, const double *C);
+    template <typename PType>
+    double map_ode_propensity(unsigned int reaction_id, PType *S, double *P, const double *C);
 
     template <typename T>
     void add_reactions(Model<T> &model);
@@ -54,6 +48,12 @@ namespace Gillespy
     void map_variable_parameters(std::stringstream &stream);
     void map_variable_populations(std::stringstream &stream);
 
+    extern template double map_ssa_propensity<int>(unsigned int reaction_id, int *S, double *P, const double *C);
+    extern template double map_ssa_propensity<unsigned int>(unsigned int reaction_id, unsigned int *S, double *P, const double *C);
+    extern template double map_ssa_propensity<double>(unsigned int reaction_id, double *S, double *P, const double *C);
+    extern template double map_ode_propensity<int>(unsigned int reaction_id, int *S, double *P, const double *C);
+    extern template double map_ode_propensity<unsigned int>(unsigned int reaction_id, unsigned int *S, double *P, const double *C);
+    extern template double map_ode_propensity<double>(unsigned int reaction_id, double *S, double *P, const double *C);
     extern template void add_reactions<double>(Model<double> &model);
     extern template void add_reactions<unsigned int>(Model<unsigned int> &model);
     extern template void add_reactions<int>(Model<int> &model);

@@ -41,10 +41,14 @@ namespace Gillespy
 
             //Calculated propensity values for current state
             double *propensity_values = new double[(simulation->model)->number_reactions];
+            Reaction<unsigned int> *reactions = simulation->model->reactions.get();
 
             //Simulate for each trajectory
             for (unsigned int trajectory_number = 0; trajectory_number < simulation->number_trajectories; trajectory_number++)
             {
+                std::vector<double> variables = simulation->model->copy_variables();
+                std::vector<double> constants = simulation->model->copy_constants();
+
                 if (interrupted)
                 {
                     break;
@@ -59,7 +63,7 @@ namespace Gillespy
                 //calculate initial propensities
                 for (unsigned int reaction_number = 0; reaction_number < ((simulation->model)->number_reactions); reaction_number++)
                 {
-                    propensity_values[reaction_number] = Reaction::propensity(reaction_number, simulation->current_state);
+                    propensity_values[reaction_number] = reactions[reaction_number].ssa_propensity(simulation->current_state, variables.data(), constants.data());
                 }
 
                 double propensity_sum;
@@ -107,7 +111,7 @@ namespace Gillespy
                         if (cumulative_sum <= 0 && propensity_values[potential_reaction] > 0)
                         {
                             //Update current state
-                            Reaction &reaction = ((simulation->model)->reactions[potential_reaction]);
+                            Reaction<unsigned int> &reaction = ((simulation->model)->reactions[potential_reaction]);
                             for (unsigned int species_number = 0; species_number < ((simulation->model)->number_species); species_number++)
                             {
                                 simulation->current_state[species_number] += reaction.species_change[species_number];
@@ -116,7 +120,7 @@ namespace Gillespy
                             //Recalculate needed propensities
                             for (unsigned int &affected_reaction : reaction.affected_reactions)
                             {
-                                propensity_values[affected_reaction] = Reaction::propensity(affected_reaction, simulation->current_state);
+                                propensity_values[affected_reaction] = reactions[affected_reaction].propensity(simulation->current_state, variables.data(), constants.data());
                             }
 
                             break;

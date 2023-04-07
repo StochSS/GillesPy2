@@ -19,23 +19,38 @@
 #include "model.h"
 #include <algorithm>
 
-namespace Gillespy {
-
-    int Reaction::s_num_constants;
-    int Reaction::s_num_variables;
-    std::shared_ptr<double> Reaction::s_variables;
-    std::shared_ptr<const double> Reaction::s_constants;
-
+namespace Gillespy
+{
     template <typename PType>
     Model<PType>::Model(
-        std::vector<std::string> species_names,
-        std::vector<double> species_populations,
-        std::vector<std::string> reaction_names) :
-        number_species(species_names.size()),
-        number_reactions(reaction_names.size()) {
-
+            const ModelContext<PType> &context,
+            std::vector<std::string> species_names,
+            std::vector<double> species_populations,
+            std::vector<std::string> reaction_names)
+        : number_species(species_names.size()),
+          number_reactions(reaction_names.size())
+    {
         species = std::make_unique<Species<PType>[]>(number_species);
-        reactions = std::make_unique<Reaction[]>(number_reactions);
+        reactions = std::make_unique<Reaction<PType>[]>(number_reactions);
+
+        {
+            int num_constants;
+            double *constants = context.m_get_constants(&num_constants);
+            for (int i = 0; i < num_constants; ++i) {
+                m_initial_constants.push_back(constants[i]);
+            }
+            delete[] constants;
+        }
+
+        {
+            int num_variables;
+            double *variables = context.m_get_variables(&num_variables);
+            for (int i = 0; i < num_variables; ++i)
+            {
+                m_initial_variables.push_back(variables[i]);
+            }
+            delete[] variables;
+        }
 
         for (unsigned int i = 0; i < number_species; i++) {
             species[i].id = i;
@@ -48,6 +63,8 @@ namespace Gillespy {
             reactions[reaction].species_change = std::make_unique<int[]>(number_species);
             reactions[reaction].reactants_change = std::make_unique<int[]>(number_species);
             reactions[reaction].products_change = std::make_unique<int[]>(number_species);
+            reactions[reaction].m_map_ssa_propensity = context.m_map_propensity;
+            reactions[reaction].m_map_ode_propensity = context.m_map_ode_propensity;
 
             for (unsigned int species = 0; species < number_species; species++) {
                 reactions[reaction].species_change[species] = 0;
@@ -57,6 +74,18 @@ namespace Gillespy {
 
             reactions[reaction].affected_reactions = std::vector<unsigned int>();
         }
+    }
+
+    template <typename PType>
+    std::vector<double> Model<PType>::copy_variables() const
+    {
+        return m_initial_variables;
+    }
+
+    template <typename PType>
+    std::vector<double> Model<PType>::copy_constants() const
+    {
+        return m_initial_constants;
     }
 
     template <typename PType>
@@ -127,11 +156,14 @@ namespace Gillespy {
 
     // DETERMINISTIC SIMULATIONS: explicit instantation of real-valued data structures.
     template struct Species<double>;
-    template struct Model<double>;
+    template struct Reaction<double>;
+    template class Model<double>;
 
     // STOCHASTIC SIMULATIONS: explicit instantiation of discrete-valued data structures.
     template struct Species<unsigned int>;
     template struct Species<int>;
-    template struct Model<unsigned int>;
-    template struct Model<int>;
+    template struct Reaction<unsigned int>;
+    template struct Reaction<int>;
+    template class Model<unsigned int>;
+    template class Model<int>;
 }
