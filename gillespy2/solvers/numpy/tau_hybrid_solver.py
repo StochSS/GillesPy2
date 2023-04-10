@@ -100,8 +100,6 @@ class TauHybridSolver(GillesPySolver):
             if self.model.listOfSpecies[species].mode != 'discrete':
                 self.pure_discrete = False
                 break
-        if self.pure_discrete:
-            print("running with a pure_discrete model")
 
 
 
@@ -593,15 +591,27 @@ class TauHybridSolver(GillesPySolver):
             tau_step = max(integrator_options['min_step'], tau_step)
         else:
             tau_step = max(1e-6, tau_step)
-        next_tau = curr_time + tau_step
+        #next_tau = curr_time + tau_step
+        last_curr_time = curr_time
+
+        # Set curr time to next time a change occurs in the system outside of
+        # the standard ODE process.  Determine what kind of change this is,
+        # and set the curr_time of simulation to restart simulation after
+        # making the appropriate state changes.
+        event_times = {}
+        reaction_times = []
+        next_step, curr_time = self.__get_next_step(event_times, reaction_times,
+                                                    delayed_events,
+                                                    self.model.tspan[-1], curr_time + tau_step)
         curr_state['t'] = curr_time
         curr_state['time'] = curr_time
+        actual_tau_step = last_curr_time - curr_time
 
         # Integrate until end or tau is reached
         loop_count = 0
-        sol = LSODA(rhs, curr_time, y0, next_tau)
+        sol = LSODA(rhs, last_curr_time, y0, curr_time)
         counter = 0
-        while sol.t < next_tau:
+        while sol.t < curr_time:
             counter += 1
             sol.step()
 
@@ -626,16 +636,6 @@ class TauHybridSolver(GillesPySolver):
         # Get next tau time
         reaction_times = []
         '''
-        # Set curr time to next time a change occurs in the system outside of
-        # the standard ODE process.  Determine what kind of change this is,
-        # and set the curr_time of simulation to restart simulation after
-        # making the appropriate state changes.
-        event_times = {}
-        reaction_times = []
-        next_step, curr_time = self.__get_next_step(event_times, reaction_times,
-                                                    delayed_events,
-                                                    self.model.tspan[-1], next_tau)
-        curr_state['t'] = curr_time
 
         # Stochastic Reactions are also fired through a root-finding method
         # which mirrors the standard SSA probability.  Since we are using
@@ -671,7 +671,7 @@ class TauHybridSolver(GillesPySolver):
             event = heapq.heappop(delayed_events)
             heapq.heappush(event_queue, (eval(self.model.listOfEvents[event[1]].priority), event[1]))
 
-        return curr_time, tau_step #TODO: return actual_tau_step (curr-prev_time)
+        return curr_time, actual_tau_step
 
 
     def __simulate_negative_state_check(self, curr_state):
