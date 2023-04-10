@@ -95,11 +95,13 @@ class TauHybridSolver(GillesPySolver):
                 self.non_negative_species.add(key.name)
         self.constant_tau_stepsize = constant_tau_stepsize
         # check if model should skip ODE integration step
-        self.pure_discrete = True
-        for species in self.model.listOfSpecies:
-            if self.model.listOfSpecies[species].mode != 'discrete':
-                self.pure_discrete = False
-                break
+        self.pure_discrete = False
+        if len(self.model.listOfRateRules)==0:
+            self.pure_discrete = True
+            for species in self.model.listOfSpecies:
+                if self.model.listOfSpecies[species].mode != 'discrete':
+                    self.pure_discrete = False
+                    break
 
 
 
@@ -562,7 +564,7 @@ class TauHybridSolver(GillesPySolver):
                     propensities, y_map, compiled_reactions,
                     active_rr, event_queue,
                     delayed_events, trigger_states,
-                    event_sensitivity, tau_step ):
+                    event_sensitivity, tau_step, det_spec ):
         """
         Helper function to perform the ODE integration of one step.  This
         method uses scipy.integrate.LSODA to get simulation data, and
@@ -570,11 +572,20 @@ class TauHybridSolver(GillesPySolver):
         updated and returned to __simulate along with curr_time and the
         solution object.
         """
+        use_const = False
         if self.pure_discrete:
+            use_const = True
+        elif len(self.model.listOfRateRules)==0:
+            use_const = True
+            for species in self.model.listOfSpecies:
+                if det_spec[species]:
+                    use_const = False
+                    break
+
+        if use_const:
             return self.__integrate_constant(integrator_options, curr_state, y0, curr_time,
                             propensities, y_map, compiled_reactions, active_rr, event_queue,
                             delayed_events, trigger_states, event_sensitivity, tau_step)
-
 
         from functools import partial
         events = self.model.listOfEvents.values()
@@ -754,7 +765,7 @@ class TauHybridSolver(GillesPySolver):
                                           delayed_events,
                                           trigger_states,
                                           event_sensitivity,
-                                          tau_step
+                                          tau_step, det_spec
                                           )
 
         species_modified,rxn_count = self.__update_stochastic_rxn_states(propensities, actual_tau_step, compiled_reactions, curr_state)
