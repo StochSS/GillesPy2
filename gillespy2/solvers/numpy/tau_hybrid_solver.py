@@ -564,7 +564,7 @@ class TauHybridSolver(GillesPySolver):
                     propensities, y_map, compiled_reactions,
                     active_rr, event_queue,
                     delayed_events, trigger_states,
-                    event_sensitivity, tau_step, det_spec ):
+                    event_sensitivity, tau_step, det_rxn ):
         """
         Helper function to perform the ODE integration of one step.  This
         method uses scipy.integrate.LSODA to get simulation data, and
@@ -577,8 +577,8 @@ class TauHybridSolver(GillesPySolver):
             use_const = True
         elif len(self.model.listOfRateRules)==0:
             use_const = True
-            for species in self.model.listOfSpecies:
-                if det_spec[species]:
+            for rxn in det_rxn:
+                if det_rxn[rxn]:
                     use_const = False
                     break
 
@@ -706,7 +706,7 @@ class TauHybridSolver(GillesPySolver):
                    propensities, species, parameters, compiled_reactions,
                    active_rr, y_map, trajectory, save_times, save_index,
                    delayed_events, trigger_states, event_sensitivity,
-                   tau_step, debug, det_spec):
+                   tau_step, debug, det_spec, det_rxn):
         """
         Function to process simulation until next step, which can be a
         stochastic reaction firing, an event trigger or assignment, or end of
@@ -765,7 +765,7 @@ class TauHybridSolver(GillesPySolver):
                                           delayed_events,
                                           trigger_states,
                                           event_sensitivity,
-                                          tau_step, det_spec
+                                          tau_step, det_rxn
                                           )
 
         species_modified,rxn_count = self.__update_stochastic_rxn_states(propensities, actual_tau_step, compiled_reactions, curr_state)
@@ -825,7 +825,7 @@ class TauHybridSolver(GillesPySolver):
                                           delayed_events,
                                           trigger_states,
                                           event_sensitivity,
-                                          tau_step
+                                          tau_step, det_rxn
                                           )
 
             # only update the selected reaction
@@ -1343,7 +1343,7 @@ class TauHybridSolver(GillesPySolver):
                                                                                delayed_events,
                                                                                trigger_states,
                                                                                event_sensitivity, tau_step,
-                                                                               debug, det_spec)
+                                                                               debug, det_spec, det_rxn)
 
             # End of trajectory, format results
             data = {'time': timeline}
