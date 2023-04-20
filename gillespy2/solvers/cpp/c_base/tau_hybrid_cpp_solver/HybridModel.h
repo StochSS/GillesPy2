@@ -304,7 +304,7 @@ namespace Gillespy
             };
         };
 
-        std::set<int> flag_det_rxns(
+        int flag_det_rxns(
                 std::vector<HybridReaction> &reactions,
                 std::vector<HybridSpecies> &species);
 

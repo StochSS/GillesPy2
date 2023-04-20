@@ -196,7 +196,8 @@ namespace Gillespy
 		}
 
         IntegrationResults integrate(double *t);
-        IntegrationResults integrate(double *t, std::set<int> &event_roots, std::set<unsigned int> &reaction_roots);
+        IntegrationResults integrate_constant(double *t);
+        IntegrationResults integrate(double *t, std::set<int> &event_roots, std::set<unsigned int> &reaction_roots, int num_det_rxns, int num_rate_rules);
         IntegratorData data;
 
         Integrator(HybridSimulation *simulation, Model<double> &model, URNGenerator urn, double reltol, double abstol);

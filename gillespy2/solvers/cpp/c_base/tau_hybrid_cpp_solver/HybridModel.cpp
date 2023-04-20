@@ -296,7 +296,7 @@ namespace Gillespy
 
         // Helper method to flag reactions that can be processed deterministically (continuous change)
         // without exceeding the user-supplied tolerance
-        std::set<int> flag_det_rxns(
+        int flag_det_rxns(
                 std::vector<HybridReaction> &reactions,
                 std::vector<HybridSpecies> &species)
         {
@@ -337,7 +337,7 @@ namespace Gillespy
                 }
             }
 
-            return det_rxns;
+            return det_rxns.size();
         }
 
         void partition_species(
