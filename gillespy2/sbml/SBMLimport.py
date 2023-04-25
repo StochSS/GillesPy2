@@ -70,7 +70,6 @@ def __get_math(formula):
         r'\^': '**',
         r'\&\&': 'and',
         r'\|\|': 'or',
-        'lambda': 'k_lambda' #lambda is a reserved word
         }
     for old, new in replacements.items():
         math_str = re.sub(old, new, math_str)
@@ -249,7 +248,6 @@ def __get_reactions(sbml_model, gillespy_model, errors):
                 p_set.add(species)
                 products[species] = stoichiometry
 
-        print(f"name={name}, reactants={reactants}, products={products}, propensity_function={propensity}")
         gillespy_reaction = gillespy2.Reaction(name=name, reactants=reactants, products=products,
                                              propensity_function=propensity)
 
@@ -411,8 +409,7 @@ def __resolve_evals(gillespy_model, init_state):
         for var in successful:
             del postponed_evals[var]
 
-def convert(filename, model_name=None, gillespy_model=None, report_silently_with_sbml_error=False,
-            name_remapping={}):
+def convert(filename, model_name=None, gillespy_model=None, report_silently_with_sbml_error=False):
 
 
     sbml_model, errors = __read_sbml_model(filename)
