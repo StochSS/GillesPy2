@@ -26,6 +26,20 @@ import numpy as np
 import gillespy2
 from gillespy2.core.gillespyError import InvalidModelError, SBMLError
 
+PYTHON_RESERVED_WORDS = [
+    'False', 'def', 'if', 'raise',
+    'None', 'del', 'import', 'return',
+    'True', 'elif', 'in', 'try',
+    'and', 'else', 'is', 'while',
+    'as', 'except', 'lambda', 'with',
+    'assert', 'finally', 'nonlocal', 'yield',
+    'break', 'for', 'not',
+    'class', 'form', 'or',
+    'continue', 'global', 'pass',
+]
+PREFIX_INVALID_SBML_NAME = 'k_' #'lambda' -> 'k_lambda'
+
+
 init_state = {'INF': np.inf, 'NaN': np.nan}
 postponed_evals = {}
 eval_globals = math.__dict__.copy()
@@ -73,6 +87,10 @@ def __get_math(formula):
         }
     for old, new in replacements.items():
         math_str = re.sub(old, new, math_str)
+    for rword in PYTHON_RESERVED_WORDS:
+        reg = r'\b' + rword + r'\b'
+        sub = PREFIX_INVALID_SBML_NAME + rword
+        math_str = re.sub(reg, sub, math_str)
     return math_str
 
 def __get_species(sbml_model, gillespy_model, errors):
@@ -110,7 +128,8 @@ def __get_species(sbml_model, gillespy_model, errors):
         constant = species.getConstant()
         boundary_condition = species.getBoundaryCondition()
         is_negative = value < 0
-        name='k_lambda' if name=='lambda' else name
+        if name in PYTHON_RESERVED_WORDS:
+            name =  PREFIX_INVALID_SBML_NAME + name
         gillespy_species = gillespy2.Species(name=name, initial_value=value,
                                                 allow_negative_populations=is_negative, mode=mode,
                                                 constant=constant, boundary_condition=boundary_condition)
@@ -129,7 +148,8 @@ def __get_parameters(sbml_model, gillespy_model):
         init_state[name] = value
 
         # GillesPy2 represents non-constant parameters as species
-        name='k_lambda' if name=='lambda' else name
+        if name in PYTHON_RESERVED_WORDS:
+            name =  PREFIX_INVALID_SBML_NAME + name
         if parameter.isSetConstant():
             gillespy_parameter = gillespy2.Parameter(name=name, expression=value)
             gillespy_model.add_parameter([gillespy_parameter])
@@ -149,7 +169,8 @@ def __get_compartments(sbml_model, gillespy_model):
         if name == "vol":
             gillespy_model.volume = value
         else:
-            name='k_lambda' if name=='lambda' else name
+            if name in PYTHON_RESERVED_WORDS:
+                name =  PREFIX_INVALID_SBML_NAME + name
             gillespy_parameter = gillespy2.Parameter(name=name, expression=value)
             init_state[name] = value
             gillespy_model.add_parameter([gillespy_parameter])
@@ -182,14 +203,16 @@ def __get_kinetic_law(sbml_model, gillespy_model, reaction):
         __traverse_math(tree, old_id, new_id)
         local_param.setId(new_id)
         name = new_id
-        name='k_lambda' if name=='lambda' else name
+        if name in PYTHON_RESERVED_WORDS:
+            name =  PREFIX_INVALID_SBML_NAME + name
         gillespy_parameter = gillespy2.Parameter(name=name, expression=local_param.getValue())
         gillespy_model.add_parameter([gillespy_parameter])
     for i in range(kinetic_law.getNumParameters()):
         param = params.get(i)
         if not param.getId() in gillespy_model.listOfParameters:
             name = param.getId()
-            name='k_lambda' if name=='lambda' else name
+            if name in PYTHON_RESERVED_WORDS:
+                name =  PREFIX_INVALID_SBML_NAME + name
             gillespy_parameter = gillespy2.Parameter(name=name, expression=param.getValue())
             gillespy_model.add_parameter([gillespy_parameter])
     return tree
@@ -268,7 +291,8 @@ def __get_rules(sbml_model, gillespy_model, errors):
             # Treat Non-Constant Parameters as Species
             value = gillespy_model.listOfParameters[rule_variable].expression
             name = rule_variable
-            name='k_lambda' if name=='lambda' else name
+            if name in PYTHON_RESERVED_WORDS:
+                name =  PREFIX_INVALID_SBML_NAME + name
             species = gillespy2.Species(name=name,
                                         initial_value=value,
                                         allow_negative_populations=True,
@@ -353,7 +377,8 @@ def __get_events(sbml_model, gillespy_model):
             # Convert Non-Constant Parameter to Species
             if assign.getVariable() in gillespy_model.listOfParameters:
                 name = assign.getVariable()
-                name='k_lambda' if name=='lambda' else name
+                if name in PYTHON_RESERVED_WORDS:
+                    name =  PREFIX_INVALID_SBML_NAME + name
                 gillespy_species = gillespy2.Species(
                     name=name,
                     initial_value=gillespy_model.listOfParameters[assign.getVariable()].expression,
