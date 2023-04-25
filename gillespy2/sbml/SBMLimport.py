@@ -69,7 +69,8 @@ def __get_math(formula):
         r'\bln\b': 'log',
         r'\^': '**',
         r'\&\&': 'and',
-        r'\|\|': 'or'
+        r'\|\|': 'or',
+        'lambda': 'k_lambda' #lambda is a reserved word
         }
     for old, new in replacements.items():
         math_str = re.sub(old, new, math_str)
@@ -110,6 +111,7 @@ def __get_species(sbml_model, gillespy_model, errors):
         constant = species.getConstant()
         boundary_condition = species.getBoundaryCondition()
         is_negative = value < 0
+        name='k_lambda' if name=='lambda' else name
         gillespy_species = gillespy2.Species(name=name, initial_value=value,
                                                 allow_negative_populations=is_negative, mode=mode,
                                                 constant=constant, boundary_condition=boundary_condition)
@@ -128,6 +130,7 @@ def __get_parameters(sbml_model, gillespy_model):
         init_state[name] = value
 
         # GillesPy2 represents non-constant parameters as species
+        name='k_lambda' if name=='lambda' else name
         if parameter.isSetConstant():
             gillespy_parameter = gillespy2.Parameter(name=name, expression=value)
             gillespy_model.add_parameter([gillespy_parameter])
@@ -147,6 +150,7 @@ def __get_compartments(sbml_model, gillespy_model):
         if name == "vol":
             gillespy_model.volume = value
         else:
+            name='k_lambda' if name=='lambda' else name
             gillespy_parameter = gillespy2.Parameter(name=name, expression=value)
             init_state[name] = value
             gillespy_model.add_parameter([gillespy_parameter])
@@ -178,12 +182,16 @@ def __get_kinetic_law(sbml_model, gillespy_model, reaction):
         new_id = (f'{reaction.getId()}_{local_param.getId()}')
         __traverse_math(tree, old_id, new_id)
         local_param.setId(new_id)
-        gillespy_parameter = gillespy2.Parameter(name=new_id, expression=local_param.getValue())
+        name = new_id
+        name='k_lambda' if name=='lambda' else name
+        gillespy_parameter = gillespy2.Parameter(name=name, expression=local_param.getValue())
         gillespy_model.add_parameter([gillespy_parameter])
     for i in range(kinetic_law.getNumParameters()):
         param = params.get(i)
         if not param.getId() in gillespy_model.listOfParameters:
-            gillespy_parameter = gillespy2.Parameter(name=param.getId(), expression=param.getValue())
+            name = param.getId()
+            name='k_lambda' if name=='lambda' else name
+            gillespy_parameter = gillespy2.Parameter(name=name, expression=param.getValue())
             gillespy_model.add_parameter([gillespy_parameter])
     return tree
 
@@ -241,6 +249,7 @@ def __get_reactions(sbml_model, gillespy_model, errors):
                 p_set.add(species)
                 products[species] = stoichiometry
 
+        print(f"name={name}, reactants={reactants}, products={products}, propensity_function={propensity}")
         gillespy_reaction = gillespy2.Reaction(name=name, reactants=reactants, products=products,
                                              propensity_function=propensity)
 
@@ -260,7 +269,9 @@ def __get_rules(sbml_model, gillespy_model, errors):
         if rule_variable in gillespy_model.listOfParameters:
             # Treat Non-Constant Parameters as Species
             value = gillespy_model.listOfParameters[rule_variable].expression
-            species = gillespy2.Species(name=rule_variable,
+            name = rule_variable
+            name='k_lambda' if name=='lambda' else name
+            species = gillespy2.Species(name=name,
                                         initial_value=value,
                                         allow_negative_populations=True,
                                         mode='continuous')
@@ -343,8 +354,10 @@ def __get_events(sbml_model, gillespy_model):
         for assign in assignments:
             # Convert Non-Constant Parameter to Species
             if assign.getVariable() in gillespy_model.listOfParameters:
+                name = assign.getVariable()
+                name='k_lambda' if name=='lambda' else name
                 gillespy_species = gillespy2.Species(
-                    name=assign.getVariable(),
+                    name=name,
                     initial_value=gillespy_model.listOfParameters[assign.getVariable()].expression,
                     mode='continuous', allow_negative_populations=True
                 )
@@ -398,7 +411,10 @@ def __resolve_evals(gillespy_model, init_state):
         for var in successful:
             del postponed_evals[var]
 
-def convert(filename, model_name=None, gillespy_model=None, report_silently_with_sbml_error=False):
+def convert(filename, model_name=None, gillespy_model=None, report_silently_with_sbml_error=False,
+            name_remapping={}):
+
+
     sbml_model, errors = __read_sbml_model(filename)
 
     if sbml_model is None:
