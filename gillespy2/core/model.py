@@ -217,7 +217,9 @@ class Model(SortableObject, Jsonify):
         if len(self.listOfSpecies):
             print_string += decorate('Species')
             for species in sorted(self.listOfSpecies.values()):
-                print_string += '\n' + str(species) + ' (' + species.mode + ')'
+                print_string += '\n' + str(species)
+                if species.mode is not None:
+                    print_string += ' (' + species.mode + ')'
         if len(self.listOfParameters):
             print_string += decorate('Parameters')
             for parameter in sorted(self.listOfParameters.values()):
