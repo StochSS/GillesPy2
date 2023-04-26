@@ -514,11 +514,11 @@ class TauHybridSolver(GillesPySolver):
             rxn_count[rxn] = 0
             if only_update is not None:  # for a single SSA step
                 if rxn == only_update:
-                    curr_state[rxn] = math.log(random.uniform(0, 1)) #set this value, needs to be <0
+                    curr_state[rxn] = math.log(np.random.uniform(0, 1)) #set this value, needs to be <0
                     rxn_count[rxn] = 1
             elif curr_state[rxn] > 0:
                 rxn_count[rxn] = 1 + np.random.poisson(curr_state[rxn])
-                curr_state[rxn] = math.log(random.uniform(0, 1))
+                curr_state[rxn] = math.log(np.random.uniform(0, 1))
 
             if rxn_count[rxn]:
                 for reactant in self.model.listOfReactions[rxn].reactants:
@@ -755,7 +755,7 @@ class TauHybridSolver(GillesPySolver):
         # check each reaction to see if it is >=0. If we have taken a single SSA step, this could be >0 for the non-selected reactions, check if propensity is zero and reset if so
         for r in compiled_reactions.keys():
             if curr_state[r] >= 0 and propensities[r] == 0:
-                curr_state[r] = math.log(random.uniform(0, 1))
+                curr_state[r] = math.log(np.random.uniform(0, 1))
 
         curr_time, actual_tau_step = self.__integrate(integrator_options, curr_state,
                                           y0, curr_time, propensities, y_map,
@@ -867,7 +867,7 @@ class TauHybridSolver(GillesPySolver):
             if not isinstance(seed, int):
                 seed = int(seed)
             if seed > 0:
-                random.seed(seed)
+                np.random.seed(seed)
             else:
                 raise ModelError('seed must be a positive integer')
 
@@ -921,7 +921,7 @@ class TauHybridSolver(GillesPySolver):
 
         # Set reactions to uniform random number
         for i, r in enumerate(self.model.listOfReactions):
-            curr_state[r] = math.log(random.uniform(0, 1))
+            curr_state[r] = math.log(np.random.uniform(0, 1))
             if debug:
                 print("Setting Random number ", curr_state[r], " for ", self.model.listOfReactions[r].name)
 
@@ -1252,7 +1252,7 @@ class TauHybridSolver(GillesPySolver):
             curr_time[0] = 0  # Current Simulation Time
 
             for i, r in enumerate(self.model.listOfReactions):
-                curr_state[0][r] = math.log(random.uniform(0, 1))
+                curr_state[0][r] = math.log(np.random.uniform(0, 1))
                 if debug:
                     print("Setting Random number ", curr_state[0][r], " for ", self.model.listOfReactions[r].name)
 
@@ -1300,16 +1300,21 @@ class TauHybridSolver(GillesPySolver):
                         propensities[r] = eval(compiled_propensities[r], eval_globals, curr_state[0])
                         if curr_state[0][r] > 0 and propensities[r]==0:
                             # This is an edge case, that might happen after a single SSA step.
-                            curr_state[0][r] = math.log(random.uniform(0, 1))
+                            curr_state[0][r] = math.log(np.random.uniform(0, 1))
                     except Exception as e:
                         raise SimulationError('Error calculation propensity for {0}.\nReason: {1}\ncurr_state={2}'.format(r, e, curr_state))
 
                 # Calculate Tau statistics and select a good tau step
                 if self.constant_tau_stepsize is None:
                     tau_step = Tau.select(HOR, reactants, mu_i, sigma_i, g_i, epsilon_i, tau_tol, critical_threshold, self.model, propensities, curr_state[0], curr_time[0], save_times[0])
-                    #print(f"t={curr_time[0]} tau={tau_step}")
                 else:
                     tau_step = self.constant_tau_stepsize
+                if debug:
+                    X = ''
+                    for k,v in curr_state[0].items():
+                        X+= f'{k}:{v:.2f} '
+                    print(f"t={curr_time[0]} tau={tau_step} curr_state={X}")
+
 
                 # Process switching if used
                 mn, sd, CV = self.__calculate_statistics(curr_time[0], propensities, curr_state[0], tau_step, det_spec)
