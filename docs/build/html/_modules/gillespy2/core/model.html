@@ -1403,6 +1403,16 @@
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">solver</span><span class="si">}</span><span class="s2"> is not a valid solver.  Reason Given: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">err</span>
 
+        <span class="k">if</span> <span class="s2">&quot;integrator&quot;</span> <span class="ow">in</span> <span class="n">solver_args</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                The integrator argument to run is only supported by the ODESolver.run method. To use the integrator use:</span>
+
+<span class="s2">                solver = gillespy2.ODESolver(model=model)</span>
+<span class="s2">                results = solver.run(integrator=&#39;</span><span class="si">{</span><span class="n">solver_args</span><span class="p">[</span><span class="s1">&#39;integrator&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&#39;)</span>
+<span class="s2">                &quot;&quot;&quot;</span>
+            <span class="p">)</span>
+
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">solver</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="n">increment</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span> <span class="o">**</span><span class="n">solver_args</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
