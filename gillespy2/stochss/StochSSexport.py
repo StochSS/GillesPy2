@@ -207,25 +207,31 @@ def export(model, path=None, return_stochss_model=False):
 
     if model.tspan is None:
         model_settings = {"endSim": 20, "timeStep": 0.05}
+    elif type(model.tspan).__name__ == "TimeSpan":
+        model_settings = {
+            "endSim": model.tspan.items[-1],
+            "timeStep": model.tspan.items[1] - model.tspan.items[0]
+        }
     else:
         model_settings = {
             "endSim": model.tspan[-1],
-            "timeStep": model.tspan[-1] / len(model.tspan)
+            "timeStep": model.tspan[1] - model.tspan[0]
         }
 
-    s_model = {"is_spatial": False,
-               "defaultID": 1,
-               "annotation": "",
-               "volume": model.volume,
-               "modelSettings": model_settings,
-                "species": [],
-                "initialConditions": [],
-                "parameters": [],
-                "reactions": [],
-                "rules": [],
-                "eventsCollection": [],
-                "functionDefinitions": []
-              }
+    s_model = {
+        "is_spatial": False,
+        "defaultID": 1,
+        "annotation": "",
+        "volume": model.volume,
+        "modelSettings": model_settings,
+        "species": [],
+        "initialConditions": [],
+        "parameters": [],
+        "reactions": [],
+        "rules": [],
+        "eventsCollection": [],
+        "functionDefinitions": []
+    }
 
     __add_species(model=s_model, species=model.get_all_species())
     __add_parameters(model=s_model, parameters=model.get_all_parameters())
