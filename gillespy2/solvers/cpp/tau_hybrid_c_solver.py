@@ -22,6 +22,12 @@ class TauHybridCSolver(GillesPySolver, CSolver):
     name = "TauHybridCSolver"
     target = "hybrid"
 
+    def __init__(self, model = None, output_directory = None, delete_directory = True, resume=None, variable = False,  constant_tau_stepsize=None):
+
+        self.constant_tau_stepsize = constant_tau_stepsize
+        super().__init__(model=model, output_directory=output_directory, 
+                         delete_directory=delete_directory, resume=resume, variable=variable)
+
     class ErrorStatus(IntEnum):
         UNKNOWN = 1
         LOOP_OVER_INTEGRATE = 2
@@ -30,8 +36,7 @@ class TauHybridCSolver(GillesPySolver, CSolver):
         NEGATIVE_STATE_NO_SSA_REACTION = 5
         NEGATIVE_STATE_AT_BEGINING_OF_STEP = 6
 
-    @classmethod
-    def __create_options(cls, sanitized_model: "SanitizedModel") -> "SanitizedModel":
+    def __create_options(self, sanitized_model: "SanitizedModel") -> "SanitizedModel":
         """
         Populate the given list of species modes into a set of template macro definitions.
         Generated options are specific to the Tau Hybrid solver,
@@ -169,13 +174,24 @@ class TauHybridCSolver(GillesPySolver, CSolver):
     def get_supported_integrator_options(cls) -> "Set[str]":
         return { "rtol", "atol", "max_step" }
 
+
+
     def _build(self, model: "Union[Model, SanitizedModel]", simulation_name: str, variable: bool, debug: bool = False,
                custom_definitions=None) -> str:
         variable = variable or len(model.listOfEvents) > 0
-        sanitized_model = TauHybridCSolver.__create_options(SanitizedModel(model, variable=variable))
+        sanitized_model = self.__create_options(SanitizedModel(model, variable=variable))
         for rate_rule in model.listOfRateRules.values():
             sanitized_model.use_rate_rule(rate_rule)
+
+        # determine if a constant stepsize has been requested
+        if self.constant_tau_stepsize is not None:
+            sanitized_model.options['GPY_CONSTANT_TAU_STEPSIZE'] = str(float(self.constant_tau_stepsize))
+        else:
+            sanitized_model.options['GPY_CONSTANT_TAU_STEPSIZE'] = '0'
         return super()._build(sanitized_model, simulation_name, variable, debug)
+
+
+
 
     def _handle_return_code(self, return_code: "int") -> "int":
         if return_code == TauHybridCSolver.ErrorStatus.UNKNOWN:
@@ -270,9 +286,11 @@ class TauHybridCSolver(GillesPySolver, CSolver):
                 raise SimulationError("A model is required to run the simulation.")
             self._set_model(model=model)
 
+
         self.model.compile_prep()
         self.validate_model(self.model, model)
         self.validate_sbml_features(model=self.model)
+
 
         self.validate_tspan(increment=increment, t=t)
         if increment is None:

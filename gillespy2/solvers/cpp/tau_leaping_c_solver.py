@@ -23,6 +23,9 @@ from gillespy2.core import Results
 
 from .c_solver import CSolver, SimulationReturnCode
 
+from gillespy2.solvers.cpp.build.template_gen import SanitizedModel
+
+
 class TauLeapingCSolver(GillesPySolver, CSolver):
 
     """
@@ -35,6 +38,23 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
     name = "TauLeapingCSolver"
     target = "tau_leap"
 
+    def __init__(self, model = None, output_directory = None, delete_directory = True, resume=None, variable = False,  constant_tau_stepsize=None):
+
+        self.constant_tau_stepsize = constant_tau_stepsize
+        super().__init__(model=model, output_directory=output_directory, 
+                         delete_directory=delete_directory, resume=resume, variable=variable) 
+
+    def _build(self, model, simulation_name, variable, debug = False,
+               custom_definitions=None):
+        sanitized_model = SanitizedModel(model, variable=variable)
+        # determine if a constant stepsize has been requested
+        if self.constant_tau_stepsize is not None:
+            sanitized_model.options['GPY_CONSTANT_TAU_STEPSIZE'] = str(float(self.constant_tau_stepsize))
+        else:
+            sanitized_model.options['GPY_CONSTANT_TAU_STEPSIZE'] = '0'
+        return super()._build(sanitized_model, simulation_name, variable, debug)
+
+
     @classmethod
     def get_solver_settings(cls):
         """
@@ -46,7 +66,7 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
 
     def run(self=None, model: Model = None, t: int = None, number_of_trajectories: int = 1, timeout: int = 0,
             increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
-            resume=None, live_output: str = None, live_output_options: dict = {}, tau_tol=0.03, **kwargs):
+            resume=None, live_output: str = None, live_output_options: dict = {}, tau_tol=0.03, constant_tau_stepsize=None, **kwargs):
 
         """
         :param model: The model on which the solver will operate. (Deprecated)
@@ -85,6 +105,8 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
         result in larger tau steps. Default value is 0.03.
         :type tau_tol: float
 
+        :param constant_tau_stepsize: If set, overrides the automatic stepsize selection and uses the given
+                    value as the stepsize on each step.
         :returns: A result object containing the results of the simulation
         :rtype: gillespy2.Results
         """
@@ -110,6 +132,8 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
             if model is None:
                 raise SimulationError("A model is required to run the simulation.")
             self._set_model(model=model)
+
+        self.constant_tau_stepsize = constant_tau_stepsize
 
         self.model.compile_prep()
         self.validate_model(self.model, model)

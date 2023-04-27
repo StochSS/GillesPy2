@@ -31,6 +31,8 @@
 #include "TauLeapingSolver.h"
 #include "tau.h"
 
+#include "template_defaults.h"
+
 namespace Gillespy
 {
     static volatile bool interrupted = false;
@@ -149,8 +151,11 @@ namespace Gillespy
                     {
                         propensity_values[reaction_number] = Reaction::propensity(reaction_number, current_state.data());
                     }
-
-                    tau_step = select(*(simulation->model), tau_args, tau_tol, simulation->current_time, save_time, propensity_values, current_state);
+                    if(GPY_CONSTANT_TAU_STEPSIZE > 0){
+                        tau_step = GPY_CONSTANT_TAU_STEPSIZE;
+                    }else{
+                        tau_step = select(*(simulation->model), tau_args, tau_tol, simulation->current_time, save_time, propensity_values, current_state);
+                    }
                     prev_curr_state = current_state;
                     double prev_curr_time = simulation->current_time;
                     int loop_cnt = 0;
