@@ -117,7 +117,7 @@
 
 <span class="c1"># You should have received a copy of the GNU General Public License</span>
 <span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
-
+<span class="sd">&#39;&#39;&#39; Module for exporting GillesPy2 model as StochSS Live! models. &#39;&#39;&#39;</span>
 <span class="kn">import</span> <span class="nn">ast</span>
 <span class="kn">import</span> <span class="nn">json</span>
 
@@ -159,8 +159,8 @@
     <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">function_definition</span> <span class="ow">in</span> <span class="n">function_definitions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">variables</span> <span class="o">=</span> <span class="n">function_definition</span><span class="o">.</span><span class="n">get_arg_string</span><span class="p">()</span>
         <span class="n">expression</span> <span class="o">=</span> <span class="n">function_definition</span><span class="o">.</span><span class="n">function_string</span>
-        <span class="n">function</span> <span class="o">=</span> <span class="s2">&quot;lambda(</span><span class="si">{0}</span><span class="s2">, </span><span class="si">{1}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">expression</span><span class="p">)</span>
-        <span class="n">signature</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">(</span><span class="si">{1}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">variables</span><span class="p">)</span>
+        <span class="n">function</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;lambda(</span><span class="si">{</span><span class="n">variables</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">expression</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="n">signature</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">variables</span><span class="si">}</span><span class="s2">)&quot;</span>
 
         <span class="n">s_function_definition</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;compID&quot;</span><span class="p">:</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;defaultID&#39;</span><span class="p">],</span>
                                  <span class="s2">&quot;name&quot;</span><span class="p">:</span><span class="n">name</span><span class="p">,</span>
@@ -177,7 +177,7 @@
     <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">expression</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">parameter</span><span class="o">.</span><span class="n">expression</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span> <span class="c1"># pylint: disable=broad-except</span>
             <span class="n">expression</span> <span class="o">=</span> <span class="n">parameter</span><span class="o">.</span><span class="n">expression</span>
         <span class="n">s_parameter</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;compID&quot;</span><span class="p">:</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;defaultID&#39;</span><span class="p">],</span>
                        <span class="s2">&quot;name&quot;</span><span class="p">:</span><span class="n">name</span><span class="p">,</span>
@@ -289,7 +289,7 @@
 
 
 <span class="k">def</span> <span class="nf">__write_to_file</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">model_file</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">model_file</span><span class="p">:</span>
         <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">model_file</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">ComplexJsonCoder</span><span class="p">)</span>
 
 
@@ -311,25 +311,31 @@
 
     <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">tspan</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">model_settings</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;endSim&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="s2">&quot;timeStep&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">}</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;TimeSpan&quot;</span><span class="p">:</span>
+        <span class="n">model_settings</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;endSim&quot;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+            <span class="s2">&quot;timeStep&quot;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="p">}</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">model_settings</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;endSim&quot;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
-            <span class="s2">&quot;timeStep&quot;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="p">)</span>
+            <span class="s2">&quot;timeStep&quot;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">model</span><span class="o">.</span><span class="n">tspan</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="p">}</span>
 
-    <span class="n">s_model</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;is_spatial&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-               <span class="s2">&quot;defaultID&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-               <span class="s2">&quot;annotation&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-               <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">volume</span><span class="p">,</span>
-               <span class="s2">&quot;modelSettings&quot;</span><span class="p">:</span> <span class="n">model_settings</span><span class="p">,</span>
-                <span class="s2">&quot;species&quot;</span><span class="p">:</span> <span class="p">[],</span>
-                <span class="s2">&quot;initialConditions&quot;</span><span class="p">:</span> <span class="p">[],</span>
-                <span class="s2">&quot;parameters&quot;</span><span class="p">:</span> <span class="p">[],</span>
-                <span class="s2">&quot;reactions&quot;</span><span class="p">:</span> <span class="p">[],</span>
-                <span class="s2">&quot;rules&quot;</span><span class="p">:</span> <span class="p">[],</span>
-                <span class="s2">&quot;eventsCollection&quot;</span><span class="p">:</span> <span class="p">[],</span>
-                <span class="s2">&quot;functionDefinitions&quot;</span><span class="p">:</span> <span class="p">[]</span>
-              <span class="p">}</span>
+    <span class="n">s_model</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;is_spatial&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">&quot;defaultID&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;annotation&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">volume</span><span class="p">,</span>
+        <span class="s2">&quot;modelSettings&quot;</span><span class="p">:</span> <span class="n">model_settings</span><span class="p">,</span>
+        <span class="s2">&quot;species&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;initialConditions&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;parameters&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;reactions&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;rules&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;eventsCollection&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;functionDefinitions&quot;</span><span class="p">:</span> <span class="p">[]</span>
+    <span class="p">}</span>
 
     <span class="n">__add_species</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">s_model</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">get_all_species</span><span class="p">())</span>
     <span class="n">__add_parameters</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">s_model</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">get_all_parameters</span><span class="p">())</span>

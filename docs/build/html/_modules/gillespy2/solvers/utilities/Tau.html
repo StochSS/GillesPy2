@@ -207,7 +207,7 @@
 
     <span class="c1"># If a reactant&#39;s HOR requires &gt;1 of that reactant, evaluate lambda at curr_state</span>
     <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">g_i</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">g_i</span><span class="p">[</span><span class="n">r</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">g_i</span><span class="p">[</span><span class="n">r</span><span class="p">]):</span>
             <span class="n">g_i</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="n">g_i</span><span class="p">[</span><span class="n">r</span><span class="p">](</span><span class="n">curr_state</span><span class="p">[</span><span class="n">r</span><span class="p">])</span>
             <span class="n">epsilon_i</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="n">epsilon</span> <span class="o">/</span> <span class="n">g_i</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
 
