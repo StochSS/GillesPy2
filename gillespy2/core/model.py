@@ -1299,6 +1299,16 @@ class Model(SortableObject, Jsonify):
             except Exception as err:
                 raise SimulationError(f"{solver} is not a valid solver.  Reason Given: {err}.") from err
 
+        if "integrator" in solver_args:
+            raise SimulationError(
+                f"""
+                The integrator argument to run is only supported by the ODESolver.run method. To use the integrator use:
+
+                solver = gillespy2.ODESolver(model=model)
+                results = solver.run(integrator='{solver_args['integrator']}')
+                """
+            )
+
         try:
             return solver.run(t=t, increment=increment, timeout=timeout, **solver_args)
         except Exception as err:
