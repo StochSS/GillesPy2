@@ -25,6 +25,7 @@ import numpy as np
 
 import gillespy2
 from gillespy2.core.gillespyError import InvalidModelError, SBMLError
+from gillespy2.core import log
 
 PYTHON_RESERVED_WORDS = [
     'False', 'def', 'if', 'raise',
@@ -37,7 +38,7 @@ PYTHON_RESERVED_WORDS = [
     'class', 'form', 'or',
     'continue', 'global', 'pass',
 ]
-PREFIX_INVALID_SBML_NAME = 'k_' #'lambda' -> 'k_lambda'
+PREFIX_INVALID_SBML_NAME = 'GPY2__' #'lambda' -> 'k_lambda'
 
 
 init_state = {'INF': np.inf, 'NaN': np.nan}
@@ -89,8 +90,10 @@ def __get_math(formula):
         math_str = re.sub(old, new, math_str)
     for rword in PYTHON_RESERVED_WORDS:
         reg = r'\b' + rword + r'\b'
-        sub = PREFIX_INVALID_SBML_NAME + rword
-        math_str = re.sub(reg, sub, math_str)
+        if re.search(reg, math_str):
+            sub = PREFIX_INVALID_SBML_NAME + rword
+            log.warning("'%s' is an invalid name in GillesPy2, changing to '%s'",rword,sub)
+            math_str = re.sub(reg, sub, math_str)
     return math_str
 
 def __get_species(sbml_model, gillespy_model, errors):
