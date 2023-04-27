@@ -121,6 +121,6 @@ class Parameter(SortableObject, Jsonify):
             if expression is None:
                 raise ParameterError("initial_value can't be None type.")
             if not isinstance(expression, str):
-                raise ParameterError("expression must be of type str, float, or int.")
+                raise ParameterError("expression must be of type str.")
             if expression == "":
                 raise ParameterError("expression can't be an empty string.")

@@ -71,10 +71,14 @@ def import_SBML(filename, name=None, gillespy_model=None, report_silently_with_s
     except ImportError as err:
         raise ImportError('SBML conversion not imported successfully') from err
 
-    return convert(
+    (model,errs) =  convert(
         filename, model_name=name, gillespy_model=gillespy_model,
         report_silently_with_sbml_error=report_silently_with_sbml_error
     )
+    if model.tspan is None:
+        model.timespan(gillespy2.TimeSpan.linspace(t=1))
+
+    return (model, errs)
 
 
 def export_SBML(gillespy_model, filename=None):
@@ -214,6 +218,8 @@ class Model(SortableObject, Jsonify):
             print_string += decorate('Species')
             for species in sorted(self.listOfSpecies.values()):
                 print_string += '\n' + str(species)
+                if species.mode is not None:
+                    print_string += ' (' + species.mode + ')'
         if len(self.listOfParameters):
             print_string += decorate('Parameters')
             for parameter in sorted(self.listOfParameters.values()):
@@ -241,6 +247,8 @@ class Model(SortableObject, Jsonify):
         if self.tspan is not None:
             print_string += decorate('Timespan')
             print_string += str(self.tspan)
+        else:
+            print_string += decorate('No Timespan found')
         return print_string
 
     def __getitem__(self, key):

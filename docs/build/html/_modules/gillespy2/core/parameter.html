@@ -225,7 +225,7 @@
             <span class="k">if</span> <span class="n">expression</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;initial_value can&#39;t be None type.&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;expression must be of type str, float, or int.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;expression must be of type str.&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">expression</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">ParameterError</span><span class="p">(</span><span class="s2">&quot;expression can&#39;t be an empty string.&quot;</span><span class="p">)</span></div></div>
 </pre></div>
