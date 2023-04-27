@@ -283,7 +283,7 @@ class Results(UserList, Jsonify):
             return results
         raise ValueError("number_of_trajectories must be non-negative and non-zero")
 
-    def to_csv(self, path=None, nametag=None, stamp=None):
+    def to_csv(self, path=".", nametag=None, stamp=None, postfix=".odf", verbose=False):
         """
         Outputs the Results to one or more .csv files in a new directory.
 
@@ -296,6 +296,12 @@ class Results(UserList, Jsonify):
 
         :param stamp: Allows the user to optionally "tag" the directory (not included files). Default is timestamp.
         :type stamp: str
+
+        :param verbose: Print useful informataion.
+        :type verbose: str
+
+        :returns: Path to the observed data files.
+        :rtype: str
         """
         if stamp is None:
             now = datetime.now()
@@ -304,13 +310,13 @@ class Results(UserList, Jsonify):
             identifier = self._validate_title(show_title=True)
         else:
             identifier = nametag
-        if path is None:
-            directory = os.path.join(".", str(identifier)+str(stamp))
-        else:
-            directory = os.path.join(path, str(identifier)+str(stamp))
+
+        directory = os.path.join(path, f"{identifier}-{stamp}{postfix}")
+        if verbose:
+            print(f"Writing data to: {directory}")
         # multiple trajectories
         if isinstance(self.data, list):
-            os.mkdir(directory)
+            os.makedirs(directory)
             for i, trajectory in enumerate(self.data):  # write each CSV file
                 filename = os.path.join(directory, str(identifier)+str(i)+".csv")
                 field_names = []
@@ -324,6 +330,7 @@ class Results(UserList, Jsonify):
                         for species in trajectory:  # build one line of the CSV file
                             this_line.append(trajectory[species][j])
                         csv_writer.writerow(this_line)  # write one line of the CSV file
+        return directory
 
     def plot(self, index=None, xaxis_label="Time", xscale='linear', yscale='linear', yaxis_label="Value",
              style="default", title=None, show_title=False, show_legend=True, multiple_graphs=False,

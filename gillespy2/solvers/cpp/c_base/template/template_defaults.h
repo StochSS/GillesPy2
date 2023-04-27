@@ -63,6 +63,11 @@
 #define GPY_REACTION_NAMES
 #endif
 
+
+#ifndef GPY_CONSTANT_TAU_STEPSIZE
+#define GPY_CONSTANT_TAU_STEPSIZE 0 
+#endif
+
 // ===============================================================
 // ================ HYBRID SOLVER OPTION DEFAULTS ================
 // ===============================================================
@@ -77,6 +82,7 @@
  * SPECIES_MODE(1, CONTINUOUS_MODE) \
  * SPECIES_MODE(2, DYNAMIC_MODE)
  */
+
 #ifdef GPY_SOLVER_HYBRID
 
 #ifndef GPY_HYBRID_SPECIES_MODES
@@ -88,4 +94,5 @@
 #endif
 
 #endif
+
 

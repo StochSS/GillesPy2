@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gillespy2.solvers.numpy.tau_leaping_solver &#8212; GillesPy2 1.8.1 documentation</title>
+    <title>gillespy2.solvers.numpy.tau_leaping_solver &#8212; GillesPy2 1.8.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/gillespy2_alabaster_customizations.css" />
@@ -147,7 +147,7 @@
     <span class="n">pause_event</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">constant_tau_stepsize</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="s2">&quot;A model is required to run the simulation.&quot;</span><span class="p">)</span>
 
@@ -159,6 +159,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">is_instantiated</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constant_tau_stepsize</span> <span class="o">=</span> <span class="n">constant_tau_stepsize</span>
 
     <span class="k">def</span> <span class="nf">__get_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">save_time</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">reactions</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -246,7 +247,7 @@
 <span class="sd">        :param tau_tol: Tolerance level for Tau leaping algorithm.  Larger tolerance values will</span>
 <span class="sd">            result in larger tau steps. Default value is 0.03.</span>
 <span class="sd">        :type tau_tol: float</span>
-<span class="sd">        </span>
+
 <span class="sd">        :returns: A result object containing the results of the simulation.</span>
 <span class="sd">        :rtype: gillespy2.Results</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -265,6 +266,7 @@
 <span class="sd">                &quot;&quot;&quot;</span>
             <span class="p">)</span>
             <span class="bp">self</span> <span class="o">=</span> <span class="n">TauLeapingSolver</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="n">profile</span><span class="p">)</span>
+
 
         <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;model = gillespy2.model is deprecated. Future releases &#39;</span>
@@ -504,7 +506,11 @@
                     <span class="n">tau_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">HOR</span><span class="p">,</span> <span class="n">reactants</span><span class="p">,</span> <span class="n">mu_i</span><span class="p">,</span> <span class="n">sigma_i</span><span class="p">,</span> <span class="n">g_i</span><span class="p">,</span> <span class="n">epsilon_i</span><span class="p">,</span> <span class="n">tau_tol</span><span class="p">,</span> <span class="n">critical_threshold</span><span class="p">,</span>
                                 <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">curr_time</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">save_time</span><span class="p">]</span>
 
-                    <span class="n">tau_step</span> <span class="o">=</span> <span class="n">Tau</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">*</span><span class="n">tau_args</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">constant_tau_stepsize</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">tau_step</span> <span class="o">=</span> <span class="n">Tau</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">*</span><span class="n">tau_args</span><span class="p">)</span>
+                        <span class="c1">#print(f&quot;t={curr_time[0]} tau={tau_step}&quot;)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">tau_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">constant_tau_stepsize</span>
 
                     <span class="n">prev_start_state</span> <span class="o">=</span> <span class="n">start_state</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
                     <span class="n">prev_curr_state</span> <span class="o">=</span> <span class="n">curr_state</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>

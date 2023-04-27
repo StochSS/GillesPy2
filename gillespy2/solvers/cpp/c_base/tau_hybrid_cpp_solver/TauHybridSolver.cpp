@@ -35,6 +35,9 @@
 #include "integrator.h"
 #include "tau.h"
 
+#include "template_defaults.h"
+
+
 static void silent_error_handler(int error_code, const char *module, const char *function_name,
                           char *message, void *eh_data);
 
@@ -52,8 +55,7 @@ namespace Gillespy
     {
         void CalculateSpeciesChangeAfterStep(IntegrationResults&result, int*population_changes,
          std::vector<double> current_state, std::set<unsigned int>&rxn_roots, 
-         std::set<int>&event_roots, HybridSimulation*simulation, URNGenerator&urn, 
-         int only_reaction_to_fire){
+         std::set<int>&event_roots, HybridSimulation*simulation, URNGenerator&urn){
             Model<double> &model = *(simulation->model);
             int num_species = model.number_species;
             int num_reactions = model.number_reactions;
@@ -88,12 +90,13 @@ namespace Gillespy
 
                     if (simulation->reaction_state[rxn_i].mode == SimulationState::DISCRETE) {
                         unsigned int rxn_count = 0;
-                        if(only_reaction_to_fire > -1){
-                            if(only_reaction_to_fire == rxn_i){
-                                    rxn_state = log(urn.next());
-                                    rxn_count = 1;
-                            }
-                        }else if(rxn_state > 0){
+                        //if(only_reaction_to_fire > -1){
+                        //    if(only_reaction_to_fire == rxn_i){
+                        //            rxn_state = log(urn.next());
+                        //            rxn_count = 1;
+                        //    }
+                        //}else
+                        if(rxn_state > 0){
                             std::poisson_distribution<int> poisson(rxn_state);
                             rxn_count = 1 + poisson(generator);
                             rxn_state = log(urn.next());
@@ -113,20 +116,24 @@ namespace Gillespy
         bool TakeIntegrationStep(Integrator&sol, IntegrationResults&result, double *next_time, int*population_changes,
          std::vector<double> current_state, std::set<unsigned int>&rxn_roots, 
          std::set<int>&event_roots, HybridSimulation*simulation, URNGenerator&urn, 
-         int only_reaction_to_fire){
+         int num_det_rxns, int num_rate_rules){
             // Integration Step
+
+            // check to see if we can do a constant integration (no deterministic reactions or rate rules)
+
             // For deterministic reactions, the concentrations are updated directly.
             // For stochastic reactions, integration updates the rxn_offsets vector.
-            result = sol.integrate(next_time, event_roots, rxn_roots);
+            result = sol.integrate(next_time, event_roots, rxn_roots, num_det_rxns, num_rate_rules);
             if (sol.status == IntegrationStatus::BAD_STEP_SIZE)
             {
                 simulation->set_status(HybridSimulation::INTEGRATOR_FAILED);
                 return false;
-            } else {
-                // The integrator has, at this point, been validated.
-                // Any errors beyond this point is assumed to be a stochastic state failure.
-                CalculateSpeciesChangeAfterStep(result, population_changes, current_state, rxn_roots, event_roots, simulation, urn, only_reaction_to_fire);
             }
+
+
+            // The integrator has, at this point, been validated.
+            // Any errors beyond this point is assumed to be a stochastic state failure.
+            CalculateSpeciesChangeAfterStep(result, population_changes, current_state, rxn_roots, event_roots, simulation, urn);
             return true;
         }
 
@@ -171,6 +178,7 @@ namespace Gillespy
             GPY_INTERRUPT_INSTALL_HANDLER(signal_handler);
 
             Model<double> &model = *(simulation->model);
+            int num_rate_rules = 0;
             int num_species = model.number_species;
             int num_reactions = model.number_reactions;
             int num_trajectories = simulation->number_trajectories;
@@ -182,6 +190,9 @@ namespace Gillespy
             std::vector<int> non_negative_species;
 
             for (int spec = 0; spec < model.number_species; spec++) {
+                HybridSpecies *specO = &simulation->species_state[spec];
+                num_rate_rules += specO->diff_equation.rate_rules.size();
+
                 for (int r = 0; r < model.number_reactions; r++) {
                     if (model.reactions[r].products_change[spec] > 0 ||
                         model.reactions[r].reactants_change[spec] > 0) {
@@ -282,6 +293,12 @@ namespace Gillespy
                     s_vars[s_num_i] = saved__s_variables[s_num_i];
                 }
 
+                // reset R_j values
+                double *curr_rxn_state = sol.get_reaction_state();
+                for (unsigned int rxn_j = 0; rxn_j < num_reactions; ++rxn_j) {
+                    curr_rxn_state[rxn_j] = log(urn.next()); 
+                }
+
 
                 while (!interrupted && !invalid_state && simulation->current_time < simulation->end_time)
                 {
@@ -313,15 +330,19 @@ namespace Gillespy
                     }
 
                     // Expected tau step is determined.
-                    tau_step = select<double, double>(
-                            model,
-                            tau_args,
-                            tau_tol,
-                            simulation->current_time,
-                            save_time,
-                            sol.data.propensities,
-                            current_state
-                    );
+                    if(GPY_CONSTANT_TAU_STEPSIZE > 0){
+                        tau_step = GPY_CONSTANT_TAU_STEPSIZE;
+                    }else{
+                        tau_step = select<double, double>(
+                                model,
+                                tau_args,
+                                tau_tol,
+                                simulation->current_time,
+                                save_time,
+                                sol.data.propensities,
+                                current_state
+                        );
+                    }
                     partition_species(
                             simulation->current_time,
                             simulation->reaction_state,
@@ -331,7 +352,7 @@ namespace Gillespy
                             tau_step,
                             tau_args
                     );
-                    flag_det_rxns(
+                    int num_det_rxns = flag_det_rxns(
                             simulation->reaction_state,
                             simulation->species_state
                     );
@@ -371,7 +392,7 @@ namespace Gillespy
                     }
 
 
-                    if(!TauHybrid::TakeIntegrationStep(sol, result, &next_time, population_changes, current_state, rxn_roots, event_roots, simulation, urn, -1)){
+                    if(!TauHybrid::TakeIntegrationStep(sol, result, &next_time, population_changes, current_state, rxn_roots, event_roots, simulation, urn, num_det_rxns, num_rate_rules)){
                         return;
                     }
 

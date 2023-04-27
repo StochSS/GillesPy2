@@ -341,7 +341,7 @@ def create_decay(parameter_values=None):
     """
 
     # Initialize the model.
-    model = Model(name="Example")
+    model = Model(name="Decay")
     # Species
     S = Species(name='Sp', initial_value=100)
     model.add_species([S])
@@ -484,7 +484,7 @@ def create_degradation(model_name="Degradation", parameter_values=None):
 
 
 def create_robust_model(parameter_values=None):
-    model = Model(name="test1")
+    model = Model(name="SBML features")
     model.volume = 1
 
     # Parameters
@@ -532,7 +532,7 @@ def create_multi_firing_event(parameter_values=None):
     """                                                                                                                                                                                                                              
                                                                                                                                                                                                                                      
     # Initialize the model.                                                                                                                                                                                                      
-    model = Model(name="Example")
+    model = Model(name="Multi-Event")
 
     # Species                                                                                                                                                                                                                    
     S = Species(name='Sp', initial_value=100, mode='discrete')

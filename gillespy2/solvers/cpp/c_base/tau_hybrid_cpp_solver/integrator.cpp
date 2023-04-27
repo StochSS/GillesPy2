@@ -123,6 +123,47 @@ Integrator::~Integrator()
     delete[] m_roots;
 }
 
+IntegrationResults Integrator::integrate_constant(double *t)
+{
+    // this function assumes no deterministic species or 
+    realtype *Y = N_VGetArrayPointer(y);
+    HybridSimulation *sim = data.simulation;
+    std::vector<HybridSpecies> *species = data.species_state;
+    std::vector<HybridReaction> *reactions = data.reaction_state;
+    std::vector<double> &propensities = data.propensities;
+    unsigned int num_species = sim->model->number_species;
+    unsigned int num_reactions = sim->model->number_reactions;
+    realtype propensity;
+    for (unsigned int rxn_i = 0; rxn_i < num_reactions; ++rxn_i)
+    {
+        HybridReaction rxn = (*reactions)[rxn_i];
+        switch (rxn.mode) {
+        case SimulationState::DISCRETE:
+            // Process stochastic reaction state by updating the root offset for each reaction.
+            propensity = rxn.ssa_propensity(Y);
+            propensities[rxn_i] = propensity;
+            break;
+
+        case SimulationState::CONTINUOUS:
+            break;
+        default:
+            break;
+        }
+    }
+
+    double tau = *t - this->t;
+    for (int rxn_i = 0; rxn_i < num_reactions; ++rxn_i){
+        NV_Ith_S(y, rxn_i+num_species) = NV_Ith_S(y, rxn_i+num_species) + propensities[rxn_i] * tau;
+    }
+    this->t = *t;
+
+    return {
+        NV_DATA_S(y),
+        NV_DATA_S(y) + num_species,
+        IntegrationStatus::OK
+    };
+}
+
 IntegrationResults Integrator::integrate(double *t)
 {
     int retcode = CVode(cvode_mem, *t, y, &this->t, CV_NORMAL);
@@ -157,9 +198,15 @@ void Integrator::reset_model_vector()
     }
 }
 
-IntegrationResults Integrator::integrate(double *t, std::set<int> &event_roots, std::set<unsigned int> &reaction_roots)
+IntegrationResults Integrator::integrate(double *t, std::set<int> &event_roots, std::set<unsigned int> &reaction_roots, int num_det_rxns, int num_rate_rules)
 {
-    IntegrationResults results = integrate(t);
+
+    IntegrationResults results;
+    if(num_det_rxns == 0 && num_rate_rules == 0 &&  data.active_triggers.size() == 0 && data.active_reaction_ids.size() == 0){
+        results = integrate_constant(t);
+    }else{
+        results = integrate(t);
+    }
     if (status != IntegrationStatus::OK) {
         return results;
     }

@@ -13,7 +13,7 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+''' Module for exporting GillesPy2 model as StochSS Live! models. '''
 import ast
 import json
 
@@ -55,8 +55,8 @@ def __add_function_definitions(model, function_definitions):
     for name, function_definition in function_definitions.items():
         variables = function_definition.get_arg_string()
         expression = function_definition.function_string
-        function = "lambda({0}, {1})".format(variables, expression)
-        signature = "{0}({1})".format(name, variables)
+        function = f"lambda({variables}, {expression})"
+        signature = f"{name}({variables})"
 
         s_function_definition = {"compID":model['defaultID'],
                                  "name":name,
@@ -73,7 +73,7 @@ def __add_parameters(model, parameters):
     for name, parameter in parameters.items():
         try:
             expression = ast.literal_eval(parameter.expression)
-        except:
+        except Exception: # pylint: disable=broad-except
             expression = parameter.expression
         s_parameter = {"compID":model['defaultID'],
                        "name":name,
@@ -185,7 +185,7 @@ def __get_species(species, name):
 
 
 def __write_to_file(model, path):
-    with open(path, "w") as model_file:
+    with open(path, "w", encoding="utf-8") as model_file:
         json.dump(model, model_file, indent=4, sort_keys=True, cls=ComplexJsonCoder)
 
 
@@ -207,25 +207,31 @@ def export(model, path=None, return_stochss_model=False):
 
     if model.tspan is None:
         model_settings = {"endSim": 20, "timeStep": 0.05}
+    elif type(model.tspan).__name__ == "TimeSpan":
+        model_settings = {
+            "endSim": model.tspan.items[-1],
+            "timeStep": model.tspan.items[1] - model.tspan.items[0]
+        }
     else:
         model_settings = {
             "endSim": model.tspan[-1],
-            "timeStep": model.tspan[-1] / len(model.tspan)
+            "timeStep": model.tspan[1] - model.tspan[0]
         }
 
-    s_model = {"is_spatial": False,
-               "defaultID": 1,
-               "annotation": "",
-               "volume": model.volume,
-               "modelSettings": model_settings,
-                "species": [],
-                "initialConditions": [],
-                "parameters": [],
-                "reactions": [],
-                "rules": [],
-                "eventsCollection": [],
-                "functionDefinitions": []
-              }
+    s_model = {
+        "is_spatial": False,
+        "defaultID": 1,
+        "annotation": "",
+        "volume": model.volume,
+        "modelSettings": model_settings,
+        "species": [],
+        "initialConditions": [],
+        "parameters": [],
+        "reactions": [],
+        "rules": [],
+        "eventsCollection": [],
+        "functionDefinitions": []
+    }
 
     __add_species(model=s_model, species=model.get_all_species())
     __add_parameters(model=s_model, parameters=model.get_all_parameters())
