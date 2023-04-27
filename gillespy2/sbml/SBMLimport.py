@@ -375,7 +375,7 @@ def __get_initial_assignments(sbml_model, gillespy_model):
         if variable in gillespy_model.listOfSpecies:
             gillespy_model.listOfSpecies[variable].initial_value = assigned_value
         elif variable in gillespy_model.listOfParameters:
-            gillespy_model.listOfParameters[variable].expression = assigned_value
+            gillespy_model.listOfParameters[variable].expression = str(assigned_value)
 
 def __resolve_evals(gillespy_model, init_state):
     while True:
