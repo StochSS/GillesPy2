@@ -175,10 +175,14 @@
     <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;SBML conversion not imported successfully&#39;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">err</span>
 
-    <span class="k">return</span> <span class="n">convert</span><span class="p">(</span>
+    <span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="n">errs</span><span class="p">)</span> <span class="o">=</span>  <span class="n">convert</span><span class="p">(</span>
         <span class="n">filename</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">gillespy_model</span><span class="o">=</span><span class="n">gillespy_model</span><span class="p">,</span>
         <span class="n">report_silently_with_sbml_error</span><span class="o">=</span><span class="n">report_silently_with_sbml_error</span>
-    <span class="p">)</span></div>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">tspan</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">timespan</span><span class="p">(</span><span class="n">gillespy2</span><span class="o">.</span><span class="n">TimeSpan</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">errs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="export_SBML"><a class="viewcode-back" href="../../../classes/gillespy2.core.html#gillespy2.core.model.export_SBML">[docs]</a><span class="k">def</span> <span class="nf">export_SBML</span><span class="p">(</span><span class="n">gillespy_model</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -318,6 +322,8 @@
             <span class="n">print_string</span> <span class="o">+=</span> <span class="n">decorate</span><span class="p">(</span><span class="s1">&#39;Species&#39;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
                 <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">species</span><span class="o">.</span><span class="n">mode</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">print_string</span> <span class="o">+=</span> <span class="s1">&#39; (&#39;</span> <span class="o">+</span> <span class="n">species</span><span class="o">.</span><span class="n">mode</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="p">):</span>
             <span class="n">print_string</span> <span class="o">+=</span> <span class="n">decorate</span><span class="p">(</span><span class="s1">&#39;Parameters&#39;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfParameters</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
@@ -345,6 +351,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tspan</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">print_string</span> <span class="o">+=</span> <span class="n">decorate</span><span class="p">(</span><span class="s1">&#39;Timespan&#39;</span><span class="p">)</span>
             <span class="n">print_string</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tspan</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">print_string</span> <span class="o">+=</span> <span class="n">decorate</span><span class="p">(</span><span class="s1">&#39;No Timespan found&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">print_string</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
