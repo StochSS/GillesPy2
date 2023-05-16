@@ -13,18 +13,18 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import numpy
+''' Unit tests module for gillespy2.TimeSpan. '''
+import time
 import unittest
+from datetime import datetime
 
-from gillespy2.core.timespan import TimeSpan
-from gillespy2.core.gillespyError import TimespanError
+import numpy
+
+from gillespy2 import TimeSpan
+from gillespy2 import TimespanError
 
 class TestTimeSpan(unittest.TestCase):
-    '''
-    ################################################################################################
-    Unit tests for gillespy2.TimeSpan.
-    ################################################################################################
-    '''
+    ''' Unit tests class for gillespy2.TimeSpan. '''
     def setUp(self):
         """ Setup a clean valid timespan for testing. """
         self.tspan = TimeSpan.linspace(t=100, num_points=101)
@@ -74,7 +74,7 @@ class TestTimeSpan(unittest.TestCase):
         for test_val in test_values:
             with self.subTest(t=test_val):
                 with self.assertRaises(TimespanError):
-                    tspan = TimeSpan.linspace(t=test_val, num_points=301)
+                    TimeSpan.linspace(t=test_val, num_points=301)
 
     def test_linspace__no_num_points(self):
         """ Test TimeSpan.linspace without passing num_points. """
@@ -87,7 +87,7 @@ class TestTimeSpan(unittest.TestCase):
         for test_val in test_values:
             with self.subTest(num_points=test_val):
                 with self.assertRaises(TimespanError):
-                    tspan = TimeSpan.linspace(t=30, num_points=test_val)
+                    TimeSpan.linspace(t=30, num_points=test_val)
 
     def test_linspace__no_args(self):
         """ Test TimeSpan.linspace without passing any args. """
@@ -110,7 +110,7 @@ class TestTimeSpan(unittest.TestCase):
         for test_val in test_values:
             with self.subTest(t=test_val):
                 with self.assertRaises(TimespanError):
-                    tspan = TimeSpan.arange(0.1, t=test_val)
+                    TimeSpan.arange(0.1, t=test_val)
 
     def test_arange__invalid_increment(self):
         """ Test TimeSpan.arange with invalid increment type. """
@@ -118,7 +118,7 @@ class TestTimeSpan(unittest.TestCase):
         for test_val in test_values:
             with self.subTest(imcrement=test_val):
                 with self.assertRaises(TimespanError):
-                    tspan = TimeSpan.arange(test_val, t=30)
+                    TimeSpan.arange(test_val, t=30)
 
     def test_validate__list(self):
         """ Test TimeSpan.validate with list data structure. """
@@ -191,3 +191,11 @@ class TestTimeSpan(unittest.TestCase):
         with self.assertRaises(TimespanError):
             tspan.items = [2, 1, 3, 4, 5, 6, 7, 8, 9, 10]
             tspan.validate()
+
+    def test_comp_time_of_validate(self):
+        """ Check the computation time of validate. """
+        start = time.time()
+        self.tspan.validate()
+        tic = datetime.utcfromtimestamp(time.time() - start)
+        msg = f"Total time to run validate on a timespan: {tic.strftime('%M mins %S secs %f msecs')}"
+        print(f"\n<{'-'*88}>\n | {msg.ljust(84)} | \n<{'-'*88}>")

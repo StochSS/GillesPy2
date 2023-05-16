@@ -13,7 +13,6 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 import uuid
 
 from gillespy2.core.species import Species
@@ -30,7 +29,7 @@ class AssignmentRule(SortableObject, Jsonify):
     :param name: Name of the Rule
     :type name: str
 
-    :param variable: Target Species/Parameter to be modified by rule
+    :param variable: Target Species to be modified by rule
     :type variable: str
 
     :param formula: String representation of formula to be evaluated

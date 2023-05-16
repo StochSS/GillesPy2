@@ -494,7 +494,7 @@ def create_robust_model(parameter_values=None):
     # Variables
     model.add_species(Species(name="s1", initial_value=8000, mode="continuous"))
     model.add_species(Species(name="s2", initial_value=0, mode="continuous"))
-    model.add_species(Species(name="test_species", initial_value=29))
+    model.add_species(Species(name="test_species", initial_value=29, mode="continuous"))
 
     # Reactions
     model.add_reaction(Reaction(name="r1", reactants={'s1': 1}, products={'s2': 1}, rate=model.listOfParameters["k2"]))

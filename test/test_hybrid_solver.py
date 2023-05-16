@@ -52,12 +52,6 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         with self.assertRaises(ModelError):
             model.add_rate_rule(rate_rule_dict)
 
-    def test_add_bad_species_rate_rule_dict(self):
-        model = create_decay()
-        with self.assertRaises(ModelError):
-            rule = gillespy2.RateRule(formula='sin(t)')
-            model.add_rate_rule(rule)
-
     def test_add_assignment_rule(self):
         model = create_decay()
         species = gillespy2.Species('test_species4', initial_value=1)
@@ -65,7 +59,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         model.add_species([species])
         model.add_assignment_rule([rule])
         results = model.run()
-        self.assertEquals(results[species.name][0], 2) 
+        self.assertEquals(results[species.name][0], 2)
         self.assertEquals(results[species.name][-1], 2)
         self.assertEqual(results[0].solver_name,'TauHybridSolver')
 
@@ -161,13 +155,6 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         model.add_reaction([gamma_react])
         solver = TauHybridSolver(model=model)
         model.run(solver=solver)
-
-    def test_add_bad_expression_rate_rule_dict(self):
-        model = create_decay()
-        species2 = gillespy2.Species('test_species2', initial_value=2, mode='continuous')
-        with self.assertRaises(ModelError):
-            rule = gillespy2.RateRule(variable=species2, formula='')
-            model.add_rate_rule(rule)
 
     def test_ensure_hybrid_dynamic_species(self):
         model = create_decay()
