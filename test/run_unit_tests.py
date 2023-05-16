@@ -13,8 +13,9 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-import unittest, sys, os
+import os
+import sys
+import unittest
 import argparse
 
 try:
@@ -36,6 +37,8 @@ if __name__ == '__main__':
     from unit_tests import test_species
     from unit_tests import test_parameter
     from unit_tests import test_reaction
+    from unit_tests import test_raterule
+    from unit_tests import test_assignmentrule
     from unit_tests import test_timespan
     from unit_tests import test_model
 
@@ -43,6 +46,8 @@ if __name__ == '__main__':
         test_species,
         test_parameter,
         test_reaction,
+        test_raterule,
+        test_assignmentrule,
         test_timespan,
         test_model
     ]
@@ -51,7 +56,7 @@ if __name__ == '__main__':
         suite = unittest.TestLoader().loadTestsFromModule(module)
         runner = unittest.TextTestRunner(failfast=args.mode == 'develop')
 
-        print("Executing: {}".format(module))
+        print(f"Executing: {module}")
         result = runner.run(suite)
         print('=' * 70)
         if not result.wasSuccessful():
