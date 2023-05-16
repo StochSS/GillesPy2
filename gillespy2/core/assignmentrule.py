@@ -16,8 +16,11 @@
 
 import uuid
 
+from gillespy2.core.species import Species
 from gillespy2.core.sortableobject import SortableObject
 from gillespy2.core.jsonify import Jsonify
+
+from gillespy2.core.gillespyError import AssignmentRuleError
 
 class AssignmentRule(SortableObject, Jsonify):
     """
@@ -34,17 +37,32 @@ class AssignmentRule(SortableObject, Jsonify):
     :type formula: str
     """
 
-    def __init__(self, variable=None, formula=None, name=None):
+    def __init__(self, name=None, variable=None, formula=None):
         if name in (None, ""):
-            self.name = f'ar{uuid.uuid4()}'.replace('-', '_')
-        else:
-            self.name = name
-        self.variable = variable
+            name = f'ar{uuid.uuid4()}'.replace('-', '_')
+        if isinstance(formula, (int, float)):
+            formula = str(formula)
+
+        self.name = name
         self.formula = formula
+
+        self.validate(variable=variable)
+
+        if variable is not None:
+            vtype = type(variable).__name__
+            if vtype == 'Species':
+                variable = variable.name
+        self.variable = variable
 
     def __str__(self):
         var_name = self.variable if isinstance(self.variable, str) else self.variable.name
         return f"{self.name}: Var: {var_name}: {self.formula}"
+
+    def _create_sanitized_assignment_rule(self, n_ndx, species_mappings, parameter_mappings):
+        name = f"AR{n_ndx}"
+        variable = species_mappings[self.variable.name]
+        formula = self.sanitized_formula(species_mappings, parameter_mappings)
+        return AssignmentRule(name=name, formula=formula, variable=variable)
 
     def sanitized_formula(self, species_mappings, parameter_mappings):
         '''
@@ -67,3 +85,45 @@ class AssignmentRule(SortableObject, Jsonify):
         for i, name in enumerate(names):
             sanitized_formula = sanitized_formula.replace(name, "{" + str(i) + "}")
         return sanitized_formula.format(*replacements)
+
+    def validate(self, variable=None, coverage="all"):
+        """
+        Validate the assignment rule.
+
+        :param variable: Target Species to be modified by rule
+        :type variable: str
+
+        :param coverage: The scope of attributes to validate.  Set to an attribute name to restrict validation \
+                         to a specific attribute.
+        :type coverage: str
+
+        :raises SpeciesError: Attribute is of invalid type.  Required attribute set to None.  \
+                              Attribute is value outside of accepted bounds.
+        """
+        # Check name
+        if coverage in ("all", "name"):
+            if self.name is None:
+                raise AssignmentRuleError("name can't be None type.")
+            if not isinstance(self.name, str):
+                raise AssignmentRuleError(f"name must be of type str not {type(self.name)}.")
+            if self.name == "":
+                raise AssignmentRuleError("name can't be an empty string.")
+
+        # Check variable
+        if coverage in ("all", "variable"):
+            if variable is None:
+                if not hasattr(self, "variable") or self.variable is None:
+                    raise AssignmentRuleError("Assignment rules must have a variable.")
+                variable = self.variable
+
+            if not (isinstance(variable, (str, Species)) or type(variable).__name__ == 'Species'):
+                raise AssignmentRuleError("variable must be of type str or GillesPy2.Species.")
+            if variable == "":
+                raise AssignmentRuleError("variable can't be an empty string.")
+
+        # Check formula
+        if coverage in ("all", "formula"):
+            if not isinstance(self.formula, str):
+                raise AssignmentRuleError("formula must be of type str.")
+            if self.formula == "":
+                raise AssignmentRuleError("formula can't be an empty string.")

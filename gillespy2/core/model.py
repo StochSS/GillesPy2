@@ -323,23 +323,33 @@ class Model(SortableObject, Jsonify):
             self._resolve_parameter(parameter)
 
     def _resolve_rule(self, rule):
-        def validate(rule):
-            from gillespy2.core.gillespyError import RateRuleError, AssignmentRuleError # pylint: disable=import-outside-toplevel
-            errors = {"RateRule": RateRuleError, "AssignmentRule": AssignmentRuleError}
-            error_class = errors[type(rule).__name__]
-            if rule.variable is None:
-                raise error_class('A GillesPy2 Rate/Assignment Rule must be associated with a valid variable')
-            if rule.formula == '':
-                raise error_class('Invalid Rate/Assignment Rule. Expression must be a non-empty string value')
         try:
-            validate(rule)
+            rule.validate()
 
             # Confirm that the variable is part of the model.
-            name = rule.variable if isinstance(rule.variable, str) else rule.variable.name
-            rule.variable = self.get_element(name)
+            target = rule.variable if isinstance(rule.variable, str) else rule.variable.name
+            rule.variable = self.get_species(target)
+
+            ar_vars = [arule.variable.name for arule in self.listOfAssignmentRules.values() if arule.name != rule.name]
+            rr_vars = [rrule.variable.name for rrule in self.listOfRateRules.values() if rrule.name != rule.name]
+            if rule.variable.name in rr_vars:
+                raise ModelError(f"Duplicate variable in rate rules: {rule.variable.name}.")
+            if rule.variable.name in ar_vars:
+                raise ModelError(f"Duplicate variable in assignments rules: {rule.variable.name}.")
+
+            if isinstance(rule, RateRule) or type(rule).__name__ == "RateRule":
+                # check if the rate rule's target's mode is continious
+                if rule.variable.mode == "discrete":
+                    raise ModelError("Rate rules can not target discrete species")
+                if rule.variable.mode in (None, "dynamic"):
+                    rule.variable.mode = 'continuous'
+                    from gillespy2.core import log # pylint:disable=import-outside-toplevel
+                    msg = f"Changing {rule.variable.name}'s mode to 'continuous' as it is the target of rate rule"
+                    msg += f" {rule.name}"
+                    log.warning(msg)
         except ModelError as err:
             raise ModelError(
-                f"Could not add/resolve rate_rule: {rule.name}, Reason given: {err}"
+                f"Could not add/resolve {type(rule).__name__}: {rule.name}, Reason given: {err}"
             ) from err
 
     def _resolve_all_rate_rules(self):
@@ -745,31 +755,11 @@ class Model(SortableObject, Jsonify):
                 self.add_rate_rule(r_rule)
         elif isinstance(rate_rule, RateRule) or type(rate_rule).__name__ == "RateRule":
             self._problem_with_name(rate_rule.name)
-            ar_vars = [a_rule.variable for a_rule in self.listOfAssignmentRules.values()]
-            rr_vars = [r_rule.variable for r_rule in self.listOfRateRules.values()]
-            if rate_rule.variable in ar_vars:
-                raise ModelError(
-                    f"Duplicate variable in rate_rules AND assignment_rules: {rate_rule.variable}."
-                )
-            if rate_rule.variable in rr_vars:
-                raise ModelError(f"Duplicate variable in rate_rules: {rate_rule.variable}.")
             self._resolve_rule(rate_rule)
-            if rate_rule.variable.name in self.listOfSpecies:
-                # check if the rate_rule's target's mode is continious
-                if rate_rule.variable.mode == 'discrete':
-                    raise ModelError("RateRules can not target discrete species")
-                if rate_rule.variable.mode is None or rate_rule.variable.mode == 'dynamic':
-                    rate_rule.variable.mode = 'continuous'
-                    from gillespy2.core import log # pylint:disable=import-outside-toplevel
-                    errmsg = f"Changing {rate_rule.variable.name}.mode='continuous' as it is the target of RateRule"
-                    errmsg += f" {rate_rule.name}"
-                    log.warning(errmsg)
-
             self.listOfRateRules[rate_rule.name] = rate_rule
             # Build the sanitized rate rule
-            sanitized_rate_rule = RateRule(name=f'RR{len(self._listOfRateRules)}')
-            sanitized_rate_rule.formula = rate_rule.sanitized_formula(
-                self._listOfSpecies, self._listOfParameters
+            sanitized_rate_rule = rate_rule._create_sanitized_rate_rule(
+                len(self._listOfRateRules), self._listOfSpecies, self._listOfParameters
             )
             self._listOfRateRules[rate_rule.name] = sanitized_rate_rule
         else:
@@ -844,20 +834,11 @@ class Model(SortableObject, Jsonify):
                 self.add_assignment_rule(a_rule)
         elif isinstance(assignment_rule, AssignmentRule) or type(assignment_rule).__name__ == "AssignmentRule":
             self._problem_with_name(assignment_rule.name)
-            ar_vars = [a_rule.variable for a_rule in self.listOfAssignmentRules.values()]
-            rr_vars = [r_rule.variable for r_rule in self.listOfRateRules.values()]
-            if assignment_rule.variable in rr_vars:
-                raise ModelError(
-                    f"Duplicate variable in rate_rules AND assignment_rules: {assignment_rule.variable}."
-                )
-            if assignment_rule.variable in ar_vars:
-                raise ModelError(f"Duplicate variable in assignments_rules: {assignment_rule.variable}.")
             self._resolve_rule(assignment_rule)
             self.listOfAssignmentRules[assignment_rule.name] = assignment_rule
             # Build the sanitized assignment rule
-            sanitized_assignment_rule = AssignmentRule(name=f'AR{len(self._listOfAssignmentRules)}')
-            sanitized_assignment_rule.formula = assignment_rule.sanitized_formula(
-                self._listOfSpecies, self._listOfParameters
+            sanitized_assignment_rule = assignment_rule._create_sanitized_assignment_rule(
+                len(self._listOfAssignmentRules), self._listOfSpecies, self._listOfParameters
             )
             self._listOfAssignmentRules[assignment_rule.name] = sanitized_assignment_rule
         else:
