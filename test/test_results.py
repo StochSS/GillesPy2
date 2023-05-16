@@ -108,10 +108,10 @@ class TestResults(unittest.TestCase):
         test_stamp = "test_stamp"
 
         with tempfile.TemporaryDirectory() as tempdir:
-            result.to_csv(stamp = test_stamp, nametag = test_nametag, path=tempdir)
-            test_path = tempdir+"/"+test_nametag+test_stamp
+            result.to_csv(stamp=test_stamp, nametag=test_nametag, path=tempdir)
+            test_path = os.path.join(tempdir, f"{test_nametag}-{test_stamp}.odf")
             assert not os.path.isdir(test_path)
-            
+
     def test_to_csv_single_result_directory_exists(self):
         test_data = {'time':[0]}
         result = Results(data=[test_data])
@@ -119,8 +119,8 @@ class TestResults(unittest.TestCase):
         test_stamp = "test_stamp"
 
         with tempfile.TemporaryDirectory() as tempdir:
-            result.to_csv(stamp = test_stamp, nametag = test_nametag, path=tempdir)
-            test_path = tempdir+"/"+test_nametag+test_stamp
+            result.to_csv(stamp=test_stamp, nametag=test_nametag, path=tempdir)
+            test_path = os.path.join(tempdir, f"{test_nametag}-{test_stamp}.odf")
             assert os.path.isdir(test_path)
 
     def test_to_csv_single_result_file_exists(self):
@@ -130,22 +130,14 @@ class TestResults(unittest.TestCase):
         test_stamp = "test_stamp"
 
         with tempfile.TemporaryDirectory() as tempdir:
-            result.to_csv(stamp = test_stamp, nametag = test_nametag, path=tempdir)
-            test_path = tempdir+"/"+test_nametag+test_stamp+"/"+test_nametag+"0.csv"
+            result.to_csv(stamp=test_stamp, nametag=test_nametag, path=tempdir)
+            test_path = os.path.join(tempdir, f"{test_nametag}-{test_stamp}.odf", f"{test_nametag}0.csv")
             assert os.path.isfile(test_path)
 
     def test_to_csv_single_result_no_stamp(self):
         test_data = {'time':[0]}
         result = Results(data=[test_data])
         test_nametag = "test_nametag"
-
-        with tempfile.TemporaryDirectory() as tempdir:
-            result.to_csv(nametag=test_nametag, path=tempdir)
-            assert len(os.listdir(tempdir)) != 0
-
-    def test_to_csv_single_result_no_nametag(self):
-        test_model = Model('test_model')
-        test_data = Trajectory(data={'time':[0]},model=test_model)
 
         with tempfile.TemporaryDirectory() as tempdir:
             result.to_csv(nametag=test_nametag, path=tempdir)
@@ -168,3 +160,6 @@ class TestResults(unittest.TestCase):
         test_nametag = "test_nametag"
         test_stamp = "test_stamp"
 
+        result.to_csv(nametag=test_nametag, stamp=test_stamp)
+        test_path = f"{test_nametag}-{test_stamp}.odf"
+        assert os.path.isdir(test_path)

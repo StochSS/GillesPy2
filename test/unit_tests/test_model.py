@@ -27,7 +27,7 @@ class TestModel(unittest.TestCase):
 
     def test_model_add__assignment_rule(self):
         from gillespy2 import AssignmentRule
-        ar1 = AssignmentRule(name="ar1", variable="k1", formula="29")
+        ar1 = AssignmentRule(name="ar1", variable="test_species", formula="29")
         self.model.add(ar1)
         self.assertIn("ar1", self.model.listOfAssignmentRules)
 
@@ -57,7 +57,7 @@ class TestModel(unittest.TestCase):
 
     def test_model_add__rate_rule(self):
         from gillespy2 import RateRule
-        rr3 = RateRule(name="rr3", variable="k1", formula="29")
+        rr3 = RateRule(name="rr3", variable="test_species", formula="29")
         self.model.add(rr3)
         self.assertIn("rr3", self.model.listOfRateRules)
 
@@ -83,10 +83,11 @@ class TestModel(unittest.TestCase):
         import gillespy2
 
         s1 = gillespy2.Species(name="s1", initial_value=29)
+        s2 = gillespy2.Species(name="s2", initial_value=29)
         k1 = gillespy2.Parameter(name="k1", expression=29)
         r1 = gillespy2.Reaction(name="r1", reactants={"s1": 1}, rate="k1")
-        rr1 = gillespy2.RateRule(name="rr1", variable="k1", formula="29")
-        ar1 = gillespy2.AssignmentRule(name="ar1", variable="s1", formula="29")
+        rr1 = gillespy2.RateRule(name="rr1", variable="s1", formula="29")
+        ar1 = gillespy2.AssignmentRule(name="ar1", variable="s2", formula="29")
         ea = gillespy2.EventAssignment(name="ea", variable="k1", expression="29")
         et = gillespy2.EventTrigger(expression="t > 29")
         e1 = gillespy2.Event(name="e1", trigger=et, assignments=[ea])
@@ -94,7 +95,7 @@ class TestModel(unittest.TestCase):
         tspan = gillespy2.TimeSpan(range(100))
 
         model = gillespy2.Model(name="Test Model")
-        model.add([s1, k1, r1, rr1, ar1, e1, divide, tspan])
+        model.add([s1, s2, k1, r1, rr1, ar1, e1, divide, tspan])
 
         self.assertIn("ar1", model.listOfAssignmentRules)
         self.assertIn("e1", model.listOfEvents)
@@ -105,14 +106,15 @@ class TestModel(unittest.TestCase):
         self.assertIn("s1", model.listOfSpecies)
         self.assertEqual(tspan, model.tspan)
 
-    def test_model_add__multiple_components__in_order(self):
+    def test_model_add__multiple_components__not_in_order(self):
         import gillespy2
 
         s1 = gillespy2.Species(name="s1", initial_value=29)
+        s2 = gillespy2.Species(name="s2", initial_value=29)
         k1 = gillespy2.Parameter(name="k1", expression=29)
         r1 = gillespy2.Reaction(name="r1", reactants={"s1": 1}, rate="k1")
-        rr1 = gillespy2.RateRule(name="rr1", variable="k1", formula="29")
-        ar1 = gillespy2.AssignmentRule(name="ar1", variable="s1", formula="29")
+        rr1 = gillespy2.RateRule(name="rr1", variable="s1", formula="29")
+        ar1 = gillespy2.AssignmentRule(name="ar1", variable="s2", formula="29")
         ea = gillespy2.EventAssignment(name="ea", variable="k1", expression="29")
         et = gillespy2.EventTrigger(expression="t > 29")
         e1 = gillespy2.Event(name="e1", trigger=et, assignments=[ea])
@@ -120,7 +122,7 @@ class TestModel(unittest.TestCase):
         tspan = gillespy2.TimeSpan(range(100))
 
         model = gillespy2.Model(name="Test Model")
-        model.add([ar1, divide, e1, k1, s1, r1, rr1, tspan])
+        model.add([ar1, divide, e1, k1, s1, r1, rr1, tspan, s2])
 
         self.assertIn("ar1", model.listOfAssignmentRules)
         self.assertIn("e1", model.listOfEvents)
