@@ -72,16 +72,13 @@ class TestBasicTauHybridSolver(unittest.TestCase):
 
     def test_add_continuous_species_dependent_event(self):
         model = create_decay()
-        k1 = gillespy2.Species(name=model.listOfParameters['k1'].name, initial_value=model.listOfParameters['k1'].value)
-        model.delete_parameter('k1')
-        model.add_species(k1)
         model.listOfSpecies['Sp'].mode = 'continuous'
         eventTrig = gillespy2.EventTrigger(expression='Sp <= 90', initial_value=True, )
         event1 = gillespy2.Event(name='event1', trigger=eventTrig)
         ea1 = gillespy2.EventAssignment(variable='Sp', expression='1000')
         ea2 = gillespy2.EventAssignment(variable='k1', expression='0')
         event1.add_assignment([ea1, ea2])
-        model.add_event(event1)
+        model.add_event(event1, auto_convert_variable=True)
         results = model.run()
         valid_solvers = ('TauHybridSolver', 'TauHybridCSolver')
         self.assertIn(results[0].solver_name, valid_solvers)
@@ -89,46 +86,37 @@ class TestBasicTauHybridSolver(unittest.TestCase):
 
     def test_add_stochastic_species_dependent_event(self):
         model = create_decay()
-        k1 = gillespy2.Species(name=model.listOfParameters['k1'].name, initial_value=model.listOfParameters['k1'].value)
-        model.delete_parameter('k1')
-        model.add_species(k1)
         model.listOfSpecies['Sp'].mode = 'discrete'
         eventTrig = gillespy2.EventTrigger(expression='Sp <= 90', initial_value=True, )
         event1 = gillespy2.Event(name='event1', trigger=eventTrig)
         ea1 = gillespy2.EventAssignment(variable='Sp', expression='1000')
         ea2 = gillespy2.EventAssignment(variable='k1', expression='0')
         event1.add_assignment([ea1, ea2])
-        model.add_event(event1)
+        model.add_event(event1, auto_convert_variable=True)
         results = model.run()
         self.assertEqual(results['Sp'][-1], 1000)
         
     def test_add_continuous_time_dependent_event(self):
         model = create_decay()
-        k1 = gillespy2.Species(name=model.listOfParameters['k1'].name, initial_value=model.listOfParameters['k1'].value)
-        model.delete_parameter('k1')
-        model.add_species(k1)
         model.listOfSpecies['Sp'].mode = 'continuous'
         eventTrig = gillespy2.EventTrigger(expression='t >= 10', initial_value=True, )
         event1 = gillespy2.Event(name='event1', trigger=eventTrig)
         ea1 = gillespy2.EventAssignment(variable='Sp', expression='1000')
         ea2 = gillespy2.EventAssignment(variable='k1', expression='0')
         event1.add_assignment([ea1, ea2])
-        model.add_event(event1)
+        model.add_event(event1, auto_convert_variable=True)
         results = model.run()
         self.assertEqual(results['Sp'][-1], 1000)
         
     def test_add_stochastic_time_dependent_event(self):
         model = create_decay()
-        k1 = gillespy2.Species(name=model.listOfParameters['k1'].name, initial_value=model.listOfParameters['k1'].value)
-        model.delete_parameter('k1')
-        model.add_species(k1)
         model.listOfSpecies['Sp'].mode = 'discrete'
         eventTrig = gillespy2.EventTrigger(expression='t >= 10', initial_value=True, )
         event1 = gillespy2.Event(name='event1', trigger=eventTrig)
         ea1 = gillespy2.EventAssignment(variable='Sp', expression='1000')
         ea2 = gillespy2.EventAssignment(variable='k1', expression='0')
         event1.add_assignment([ea1, ea2])
-        model.add_event(event1)
+        model.add_event(event1, auto_convert_variable=True)
         results = model.run()
         self.assertEqual(results['Sp'][-1], 1000)
         

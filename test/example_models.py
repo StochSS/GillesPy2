@@ -537,8 +537,8 @@ def create_multi_firing_event(parameter_values=None):
 
     # Species                                                                                                                                                                                                                    
     S = Species(name='Sp', initial_value=100, mode='discrete')
-    ev_time1 = Species(name='ev_time1', initial_value=20)
-    ev_time2 = Species(name='ev_time2', initial_value=30)
+    ev_time1 = Species(name='ev_time1', initial_value=20, mode="continuous")
+    ev_time2 = Species(name='ev_time2', initial_value=30, mode="continuous")
     k1 = Species(name='k1', initial_value=0.01, mode="continuous")
     model.add_species([S, ev_time1, ev_time2, k1])
     

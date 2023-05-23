@@ -29,7 +29,7 @@ class TestModel(unittest.TestCase):
     def test_model_add__assignment_rule(self):
         ''' Test Model.add with an assignment rule. '''
         ar1 = gillespy2.AssignmentRule(name="ar1", variable="test_species", formula="29")
-        self.model.add(ar1)
+        self.model.add(ar1, auto_convert_variable=True)
         self.assertIn("ar1", self.model.listOfAssignmentRules)
 
     def test_model_add__event(self):
@@ -37,7 +37,7 @@ class TestModel(unittest.TestCase):
         assignment = gillespy2.EventAssignment(variable="k1", expression="29")
         trigger = gillespy2.EventTrigger(expression="t > 29")
         event = gillespy2.Event(name="e2", trigger=trigger, assignments=[assignment])
-        self.model.add(event)
+        self.model.add(event, auto_convert_variable=True)
         self.assertIn("e2", self.model.listOfEvents)
 
     def test_model_add__function_definition(self):
@@ -60,7 +60,7 @@ class TestModel(unittest.TestCase):
     def test_model_add__rate_rule(self):
         ''' Test Model.add with a rate rule. '''
         rr3 = gillespy2.RateRule(name="rr3", variable="test_species", formula="29")
-        self.model.add(rr3)
+        self.model.add(rr3, auto_convert_variable=True)
         self.assertIn("rr3", self.model.listOfRateRules)
 
     def test_model_add__reaction(self):
@@ -86,7 +86,7 @@ class TestModel(unittest.TestCase):
         spec1 = gillespy2.Species(name="s1", initial_value=29, mode="continuous")
         spec2 = gillespy2.Species(name="s2", initial_value=29)
         parameter = gillespy2.Parameter(name="k1", expression=29)
-        reaction = gillespy2.Reaction(name="r1", reactants={"s1": 1}, rate="k1")
+        reaction = gillespy2.Reaction(name="r1", reactants={"s1": 1}, propensity_function="s1 * k1")
         rr1 = gillespy2.RateRule(name="rr1", variable="s1", formula="29")
         ar1 = gillespy2.AssignmentRule(name="ar1", variable="s2", formula="29")
         assignment = gillespy2.EventAssignment(variable="k1", expression="29")
@@ -96,23 +96,29 @@ class TestModel(unittest.TestCase):
         tspan = gillespy2.TimeSpan(range(100))
 
         model = gillespy2.Model(name="Test Model")
-        model.add([spec1, spec2, parameter, reaction, rr1, ar1, event, divide, tspan])
+        model.add([spec1, spec2, parameter, tspan])
 
+        self.assertIn("s1", model.listOfSpecies)
+        self.assertIn("s2", model.listOfSpecies)
+        self.assertIn("k1", model.listOfParameters)
+        self.assertEqual(tspan, model.tspan)
+
+        model.add([reaction, rr1, ar1, event, divide], auto_convert_variable=True)
+
+        self.assertNotIn("k1", model.listOfParameters)
+        self.assertIn("k1", model.listOfSpecies)
         self.assertIn("ar1", model.listOfAssignmentRules)
         self.assertIn("e1", model.listOfEvents)
         self.assertIn("divide", model.listOfFunctionDefinitions)
-        self.assertIn("k1", model.listOfParameters)
         self.assertIn("rr1", model.listOfRateRules)
         self.assertIn("r1", model.listOfReactions)
-        self.assertIn("s1", model.listOfSpecies)
-        self.assertEqual(tspan, model.tspan)
 
     def test_model_add__multiple_components__not_in_order(self):
         ''' Test Model.add with multiple components not in proper add order. '''
         spec1 = gillespy2.Species(name="s1", initial_value=29, mode="continuous")
         spec2 = gillespy2.Species(name="s2", initial_value=29)
         parameter = gillespy2.Parameter(name="k1", expression=29)
-        reaction = gillespy2.Reaction(name="r1", reactants={"s1": 1}, rate="k1")
+        reaction = gillespy2.Reaction(name="r1", reactants={"s1": 1}, propensity_function="s1 * k1")
         rr1 = gillespy2.RateRule(name="rr1", variable="s1", formula="29")
         ar1 = gillespy2.AssignmentRule(name="ar1", variable="s2", formula="29")
         assignment = gillespy2.EventAssignment(variable="k1", expression="29")
@@ -122,16 +128,22 @@ class TestModel(unittest.TestCase):
         tspan = gillespy2.TimeSpan(range(100))
 
         model = gillespy2.Model(name="Test Model")
-        model.add([ar1, divide, event, parameter, spec1, reaction, rr1, tspan, spec2])
+        model.add([rr1, divide, reaction, parameter, spec1])
 
-        self.assertIn("ar1", model.listOfAssignmentRules)
-        self.assertIn("e1", model.listOfEvents)
-        self.assertIn("divide", model.listOfFunctionDefinitions)
-        self.assertIn("k1", model.listOfParameters)
         self.assertIn("rr1", model.listOfRateRules)
+        self.assertIn("divide", model.listOfFunctionDefinitions)
         self.assertIn("r1", model.listOfReactions)
+        self.assertIn("k1", model.listOfParameters)
         self.assertIn("s1", model.listOfSpecies)
+
+        model.add([event, ar1, tspan, spec2], auto_convert_variable=True)
+
+        self.assertIn("e1", model.listOfEvents)
+        self.assertIn("ar1", model.listOfAssignmentRules)
         self.assertEqual(tspan, model.tspan)
+        self.assertIn("s1", model.listOfSpecies)
+        self.assertNotIn("k1", model.listOfParameters)
+        self.assertIn("k1", model.listOfSpecies)
 
     def test_delete_assignment_rule(self):
         ''' Test model.delete_assignment_rule method. '''

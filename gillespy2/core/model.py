@@ -287,14 +287,29 @@ class Model(SortableObject, Jsonify):
                     f'Name "{name}" is unavailable. Names must not contain special characters: {chars}.'
                 )
 
-    def _resolve_event(self, event):
+    def _resolve_event(self, event, auto_convert_variable=False):
         try:
             event.validate()
 
             # Confirm that the variable in the event assignments are part of the model.
             for assign in event.assignments:
-                name = assign.variable if isinstance(assign.variable, str) else assign.variable.name
-                assign.variable = self.get_element(name)
+                target = assign.variable if isinstance(assign.variable, str) else assign.variable.name
+                if auto_convert_variable and target in self.listOfParameters:
+                    convert_target = True
+                    if auto_convert_variable == "supervised":
+                        choice = input(
+                            f"The target of {type(event).__name__} {event.name} is a parameter, " \
+                            "do you wish to convert it to a continuous species? "
+                        )
+                        if choice.lower() in ('n', 'no', 'false'):
+                            convert_target = False
+                    if convert_target:
+                        s1_target = Species(
+                            name=target, initial_value=self.listOfParameters[target].value, mode="continuous"
+                        )
+                        self.delete_parameter(target)
+                        self.add_species(s1_target)
+                assign.variable = self.get_species(target)
         except ModelError as err:
             raise ModelError(f"Could not add/resolve event: {event.name}, Reason given: {err}") from err
 
@@ -316,12 +331,27 @@ class Model(SortableObject, Jsonify):
         for _, parameter in self.listOfParameters.items():
             self._resolve_parameter(parameter)
 
-    def _resolve_rule(self, rule):
+    def _resolve_rule(self, rule, auto_convert_variable=False):
         try:
             rule.validate()
 
             # Confirm that the variable is part of the model.
             target = rule.variable if isinstance(rule.variable, str) else rule.variable.name
+            if auto_convert_variable and target in self.listOfParameters:
+                convert_target = True
+                if auto_convert_variable == "supervised":
+                    choice = input(
+                        f"The target of {type(rule).__name__} {rule.name} is a parameter, " \
+                        "do you wish to convert it to a continuous species? "
+                    )
+                    if choice.lower() in ('n', 'no', 'false'):
+                        convert_target = False
+                if convert_target:
+                    s1_target = Species(
+                        name=target, initial_value=self.listOfParameters[target].value, mode="continuous"
+                    )
+                    self.delete_parameter(target)
+                    self.add_species(s1_target)
             rule.variable = self.get_species(target)
 
             ar_vars = [arule.variable.name for arule in self.listOfAssignmentRules.values() if arule.name != rule.name]
@@ -393,7 +423,7 @@ class Model(SortableObject, Jsonify):
         for param in self.listOfParameters:
             self.namespace[param] = self.listOfParameters[param].value
 
-    def add(self, components):
+    def add(self, components, auto_convert_variable=False):
         """
         Adds a component, or list of components to the model. If a list is provided, Species
         and Parameters are added before other components.  Lists may contain any combination
@@ -402,6 +432,11 @@ class Model(SortableObject, Jsonify):
         :param components: The component or list of components to be added the the model.
         :type components: Species, Parameters, Reactions, Events, Rate Rules, Assignment Rules, \
                           FunctionDefinitions, TimeSpan, or list
+
+        :param auto_convert_variable: Indicates that targets of rate rules, assignment rules, and events
+                should be converted from parameters to species. Options: True, 'supervised', False.
+                If set to supervised, user will be prompted to confirm the convertion.
+        :type auto_convert_variable: bool | str
 
         :returns: The components that were added to the model.
         :rtype: Species, Parameters, Reactions, Events, Rate Rules, Assignment Rules, \
@@ -416,22 +451,22 @@ class Model(SortableObject, Jsonify):
             others = []
             for component in components:
                 if isinstance(component, p_types) or type(component).__name__ in p_names:
-                    self.add(component)
+                    self.add(component, auto_convert_variable=auto_convert_variable)
                 else:
                     others.append(component)
 
             for component in others:
-                self.add(component)
+                self.add(component, auto_convert_variable=auto_convert_variable)
         elif isinstance(components, AssignmentRule) or type(components).__name__ == AssignmentRule.__name__:
-            self.add_assignment_rule(components)
+            self.add_assignment_rule(components, auto_convert_variable=auto_convert_variable)
         elif isinstance(components, Event) or type(components).__name__ == Event.__name__:
-            self.add_event(components)
+            self.add_event(components, auto_convert_variable=auto_convert_variable)
         elif isinstance(components, FunctionDefinition) or type(components).__name__ == FunctionDefinition.__name__:
             self.add_function_definition(components)
         elif isinstance(components, Parameter) or type(components).__name__ == Parameter.__name__:
             self.add_parameter(components)
         elif isinstance(components, RateRule) or type(components).__name__ == RateRule.__name__:
-            self.add_rate_rule(components)
+            self.add_rate_rule(components, auto_convert_variable=auto_convert_variable)
         elif isinstance(components, Reaction) or type(components).__name__ == Reaction.__name__:
             self.add_reaction(components)
         elif isinstance(components, Species) or type(components).__name__ == Species.__name__:
@@ -732,12 +767,17 @@ class Model(SortableObject, Jsonify):
         """
         return self.listOfReactions
 
-    def add_rate_rule(self, rate_rule):
+    def add_rate_rule(self, rate_rule, auto_convert_variable=False):
         """
         Adds a rate rule, or list of rate rules to the model.
 
         :param rate_rule: The rate rule or list of rate rules to be added to the model object.
         :type rate_rule: gillespy2.RateRule | list of gillespy2.RateRules
+
+        :param auto_convert_variable: Indicates that targets of rate rule should be
+                converted from parameters to species. Options: True, 'supervised', False.
+                If set to supervised, user will be prompted to confirm the convertion.
+        :type auto_convert_variable: bool | str
 
         :returns: The rate rule or list of rate rules that were added to the model.
         :rtype: gillespy2.RateRule | list of gillespy2.RateRule
@@ -749,7 +789,7 @@ class Model(SortableObject, Jsonify):
                 self.add_rate_rule(r_rule)
         elif isinstance(rate_rule, RateRule) or type(rate_rule).__name__ == "RateRule":
             self._problem_with_name(rate_rule.name)
-            self._resolve_rule(rate_rule)
+            self._resolve_rule(rate_rule, auto_convert_variable=auto_convert_variable)
             self.listOfRateRules[rate_rule.name] = rate_rule
             # Build the sanitized rate rule
             sanitized_rate_rule = rate_rule._create_sanitized_rate_rule(
@@ -811,12 +851,17 @@ class Model(SortableObject, Jsonify):
         """
         return self.listOfRateRules
 
-    def add_assignment_rule(self, assignment_rule):
+    def add_assignment_rule(self, assignment_rule, auto_convert_variable=False):
         """
         Add an assignment rule, or list of assignment rules to the model.
 
         :param assignment_rules: The assignment rule or list of assignment rules to be added to the model object.
         :type assignment_rules: gillespy2.AssignmentRule or list of gillespy2.AssignmentRules
+
+        :param auto_convert_variable: Indicates that targets of assignment rule should be
+                converted from parameters to species. Options: True, 'supervised', False.
+                If set to supervised, user will be prompted to confirm the convertion.
+        :type auto_convert_variable: bool | str
 
         :returns: The assignment rule or list of assignment rules that were added to the model.
         :rtype: gillespy2.AssignmentRule | list of gillespy2.AssignmentRule
@@ -828,7 +873,7 @@ class Model(SortableObject, Jsonify):
                 self.add_assignment_rule(a_rule)
         elif isinstance(assignment_rule, AssignmentRule) or type(assignment_rule).__name__ == "AssignmentRule":
             self._problem_with_name(assignment_rule.name)
-            self._resolve_rule(assignment_rule)
+            self._resolve_rule(assignment_rule, auto_convert_variable=auto_convert_variable)
             self.listOfAssignmentRules[assignment_rule.name] = assignment_rule
             # Build the sanitized assignment rule
             sanitized_assignment_rule = assignment_rule._create_sanitized_assignment_rule(
@@ -890,12 +935,17 @@ class Model(SortableObject, Jsonify):
         """
         return self.listOfAssignmentRules
 
-    def add_event(self, event):
+    def add_event(self, event, auto_convert_variable=False):
         """
         Adds an event, or list of events to the model.
 
         :param event: The event or list of event to be added to the model object.
         :type event: gillespy2.Event | list of gillespy2.Events
+
+        :param auto_convert_variable: Indicates that targets of event assignments should be
+                converted from parameters to species. Options: True, 'supervised', False.
+                If set to supervised, user will be prompted to confirm the convertion.
+        :type auto_convert_variable: bool | str
 
         :returns: The event or list of events that were added to the model.
         :rtype: gillespy2.Event | list of gillespy2.Event
@@ -907,7 +957,7 @@ class Model(SortableObject, Jsonify):
                 self.add_event(evnt)
         elif isinstance(event, Event) or type(event).__name__ == "Event":
             self._problem_with_name(event.name)
-            self._resolve_event(event)
+            self._resolve_event(event, auto_convert_variable=auto_convert_variable)
             self.listOfEvents[event.name] = event
             # Build the sanitized event
             sanitized_event = event._create_sanitized_event(
