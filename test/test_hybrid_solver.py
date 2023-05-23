@@ -72,6 +72,9 @@ class TestBasicTauHybridSolver(unittest.TestCase):
 
     def test_add_continuous_species_dependent_event(self):
         model = create_decay()
+        k1 = gillespy2.Species(name=model.listOfParameters['k1'].name, initial_value=model.listOfParameters['k1'].value)
+        model.delete_parameter('k1')
+        model.add_species(k1)
         model.listOfSpecies['Sp'].mode = 'continuous'
         eventTrig = gillespy2.EventTrigger(expression='Sp <= 90', initial_value=True, )
         event1 = gillespy2.Event(name='event1', trigger=eventTrig)
@@ -86,6 +89,9 @@ class TestBasicTauHybridSolver(unittest.TestCase):
 
     def test_add_stochastic_species_dependent_event(self):
         model = create_decay()
+        k1 = gillespy2.Species(name=model.listOfParameters['k1'].name, initial_value=model.listOfParameters['k1'].value)
+        model.delete_parameter('k1')
+        model.add_species(k1)
         model.listOfSpecies['Sp'].mode = 'discrete'
         eventTrig = gillespy2.EventTrigger(expression='Sp <= 90', initial_value=True, )
         event1 = gillespy2.Event(name='event1', trigger=eventTrig)
@@ -98,6 +104,9 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         
     def test_add_continuous_time_dependent_event(self):
         model = create_decay()
+        k1 = gillespy2.Species(name=model.listOfParameters['k1'].name, initial_value=model.listOfParameters['k1'].value)
+        model.delete_parameter('k1')
+        model.add_species(k1)
         model.listOfSpecies['Sp'].mode = 'continuous'
         eventTrig = gillespy2.EventTrigger(expression='t >= 10', initial_value=True, )
         event1 = gillespy2.Event(name='event1', trigger=eventTrig)
@@ -110,6 +119,9 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         
     def test_add_stochastic_time_dependent_event(self):
         model = create_decay()
+        k1 = gillespy2.Species(name=model.listOfParameters['k1'].name, initial_value=model.listOfParameters['k1'].value)
+        model.delete_parameter('k1')
+        model.add_species(k1)
         model.listOfSpecies['Sp'].mode = 'discrete'
         eventTrig = gillespy2.EventTrigger(expression='t >= 10', initial_value=True, )
         event1 = gillespy2.Event(name='event1', trigger=eventTrig)
@@ -120,31 +132,6 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         results = model.run()
         self.assertEqual(results['Sp'][-1], 1000)
         
-    def test_add_param_event(self):
-        def create_event_test_model(parameter_values=None):
-            model = gillespy2.Model(name='Event Test Model')
-            model.add_species([gillespy2.Species(name='S', initial_value=0)])
-            model.add_parameter(gillespy2.Parameter(name='event_tracker',
-                                                    expression=99))
-            model.add_parameter(gillespy2.Parameter(name='event_tracker2',
-                                                    expression=0))
-            model.add_reaction(gillespy2.Reaction(name='r1', products={'S':1},
-                                                rate=model.listOfParameters['event_tracker2']))
-            eventTrig1 = gillespy2.EventTrigger(expression='t>=2')
-            event1 = gillespy2.Event(name='event1', trigger=eventTrig1)
-            event1.add_assignment(gillespy2.EventAssignment(
-                                    variable='event_tracker', expression='t'))
-            eventTrig2 = gillespy2.EventTrigger(expression='t >= event_tracker + 2')
-            event2 = gillespy2.Event(name='event2', trigger=eventTrig2)
-            event2.add_assignment(gillespy2.EventAssignment(
-                                    variable='event_tracker2', expression='t'))
-            model.add_event([event1, event2])
-            return model
-
-        model = create_event_test_model()
-        results = model.run(increment=0.05, t=20)
-        self.assertGreater(results['S'][-1], 0)
-
     def test_math_name_overlap(self):
         model = create_decay()
         gamma = gillespy2.Species('gamma',initial_value=2, mode='continuous')

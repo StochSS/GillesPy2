@@ -288,21 +288,15 @@ class Model(SortableObject, Jsonify):
                 )
 
     def _resolve_event(self, event):
-        def validate(event):
-            from gillespy2.core.gillespyError import EventError # pylint: disable=import-outside-toplevel
-            if event.trigger is None or not hasattr(event.trigger, 'expression'):
-                raise EventError('An Event must contain a valid trigger.')
         try:
-            validate(event)
+            event.validate()
 
             # Confirm that the variable in the event assignments are part of the model.
             for assign in event.assignments:
                 name = assign.variable if isinstance(assign.variable, str) else assign.variable.name
                 assign.variable = self.get_element(name)
         except ModelError as err:
-            raise ModelError(
-                f"Could not add/resolve event: {event.name}, Reason given: {err}"
-            ) from err
+            raise ModelError(f"Could not add/resolve event: {event.name}, Reason given: {err}") from err
 
     def _resolve_all_events(self):
         for _, event in self.listOfEvents.items():
@@ -915,6 +909,11 @@ class Model(SortableObject, Jsonify):
             self._problem_with_name(event.name)
             self._resolve_event(event)
             self.listOfEvents[event.name] = event
+            # Build the sanitized event
+            sanitized_event = event._create_sanitized_event(
+                len(self._listOfEvents), self._listOfSpecies, self._listOfParameters
+            )
+            self._listOfEvents[event.name] = sanitized_event
         else:
             errmsg = f"event must be of type Event or list of Events not {type(event)}"
             raise ModelError(errmsg)

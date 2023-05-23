@@ -96,7 +96,7 @@ class RateRule(SortableObject, Jsonify):
                          to a specific attribute.
         :type coverage: str
 
-        :raises SpeciesError: Attribute is of invalid type.  Required attribute set to None.  \
+        :raises RateRuleError: Attribute is of invalid type.  Required attribute set to None.  \
                               Attribute is value outside of accepted bounds.
         """
         # Check name
@@ -114,7 +114,6 @@ class RateRule(SortableObject, Jsonify):
                 if not hasattr(self, "variable") or self.variable is None:
                     raise RateRuleError("Rate rules must have a variable.")
                 variable = self.variable
-
 
             if not (isinstance(variable, (str, Species)) or type(variable).__name__ == 'Species'):
                 raise RateRuleError("variable must be of type str or GillesPy2.Species.")

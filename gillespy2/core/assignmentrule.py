@@ -96,7 +96,7 @@ class AssignmentRule(SortableObject, Jsonify):
                          to a specific attribute.
         :type coverage: str
 
-        :raises SpeciesError: Attribute is of invalid type.  Required attribute set to None.  \
+        :raises AssignmentRuleError: Attribute is of invalid type.  Required attribute set to None.  \
                               Attribute is value outside of accepted bounds.
         """
         # Check name

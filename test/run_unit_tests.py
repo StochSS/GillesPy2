@@ -42,22 +42,21 @@ if __name__ == '__main__':
     from unit_tests import test_timespan
     from unit_tests import test_model
 
-    modules = [
-        test_species,
-        test_parameter,
-        test_reaction,
-        test_raterule,
-        test_assignmentrule,
-        test_timespan,
-        test_model
-    ]
+    catagories = {
+        "State Components": [test_species, test_parameter, test_timespan],
+        "Action Dependents": [],
+        "Action Components": [test_reaction, test_raterule, test_assignmentrule],
+        "Model": [test_model]
+    }
 
-    for module in modules:
-        suite = unittest.TestLoader().loadTestsFromModule(module)
-        runner = unittest.TextTestRunner(failfast=args.mode == 'develop')
+    for name, modules in catagories.items():
+        print(f"Running unit tests for {name}")
+        for module in modules:
+            suite = unittest.TestLoader().loadTestsFromModule(module)
+            runner = unittest.TextTestRunner(failfast=args.mode == 'develop')
 
-        print(f"Executing: {module}")
-        result = runner.run(suite)
-        print('=' * 70)
-        if not result.wasSuccessful():
-            sys.exit(not result.wasSuccessful())
+            print(f"Executing: {module}")
+            result = runner.run(suite)
+            print('=' * 70)
+            if not result.wasSuccessful():
+                sys.exit(not result.wasSuccessful())

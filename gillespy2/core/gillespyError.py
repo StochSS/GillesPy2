@@ -42,6 +42,12 @@ class AssignmentRuleError(ModelError):
 class EventError(ModelError):
     pass
 
+class EventTriggerError(EventError):
+    pass
+
+class EventAssignmentError(EventError):
+    pass
+
 
 class FunctionDefinitionError(ModelError):
     pass
