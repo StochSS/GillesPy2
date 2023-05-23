@@ -92,7 +92,7 @@ class TestParameter(unittest.TestCase):
         self.assertEqual(assignmentrule.formula, "5")
 
     def test_constructor__float_formula(self):
-        """ Test the AssignmentRule constructor with int formula. """
+        """ Test the AssignmentRule constructor with float formula. """
         assignmentrule = AssignmentRule(name="test_assignment_rule", variable="A", formula=0.5)
         self.assertEqual(assignmentrule.formula, "0.5")
 

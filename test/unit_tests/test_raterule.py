@@ -92,7 +92,7 @@ class TestParameter(unittest.TestCase):
         self.assertEqual(raterule.formula, "5")
 
     def test_constructor__float_formula(self):
-        """ Test the RateRule constructor with int formula. """
+        """ Test the RateRule constructor with float formula. """
         raterule = RateRule(name="test_rate_rule", variable="A", formula=0.5)
         self.assertEqual(raterule.formula, "0.5")
 
