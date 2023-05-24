@@ -1,8 +1,12 @@
+import sysconfig
+
+sys_info_include = sysconfig.get_path('include')
+
 env = Environment(
     CPPPATH=[
         '#/lib/cgillespy/src',
         '#/lib/cgillespy/src/template',
-        '/usr/include/python3.8',
+        sys_info_include,
     ],
     CXXFLAGS=['-std=c++14', '-fPIC'],
 )
