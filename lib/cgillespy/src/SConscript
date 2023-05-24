@@ -21,3 +21,4 @@ env.StaticLibrary('gpystd', [
     'arg_parser.cpp',
     'simulation.cpp',
 ])
+env.Append(LIBS=['gpystd'], LIBPATH=[Dir('.')])

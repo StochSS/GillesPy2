@@ -20,3 +20,4 @@ env.StaticLibrary('gpyssa', [
     './SSASimulation.cpp',
     './SSASolver.cpp',
 ])
+env.Append(LIBS=['gpyssa'], LIBPATH=[Dir('.')])

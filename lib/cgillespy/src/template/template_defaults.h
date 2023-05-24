@@ -51,6 +51,14 @@
 #define GPY_REACTIONS { {0} }
 #endif
 
+#ifndef GPY_REACTION_PRODUCTS
+#define GPY_REACTION_PRODUCTS {}
+#endif
+
+#ifndef GPY_REACTION_REACTANTS
+#define GPY_REACTION_REACTANTS {}
+#endif
+
 #ifndef GPY_VOLUME
 #define GPY_VOLUME 1.0
 #endif

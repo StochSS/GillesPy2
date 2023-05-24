@@ -39,7 +39,7 @@ static PyMethodDef cgillespy_module_methods[] = {
 
 static struct PyModuleDef cgillespy_module_def = {
         PyModuleDef_HEAD_INIT,
-        "cgillespy",
+        "libcgillespy",
         NULL,
         -1,
         cgillespy_module_methods
@@ -87,7 +87,7 @@ static PyObject *Gillespy::solve_tau_hybrid(PyObject *self, PyObject *args, PyOb
 }
 
 PyMODINIT_FUNC
-PyInit_cgillespy(void)
+PyInit_libcgillespy(void)
 {
     return PyModule_Create(&cgillespy_module_def);
 }
