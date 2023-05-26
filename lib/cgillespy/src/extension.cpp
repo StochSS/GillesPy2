@@ -97,7 +97,6 @@ static PyObject *Gillespy::solve_ssa(PyObject *self, PyObject *args, PyObject *k
 
         const char *species_name = PyUnicode_AsUTF8(key);
         double population_value = PyFloat_AsDouble(value);
-        std::cout << std::string(species_name) << " = " << population_value << std::endl;
         species_names.emplace_back(species_name);
         initial_populations.emplace_back(population_value);
     }
@@ -111,7 +110,6 @@ static PyObject *Gillespy::solve_ssa(PyObject *self, PyObject *args, PyObject *k
         }
 
         const char *reaction_name = PyUnicode_AsUTF8(key);
-        std::cout << std::string(reaction_name) << " (rxn)" << std::endl;
         reaction_names.emplace_back(reaction_name);
     }
 
@@ -228,14 +226,12 @@ static PyObject *Gillespy::solve_ssa(PyObject *self, PyObject *args, PyObject *k
     };
     Gillespy::Model<unsigned int> model(model_context, species_names, initial_populations, reaction_names);
     Gillespy::Simulation<unsigned int> simulation;
-//    simulation.output_interval = 20;
     simulation.current_time = 0;
     simulation.model = &model;
     simulation.end_time = 20;
     simulation.random_seed = time(nullptr);
     simulation.number_timesteps = 21;
     simulation.number_trajectories = 1;
-    std::cout << "DBG rxn# = " << model.number_reactions << std::endl;
     Gillespy::init_simulation(&model, simulation);
     for (int rxn_i = 0; rxn_i < model.number_reactions; ++rxn_i)
     {
