@@ -20,15 +20,14 @@ import subprocess
 from pathlib import Path
 import sys
 
+import gillespy2
 from gillespy2.core import log
 from gillespy2.core import gillespyError
 
 class Make():
     def __init__(self, makefile: str, output_dir: str, obj_dir: str = None, template_dir: str = None):
         self.makefile = Path(makefile).resolve()
-        self.self_dir = Path(__file__).parent
-
-        self.cbase_dir = self.self_dir.joinpath("../c_base").resolve()
+        self.cbase_dir = Path(gillespy2.__file__).parent.parent.joinpath("lib/cgillespy/src").resolve()
         self.output_dir = Path(output_dir).resolve()
 
         # obj_dir is, presumably, only supplied if caching is enabled.

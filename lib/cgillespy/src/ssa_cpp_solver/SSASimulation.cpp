@@ -25,7 +25,6 @@
 #include <math.h>
 
 #include "SSASolver.h"
-#include "SSASimulation.h"
 #include "model_context.h"
 #include "template.h"
 #include "arg_parser.h"
@@ -40,7 +39,7 @@ unsigned int number_timesteps = 0;
 
 double end_time = 0;
 
-int Gillespy::run_ssa_simulation(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     //Parse command line arguments
     ArgParser parser = ArgParser(argc, argv);

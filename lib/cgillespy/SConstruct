@@ -17,7 +17,7 @@
 import os
 
 exe = ARGUMENTS.get('OUTPUT_FILE', 'GillesPy2_Simulation')
-cbase_root = ARGUMENTS.get('CBASE_DIR', 'c_base')
+cbase_root = ARGUMENTS.get('CBASE_DIR', 'src')
 output_root = ARGUMENTS.get('OBJ_DIR', 'bin')
 template_root = ARGUMENTS.get('TEMPLATE_DIR', f'{cbase_root}/template')
 solver = ARGUMENTS.get('SOLVER')

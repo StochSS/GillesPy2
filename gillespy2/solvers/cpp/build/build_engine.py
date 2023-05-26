@@ -33,9 +33,8 @@ class BuildEngine():
     template_options_name = "template_opts.h"
 
     def __init__(self, debug: bool = False, output_dir: str = None):
-        self.self_dir = Path(__file__).parent
-        self.cpp_dir = self.self_dir.joinpath("../c_base").resolve()
-        self.makefile = self.self_dir.joinpath("SConstruct")
+        self.cpp_dir = Path(gillespy2.__file__).parent.parent.joinpath("lib/cgillespy/src").resolve()
+        self.makefile = self.cpp_dir.parent.joinpath("SConstruct")
         self.src_template_dir = self.cpp_dir.joinpath("template")
         self.output_dir = output_dir
 
