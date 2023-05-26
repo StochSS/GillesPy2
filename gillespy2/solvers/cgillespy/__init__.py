@@ -14,15 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gillespy2.core.gillespyError import ExecutionError
-from .cpp import *
-from .numpy import *
-from .cgillespy import *
+from gillespy2.core import log
+from gillespy2.solvers.cgillespy.dynamic_ssa_c_solver import DynamicSSACSolver
 
-__all__ = cpp.__all__ + numpy.__all__ + cgillespy.__all__
+try:
+    import libcgillespy
+except ImportError:
+    log.warning("The GillesPy2 C extension has not been configured, which is required by the dynamic C solvers.")
 
-if not __all__:
-    raise ExecutionError("Your computer does not contain the minimum require"
-                         "ments for running simulations using GillesPy2."
-                         " Please install NumPy, or configure the C++ 'g++' "
-                         "compiler on your machine.")
+__all__ = ['DynamicSSACSolver']

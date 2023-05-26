@@ -13,16 +13,12 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from .dynamic_c_solver import DynamicCSolver
 
-from gillespy2.core.gillespyError import ExecutionError
-from .cpp import *
-from .numpy import *
-from .cgillespy import *
 
-__all__ = cpp.__all__ + numpy.__all__ + cgillespy.__all__
-
-if not __all__:
-    raise ExecutionError("Your computer does not contain the minimum require"
-                         "ments for running simulations using GillesPy2."
-                         " Please install NumPy, or configure the C++ 'g++' "
-                         "compiler on your machine.")
+class DynamicSSACSolver(DynamicCSolver):
+    """
+    In-memory C API extension implementation of the SSA solver.
+    """
+    def __init__(self):
+        super().__init__(lib_target="solve_ssa")
