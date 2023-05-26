@@ -19,5 +19,5 @@ SConscript([
 env.SharedLibrary('cgillespy', [
     'lib/cgillespy/src/extension.cpp',
     'lib/cgillespy/src/model_context.cpp',
-    'lib/cgillespy/src/template/template.cpp',
+    'lib/cgillespy/src/template/template_ext.cpp',
 ])

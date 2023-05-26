@@ -83,18 +83,6 @@ namespace Gillespy
     }
 
     template <typename PType>
-    size_t Model<PType>::get_num_constants() const
-    {
-        return m_initial_constants.size();
-    }
-
-    template <typename PType>
-    size_t Model<PType>::get_num_variables() const
-    {
-        return m_initial_variables.size();
-    }
-
-    template <typename PType>
     void Model<PType>::update_affected_reactions() {
         // Clear affected_reactions for each reaction.
         for (unsigned int i = 0; i < number_reactions; i++) {
