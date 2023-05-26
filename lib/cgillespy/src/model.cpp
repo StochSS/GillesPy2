@@ -33,23 +33,17 @@ namespace Gillespy
         species = std::make_unique<Species<PType>[]>(number_species);
         reactions = std::make_unique<Reaction<PType>[]>(number_reactions);
 
-        {
-            int num_constants;
-            double *constants = context.m_get_constants(&num_constants);
-            for (int i = 0; i < num_constants; ++i) {
-                m_initial_constants.push_back(constants[i]);
-            }
-            delete[] constants;
+        int num_constants;
+        double *constants = context.m_get_constants(&num_constants);
+        for (int i = 0; i < num_constants; ++i) {
+            m_initial_constants.push_back(constants[i]);
         }
 
+        int num_variables;
+        double *variables = context.m_get_variables(&num_variables);
+        for (int i = 0; i < num_variables; ++i)
         {
-            int num_variables;
-            double *variables = context.m_get_variables(&num_variables);
-            for (int i = 0; i < num_variables; ++i)
-            {
-                m_initial_variables.push_back(variables[i]);
-            }
-            delete[] variables;
+            m_initial_variables.push_back(variables[i]);
         }
 
         for (unsigned int i = 0; i < number_species; i++) {
@@ -86,6 +80,18 @@ namespace Gillespy
     std::vector<double> Model<PType>::copy_constants() const
     {
         return m_initial_constants;
+    }
+
+    template <typename PType>
+    size_t Model<PType>::get_num_constants() const
+    {
+        return m_initial_constants.size();
+    }
+
+    template <typename PType>
+    size_t Model<PType>::get_num_variables() const
+    {
+        return m_initial_variables.size();
     }
 
     template <typename PType>

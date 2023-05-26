@@ -12,8 +12,8 @@ namespace Gillespy
     struct ModelContext
     {
     public:
-        ModelContext(std::function<double(unsigned int, PType*, double*, const double*)> map_propensity,
-                     std::function<double(unsigned int, PType*, double*, const double*)> map_ode_propensity);
+        ModelContext(const std::function<double(unsigned int, PType*, double*, const double*)> &map_propensity,
+                     const std::function<double(unsigned int, PType*, double*, const double*)> &map_ode_propensity);
         std::function<double(unsigned int, PType*, double*, const double*)> m_map_propensity;
         std::function<double(unsigned int, PType*, double*, const double*)> m_map_ode_propensity;
         std::function<double*(int*)> m_get_variables;
