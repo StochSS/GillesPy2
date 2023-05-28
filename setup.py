@@ -104,5 +104,20 @@ setup(name                 = version['__title__'].lower(),
               'python_libsbml',
               'lxml',
           ],
+          'remote': [
+              'distributed == 2022.12.1',
+              'requests == 2.28.1',
+              'filelock == 3.9.0'
+          ],
+          'aws': [
+              'boto3 == 1.24.71',
+              'paramiko == 2.11.0',
+              'python-dotenv == 0.21.0'
+          ],
+          'remote.dev': [
+            'coverage',
+            'moto == 4.1.0',
+          ]
+
       },
 )
