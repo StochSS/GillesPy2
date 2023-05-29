@@ -59,8 +59,11 @@ class SimulationRunCacheHandler(RequestHandler):
         '''
         sim_request = SimulationRunCacheRequest.parse(self.request.body)
         namespace = sim_request.namespace
+        log.debug('%(namespace)s', locals())
         if namespace != '':
-            self.cache_dir = os.path.join(namespace, self.cache_dir)
+            namespaced_dir = os.path.join(namespace, self.cache_dir)
+            self.cache_dir = namespaced_dir
+            log.debug(namespaced_dir)
         sim_hash = sim_request.hash()
         cache = Cache(self.cache_dir, sim_hash)
         msg_0 = f'<{self.request.remote_ip}> | <{sim_hash}>'
@@ -83,7 +86,7 @@ class SimulationRunCacheHandler(RequestHandler):
             else:
                 msg = f'{msg_0} | Returning cached results.'
                 log.info(msg)
-                results = cache.get_sample()
+                results = cache.get_sample(n_traj)
                 results_json = results.to_json()
                 sim_response = SimulationRunCacheResponse(SimStatus.READY, results_id = sim_hash, results = results_json)
                 self.write(sim_response.encode())

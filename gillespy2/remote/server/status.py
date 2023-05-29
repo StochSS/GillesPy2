@@ -1,7 +1,6 @@
 '''
 gillespy2.remote.server.status
 '''
-# StochSS-Compute is a tool for running and caching GillesPy2 simulations remotely.
 # Copyright (C) 2019-2023 GillesPy2 and StochSS developers.
 
 # This program is free software: you can redistribute it and/or modify
@@ -20,7 +19,7 @@ gillespy2.remote.server.status
 from distributed import Client
 from tornado.web import RequestHandler
 from gillespy2.remote.core.errors import RemoteSimulationError
-from gillespy2.remote.core.messages.status import SimStatus, StatusResponse
+from gillespy2.remote.core.messages.status import SimStatus, StatusRequest, StatusResponse
 from gillespy2.remote.server.cache import Cache
 
 from gillespy2.remote.core.log_config import init_logging
@@ -53,7 +52,7 @@ class StatusHandler(RequestHandler):
         self.scheduler_address = scheduler_address
         self.cache_dir = cache_dir
 
-    async def get(self, results_id, n_traj, task_id):
+    async def post(self):
         '''
         Process GET request.
 
@@ -70,9 +69,12 @@ class StatusHandler(RequestHandler):
             self.set_status(404, reason=f'Malformed request: {self.request.uri}')
             self.finish()
             raise RemoteSimulationError(f'Malformed request: {self.request.uri}')
+        
         self.results_id = results_id
-        self.task_id = task_id
         n_traj = int(n_traj)
+        self.task_id = task_id
+        request = StatusRequest.parse(self.request.body)
+        log.debug(request)
 
         if results_id == task_id:
             while self.cache_dir.endswith('/'):

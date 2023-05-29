@@ -16,6 +16,7 @@ gillespy2.remote.server.run
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 from tornado.web import RequestHandler
 from tornado.ioloop import IOLoop
 from distributed import Client
@@ -53,9 +54,7 @@ class SimulationRunHandler(RequestHandler):
         :type cache_dir: str
         '''
         self.scheduler_address = scheduler_address
-        while cache_dir.endswith('/'):
-            cache_dir = cache_dir[:-1]
-        self.cache_dir = cache_dir + '/run/'
+        self.cache_dir = cache_dir
 
     async def post(self):
         '''
@@ -63,9 +62,7 @@ class SimulationRunHandler(RequestHandler):
         '''
         sim_request = SimulationRunRequest.parse(self.request.body)
         if sim_request.namespace is not None:
-            while sim_request.namespace.endswith('/'):
-                sim_request.namespace = sim_request.namespace[:-1]
-            self.cache_dir = '{sim_request.namespace}/{self.cache_dir}'
+            self.cache_dir = os.path.join(self.cache_dir, sim_request.namespace)
         self.key = sim_request.key
         cache = Cache(self.cache_dir, self.key)
         if cache.exists():
@@ -75,7 +72,7 @@ class SimulationRunHandler(RequestHandler):
         cache.create()
         client = Client(self.scheduler_address)
         future = self._submit(sim_request, client)
-        msg = '<{self.request.remote_ip}> | Simulation Run Request | <{self.key}> | Running simulation.'
+        msg = f'<{self.request.remote_ip}> | <{self.key}> | Running simulation.'
         log.info(msg)
         self._return_running()
         IOLoop.current().run_in_executor(None, self._cache, future, client)

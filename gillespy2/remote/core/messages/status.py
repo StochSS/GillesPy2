@@ -44,9 +44,11 @@ class StatusRequest(Request):
     :param namespace: Optional namespace to prepend to results directory.
     :type namespace: str
     '''
-    def __init__(self, results_id, namespace=None):
+    def __init__(self, results_id, n_traj=None, task_id=None, namespace=None):
         self.results_id = results_id
         self.namespace = namespace
+        self.n_traj = n_traj
+        self.task_id = task_id
         
     def encode(self):
         '''
@@ -67,7 +69,11 @@ class StatusRequest(Request):
         :rtype: StatusRequest
         '''
         request_dict = json_decode(raw_request)
-        return StatusRequest(request_dict['results_id'], request_dict['namespace'])
+        results_id = request_dict.get('results_id', None)
+        namespace = request_dict.get('namespace', None)
+        n_traj = request_dict.get('n_traj', None)
+        task_id = request_dict.get('task_id', None)
+        return StatusRequest(results_id, namespace, n_traj, task_id)
 
 class StatusResponse(Response):
     '''

@@ -32,20 +32,28 @@ log = init_logging(__name__)
 
 def _make_app(dask_host, dask_scheduler_port, cache):
     scheduler_address = f'{dask_host}:{dask_scheduler_port}'
+    args = {'scheduler_address': scheduler_address,
+            'cache_dir': cache}
+    cache_arg = {'cache_dir': cache}
     return Application([
-        (r"/api/v2/simulation/gillespy2/run", SimulationRunHandler,
-            {'scheduler_address': scheduler_address, 'cache_dir': cache}),
-        (r"/api/v2/simulation/gillespy2/(?P<results_id>[0-9a-zA-Z][0-9a-zA-Z]*?)/results",
-            ResultsHandler, {'cache_dir': cache}),
-        (r"/api/v2/simulation/gillespy2/run/cache", SimulationRunCacheHandler,
-            {'scheduler_address': scheduler_address, 'cache_dir': cache}),
-        (r"/api/v2/simulation/gillespy2/(?P<results_id>[0-9a-zA-Z][0-9a-zA-Z]*?)/(?P<n_traj>[1-9][0-9]*?)/(?P<task_id>[0-9a-zA-Z][0-9a-zA-Z]*?)/status",
-            StatusHandler, {'scheduler_address': scheduler_address, 'cache_dir': cache}),
-        (r"/api/v2/simulation/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/results",
-            ResultsHandler, {'cache_dir': cache}),
-        # (r"/api/v2/cache/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/is_cached",
+        (r'/api/v2/simulation/gillespy2/run',
+         SimulationRunHandler,
+         args),
+        (r'/api/v2/simulation/gillespy2/run/cache',
+         SimulationRunCacheHandler,
+         args),
+        (r'/api/v2/simulation/gillespy2/status',
+         StatusHandler,
+         args),
+        (r'/api/v2/simulation/gillespy2/(?P<results_id>[0-9a-zA-Z][0-9a-zA-Z]*?)/results',
+         ResultsHandler,
+         cache_arg),
+        (r'/api/v2/simulation/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/results',
+         ResultsHandler,
+         cache_arg),
+        # (r'/api/v2/cache/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/is_cached',
         #     IsCachedHandler, {'cache_dir': cache}),
-        (r"/api/v2/cloud/sourceip", SourceIpHandler),
+        (r'/api/v2/cloud/sourceip', SourceIpHandler),
     ])
 
 async def start_api(
@@ -66,7 +74,7 @@ async def start_api(
     :param cache_trajectories: If True, default behavior is to cache trajectories. If False, trajectory cacheing is turned off by default. Can be overridden on client side.
     :type cache_trajectories: bool
 
-    :param cache_path: The cache directory path.
+    :param cache_path: The cache directory path. Do not begin with /.
     :type cache_path: str
 
     :param dask_host: The address of the dask cluster.
@@ -85,7 +93,7 @@ async def start_api(
     set_global_log_level(logging_level)
     # TODO clean up lock files here
 
-    cache_path = os.path.abspath(cache_path)
+    # cache_path = os.path.abspath(cache_path)
     app = _make_app(dask_host, dask_scheduler_port, cache_path)
     app.listen(port)
     msg='''
