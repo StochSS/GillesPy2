@@ -50,6 +50,7 @@ class RemoteResults(Results):
     server = None
     n_traj = None
     task_id = None
+    namespace = None
 
     # pylint:disable=super-init-not-called
     def __init__(self, data = None):
@@ -106,8 +107,10 @@ class RemoteResults(Results):
 
     def _status(self):
         '''
-        It is undefined behavior to call this function if self._data is not None.        
+        It is undefined/illegal behavior to call this function if self._data is not None.        
         '''
+        if self._data is not None:
+            raise Exception('TODO Name this exception class. Cant call status on a finished simulation.')
         # Request the status of a submitted simulation.
         response_raw = self.server.get(Endpoint.SIMULATION_GILLESPY2,
                                        f"/{self.id}/{self.n_traj}/{self.task_id}/status")

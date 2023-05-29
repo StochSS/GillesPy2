@@ -20,6 +20,7 @@ gillespy2.remote.server.cache
 import os
 from json.decoder import JSONDecodeError
 from datetime import datetime
+import random
 from filelock import SoftFileLock
 from gillespy2 import Results
 
@@ -121,7 +122,7 @@ class Cache:
             return len(results)
         return 0
 
-    def get(self) -> Results or None:
+    def get(self):
         '''
         Retrieve a gillespy2.Results object from the cache or None if error.
 
@@ -133,6 +134,19 @@ class Cache:
             return Results.from_json(results_json)
         except JSONDecodeError:
             return None
+
+    def get_sample(self, n_traj) -> Results or None:
+        '''
+        Retrieve a gillespy2.Results by sampling from the cache or None if error.
+
+        :returns: Results.from_json(results_json)
+        :rtype: gillespy2.Results or None
+        '''
+        results = self.get()
+        if results is None or len(results) <= n_traj:
+            return results
+        ret_traj = random.sample(results, n_traj)
+        return Results(ret_traj)
 
     def read(self) -> str:
         '''

@@ -60,10 +60,10 @@ class ResultsHandler(RequestHandler):
             self.set_status(404, reason=f'Malformed request: {self.request.uri}')
             self.finish()
             raise RemoteSimulationError(f'Malformed request | <{self.request.remote_ip}>')
-        msg = ' <{self.request.remote_ip}> | Results Request | <{results_id}>'
+        msg = f' <{self.request.remote_ip}> | Results Request | <{results_id}>'
         log.info(msg)
         cache = Cache(self.cache_dir, results_id)
-        if cache.is_ready(0):
+        if cache.is_ready():
             results = cache.read()
             results_response = ResultsResponse(results)
             self.write(results_response.encode())

@@ -10,17 +10,24 @@ class ResultsRequest(Request):
     '''
     Request results from the server.
 
-    :param results_id: Hash of the SimulationRunRequest
+    :param results_id: Hash of the SimulationRunCacheRequest
     :type results_id: str
+
+    :param namespace: Optional namespace to prepend to results directory.
+    :type namespace: str
+
     '''
-    def __init__(self, results_id):
+    def __init__(self, results_id, namespace=None):
         self.results_id = results_id
+        self.namespace = namespace
+
     def encode(self):
         '''
         :returns: self.__dict__
         :rtype: dict
         '''
         return self.__dict__
+
     @staticmethod
     def parse(raw_request):
         '''
@@ -33,7 +40,7 @@ class ResultsRequest(Request):
         :rtype: ResultsRequest
         '''
         request_dict = json_decode(raw_request)
-        return ResultsRequest(request_dict['results_id'])
+        return ResultsRequest(request_dict['results_id'], request_dict['results_id'])
 
 class ResultsResponse(Response):
     '''

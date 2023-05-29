@@ -38,7 +38,9 @@ class SimulationRunCacheRequest(SimulationRunRequest):
         :returns: The decoded object.
         :rtype: SimulationRunRequest
         '''
-        return super().parse(raw_request)
+        # return SimulationRunCacheRequest()
+        _ = SimulationRunRequest.parse(raw_request)
+        return SimulationRunCacheRequest(_.model, namespace=_.namespace, **_.kwargs)
 
     def hash(self):
         '''

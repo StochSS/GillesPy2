@@ -40,9 +40,14 @@ class StatusRequest(Request):
 
     :param results_id: Hash of the SimulationRunRequest
     :type results_id: str
+
+    :param namespace: Optional namespace to prepend to results directory.
+    :type namespace: str
     '''
-    def __init__(self, results_id):
+    def __init__(self, results_id, namespace=None):
         self.results_id = results_id
+        self.namespace = namespace
+        
     def encode(self):
         '''
         :returns: self.__dict__
@@ -62,7 +67,7 @@ class StatusRequest(Request):
         :rtype: StatusRequest
         '''
         request_dict = json_decode(raw_request)
-        return StatusRequest(request_dict['results_id'])
+        return StatusRequest(request_dict['results_id'], request_dict['namespace'])
 
 class StatusResponse(Response):
     '''
