@@ -54,17 +54,12 @@ class StatusHandler(RequestHandler):
 
     async def post(self):
         '''
-        Process GET request.
+        Process Status POST request.
 
-        :param results_id: Hash of the simulation. Required.
-        :type results_id: str
-
-        :param n_traj: Number of trajectories in the request. Default 1.
-        :type n_traj: str
-
-        :param task_id: ID of the running simulation. Required.
-        :type task_id: str
         '''
+        request = StatusRequest.parse(self.request.body)
+        # TODO
+
         if '' in (results_id, n_traj):
             self.set_status(404, reason=f'Malformed request: {self.request.uri}')
             self.finish()
@@ -73,7 +68,6 @@ class StatusHandler(RequestHandler):
         self.results_id = results_id
         n_traj = int(n_traj)
         self.task_id = task_id
-        request = StatusRequest.parse(self.request.body)
         log.debug(request)
 
         if results_id == task_id:
