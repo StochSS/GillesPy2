@@ -1,5 +1,5 @@
 '''
-stochss_compute.cloud.exceptions
+gillespy2.remote.cloud.exceptions
 '''
 # StochSS-Compute is a tool for running and caching GillesPy2 simulations remotely.
 # Copyright (C) 2019-2023 GillesPy2 and StochSS developers.

@@ -1,5 +1,5 @@
 '''
-stochss_compute.core.log_config
+gillespy2.remote.core.log_config
 
 Global Logging Configuration
 '''
@@ -13,7 +13,7 @@ def init_logging(name):
 
     Like so:
 
-    from stochss_compute.core.log_config import init_logs
+    from gillespy2.remote.core.log_config import init_logs
     log = init_logs(__name__)
 
     :param name: Name for the logger. Use the dot-separated module path string.

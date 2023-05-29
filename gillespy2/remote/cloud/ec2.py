@@ -1,5 +1,5 @@
 '''
-stochss_compute.cloud.ec2
+gillespy2.remote.cloud.ec2
 '''
 # StochSS-Compute is a tool for running and caching GillesPy2 simulations remotely.
 # Copyright (C) 2019-2023 GillesPy2 and StochSS developers.
@@ -21,11 +21,13 @@ import os
 import logging
 from time import sleep
 from secrets import token_hex
-from stochss_compute.client.server import Server
-from stochss_compute.cloud.ec2_config import EC2LocalConfig, EC2RemoteConfig
-from stochss_compute.core.messages.source_ip import SourceIpRequest, SourceIpResponse
-from stochss_compute.cloud.exceptions import EC2ImportException, ResourceException, EC2Exception
-from stochss_compute.client.endpoint import Endpoint
+from gillespy2.remote.client.server import Server
+from gillespy2.remote.cloud.ec2_config import EC2LocalConfig, EC2RemoteConfig
+from gillespy2.remote.core.messages.source_ip import SourceIpRequest, SourceIpResponse
+from gillespy2.remote.cloud.exceptions import EC2ImportException, ResourceException, EC2Exception
+from gillespy2.remote.client.endpoint import Endpoint
+from gillespy2.remote.core.log_config import init_logging
+log = init_logging(__name__)
 try:
     import boto3
     from botocore.config import Config
@@ -33,7 +35,8 @@ try:
     from botocore.exceptions import ClientError
     from paramiko import SSHClient, AutoAddPolicy
 except ImportError as err:
-    raise EC2ImportException from err
+    name = __name__
+    log.warn('boto3 and parkamiko are required for %(name)s')
 
 
 def _ec2_logger():

@@ -1,9 +1,9 @@
 '''
-stochss_compute.core.messages.status
+gillespy2.remote.core.messages.status
 '''
 from enum import Enum
 from tornado.escape import json_decode
-from stochss_compute.core.messages.base import Request, Response
+from gillespy2.remote.core.messages.base import Request, Response
 
 class SimStatus(Enum):
     '''

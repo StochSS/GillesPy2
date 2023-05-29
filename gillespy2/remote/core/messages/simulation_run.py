@@ -1,11 +1,11 @@
 '''
-stochss_compute.core.messages.simulation_run
+gillespy2.remote.core.messages.simulation_run
 '''
 from hashlib import md5
 from tornado.escape import json_decode, json_encode
 from gillespy2 import Model, Results
-from stochss_compute.core.messages.base import Request, Response
-from stochss_compute.core.messages.status import SimStatus
+from gillespy2.remote.core.messages.base import Request, Response
+from gillespy2.remote.core.messages.status import SimStatus
 
 class SimulationRunRequest(Request):
     '''

@@ -1,5 +1,5 @@
 '''
-stochss_compute.core.remote_results
+gillespy2.remote.core.remote_results
 '''
 # StochSS-Compute is a tool for running and caching GillesPy2 simulations remotely.
 # Copyright (C) 2019-2023 GillesPy2 and StochSS developers.
@@ -19,10 +19,10 @@ stochss_compute.core.remote_results
 
 from time import sleep
 from gillespy2 import Results
-from stochss_compute.client.endpoint import Endpoint
-from stochss_compute.core.errors import RemoteSimulationError
-from stochss_compute.core.messages.results import ResultsResponse
-from stochss_compute.core.messages.status import StatusResponse, SimStatus
+from gillespy2.remote.client.endpoint import Endpoint
+from gillespy2.remote.core.errors import RemoteSimulationError
+from gillespy2.remote.core.messages.results import ResultsResponse
+from gillespy2.remote.core.messages.status import StatusResponse, SimStatus
 
 class RemoteResults(Results):
     '''
@@ -38,7 +38,7 @@ class RemoteResults(Results):
     :type id: str
 
     :param server: The remote instance of StochSS-Compute where the Results are cached.
-    :type server: stochss_compute.ComputeServer
+    :type server: gillespy2.remote.ComputeServer
 
     :param task_id: Handle for the running simulation.
     :type task_id: str

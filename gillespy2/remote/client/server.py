@@ -20,8 +20,8 @@ Server(ABC)
 from time import sleep
 from abc import ABC, abstractmethod
 import requests
-from stochss_compute.client.endpoint import Endpoint
-from stochss_compute.core.messages.base import Request
+from gillespy2.remote.client.endpoint import Endpoint
+from gillespy2.remote.core.messages.base import Request
 
 class Server(ABC):
     '''

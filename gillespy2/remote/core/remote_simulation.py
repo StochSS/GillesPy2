@@ -1,5 +1,5 @@
 '''
-stochss_compute.core.remote_simulation
+gillespy2.remote.core.remote_simulation
 '''
 # StochSS-Compute is a tool for running and caching GillesPy2 simulations remotely.
 # Copyright (C) 2019-2023 GillesPy2 and StochSS developers.
@@ -17,12 +17,12 @@ stochss_compute.core.remote_simulation
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from stochss_compute.client.endpoint import Endpoint
-from stochss_compute.core.messages.simulation_run import SimulationRunRequest, SimulationRunResponse
-from stochss_compute.core.messages.simulation_run_unique import SimulationRunUniqueRequest, SimulationRunUniqueResponse
-from stochss_compute.core.messages.status import SimStatus
-from stochss_compute.core.errors import RemoteSimulationError
-from stochss_compute.core.remote_results import RemoteResults
+from gillespy2.remote.client.endpoint import Endpoint
+from gillespy2.remote.core.messages.simulation_run import SimulationRunRequest, SimulationRunResponse
+from gillespy2.remote.core.messages.simulation_run_unique import SimulationRunUniqueRequest, SimulationRunUniqueResponse
+from gillespy2.remote.core.messages.status import SimStatus
+from gillespy2.remote.core.errors import RemoteSimulationError
+from gillespy2.remote.core.remote_results import RemoteResults
 
 class RemoteSimulation:
     '''
@@ -33,7 +33,7 @@ class RemoteSimulation:
     :type model: gillespy2.Model
 
     :param server: A server to run the simulation. Optional if host is provided.
-    :type server: stochss_compute.Server
+    :type server: gillespy2.remote.Server
 
     :param host: The address of a running instance of StochSS-Compute. Optional if server is provided.
     :type host: str
@@ -61,7 +61,7 @@ class RemoteSimulation:
             raise RemoteSimulationError('Pass a ComputeServer/Cluster object or port.')
 
         if server is None:
-            from stochss_compute.client.compute_server import ComputeServer
+            from gillespy2.remote.client.compute_server import ComputeServer
             self.server = ComputeServer(host, port)
         else:
             self.server = server

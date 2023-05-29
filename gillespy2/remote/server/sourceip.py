@@ -1,5 +1,5 @@
 '''
-stochss_compute.server.sourceip
+gillespy2.remote.server.sourceip
 '''
 # StochSS-Compute is a tool for running and caching GillesPy2 simulations remotely.
 # Copyright (C) 2019-2023 GillesPy2 and StochSS developers.
@@ -19,7 +19,7 @@ stochss_compute.server.sourceip
 
 import os
 from tornado.web import RequestHandler
-from stochss_compute.core.messages.source_ip import SourceIpRequest, SourceIpResponse
+from gillespy2.remote.core.messages.source_ip import SourceIpRequest, SourceIpResponse
 
 class SourceIpHandler(RequestHandler):
     '''

@@ -1,5 +1,5 @@
 '''
-stochss_compute.cloud.ec2_config
+gillespy2.remote.cloud.ec2_config
 '''
 # StochSS-Compute is a tool for running and caching GillesPy2 simulations remotely.
 # Copyright (C) 2019-2023 GillesPy2 and StochSS developers.

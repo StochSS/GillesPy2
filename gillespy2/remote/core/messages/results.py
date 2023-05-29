@@ -1,10 +1,10 @@
 '''
-stochss_compute.core.messages.results
+gillespy2.remote.core.messages.results
 '''
 from tornado.escape import json_decode
 from gillespy2 import Results
 
-from stochss_compute.core.messages.base import Request, Response
+from gillespy2.remote.core.messages.base import Request, Response
 
 class ResultsRequest(Request):
     '''

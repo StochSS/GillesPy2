@@ -1,5 +1,5 @@
 '''
-stochss_compute.server.status
+gillespy2.remote.server.status
 '''
 # StochSS-Compute is a tool for running and caching GillesPy2 simulations remotely.
 # Copyright (C) 2019-2023 GillesPy2 and StochSS developers.
@@ -19,11 +19,11 @@ stochss_compute.server.status
 
 from distributed import Client
 from tornado.web import RequestHandler
-from stochss_compute.core.errors import RemoteSimulationError
-from stochss_compute.core.messages.status import SimStatus, StatusResponse
-from stochss_compute.server.cache import Cache
+from gillespy2.remote.core.errors import RemoteSimulationError
+from gillespy2.remote.core.messages.status import SimStatus, StatusResponse
+from gillespy2.remote.server.cache import Cache
 
-from stochss_compute.core.log_config import init_logging
+from gillespy2.remote.core.log_config import init_logging
 log = init_logging(__name__)
 
 class StatusHandler(RequestHandler):

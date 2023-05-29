@@ -1,7 +1,6 @@
 '''
-stochss_compute.client
+gillespy2.remote.client
 '''
-# StochSS-Compute is a tool for running and caching GillesPy2 simulations remotely.
 # Copyright (C) 2019-2023 GillesPy2 and StochSS developers.
 
 # This program is free software: you can redistribute it and/or modify

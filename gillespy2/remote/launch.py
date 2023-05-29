@@ -1,7 +1,6 @@
 '''
-stochss_compute.launch
+gillespy2.remote.launch
 '''
-# StochSS-Compute is a tool for running and caching GillesPy2 simulations remotely.
 # Copyright (C) 2019-2023 GillesPy2 and StochSS developers.
 
 # This program is free software: you can redistribute it and/or modify
@@ -21,15 +20,15 @@ import sys
 import asyncio
 from argparse import ArgumentParser, Namespace
 from distributed import LocalCluster
-from stochss_compute.server.api import start_api
+from gillespy2.remote.server.api import start_api
 
 def launch_server():
     '''
-    Start the REST API. Alias to script "stochss-compute".
+    Start the REST API. Alias to script "gillespy2-remote".
 
-    `stochss-compute --help`
+    `gillespy2-remote --help`
     OR
-    `python -m stochss_compute.launch --help`
+    `python -m gillespy2.remote.launch --help`
     '''
     def _parse_args() -> Namespace:
         desc = '''
@@ -62,14 +61,14 @@ def launch_with_cluster():
     '''
     Start up a Dask Cluster and StochSS-Compute REST API. Alias to script "stochss-compute-cluster".
 
-    `stochss-compute cluster --help`
+    `gillespy2-remote-cluster --help`
     OR
-    `python -m stochss_compute.launch cluster --help`
+    `python -m gillespy2.remote.launch cluster --help`
     '''
 
     def _parse_args() -> Namespace:
         usage = '''
-            stochss-compute-cluster -p PORT
+            gillespy2-remote-cluster -p PORT
         '''
         desc = '''
             Startup script for a StochSS-Compute cluster.
@@ -141,10 +140,6 @@ def launch_with_cluster():
         print('OK')
 
 if __name__ == '__main__':
-    # import os
-    # if 'COVERAGE_PROCESS_START' in os.environ:
-    #     import coverage
-    #     coverage.process_startup()
     if len(sys.argv) > 1:
         if sys.argv[1] == 'cluster':
             del sys.argv[1]

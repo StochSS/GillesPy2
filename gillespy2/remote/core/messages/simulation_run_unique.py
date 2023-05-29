@@ -1,11 +1,11 @@
 '''
-stochss_compute.core.messages.simulation_run_unique
+gillespy2.remote.core.messages.simulation_run_unique
 '''
 from secrets import token_hex
 from tornado.escape import json_decode
 from gillespy2 import Model
-from stochss_compute.core.messages.base import Request, Response
-from stochss_compute.core.messages.status import SimStatus
+from gillespy2.remote.core.messages.base import Request, Response
+from gillespy2.remote.core.messages.status import SimStatus
 
 class SimulationRunUniqueRequest(Request):
     '''

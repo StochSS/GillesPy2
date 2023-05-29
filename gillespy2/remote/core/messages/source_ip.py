@@ -1,8 +1,8 @@
 '''
-stochss_compute.core.messages.source_ip
+gillespy2.remote.core.messages.source_ip
 '''
 from tornado.escape import json_decode
-from stochss_compute.core.messages.base import Request, Response
+from gillespy2.remote.core.messages.base import Request, Response
 
 class SourceIpRequest(Request):
     '''

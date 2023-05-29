@@ -1,5 +1,5 @@
 '''
-stochss_compute.server.api
+gillespy2.remote.server.api
 '''
 # StochSS-Compute is a tool for running and caching GillesPy2 simulations remotely.
 # Copyright (C) 2019-2023 GillesPy2 and StochSS developers.
@@ -22,10 +22,7 @@ import asyncio
 import subprocess
 from logging import INFO
 from tornado.web import Application
-from gillespy2.remote.server.is_cached import IsCachedHandler
-from gillespy2.remote.server.run import RunHandler
-from gillespy2.remote.server.run_unique import SimulationRunUniqueHandler
-from gillespy2.remote.server.results_unique import ResultsUniqueHandler
+from gillespy2.remote.server.run import SimulationRunHandler
 from gillespy2.remote.server.sourceip import SourceIpHandler
 from gillespy2.remote.server.status import StatusHandler
 from gillespy2.remote.server.results import ResultsHandler
@@ -35,18 +32,18 @@ log = init_logging(__name__)
 def _make_app(dask_host, dask_scheduler_port, cache):
     scheduler_address = f'{dask_host}:{dask_scheduler_port}'
     return Application([
-        (r"/api/v2/simulation/gillespy2/run", RunHandler,
+        (r"/api/v2/simulation/gillespy2/run", SimulationRunHandler,
             {'scheduler_address': scheduler_address, 'cache_dir': cache}),
-        (r"/api/v2/simulation/gillespy2/run/unique", SimulationRunUniqueHandler,
-            {'scheduler_address': scheduler_address, 'cache_dir': cache}),
+        # (r"/api/v2/simulation/gillespy2/run/unique", SimulationRunUniqueHandler,
+        #     {'scheduler_address': scheduler_address, 'cache_dir': cache}),
         (r"/api/v2/simulation/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/(?P<task_id>.*?)/status",
             StatusHandler, {'scheduler_address': scheduler_address, 'cache_dir': cache}),
         (r"/api/v2/simulation/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/results",
             ResultsHandler, {'cache_dir': cache}),
-        (r"/api/v2/simulation/gillespy2/(?P<results_id>.*?)/results",
-            ResultsUniqueHandler, {'cache_dir': cache}),
-        (r"/api/v2/cache/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/is_cached",
-            IsCachedHandler, {'cache_dir': cache}),
+        # (r"/api/v2/simulation/gillespy2/(?P<results_id>.*?)/results",
+        #     ResultsUniqueHandler, {'cache_dir': cache}),
+        # (r"/api/v2/cache/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/is_cached",
+        #     IsCachedHandler, {'cache_dir': cache}),
         (r"/api/v2/cloud/sourceip", SourceIpHandler),
     ])
 
@@ -76,7 +73,7 @@ async def start_api(
     :param rm: Delete the cache when exiting this program.
     :type rm: bool
 
-    :param logging_level: Set log level for stochss_compute.
+    :param logging_level: Set log level for gillespy2.remote.
     :type debug: logging._Level
     """
 
