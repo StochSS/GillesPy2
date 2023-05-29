@@ -73,9 +73,13 @@ class StatusHandler(RequestHandler):
         self.results_id = results_id
         self.task_id = task_id
         n_traj = int(n_traj)
-        unique = results_id == task_id
-        log.debug('unique: %(unique)s', locals())
-        cache = Cache(self.cache_dir, results_id, unique=unique)
+
+        if results_id == task_id:
+            while self.cache_dir.endswith('/'):
+                self.cache_dir = self.cache_dir[:-1]
+            self.cache_dir = self.cache_dir + '/run/'
+
+        cache = Cache(self.cache_dir, results_id)
         log_string = f'<{self.request.remote_ip}> | Results ID: <{results_id}> | Trajectories: {n_traj} | Task ID: {task_id}'
         log.info(log_string)
 

@@ -85,6 +85,13 @@ setup(name                 = version['__title__'].lower(),
           "Source" : "https://github.com/StochSS/GillesPy2",
       },
       packages             = find_packages('.'),
+      entry_points={
+            'console_scripts': [
+                'gillespy2-remote=gillespy2.remote.launch:launch_server',
+                'gillespy2-remote-cluster=gillespy2.remote.launch:launch_with_cluster',
+            ]
+        },
+
       include_package_data = True,
       install_requires     = reqs,
 

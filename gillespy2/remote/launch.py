@@ -41,7 +41,7 @@ def launch_server():
                             help="The port to use for the server. Defaults to 29681.")
 
         cache = parser.add_argument_group('Cache')
-        cache.add_argument('-c', '--cache', default='cache/', required=False,
+        cache.add_argument('-c', '--cache_path', default='cache/', required=False,
             help='Path to use for the cache. Default ./cache')
         cache.add_argument('--rm', '--rm-cache', default=False, required=False,
             help='Whether to delete the cache upon exit. Default False.')
@@ -83,7 +83,7 @@ def launch_with_cluster():
             help="The port to use for the server. Defaults to 29681.")
 
         cache = parser.add_argument_group('Cache')
-        cache.add_argument('-c', '--cache', default='cache/', required=False,
+        cache.add_argument('-c', '--cache_path', default='cache/', required=False,
             help='Path to use for the cache.')
         cache.add_argument('--rm', default=False, action='store_true', required=False,
             help='Whether to delete the cache upon exit. Default False.')
@@ -130,7 +130,7 @@ def launch_with_cluster():
     print(f'Dashboard Link: <{cluster.dashboard_link}>\n')
 
     try:
-        asyncio.run(start_api(port=args.port, cache=args.cache,
+        asyncio.run(start_api(port=args.port, cache_path=args.cache_path,
             dask_host=dask_host, dask_scheduler_port=dask_port, rm=args.rm))
     except asyncio.exceptions.CancelledError:
         pass

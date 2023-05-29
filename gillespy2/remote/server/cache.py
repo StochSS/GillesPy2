@@ -1,5 +1,5 @@
 '''
-Cache for StochSS-Compute
+gillespy2.remote.server.cache
 '''
 # StochSS-Compute is a tool for running and caching GillesPy2 simulations remotely.
 # Copyright (C) 2019-2023 GillesPy2 and StochSS developers.
@@ -33,11 +33,7 @@ class Cache:
     :param results_id: Simulation hash.
     :type results_id: str
     '''
-    def __init__(self, cache_dir, results_id, unique=False):
-        if unique is True:
-            while cache_dir.endswith('/'):
-                cache_dir = cache_dir[:-1]
-            cache_dir = cache_dir + '/unique/'
+    def __init__(self, cache_dir, results_id):
         self.results_path = os.path.join(cache_dir, f'{results_id}.results')
         if not os.path.exists(cache_dir):
             os.makedirs(cache_dir)

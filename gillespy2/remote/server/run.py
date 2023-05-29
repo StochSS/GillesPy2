@@ -32,7 +32,7 @@ log = init_logging(__name__)
 
 class SimulationRunHandler(RequestHandler):
     '''
-    Endpoint for running Gillespy2 simulations.
+    Endpoint for running GillesPy2 simulations.
     '''
 
     def __init__(self, application, request, **kwargs):
@@ -74,8 +74,8 @@ class SimulationRunHandler(RequestHandler):
         cache.create()
         client = Client(self.scheduler_address)
         future = self._submit(sim_request, client)
-        log_string = f'{datetime.now()} | <{self.request.remote_ip}> | Simulation Run  Request | <{self.key}> | '
-        print(log_string + 'Running simulation.')
+        msg = '<{self.request.remote_ip}> | Simulation Run Request | <{self.key}> | Running simulation.'
+        log.info(msg)
         self._return_running()
         IOLoop.current().run_in_executor(None, self._cache, future, client)
 

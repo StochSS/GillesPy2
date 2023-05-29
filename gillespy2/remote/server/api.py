@@ -38,10 +38,10 @@ def _make_app(dask_host, dask_scheduler_port, cache):
         #     {'scheduler_address': scheduler_address, 'cache_dir': cache}),
         (r"/api/v2/simulation/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/(?P<task_id>.*?)/status",
             StatusHandler, {'scheduler_address': scheduler_address, 'cache_dir': cache}),
-        (r"/api/v2/simulation/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/results",
+        # (r"/api/v2/simulation/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/results",
+        #     ResultsHandler, {'cache_dir': cache}),
+        (r"/api/v2/simulation/gillespy2/(?P<results_id>.*?)/results",
             ResultsHandler, {'cache_dir': cache}),
-        # (r"/api/v2/simulation/gillespy2/(?P<results_id>.*?)/results",
-        #     ResultsUniqueHandler, {'cache_dir': cache}),
         # (r"/api/v2/cache/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/is_cached",
         #     IsCachedHandler, {'cache_dir': cache}),
         (r"/api/v2/cloud/sourceip", SourceIpHandler),
@@ -49,7 +49,8 @@ def _make_app(dask_host, dask_scheduler_port, cache):
 
 async def start_api(
         port = 29681,
-        cache = 'cache/',
+        cache_trajectories = True,
+        cache_path = 'cache/',
         dask_host = 'localhost',
         dask_scheduler_port = 8786,
         rm = False,
@@ -61,8 +62,11 @@ async def start_api(
     :param port: The port to listen on.
     :type port: int
 
-    :param cache: The cache directory path.
-    :type cache: str
+    :param cache_trajectories: If True, default behavior is to cache trajectories. If False, trajectory cacheing is turned off by default. Can be overridden on client side.
+    :type cache_trajectories: bool
+
+    :param cache_path: The cache directory path.
+    :type cache_path: str
 
     :param dask_host: The address of the dask cluster.
     :type dask_host: str
@@ -80,8 +84,8 @@ async def start_api(
     set_global_log_level(logging_level)
     # TODO clean up lock files here
 
-    cache_path = os.path.abspath(cache)
-    app = _make_app(dask_host, dask_scheduler_port, cache)
+    cache_path = os.path.abspath(cache_path)
+    app = _make_app(dask_host, dask_scheduler_port, cache_path)
     app.listen(port)
     msg='''
 =========================================================================
