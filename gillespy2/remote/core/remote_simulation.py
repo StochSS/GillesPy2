@@ -98,14 +98,17 @@ class RemoteSimulation:
         results_dummy.n_traj = params.get('number_of_trajectories', 1)
         return results_dummy.is_ready
 
-    def run(self, ignore_cache=False, **params):
+    def run(self, namespace=None, ignore_cache=False, **params):
         # pylint:disable=line-too-long
         """
         Simulate the Model on the target ComputeServer, returning the results or a handle to a running simulation.
         See `here <https://stochss.github.io/GillesPy2/docs/build/html/classes/gillespy2.core.html#gillespy2.core.model.Model.run>`_.
 
-        :param unique: When True, ignore cache completely and return always new results.
-        :type unique: bool
+        :param namespace: TODO.
+        :type namespace: str
+
+        :param ignore_cache: When True, ignore cache completely and return always new results.
+        :type ignore_cache: bool
 
         :param params: Arguments to pass directly to the Model#run call on the server.
         :type params: dict[str, Any]

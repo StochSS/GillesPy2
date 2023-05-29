@@ -29,8 +29,7 @@ from gillespy2.remote.core.messages.status import SimStatus
 from gillespy2.remote.core.messages.simulation_run import SimulationRunRequest, SimulationRunResponse
 from gillespy2.remote.server.cache import Cache
 
-
-class RunHandler(RequestHandler):
+class RunCacheHandler(RequestHandler):
     '''
     Endpoint for running Gillespy2 simulations.
     '''
@@ -57,7 +56,7 @@ class RunHandler(RequestHandler):
         '''
         sim_request = SimulationRunRequest.parse(self.request.body)
         sim_hash = sim_request.hash()
-        log_string = f'{datetime.now()} | <{self.request.remote_ip}> | Simulation Run Request | <{sim_hash}> | '
+        msg = f'{datetime.now()} | <{self.request.remote_ip}> | Simulation Run Request | <{sim_hash}> | '
         cache = Cache(self.cache_dir, sim_hash)
         if not cache.exists():
             cache.create()
