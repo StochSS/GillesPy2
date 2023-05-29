@@ -1,7 +1,6 @@
 '''
 gillespy2.remote.core.remote_results
 '''
-# StochSS-Compute is a tool for running and caching GillesPy2 simulations remotely.
 # Copyright (C) 2019-2023 GillesPy2 and StochSS developers.
 
 # This program is free software: you can redistribute it and/or modify
@@ -24,12 +23,15 @@ from gillespy2.remote.core.errors import RemoteSimulationError
 from gillespy2.remote.core.messages.results import ResultsResponse
 from gillespy2.remote.core.messages.status import StatusResponse, SimStatus
 
+from gillespy2.remote.core.log_config import init_logging
+log = init_logging(__name__)
+
 class RemoteResults(Results):
     '''
     Wrapper for a gillespy2.Results object that exists on a remote server and which is then downloaded locally.
     A Results object is: A List of Trajectory objects created by a gillespy2 solver, extends the UserList object.
 
-    These three fields must be initialized manually: id, server, n_traj, task_id.
+    These four fields must be initialized manually: id, server, n_traj, task_id.
 
     :param data: A list of trajectory objects.
     :type data: UserList
@@ -43,7 +45,7 @@ class RemoteResults(Results):
     :param task_id: Handle for the running simulation.
     :type task_id: str
     '''
-    # These three fields are initialized by the server
+    # These four fields are initialized after object creation.
     id = None
     server = None
     n_traj = None
@@ -77,7 +79,8 @@ class RemoteResults(Results):
         :returns: Simulation status enum as a string.
         :rtype: str
         '''
-        return self._status().status.name
+        if self._data is not None:
+            return self._status().status.name
 
     def get_gillespy2_results(self):
         """
@@ -97,12 +100,17 @@ class RemoteResults(Results):
         :returns: status == SimStatus.READY
         :rtype: bool
         """
-        return self._status().status == SimStatus.READY
+        if self._data is not None:
+            return self._status().status == SimStatus.READY
+        return True
 
     def _status(self):
+        '''
+        It is undefined behavior to call this function if self._data is not None.        
+        '''
         # Request the status of a submitted simulation.
         response_raw = self.server.get(Endpoint.SIMULATION_GILLESPY2,
-                                       f"/{self.id}/{self.n_traj}/{self.task_id or ''}/status")
+                                       f"/{self.id}/{self.n_traj}/{self.task_id}/status")
         if not response_raw.ok:
             raise RemoteSimulationError(response_raw.reason)
 
@@ -110,11 +118,14 @@ class RemoteResults(Results):
         return status_response
 
     def _resolve(self):
+        '''
+        It is undefined behavior to call this function if self._data is not None.        
+        '''
         status_response = self._status()
         status = status_response.status
 
         if status == SimStatus.RUNNING:
-            print('Simulation is running. Downloading results when complete......')
+            log.info('Simulation is running. Downloading results when complete......')
             while True:
                 sleep(5)
                 status_response = self._status()
@@ -126,7 +137,7 @@ class RemoteResults(Results):
             raise RemoteSimulationError(status_response.message)
 
         if status == SimStatus.READY:
-            print('Results ready. Fetching.......')
+            log.info('Results ready. Fetching.......')
             if self.id == self.task_id:
                 response_raw = self.server.get(Endpoint.SIMULATION_GILLESPY2, f"/{self.id}/results")
             else:
@@ -135,4 +146,5 @@ class RemoteResults(Results):
                 raise RemoteSimulationError(response_raw.reason)
 
             response = ResultsResponse.parse(response_raw.text)
-            self._data = response.results.data
+
+            self._data = response.results.data # Fully initialized

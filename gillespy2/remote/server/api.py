@@ -22,7 +22,8 @@ import asyncio
 import subprocess
 from logging import INFO
 from tornado.web import Application
-from gillespy2.remote.server.run import SimulationRunHandler
+from gillespy2.remote.server.simulation_run import SimulationRunHandler
+from gillespy2.remote.server.simulation_run_cache import SimulationRunCacheHandler
 from gillespy2.remote.server.sourceip import SourceIpHandler
 from gillespy2.remote.server.status import StatusHandler
 from gillespy2.remote.server.results import ResultsHandler
@@ -34,8 +35,8 @@ def _make_app(dask_host, dask_scheduler_port, cache):
     return Application([
         (r"/api/v2/simulation/gillespy2/run", SimulationRunHandler,
             {'scheduler_address': scheduler_address, 'cache_dir': cache}),
-        # (r"/api/v2/simulation/gillespy2/run/unique", SimulationRunUniqueHandler,
-        #     {'scheduler_address': scheduler_address, 'cache_dir': cache}),
+        (r"/api/v2/simulation/gillespy2/run/cache", SimulationRunCacheHandler,
+            {'scheduler_address': scheduler_address, 'cache_dir': cache}),
         (r"/api/v2/simulation/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/(?P<task_id>.*?)/status",
             StatusHandler, {'scheduler_address': scheduler_address, 'cache_dir': cache}),
         # (r"/api/v2/simulation/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/results",

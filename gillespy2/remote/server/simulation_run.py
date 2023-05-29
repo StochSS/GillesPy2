@@ -1,7 +1,6 @@
 '''
 gillespy2.remote.server.run
 '''
-# StochSS-Compute is a tool for running and caching GillesPy2 simulations remotely.
 # Copyright (C) 2019-2023 GillesPy2 and StochSS developers.
 
 # This program is free software: you can redistribute it and/or modify
@@ -16,8 +15,6 @@ gillespy2.remote.server.run
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-from datetime import datetime
 
 from tornado.web import RequestHandler
 from tornado.ioloop import IOLoop
@@ -65,6 +62,10 @@ class SimulationRunHandler(RequestHandler):
         Process simulation run  POST request.
         '''
         sim_request = SimulationRunRequest.parse(self.request.body)
+        if sim_request.namespace is not None:
+            while sim_request.namespace.endswith('/'):
+                sim_request.namespace = sim_request.namespace[:-1]
+            self.cache_dir = '{sim_request.namespace}/{self.cache_dir}'
         self.key = sim_request.key
         cache = Cache(self.cache_dir, self.key)
         if cache.exists():

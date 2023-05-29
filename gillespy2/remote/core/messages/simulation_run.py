@@ -14,13 +14,17 @@ class SimulationRunRequest(Request):
     :param model: A model to run.
     :type model: gillespy2.Model
 
+    :param namespace: Optional namespace for the results.
+    :type namespace: str | None
+
     :param kwargs: kwargs for the model.run() call.
     :type kwargs: dict[str, Any]
     '''
-    def __init__(self, model, **kwargs):
+    def __init__(self, model, namespace=None, **kwargs):
         self.model = model
         self.kwargs = kwargs
         self.key = token_hex(16)
+        self.namespace = namespace
 
     def encode(self):
         '''
@@ -29,6 +33,7 @@ class SimulationRunRequest(Request):
         return {'model': self.model.to_json(),
                 'kwargs': self.kwargs,
                 'key': self.key,
+                'namespace': self.namespace or ''
                 }
 
     @staticmethod
@@ -45,7 +50,8 @@ class SimulationRunRequest(Request):
         request_dict = json_decode(raw_request)
         model = Model.from_json(request_dict['model'])
         kwargs = request_dict['kwargs']
-        _ = SimulationRunRequest(model, **kwargs)
+        namespace = request_dict['namespace']
+        _ = SimulationRunRequest(model, namespace=namespace,**kwargs)
         _.key = request_dict['key'] # apply correct token (from raw request) after object construction.
         return _
 

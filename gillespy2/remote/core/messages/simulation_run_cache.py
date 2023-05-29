@@ -3,7 +3,7 @@ gillespy2.remote.core.messages.simulation_run_cache
 '''
 from hashlib import md5
 from tornado.escape import json_decode, json_encode
-from gillespy2 import Model, Results
+from gillespy2 import Results
 from gillespy2.remote.core.messages.base import Response
 from gillespy2.remote.core.messages.simulation_run import SimulationRunRequest
 from gillespy2.remote.core.messages.status import SimStatus
@@ -18,8 +18,8 @@ class SimulationRunCacheRequest(SimulationRunRequest):
     :param kwargs: kwargs for the model.run() call.
     :type kwargs: dict[str, Any]
     '''
-    def __init__(self, model,**kwargs):
-        return super().__init__(model, kwargs)
+    def __init__(self, model, namespace=None, **kwargs):
+        return super().__init__(model, namespace=namespace, **kwargs)
 
     def encode(self):
         '''
@@ -38,7 +38,7 @@ class SimulationRunCacheRequest(SimulationRunRequest):
         :returns: The decoded object.
         :rtype: SimulationRunRequest
         '''
-        return super().parse()
+        return super().parse(raw_request)
 
     def hash(self):
         '''

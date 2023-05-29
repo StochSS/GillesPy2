@@ -1,7 +1,6 @@
 '''
 gillespy2.remote.server.run
 '''
-# StochSS-Compute is a tool for running and caching GillesPy2 simulations remotely.
 # Copyright (C) 2019-2023 GillesPy2 and StochSS developers.
 
 # This program is free software: you can redistribute it and/or modify
@@ -26,16 +25,22 @@ from tornado.ioloop import IOLoop
 from distributed import Client, Future
 from gillespy2.core import Results
 from gillespy2.remote.core.messages.status import SimStatus
-from gillespy2.remote.core.messages.simulation_run import SimulationRunRequest, SimulationRunResponse
+from gillespy2.remote.core.messages.simulation_run_cache import SimulationRunCacheRequest, SimulationRunCacheResponse
 from gillespy2.remote.server.cache import Cache
 
-class RunCacheHandler(RequestHandler):
+from gillespy2.remote.core.log_config import init_logging
+log = init_logging(__name__)
+
+class SimulationRunCacheHandler(RequestHandler):
     '''
-    Endpoint for running Gillespy2 simulations.
+    Endpoint for running Gillespy2 simulations as normal,
+    except that trajectories are cached and reused
+    if a particular model is run multiple times.
     '''
 
     scheduler_address = None
     cache_dir = None
+
     def initialize(self, scheduler_address, cache_dir):
         '''
         Sets the address to the Dask scheduler and the cache directory.
@@ -54,7 +59,9 @@ class RunCacheHandler(RequestHandler):
         '''
         Process simulation run request.
         '''
-        sim_request = SimulationRunRequest.parse(self.request.body)
+        sim_request = SimulationRunCacheRequest.parse(self.request.body)
+        log.debug(sim_request.namespace)
+        return
         sim_hash = sim_request.hash()
         msg = f'{datetime.now()} | <{self.request.remote_ip}> | Simulation Run Request | <{sim_hash}> | '
         cache = Cache(self.cache_dir, sim_hash)
@@ -105,11 +112,11 @@ class RunCacheHandler(RequestHandler):
             kwargs["solver"] = locate(kwargs["solver"])
 
         # keep client open for now! close?
-        key = f'{sim_hash}:{n_traj}:{token_hex(8)}'
+        key = f'{sim_hash[:-8]}:{n_traj}:{token_hex(8)}'
         future = client.submit(model.run, **kwargs, key=key)
         return future
 
     def _return_running(self, results_id, task_id):
-        sim_response = SimulationRunResponse(SimStatus.RUNNING, results_id=results_id, task_id=task_id)
+        sim_response = SimulationRunCacheResponse(SimStatus.RUNNING, results_id=results_id, task_id=task_id)
         self.write(sim_response.encode())
         self.finish()

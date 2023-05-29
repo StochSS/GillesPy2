@@ -19,6 +19,7 @@ gillespy2.remote.core.remote_simulation
 
 from gillespy2.remote.client.endpoint import Endpoint
 from gillespy2.remote.core.messages.simulation_run import SimulationRunRequest, SimulationRunResponse
+from gillespy2.remote.core.messages.simulation_run_cache import SimulationRunCacheRequest, SimulationRunCacheResponse
 from gillespy2.remote.core.messages.status import SimStatus
 from gillespy2.remote.core.errors import RemoteSimulationError
 from gillespy2.remote.core.remote_results import RemoteResults
@@ -73,7 +74,7 @@ class RemoteSimulation:
                     'RemoteSimulation does not accept an instantiated solver object. Pass a type.')
         self.solver = solver
 
-    def is_cached(self, **params):
+    def is_cached(self, namespace=None, **params):
         '''
         Checks to see if a dummy simulation exists in the cache.
 
@@ -91,7 +92,7 @@ class RemoteSimulation:
         if self.solver is not None:
             params["solver"] = f"{self.solver.__module__}.{self.solver.__qualname__}"
 
-        sim_request = SimulationRunRequest(model=self.model, **params)
+        sim_request = SimulationRunCacheRequest(model=self.model, namespace=namespace, **params)
         results_dummy = RemoteResults()
         results_dummy.id = sim_request.hash()
         results_dummy.server = self.server
@@ -104,7 +105,7 @@ class RemoteSimulation:
         Simulate the Model on the target ComputeServer, returning the results or a handle to a running simulation.
         See `here <https://stochss.github.io/GillesPy2/docs/build/html/classes/gillespy2.core.html#gillespy2.core.model.Model.run>`_.
 
-        :param namespace: TODO.
+        :param namespace: If provided, prepend to results path.
         :type namespace: str
 
         :param ignore_cache: When True, ignore cache completely and return always new results.
@@ -128,38 +129,39 @@ class RemoteSimulation:
         if self.solver is not None:
             params["solver"] = f"{self.solver.__module__}.{self.solver.__qualname__}"
         if ignore_cache is True:
-            sim_request = SimulationRunRequest(self.model, **params)
+            sim_request = SimulationRunRequest(self.model, namespace=namespace, **params)
             return self._run(sim_request)
         if ignore_cache is False:
-            sim_request = SimulationRunRequest(self.model, **params)
-            return self._run(sim_request)
+            sim_request = SimulationRunCacheRequest(self.model, namespace=namespace, **params)
+            return self._run_cache(sim_request)
 
-    # def _run(self, request):
-    #     '''
-    #     :param request: Request to send to the server. Contains Model and related arguments.
-    #     :type request: SimulationRunRequest
-    #     '''
-    #     response_raw = self.server.post(Endpoint.SIMULATION_GILLESPY2, sub="/run", request=request)
-    #     if not response_raw.ok:
-    #         raise Exception(response_raw.reason)
+    def _run_cache(self, request):
+        '''
+        :param request: Request to send to the server. Contains Model and related arguments.
+        :type request: SimulationRunRequest
+        '''
+        response_raw = self.server.post(Endpoint.SIMULATION_GILLESPY2, sub="/run/cache", request=request)
+        if not response_raw.ok:
+            raise Exception(response_raw.reason)
 
-    #     sim_response = SimulationRunResponse.parse(response_raw.text)
+        sim_response = SimulationRunCacheResponse.parse(response_raw.text)
 
-    #     if sim_response.status == SimStatus.ERROR:
-    #         raise RemoteSimulationError(sim_response.error_message)
-    #     if sim_response.status == SimStatus.READY:
-    #         remote_results =  RemoteResults(data=sim_response.results.data)
-    #     else:
-    #         remote_results =  RemoteResults()
+        if sim_response.status == SimStatus.ERROR:
+            raise RemoteSimulationError(sim_response.error_message)
+        # non-conforming object creation ... possible refactor needed to solve, so left in.
+        if sim_response.status == SimStatus.READY:
+            remote_results =  RemoteResults(data=sim_response.results.data)
+        else:
+            remote_results =  RemoteResults()
 
-    #     remote_results.id = sim_response.results_id
-    #     remote_results.server = self.server
-    #     remote_results.n_traj = request.kwargs.get('number_of_trajectories', 1)
-    #     remote_results.task_id = sim_response.task_id
+        remote_results.id = sim_response.results_id
+        remote_results.task_id = sim_response.task_id
+        remote_results.server = self.server
+        remote_results.n_traj = request.kwargs.get('number_of_trajectories', 1)
 
-    #     return remote_results
+        return remote_results
 
-    def _run(self, request):
+    def _run(self, request, ):
         '''
         Ignores the cache. Gives each simulation request a unique identifier.
 
