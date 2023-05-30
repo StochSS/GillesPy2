@@ -13,18 +13,17 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+''' Unit tests module for gillespy2.Reaction. '''
 import re
+import time
 import unittest
+from datetime import datetime
 
-from gillespy2 import Model, Species, Parameter, Reaction
+from gillespy2 import Species, Parameter, Reaction
 from gillespy2 import ReactionError
 
-class TestReaction(unittest.TestCase):
-    '''
-    ################################################################################################
-    Unit tests for gillespy2.Reaction.
-    ################################################################################################
-    '''
+class TestReaction(unittest.TestCase): # pylint: disable=too-many-public-methods
+    ''' Unit tests class for gillespy2.Reaction. '''
     def setUp(self):
         self.valid_ma_reaction = Reaction(
             name="test_reaction", reactants={"A": 1}, products={"B": 1}, rate="k1"
@@ -293,9 +292,9 @@ class TestReaction(unittest.TestCase):
 
     def test_constructor__parameter_rate(self):
         """ Test the Reaction constructor with an parameter object as rate. """
-        k1 = Parameter(name="k1", expression="20")
+        parameter = Parameter(name="k1", expression="20")
         reaction = Reaction(
-            name="test_reaction", reactants={"A": 1}, products={"B": 1}, rate=k1
+            name="test_reaction", reactants={"A": 1}, products={"B": 1}, rate=parameter
         )
         self.assertIsInstance(reaction.marate, str)
         self.assertEqual(reaction.marate, "k1")
@@ -322,9 +321,7 @@ class TestReaction(unittest.TestCase):
         for test_rate in test_rates:
             with self.subTest(rate=test_rate):
                 with self.assertRaises(ReactionError):
-                    reaction = Reaction(
-                        name="test_reaction", reactants={"A": 1}, products={"B": 1}, rate=test_rate
-                    )
+                    Reaction(name="test_reaction", reactants={"A": 1}, products={"B": 1}, rate=test_rate)
 
     def test_constructor__annotation_invalid_type(self):
         """ Test the Reaction construct with an annotation of invalid type. """
@@ -332,7 +329,7 @@ class TestReaction(unittest.TestCase):
         for test_annotation in test_annotations:
             with self.subTest(annotation=test_annotation):
                 with self.assertRaises(ReactionError):
-                    reaction = Reaction(
+                    Reaction(
                         name="test_reaction", reactants={"A": 1}, products={"B": 1}, rate="k1",
                         annotation=test_annotation
                     )
@@ -346,13 +343,13 @@ class TestReaction(unittest.TestCase):
         self.valid_ma_reaction.reactants = {"A": 1, "B": 2}
         self.valid_ma_reaction.products = {"C": 1}
         with self.assertRaises(ReactionError):
-            self.valid_ma_reaction._create_mass_action()
+            self.valid_ma_reaction._create_mass_action() # pylint: disable=protected-access
 
     def test__create_mass_action__marate_type_as_string(self):
         """ Test Reaction._create_mass_action marate as string. """
         self.valid_ma_reaction.reactants = {}
         self.valid_ma_reaction.products = {"C": 1}
-        self.valid_ma_reaction._create_mass_action()
+        self.valid_ma_reaction._create_mass_action() # pylint: disable=protected-access
         self.assertEqual(self.valid_ma_reaction.propensity_function, "(k1*vol)")
         self.assertEqual(self.valid_ma_reaction.ode_propensity_function, "k1")
 
@@ -361,7 +358,7 @@ class TestReaction(unittest.TestCase):
         self.valid_ma_reaction.reactants = {}
         self.valid_ma_reaction.products = {"C": 1}
         self.valid_ma_reaction.marate = 1
-        self.valid_ma_reaction._create_mass_action()
+        self.valid_ma_reaction._create_mass_action() # pylint: disable=protected-access
         self.assertEqual(self.valid_ma_reaction.propensity_function, "(1*vol)")
         self.assertEqual(self.valid_ma_reaction.ode_propensity_function, "1")
 
@@ -370,7 +367,7 @@ class TestReaction(unittest.TestCase):
         self.valid_ma_reaction.reactants = {}
         self.valid_ma_reaction.products = {"C": 1}
         self.valid_ma_reaction.marate = 0.5
-        self.valid_ma_reaction._create_mass_action()
+        self.valid_ma_reaction._create_mass_action() # pylint: disable=protected-access
         self.assertEqual(self.valid_ma_reaction.propensity_function, "(0.5*vol)")
         self.assertEqual(self.valid_ma_reaction.ode_propensity_function, "0.5")
 
@@ -380,7 +377,7 @@ class TestReaction(unittest.TestCase):
         self.valid_ma_reaction.reactants = {}
         self.valid_ma_reaction.products = {"C": 1}
         self.valid_ma_reaction.marate = test_parameter
-        self.valid_ma_reaction._create_mass_action()
+        self.valid_ma_reaction._create_mass_action() # pylint: disable=protected-access
         self.assertEqual(self.valid_ma_reaction.propensity_function, "(k1*vol)")
         self.assertEqual(self.valid_ma_reaction.ode_propensity_function, "k1")
 
@@ -388,7 +385,7 @@ class TestReaction(unittest.TestCase):
         """ Test Reaction._create_mass_action X -> Y. """
         self.valid_ma_reaction.reactants = {"X": 1}
         self.valid_ma_reaction.products = {"Y": 1}
-        self.valid_ma_reaction._create_mass_action()
+        self.valid_ma_reaction._create_mass_action() # pylint: disable=protected-access
         self.assertEqual(self.valid_ma_reaction.propensity_function, "(k1*X)")
         self.assertEqual(self.valid_ma_reaction.ode_propensity_function, "(k1*X)")
 
@@ -396,7 +393,7 @@ class TestReaction(unittest.TestCase):
         """ Test Reaction._create_mass_action X + Y -> Z. """
         self.valid_ma_reaction.reactants = {"X": 1, "Y": 1}
         self.valid_ma_reaction.products = {"Z": 1}
-        self.valid_ma_reaction._create_mass_action()
+        self.valid_ma_reaction._create_mass_action() # pylint: disable=protected-access
         self.assertEqual(self.valid_ma_reaction.propensity_function, "(((k1*X)*Y)/vol)")
         self.assertEqual(self.valid_ma_reaction.ode_propensity_function, "((k1*X)*Y)")
 
@@ -404,7 +401,7 @@ class TestReaction(unittest.TestCase):
         """ Test Reaction._create_mass_action 2X -> Y. """
         self.valid_ma_reaction.reactants = {"X": 2}
         self.valid_ma_reaction.products = {"Y": 1}
-        self.valid_ma_reaction._create_mass_action()
+        self.valid_ma_reaction._create_mass_action() # pylint: disable=protected-access
         self.assertEqual(self.valid_ma_reaction.propensity_function, "(((k1*X)*(X-1))/vol)")
         self.assertEqual(self.valid_ma_reaction.ode_propensity_function, "((k1*X)*X)")
 
@@ -412,7 +409,7 @@ class TestReaction(unittest.TestCase):
         """ Test Reaction._create_mass_action when reactants is keyed by species object. """
         test_species = Species(name="A", initial_value=1)
         self.valid_ma_reaction.reactants = {test_species: 1}
-        self.valid_ma_reaction._create_mass_action()
+        self.valid_ma_reaction._create_mass_action() # pylint: disable=protected-access
         self.assertEqual(self.valid_ma_reaction.propensity_function, "(k1*A)")
         self.assertEqual(self.valid_ma_reaction.ode_propensity_function, "(k1*A)")
 
@@ -421,22 +418,22 @@ class TestReaction(unittest.TestCase):
         test_propensities = ["1/A^2", "1/A**2"]
         for test_propensity in test_propensities:
             with self.subTest(propensity_function=test_propensity):
-                expr = self.valid_cp_reaction._create_custom_propensity(test_propensity)
+                expr = self.valid_cp_reaction._create_custom_propensity(test_propensity) # pylint: disable=protected-access
                 self.assertEqual(expr, "(1/pow(A,2))")
 
     def test__create_custom_propensity__ln(self):
         """ Test Reaction._create_custom_propensity with a propensity containing ln. """
-        expr = self.valid_cp_reaction._create_custom_propensity("ln(A)")
+        expr = self.valid_cp_reaction._create_custom_propensity("ln(A)") # pylint: disable=protected-access
         self.assertEqual(expr, "log(A)")
 
     def test__create_custom_propensity__e(self):
         """ Test Reaction._create_custom_propensity with a propensity containing e. """
-        expr = self.valid_cp_reaction._create_custom_propensity("A*e")
+        expr = self.valid_cp_reaction._create_custom_propensity("A*e") # pylint: disable=protected-access
         self.assertEqual(expr, "(A*2.718281828459045)")
 
     def test__create_custom_propensity__fake_e(self):
         """ Test Reaction._create_custom_propensity with a propensity containing e. """
-        expr = self.valid_cp_reaction._create_custom_propensity("A*ex")
+        expr = self.valid_cp_reaction._create_custom_propensity("A*ex") # pylint: disable=protected-access
         self.assertEqual(expr, "(A*ex)")
 
     def test__create_custom_propensity__propensity_parsing(self):
@@ -455,7 +452,7 @@ class TestReaction(unittest.TestCase):
         for i, test_propensity in enumerate(test_propensities):
             expected_result = expected_results[i]
             with self.subTest(propensity_function=test_propensity, expected_propensity_function=expected_result):
-                expr = self.valid_cp_reaction._create_custom_propensity(test_propensity)
+                expr = self.valid_cp_reaction._create_custom_propensity(test_propensity) # pylint: disable=protected-access
                 self.assertEqual(expr, expected_result)
 
     def test_add_product__species_string(self):
@@ -667,7 +664,7 @@ class TestReaction(unittest.TestCase):
             'type': 'mass-action'
         }
         with self.assertRaises(ReactionError):
-            reaction = Reaction.from_json(test_json)
+            Reaction.from_json(test_json)
 
     def test_set_annotation__invalid_annotation(self):
         """ Test Reaction.set_annotation with an invalid annotation. """
@@ -944,13 +941,13 @@ class TestReaction(unittest.TestCase):
 
     def test_comp_time_of_validate(self):
         """ Check the computation time of validate. """
-        import time
-        from datetime import datetime
         start = time.time()
         self.valid_ma_reaction.validate(coverage="all")
         tic = datetime.utcfromtimestamp(time.time() - start)
-        print(f"Total time to run validate on a mass-action reaction: {tic.strftime('%M mins %S secs %f msecs')}")
+        msg = f"Total time to run validate on a mass-action reaction: {tic.strftime('%M mins %S secs %f msecs')}"
+        print(f"\n<{'-'*88}>\n | {msg.ljust(84)} | \n<{'-'*88}>")
         start = time.time()
         self.valid_cp_reaction.validate(coverage="all")
         tic = datetime.utcfromtimestamp(time.time() - start)
-        print(f"Total time to run validate on a customized reaction: {tic.strftime('%M mins %S secs %f msecs')}")
+        msg = f"Total time to run validate on a customized reaction: {tic.strftime('%M mins %S secs %f msecs')}"
+        print(f"\n<{'-'*88}>\n | {msg.ljust(84)} | \n<{'-'*88}>")

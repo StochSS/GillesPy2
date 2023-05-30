@@ -349,7 +349,7 @@ def create_decay(parameter_values=None):
     k1 = Parameter(name='k1', expression=3.0)
     model.add_parameter([k1])
     # Reactions
-    rxn1 = Reaction(name='S degradation', reactants={S: 1}, products={}, rate=k1)
+    rxn1 = Reaction(name='S degradation', reactants={S: 1}, products={}, propensity_function=f"{S.name} * k1")
     model.add_reaction([rxn1])
     model.timespan(np.linspace(0, 20, 101))
     return model
@@ -494,6 +494,7 @@ def create_robust_model(parameter_values=None):
     # Variables
     model.add_species(Species(name="s1", initial_value=8000, mode="continuous"))
     model.add_species(Species(name="s2", initial_value=0, mode="continuous"))
+    model.add_species(Species(name="test_species", initial_value=29, mode="continuous"))
 
     # Reactions
     model.add_reaction(Reaction(name="r1", reactants={'s1': 1}, products={'s2': 1}, rate=model.listOfParameters["k2"]))
@@ -536,13 +537,10 @@ def create_multi_firing_event(parameter_values=None):
 
     # Species                                                                                                                                                                                                                    
     S = Species(name='Sp', initial_value=100, mode='discrete')
-    model.add_species([S])
-    
-    # Parameters                                                                                                                                                                                                                 
-    k1 = Parameter(name='k1', expression=0.01)
-    ev_time1 = Parameter(name='ev_time1', expression=20)
-    ev_time2 = Parameter(name='ev_time2', expression=30)
-    model.add_parameter([k1, ev_time1, ev_time2])    
+    ev_time1 = Species(name='ev_time1', initial_value=20, mode="continuous")
+    ev_time2 = Species(name='ev_time2', initial_value=30, mode="continuous")
+    k1 = Species(name='k1', initial_value=0.01, mode="continuous")
+    model.add_species([S, ev_time1, ev_time2, k1])
     
     # Events
     et = EventTrigger(expression='t>ev_time1')
@@ -558,7 +556,7 @@ def create_multi_firing_event(parameter_values=None):
     model.add_event([e, e2])
     
     #Reactions
-    r = Reaction(name='R', reactants={S:1}, products={}, rate=k1) #Multiple reactions
+    r = Reaction(name='R', reactants={S:1}, products={}, propensity_function=f"k1 * {S.name}")
     model.add_reaction([r])
 
     model.timespan(np.linspace(0, 60, 181))

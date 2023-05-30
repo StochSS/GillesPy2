@@ -52,12 +52,6 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         with self.assertRaises(ModelError):
             model.add_rate_rule(rate_rule_dict)
 
-    def test_add_bad_species_rate_rule_dict(self):
-        model = create_decay()
-        rule = gillespy2.RateRule(formula='sin(t)')
-        with self.assertRaises(ModelError):
-            model.add_rate_rule(rule)
-
     def test_add_assignment_rule(self):
         model = create_decay()
         species = gillespy2.Species('test_species4', initial_value=1)
@@ -65,7 +59,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         model.add_species([species])
         model.add_assignment_rule([rule])
         results = model.run()
-        self.assertEquals(results[species.name][0], 2) 
+        self.assertEquals(results[species.name][0], 2)
         self.assertEquals(results[species.name][-1], 2)
         self.assertEqual(results[0].solver_name,'TauHybridSolver')
 
@@ -84,7 +78,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         ea1 = gillespy2.EventAssignment(variable='Sp', expression='1000')
         ea2 = gillespy2.EventAssignment(variable='k1', expression='0')
         event1.add_assignment([ea1, ea2])
-        model.add_event(event1)
+        model.add_event(event1, auto_convert_variable=True)
         results = model.run()
         valid_solvers = ('TauHybridSolver', 'TauHybridCSolver')
         self.assertIn(results[0].solver_name, valid_solvers)
@@ -98,7 +92,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         ea1 = gillespy2.EventAssignment(variable='Sp', expression='1000')
         ea2 = gillespy2.EventAssignment(variable='k1', expression='0')
         event1.add_assignment([ea1, ea2])
-        model.add_event(event1)
+        model.add_event(event1, auto_convert_variable=True)
         results = model.run()
         self.assertEqual(results['Sp'][-1], 1000)
         
@@ -110,7 +104,7 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         ea1 = gillespy2.EventAssignment(variable='Sp', expression='1000')
         ea2 = gillespy2.EventAssignment(variable='k1', expression='0')
         event1.add_assignment([ea1, ea2])
-        model.add_event(event1)
+        model.add_event(event1, auto_convert_variable=True)
         results = model.run()
         self.assertEqual(results['Sp'][-1], 1000)
         
@@ -122,35 +116,10 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         ea1 = gillespy2.EventAssignment(variable='Sp', expression='1000')
         ea2 = gillespy2.EventAssignment(variable='k1', expression='0')
         event1.add_assignment([ea1, ea2])
-        model.add_event(event1)
+        model.add_event(event1, auto_convert_variable=True)
         results = model.run()
         self.assertEqual(results['Sp'][-1], 1000)
         
-    def test_add_param_event(self):
-        def create_event_test_model(parameter_values=None):
-            model = gillespy2.Model(name='Event Test Model')
-            model.add_species([gillespy2.Species(name='S', initial_value=0)])
-            model.add_parameter(gillespy2.Parameter(name='event_tracker',
-                                                    expression=99))
-            model.add_parameter(gillespy2.Parameter(name='event_tracker2',
-                                                    expression=0))
-            model.add_reaction(gillespy2.Reaction(name='r1', products={'S':1},
-                                                rate=model.listOfParameters['event_tracker2']))
-            eventTrig1 = gillespy2.EventTrigger(expression='t>=2')
-            event1 = gillespy2.Event(name='event1', trigger=eventTrig1)
-            event1.add_assignment(gillespy2.EventAssignment(
-                                    variable='event_tracker', expression='t'))
-            eventTrig2 = gillespy2.EventTrigger(expression='t >= event_tracker + 2')
-            event2 = gillespy2.Event(name='event2', trigger=eventTrig2)
-            event2.add_assignment(gillespy2.EventAssignment(
-                                    variable='event_tracker2', expression='t'))
-            model.add_event([event1, event2])
-            return model
-
-        model = create_event_test_model()
-        results = model.run(increment=0.05, t=20)
-        self.assertGreater(results['S'][-1], 0)
-
     def test_math_name_overlap(self):
         model = create_decay()
         gamma = gillespy2.Species('gamma',initial_value=2, mode='continuous')
@@ -161,13 +130,6 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         model.add_reaction([gamma_react])
         solver = TauHybridSolver(model=model)
         model.run(solver=solver)
-
-    def test_add_bad_expression_rate_rule_dict(self):
-        model = create_decay()
-        species2 = gillespy2.Species('test_species2', initial_value=2, mode='continuous')
-        rule = gillespy2.RateRule(variable=species2, formula='')
-        with self.assertRaises(ModelError):
-            model.add_rate_rule(rule)
 
     def test_ensure_hybrid_dynamic_species(self):
         model = create_decay()

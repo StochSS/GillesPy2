@@ -221,7 +221,7 @@ class TauHybridSolver(GillesPySolver):
                 del diff_eqs[self.model.listOfSpecies[spec]]
         # create a dictionary of compiled gillespy2 rate rules
         for spec, rate in diff_eqs.items():
-            output_rules[spec] = compile(gillespy2.RateRule(spec, rate).formula, '<string>', 'eval')
+            output_rules[spec] = compile(gillespy2.RateRule(variable=spec, formula=rate).formula, '<string>', 'eval')
         rr_sets[comb] = rate_rules # save values
         return output_rules
 

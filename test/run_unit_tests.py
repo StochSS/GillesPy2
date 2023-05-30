@@ -13,8 +13,9 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-import unittest, sys, os
+import os
+import sys
+import unittest
 import argparse
 
 try:
@@ -36,23 +37,27 @@ if __name__ == '__main__':
     from unit_tests import test_species
     from unit_tests import test_parameter
     from unit_tests import test_reaction
+    from unit_tests import test_raterule
+    from unit_tests import test_assignmentrule
+    from unit_tests import test_event_assignment
     from unit_tests import test_timespan
     from unit_tests import test_model
 
-    modules = [
-        test_species,
-        test_parameter,
-        test_reaction,
-        test_timespan,
-        test_model
-    ]
+    catagories = {
+        "State Components": [test_species, test_parameter, test_timespan],
+        "Action Dependents": [test_event_assignment],
+        "Action Components": [test_reaction, test_raterule, test_assignmentrule],
+        "Model": [test_model]
+    }
 
-    for module in modules:
-        suite = unittest.TestLoader().loadTestsFromModule(module)
-        runner = unittest.TextTestRunner(failfast=args.mode == 'develop')
+    for name, modules in catagories.items():
+        print(f"Running unit tests for {name}")
+        for module in modules:
+            suite = unittest.TestLoader().loadTestsFromModule(module)
+            runner = unittest.TextTestRunner(failfast=args.mode == 'develop')
 
-        print("Executing: {}".format(module))
-        result = runner.run(suite)
-        print('=' * 70)
-        if not result.wasSuccessful():
-            sys.exit(not result.wasSuccessful())
+            print(f"Executing: {module}")
+            result = runner.run(suite)
+            print('=' * 70)
+            if not result.wasSuccessful():
+                sys.exit(not result.wasSuccessful())

@@ -13,17 +13,16 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+''' Unit tests module for gillespy2.Parameter. '''
+import time
 import unittest
+from datetime import datetime
 
-from gillespy2.core.parameter import Parameter
-from gillespy2.core.gillespyError import ParameterError
+from gillespy2 import Parameter
+from gillespy2 import ParameterError
 
 class TestParameter(unittest.TestCase):
-    '''
-    ################################################################################################
-    Unit tests for gillespy2.Parameter.
-    ################################################################################################
-    '''
+    ''' Unit tests class for gillespy2.Parameter. '''
     def setUp(self):
         self.parameter = Parameter(name="test_parameter", expression="0.5")
 
@@ -75,26 +74,26 @@ class TestParameter(unittest.TestCase):
 
     def test__evaluate(self):
         """ Test Parameter._evaluate method. """
-        self.parameter._evaluate()
+        self.parameter._evaluate() # pylint: disable=protected-access
         self.assertEqual(self.parameter.value, 0.5)
 
     def test__evaluate__int_expression(self):
         """ Test Parameter._evaluate method with int expression. """
         self.parameter.expression = 5
-        self.parameter._evaluate()
+        self.parameter._evaluate() # pylint: disable=protected-access
         self.assertEqual(self.parameter.value, 5)
 
     def test__evaluate__float_expression(self):
         """ Test Parameter._evaluate method with float expression. """
         self.parameter.expression = 0.5
-        self.parameter._evaluate()
+        self.parameter._evaluate() # pylint: disable=protected-access
         self.assertEqual(self.parameter.value, 0.5)
 
     def test__evaluate__improper_expression(self):
         """ Test Parameter._evaluate method with invalid expression. """
         self.parameter.expression = "[0.5]"
         with self.assertRaises(ParameterError):
-            self.parameter._evaluate()
+            self.parameter._evaluate() # pylint: disable=protected-access
 
     def test__evaluate__invaild_expression(self):
         """ Test Parameter._evaluate with an invalid expression. """
@@ -103,18 +102,18 @@ class TestParameter(unittest.TestCase):
             with self.subTest(expression=test_exp):
                 with self.assertRaises(ParameterError):
                     self.parameter.expression = test_exp
-                    self.parameter._evaluate()
+                    self.parameter._evaluate() # pylint: disable=protected-access
 
     def test__evaluate__parameter_in_namespace(self):
         """ Test Parameter._evaluate method with parameter in namespace. """
         self.parameter.expression = "k1 + 0.5"
-        self.parameter._evaluate(namespace={"k1": 3})
+        self.parameter._evaluate(namespace={"k1": 3}) # pylint: disable=protected-access
         self.assertEqual(self.parameter.value, 3.5)
 
     def test__evaluate__species_in_namespace(self):
         """ Test Parameter._evaluate method with species in namespace. """
         self.parameter.expression = "S0 + 0.5"
-        self.parameter._evaluate(namespace={"S0": 100})
+        self.parameter._evaluate(namespace={"S0": 100}) # pylint: disable=protected-access
         self.assertEqual(self.parameter.value, 100.5)
 
     def test__evaluate__component_not_in_namespace(self):
@@ -124,7 +123,7 @@ class TestParameter(unittest.TestCase):
             with self.subTest(component=test_comp):
                 self.parameter.expression = f"{test_comp} + 0.5"
                 with self.assertRaises(ParameterError):
-                    self.parameter._evaluate()
+                    self.parameter._evaluate() # pylint: disable=protected-access
 
     def test_validate__invalid_name(self):
         """ Test Parameter.validate with non-str name. """
@@ -146,9 +145,8 @@ class TestParameter(unittest.TestCase):
 
     def test_comp_time_of_validate(self):
         """ Check the computation time of validate. """
-        import time
-        from datetime import datetime
         start = time.time()
         self.parameter.validate()
         tic = datetime.utcfromtimestamp(time.time() - start)
-        print(f"Total time to run validate: {tic.strftime('%M mins %S secs %f msecs')}")
+        msg = f"Total time to run validate on a parameter: {tic.strftime('%M mins %S secs %f msecs')}"
+        print(f"\n<{'-'*88}>\n | {msg.ljust(84)} | \n<{'-'*88}>")

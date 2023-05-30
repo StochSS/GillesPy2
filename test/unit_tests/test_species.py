@@ -13,17 +13,16 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+''' Unit tests module for gillespy2.Species. '''
+import time
 import unittest
+from datetime import datetime
 
-from gillespy2.core.species import Species
-from gillespy2.core.gillespyError import SpeciesError
+from gillespy2 import Species
+from gillespy2 import SpeciesError
 
-class TestSpecies(unittest.TestCase):
-    '''
-    ################################################################################################
-    Unit tests for gillespy2.Species.
-    ################################################################################################
-    '''
+class TestSpecies(unittest.TestCase): # pylint: disable=too-many-public-methods
+    ''' Unit tests class for gillespy2.Species. '''
     def setUp(self):
         self.species = Species(name="test_species", initial_value=5)
 
@@ -305,9 +304,8 @@ class TestSpecies(unittest.TestCase):
 
     def test_comp_time_of_validate(self):
         """ Check the computation time of validate. """
-        import time
-        from datetime import datetime
         start = time.time()
         self.species.validate()
         tic = datetime.utcfromtimestamp(time.time() - start)
-        print(f"Total time to run validate: {tic.strftime('%M mins %S secs %f msecs')}")
+        msg = f"Total time to run validate on a species: {tic.strftime('%M mins %S secs %f msecs')}"
+        print(f"\n<{'-'*88}>\n | {msg.ljust(84)} | \n<{'-'*88}>")
