@@ -22,7 +22,7 @@ from datetime import datetime
 from gillespy2 import Species, Parameter, RateRule
 from gillespy2 import RateRuleError
 
-class TestParameter(unittest.TestCase):
+class TestRateRule(unittest.TestCase):
     ''' Unit tests class for gillespy2.RateRule. '''
     def setUp(self):
         self.raterule = RateRule(name="test_rate_rule", variable="test_species", formula=29)

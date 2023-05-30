@@ -39,12 +39,13 @@ if __name__ == '__main__':
     from unit_tests import test_reaction
     from unit_tests import test_raterule
     from unit_tests import test_assignmentrule
+    from unit_tests import test_event_assignment
     from unit_tests import test_timespan
     from unit_tests import test_model
 
     catagories = {
         "State Components": [test_species, test_parameter, test_timespan],
-        "Action Dependents": [],
+        "Action Dependents": [test_event_assignment],
         "Action Components": [test_reaction, test_raterule, test_assignmentrule],
         "Model": [test_model]
     }

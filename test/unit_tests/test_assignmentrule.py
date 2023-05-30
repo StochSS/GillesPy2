@@ -22,7 +22,7 @@ from datetime import datetime
 from gillespy2 import Species, Parameter, AssignmentRule
 from gillespy2 import AssignmentRuleError
 
-class TestParameter(unittest.TestCase):
+class TestAssignmentRule(unittest.TestCase):
     ''' Unit tests class for gillespy2.AssignmentRule. '''
     def setUp(self):
         self.assignmentrule = AssignmentRule(name="test_assignment_rule", variable="test_species", formula=29)
@@ -147,5 +147,5 @@ class TestParameter(unittest.TestCase):
         start = time.time()
         self.assignmentrule.validate()
         tic = datetime.utcfromtimestamp(time.time() - start)
-        msg = f"Total time to run validate on a assignment rule: {tic.strftime('%M mins %S secs %f msecs')}"
+        msg = f"Total time to run validate on an assignment rule: {tic.strftime('%M mins %S secs %f msecs')}"
         print(f"\n<{'-'*88}>\n | {msg.ljust(84)} | \n<{'-'*88}>")
