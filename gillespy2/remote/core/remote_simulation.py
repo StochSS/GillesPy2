@@ -161,7 +161,7 @@ class RemoteSimulation:
 
         return remote_results
 
-    def _run(self, request, ):
+    def _run(self, request):
         '''
         Ignores the cache. Gives each simulation request a unique identifier.
 
@@ -177,8 +177,8 @@ class RemoteSimulation:
             raise Exception(sim_response.error_message)
         # non-conforming object creation ... possible refactor needed to solve, so left in.
         remote_results =  RemoteResults()
-        remote_results.id = request.key
-        remote_results.task_id = request.key
+        remote_results.id = request.id
+        remote_results.task_id = request.id
         remote_results.server = self.server
         remote_results.n_traj = request.kwargs.get('number_of_trajectories', 1)
 

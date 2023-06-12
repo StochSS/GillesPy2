@@ -22,6 +22,10 @@ from argparse import ArgumentParser, Namespace
 from distributed import LocalCluster
 from gillespy2.remote.server.api import start_api
 
+from logging import INFO, getLevelName
+from gillespy2.remote.core.log_config import init_logging, set_global_log_level
+log = init_logging(__name__)
+
 def launch_server():
     '''
     Start the REST API. Alias to script "gillespy2-remote".
@@ -32,17 +36,21 @@ def launch_server():
     '''
     def _parse_args() -> Namespace:
         desc = '''
-            StochSS-Compute is a server and cache that anonymizes StochSS simulation data.
-        '''
+GillesPy2 Remote allows you to run simulations remotely on your own Dask cluster.
+To launch both simultaneously, use `gillespy2-remote-cluster` instead.
+Trajectories are automatically cached to support multiple users running the same model.
+'''
         parser = ArgumentParser(description=desc, add_help=True, conflict_handler='resolve')
 
         server = parser.add_argument_group('Server')
         server.add_argument("-p", "--port", default=29681, type=int, required=False,
                             help="The port to use for the server. Defaults to 29681.")
+        server.add_argument("-l", "--logging-level", default=INFO, required=False,
+            help="Set the logging level threshold. Str or int. Defaults to INFO (20)")
 
         cache = parser.add_argument_group('Cache')
         cache.add_argument('-c', '--cache_path', default='cache/', required=False,
-            help='Path to use for the cache. Default ./cache')
+            help='Path to use for the cache. Defaults to "cache/".')
         cache.add_argument('--rm', '--rm-cache', default=False, required=False,
             help='Whether to delete the cache upon exit. Default False.')
 
@@ -54,12 +62,13 @@ def launch_server():
         return parser.parse_args()
 
     args = _parse_args()
+
     asyncio.run(start_api(**args.__dict__))
 
 
 def launch_with_cluster():
     '''
-    Start up a Dask Cluster and StochSS-Compute REST API. Alias to script "stochss-compute-cluster".
+    Start up a Dask cluster along with gillespy2.remote REST API. Alias to script "gillespy2-remote-cluster".
 
     `gillespy2-remote-cluster --help`
     OR
@@ -67,20 +76,17 @@ def launch_with_cluster():
     '''
 
     def _parse_args() -> Namespace:
-        usage = '''
-            gillespy2-remote-cluster -p PORT
-        '''
         desc = '''
-            Startup script for a StochSS-Compute cluster.
-            StochSS-Compute is a server and cache that anonymizes StochSS simulation data.
-            Uses Dask, a Python parallel computing library.   
-        '''
-        parser = ArgumentParser(description=desc, add_help=True, usage=usage,
-            conflict_handler='resolve')
+        Startup script for a GillesPy2 Remote and pre-configured Dask Distributed cluster.
+        Command-line options allow you to override automatic cluster configuration.
+        Your trajectories are automatically cached to support multiple users running the same model.'''
+        parser = ArgumentParser(description=desc, add_help=True, conflict_handler='resolve')
 
         server = parser.add_argument_group('Server')
         server.add_argument("-p", "--port", default=29681, type=int, required=False,
             help="The port to use for the server. Defaults to 29681.")
+        server.add_argument("-l", "--logging-level", default=INFO, required=False,
+            help='Set the logging level threshold. Str or int. Defaults to INFO (20).')
 
         cache = parser.add_argument_group('Cache')
         cache.add_argument('-c', '--cache_path', default='cache/', required=False,
@@ -107,27 +113,31 @@ def launch_with_cluster():
             like ‘localhost:8787’ or ‘0.0.0.0:8787’. Defaults to ‘:8787’. \
             Set to None to disable the dashboard. Use ‘:0’ for a random port.')
         dask.add_argument('-N', '--dask-name', default=None, required=False,
-            help='A name to use when printing out the cluster, defaults to type name.')
+            help='A name to use when printing out the cluster, defaults to the type name.')
         args =  parser.parse_args()
         return args
 
 
     args = _parse_args()
+    args.logging_level = set_global_log_level(getLevelName(args.logging_level))
 
     dask_args = {}
     for (arg, value) in vars(args).items():
         if arg.startswith('dask_'):
             dask_args[arg[5:]] = value
-    print('Launching Dask Cluster...')
+    log.info('Launching Dask Cluster.')
     cluster = LocalCluster(**dask_args)
     tokens = cluster.scheduler_address.split(':')
     dask_host = tokens[1][2:]
     dask_port = int(tokens[2])
-    print(f'Scheduler Address: <{cluster.scheduler_address}>')
+    msg = f'Scheduler Address: <{cluster.scheduler_address}>'
+    log.info(msg)
     for i, worker in cluster.workers.items():
-        print(f'Worker {i}: {worker}')
+        msg = f'Worker {i}: {worker}'
+        log.info(msg)
 
-    print(f'Dashboard Link: <{cluster.dashboard_link}>\n')
+    msg = f'Dashboard Link: <{cluster.dashboard_link}>\n'
+    log.info(msg)
 
     try:
         asyncio.run(start_api(port=args.port, cache_path=args.cache_path,
@@ -135,9 +145,9 @@ def launch_with_cluster():
     except asyncio.exceptions.CancelledError:
         pass
     finally:
-        print('Shutting down cluster...', end='')
+        log.info('Shutting down cluster.')
         asyncio.run(cluster.close())
-        print('OK')
+        log.info('Cluster terminated.')
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:

@@ -63,23 +63,29 @@ class SimulationRunHandler(RequestHandler):
         sim_request = SimulationRunRequest.parse(self.request.body)
         if sim_request.namespace is not None:
             self.cache_dir = os.path.join(self.cache_dir, sim_request.namespace)
-        self.key = sim_request.key
-        cache = Cache(self.cache_dir, self.key)
+        cache = Cache(self.cache_dir, sim_request.id)
         if cache.exists():
-            self.set_status(404, reason='Try again with a different key, because that one is taken.')
+            log.debug("This should not be happening.")
             self.finish()
-            raise PRNGCollision('Try again with a different key, because that one is taken.')
-        cache.create()
-        client = Client(self.scheduler_address)
-        future = self._submit(sim_request, client)
-        msg = f'<{self.request.remote_ip}> | <{self.key}> | Running simulation.'
-        log.info(msg)
-        self._return_running()
-        IOLoop.current().run_in_executor(None, self._cache, future, client)
+            raise PRNGCollision
+        try:
+            cache.create()
+            client = Client(self.scheduler_address)
+            msg = f'<{self.request.remote_ip}> | <{sim_request.id}> | Running simulation.'
+            log.info(msg)
+            future = self._submit(sim_request, client)
+            IOLoop.current().run_in_executor(None, self._cache, cache, future, client)
+            self._return_running()
+        except Exception as err:
+            self._return_error(str(err))
+            
 
-    def _cache(self, future, client):
+    def _cache(self, cache, future, client):
         '''
         Await results, close client, save to disk.
+
+        :param cache: Handle to the cache.
+        :type cache: Cache
 
         :param future: Handle to the running simulation, to be awaited upon.
         :type future: distributed.Future
@@ -89,7 +95,6 @@ class SimulationRunHandler(RequestHandler):
         '''
         results = future.result()
         client.close()
-        cache = Cache(self.cache_dir, self.key)
         cache.save(results)
 
     def _submit(self, sim_request, client):
@@ -108,7 +113,8 @@ class SimulationRunHandler(RequestHandler):
         '''
         model = sim_request.model
         kwargs = sim_request.kwargs
-        key = sim_request.key
+        key = sim_request.id
+        kwargs['seed'] = int(sim_request.id, 16)
         if "solver" in kwargs:
             # pylint:disable=import-outside-toplevel
             from pydoc import locate
@@ -123,5 +129,13 @@ class SimulationRunHandler(RequestHandler):
         Let the user know we submitted the simulation to the scheduler.
         '''
         sim_response = SimulationRunResponse(SimStatus.RUNNING)
+        self.write(sim_response.encode())
+        self.finish()
+
+    def _return_error(self, error_message):
+        '''
+        Let the user know we submitted the simulation to the scheduler.
+        '''
+        sim_response = SimulationRunResponse(SimStatus.ERROR, error_message)
         self.write(sim_response.encode())
         self.finish()

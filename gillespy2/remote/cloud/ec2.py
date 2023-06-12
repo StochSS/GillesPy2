@@ -36,7 +36,7 @@ try:
     from paramiko import SSHClient, AutoAddPolicy
 except ImportError as err:
     name = __name__
-    log.warn('boto3 and parkamiko are required for %(name)s')
+    log.warn('boto3 and parkamiko are required for %(name)s', locals())
 
 
 def _ec2_logger():

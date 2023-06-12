@@ -16,6 +16,7 @@ gillespy2.remote.server.status
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 from distributed import Client
 from tornado.web import RequestHandler
 from gillespy2.remote.core.errors import RemoteSimulationError
@@ -32,8 +33,6 @@ class StatusHandler(RequestHandler):
     def __init__(self, application, request, **kwargs):
         self.scheduler_address = None
         self.cache_dir = None
-        self.task_id = None
-        self.results_id = None
         super().__init__(application, request, **kwargs)
 
     def data_received(self, chunk: bytes):
@@ -57,63 +56,78 @@ class StatusHandler(RequestHandler):
         Process Status POST request.
 
         '''
-        request = StatusRequest.parse(self.request.body)
-        # TODO
+        status_request = StatusRequest.parse(self.request.body)
+        log.debug(status_request.__dict__)
 
-        if '' in (results_id, n_traj):
-            self.set_status(404, reason=f'Malformed request: {self.request.uri}')
-            self.finish()
-            raise RemoteSimulationError(f'Malformed request: {self.request.uri}')
+        results_id = status_request.results_id
+        n_traj = int(status_request.n_traj)
+        task_id = status_request.task_id
+        namespace = status_request.namespace
+
+        if namespace is not None:
+            self.cache_dir = os.path.join(self.cache_dir, namespace)
+        if results_id == task_id: # True iff call made using (ignore_cache=True)
+            self.cache_dir = os.path.join(self.cache_dir, 'run/')
         
-        self.results_id = results_id
-        n_traj = int(n_traj)
-        self.task_id = task_id
-        log.debug(request)
-
-        if results_id == task_id:
-            while self.cache_dir.endswith('/'):
-                self.cache_dir = self.cache_dir[:-1]
-            self.cache_dir = self.cache_dir + '/run/'
-
         cache = Cache(self.cache_dir, results_id)
-        log_string = f'<{self.request.remote_ip}> | Results ID: <{results_id}> | Trajectories: {n_traj} | Task ID: {task_id}'
-        log.info(log_string)
+        
+        msg_0 = f'<{self.request.remote_ip}> | Results ID: <{results_id}> | Trajectories: {n_traj} | Task ID: {task_id}'
+        log.info(msg_0)
 
-        msg = f'<{results_id}> | <{task_id}> | Status: '
+        msg_1 = f'<{results_id}> | <{task_id}> | Status:'
+        dne_msg = f'{msg_1} {SimStatus.DOES_NOT_EXIST.name}'
+        ready_msg = f'{msg_1} {SimStatus.READY.name}'
+        
+        if cache.exists():
+            log.debug('cache.exists(): %(exists)s', locals())
+        
+            if cache.is_empty():
+        
+                if task_id is not None:
+        
+                    state, err = await self._check_with_scheduler(task_id)
 
-        exists = cache.exists()
-        log.debug('exists: %(exists)s', locals())
-        if exists:
-            empty = cache.is_empty()
-            if empty:
-                if self.task_id not in ('', None):
-                    state, err = await self._check_with_scheduler()
-                    log.info(msg + SimStatus.RUNNING.name + f' | Task: {state} | Error: {err}')
+                    msg_2 = f'{msg_1} {SimStatus.RUNNING.name} | Task: {state} | Error: {err}'
+                    log.info(msg_2)
+        
                     if state == 'erred':
                         self._respond_error(err)
                     else:
-                        self._respond_running(f'Scheduler task state: {state}')
+                        self._respond_running(f'Scheduler Task State: {state}')
+                
                 else:
-                    log.info(msg+SimStatus.DOES_NOT_EXIST.name)
+
+                    log.info(dne_msg)
                     self._respond_dne()
+            
             else:
-                ready = cache.is_ready(n_traj)
-                if ready:
-                    log.info(msg+SimStatus.READY.name)
+            
+                if cache.is_ready(n_traj):
+                    log.info(ready_msg)
                     self._respond_ready()
+
                 else:
-                    if self.task_id not in ('', None):
-                        state, err = await self._check_with_scheduler()
-                        log.info(msg+SimStatus.RUNNING.name+f' | Task: {state} | error: {err}')
+
+                    if task_id is not None:
+
+                        state, err = await self._check_with_scheduler(task_id)
+
+                        msg_2 = f'{msg_1} {SimStatus.RUNNING.name} | Task: {state} | Error: {err}'
+                        log.info(msg_2)
+                        
                         if state == 'erred':
                             self._respond_error(err)
                         else:
                             self._respond_running(f'Scheduler task state: {state}')
+                    
                     else:
-                        log.info(msg+SimStatus.DOES_NOT_EXIST.name)
+
+                        log.info(dne_msg)
                         self._respond_dne()
+
         else:
-            log.info(msg+SimStatus.DOES_NOT_EXIST.name)
+
+            log.info(dne_msg)
             self._respond_dne()
 
     def _respond_ready(self):
@@ -136,7 +150,7 @@ class StatusHandler(RequestHandler):
         self.write(status_response.encode())
         self.finish()
 
-    async def _check_with_scheduler(self):
+    async def _check_with_scheduler(self, task_id):
         '''
         Ask the scheduler for information about a task.
         '''
@@ -152,6 +166,6 @@ class StatusHandler(RequestHandler):
             return (task.state, task.exception_text)
         
         # Do not await. Reasons. It returns sync.
-        ret = client.run_on_scheduler(scheduler_task_state, self.task_id)
+        _ = client.run_on_scheduler(scheduler_task_state, task_id)
         client.close()
-        return ret
+        return _

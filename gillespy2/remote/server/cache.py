@@ -35,9 +35,9 @@ class Cache:
     :type results_id: str
     '''
     def __init__(self, cache_dir, results_id):
-        self.results_path = os.path.join(cache_dir, f'{results_id}.results')
         if not os.path.exists(cache_dir):
             os.makedirs(cache_dir)
+        self.results_path = os.path.join(cache_dir, f'{results_id}.results')
 
     def create(self) -> None:
         '''

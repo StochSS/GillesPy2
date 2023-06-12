@@ -22,3 +22,7 @@ class PRNGCollision(Exception):
     ...Lucky???
     '''
     
+class MessageParseException(Exception):
+    '''
+    Raised if there is an error parsing a raw HTTP message.
+    '''

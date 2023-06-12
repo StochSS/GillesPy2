@@ -113,8 +113,8 @@ class RemoteResults(Results):
             raise Exception('TODO Name this exception class. Cant call status on a finished simulation.')
         # Request the status of a submitted simulation.
         status_request = StatusRequest(self.id, self.namespace)
-        response_raw = self.server.get(Endpoint.SIMULATION_GILLESPY2,
-                                       f"/{self.id}/{self.n_traj}/{self.task_id}/status")
+        response_raw = self.server.post(Endpoint.SIMULATION_GILLESPY2,
+                                       f"/status")
         if not response_raw.ok:
             raise RemoteSimulationError(response_raw.reason)
 

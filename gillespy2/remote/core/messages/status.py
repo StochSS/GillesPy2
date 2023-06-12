@@ -3,14 +3,14 @@ gillespy2.remote.core.messages.status
 '''
 from enum import Enum
 from tornado.escape import json_decode
+from gillespy2.remote.core.exceptions import MessageParseException
 from gillespy2.remote.core.messages.base import Request, Response
 
 class SimStatus(Enum):
     '''
     Status describing a remote simulation.
     '''
-    PENDING = 'The simulation is pending.'
-    RUNNING = 'The simulation is still running.'
+    RUNNING = 'The simulation is currently running.'
     READY = 'Simulation is done and results exist in the cache.'
     ERROR = 'The Simulation has encountered an error.'
     DOES_NOT_EXIST = 'There is no evidence of this simulation either running or on disk.'
@@ -20,8 +20,6 @@ class SimStatus(Enum):
         '''
         Convert str to Enum.
         '''
-        if name == 'PENDING':
-            return SimStatus.PENDING
         if name == 'RUNNING':
             return SimStatus.RUNNING
         if name == 'READY':
@@ -38,11 +36,17 @@ class StatusRequest(Request):
     '''
     A request for simulation status.
 
-    :param results_id: Hash of the SimulationRunRequest
+    :param results_id: Hash of the SimulationRunCacheRequest or key from SimulationRunRequest
     :type results_id: str
 
+    :param n_traj: Number of requested trajectories. Defaults to 1.
+    :type n_traj: int | None
+
+    :param task_id: Handle to a currently running simulation.
+    :type task_id: str | None
+
     :param namespace: Optional namespace to prepend to results directory.
-    :type namespace: str
+    :type namespace: str | None
     '''
     def __init__(self, results_id, n_traj=None, task_id=None, namespace=None):
         self.results_id = results_id
@@ -83,9 +87,9 @@ class StatusResponse(Response):
     :type status: SimStatus
     
     :param message: Possible error message or otherwise
-    :type message: str
+    :type message: str | None
     '''
-    def __init__(self, status, message = None):
+    def __init__(self, status, message=None):
         self.status = status
         self.message = message
 
@@ -93,10 +97,10 @@ class StatusResponse(Response):
         '''
         Encodes self.
         :returns: self as dict
-        :rtype: dict[str, str]
+        :rtype: dict
         '''
         return {'status': self.status.name,
-                'message': self.message or ''}
+                'message': self.message}
 
     @staticmethod
     def parse(raw_response):
@@ -109,10 +113,13 @@ class StatusResponse(Response):
         :returns: The decoded object.
         :rtype: StatusResponse
         '''
+        
         response_dict = json_decode(raw_response)
-        status = SimStatus.from_str(response_dict['status'])
-        message = response_dict['message']
-        if not message:
-            return StatusResponse(status)
-        else:
-            return StatusResponse(status, message)
+        
+        try:
+            status = SimStatus.from_str(response_dict.get('status'))
+        except ValueError as err:
+            raise MessageParseException from err
+        
+        message = response_dict.get('message', None)
+        return StatusResponse(status, message=message)
