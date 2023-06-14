@@ -23,8 +23,28 @@ from distributed import LocalCluster
 from gillespy2.remote.server.api import start_api
 
 from logging import INFO, getLevelName
-from gillespy2.remote.core.log_config import init_logging, set_global_log_level
+from gillespy2.remote.core.log_config import init_logging
 log = init_logging(__name__)
+
+def _add_shared_args(parser):
+    '''
+    :type parser: ArgumentParser 
+    
+    :rtype: ArgumentParser
+    '''
+
+    server = parser.add_argument_group('Server')
+    server.add_argument("-p", "--port", default=29681, type=int, required=False,
+        help="The port to use for the server. Defaults to 29681.")
+    server.add_argument("-l", "--logging-level", default=INFO, required=False,
+        help='Set the logging level threshold. Str or int. Defaults to INFO (20).')
+
+    cache = parser.add_argument_group('Cache')
+    cache.add_argument('-c', '--cache_path', default='cache/', required=False,
+        help='Path to use for the cache.')
+    cache.add_argument('--rm', default=False, action='store_true', required=False,
+        help='Whether to delete the cache upon exit. Default False.')
+
 
 def launch_server():
     '''
@@ -42,17 +62,7 @@ Trajectories are automatically cached to support multiple users running the same
 '''
         parser = ArgumentParser(description=desc, add_help=True, conflict_handler='resolve')
 
-        server = parser.add_argument_group('Server')
-        server.add_argument("-p", "--port", default=29681, type=int, required=False,
-                            help="The port to use for the server. Defaults to 29681.")
-        server.add_argument("-l", "--logging-level", default=INFO, required=False,
-            help="Set the logging level threshold. Str or int. Defaults to INFO (20)")
-
-        cache = parser.add_argument_group('Cache')
-        cache.add_argument('-c', '--cache_path', default='cache/', required=False,
-            help='Path to use for the cache. Defaults to "cache/".')
-        cache.add_argument('--rm', '--rm-cache', default=False, required=False,
-            help='Whether to delete the cache upon exit. Default False.')
+        parser = _add_shared_args(parser)
 
         dask = parser.add_argument_group('Dask')
         dask.add_argument("-H", "--dask-host", default='localhost', required=False,
@@ -62,6 +72,7 @@ Trajectories are automatically cached to support multiple users running the same
         return parser.parse_args()
 
     args = _parse_args()
+    args.logging_level = getLevelName(args.logging_level)
 
     asyncio.run(start_api(**args.__dict__))
 
@@ -82,17 +93,7 @@ def launch_with_cluster():
         Your trajectories are automatically cached to support multiple users running the same model.'''
         parser = ArgumentParser(description=desc, add_help=True, conflict_handler='resolve')
 
-        server = parser.add_argument_group('Server')
-        server.add_argument("-p", "--port", default=29681, type=int, required=False,
-            help="The port to use for the server. Defaults to 29681.")
-        server.add_argument("-l", "--logging-level", default=INFO, required=False,
-            help='Set the logging level threshold. Str or int. Defaults to INFO (20).')
-
-        cache = parser.add_argument_group('Cache')
-        cache.add_argument('-c', '--cache_path', default='cache/', required=False,
-            help='Path to use for the cache.')
-        cache.add_argument('--rm', default=False, action='store_true', required=False,
-            help='Whether to delete the cache upon exit. Default False.')
+        parser = _add_shared_args(parser)
 
         dask = parser.add_argument_group('Dask')
         dask.add_argument("-H", "--dask-host", default=None, required=False,
@@ -113,13 +114,13 @@ def launch_with_cluster():
             like ‘localhost:8787’ or ‘0.0.0.0:8787’. Defaults to ‘:8787’. \
             Set to None to disable the dashboard. Use ‘:0’ for a random port.')
         dask.add_argument('-N', '--dask-name', default=None, required=False,
-            help='A name to use when printing out the cluster, defaults to the type name.')
-        args =  parser.parse_args()
-        return args
+            help='A name to use when printing out the cluster, defaults to the type name.')        
+        
+        return  parser.parse_args()
 
 
     args = _parse_args()
-    args.logging_level = set_global_log_level(getLevelName(args.logging_level))
+    args.logging_level = getLevelName(args.logging_level)
 
     dask_args = {}
     for (arg, value) in vars(args).items():
@@ -141,13 +142,14 @@ def launch_with_cluster():
 
     try:
         asyncio.run(start_api(port=args.port, cache_path=args.cache_path,
-            dask_host=dask_host, dask_scheduler_port=dask_port, rm=args.rm))
+            dask_host=dask_host, dask_scheduler_port=dask_port, rm=args.rm, logging_level=args.logging_level))
     except asyncio.exceptions.CancelledError:
         pass
     finally:
         log.info('Shutting down cluster.')
         asyncio.run(cluster.close())
         log.info('Cluster terminated.')
+
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
