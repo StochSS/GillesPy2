@@ -18,7 +18,6 @@ gillespy2.remote.core.remote_simulation
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from gillespy2.remote.client.endpoint import Endpoint
-from gillespy2.remote.core.messages.simulation_run import SimulationRunRequest, SimulationRunResponse
 from gillespy2.remote.core.messages.simulation_run_cache import SimulationRunCacheRequest, SimulationRunCacheResponse
 from gillespy2.remote.core.messages.status import SimStatus
 from gillespy2.remote.core.errors import RemoteSimulationError
@@ -94,7 +93,7 @@ class RemoteSimulation:
 
         sim_request = SimulationRunCacheRequest(model=self.model, namespace=namespace, **params)
         results_dummy = RemoteResults()
-        results_dummy.id = sim_request.hash()
+        results_dummy.id = sim_request.results_id
         results_dummy.server = self.server
         results_dummy.n_traj = params.get('number_of_trajectories', 1)
         return results_dummy.is_ready
@@ -128,19 +127,16 @@ class RemoteSimulation:
             params["solver"] = f"{params['solver'].__module__}.{params['solver'].__qualname__}"
         if self.solver is not None:
             params["solver"] = f"{self.solver.__module__}.{self.solver.__qualname__}"
-        if ignore_cache is True:
-            sim_request = SimulationRunRequest(self.model, namespace=namespace, **params)
-            return self._run(sim_request)
-        if ignore_cache is False:
-            sim_request = SimulationRunCacheRequest(self.model, namespace=namespace, **params)
-            return self._run_cache(sim_request)
+        sim_request = SimulationRunCacheRequest(self.model, namespace=namespace, ignore_cache=ignore_cache, **params)
+        return self._run_cache(sim_request)
 
     def _run_cache(self, request):
         '''
         :param request: Request to send to the server. Contains Model and related arguments.
         :type request: SimulationRunRequest
         '''
-        response_raw = self.server.post(Endpoint.SIMULATION_GILLESPY2, sub="/run/cache", request=request)
+        response_raw = self.server.post(Endpoint.SIMULATION_GILLESPY2, sub='/run/cache', request=request)
+
         if not response_raw.ok:
             raise Exception(response_raw.reason)
 
@@ -154,8 +150,11 @@ class RemoteSimulation:
         else:
             remote_results =  RemoteResults()
 
-        remote_results.id = sim_response.results_id
-        remote_results.task_id = sim_response.task_id
+        if request.ignore_cache is True:
+            remote_results.id = request.id
+        else:
+            remote_results.id = request.results_id
+        remote_results.task_id = request.id
         remote_results.server = self.server
         remote_results.n_traj = request.kwargs.get('number_of_trajectories', 1)
 

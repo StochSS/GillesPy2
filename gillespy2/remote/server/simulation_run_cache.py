@@ -64,8 +64,12 @@ class SimulationRunCacheHandler(RequestHandler):
             namespaced_dir = os.path.join(namespace, self.cache_dir)
             self.cache_dir = namespaced_dir
             log.debug(namespaced_dir)
-        sim_hash = sim_request.hash()
-        cache = Cache(self.cache_dir, sim_hash)
+        if sim_request.ignore_cache is True:
+            cache = Cache(self.cache_dir, sim_request.id)
+        else:
+            cache = Cache(self.cache_dir, sim_request.results_id)
+
+        sim_hash = sim_request.results_id
         msg_0 = f'<{self.request.remote_ip}> | <{sim_hash}>'
         if not cache.exists():
             cache.create()
@@ -99,10 +103,10 @@ class SimulationRunCacheHandler(RequestHandler):
             self._return_running(sim_hash, future.key)
             IOLoop.current().run_in_executor(None, self._cache, sim_hash, future, client)
 
-    def _cache(self, sim_hash, future, client) -> None:
+    def _cache(self, results_id, future, client) -> None:
         '''
-        :param sim_hash: Incoming request.
-        :type sim_hash: SimulationRunCacheRequest
+        :param results_id: Key to results.
+        :type results_id: str
 
         :param future: Future that completes to gillespy2.Results.
         :type future: distributed.Future
@@ -113,7 +117,7 @@ class SimulationRunCacheHandler(RequestHandler):
         '''
         results = future.result()
         client.close()
-        cache = Cache(self.cache_dir, sim_hash)
+        cache = Cache(self.cache_dir, results_id)
         cache.save(results)
 
     def _submit(self, sim_request, client):
@@ -129,15 +133,12 @@ class SimulationRunCacheHandler(RequestHandler):
         '''
         model = sim_request.model
         kwargs = sim_request.kwargs
-        n_traj = kwargs.get('number_of_trajectories', 1)
-        sim_hash_tag = sim_request.hash()[:-8]
-        key = f'{sim_hash_tag}{n_traj}{token_hex(8)}'
 
         if "solver" in kwargs:
             from pydoc import locate
             kwargs["solver"] = locate(kwargs["solver"])
 
-        return client.submit(model.run, **kwargs, key=key)
+        return client.submit(model.run, **kwargs, key=sim_request.id)
 
     def _return_running(self, results_id, task_id):
         sim_response = SimulationRunCacheResponse(SimStatus.RUNNING, results_id=results_id, task_id=task_id)

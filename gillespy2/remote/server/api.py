@@ -22,7 +22,7 @@ import asyncio
 import subprocess
 from logging import DEBUG, INFO
 from tornado.web import Application
-from gillespy2.remote.server.simulation_run import SimulationRunHandler
+from gillespy2.remote.server.is_cached import IsCachedHandler
 from gillespy2.remote.server.simulation_run_cache import SimulationRunCacheHandler
 from gillespy2.remote.server.sourceip import SourceIpHandler
 from gillespy2.remote.server.status import StatusHandler
@@ -36,34 +36,27 @@ def _make_app(dask_host, dask_scheduler_port, cache):
             'cache_dir': cache}
     cache_arg = {'cache_dir': cache}
     return Application([
-        (r'/api/v2/simulation/gillespy2/run',
-         SimulationRunHandler,
-         args),
         (r'/api/v2/simulation/gillespy2/run/cache',
          SimulationRunCacheHandler,
          args),
-        (r'/api/v2/simulation/gillespy2/status',
+        (r'/api/v2/simulation/gillespy2/(?P<results_id>[0-9a-fA-F][0-9a-fA-F]*?)/(?P<task_id>[0-9a-fA-F][0-9a-fA-F]*?)/status',
          StatusHandler,
          args),
         (r'/api/v2/simulation/gillespy2/(?P<results_id>[0-9a-zA-Z][0-9a-zA-Z]*?)/results',
          ResultsHandler,
          cache_arg),
-        (r'/api/v2/simulation/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/results',
-         ResultsHandler,
-         cache_arg),
-        # (r'/api/v2/cache/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/is_cached',
-        #     IsCachedHandler, {'cache_dir': cache}),
+        (r'/api/v2/cache/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/is_cached',
+            IsCachedHandler, {'cache_dir': cache}),
         (r'/api/v2/cloud/sourceip', SourceIpHandler),
     ])
 
 async def start_api(
         port = 29681,
-        cache_trajectories = True,
         cache_path = 'cache/',
         dask_host = 'localhost',
         dask_scheduler_port = 8786,
         rm = False,
-        logging_level = DEBUG,
+        logging_level = INFO,
         ):
     """
     Start the REST API with the following arguments.

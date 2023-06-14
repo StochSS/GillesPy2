@@ -44,6 +44,8 @@ def _add_shared_args(parser):
         help='Path to use for the cache.')
     cache.add_argument('--rm', default=False, action='store_true', required=False,
         help='Whether to delete the cache upon exit. Default False.')
+    
+    return parser
 
 
 def launch_server():
