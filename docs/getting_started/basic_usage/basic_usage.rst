@@ -55,7 +55,7 @@ In GillesPy2, a model is expressed as an object.  Components, such as the reacti
         model.add_reaction([r_c, r_d])
 
         # Set the timespan for the simulation.
-        tspan = gillespy2.TimeSpan.linspace(0, 100, 101)
+        tspan = gillespy2.TimeSpan.linspace(100, 101)
         model.timespan(tspan)
         return model
 
