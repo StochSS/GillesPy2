@@ -46,7 +46,7 @@ class Server(ABC):
         '''
         return NotImplemented
 
-    def get(self, endpoint: Endpoint, sub: str):
+    def get(self, endpoint: Endpoint, sub: str, request: Request = None):
         '''
         Send a GET request to endpoint.
 
@@ -56,6 +56,9 @@ class Server(ABC):
         :param sub: Final part of url string.
         :type sub: str
 
+        :param request: An object that inherits from Request.
+        :type request: Request
+
         :returns: The HTTP response.
         :rtype: requests.Response
         '''
@@ -64,7 +67,9 @@ class Server(ABC):
         sec = 3
         while n_try <= 3:
             try:
-                return requests.get(url, timeout=30)
+                if request is not None:
+                    return requests.get( url, timeout=30, json=request.encode())
+                return requests.get( url, timeout=30)
 
             except ConnectionError:
                 print(f"Connection refused by server. Retrying in {sec} seconds....")
