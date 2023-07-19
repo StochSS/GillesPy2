@@ -24,7 +24,7 @@ class SimulationRunCacheRequest(Request):
     :param kwargs: kwargs for the model.run() call.
     :type kwargs: dict[str, Any]
     '''
-    def __init__(self, model, namespace=None, ignore_cache=False, **kwargs):
+    def __init__(self, model, namespace=None, ignore_cache=False, parallelize=False, **kwargs):
         self.model = model
         self.kwargs = kwargs
         self.id = token_hex(16)
@@ -34,19 +34,20 @@ class SimulationRunCacheRequest(Request):
             self.results_id = self.hash()
         self.namespace = namespace
         self.ignore_cache = ignore_cache
+        self.parallelize = parallelize
 
     def encode(self):
         '''
         JSON-encode model and then encode self to dict.
         '''
-
         return {
                 'model': self.model.to_json(),
                 'kwargs': self.kwargs,
                 'id': self.id,
                 'results_id': self.results_id,
                 'namespace': self.namespace,
-                'ignore_cache': self.ignore_cache
+                'ignore_cache': self.ignore_cache,
+                'parallelize': self.parallelize,
                 }
 
     @staticmethod
@@ -71,7 +72,8 @@ class SimulationRunCacheRequest(Request):
         results_id = request_dict.get('results_id', None) # apply correct token (from raw request) after object construction.
         namespace = request_dict.get('namespace', None)
         ignore_cache = request_dict.get('ignore_cache', None)
-        if None in (model, id, results_id, ignore_cache):
+        parallelize = request_dict.get('parallelize', None)
+        if None in (model, id, results_id, ignore_cache, parallelize):
             raise MessageParseException        
         _ = SimulationRunCacheRequest(model, namespace=namespace, ignore_cache=ignore_cache, **kwargs)
         _.id = id # apply correct token (from raw request) after object construction.
