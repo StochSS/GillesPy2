@@ -23,6 +23,9 @@ import requests
 from gillespy2.remote.client.endpoint import Endpoint
 from gillespy2.remote.core.messages.base import Request
 
+from gillespy2.remote.core.log_config import init_logging
+log = init_logging(__name__)
+
 class Server(ABC):
     '''
     Abstract Server class with hard coded endpoints.
@@ -31,8 +34,8 @@ class Server(ABC):
     '''
 
     _endpoints = {
-        Endpoint.SIMULATION_GILLESPY2: "/api/v2/simulation/gillespy2",
-        Endpoint.CLOUD: "/api/v2/cloud"
+        Endpoint.SIMULATION_GILLESPY2: "/api/v3/simulation/gillespy2",
+        Endpoint.CLOUD: "/api/v3/cloud"
     }
 
     def __init__(self) -> None:
@@ -62,7 +65,9 @@ class Server(ABC):
         :returns: The HTTP response.
         :rtype: requests.Response
         '''
+        log.debug(request.encode())
         url = f"{self.address}{self._endpoints[endpoint]}{sub}"
+        log.debug(url)
         n_try = 1
         sec = 3
         while n_try <= 3:
@@ -98,11 +103,13 @@ class Server(ABC):
         :returns: The HTTP response.
         :rtype: requests.Response
         '''
+        log.debug(request.encode())
 
         if self.address is NotImplemented:
             raise NotImplementedError
 
         url = f"{self.address}{self._endpoints[endpoint]}{sub}"
+        log.debug(url)
         n_try = 1
         sec = 3
         while n_try <= 3:
