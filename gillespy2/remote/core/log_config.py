@@ -13,8 +13,8 @@ def init_logging(name):
 
     Like so:
 
-    from gillespy2.remote.core.log_config import init_logs
-    log = init_logs(__name__)
+    from gillespy2.remote.core.log_config import init_logging
+    log = init_logging(__name__)
 
     :param name: Name for the logger. Use the dot-separated module path string.
     :type name: str
