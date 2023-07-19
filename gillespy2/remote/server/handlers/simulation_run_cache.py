@@ -17,7 +17,6 @@ gillespy2.remote.server.run
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from secrets import token_hex
 
 from tornado.web import RequestHandler
 from tornado.ioloop import IOLoop
@@ -80,10 +79,7 @@ class SimulationRunCacheHandler(RequestHandler):
                 sim_request.kwargs['number_of_trajectories'] = trajectories_needed
                 msg = f'{msg_0} | Partial cache. Running {trajectories_needed} new trajectories.'
                 log.info(msg)
-                client = Client(self.scheduler_address)
-                future = self._submit(sim_request, client)
-                self._return_running(results_id, future.key)
-                IOLoop.current().run_in_executor(None, self._cache, results_id, future, client)
+                self._run_cache(sim_request)
             else:
                 msg = f'{msg_0} | Returning cached results.'
                 log.info(msg)
@@ -95,12 +91,9 @@ class SimulationRunCacheHandler(RequestHandler):
         if empty:
             msg = f'{msg_0} | Results not cached. Running simulation.'
             log.info(msg)
-            client = Client(self.scheduler_address)
-            future = self._submit(sim_request, client)
-            self._return_running(results_id, future.key)
-            IOLoop.current().run_in_executor(None, self._cache, results_id, future, client)
+            self._run_cache(sim_request)
 
-    def _cache(self, results_id, future, client) -> None:
+    def _run_cache(self, sim_request) -> None:
         '''
         :param results_id: Key to results.
         :type results_id: str
@@ -112,12 +105,18 @@ class SimulationRunCacheHandler(RequestHandler):
         :type client: distributed.Client
 
         '''
-        results = future.result()
-        client.close()
-        cache = Cache(self.cache_dir, results_id)
-        cache.save(results)
+        results_id = sim_request.results_id
+        client = Client(self.scheduler_address)
+        if sim_request.parallelize is True:
+            futures = self._submit_parallel(sim_request, client)
+            self._return_running(results_id, future.key)
 
-    def _submit(self, sim_request, client):
+        else:
+            future = self._submit(sim_request, client)
+            self._return_running(results_id, future.key)
+            IOLoop.current().run_in_executor(None, self._cache, results_id, future, client)
+
+    async def _submit_parallel(sim_request, client):
         '''
         :param sim_request: Incoming request.
         :type sim_request: SimulationRunCacheRequest
@@ -135,6 +134,68 @@ class SimulationRunCacheHandler(RequestHandler):
             from pydoc import locate
             kwargs["solver"] = locate(kwargs["solver"])
 
+        futures = []
+        n_traj = kwargs['number_of_trajectories']
+        kwargs['number_of_trajectories'] = 1
+        for _ in range(n_traj):
+            future = client.submit(model.run, **kwargs)
+            futures.append(future)
+        
+        return futures
+
+
+    def _cache(self, results_id, future, client) -> None:
+        '''
+        :param results_id: Key to results.
+        :type results_id: str
+
+        :param future: Future that completes to gillespy2.Results.
+        :type future: distributed.Future
+
+        :param client: Handle to dask scheduler.
+        :type client: distributed.Client
+
+        '''
+        results = future.result()
+        client.close()
+        cache = Cache(self.cache_dir, results_id)
+        cache.save(results)
+        
+    def _cache(self, results_id, future, client) -> None:
+        '''
+        :param results_id: Key to results.
+        :type results_id: str
+
+        :param future: Future that completes to gillespy2.Results.
+        :type future: distributed.Future
+
+        :param client: Handle to dask scheduler.
+        :type client: distributed.Client
+
+        '''
+        results = future.result()
+        client.close()
+        cache = Cache(self.cache_dir, results_id)
+        cache.save(results)
+
+    def _submit(self, sim_request, client: Client):
+        '''
+        :param sim_request: Incoming request.
+        :type sim_request: SimulationRunCacheRequest
+
+        :param client: Handle to dask scheduler.
+        :type client: distributed.Client
+
+        :returns: Future that completes to gillespy2.Results.
+        :rtype: distributed.Future
+        '''
+        model = sim_request.model
+        kwargs = sim_request.kwargs
+
+        if "solver" in kwargs:
+            from pydoc import locate
+            kwargs["solver"] = locate(kwargs["solver"])
+        
         return client.submit(model.run, **kwargs, key=sim_request.id)
 
     def _return_running(self, results_id, task_id):
