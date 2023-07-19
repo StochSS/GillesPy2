@@ -23,6 +23,9 @@ from gillespy2.remote.core.messages.status import SimStatus
 from gillespy2.remote.core.errors import RemoteSimulationError
 from gillespy2.remote.core.remote_results import RemoteResults
 
+from gillespy2.remote.core.log_config import init_logging
+log = init_logging(__name__)
+
 class RemoteSimulation:
     '''
     An object representing a remote gillespy2 simulation. Requires a model and a host address.
@@ -150,10 +153,7 @@ class RemoteSimulation:
         else:
             remote_results =  RemoteResults()
 
-        if request.ignore_cache is True:
-            remote_results.id = request.id
-        else:
-            remote_results.id = request.results_id
+        remote_results.id = request.results_id
         remote_results.task_id = request.id
         remote_results.server = self.server
         remote_results.n_traj = request.kwargs.get('number_of_trajectories', 1)
