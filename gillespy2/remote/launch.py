@@ -52,9 +52,9 @@ def launch_server():
     '''
     Start the REST API. Alias to script "gillespy2-remote".
 
-    `gillespy2-remote --help`
+    `gillespy2-remote`
     OR
-    `python -m gillespy2.remote.launch --help`
+    `python -m gillespy2.remote.launch`
     '''
     def _parse_args() -> Namespace:
         desc = '''
@@ -83,9 +83,9 @@ def launch_with_cluster():
     '''
     Start up a Dask cluster along with gillespy2.remote REST API. Alias to script "gillespy2-remote-cluster".
 
-    `gillespy2-remote-cluster --help`
+    `gillespy2-remote-cluster`
     OR
-    `python -m gillespy2.remote.launch cluster --help`
+    `python -m gillespy2.remote.launch cluster`
     '''
 
     def _parse_args() -> Namespace:
