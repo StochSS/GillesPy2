@@ -81,7 +81,7 @@ class StatusHandler(RequestHandler):
         ready_msg = f'{msg_1} {SimStatus.READY.name}'
         
         if cache.exists():
-            log.debug('cache.exists(): %(exists)s', locals())
+            log.debug('cache.exists(): True')
         
             if cache.is_empty():
         
@@ -128,7 +128,7 @@ class StatusHandler(RequestHandler):
                         self._respond_dne()
 
         else:
-
+            log.debug('cache.exists(): False')
             log.info(dne_msg)
             self._respond_dne()
 
