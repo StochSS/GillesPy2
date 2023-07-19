@@ -27,8 +27,11 @@ class SimulationRunCacheRequest(Request):
     def __init__(self, model, namespace=None, ignore_cache=False, **kwargs):
         self.model = model
         self.kwargs = kwargs
-        self.id = token_hex(32)
-        self.results_id = self.hash()
+        self.id = token_hex(16)
+        if ignore_cache is True:
+            self.results_id = self.id
+        else:
+            self.results_id = self.hash()
         self.namespace = namespace
         self.ignore_cache = ignore_cache
 
@@ -72,6 +75,7 @@ class SimulationRunCacheRequest(Request):
             raise MessageParseException        
         _ = SimulationRunCacheRequest(model, namespace=namespace, ignore_cache=ignore_cache, **kwargs)
         _.id = id # apply correct token (from raw request) after object construction.
+        _.results_id = results_id # apply correct token (from raw request) after object construction.
         return _
     
     def hash(self):
