@@ -58,19 +58,16 @@ class SimulationRunCacheHandler(RequestHandler):
         Process simulation run request.
         '''
         sim_request = SimulationRunCacheRequest.parse(self.request.body)
+        log.debug(sim_request.encode())
         namespace = sim_request.namespace
         log.debug('%(namespace)s', locals())
         if namespace is not None:
             namespaced_dir = os.path.join(namespace, self.cache_dir)
             self.cache_dir = namespaced_dir
             log.debug(namespaced_dir)
-        if sim_request.ignore_cache is True:
-            cache = Cache(self.cache_dir, sim_request.id)
-        else:
-            cache = Cache(self.cache_dir, sim_request.results_id)
-
-        sim_hash = sim_request.results_id
-        msg_0 = f'<{self.request.remote_ip}> | <{sim_hash}>'
+        results_id = sim_request.results_id
+        cache = Cache(self.cache_dir, results_id)
+        msg_0 = f'<{self.request.remote_ip}> | <{results_id}>'
         if not cache.exists():
             cache.create()
         empty = cache.is_empty()
@@ -85,14 +82,14 @@ class SimulationRunCacheHandler(RequestHandler):
                 log.info(msg)
                 client = Client(self.scheduler_address)
                 future = self._submit(sim_request, client)
-                self._return_running(sim_hash, future.key)
-                IOLoop.current().run_in_executor(None, self._cache, sim_hash, future, client)
+                self._return_running(results_id, future.key)
+                IOLoop.current().run_in_executor(None, self._cache, results_id, future, client)
             else:
                 msg = f'{msg_0} | Returning cached results.'
                 log.info(msg)
                 results = cache.get_sample(n_traj)
                 results_json = results.to_json()
-                sim_response = SimulationRunCacheResponse(SimStatus.READY, results_id = sim_hash, results = results_json)
+                sim_response = SimulationRunCacheResponse(SimStatus.READY, results_id = results_id, results = results_json)
                 self.write(sim_response.encode())
                 self.finish()
         if empty:
@@ -100,8 +97,8 @@ class SimulationRunCacheHandler(RequestHandler):
             log.info(msg)
             client = Client(self.scheduler_address)
             future = self._submit(sim_request, client)
-            self._return_running(sim_hash, future.key)
-            IOLoop.current().run_in_executor(None, self._cache, sim_hash, future, client)
+            self._return_running(results_id, future.key)
+            IOLoop.current().run_in_executor(None, self._cache, results_id, future, client)
 
     def _cache(self, results_id, future, client) -> None:
         '''
