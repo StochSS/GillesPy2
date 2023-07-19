@@ -22,11 +22,11 @@ import asyncio
 import subprocess
 from logging import DEBUG, INFO
 from tornado.web import Application
-from gillespy2.remote.server.is_cached import IsCachedHandler
-from gillespy2.remote.server.simulation_run_cache import SimulationRunCacheHandler
-from gillespy2.remote.server.sourceip import SourceIpHandler
-from gillespy2.remote.server.status import StatusHandler
-from gillespy2.remote.server.results import ResultsHandler
+from gillespy2.remote.server.handlers.is_cached import IsCachedHandler
+from gillespy2.remote.server.handlers.simulation_run_cache import SimulationRunCacheHandler
+from gillespy2.remote.server.handlers.sourceip import SourceIpHandler
+from gillespy2.remote.server.handlers.status import StatusHandler
+from gillespy2.remote.server.handlers.results import ResultsHandler
 from gillespy2.remote.core.log_config import init_logging, set_global_log_level
 log = init_logging(__name__)
 
@@ -39,10 +39,10 @@ def _make_app(dask_host, dask_scheduler_port, cache):
         (r'/api/v2/simulation/gillespy2/run/cache',
          SimulationRunCacheHandler,
          args),
-        (r'/api/v2/simulation/gillespy2/(?P<results_id>[0-9a-fA-F][0-9a-fA-F]*?)/(?P<task_id>[0-9a-fA-F][0-9a-fA-F]*?)/status',
+        (r'/api/v2/simulation/gillespy2/status',
          StatusHandler,
          args),
-        (r'/api/v2/simulation/gillespy2/(?P<results_id>[0-9a-zA-Z][0-9a-zA-Z]*?)/results',
+        (r'/api/v2/simulation/gillespy2/results',
          ResultsHandler,
          cache_arg),
         (r'/api/v2/cache/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/is_cached',

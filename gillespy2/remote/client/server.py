@@ -68,7 +68,7 @@ class Server(ABC):
         while n_try <= 3:
             try:
                 if request is not None:
-                    return requests.get( url, timeout=30, json=request.encode())
+                    return requests.get(url, timeout=30, params=request.encode())
                 return requests.get( url, timeout=30)
 
             except ConnectionError:

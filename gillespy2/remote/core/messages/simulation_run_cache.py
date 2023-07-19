@@ -142,11 +142,10 @@ class SimulationRunCacheResponse(Response):
         '''
         response_dict = json_decode(raw_response)
         status = SimStatus.from_str(response_dict['status'])
-        results_id = response_dict['results_id']
-        error_message = response_dict['error_message']
-        task_id = response_dict['task_id']
-        if response_dict['results'] != '':
-            results = Results.from_json(response_dict['results'])
-        else:
-            results = None
+        results_id = response_dict.get('results_id', None)
+        error_message = response_dict.get('error_message', None)
+        task_id = response_dict.get('task_id', None)
+        results = response_dict.get('results', None)
+        if results is not None:
+            results = Results.from_json(results)
         return SimulationRunCacheResponse(status, error_message, results_id, results, task_id)

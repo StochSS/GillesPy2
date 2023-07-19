@@ -51,23 +51,25 @@ class StatusHandler(RequestHandler):
         self.scheduler_address = scheduler_address
         self.cache_dir = cache_dir
 
-    async def post(self):
+    async def get(self):
         '''
-        Process Status POST request.
-
+        Process Status GET request.
         '''
-        status_request = StatusRequest.parse(self.request.body)
-        log.debug(status_request.__dict__)
+        
+        # status_request = StatusRequest.parse(self.request)
+        log.debug(self.request.query_arguments)
 
-        results_id = status_request.results_id
-        n_traj = int(status_request.n_traj)
-        task_id = status_request.task_id
-        namespace = status_request.namespace
+        results_id = self.get_query_argument('results_id')
+        n_traj = self.get_query_argument('n_traj', None)
+        if n_traj is not None:
+            n_traj = int(n_traj)
+        task_id = self.get_query_argument('task_id', None)
+        namespace = self.get_query_argument('namespace', None)
 
         if namespace is not None:
             self.cache_dir = os.path.join(self.cache_dir, namespace)
-        if results_id == task_id: # True iff call made using (ignore_cache=True)
-            self.cache_dir = os.path.join(self.cache_dir, 'run/')
+        # if results_id == task_id: # True iff call made using (ignore_cache=True)
+        #     self.cache_dir = os.path.join(self.cache_dir, 'run/')
         
         cache = Cache(self.cache_dir, results_id)
         

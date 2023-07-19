@@ -42,11 +42,11 @@ class ResultsHandler(RequestHandler):
         :param cache_dir: Path to the cache.
         :type cache_dir: str
         '''
-        while cache_dir.endswith('/'):
-            cache_dir = cache_dir[:-1]
-        self.cache_dir = cache_dir + '/run/'
+        # while cache_dir.endswith('/'):
+        #     cache_dir = cache_dir[:-1]
+        self.cache_dir = cache_dir
 
-    async def get(self, results_id = None):
+    async def get(self):
         '''
         Process GET request.
 
@@ -56,15 +56,20 @@ class ResultsHandler(RequestHandler):
         :param n_traj: Number of trajectories in the request.
         :type n_traj: str
         '''
-        if results_id in ('', '/'):
+        results_id = self.get_query_argument('results_id', None)
+        n_traj = self.get_query_argument('n_traj', 0)
+        if results_id is None:
             self.set_status(404, reason=f'Malformed request: {self.request.uri}')
             self.finish()
             raise RemoteSimulationError(f'Malformed request | <{self.request.remote_ip}>')
         msg = f' <{self.request.remote_ip}> | Results Request | <{results_id}>'
         log.info(msg)
         cache = Cache(self.cache_dir, results_id)
-        if cache.is_ready():
-            results = cache.read()
+        if cache.is_ready(n_traj_wanted=n_traj):
+            if n_traj > 0:
+                results = cache.get_sample(n_traj)
+            else:
+                results = cache.read()
             results_response = ResultsResponse(results)
             self.write(results_response.encode())
         else:

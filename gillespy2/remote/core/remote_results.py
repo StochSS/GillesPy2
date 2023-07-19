@@ -20,7 +20,7 @@ from time import sleep
 from gillespy2 import Results
 from gillespy2.remote.client.endpoint import Endpoint
 from gillespy2.remote.core.errors import RemoteSimulationError
-from gillespy2.remote.core.messages.results import ResultsResponse
+from gillespy2.remote.core.messages.results import ResultsRequest, ResultsResponse
 from gillespy2.remote.core.messages.status import StatusRequest, StatusResponse, SimStatus
 
 from gillespy2.remote.core.log_config import init_logging
@@ -44,13 +44,16 @@ class RemoteResults(Results):
 
     :param task_id: Handle for the running simulation.
     :type task_id: str
+
+    :param namespace: Optional namespace.
+    :type namespace: str
     '''
-    # These four fields are initialized after object creation.
-    id = None
+
+    id = None # required
     server = None
-    n_traj = None
-    task_id = None
-    namespace = None
+    n_traj = None # Defaults to 1
+    task_id = None # optional
+    namespace = None # optional
 
     # pylint:disable=super-init-not-called
     def __init__(self, data = None):
@@ -110,11 +113,12 @@ class RemoteResults(Results):
         It is undefined/illegal behavior to call this function if self._data is not None.        
         '''
         if self._data is not None:
-            raise Exception('TODO Name this exception class. Cant call status on a finished simulation.')
-        # Request the status of a submitted simulation.
-        status_request = StatusRequest(self.id, self.namespace)
-        response_raw = self.server.post(Endpoint.SIMULATION_GILLESPY2,
-                                       f"/status")
+            raise Exception('TODO Name this exception class. Cannot call status on a finished simulation.')
+
+        status_request = StatusRequest(self.id, self.n_traj, self.task_id, self.namespace)
+
+        response_raw = self.server.get(Endpoint.SIMULATION_GILLESPY2, '/status', request=status_request)
+
         if not response_raw.ok:
             raise RemoteSimulationError(response_raw.reason)
 
@@ -142,10 +146,8 @@ class RemoteResults(Results):
 
         if status == SimStatus.READY:
             log.info('Results ready. Fetching.......')
-            if self.id == self.task_id:
-                response_raw = self.server.get(Endpoint.SIMULATION_GILLESPY2, f"/{self.id}/results")
-            else:
-                response_raw = self.server.get(Endpoint.SIMULATION_GILLESPY2, f"/{self.id}/{self.n_traj}/results")
+            results_request = ResultsRequest(self.id, self.namespace)
+            response_raw = self.server.get(Endpoint.SIMULATION_GILLESPY2, f"/results", request=results_request)
             if not response_raw.ok:
                 raise RemoteSimulationError(response_raw.reason)
 

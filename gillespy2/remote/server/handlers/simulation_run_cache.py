@@ -60,7 +60,7 @@ class SimulationRunCacheHandler(RequestHandler):
         sim_request = SimulationRunCacheRequest.parse(self.request.body)
         namespace = sim_request.namespace
         log.debug('%(namespace)s', locals())
-        if namespace != '':
+        if namespace is not None:
             namespaced_dir = os.path.join(namespace, self.cache_dir)
             self.cache_dir = namespaced_dir
             log.debug(namespaced_dir)

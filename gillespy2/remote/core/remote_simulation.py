@@ -159,26 +159,3 @@ class RemoteSimulation:
         remote_results.n_traj = request.kwargs.get('number_of_trajectories', 1)
 
         return remote_results
-
-    def _run(self, request):
-        '''
-        Ignores the cache. Gives each simulation request a unique identifier.
-
-        :param request: Request to send to the server. Contains Model and related arguments.
-        :type request: SimulationRunUniqueRequest
-        '''
-        response_raw = self.server.post(Endpoint.SIMULATION_GILLESPY2, sub="/run", request=request)
-
-        if not response_raw.ok:
-            raise Exception(response_raw.reason)
-        sim_response = SimulationRunResponse.parse(response_raw.text)
-        if not sim_response.status is SimStatus.RUNNING:
-            raise Exception(sim_response.error_message)
-        # non-conforming object creation ... possible refactor needed to solve, so left in.
-        remote_results =  RemoteResults()
-        remote_results.id = request.id
-        remote_results.task_id = request.id
-        remote_results.server = self.server
-        remote_results.n_traj = request.kwargs.get('number_of_trajectories', 1)
-
-        return remote_results
