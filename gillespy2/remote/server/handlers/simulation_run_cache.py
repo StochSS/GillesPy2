@@ -26,7 +26,7 @@ from gillespy2.remote.core.messages.status import SimStatus
 from gillespy2.remote.core.messages.simulation_run_cache import SimulationRunCacheRequest, SimulationRunCacheResponse
 from gillespy2.remote.server.cache import Cache
 
-from gillespy2.remote.core.log_config import init_logging
+from gillespy2.remote.core.utils.log_config import init_logging
 log = init_logging(__name__)
 
 class SimulationRunCacheHandler(RequestHandler):

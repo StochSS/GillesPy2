@@ -26,7 +26,7 @@ from gillespy2.remote.cloud.ec2_config import EC2LocalConfig, EC2RemoteConfig
 from gillespy2.remote.core.messages.source_ip import SourceIpRequest, SourceIpResponse
 from gillespy2.remote.cloud.exceptions import EC2ImportException, ResourceException, EC2Exception
 from gillespy2.remote.client.endpoint import Endpoint
-from gillespy2.remote.core.log_config import init_logging
+from gillespy2.remote.core.utils.log_config import init_logging
 log = init_logging(__name__)
 try:
     import boto3

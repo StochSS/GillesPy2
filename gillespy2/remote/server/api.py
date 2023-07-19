@@ -27,7 +27,7 @@ from gillespy2.remote.server.handlers.simulation_run_cache import SimulationRunC
 from gillespy2.remote.server.handlers.sourceip import SourceIpHandler
 from gillespy2.remote.server.handlers.status import StatusHandler
 from gillespy2.remote.server.handlers.results import ResultsHandler
-from gillespy2.remote.core.log_config import init_logging, set_global_log_level
+from gillespy2.remote.core.utils.log_config import init_logging, set_global_log_level
 log = init_logging(__name__)
 
 def _make_app(dask_host, dask_scheduler_port, cache):

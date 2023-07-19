@@ -23,7 +23,7 @@ from gillespy2.remote.core.messages.status import SimStatus
 from gillespy2.remote.core.errors import RemoteSimulationError
 from gillespy2.remote.core.remote_results import RemoteResults
 
-from gillespy2.remote.core.log_config import init_logging
+from gillespy2.remote.core.utils.log_config import init_logging
 log = init_logging(__name__)
 
 class RemoteSimulation:

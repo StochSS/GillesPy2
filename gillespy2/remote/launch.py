@@ -23,7 +23,7 @@ from distributed import LocalCluster
 from gillespy2.remote.server.api import start_api
 
 from logging import INFO, getLevelName
-from gillespy2.remote.core.log_config import init_logging
+from gillespy2.remote.core.utils.log_config import init_logging
 log = init_logging(__name__)
 
 def _add_shared_args(parser):

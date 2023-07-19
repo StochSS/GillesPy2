@@ -1,5 +1,5 @@
 '''
-gillespy2.remote.core.log_config
+gillespy2.remote.core.utils.log_config
 
 Global Logging Configuration
 '''
@@ -13,7 +13,7 @@ def init_logging(name):
 
     Like so:
 
-    from gillespy2.remote.core.log_config import init_logging
+    from gillespy2.remote.core.utils.log_config import init_logging
     log = init_logging(__name__)
 
     :param name: Name for the logger. Use the dot-separated module path string.
