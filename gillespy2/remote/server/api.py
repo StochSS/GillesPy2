@@ -36,18 +36,18 @@ def _make_app(dask_host, dask_scheduler_port, cache):
             'cache_dir': cache}
     cache_arg = {'cache_dir': cache}
     return Application([
-        (r'/api/v2/simulation/gillespy2/run/cache',
+        (r'/api/v3/simulation/gillespy2/run/cache',
          SimulationRunCacheHandler,
          args),
-        (r'/api/v2/simulation/gillespy2/status',
+        (r'/api/v3/simulation/gillespy2/status',
          StatusHandler,
          args),
-        (r'/api/v2/simulation/gillespy2/results',
+        (r'/api/v3/simulation/gillespy2/results',
          ResultsHandler,
          cache_arg),
-        (r'/api/v2/cache/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/is_cached',
+        (r'/api/v3/cache/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/is_cached',
             IsCachedHandler, {'cache_dir': cache}),
-        (r'/api/v2/cloud/sourceip', SourceIpHandler),
+        (r'/api/v3/cloud/sourceip', SourceIpHandler),
     ])
 
 async def start_api(
