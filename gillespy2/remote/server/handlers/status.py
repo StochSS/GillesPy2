@@ -71,7 +71,7 @@ class StatusHandler(RequestHandler):
         # if results_id == task_id: # True iff call made using (ignore_cache=True)
         #     self.cache_dir = os.path.join(self.cache_dir, 'run/')
         
-        cache = Cache(self.cache_dir, results_id)
+        cache = Cache(self.cache_dir, results_id, namespace=namespace)
         
         msg_0 = f'<{self.request.remote_ip}> | Results ID: <{results_id}> | Trajectories: {n_traj} | Task ID: {task_id}'
         log.info(msg_0)
