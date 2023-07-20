@@ -58,13 +58,14 @@ class ResultsHandler(RequestHandler):
         '''
         results_id = self.get_query_argument('results_id', None)
         n_traj = self.get_query_argument('n_traj', 0)
+        namespace = self.get_query_argument('namespace', None)
         if results_id is None:
             self.set_status(404, reason=f'Malformed request: {self.request.uri}')
             self.finish()
             raise RemoteSimulationError(f'Malformed request | <{self.request.remote_ip}>')
         msg = f' <{self.request.remote_ip}> | Results Request | <{results_id}>'
         log.info(msg)
-        cache = Cache(self.cache_dir, results_id)
+        cache = Cache(self.cache_dir, results_id, namespace=namespace)
         if cache.is_ready(n_traj_wanted=n_traj):
             if n_traj > 0:
                 results = cache.get_sample(n_traj)

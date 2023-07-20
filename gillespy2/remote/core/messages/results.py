@@ -40,7 +40,7 @@ class ResultsRequest(Request):
         :rtype: ResultsRequest
         '''
         request_dict = json_decode(raw_request)
-        return ResultsRequest(request_dict['results_id'], request_dict['results_id'])
+        return ResultsRequest(request_dict['results_id'], request_dict['namespace'])
 
 class ResultsResponse(Response):
     '''

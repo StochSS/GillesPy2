@@ -66,11 +66,6 @@ class StatusHandler(RequestHandler):
         task_id = self.get_query_argument('task_id', None)
         namespace = self.get_query_argument('namespace', None)
 
-        if namespace is not None:
-            self.cache_dir = os.path.join(self.cache_dir, namespace)
-        # if results_id == task_id: # True iff call made using (ignore_cache=True)
-        #     self.cache_dir = os.path.join(self.cache_dir, 'run/')
-        
         cache = Cache(self.cache_dir, results_id, namespace=namespace)
         
         msg_0 = f'<{self.request.remote_ip}> | Results ID: <{results_id}> | Trajectories: {n_traj} | Task ID: {task_id}'

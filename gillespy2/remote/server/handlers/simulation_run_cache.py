@@ -62,25 +62,25 @@ class SimulationRunCacheHandler(RequestHandler):
         log.debug('%(namespace)s', locals())
 
         results_id = sim_request.results_id
-        cache = Cache(self.cache_dir, results_id, namespace=sim_request.namespace)
+        self.cache = Cache(self.cache_dir, results_id, namespace=sim_request.namespace)
         msg_0 = f'<{self.request.remote_ip}> | <{results_id}>'
-        if not cache.exists():
-            cache.create()
-        empty = cache.is_empty()
+        if not self.cache.exists():
+            self.cache.create()
+        empty = self.cache.is_empty()
         if not empty:
             # Check the number of trajectories in the request, default 1
             n_traj = sim_request.kwargs.get('number_of_trajectories', 1)
             # Compare that to the number of cached trajectories
-            trajectories_needed =  cache.n_traj_needed(n_traj)
+            trajectories_needed =  self.cache.n_traj_needed(n_traj)
             if trajectories_needed > 0:
                 sim_request.kwargs['number_of_trajectories'] = trajectories_needed
-                msg = f'{msg_0} | Partial cache. Running {trajectories_needed} new trajectories.'
+                msg = f'{msg_0} | Partial self.. Running {trajectories_needed} new trajectories.'
                 log.info(msg)
                 self._run_cache(sim_request)
             else:
                 msg = f'{msg_0} | Returning cached results.'
                 log.info(msg)
-                results = cache.get_sample(n_traj)
+                results = self.cache.get_sample(n_traj)
                 results_json = results.to_json()
                 sim_response = SimulationRunCacheResponse(SimStatus.READY, results_id = results_id, results = results_json)
                 self.write(sim_response.encode())
@@ -208,8 +208,8 @@ class SimulationRunCacheHandler(RequestHandler):
         log.debug(results)
         client.close()
         # return
-        cache = Cache(self.cache_dir, results_id)
-        cache.save(results)
+        # cache = Cache(self.cache_dir, results_id)
+        self.cache.save(results)
         
     def _cache(self, results_id, future, client) -> None:
         '''
@@ -225,8 +225,8 @@ class SimulationRunCacheHandler(RequestHandler):
         '''
         results = future.result()
         client.close()
-        cache = Cache(self.cache_dir, results_id)
-        cache.save(results)
+        # cache = Cache(self.cache_dir, results_id)
+        self.cache.save(results)
 
     def _submit(self, sim_request, client: Client):
         '''

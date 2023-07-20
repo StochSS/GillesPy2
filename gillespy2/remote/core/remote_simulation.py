@@ -162,6 +162,7 @@ class RemoteSimulation:
         remote_results.task_id = request.id
         remote_results.server = self.server
         remote_results.n_traj = request.kwargs.get('number_of_trajectories', 1)
+        remote_results.namespace = request.namespace
 
         return remote_results
 
