@@ -101,7 +101,7 @@ class RemoteSimulation:
         results_dummy.n_traj = params.get('number_of_trajectories', 1)
         return results_dummy.is_ready
 
-    def run(self, namespace=None, ignore_cache=False, **params):
+    def run(self, namespace=None, ignore_cache=False, parallelize=False, submit_chunks=False, **params):
         # pylint:disable=line-too-long
         """
         Simulate the Model on the target ComputeServer, returning the results or a handle to a running simulation.
@@ -130,7 +130,12 @@ class RemoteSimulation:
             params["solver"] = f"{params['solver'].__module__}.{params['solver'].__qualname__}"
         if self.solver is not None:
             params["solver"] = f"{self.solver.__module__}.{self.solver.__qualname__}"
-        sim_request = SimulationRunCacheRequest(self.model, namespace=namespace, ignore_cache=ignore_cache, **params)
+        sim_request = SimulationRunCacheRequest(self.model,
+                                                namespace=namespace,
+                                                ignore_cache=ignore_cache,
+                                                parallelize=parallelize,
+                                                submit_chunks=submit_chunks,
+                                                **params)
         return self._run_cache(sim_request)
 
     def _run_cache(self, request):
@@ -159,3 +164,5 @@ class RemoteSimulation:
         remote_results.n_traj = request.kwargs.get('number_of_trajectories', 1)
 
         return remote_results
+
+# def run_parallel(self, namespace=None):
