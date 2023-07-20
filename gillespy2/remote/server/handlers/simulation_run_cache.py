@@ -17,6 +17,7 @@ gillespy2.remote.server.run
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import random
 
 from tornado.web import RequestHandler
 from tornado.ioloop import IOLoop
@@ -58,14 +59,10 @@ class SimulationRunCacheHandler(RequestHandler):
         '''
         sim_request = SimulationRunCacheRequest.parse(self.request.body)
         log.debug(sim_request.encode())
-        namespace = sim_request.namespace
         log.debug('%(namespace)s', locals())
-        if namespace is not None:
-            namespaced_dir = os.path.join(namespace, self.cache_dir)
-            self.cache_dir = namespaced_dir
-            log.debug(namespaced_dir)
+
         results_id = sim_request.results_id
-        cache = Cache(self.cache_dir, results_id)
+        cache = Cache(self.cache_dir, results_id, namespace=sim_request.namespace)
         msg_0 = f'<{self.request.remote_ip}> | <{results_id}>'
         if not cache.exists():
             cache.create()
@@ -107,16 +104,19 @@ class SimulationRunCacheHandler(RequestHandler):
         '''
         results_id = sim_request.results_id
         client = Client(self.scheduler_address)
+        log.debug('_run_cache():')
+        log.debug(sim_request.parallelize)
+        log.debug(sim_request.chunk_trajectories)
         if sim_request.parallelize is True:
-            futures = self._submit_parallel(sim_request, client)
-            self._return_running(results_id, future.key)
-
+            self._submit_parallel(sim_request, client)
+        elif sim_request.chunk_trajectories is True:
+            self._submit_chunks(sim_request, client)
         else:
             future = self._submit(sim_request, client)
             self._return_running(results_id, future.key)
             IOLoop.current().run_in_executor(None, self._cache, results_id, future, client)
 
-    async def _submit_parallel(sim_request, client):
+    def _submit_parallel(self, sim_request, client: Client):
         '''
         :param sim_request: Incoming request.
         :type sim_request: SimulationRunCacheRequest
@@ -129,35 +129,85 @@ class SimulationRunCacheHandler(RequestHandler):
         '''
         model = sim_request.model
         kwargs = sim_request.kwargs
-
+        results_id = sim_request.results_id
         if "solver" in kwargs:
             from pydoc import locate
             kwargs["solver"] = locate(kwargs["solver"])
 
         futures = []
         n_traj = kwargs['number_of_trajectories']
-        kwargs['number_of_trajectories'] = 1
-        for _ in range(n_traj):
+        del kwargs['number_of_trajectories']
+        kwargs['seed'] = int(sim_request.id, 16)
+        for i in range(n_traj):
+            kwargs['seed'] += kwargs['seed']
             future = client.submit(model.run, **kwargs)
             futures.append(future)
+        IOLoop.current().run_in_executor(None, self._cache_parallel, results_id, futures, client)
+        self._return_running(results_id, results_id)
+
+    def _submit_chunks(self, sim_request, client: Client):
+        '''
+        :param sim_request: Incoming request.
+        :type sim_request: SimulationRunCacheRequest
+
+        :param client: Handle to dask scheduler.
+        :type client: distributed.Client
+
+        :returns: Future that completes to gillespy2.Results.
+        :rtype: distributed.Future
+        '''
+        model = sim_request.model
+        kwargs = sim_request.kwargs
+        results_id = sim_request.results_id
+        if "solver" in kwargs:
+            from pydoc import locate
+            kwargs["solver"] = locate(kwargs["solver"])
+        n_traj = kwargs.get('number_of_trajectories',1)
+        n_workers =  len(client.scheduler_info()['workers'])
+        traj_per_worker = n_traj // n_workers
+        extra_traj = n_traj % n_workers
+        log.debug('_submit_chunks():')
+        log.debug(traj_per_worker)
+        log.debug(extra_traj)
+        # return
+        # traj_per_worker_list = []
+        futures = []
+        del kwargs['number_of_trajectories']
+        kwargs['seed'] = int(sim_request.id, 16)
+        for _ in range(n_workers):
+            kwargs['seed'] += kwargs['seed']
+            kwargs['number_of_trajectories'] = traj_per_worker
+            future = client.submit(model.run, **kwargs)
+            futures.append(future)
+        if extra_traj > 0:
+            kwargs['seed'] += kwargs['seed']
+            kwargs['number_of_trajectories'] = extra_traj
+            future = client.submit(model.run, **kwargs)
+            futures.append(future)
+
+        IOLoop.current().run_in_executor(None, self._cache_parallel, results_id, futures, client)
+        self._return_running(results_id, results_id)
         
-        return futures
 
 
-    def _cache(self, results_id, future, client) -> None:
+    def _cache_parallel(self, results_id, futures, client: Client) -> None:
         '''
         :param results_id: Key to results.
         :type results_id: str
 
-        :param future: Future that completes to gillespy2.Results.
-        :type future: distributed.Future
+        :param future: List of Futures that completes to gillespy2.Results.
+        :type : List[distributed.Future]
 
         :param client: Handle to dask scheduler.
         :type client: distributed.Client
 
         '''
-        results = future.result()
+        results = client.gather(futures, asynchronous=False)
+        results = sum(results)
+        log.debug('_cache_parallel():')
+        log.debug(results)
         client.close()
+        # return
         cache = Cache(self.cache_dir, results_id)
         cache.save(results)
         
