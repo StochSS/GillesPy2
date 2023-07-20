@@ -24,7 +24,7 @@ class SimulationRunCacheRequest(Request):
     :param kwargs: kwargs for the model.run() call.
     :type kwargs: dict[str, Any]
     '''
-    def __init__(self, model, namespace=None, ignore_cache=False, parallelize=False, **kwargs):
+    def __init__(self, model, namespace=None, ignore_cache=False, parallelize=False, chunk_trajectories=False, **kwargs):
         self.model = model
         self.kwargs = kwargs
         self.id = token_hex(16)
@@ -35,6 +35,7 @@ class SimulationRunCacheRequest(Request):
         self.namespace = namespace
         self.ignore_cache = ignore_cache
         self.parallelize = parallelize
+        self.chunk_trajectories = chunk_trajectories
 
     def encode(self):
         '''
@@ -48,6 +49,7 @@ class SimulationRunCacheRequest(Request):
                 'namespace': self.namespace,
                 'ignore_cache': self.ignore_cache,
                 'parallelize': self.parallelize,
+                'chunk_trajectories': self.chunk_trajectories,
                 }
 
     @staticmethod
@@ -73,9 +75,15 @@ class SimulationRunCacheRequest(Request):
         namespace = request_dict.get('namespace', None)
         ignore_cache = request_dict.get('ignore_cache', None)
         parallelize = request_dict.get('parallelize', None)
-        if None in (model, id, results_id, ignore_cache, parallelize):
+        chunk_trajectories = request_dict.get('chunk_trajectories', None)
+        if None in (model, id, results_id, ignore_cache, parallelize, chunk_trajectories):
             raise MessageParseException        
-        _ = SimulationRunCacheRequest(model, namespace=namespace, ignore_cache=ignore_cache, **kwargs)
+        _ = SimulationRunCacheRequest(model,
+                                      namespace=namespace,
+                                      ignore_cache=ignore_cache,
+                                      parallelize=parallelize,
+                                      chunk_trajectories=chunk_trajectories,
+                                      **kwargs)
         _.id = id # apply correct token (from raw request) after object construction.
         _.results_id = results_id # apply correct token (from raw request) after object construction.
         return _
