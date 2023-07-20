@@ -24,6 +24,9 @@ import random
 from filelock import SoftFileLock
 from gillespy2 import Results
 
+from gillespy2.remote.core.utils.log_config import init_logging
+log = init_logging(__name__)
+
 class Cache:
     '''
     Cache
@@ -34,7 +37,11 @@ class Cache:
     :param results_id: Simulation hash.
     :type results_id: str
     '''
-    def __init__(self, cache_dir, results_id):
+    def __init__(self, cache_dir, results_id, namespace=None):
+        if namespace is not None:
+            namespaced_dir = os.path.join(cache_dir, namespace)
+            cache_dir = namespaced_dir
+            log.debug(namespaced_dir)
         if not os.path.exists(cache_dir):
             os.makedirs(cache_dir)
         self.results_path = os.path.join(cache_dir, f'{results_id}.results')
@@ -167,17 +174,17 @@ class Cache:
         :param results: The new Results.
         :type: gillespy2.Results
         '''
-        msg = f'{datetime.now()} | Cache | <{self.results_path}> | '
+        msg = f'<{self.results_path}> | '
         lock = SoftFileLock(f'{self.results_path}.lock')
         with lock:
             with open(self.results_path, 'r+', encoding='utf-8') as file:
                 try:
                     old_results = Results.from_json(file.read())
                     combined_results = results + old_results
-                    print(msg+'Add')
+                    log.info(msg+'Add')
                     file.seek(0)
                     file.write(combined_results.to_json())
                 except JSONDecodeError:
-                    print(msg+'New')
+                    log.info(msg+'New')
                     file.seek(0)
                     file.write(results.to_json())
