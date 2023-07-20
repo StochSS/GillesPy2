@@ -20,6 +20,7 @@ from time import sleep
 from gillespy2 import Results
 from gillespy2.remote.client.endpoint import Endpoint
 from gillespy2.remote.core.errors import RemoteSimulationError
+from gillespy2.remote.core.exceptions import StatusException
 from gillespy2.remote.core.messages.results import ResultsRequest, ResultsResponse
 from gillespy2.remote.core.messages.status import StatusRequest, StatusResponse, SimStatus
 
@@ -83,8 +84,10 @@ class RemoteResults(Results):
         :returns: Simulation status enum as a string.
         :rtype: str
         '''
-        if self._data is not None:
+        if self._data is None:
             return self._status().status.name
+        else:
+            raise StatusException('Cannot call status on a finished simulation.')
 
     def get_gillespy2_results(self):
         """
@@ -113,7 +116,7 @@ class RemoteResults(Results):
         It is undefined/illegal behavior to call this function if self._data is not None.        
         '''
         if self._data is not None:
-            raise Exception('TODO Name this exception class. Cannot call status on a finished simulation.')
+            raise StatusException('Cannot call status on a finished simulation.')
 
         status_request = StatusRequest(self.id, self.n_traj, self.task_id, self.namespace)
 
