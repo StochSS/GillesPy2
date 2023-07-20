@@ -26,3 +26,8 @@ class MessageParseException(Exception):
     '''
     Raised if there is an error parsing a raw HTTP message.
     '''
+
+class StatusException(Exception):
+    '''
+    Raised if there is an error determining the status of a simulation.
+    '''
